@@ -25,6 +25,7 @@ public class Preferences
     public static final String home_display;
     public static final String top_resources;
     public static final boolean splash;
+    public static final String welcome;
     public static final int ui_monitor_period;
     public static final String[] hide_spi_menu;
 
@@ -35,6 +36,7 @@ public class Preferences
         home_display = prefs.get(HOME_DISPLAY);
         top_resources = prefs.get(TOP_RESOURCES);
         splash = prefs.getBoolean(SPLASH);
+        welcome = prefs.get("welcome");
         ui_monitor_period = prefs.getInt("ui_monitor_period");
         hide_spi_menu = prefs.get("hide_spi_menu").split("\\s*,\\s*");
     }
