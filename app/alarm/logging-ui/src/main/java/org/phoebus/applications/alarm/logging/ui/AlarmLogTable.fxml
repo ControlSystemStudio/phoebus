@@ -19,7 +19,8 @@
               <HBox GridPane.hgrow="ALWAYS">
                 <children>
                   <Label alignment="CENTER" contentDisplay="CENTER" text="Query: " />
-                  <TextField fx:id="query" onAction="#updateQuery" HBox.hgrow="ALWAYS" />
+                  <!-- <TextField fx:id="query" onAction="#updateQuery" HBox.hgrow="ALWAYS" /> -->
+                  <TextField fx:id="query" HBox.hgrow="ALWAYS" />
                   <Button fx:id="search" mnemonicParsing="false" onAction="#search" text="search" />
                 </children>
               </HBox>
@@ -39,7 +40,7 @@
           <TableColumn fx:id="currentSeverityCol" minWidth="50.0" prefWidth="75.0" text="Current Severity" />
           <TableColumn fx:id="currentMessageCol" minWidth="50.0" prefWidth="75.0" text="Current Message" />
           <TableColumn fx:id="mode" minWidth="50.0" prefWidth="75.0" text="Mode" />
-          <TableColumn fx:id="actionCol" minWidth="50.0" prefWidth="75.0" text="Action" />
+          <TableColumn fx:id="commandCol" minWidth="50.0" prefWidth="75.0" text="Command" />
           <TableColumn fx:id="userCol" minWidth="50.0" prefWidth="75.0" text="User" />
           <TableColumn fx:id="hostCol" minWidth="50.0" prefWidth="75.0" text="Host" />
         </columns>

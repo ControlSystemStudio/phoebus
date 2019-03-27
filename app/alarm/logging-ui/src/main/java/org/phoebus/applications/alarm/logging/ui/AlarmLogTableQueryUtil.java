@@ -15,7 +15,7 @@ public class AlarmLogTableQueryUtil {
 
     // Ordered search keys
     public static enum Keys {
-        SEARCH("search"), LOGBOOKS("logbook"), TAGS("tag"), STARTTIME("start"), ENDTIME("end");
+        PV("pv"), SEVERITY("severity"), MESSAGE("message"), CURRENTSEVERITY("current_severity"), CURRENTMESSAGE("current_message"), USER("user"), HOST("host"), COMMAND("command"), STARTTIME("start"), ENDTIME("end");
         private final String name;
 
         private Keys(String name) {

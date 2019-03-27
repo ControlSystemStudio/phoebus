@@ -1,7 +1,6 @@
 package org.phoebus.applications.alarm.logging.ui;
 
 import static org.phoebus.applications.alarm.logging.ui.AlarmLogTableApp.logger;
-import org.phoebus.applications.alarm.logging.ui.AlarmLogTableQueryUtil.Keys;
 
 import org.phoebus.util.time.TimeParser;
 import java.util.Arrays;
@@ -25,6 +24,7 @@ import java.util.logging.Level;
 
 import org.elasticsearch.client.RestHighLevelClient;
 import org.phoebus.applications.alarm.logging.ui.AlarmLogTableType;
+import org.phoebus.applications.alarm.logging.ui.AlarmLogTableQueryUtil.Keys;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -69,7 +69,7 @@ public class AlarmLogTableController {
     @FXML
     TableColumn<AlarmLogTableType, String> mode;
     @FXML
-    TableColumn<AlarmLogTableType, String> actionCol;
+    TableColumn<AlarmLogTableType, String> commandCol;
     @FXML
     TableColumn<AlarmLogTableType, String> userCol;
     @FXML
@@ -184,8 +184,8 @@ public class AlarmLogTableController {
                 });
         tableView.getColumns().add(currentMessageCol);
         
-        actionCol = new TableColumn<>("Action");
-        actionCol.setCellValueFactory(
+        commandCol = new TableColumn<>("Command");
+        commandCol.setCellValueFactory(
                 new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
                     @Override
                     public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
@@ -204,7 +204,7 @@ public class AlarmLogTableController {
                         return null;
                     }
                 });
-        tableView.getColumns().add(actionCol);
+        tableView.getColumns().add(commandCol);
         
         userCol = new TableColumn<>("User");
         userCol.setCellValueFactory(
@@ -227,26 +227,17 @@ public class AlarmLogTableController {
         tableView.getColumns().add(hostCol);
 
         searchParameters = FXCollections.<Keys, String>observableHashMap();
-        searchParameters.put(Keys.SEARCH, "*");
-        searchParameters.put(Keys.STARTTIME, TimeParser.format(java.time.Duration.ofHours(8)));
+        searchParameters.put(Keys.PV, "*");
+        searchParameters.put(Keys.MESSAGE, "*");
+        searchParameters.put(Keys.SEVERITY, "*");
+        searchParameters.put(Keys.CURRENTSEVERITY, "*");
+        searchParameters.put(Keys.CURRENTMESSAGE, "*");
+        searchParameters.put(Keys.COMMAND, "*");
+        searchParameters.put(Keys.USER, "*");
+        searchParameters.put(Keys.HOST, "*");
+        searchParameters.put(Keys.STARTTIME, TimeParser.format(java.time.Duration.ofDays(7)));
         searchParameters.put(Keys.ENDTIME, TimeParser.format(java.time.Duration.ZERO));
-        
-        searchParameters.addListener(new MapChangeListener<Keys, String>() {
-            @Override
-            public void onChanged(Change<? extends Keys, ? extends String> change) {
-                Platform.runLater(() -> {
-                    query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
-                        return e.getKey().getName().trim() + "=" + e.getValue().trim();
-                    }).collect(Collectors.joining("&")));
-                    searchText.setText(searchParameters.get(Keys.SEARCH));
-                });
-            }
-        });
 
-//        startTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.STARTTIME));
-//        endTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.ENDTIME));
-
-//        searchText.setText(searchParameters.get(Keys.SEARCH));
         query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
             return e.getKey().getName().trim() + "=" + e.getValue().trim();
         }).collect(Collectors.joining("&")));
@@ -266,7 +257,7 @@ public class AlarmLogTableController {
             if (alarmLogSearchJob != null) {
                 alarmLogSearchJob.cancel();
             }
-            alarmLogSearchJob = AlarmLogSearchJob.submit(searchClient, searchString,
+            alarmLogSearchJob = AlarmLogSearchJob.submit(searchClient, searchString, searchParameters,
                     result -> Platform.runLater(() -> setAlarmMessages(result)), (url, ex) -> {
                         logger.log(Level.WARNING, "Shutting down alarm log message scheduler.", ex);
                         runningTask.cancel(true);
@@ -276,7 +267,6 @@ public class AlarmLogTableController {
 
     public void setSearchString(String searchString) {
         this.searchString = searchString;
-        peroidicSearch();
     }
 
     public List<AlarmLogTableType> getAlarmMessages() {
@@ -292,13 +282,12 @@ public class AlarmLogTableController {
         this.searchClient = client;
     }
 
-    @FXML
     void updateQuery() {
         Arrays.asList(query.getText().split("&")).forEach(s -> {
             String key = s.split("=")[0];
-            for (Keys k : Keys.values()) {
-                if (k.getName().equals(key)) {
-                    searchParameters.put(k, s.split("=")[1]);
+            for (Map.Entry<Keys, String> entry : searchParameters.entrySet()) {
+                if (entry.getKey().getName().equals(key)) {
+                    searchParameters.put(entry.getKey(), s.split("=")[1]);
                 }
             }
         });
@@ -306,12 +295,10 @@ public class AlarmLogTableController {
 
     @FXML
     public void search() {
+        updateQuery();
         peroidicSearch();
     }
-	/*
-	 * public void setQuery(String parsedQuery) { query.setText(parsedQuery);
-	 * updateQuery(); search(); }
-	 */
+	
     public void shutdown() {
         if (runningTask != null) {
             runningTask.cancel(true);
