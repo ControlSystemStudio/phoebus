@@ -393,10 +393,12 @@ public class EditorGUI
         logger.log(Level.FINE, "Save as {0}", file);
         try
         (
-            final ModelWriter writer = new ModelWriter(new FileOutputStream(file));
+            final FileOutputStream fwriter = new FileOutputStream(file);
+            final ModelWriter writer = new ModelWriter(fwriter);
         )
         {
             writer.writeModel(editor.getModel());
+            fwriter.flush();
             this.file = file;
             editor.getUndoableActionManager().clear();
         }
