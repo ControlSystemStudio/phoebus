@@ -24,6 +24,7 @@ import java.util.logging.Level;
 
 import org.csstudio.scan.command.Comparison;
 import org.csstudio.scan.command.LoopCommand;
+import org.csstudio.scan.device.VTypeHelper;
 import org.csstudio.scan.server.MacroContext;
 import org.csstudio.scan.server.ScanCommandImpl;
 import org.csstudio.scan.server.ScanCommandImplTool;
@@ -32,7 +33,6 @@ import org.csstudio.scan.server.SimulationContext;
 import org.csstudio.scan.server.condition.NumericValueCondition;
 import org.csstudio.scan.server.device.Device;
 import org.csstudio.scan.server.device.SimulatedDevice;
-import org.csstudio.scan.server.device.VTypeHelper;
 import org.csstudio.scan.server.internal.JythonSupport;
 import org.csstudio.scan.server.log.DataLog;
 import org.phoebus.util.time.TimeDuration;

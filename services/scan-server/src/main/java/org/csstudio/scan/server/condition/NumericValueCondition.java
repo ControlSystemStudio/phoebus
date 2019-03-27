@@ -19,10 +19,10 @@ import java.time.Duration;
 import java.util.concurrent.TimeoutException;
 
 import org.csstudio.scan.command.Comparison;
+import org.csstudio.scan.device.VTypeHelper;
 import org.csstudio.scan.server.ScanServerInstance;
 import org.csstudio.scan.server.device.Device;
 import org.csstudio.scan.server.device.DeviceListener;
-import org.csstudio.scan.server.device.VTypeHelper;
 
 /** Condition that waits for a Device to reach a certain numeric value.
  *

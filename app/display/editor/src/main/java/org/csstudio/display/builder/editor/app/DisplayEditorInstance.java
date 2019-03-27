@@ -123,8 +123,7 @@ public class DisplayEditorInstance implements AppInstance
     {
         ActionWapper(ActionDescription action)
         {
-            // Always use 'simple' text without " [Some Shortcut Key]"
-            super(action.getToolTip().replaceAll(" \\[.*", ""),
+            super(action.getToolTip(),
                   ImageCache.getImageView(action.getIconResourcePath()));
             setOnAction(event -> action.run(getEditorGUI().getDisplayEditor()));
         }
@@ -132,68 +131,75 @@ public class DisplayEditorInstance implements AppInstance
 
     private void handleContextMenu(final ContextMenu menu)
     {
-        final ObservableList<MenuItem> items = menu.getItems();
-        // Execute
-        items.setAll(ExecuteDisplayAction.asMenuItem(this));
-        items.add(new SeparatorMenuItem());
-
-        // Depending on number of selected widgets,
-        // allow grouping, ungrouping, morphing
+        // Depending on number of selected widgets, allow grouping, ungrouping, morphing
         final List<Widget> selection = editor_gui.getDisplayEditor().getWidgetSelectionHandler().getSelection();
-
-        // Edit copy, paste, ..
-        if (selection.size() > 0)
+        final ActionWapper cut = new ActionWapper(ActionDescription.CUT);
+        final ActionWapper copy = new ActionWapper(ActionDescription.COPY);
+        final MenuItem group = new CreateGroupAction(editor_gui.getDisplayEditor(), selection);
+        final MenuItem morph = new MorphWidgetsMenu(editor_gui.getDisplayEditor());
+        final MenuItem back = new ActionWapper(ActionDescription.TO_BACK);
+        final MenuItem front = new ActionWapper(ActionDescription.TO_FRONT);
+        if (selection.size() <= 0)
         {
-            items.add(new ActionWapper(ActionDescription.COPY));
-            items.add(new ActionWapper(ActionDescription.DELETE));
-        }
-        items.add(new PasteWidgets(getEditorGUI()));
-        items.add(new SeparatorMenuItem());
-
-        // OK to create (resp. 'start') a group with just one widget.
-        // Even better when there's more than one widget.
-        if (selection.size() >= 1)
-        {
-            items.add(new CreateGroupAction(editor_gui.getDisplayEditor(), selection));
-
-            if (selection.size() == 1  &&  selection.get(0) instanceof GroupWidget)
-                items.add(new RemoveGroupAction(editor_gui.getDisplayEditor(), (GroupWidget)selection.get(0)));
-
-            if (selection.size() == 1  &&  selection.get(0) instanceof EmbeddedDisplayWidget)
-                items.add(new EditEmbeddedDisplayAction(app, (EmbeddedDisplayWidget)selection.get(0)));
-
-            items.add(new MorphWidgetsMenu(editor_gui.getDisplayEditor()));
-
-            items.add(new ActionWapper(ActionDescription.TO_BACK));
-            items.add(new ActionWapper(ActionDescription.TO_FRONT));
-            items.add(new SeparatorMenuItem());
+            cut.setDisable(true);
+            copy.setDisable(true);
+            // OK to create (resp. 'start') a group with just one widget.
+            // Even better when there's more than one widget.
+            group.setDisable(true);
+            morph.setDisable(true);
+            back.setDisable(true);
+            front.setDisable(true);
         }
 
-        // Reload display, classes
-        items.add(new ReloadDisplayAction(this));
+        final MenuItem ungroup;
+        if (selection.size() == 1  &&  selection.get(0) instanceof GroupWidget)
+            ungroup = new RemoveGroupAction(editor_gui.getDisplayEditor(), (GroupWidget)selection.get(0));
+        else
+        {
+            ungroup = new RemoveGroupAction(editor_gui.getDisplayEditor(), null);
+            ungroup.setDisable(true);
+        }
+
+        final MenuItem embedded;
+        if (selection.size() == 1  &&  selection.get(0) instanceof EmbeddedDisplayWidget)
+            embedded = new EditEmbeddedDisplayAction(app, (EmbeddedDisplayWidget)selection.get(0));
+        else
+        {
+            embedded = new EditEmbeddedDisplayAction(app, null);
+            embedded.setDisable(true);
+        }
 
         final DisplayModel model = editor_gui.getDisplayEditor().getModel();
-        if (model != null  &&  !model.isClassModel())
-        {
-            items.add(new ReloadClassesAction(this));
-
-            // No widgets selected: Add actions for just the model
-            if (selection.isEmpty())
-                items.add(new SetDisplaySize(editor_gui.getDisplayEditor()));
-        }
-
-        // Show/hide other panels
-        items.add(new SeparatorMenuItem());
+        final MenuItem reload_classes = new ReloadClassesAction(this);
+        if (model == null  ||  model.isClassModel())
+            reload_classes.setDisable(true);
 
         final CheckMenuItem show_tree = new CheckMenuItem("Show Widget Tree");
         show_tree.setSelected(editor_gui.isWidgetTreeShown());
         show_tree.setOnAction(event -> editor_gui.showWidgetTree(! editor_gui.isWidgetTreeShown()));
-        items.add(show_tree);
-
         final CheckMenuItem show_props = new CheckMenuItem("Show Properties");
         show_props.setSelected(editor_gui.arePropertiesShown());
         show_props.setOnAction(event -> editor_gui.showProperties(! editor_gui.arePropertiesShown()));
-        items.add(show_props);
+
+        menu.getItems().setAll(cut,
+                               copy,
+                               new PasteWidgets(getEditorGUI()),
+                               new SeparatorMenuItem(),
+                               group,
+                               ungroup,
+                               new SeparatorMenuItem(),
+                               morph,
+                               back,
+                               front,
+                               new SetDisplaySize(editor_gui.getDisplayEditor()),
+                               new SeparatorMenuItem(),
+                               ExecuteDisplayAction.asMenuItem(this),
+                               new ReloadDisplayAction(this),
+                               reload_classes,
+                               new SeparatorMenuItem(),
+                               embedded,
+                               show_tree,
+                               show_props);
     }
 
     @Override

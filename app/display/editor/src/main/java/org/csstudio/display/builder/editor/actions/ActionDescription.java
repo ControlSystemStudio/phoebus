@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 import org.csstudio.display.builder.editor.DisplayEditor;
 import org.csstudio.display.builder.editor.Messages;
@@ -19,6 +20,7 @@ import org.csstudio.display.builder.editor.undo.SetWidgetPropertyAction;
 import org.csstudio.display.builder.editor.undo.UpdateWidgetOrderAction;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
+import org.phoebus.ui.javafx.PlatformInfo;
 import org.phoebus.ui.undo.CompoundUndoableAction;
 import org.phoebus.ui.undo.UndoableActionManager;
 
@@ -34,7 +36,7 @@ public abstract class ActionDescription
 {
     /** Copy selected widgets */
     public static final ActionDescription COPY =
-        new ActionDescription("icons/copy_edit.png", Messages.Copy)
+        new ActionDescription("icons/copy_edit.png", Messages.Copy + " [" + PlatformInfo.SHORTCUT + "-C]")
     {
         @Override
         public void run(final DisplayEditor editor, final boolean selected)
@@ -44,8 +46,8 @@ public abstract class ActionDescription
     };
 
     /** Delete selected widgets */
-    public static final ActionDescription DELETE =
-        new ActionDescription("icons/delete.png", Messages.Delete)
+    public static final ActionDescription CUT =
+        new ActionDescription("icons/cut_edit.png", Messages.Cut + " [" + PlatformInfo.SHORTCUT + "-X]")
     {
         @Override
         public void run(final DisplayEditor editor, final boolean selected)
@@ -102,7 +104,7 @@ public abstract class ActionDescription
 
     /** Move widget one step to the back */
     public static final ActionDescription MOVE_UP =
-        new ActionDescription("icons/up.png", Messages.MoveUp)
+        new ActionDescription("icons/widget_up.png", Messages.MoveUp)
     {
         @Override
         public void run(final DisplayEditor editor, final boolean selected)
@@ -149,7 +151,7 @@ public abstract class ActionDescription
 
     /** Move widget one step to the front */
     public static final ActionDescription MOVE_DOWN =
-        new ActionDescription("icons/down.png", Messages.MoveDown)
+        new ActionDescription("icons/widget_down.png", Messages.MoveDown)
     {
         @Override
         public void run(final DisplayEditor editor, final boolean selected)
@@ -380,25 +382,106 @@ public abstract class ActionDescription
             final List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
             final UndoableActionManager undo = editor.getUndoableActionManager();
             final int N = widgets.size();
+
             if (N < 3)
                 return;
 
-            // Get left/right
-            int left = widgets.get(0).propX().getValue() + widgets.get(0).propWidth().getValue()/2;
-            int right = left;
-            for (int i=1; i<N; ++i)
-            {
-                int center = widgets.get(i).propX().getValue() + widgets.get(i).propWidth().getValue()/2;
-                left = Math.min(left, center);
-                right = Math.max(right, center);
-            }
+            final int min = widgets.stream()
+                                   .mapToInt(w -> w.propX().getValue())
+                                   .min()
+                                   .orElseThrow(NoSuchElementException::new);
+            final int max = widgets.stream()
+                                   .mapToInt(w -> w.propX().getValue() + w.propWidth().getValue())
+                                   .max()
+                                   .orElseThrow(NoSuchElementException::new);
+            final int totalWidth = widgets.stream()
+                                          .mapToInt(w -> w.propWidth().getValue())
+                                          .sum();
 
-            // Set widget's X coord to distribute centers horizontally
-            for (int i=0; i<N; ++i)
+            final int offset = ( max - min - totalWidth ) / ( N - 1 );
+            final List<Widget> sortedWidgets = widgets.stream()
+                                                      .sorted(( w1, w2 ) ->
             {
-                final int dest = left + i*(right - left)/(N-1);
-                undo.execute(new SetWidgetPropertyAction<>(widgets.get(i).propX(),
-                                                                  dest - widgets.get(i).propWidth().getValue()/2));
+                    final int w1x = w1.propX().getValue().intValue();
+                    final int w1w = w1.propWidth().getValue().intValue();
+                    final int w2x = w2.propX().getValue().intValue();
+                    final int w2w = w2.propWidth().getValue().intValue();
+
+                    if ( w1x <= w2x && w1x + w1w <= w2x + w2w )
+                    {   //  +------+        |   +------+
+                        //  |  w1  |            |  w1  |
+                        //  +------+        |   +------+
+                        //     +--------+                  +--------+
+                        //     |   w2   |   |              |   w2   |
+                        //     +--------+                  +--------+
+                        return -1;
+                    }
+                    else if ( w1x >= w2x && w1x + w1w >= w2x + w2w )
+                    {   //  +------+        |   +------+
+                        //  |  w2  |            |  w2  |
+                        //  +------+        |   +------+
+                        //     +--------+                  +--------+
+                        //     |   w1   |   |              |   w1   |
+                        //     +--------+                  +--------+
+                        return 1;
+                    }
+                    else
+                    {   //  +--------------------+  |  +--------------------+
+                        //  |         w1         |     |         w1         |
+                        //  +--------------------+  |  +--------------------+
+                        //          +--------+         +--------------------+
+                        //          |   w2   |      |  |         w2         |
+                        //          +--------+         +--------------------+
+                        return ( w1x + w1w / 2 ) - ( w2x + w2w / 2 );
+                    }
+                })
+                .collect(Collectors.toList());
+
+            if (offset >= 0)
+            {
+                //  Equal gap distribution...
+                //  ------------------------------------------------------------
+                Widget widget = sortedWidgets.get(0);
+                int location = widget.propX().getValue();
+                int width = widget.propWidth().getValue();
+
+                for ( int i = 1; i < N - 1; i++ )
+                {
+                    widget = sortedWidgets.get(i);
+                    location += width + offset;
+
+                    undo.execute(new SetWidgetPropertyAction<>(widget.propX(), location));
+
+                    width = widget.propWidth().getValue();
+                }
+            }
+            else if ( offset < 0 )
+            {
+                //  Centers distribution...
+                //  ------------------------------------------------------------
+                //  First (leftmost) and last (rightmost) elements of the list
+                //  are kept at their original position, the other widgets'
+                //  centers are equally distributed between the centers of first
+                //  and last widgets.
+                Widget widget = sortedWidgets.get(N - 1);
+                int location = widget.propX().getValue();
+                int width = widget.propWidth().getValue();
+
+                final int rightCenter = location + width / 2;
+
+                widget = sortedWidgets.get(0);
+                location = widget.propX().getValue();
+                width = widget.propWidth().getValue();
+
+                final int leftCenter = location + width / 2;
+                final int coffset = ( rightCenter - leftCenter ) /  ( N - 1 );
+
+                for ( int i = 1; i < N - 1; i++ )
+                {
+                    widget = sortedWidgets.get(i);
+                    width = widget.propWidth().getValue();
+                    undo.execute(new SetWidgetPropertyAction<>(widget.propX(), ( leftCenter + i * coffset ) - width / 2));
+                }
             }
         }
     };
@@ -413,25 +496,119 @@ public abstract class ActionDescription
             final List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
             final UndoableActionManager undo = editor.getUndoableActionManager();
             final int N = widgets.size();
+
             if (N < 3)
                 return;
 
-            // Get top/bottom
-            int top = widgets.get(0).propY().getValue() + widgets.get(0).propHeight().getValue()/2;
-            int bottom = top;
-            for (int i=1; i<N; ++i)
-            {
-                int middle = widgets.get(i).propY().getValue() + widgets.get(i).propHeight().getValue()/2;
-                top = Math.min(top, middle);
-                bottom = Math.max(bottom, middle);
-            }
+            final int min = widgets.stream()
+                                   .mapToInt(w -> w.propY().getValue())
+                                   .min()
+                                   .orElseThrow(NoSuchElementException::new);
+            final int max = widgets.stream()
+                                   .mapToInt(w -> w.propY().getValue() + w.propHeight().getValue())
+                                   .max()
+                                   .orElseThrow(NoSuchElementException::new);
+            final int totalHeight = widgets.stream()
+                                           .mapToInt(w -> w.propHeight().getValue())
+                                           .sum();
 
-            // Set widget's Y coord to distribute centers horizontally
-            for (int i=0; i<N; ++i)
+            final int offset = ( max - min - totalHeight ) / ( N - 1 );
+            final List<Widget> sortedWidgets = widgets.stream()
+                                                      .sorted(( w1, w2 ) ->
             {
-                final int dest = top + i*(bottom - top)/(N-1);
-                undo.execute(new SetWidgetPropertyAction<>(widgets.get(i).propY(),
-                                                                  dest - widgets.get(i).propHeight().getValue()/2));
+                    final int w1y = w1.propY().getValue().intValue();
+                    final int w1h = w1.propHeight().getValue().intValue();
+                    final int w2y = w2.propY().getValue().intValue();
+                    final int w2h = w2.propHeight().getValue().intValue();
+
+                    if ( w1y <= w2y && w1y + w1h <= w2y + w2h )
+                    {   //  +----+          |  +----+
+                        //  |    |             |    |
+                        //  | w1 |  +----+  |  | w1 |
+                        //  |    |  |    |     |    |
+                        //  +----+  |    |  |  +----+
+                        //          | w2 |
+                        //          |    |  |          +----+
+                        //          |    |             |    |
+                        //          +----+  |          |    |
+                        //                             | w2 |
+                        //                  |          |    |
+                        //                             |    |
+                        //                  |          +----+
+                        return -1;
+                    }
+                    else if ( w1y >= w2y && w1y + w1h >= w2y + w2h )
+                    {   //  +----+          |  +----+
+                        //  |    |             |    |
+                        //  | w2 |  +----+  |  | w2 |
+                        //  |    |  |    |     |    |
+                        //  +----+  |    |  |  +----+
+                        //          | w1 |
+                        //          |    |  |          +----+
+                        //          |    |             |    |
+                        //          +----+  |          |    |
+                        //                             | w1 |
+                        //                  |          |    |
+                        //                             |    |
+                        //                  |          +----+
+                        return 1;
+                    }
+                    else
+                    {   //  +----+          |  +----+  +----+
+                        //  |    |          |  |    |  |    |
+                        //  |    |          |  |    |  |    |
+                        //  |    |  +----+  |  |    |  |    |
+                        //  | w1 |  |    |  |  | w1 |  | w2 |
+                        //  |    |  | w2 |  |  |    |  |    |
+                        //  |    |  |    |  |  |    |  |    |
+                        //  |    |  +----+  |  |    |  |    |
+                        //  +----+          |  +----+  +----+
+                        return ( w1y + w1h / 2 ) - ( w2y + w2h / 2 );
+                    }
+            }).collect(Collectors.toList());
+
+            if ( offset >= 0 )
+            {
+                //  Equal gap distribution...
+                //  ------------------------------------------------------------
+                Widget widget = sortedWidgets.get(0);
+                int location = widget.propY().getValue();
+                int height = widget.propHeight().getValue();
+
+                for ( int i = 1; i < N - 1; i++ )
+                {
+                    widget = sortedWidgets.get(i);
+                    location += height + offset;
+                    undo.execute(new SetWidgetPropertyAction<>(widget.propY(), location));
+                    height = widget.propHeight().getValue();
+                }
+            }
+            else if ( offset < 0 )
+            {
+                //  Centers distribution...
+                //  ------------------------------------------------------------
+                //  First (topmost) and last (bottom-most) elements of the list
+                //  are kept at their original position, the other widgets'
+                //  centers are equally distributed between the centers of first
+                //  and last widgets.
+                Widget widget = sortedWidgets.get(N - 1);
+                int location = widget.propY().getValue();
+                int height = widget.propHeight().getValue();
+
+                final int bottomCenter = location + height / 2;
+
+                widget = sortedWidgets.get(0);
+                location = widget.propY().getValue();
+                height = widget.propHeight().getValue();
+
+                final int topCenter = location + height / 2;
+                final int coffset = ( bottomCenter - topCenter ) /  ( N - 1 );
+                for ( int i = 1; i < N - 1; i++ )
+                {
+                    widget = sortedWidgets.get(i);
+                    height = widget.propHeight().getValue();
+                    undo.execute(new SetWidgetPropertyAction<>(widget.propY(), ( topCenter + i * coffset ) - height / 2));
+                }
             }
         }
     };

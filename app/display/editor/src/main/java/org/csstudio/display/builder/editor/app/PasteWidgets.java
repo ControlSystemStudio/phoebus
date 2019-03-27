@@ -10,19 +10,25 @@ package org.csstudio.display.builder.editor.app;
 import org.csstudio.display.builder.editor.EditorGUI;
 import org.csstudio.display.builder.editor.Messages;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.PlatformInfo;
 
 import javafx.scene.control.MenuItem;
+import javafx.scene.input.Clipboard;
 
 /** Menu entry to paste widgets from clipboard */
 @SuppressWarnings("nls")
 public class PasteWidgets extends MenuItem
 {
-    public PasteWidgets(EditorGUI gui)
+    public PasteWidgets(final EditorGUI gui)
     {
-        super(Messages.Paste, ImageCache.getImageView(ImageCache.class, "/icons/paste.png"));
-        setOnAction(event ->
-        {
-            gui.pasteFromClipboard();
-        });
+        super(Messages.Paste + " [" + PlatformInfo.SHORTCUT + "-V]", ImageCache.getImageView(ImageCache.class, "/icons/paste.png"));
+
+        // Anything on clipboard?
+        // Does it look like widget XML?
+        final String xml = Clipboard.getSystemClipboard().getString();
+        if (xml != null  &&  xml.startsWith("<?xml")  &&   xml.contains("<display"))
+            setOnAction(event -> gui.pasteFromClipboard());
+        else
+            setDisable(true);
     }
 }

@@ -73,6 +73,10 @@ public class ScanServlet extends HttpServlet
         final String queue_parm = request.getParameter("queue");
         final boolean queue = ! "false".equalsIgnoreCase(queue_parm);
 
+        // Execute pre/post commands unless "?pre_post=false"
+        final String pre_post_parm = request.getParameter("pre_post");
+        final boolean pre_post = ! "false".equalsIgnoreCase(pre_post_parm);
+
         // Read scan commands
         final String scan_commands = IOUtils.toString(request.getInputStream());
 
@@ -83,7 +87,7 @@ public class ScanServlet extends HttpServlet
         // Submit scan
         try
         {
-            final long scan_id = scan_server.submitScan(scan_name, scan_commands, queue);
+            final long scan_id = scan_server.submitScan(scan_name, scan_commands, queue, pre_post);
 
             // Return scan ID
             out.print("<id>");

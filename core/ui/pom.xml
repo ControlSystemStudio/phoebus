@@ -27,20 +27,17 @@
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-web</artifactId>
-      <version>11</version>
-      <type>pom</type>
+      <version>11.0.2</version>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-swing</artifactId>
-      <version>11</version>
-      <type>pom</type>
+      <version>11.0.2</version>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-fxml</artifactId>
-      <version>11</version>
-      <type>pom</type>
+      <version>11.0.2</version>
     </dependency>
 
     <dependency>

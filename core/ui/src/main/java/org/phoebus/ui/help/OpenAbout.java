@@ -66,13 +66,14 @@ public class OpenAbout implements MenuEntry
         final ObservableList<List<String>> infos = FXCollections.observableArrayList();
         infos.add(Arrays.asList(Messages.HelpAboutInst, Locations.install().toString()));
         infos.add(Arrays.asList(Messages.HelpAboutUser, Locations.user().toString()));
+        infos.add(Arrays.asList(Messages.HelpJavaHome, System.getProperty("java.home")));
         infos.add(Arrays.asList(Messages.HelpAboutJava, System.getProperty("java.specification.vendor") + " " + System.getProperty("java.runtime.version")));
         infos.add(Arrays.asList(Messages.HelpAboutJfx, System.getProperty("javafx.runtime.version")));
 
         // Display in TableView
         final TableView<List<String>> info_table = new TableView<>(infos);
         info_table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        info_table.setPrefHeight(200.0);
+        info_table.setPrefHeight(230.0);
 
         final TableColumn<List<String>, String> name_col = new TableColumn<>(Messages.HelpAboutColName);
         name_col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().get(0)));

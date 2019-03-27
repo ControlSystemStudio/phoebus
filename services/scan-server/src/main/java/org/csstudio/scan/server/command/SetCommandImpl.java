@@ -19,13 +19,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.csstudio.scan.command.SetCommand;
+import org.csstudio.scan.device.VTypeHelper;
 import org.csstudio.scan.server.MacroContext;
 import org.csstudio.scan.server.ScanCommandImpl;
 import org.csstudio.scan.server.ScanContext;
 import org.csstudio.scan.server.SimulationContext;
 import org.csstudio.scan.server.WriteHelper;
 import org.csstudio.scan.server.device.SimulatedDevice;
-import org.csstudio.scan.server.device.VTypeHelper;
 import org.csstudio.scan.server.internal.JythonSupport;
 import org.phoebus.util.time.TimeDuration;
 

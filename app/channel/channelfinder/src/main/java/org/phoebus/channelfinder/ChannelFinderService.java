@@ -22,7 +22,6 @@ public class ChannelFinderService {
 
 
     private static ChannelFinderService channelFinderService;
-//    private ServiceLoader<ChannelFinderClient> loader;
     private Map<String, ChannelFinderClient> channelFinderClients;
 
     private static final String DEFAULT = "default";
@@ -43,12 +42,10 @@ public class ChannelFinderService {
      * @return {@link ChannelFinderClient} a client to query for channels
      */
     public ChannelFinderClient getClient() {
-        if(channelFinderClients.containsKey(DEFAULT)) {
-            return channelFinderClients.get(DEFAULT);
-        }else {
+        if(!channelFinderClients.containsKey(DEFAULT)) {
             channelFinderClients.put(DEFAULT, CFCBuilder.serviceURL().create());
-            return channelFinderClients.get(DEFAULT);
         }
+        return channelFinderClients.get(DEFAULT);
     }
 
 }
