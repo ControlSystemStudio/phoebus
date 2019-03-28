@@ -83,13 +83,21 @@ public class AlarmLogSearchJob implements JobRunnable {
             String key = entry.getKey().getName();
             String value = entry.getValue();
             if (key.equals("start")) {
-                TemporalAmount time = TimeParser.parseTemporalAmount(value);
-                from = formatter.format(Instant.now().minus(time));
+                Object time = TimeParser.parseInstantOrTemporalAmount(value);
+                if (time instanceof Instant) {
+                    from = formatter.format((Instant)time);
+                } else if (time instanceof TemporalAmount) {
+                    from = formatter.format(Instant.now().minus((TemporalAmount)time));
+                }
                 continue;
             }
             if (key.equals("end")) {
-                TemporalAmount time = TimeParser.parseTemporalAmount(value);
-                to = formatter.format(Instant.now().minus(time));
+                Object time = TimeParser.parseInstantOrTemporalAmount(value);
+                if (time instanceof Instant) {
+                    to = formatter.format((Instant)time);
+                } else if (time instanceof TemporalAmount) {
+                    to = formatter.format(Instant.now().minus((TemporalAmount)time));
+                }
                 continue;
             }
             if (!value.equals("*")) {
