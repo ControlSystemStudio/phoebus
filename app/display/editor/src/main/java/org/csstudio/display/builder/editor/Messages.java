@@ -33,6 +33,8 @@ public class Messages
     public static String DownloadPromptFMT;
     public static String DownloadTitle;
     public static String EditEmbededDisplay;
+    public static String FileChangedHdr;
+    public static String FileChangedDlg;
     public static String FindWidget;
     public static String Grid;
     public static String LoadDisplay;
@@ -63,9 +65,12 @@ public class Messages
     public static String ScriptCountFMT;
     public static String SearchTextField;
     public static String SelectZoomLevel;
+    public static String SetDisplaySize;
     public static String SetPropertyFmt;
     public static String SetWidgetPoints;
     public static String ShowCoordinates;
+    public static String ShowProperties;
+    public static String ShowWidgetTree;
     public static String Size;
     public static String Snap;
     public static String UpdateWidgetLocation;

@@ -8,10 +8,8 @@
 package org.csstudio.display.builder.editor.app;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.attribute.FileTime;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -19,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.csstudio.display.builder.editor.EditorGUI;
 import org.csstudio.display.builder.editor.EditorUtil;
+import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.editor.actions.ActionDescription;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.ModelPlugin;
@@ -73,7 +72,7 @@ public class DisplayEditorInstance implements AppInstance
         Platform.runLater(() -> dock_item.setLabel(property.getValue()));
 
     /** Last time the file was modified */
-    private volatile FileTime modification_marker = null;
+    private volatile long modification_marker = 0;
 
     DisplayEditorInstance(final DisplayEditorApplication app)
     {
@@ -174,10 +173,10 @@ public class DisplayEditorInstance implements AppInstance
         if (model == null  ||  model.isClassModel())
             reload_classes.setDisable(true);
 
-        final CheckMenuItem show_tree = new CheckMenuItem("Show Widget Tree");
+        final CheckMenuItem show_tree = new CheckMenuItem(Messages.ShowWidgetTree);
         show_tree.setSelected(editor_gui.isWidgetTreeShown());
         show_tree.setOnAction(event -> editor_gui.showWidgetTree(! editor_gui.isWidgetTreeShown()));
-        final CheckMenuItem show_props = new CheckMenuItem("Show Properties");
+        final CheckMenuItem show_props = new CheckMenuItem(Messages.ShowProperties);
         show_props.setSelected(editor_gui.arePropertiesShown());
         show_props.setOnAction(event -> editor_gui.showProperties(! editor_gui.arePropertiesShown()));
 
@@ -264,14 +263,8 @@ public class DisplayEditorInstance implements AppInstance
         dock_item.setInput(resource);
 
         final File file = new File(resource);
-        try
-        {
-            modification_marker = Files.getLastModifiedTime(file.toPath());
-        }
-        catch (IOException ex)
-        {
-            modification_marker = null;
-        }
+        modification_marker = file.lastModified();
+
         editor_gui.loadModel(file);
 
         // New model is now loaded in background thread,
@@ -312,25 +305,20 @@ public class DisplayEditorInstance implements AppInstance
         if (file.equals(proper))
         {
             // Check if file has been changed outside of this editor
-            final FileTime as_loaded = modification_marker;
-            if (as_loaded != null  &&  file.exists()  &&  file.canRead())
+            final long as_loaded = modification_marker;
+            if (as_loaded != 0  &&  file.exists()  &&  file.canRead())
             {
-                final FileTime current = Files.getLastModifiedTime(file.toPath());
-                if (! current.equals(as_loaded))
+                final long current = file.lastModified();
+                if (current != as_loaded)
                 {
                     final CompletableFuture<ButtonType> response = new CompletableFuture<>();
                     // Prompt on UI thread
                     Platform.runLater(() ->
                     {
                         final Alert prompt = new Alert(AlertType.CONFIRMATION);
-                        prompt.setTitle("File has changed");
+                        prompt.setTitle(Messages.FileChangedHdr);
                         prompt.setResizable(true);
-                        prompt.setHeaderText(
-                            "The file\n   " + file.toString() + "\n" +
-                            "has been changed while you were editing it.\n\n" +
-                            "'OK' to save and thus overwrite what somebody else has written,\n" +
-                            "or\n" +
-                            "'Cancel' and then re-load the file or save it under a different name.");
+                        prompt.setHeaderText(MessageFormat.format(Messages.FileChangedDlg, file.toString()));
                         DialogHelper.positionDialog(prompt, dock_item.getTabPane(), -200, -200);
                         response.complete(prompt.showAndWait().orElse(ButtonType.CANCEL));
                     });
@@ -342,7 +330,7 @@ public class DisplayEditorInstance implements AppInstance
             }
 
             editor_gui.saveModelAs(file);
-            modification_marker = Files.getLastModifiedTime(file.toPath());
+            modification_marker = file.lastModified();
         }
         else
         {   // Save-As with proper file name
@@ -355,7 +343,7 @@ public class DisplayEditorInstance implements AppInstance
     private void dispose()
     {
         dock_item.setInput(null);
-        modification_marker = null;
+        modification_marker = 0;
         editor_gui.dispose();
     }
 }
