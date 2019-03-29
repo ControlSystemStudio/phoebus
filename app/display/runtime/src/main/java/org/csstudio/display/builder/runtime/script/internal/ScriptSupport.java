@@ -15,10 +15,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Queue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.properties.ScriptInfo;
@@ -132,11 +134,21 @@ public class ScriptSupport
      */
     Future<Object> submit(final Callable<Object> callable)
     {
-        final Future<Object> running = executor.submit(callable);
-        // No longer track scripts that have finished
-        active_scripts.removeIf(f -> f.isDone());
-        active_scripts.add(running);
-        return running;
+        try
+        {
+            final Future<Object> running = executor.submit(callable);
+            // No longer track scripts that have finished
+            active_scripts.removeIf(f -> f.isDone());
+            active_scripts.add(running);
+            return running;
+        }
+        catch (RejectedExecutionException ex)
+        {
+            // Rejection happens when we submit a script while the display has closed down
+            // Log only at fine level for debugging, otherwise OK to skip the script.
+            logger.log(Level.FINE, "Skipping script, display closed", ex);
+            return CompletableFuture.completedFuture(null);
+        }
     }
 
     /** Release resources (interpreter, ...) */
