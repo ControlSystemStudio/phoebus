@@ -8,6 +8,7 @@
 package org.csstudio.display.builder.editor.app;
 
 import org.csstudio.display.builder.editor.DisplayEditor;
+import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.editor.undo.SetWidgetPropertyAction;
 import org.csstudio.display.builder.editor.util.GeometryTools;
 import org.csstudio.display.builder.model.DisplayModel;
@@ -34,7 +35,7 @@ public class SetDisplaySize extends MenuItem
 {
     public SetDisplaySize(final DisplayEditor editor)
     {
-        super("Size Display to Content",
+        super(Messages.SetDisplaySize,
               ImageCache.getImageView(ModelPlugin.class, "/icons/group.png"));
         setOnAction(event ->
         {
