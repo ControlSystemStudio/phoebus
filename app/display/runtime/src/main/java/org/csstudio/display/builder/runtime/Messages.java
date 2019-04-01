@@ -20,6 +20,9 @@ public class Messages
     public static String SendToLogbook;
     public static String Toolbar_Hide;
     public static String Toolbar_Show;
+    public static String WidgetInformationHdr;
+    public static String WidgetInformationRo;
+    public static String WidgetInformationWr;
 
     static
     {

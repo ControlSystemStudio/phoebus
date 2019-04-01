@@ -7,12 +7,14 @@
  *******************************************************************************/
 package org.csstudio.display.builder.runtime.app;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.representation.javafx.WidgetInfoDialog;
 import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
+import org.csstudio.display.builder.runtime.Messages;
 import org.csstudio.display.builder.runtime.WidgetRuntime;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
 import org.phoebus.ui.javafx.ImageCache;
@@ -32,7 +34,8 @@ public class WidgetInfoAction extends WeakRefWidgetAction
 
     public WidgetInfoAction(final Widget the_widget)
     {
-        super("'" + the_widget.getName() + "' Information", new ImageView(icon), the_widget);
+        //super("'" + the_widget.getName() + "' Information", new ImageView(icon), the_widget);
+        super(MessageFormat.format(Messages.WidgetInformationHdr, the_widget.getName()), new ImageView(icon), the_widget);
 
         setOnAction(event ->
         {
@@ -40,7 +43,7 @@ public class WidgetInfoAction extends WeakRefWidgetAction
             final WidgetRuntime<?> runtime = WidgetRuntime.ofWidget(widget);
             final List<WidgetInfoDialog.NameStateValue> pvs = new ArrayList<>();
             for (RuntimePV pv : runtime.getPVs())
-                pvs.add(new WidgetInfoDialog.NameStateValue(pv.getName(), pv.isReadonly() ? "read-only" : "writable", pv.read()));
+                pvs.add(new WidgetInfoDialog.NameStateValue(pv.getName(), pv.isReadonly() ? Messages.WidgetInformationRo : Messages.WidgetInformationWr, pv.read()));
             final WidgetInfoDialog dialog = new WidgetInfoDialog(widget, pvs);
 
             final Node node = JFXBaseRepresentation.getJFXNode(widget);
