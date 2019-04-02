@@ -114,7 +114,7 @@ public class SelectedWidgetUITracker extends Tracker
         selection.addListener(this::setSelectedWidgets);
 
         // Pass control-click down to underlying widgets
-        addEventFilter(MouseEvent.MOUSE_PRESSED, event ->
+        addEventFilter(MouseEvent.MOUSE_CLICKED, event ->
         {
             if (event.isShortcutDown())
                 passClickToWidgets(event);
