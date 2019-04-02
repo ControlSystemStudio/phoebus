@@ -132,7 +132,7 @@ public class Tracker extends Group
         tracker.addEventHandler(MouseEvent.MOUSE_PRESSED, this::mousePressed);
         tracker.setOnMouseDragged((MouseEvent event) ->
         {
-            if (start_x < 0)
+            if (start_x < 0 || event.isControlDown())
                 return;
             double dx = event.getX() - start_x,  dy = event.getY() - start_y;
             if (event.isShiftDown())
