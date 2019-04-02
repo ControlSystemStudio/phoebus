@@ -113,7 +113,7 @@ public class SelectedWidgetUITracker extends Tracker
         // Track currently selected widgets
         selection.addListener(this::setSelectedWidgets);
 
-        // Pass control-click down to underlying widgets
+        // Pass control-click (for Mac, Command) down to underlying widgets
         addEventFilter(MouseEvent.MOUSE_CLICKED, event ->
         {
             if (event.isShortcutDown())
@@ -123,6 +123,9 @@ public class SelectedWidgetUITracker extends Tracker
         // Allow 'dragging' selected widgets
         setOnDragDetected(event ->
         {
+            // .. when Control (or Mac Command) is down
+            // Otherwise mouse-down-and-move moves the tracker,
+            // doesn't start D&D
             if (! event.isShortcutDown())
                 return;
 
