@@ -3,8 +3,30 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/8.0.102" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.alarm.logging.ui.AlarmLogTableController">
+<SplitPane orientation="VERTICAL" dividerPositions="0.1" xmlns="http://javafx.com/javafx/8.0.102" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.alarm.logging.ui.AlarmLogTableController">
+<items>
+<AnchorPane fx:id="ViewSearchPane">
+            <GridPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+              <HBox GridPane.hgrow="ALWAYS">
+                <children>
+                  <Label alignment="CENTER" contentDisplay="CENTER" text="Query: " />
+                  <!-- <TextField fx:id="query" onAction="#updateQuery" HBox.hgrow="ALWAYS" /> -->
+                  <TextField fx:id="query" HBox.hgrow="ALWAYS" />
+                  <Button fx:id="search" mnemonicParsing="false" onAction="#search" text="search" />
+                </children>
+              </HBox>
+            </GridPane>
+</AnchorPane>
+<AnchorPane>
    <children>
       <TableView fx:id="tableView" prefHeight="250.0" prefWidth="450.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <columns>
@@ -18,7 +40,7 @@
           <TableColumn fx:id="currentSeverityCol" minWidth="50.0" prefWidth="75.0" text="Current Severity" />
           <TableColumn fx:id="currentMessageCol" minWidth="50.0" prefWidth="75.0" text="Current Message" />
           <TableColumn fx:id="mode" minWidth="50.0" prefWidth="75.0" text="Mode" />
-          <TableColumn fx:id="actionCol" minWidth="50.0" prefWidth="75.0" text="Action" />
+          <TableColumn fx:id="commandCol" minWidth="50.0" prefWidth="75.0" text="Command" />
           <TableColumn fx:id="userCol" minWidth="50.0" prefWidth="75.0" text="User" />
           <TableColumn fx:id="hostCol" minWidth="50.0" prefWidth="75.0" text="Host" />
         </columns>
@@ -28,3 +50,5 @@
       </TableView>
    </children>
 </AnchorPane>
+</items>
+</SplitPane>
