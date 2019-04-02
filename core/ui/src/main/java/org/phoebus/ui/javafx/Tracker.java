@@ -132,9 +132,12 @@ public class Tracker extends Group
         tracker.addEventHandler(MouseEvent.MOUSE_PRESSED, this::mousePressed);
         tracker.setOnMouseDragged((MouseEvent event) ->
         {
-            // When Control/Command is pressed, this might be start of copy-D&D,
+            // When Control (Mac: Alt) is pressed, this might be start of copy-D&D,
             // so abort moving tracker
-            if (start_x < 0 || event.isShortcutDown())
+            if (start_x < 0 ||
+                (PlatformInfo.is_mac_os_x
+                 ? event.isAltDown()
+                 : event.isControlDown()))
                 return;
             double dx = event.getX() - start_x,  dy = event.getY() - start_y;
             if (event.isShiftDown())

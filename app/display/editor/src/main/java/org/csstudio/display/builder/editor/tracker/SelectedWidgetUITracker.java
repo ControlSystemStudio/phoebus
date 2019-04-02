@@ -34,6 +34,7 @@ import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
+import org.phoebus.ui.javafx.PlatformInfo;
 import org.phoebus.ui.javafx.Tracker;
 import org.phoebus.ui.undo.CompoundUndoableAction;
 import org.phoebus.ui.undo.UndoableAction;
@@ -113,7 +114,7 @@ public class SelectedWidgetUITracker extends Tracker
         // Track currently selected widgets
         selection.addListener(this::setSelectedWidgets);
 
-        // Pass control-click (for Mac, Command) down to underlying widgets
+        // Pass control-click (Mac: Command) down to underlying widgets
         addEventFilter(MouseEvent.MOUSE_CLICKED, event ->
         {
             if (event.isShortcutDown())
@@ -123,10 +124,11 @@ public class SelectedWidgetUITracker extends Tracker
         // Allow 'dragging' selected widgets
         setOnDragDetected(event ->
         {
-            // .. when Control (or Mac Command) is down
-            // Otherwise mouse-down-and-move moves the tracker,
-            // doesn't start D&D
-            if (! event.isShortcutDown())
+            // .. when Control (Mac: Alt) is down.
+            // Otherwise mouse-down-and-move moves the tracker, doesn't start D&D
+            if (! (PlatformInfo.is_mac_os_x
+                   ? event.isAltDown()
+                   : event.isControlDown()))
                 return;
 
             logger.log(Level.FINE, "Starting to drag {0}", widgets);
