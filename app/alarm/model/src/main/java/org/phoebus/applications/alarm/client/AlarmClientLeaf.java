@@ -68,6 +68,7 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
     public AlarmClientLeaf createDetachedCopy()
     {
         final AlarmClientLeaf pv = new AlarmClientLeaf(null, getName());
+        pv.setDescription(getDescription());
         pv.setEnabled(isEnabled());
         pv.setLatching(isLatching());
         pv.setAnnunciating(isAnnunciating());
