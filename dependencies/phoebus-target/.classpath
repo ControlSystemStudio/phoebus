@@ -119,17 +119,17 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/spring-webmvc-5.0.9.RELEASE.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/hibernate-validator-6.0.12.Final.jar"/>
 	<!-- On Windows, need to add this:
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-base-11-win.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-base-11.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-11-win.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-11.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-11-win.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-11-win.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-11.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-media-11-win.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-media-11.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-11-win.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-web-11-win.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-base-11.0.2-win.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-base-11.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-11.0.2-win.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-11.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-11.0.2-win.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-11.0.2-win.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-11.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-media-11.0.2-win.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-media-11.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-11.0.2-win.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-web-11.0.2-win.jar"/>
 	-->
-	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="output" path="target/classes"/>
 </classpath>
