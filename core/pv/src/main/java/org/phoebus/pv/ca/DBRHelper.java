@@ -213,7 +213,7 @@ public class DBRHelper
             try
             {
                 if (is_array)
-                    return VEnumArray.of(ArrayShort.of(xx.getEnumValue()), enum_meta, convertAlarm(dbr), convertTime(dbr));
+                    return VEnumArray.of(new ArrayInteger(ArrayShort.of(xx.getEnumValue())), enum_meta, convertAlarm(dbr), convertTime(dbr));
                 return VEnum.of(xx.getEnumValue()[0], enum_meta, convertAlarm(dbr), convertTime(dbr));
             }
             catch (IndexOutOfBoundsException ex)
@@ -237,7 +237,7 @@ public class DBRHelper
                 : EnumDisplay.of();
 
             if (is_array)
-                return VEnumArray.of(ArrayShort.of(need.getEnumValue()), enum_meta, convertAlarm(need), convertTime(need));
+                return VEnumArray.of(new ArrayInteger(ArrayShort.of(need.getEnumValue())), enum_meta, convertAlarm(need), convertTime(need));
             return VEnum.of(need.getEnumValue()[0], enum_meta, convertAlarm(need), convertTime(need));
         }
 
