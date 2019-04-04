@@ -27,7 +27,6 @@ import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
 import org.epics.vtype.EnumDisplay;
 import org.epics.vtype.Time;
-import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VByte;
 import org.epics.vtype.VByteArray;
 import org.epics.vtype.VDouble;
@@ -43,6 +42,7 @@ import org.epics.vtype.VShortArray;
 import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
+import org.phoebus.pv.TimeHelper;
 
 import gov.aps.jca.dbr.CTRL;
 import gov.aps.jca.dbr.DBR;

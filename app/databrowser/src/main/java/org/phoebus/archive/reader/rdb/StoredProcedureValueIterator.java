@@ -26,12 +26,12 @@ import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Time;
-import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VStatistics;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.framework.rdb.RDBInfo.Dialect;
+import org.phoebus.pv.TimeHelper;
 
 /** Value Iterator that provides 'optimized' data by calling
  *  a stored database procedure.

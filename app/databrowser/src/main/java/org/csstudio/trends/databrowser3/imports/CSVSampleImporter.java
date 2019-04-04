@@ -21,10 +21,10 @@ import java.util.regex.Pattern;
 
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
-import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VStatistics;
 import org.epics.vtype.VType;
+import org.phoebus.pv.TimeHelper;
 import org.phoebus.util.time.TimestampFormats;
 
 /** {@link SampleImporter} for comma, space, tab separated value file of time, value

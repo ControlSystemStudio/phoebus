@@ -17,7 +17,6 @@ import java.util.logging.Level;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.Display;
-import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VStatistics;
@@ -25,6 +24,7 @@ import org.epics.vtype.VType;
 import org.phoebus.archive.vtype.StatisticsAccumulator;
 import org.phoebus.archive.vtype.TimestampHelper;
 import org.phoebus.archive.vtype.VTypeHelper;
+import org.phoebus.pv.TimeHelper;
 import org.phoebus.util.time.TimestampFormats;
 
 /** Averaging sample iterator.

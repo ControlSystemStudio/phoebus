@@ -23,7 +23,6 @@ import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
 import org.epics.vtype.EnumDisplay;
 import org.epics.vtype.Time;
-import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VEnum;
@@ -35,6 +34,7 @@ import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.archive.reader.ValueIterator;
 import org.phoebus.archive.vtype.VTypeHelper;
+import org.phoebus.pv.TimeHelper;
 import org.w3c.dom.Element;
 
 /** Value iterator for XML-RPC

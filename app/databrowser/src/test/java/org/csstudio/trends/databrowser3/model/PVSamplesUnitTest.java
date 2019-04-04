@@ -19,10 +19,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
-import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VType;
 import org.junit.Test;
+import org.phoebus.pv.TimeHelper;
 
 /** JUnit test for PVSamples
  *  @author Kay Kasemir

@@ -31,7 +31,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
-import org.epics.vtype.TimeHelper;
+import org.epics.vtype.Time;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 
@@ -55,7 +55,7 @@ public class PVWidget extends VisibleWidget
      */
     public static final VType RUNTIME_VALUE_NO_PV = VString.of(Messages.ValueNoPV,
                                                                Alarm.of(AlarmSeverity.NONE, AlarmStatus.CLIENT, Messages.ValueNoPV),
-                                                               TimeHelper.fromInstant(Instant.ofEpochSecond(0)));
+                                                               Time.of(Instant.ofEpochSecond(0), 0, false));
 
     private volatile WidgetProperty<String> pv_name;
     private volatile WidgetProperty<VType>  pv_value;
