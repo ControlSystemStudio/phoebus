@@ -34,12 +34,6 @@
     </dependency>
 
     <dependency>
-      <groupId>org.epics</groupId>
-      <artifactId>vtype</artifactId>
-      <version>${vtype.version}</version>
-    </dependency>
-    
-    <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-framework</artifactId>
       <version>0.0.1-SNAPSHOT</version>
