@@ -27,7 +27,7 @@
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>core-vtype</artifactId>
+      <artifactId>core-pv</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
   </dependencies>
