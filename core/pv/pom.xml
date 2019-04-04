@@ -29,14 +29,14 @@
     <dependency>
       <groupId>org.epics</groupId>
       <artifactId>epics-core</artifactId>
-      <version>7.0.2</version>
+      <version>${epics.version}</version>
       <type>pom</type>
     </dependency>
 
     <dependency>
       <groupId>org.epics</groupId>
       <artifactId>vtype</artifactId>
-      <version>1.0.0</version>
+      <version>${vtype.version}</version>
     </dependency>
     
     <dependency>
