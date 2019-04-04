@@ -221,7 +221,7 @@ public class StoredProcedureValueIterator extends AbstractRDBValueIterator
                     final double min = result.getDouble(5);
                     final double max = result.getDouble(6);
                     final double stddev = 0.0; // not known
-                    value = VStatistics.of(val_or_avg, stddev, min, max, cnt, alarm, time);
+                    value = VStatistics.of(val_or_avg, stddev, min, max, cnt, alarm, time, display);
                 }
             }
             values.add(value);

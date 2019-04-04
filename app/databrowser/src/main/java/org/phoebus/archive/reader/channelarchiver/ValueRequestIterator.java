@@ -256,7 +256,7 @@ class ValueRequestIterator implements ValueIterator
                     {
                         final double min = XmlRpc.getValue(min_el);
                         final double max = XmlRpc.getValue(max_el);
-                        sample = VStatistics.of(values[0], 0.0, min, max, 1, alarm, time);
+                        sample = VStatistics.of(values[0], 0.0, min, max, 1, alarm, time, display);
                     }
                     else
                         sample = VDouble.of(values[0], alarm, time, display);
@@ -279,7 +279,7 @@ class ValueRequestIterator implements ValueIterator
                     {
                         final double min = XmlRpc.getValue(min_el);
                         final double max = XmlRpc.getValue(max_el);
-                        sample = VStatistics.of(values[0], 0.0, min, max, 1, alarm, time);
+                        sample = VStatistics.of(values[0], 0.0, min, max, 1, alarm, time, display);
                     }
                     else
                         sample = VInt.of(values[0], alarm, time, display);

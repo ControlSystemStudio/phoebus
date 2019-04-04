@@ -9,6 +9,7 @@ import org.epics.archiverappliance.retrieval.client.EpicsMessage;
 import org.epics.archiverappliance.retrieval.client.GenMsgIterator;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Display;
 import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VStatistics;
 import org.epics.vtype.VType;
@@ -149,7 +150,8 @@ public class ApplianceStatisticsValueIterator extends ApplianceMeanValueIterator
                                       maxIterator.next().getNumberValue().doubleValue(),
                                       countIterator.next().getNumberValue().intValue(),
                                       Alarm.of(getSeverity(meanResult.getSeverity()), AlarmStatus.CLIENT, String.valueOf(meanResult.getStatus())),
-                                      TimeHelper.fromInstant(TimestampHelper.fromSQLTimestamp(meanResult.getTimestamp())));
+                                      TimeHelper.fromInstant(TimestampHelper.fromSQLTimestamp(meanResult.getTimestamp())),
+                                      Display.none());
             }
         }
         throw new UnsupportedOperationException("PV type " + type + " is not supported.");

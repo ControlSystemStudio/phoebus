@@ -7,5 +7,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/phoebus-target"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-framework"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-ui"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-types"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-channel-channelfinder"/>
 </classpath>

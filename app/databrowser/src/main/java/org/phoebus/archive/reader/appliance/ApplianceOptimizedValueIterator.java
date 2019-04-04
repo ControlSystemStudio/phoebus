@@ -147,7 +147,7 @@ public class ApplianceOptimizedValueIterator extends ApplianceValueIterator {
                                       message.getNumberAt(2).doubleValue(),
                                       message.getNumberAt(3).doubleValue(),
                                       message.getNumberAt(4).intValue(),
-                                      alarm, time);
+                                      alarm, time, display);
             } else {
                 return VNumber.of(message.getNumberAt(0), alarm, time, display);
             }

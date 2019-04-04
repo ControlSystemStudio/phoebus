@@ -110,7 +110,7 @@ public class CSVSampleImporter implements SampleImporter
                         remove(matcher.group(3),groupingSeparator).replace(decimalSeparator, '.'));
                 final double max = Double.parseDouble(
                         remove(matcher.group(4),groupingSeparator).replace(decimalSeparator, '.'));
-                values.add(VStatistics.of(number, 0.0, number-min, number+max, 1, Alarm.none(), TimeHelper.fromInstant(time)));
+                values.add(VStatistics.of(number, 0.0, number-min, number+max, 1, Alarm.none(), TimeHelper.fromInstant(time), Display.none()));
             }
             else
                 values.add(VNumber.of(number, Alarm.none(), TimeHelper.fromInstant(time), meta_data));

@@ -249,7 +249,7 @@ public class FormulaItem extends ModelItem
                         for (int i = 0; i < values.length; i++)
                             variables[i].setValue(max[i]);
                         final double res_max = formula.eval();
-                        value = VStatistics.of(res_val, 0.0, res_min, res_max, 1, OK_FORMULA, Time.now());
+                        value = VStatistics.of(res_val, 0.0, res_min, res_max, 1, OK_FORMULA, Time.now(), display);
                     }
                     else
                     {   // No min/max.

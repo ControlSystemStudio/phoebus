@@ -155,7 +155,7 @@ public class AveragedValueIterator implements ValueIterator
 
         // Return the min/max/average
         final VStatistics result = VStatistics.of(stats.getAverage(), stats.getStdDev(), stats.getMin(), stats.getMax(),
-                                                  stats.getNSamples(), Alarm.none(), TimeHelper.fromInstant(bin_time));
+                                                  stats.getNSamples(), Alarm.none(), TimeHelper.fromInstant(bin_time), display);
         if (debug)
             System.out.println("Result: " + result.toString());
         return result;
