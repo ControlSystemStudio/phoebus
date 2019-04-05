@@ -14,7 +14,6 @@ import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
-import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VEnumArray;
 import org.epics.vtype.VNumber;
@@ -22,6 +21,7 @@ import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VStatistics;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
+import org.phoebus.pv.TimeHelper;
 import org.phoebus.util.time.TimestampFormats;
 
 /** {@link VType} helper

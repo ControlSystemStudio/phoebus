@@ -6,7 +6,6 @@
     <module>framework</module>
     <module>types</module>
     <module>util</module>
-    <module>vtype</module>
     <module>pv</module>
     <module>security</module>
     <module>formula</module>

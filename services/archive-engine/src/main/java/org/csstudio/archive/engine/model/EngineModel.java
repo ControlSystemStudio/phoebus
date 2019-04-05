@@ -22,9 +22,9 @@ import org.csstudio.archive.engine.scanner.Scanner;
 import org.csstudio.archive.writer.rdb.TimestampHelper;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Time;
-import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
+import org.phoebus.pv.TimeHelper;
 
 /** Data model of the archive engine.
  *  @author Kay Kasemir
