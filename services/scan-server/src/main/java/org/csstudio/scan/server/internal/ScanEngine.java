@@ -289,6 +289,74 @@ public class ScanEngine
         return null;
     }
 
+    private QueueState getQueueState(final LoggedScan scan)
+    {
+        if (scan instanceof ExecutableScan)
+            return ((ExecutableScan) scan).getQueueState();
+        return QueueState.NotQueued;
+    }
+
+    /** Ask server to move idle scan in list
+     *
+     *  <p>Has no effect if the scan is not idle or target slot in scan list cannot be used.
+     *
+     *  @param id ID that uniquely identifies a scan
+     *  @param steps How far to move the scan 'up' (earlier) for positive steps, otherwise 'down'.
+     *  @throws Exception on error
+     */
+    public void move(final long id, final int steps) throws Exception
+    {
+        logger.log(Level.INFO, "Move scan " + id + " by " + steps);
+        synchronized (scan_queue)
+        {
+            final int N = scan_queue.size();
+            for (int i=N-1; i>=0; --i)
+            {   // Locate scan by ID
+                final LoggedScan scan = scan_queue.get(i);
+                if (scan.getId() != id)
+                    continue;
+
+                final int target = i + steps;
+                if (target >= N)
+                {
+                    logger.log(Level.WARNING, "Cannot move " + scan + " beyond top of queue");
+                    return;
+                }
+                // Is it a queued (i.e. idle) scan? Cannot move parallel or running queued scans.
+                if (getQueueState(scan) != QueueState.Queued)
+                {
+                    logger.log(Level.WARNING, "Can only move idle, queued scans, not " + scan);
+                    return;
+                }
+
+                // Is there any 'running' scan below the target location?
+                // Cannot move below because then it would never run.
+                boolean above_running = false;
+                for (int r=target-1; r>=0; --r)
+                {
+                    final LoggedScan scn = scan_queue.get(r);
+                    if (getQueueState(scn) == QueueState.Submitted &&
+                        scn.getScanState().isActive())
+                    {
+                        above_running = true;
+                        break;
+                    }
+                }
+                if (!above_running)
+                {
+                    logger.log(Level.WARNING, "Scan must stay above the running queued scan");
+                    return;
+                }
+
+                // Move
+                scan_queue.remove(i);
+                scan_queue.add(target, scan);
+                return;
+            }
+        }
+        logger.log(Level.WARNING, "Unknown scan " + id);
+    }
+
     /** @param scan Scan to remove (if it's 'done')
      *  @throws Exception on error
      */

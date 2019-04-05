@@ -17,6 +17,11 @@ function putScanCommand(id, command)
     });
 }
 
+function move(id, order)
+{
+	putScanCommand(id, "move/" + order);
+}
+
 function nextCommand(id)
 {
     putScanCommand(id, "next");
@@ -124,7 +129,16 @@ $(function()
                 row.append( $('<td/>').append(item));
 
                 item = scan.find('state').text();
-                if (item == 'Idle'  ||  item == 'Running')
+                if (item == 'Idle')
+                {
+                    item = "<font color='#090'>" + item + "</font>";
+                    item += "<button onclick='move(" + id + ", 1)'>Up</button>";
+                    item += "<button onclick='move(" + id + ",-1)'>Down</button>";
+                    item += "<button onclick='nextCommand(" + id + ")'>Next</button>";
+                    item += "<button onclick='pauseScan(" + id + ")'>Pause</button>";
+                    item += "<button onclick='abortScan(" + id + ")'>Abort</button>";
+                }
+                else if (item == 'Running')
                 {
                     item = "<font color='#090'>" + item + "</font>";
                     item += "<button onclick='nextCommand(" + id + ")'>Next</button>";
