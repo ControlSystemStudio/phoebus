@@ -152,12 +152,12 @@ class StateCell extends TableCell<ScanInfoProxy, ScanState>
                 final int index = getIndex();
 
                 // Allow moving all but top row 'up'
-                Button b = getMoveUp();
-                b.setDisable(index <= 0);
-                show(b);
+                getMoveUp();
+                move_up.setDisable(index <= 0);
+                show(move_up);
 
                 // Only enable if there is another idle item below
-                b = getMoveDown();
+                getMoveDown();
                 boolean enable = false;
                 for (int r=index + 1;  r<items.size(); ++r)
                     if (items.get(r).state.get() == ScanState.Idle)
@@ -165,8 +165,8 @@ class StateCell extends TableCell<ScanInfoProxy, ScanState>
                         enable = true;
                         break;
                     }
-                b.setDisable(! enable);
-                show(b);
+                move_down.setDisable(! enable);
+                show(move_down);
 
                 show(getAbort());
                 break;

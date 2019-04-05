@@ -48,8 +48,10 @@ class ScanInfoProxy
         this.info = info;
     }
 
-    void updateFrom(final ScanInfo info)
+    /** @return true if state changed */
+    boolean updateFrom(final ScanInfo info)
     {
+        final boolean changed = state.get() != info.getState();
         id.set(info.getId());
         name.set(info.getName());
         created.set(info.getCreated());
@@ -60,5 +62,7 @@ class ScanInfoProxy
         command.set(info.getCurrentCommand());
         error.set(info.getError().orElse(""));
         this.info = info;
+
+        return changed;
     }
 }
