@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import org.csstudio.scan.info.Scan;
+import org.csstudio.scan.server.internal.ExecutableScan.QueueState;
 import org.csstudio.scan.server.log.DataLogFactory;
 import org.phoebus.framework.jobs.NamedThreadFactory;
 
@@ -52,17 +53,17 @@ public class ScanEngine
      */
     final private List<LoggedScan> scan_queue = new CopyOnWriteArrayList<>();
 
-    /** Executor for scans off the queue, with executeQueuedScans() handling one by one */
-    final private ExecutorService queue_executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("ScanEngineQueue"));
+    /** Executor for executeQueuedScans() */
+    final private ExecutorService queue_executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("QueueHandler"));
+
+    /** Executor queued scans that are submitted by executeQueuedScans() */
+    final private ExecutorService queued_scan_executor = Executors.newCachedThreadPool(new NamedThreadFactory("QueuedScans"));
 
     /** Flag for executeQueuedScans() */
     private volatile boolean running = true;
 
-    /** Executor for scans that executes all submitted scans.
-     *  Those submitted in parallel are run right away.
-     *  Queued scans are submitted by executeQueuedScans()
-     */
-    final private ExecutorService scan_executor = Executors.newCachedThreadPool(new NamedThreadFactory("ScanEnginePool"));
+    /** Executor for parallel scans. */
+    final private ExecutorService parallel_executor = Executors.newCachedThreadPool(new NamedThreadFactory("ParallelScans"));
 
     /** Start the scan engine, i.e. create thread that will process
      *  scans
@@ -82,39 +83,64 @@ public class ScanEngine
         queue_executor.execute(this::executeQueuedScans);
     }
 
+    /** Wake executeQueuedScans() because a new scan was added */
+    private void signalNewScan()
+    {
+        synchronized (scan_queue)
+        {
+            scan_queue.notifyAll();
+        }
+    }
+
+    /** Monitor the scan queue, submit one queued scan at a time */
     private void executeQueuedScans()
     {
+        // This thread is not directly executing the queued scans because
+        // by submitting them to an executor we get a Future that's used
+        // to cancel it.
+        // Scans are submitted to the single-threaded queued_scan_executor
+        // and not the parallel_executor to assert that only one queued scan
+        // runs at a time.
         while (running)
         {
             ExecutableScan next = null;
-
             try
             {
-                // TODO Semaphore
-                Thread.sleep(1000);
-
-                System.out.println("Looking for next scan to execute...");
-                next = null;
+                logger.log(Level.FINE, "Looking for next scan to execute...");
                 synchronized (scan_queue)
                 {
-                    // Search from most-recently added,
-                    // find first scan that's done,
-                    // so the one before is next to execute.
+                    // Search from most-recently added end of queue
                     for (int i = scan_queue.size()-1;  i>=0;  --i)
                     {
                         final LoggedScan scan = scan_queue.get(i);
-                        if (scan.getScanState().isDone())
+                        // Track the last Queued scan,
+                        // which should be the next to execute
+                        if (scan instanceof ExecutableScan)
+                        {
+                            final ExecutableScan exe = (ExecutableScan) scan;
+                            if (exe.getQueueState() == QueueState.Queued)
+                                next = exe;
+                        }
+                        else // Stop looking when reaching logged scans
                             break;
-                        else if (scan instanceof ExecutableScan)
-                            next = (ExecutableScan) scan;
                     }
                 }
-                if (next != null)
+                if (next == null)
                 {
-                    System.out.println("Found " + next);
-                    final Future<Object> done = next.submit(scan_executor);
+                    logger.log(Level.FINE, "Waiting for new scan");
+                    // Wait for a change in the scan queue
+                    synchronized (scan_queue)
+                    {
+                        scan_queue.wait();
+                    }
+                }
+                else
+                {
+                    logger.log(Level.FINE, "Found " + next);
+                    next.setQueueState(QueueState.Submitted);
+                    final Future<Object> done = next.submit(queued_scan_executor);
                     done.get();
-                    System.out.println("Completed " + next);
+                    logger.log(Level.FINE, "Completed " + next);
                 }
             }
             catch (Throwable ex)
@@ -131,10 +157,10 @@ public class ScanEngine
     public void stop()
     {
         running = false;
-        // TODO Signal semaphore
-        
+        signalNewScan();
         queue_executor.shutdownNow();
-        scan_executor.shutdownNow();
+        queued_scan_executor.shutdownNow();
+        parallel_executor.shutdownNow();
         try
         {
             queue_executor.awaitTermination(10, TimeUnit.SECONDS);
@@ -145,7 +171,15 @@ public class ScanEngine
         }
         try
         {
-            scan_executor.awaitTermination(10, TimeUnit.SECONDS);
+            queued_scan_executor.awaitTermination(10, TimeUnit.SECONDS);
+        }
+        catch (InterruptedException e)
+        {
+            // Ignore, shutting down anyway
+        }
+        try
+        {
+            parallel_executor.awaitTermination(10, TimeUnit.SECONDS);
         }
         catch (InterruptedException e)
         {
@@ -188,10 +222,12 @@ public class ScanEngine
         scan_queue.add(scan);
         if (queue)
         {
-            // TODO Wake queue_executor.
+            // Wake queue_executor.
+            scan.setQueueState(QueueState.Queued);
+            signalNewScan();
         }
-        else
-            scan.submit(scan_executor);
+        else // Execute right away
+            scan.submit(parallel_executor);
     }
 
     /** Check if there are any scans executing or waiting to be executed

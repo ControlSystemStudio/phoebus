@@ -68,6 +68,18 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
     /** Pattern for "java.lang.Exception: ", "java...Exception: " */
     private static final Pattern java_exception_pattern = Pattern.compile("java[.a-zA-Z]+Exception: ");
 
+    enum QueueState
+    {
+        /** This scan is not meant to be queued */
+        NotQueued,
+        /** Scan is in queue */
+        Queued,
+        /** Scan has been submitted */
+        Submitted
+    };
+
+    private volatile QueueState queue_state = QueueState.NotQueued;
+
     /** Engine that will execute this scan */
     private final ScanEngine engine;
 
@@ -167,6 +179,19 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
         }
         total_work_units = work_units;
     }
+
+    /** @return {@link QueueState} */
+    QueueState getQueueState()
+    {
+        return queue_state;
+    }
+
+    /** @param state {@link QueueState} */
+    void setQueueState(final QueueState state)
+    {
+        queue_state = state;
+    }
+
 
     /** Submit scan for execution
      *  @param executor {@link ExecutorService} to use
