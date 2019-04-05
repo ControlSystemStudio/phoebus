@@ -170,13 +170,16 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
 
     /** Submit scan for execution
      *  @param executor {@link ExecutorService} to use
+     *  @return Future to cancel or await completion
      *  @throws IllegalStateException if scan had been submitted before
      */
-    public void submit(final ExecutorService executor)
+    public Future<Object> submit(final ExecutorService executor)
     {
         if (future.isPresent())
             throw new IllegalStateException("Already submitted for execution");
-        future = Optional.of(executor.submit(this));
+        final Future<Object> the_future = executor.submit(this);
+        future = Optional.of(the_future);
+        return the_future;
     }
 
     /** @return {@link ScanState} */

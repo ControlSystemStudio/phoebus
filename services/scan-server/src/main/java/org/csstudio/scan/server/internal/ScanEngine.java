@@ -15,12 +15,16 @@
  ******************************************************************************/
 package org.csstudio.scan.server.internal;
 
+import static org.csstudio.scan.server.ScanServerInstance.logger;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 import org.csstudio.scan.info.Scan;
 import org.csstudio.scan.server.log.DataLogFactory;
@@ -33,20 +37,32 @@ import org.phoebus.framework.jobs.NamedThreadFactory;
 @SuppressWarnings("nls")
 public class ScanEngine
 {
-    /** Executor for scans off the queue, handling one by one */
-    final private ExecutorService queue_executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("ScanEngineQueue"));
-
-    /** Executor for scans that executes all submitted scans in parallel */
-    final private ExecutorService parallel_executor = Executors.newCachedThreadPool(new NamedThreadFactory("ScanEnginePool"));
-
     /** All the scans handled by this engine
      *
      *  <p>New, pending scans, i.e. in Idle state, are added to the end.
      *  The currently executing scan is Running or Paused.
      *  Scans that either Finished, Failed or were Aborted
      *  are kept around for a little while.
+     *
+     *  <p>The list is generally thread-safe (albeit slow when adding elements).
+     *  It is only locked to avoid starting a scan that's about to be moved up
+     *  for later execution
+     *  a) .. when locating the next scan to execute
+     *  b) .. when changing the order of scans in the list
      */
     final private List<LoggedScan> scan_queue = new CopyOnWriteArrayList<>();
+
+    /** Executor for scans off the queue, with executeQueuedScans() handling one by one */
+    final private ExecutorService queue_executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("ScanEngineQueue"));
+
+    /** Flag for executeQueuedScans() */
+    private volatile boolean running = true;
+
+    /** Executor for scans that executes all submitted scans.
+     *  Those submitted in parallel are run right away.
+     *  Queued scans are submitted by executeQueuedScans()
+     */
+    final private ExecutorService scan_executor = Executors.newCachedThreadPool(new NamedThreadFactory("ScanEnginePool"));
 
     /** Start the scan engine, i.e. create thread that will process
      *  scans
@@ -61,6 +77,52 @@ public class ScanEngine
         final List<Scan> scans = DataLogFactory.getScans();
         for (Scan scan : scans)
             scan_queue.add(new LoggedScan(scan));
+
+        running = true;
+        queue_executor.execute(this::executeQueuedScans);
+    }
+
+    private void executeQueuedScans()
+    {
+        while (running)
+        {
+            ExecutableScan next = null;
+
+            try
+            {
+                // TODO Semaphore
+                Thread.sleep(1000);
+
+                System.out.println("Looking for next scan to execute...");
+                next = null;
+                synchronized (scan_queue)
+                {
+                    // Search from most-recently added,
+                    // find first scan that's done,
+                    // so the one before is next to execute.
+                    for (int i = scan_queue.size()-1;  i>=0;  --i)
+                    {
+                        final LoggedScan scan = scan_queue.get(i);
+                        if (scan.getScanState().isDone())
+                            break;
+                        else if (scan instanceof ExecutableScan)
+                            next = (ExecutableScan) scan;
+                    }
+                }
+                if (next != null)
+                {
+                    System.out.println("Found " + next);
+                    final Future<Object> done = next.submit(scan_executor);
+                    done.get();
+                    System.out.println("Completed " + next);
+                }
+            }
+            catch (Throwable ex)
+            {
+                logger.log(Level.WARNING, "Scan Queue Handler Error while executing " + next, ex);
+            }
+        }
+        logger.log(Level.WARNING, "Scan Queue Handler exits");
     }
 
     /** Stop the scan engine, aborting scans
@@ -68,8 +130,11 @@ public class ScanEngine
      */
     public void stop()
     {
+        running = false;
+        // TODO Signal semaphore
+        
         queue_executor.shutdownNow();
-        parallel_executor.shutdownNow();
+        scan_executor.shutdownNow();
         try
         {
             queue_executor.awaitTermination(10, TimeUnit.SECONDS);
@@ -80,7 +145,7 @@ public class ScanEngine
         }
         try
         {
-            parallel_executor.awaitTermination(10, TimeUnit.SECONDS);
+            scan_executor.awaitTermination(10, TimeUnit.SECONDS);
         }
         catch (InterruptedException e)
         {
@@ -120,11 +185,13 @@ public class ScanEngine
      */
     public void submit(final ExecutableScan scan, final boolean queue)
     {
-        if (queue)
-            scan.submit(queue_executor);
-        else
-            scan.submit(parallel_executor);
         scan_queue.add(scan);
+        if (queue)
+        {
+            // TODO Wake queue_executor.
+        }
+        else
+            scan.submit(scan_executor);
     }
 
     /** Check if there are any scans executing or waiting to be executed
@@ -144,7 +211,7 @@ public class ScanEngine
     /** @return List of scans */
     public List<LoggedScan> getScans()
     {
-        final List<LoggedScan> scans = new ArrayList<LoggedScan>();
+        final List<LoggedScan> scans = new ArrayList<>();
         scans.addAll(scan_queue);
         return scans;
     }
@@ -152,7 +219,7 @@ public class ScanEngine
     /** @return List of executable scans */
     public List<ExecutableScan> getExecutableScans()
     {
-        final List<ExecutableScan> scans = new ArrayList<ExecutableScan>();
+        final List<ExecutableScan> scans = new ArrayList<>();
         for (LoggedScan scan : scan_queue)
             if (scan instanceof ExecutableScan)
                 scans.add((ExecutableScan) scan);
