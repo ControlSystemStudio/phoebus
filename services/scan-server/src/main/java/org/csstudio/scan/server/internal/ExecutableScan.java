@@ -435,7 +435,8 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
         if (data_logger.isPresent())
             data_logger.get().close();
         data_logger = Optional.empty();
-        logger.log(Level.CONFIG, "Completed ID {0}: {1}", new Object[] { getId(), state.get().name() });
+        logger.log(Level.CONFIG, "Completed ID " + getId() + " \"" + getName() + "\"");
+
         return null;
     }
 
