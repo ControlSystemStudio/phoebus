@@ -185,12 +185,14 @@ starting a new line on each newline character in the text.
 Optionally, it can also wrap words to a new line when
 reaching the end of a line.
 
-Since pressing 'Enter' now simply starts a new line,
-'Control-Enter' now confirms editing and writes the entered value to the PV.</text>
+With 'Enter' now simply starting a new line, 'Control-Enter' confirms editing and writes the entered value to the PV.
+Since pressing 'Control-Enter' seems too hard for some users, the multi-lined text field will also submit the entered value to the PV when simply leaving the widget by clicking elsewhere.
+To cancel editing and revert to the original value, press 'Escape'.
+</text>
     <x>470</x>
     <y>391</y>
-    <width>359</width>
-    <height>210</height>
+    <width>370</width>
+    <height>260</height>
     <font use_class="true">
       <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
       </font>
