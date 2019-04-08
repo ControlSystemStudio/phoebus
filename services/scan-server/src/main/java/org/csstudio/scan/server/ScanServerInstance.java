@@ -23,6 +23,7 @@ import org.csstudio.scan.data.ScanDataIterator;
 import org.csstudio.scan.data.ScanSample;
 import org.csstudio.scan.device.DeviceInfo;
 import org.csstudio.scan.info.ScanInfo;
+import org.csstudio.scan.info.ScanServerInfo;
 import org.csstudio.scan.server.config.ScanConfig;
 import org.csstudio.scan.server.httpd.ScanWebServer;
 import org.csstudio.scan.server.internal.ScanServerImpl;
@@ -92,6 +93,7 @@ public class ScanServerInstance
     private static final String COMMANDS =
         "Scan Server Commands:\n" +
         "help            -  Show commands\n" +
+        "server          -  Server info\n" +
         "scans           -  List scans\n" +
         "info ID         -  Show info about scan with given ID\n" +
         "commands ID     -  Dump scan's commands\n" +
@@ -101,6 +103,7 @@ public class ScanServerInstance
         "abort           -  Abort all scans\n" +
         "remove ID       -  Remove (completed) scan with given ID\n" +
         "removeCompleted -  Remove completed scans\n" +
+        "gc              -  Run GC\n" +
         "shutdown        -  Stop the scan server";
 
 
@@ -112,6 +115,11 @@ public class ScanServerInstance
         {
             if (args[0].startsWith("shut"))
                 stop();
+            else if (args[0].equals("server"))
+            {
+                final ScanServerInfo info = getScanServer().getInfo();
+                System.out.println(info);
+            }
             else if (args[0].equals("scans"))
             {
                 System.out.println("Scans:");
@@ -122,6 +130,8 @@ public class ScanServerInstance
                 getScanServer().abort(-1);
             else if (args[0].equals("removeCompleted"))
                 getScanServer().removeCompletedScans();
+            else if (args[0].equals("gc"))
+                Runtime.getRuntime().gc();
             else
                 return false;
         }
