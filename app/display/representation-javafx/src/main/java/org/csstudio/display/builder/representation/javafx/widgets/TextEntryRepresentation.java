@@ -132,15 +132,29 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
             {
                 if (active  &&  !focused)
                 {
-                    restore();
+                    // For multi-line, submit on exit because users
+                    // cannot remember Ctrl-Enter.
+                    // For plain text field, require Enter to submit
+                    // and cancel editing when focus is lost.
+                    if (isMultiLine())
+                        submit();
+                    else
+                        restore();
                     setActive(false);
                 }
             });
         }
 
-        // Reduce expensive Node.notifyParentOfBoundsChange() calls
-        // by handling pos & size in here
-        text.setManaged(false);
+        // Non-managed widget reduces expensive Node.notifyParentOfBoundsChange() calls.
+        // Code below is prepared to handle non-managed widget,
+        // but multi-line version behaves oddly when not managed:
+        // Cursor not shown, selection not shown,
+        // unclear where entered text will appear.
+        // Even when _only_ the single-line version is unmanaged,
+        // the multi-line version will get into this state.
+        // -> Keep managed.
+        //        if (!isMultiLine())
+        //            text.setManaged(false);
 
         return text;
     }
@@ -156,8 +170,11 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
         if (this.active == active)
             return;
 
-        // When activated, start by selecting all
-        if (active)
+        // When activated, start by selecting all in a plain text.
+        // For multi-line, leave it to the user to click or cursor around,
+        // because when all is selected, there's a larger risk of accidentally
+        // replacing some long, carefully crafted text.
+        if (active  &&  !isMultiLine())
             jfx_node.selectAll();
 
         // Don't enable when widget is disabled
@@ -315,8 +332,14 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
     {
         super.updateChanges();
         if (dirty_size.checkAndClear())
-            jfx_node.resize(model_widget.propWidth().getValue(),
-                            model_widget.propHeight().getValue());
+        {
+            if (jfx_node.isManaged())
+                jfx_node.setPrefSize(model_widget.propWidth().getValue(),
+                                     model_widget.propHeight().getValue());
+            else
+                jfx_node.resize(model_widget.propWidth().getValue(),
+                                model_widget.propHeight().getValue());
+        }
         if (dirty_style.checkAndClear())
         {
             final StringBuilder style = new StringBuilder(100);
@@ -340,9 +363,13 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
             jfx_node.setEditable(enabled);
             Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
         }
-        if (active)
-            return;
-        if (dirty_content.checkAndClear())
-            jfx_node.setText(value_text);
+        if (! active)
+        {
+            if (dirty_content.checkAndClear())
+                jfx_node.setText(value_text);
+        }
+        // When not managed, trigger layout
+        if (!jfx_node.isManaged())
+            jfx_node.layout();
     }
 }
