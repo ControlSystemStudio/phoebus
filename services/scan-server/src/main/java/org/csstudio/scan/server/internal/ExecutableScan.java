@@ -68,6 +68,18 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
     /** Pattern for "java.lang.Exception: ", "java...Exception: " */
     private static final Pattern java_exception_pattern = Pattern.compile("java[.a-zA-Z]+Exception: ");
 
+    enum QueueState
+    {
+        /** This scan is not meant to be queued */
+        NotQueued,
+        /** Scan is in queue */
+        Queued,
+        /** Scan has been submitted */
+        Submitted
+    };
+
+    private volatile QueueState queue_state = QueueState.NotQueued;
+
     /** Engine that will execute this scan */
     private final ScanEngine engine;
 
@@ -168,15 +180,31 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
         total_work_units = work_units;
     }
 
+    /** @return {@link QueueState} */
+    QueueState getQueueState()
+    {
+        return queue_state;
+    }
+
+    /** @param state {@link QueueState} */
+    void setQueueState(final QueueState state)
+    {
+        queue_state = state;
+    }
+
+
     /** Submit scan for execution
      *  @param executor {@link ExecutorService} to use
+     *  @return Future to cancel or await completion
      *  @throws IllegalStateException if scan had been submitted before
      */
-    public void submit(final ExecutorService executor)
+    public Future<Object> submit(final ExecutorService executor)
     {
         if (future.isPresent())
             throw new IllegalStateException("Already submitted for execution");
-        future = Optional.of(executor.submit(this));
+        final Future<Object> the_future = executor.submit(this);
+        future = Optional.of(the_future);
+        return the_future;
     }
 
     /** @return {@link ScanState} */
@@ -377,7 +405,14 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
         try
         {
             // Set logger for execution of scan
-            data_logger = Optional.of(DataLogFactory.getDataLog(this));
+            try
+            {
+                data_logger = Optional.of(DataLogFactory.getDataLog(this));
+            }
+            catch (Exception dl_ex)
+            {
+                throw new Exception("Aborted while opening data log", dl_ex);
+            }
             execute_or_die_trying();
             // Exceptions will already have been caught within execute_or_die_trying,
             // hopefully updating the status PVs, but there could be exceptions
@@ -407,7 +442,8 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
         if (data_logger.isPresent())
             data_logger.get().close();
         data_logger = Optional.empty();
-        logger.log(Level.CONFIG, "Completed ID {0}: {1}", new Object[] { getId(), state.get().name() });
+        logger.log(Level.CONFIG, "Completed ID " + getId() + " \"" + getName() + "\"");
+
         return null;
     }
 

@@ -15,14 +15,19 @@
  ******************************************************************************/
 package org.csstudio.scan.server.internal;
 
+import static org.csstudio.scan.server.ScanServerInstance.logger;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 import org.csstudio.scan.info.Scan;
+import org.csstudio.scan.server.internal.ExecutableScan.QueueState;
 import org.csstudio.scan.server.log.DataLogFactory;
 import org.phoebus.framework.jobs.NamedThreadFactory;
 
@@ -33,20 +38,32 @@ import org.phoebus.framework.jobs.NamedThreadFactory;
 @SuppressWarnings("nls")
 public class ScanEngine
 {
-    /** Executor for scans off the queue, handling one by one */
-    final private ExecutorService queue_executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("ScanEngineQueue"));
-
-    /** Executor for scans that executes all submitted scans in parallel */
-    final private ExecutorService parallel_executor = Executors.newCachedThreadPool(new NamedThreadFactory("ScanEnginePool"));
-
     /** All the scans handled by this engine
      *
      *  <p>New, pending scans, i.e. in Idle state, are added to the end.
      *  The currently executing scan is Running or Paused.
      *  Scans that either Finished, Failed or were Aborted
      *  are kept around for a little while.
+     *
+     *  <p>The list is generally thread-safe (albeit slow when adding elements).
+     *  It is only locked to avoid starting a scan that's about to be moved up
+     *  for later execution
+     *  a) .. when locating the next scan to execute
+     *  b) .. when changing the order of scans in the list
      */
     final private List<LoggedScan> scan_queue = new CopyOnWriteArrayList<>();
+
+    /** Executor for executeQueuedScans() */
+    final private ExecutorService queue_executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("QueueHandler"));
+
+    /** Executor queued scans that are submitted by executeQueuedScans() */
+    final private ExecutorService queued_scan_executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("QueuedScans"));
+
+    /** Flag for executeQueuedScans() */
+    private volatile boolean running = true;
+
+    /** Executor for parallel scans. */
+    final private ExecutorService parallel_executor = Executors.newCachedThreadPool(new NamedThreadFactory("ParallelScans"));
 
     /** Start the scan engine, i.e. create thread that will process
      *  scans
@@ -61,6 +78,77 @@ public class ScanEngine
         final List<Scan> scans = DataLogFactory.getScans();
         for (Scan scan : scans)
             scan_queue.add(new LoggedScan(scan));
+
+        running = true;
+        queue_executor.execute(this::executeQueuedScans);
+    }
+
+    /** Wake executeQueuedScans() because a new scan was added */
+    private void signalNewScan()
+    {
+        synchronized (scan_queue)
+        {
+            scan_queue.notifyAll();
+        }
+    }
+
+    /** Monitor the scan queue, submit one queued scan at a time */
+    private void executeQueuedScans()
+    {
+        // This thread is not directly executing the queued scans because
+        // by submitting them to an executor we get a Future that's used
+        // to cancel it.
+        // Scans are submitted to the single-threaded queued_scan_executor
+        // and not the parallel_executor to assert that only one queued scan
+        // runs at a time.
+        while (running)
+        {
+            ExecutableScan next = null;
+            try
+            {
+                logger.log(Level.FINE, "Looking for next scan to execute...");
+                synchronized (scan_queue)
+                {
+                    // Search from most-recently added end of queue
+                    for (int i = scan_queue.size()-1;  i>=0;  --i)
+                    {
+                        final LoggedScan scan = scan_queue.get(i);
+                        // Track the last Queued scan,
+                        // which should be the next to execute
+                        if (scan instanceof ExecutableScan)
+                        {
+                            final ExecutableScan exe = (ExecutableScan) scan;
+                            if (exe.getQueueState() == QueueState.Queued)
+                                next = exe;
+                        }
+                        else // Stop looking when reaching logged scans
+                            break;
+                    }
+                }
+                if (next == null)
+                {
+                    logger.log(Level.FINE, "Waiting for new scan");
+                    // Wait for a change in the scan queue
+                    synchronized (scan_queue)
+                    {
+                        scan_queue.wait();
+                    }
+                }
+                else
+                {
+                    logger.log(Level.FINE, "Found " + next);
+                    next.setQueueState(QueueState.Submitted);
+                    final Future<Object> done = next.submit(queued_scan_executor);
+                    done.get();
+                    logger.log(Level.FINE, "Completed " + next);
+                }
+            }
+            catch (Throwable ex)
+            {
+                logger.log(Level.WARNING, "Scan Queue Handler Error while executing " + next, ex);
+            }
+        }
+        logger.log(Level.WARNING, "Scan Queue Handler exits");
     }
 
     /** Stop the scan engine, aborting scans
@@ -68,11 +156,22 @@ public class ScanEngine
      */
     public void stop()
     {
+        running = false;
+        signalNewScan();
         queue_executor.shutdownNow();
+        queued_scan_executor.shutdownNow();
         parallel_executor.shutdownNow();
         try
         {
             queue_executor.awaitTermination(10, TimeUnit.SECONDS);
+        }
+        catch (InterruptedException e)
+        {
+            // Ignore, shutting down anyway
+        }
+        try
+        {
+            queued_scan_executor.awaitTermination(10, TimeUnit.SECONDS);
         }
         catch (InterruptedException e)
         {
@@ -120,11 +219,15 @@ public class ScanEngine
      */
     public void submit(final ExecutableScan scan, final boolean queue)
     {
-        if (queue)
-            scan.submit(queue_executor);
-        else
-            scan.submit(parallel_executor);
         scan_queue.add(scan);
+        if (queue)
+        {
+            // Wake queue_executor.
+            scan.setQueueState(QueueState.Queued);
+            signalNewScan();
+        }
+        else // Execute right away
+            scan.submit(parallel_executor);
     }
 
     /** Check if there are any scans executing or waiting to be executed
@@ -144,7 +247,7 @@ public class ScanEngine
     /** @return List of scans */
     public List<LoggedScan> getScans()
     {
-        final List<LoggedScan> scans = new ArrayList<LoggedScan>();
+        final List<LoggedScan> scans = new ArrayList<>();
         scans.addAll(scan_queue);
         return scans;
     }
@@ -152,7 +255,7 @@ public class ScanEngine
     /** @return List of executable scans */
     public List<ExecutableScan> getExecutableScans()
     {
-        final List<ExecutableScan> scans = new ArrayList<ExecutableScan>();
+        final List<ExecutableScan> scans = new ArrayList<>();
         for (LoggedScan scan : scan_queue)
             if (scan instanceof ExecutableScan)
                 scans.add((ExecutableScan) scan);
@@ -184,6 +287,74 @@ public class ScanEngine
         if (scan instanceof ExecutableScan)
             return (ExecutableScan) scan;
         return null;
+    }
+
+    private QueueState getQueueState(final LoggedScan scan)
+    {
+        if (scan instanceof ExecutableScan)
+            return ((ExecutableScan) scan).getQueueState();
+        return QueueState.NotQueued;
+    }
+
+    /** Ask server to move idle scan in list
+     *
+     *  <p>Has no effect if the scan is not idle or target slot in scan list cannot be used.
+     *
+     *  @param id ID that uniquely identifies a scan
+     *  @param steps How far to move the scan 'up' (earlier) for positive steps, otherwise 'down'.
+     *  @throws Exception on error
+     */
+    public void move(final long id, final int steps) throws Exception
+    {
+        logger.log(Level.INFO, "Move scan " + id + " by " + steps);
+        synchronized (scan_queue)
+        {
+            final int N = scan_queue.size();
+            for (int i=N-1; i>=0; --i)
+            {   // Locate scan by ID
+                final LoggedScan scan = scan_queue.get(i);
+                if (scan.getId() != id)
+                    continue;
+
+                final int target = i + steps;
+                if (target >= N)
+                {
+                    logger.log(Level.WARNING, "Cannot move " + scan + " beyond top of queue");
+                    return;
+                }
+                // Is it a queued (i.e. idle) scan? Cannot move parallel or running queued scans.
+                if (getQueueState(scan) != QueueState.Queued)
+                {
+                    logger.log(Level.WARNING, "Can only move idle, queued scans, not " + scan);
+                    return;
+                }
+
+                // Is there any 'running' scan below the target location?
+                // Cannot move below because then it would never run.
+                boolean above_running = false;
+                for (int r=target-1; r>=0; --r)
+                {
+                    final LoggedScan scn = scan_queue.get(r);
+                    if (getQueueState(scn) == QueueState.Submitted &&
+                        scn.getScanState().isActive())
+                    {
+                        above_running = true;
+                        break;
+                    }
+                }
+                if (!above_running)
+                {
+                    logger.log(Level.WARNING, "Scan must stay above the running queued scan");
+                    return;
+                }
+
+                // Move
+                scan_queue.remove(i);
+                scan_queue.add(target, scan);
+                return;
+            }
+        }
+        logger.log(Level.WARNING, "Unknown scan " + id);
     }
 
     /** @param scan Scan to remove (if it's 'done')
