@@ -405,7 +405,14 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
         try
         {
             // Set logger for execution of scan
-            data_logger = Optional.of(DataLogFactory.getDataLog(this));
+            try
+            {
+                data_logger = Optional.of(DataLogFactory.getDataLog(this));
+            }
+            catch (Exception dl_ex)
+            {
+                throw new Exception("Aborted while opening data log", dl_ex);
+            }
             execute_or_die_trying();
             // Exceptions will already have been caught within execute_or_die_trying,
             // hopefully updating the status PVs, but there could be exceptions
