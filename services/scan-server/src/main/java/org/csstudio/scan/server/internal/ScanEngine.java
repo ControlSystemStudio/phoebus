@@ -57,7 +57,7 @@ public class ScanEngine
     final private ExecutorService queue_executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("QueueHandler"));
 
     /** Executor queued scans that are submitted by executeQueuedScans() */
-    final private ExecutorService queued_scan_executor = Executors.newCachedThreadPool(new NamedThreadFactory("QueuedScans"));
+    final private ExecutorService queued_scan_executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("QueuedScans"));
 
     /** Flag for executeQueuedScans() */
     private volatile boolean running = true;
