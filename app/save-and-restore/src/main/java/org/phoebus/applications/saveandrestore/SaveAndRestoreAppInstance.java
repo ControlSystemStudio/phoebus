@@ -18,7 +18,9 @@
 package org.phoebus.applications.saveandrestore;
 
 import java.io.IOException;
+import java.io.InputStream;
 
+import javafx.scene.text.Font;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
@@ -33,7 +35,9 @@ public class SaveAndRestoreAppInstance implements AppInstance {
 	
 	public SaveAndRestoreAppInstance(AppDescriptor appDescriptor) {
 		this.appDescriptor = appDescriptor;
-		
+
+		InputStream is = this.getClass().getClassLoader().getResourceAsStream("LiberationSans-Bold.ttf");
+		Font f = Font.loadFont(is, 10);
 		try {
 			FXMLLoader loader = new FXMLLoader();
 			loader.setLocation(this.getClass().getResource("ui/fxml/SaveAndRestoreUI.fxml"));

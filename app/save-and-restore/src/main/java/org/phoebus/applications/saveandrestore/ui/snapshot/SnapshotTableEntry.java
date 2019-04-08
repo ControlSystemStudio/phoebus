@@ -8,7 +8,7 @@
  *   East Lansing, MI 48824-1321
  *   http://frib.msu.edu
  */
-package org.phoebus.applications.saveandrestore.ui;
+package org.phoebus.applications.saveandrestore.ui.snapshot;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -25,6 +25,8 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import org.epics.vtype.*;
+import org.phoebus.applications.saveandrestore.ui.SingleListenerBooleanProperty;
+import org.phoebus.applications.saveandrestore.ui.Utilities;
 import org.phoebus.applications.saveandrestore.ui.model.Threshold;
 import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.model.VNoData;
@@ -32,7 +34,7 @@ import org.phoebus.applications.saveandrestore.ui.model.VTypePair;
 
 /**
  *
- * <code>TableEntry</code> represents a single line in the snapshot viewer table. It provides values for all columns in
+ * <code>SnapshotTableEntry</code> represents a single line in the snapshot viewer table. It provides values for all columns in
  * the table, be it a single snapshot table or a multi snapthos table.
  *
  * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
@@ -40,7 +42,7 @@ import org.phoebus.applications.saveandrestore.ui.model.VTypePair;
  * This code has been modified at the European Spallation Source (ESS), Lund, Sweden.
  *
  */
-public class TableEntry {
+public class SnapshotTableEntry {
 
     private final IntegerProperty id = new SimpleIntegerProperty(this, "id");
     private final SingleListenerBooleanProperty selected = new SingleListenerBooleanProperty(this, "selected", true);
@@ -55,7 +57,7 @@ public class TableEntry {
     private final ObjectProperty<VType> liveValue = new SimpleObjectProperty<>(this, "liveValue", VDisconnectedData.INSTANCE);
     private final List<ObjectProperty<VTypePair>> compareValues = new ArrayList<>();
 
-    private final ObjectProperty<VTypePair> readback = new SimpleObjectProperty<>(this, "readback",
+    private final ObjectProperty<VTypePair> liveReadback = new SimpleObjectProperty<>(this, "liveReadback",
         new VTypePair(VDisconnectedData.INSTANCE, VDisconnectedData.INSTANCE, Optional.empty()));
 
     private final StringProperty readbackName = new SimpleStringProperty(this, "readbackName");
@@ -71,7 +73,7 @@ public class TableEntry {
     /**
      * Construct a new table entry.
      */
-    public TableEntry() {
+    public SnapshotTableEntry() {
         //when read only is set to true, unselect this PV
         readOnly.addListener((a,o,n) -> {
             if (n) {
@@ -114,17 +116,17 @@ public class TableEntry {
     }
 
     /**
-     * @return the property providing the readback pv name
+     * @return the property providing the liveReadback pv name
      */
     public StringProperty readbackNameProperty() {
         return readbackName;
     }
 
     /**
-     * @return the property providing the readback value
+     * @return the property providing the liveReadback value
      */
-    public ObjectProperty<VTypePair> readbackProperty() {
-        return readback;
+    public ObjectProperty<VTypePair> liveReadbackProperty() {
+        return liveReadback;
     }
 
     /**
@@ -170,7 +172,7 @@ public class TableEntry {
     }
 
     /**
-     * @return the property providing the stored readback vs stored setpoint value
+     * @return the property providing the stored liveReadback vs stored setpoint value
      */
     public ObjectProperty<VTypePair> storedReadbackProperty() {
         return storedReadback;
@@ -197,7 +199,7 @@ public class TableEntry {
 
     /**
      * @param index the index of the compared value (starts with 1)
-     * @return the property providing the compares stored readback value for the given index
+     * @return the property providing the compares stored liveReadback value for the given index
      */
     public ObjectProperty<VTypePair> compareStoredReadbackProperty(int index) {
         if (index == 0) {
@@ -246,7 +248,7 @@ public class TableEntry {
     }
 
     /**
-     * Set the stored readback value for the primary snapshot of for the snapshots compared to the primary one.
+     * Set the stored liveReadback value for the primary snapshot of for the snapshots compared to the primary one.
      *
      * @param val the value to set
      * @param index the index of the snapshot
@@ -268,7 +270,7 @@ public class TableEntry {
     }
 
     /**
-     * Set the readback value of this entry.
+     * Set the liveReadback value of this entry.
      *
      * @param val the value
      */
@@ -276,13 +278,13 @@ public class TableEntry {
         if (val == null) {
             val = VDisconnectedData.INSTANCE;
         }
-        if (readback.get().value != val) {
-            readback.set(new VTypePair(liveValueProperty().get(), val, threshold));
+        if (liveReadback.get().value != val) {
+            liveReadback.set(new VTypePair(liveValueProperty().get(), val, threshold));
         }
     }
 
     /**
-     * Set the live value of this entry and updates the readback value as well.
+     * Set the live value of this entry and updates the liveReadback value as well.
      *
      * @param val the new value
      */
@@ -291,29 +293,29 @@ public class TableEntry {
             val = VDisconnectedData.INSTANCE;
         }
         liveValue.set(val);
-        readback.set(new VTypePair(val, readback.get().value, threshold));
+        liveReadback.set(new VTypePair(val, liveReadback.get().value, threshold));
         VType stored = value.get().value;
         value.set(new VTypePair(val, stored, threshold));
         liveStoredEqual.set(Utilities.areValuesEqual(val, stored, threshold));
     }
 
-    /**
-     * Set the threshold value for this entry. All value comparisons related to this entry are calculated using the
-     * threshold (if it exists). Once the threshold is set, it cannot be unset.
-     *
-     * @param threshold the threshold
-     */
-    public void setThreshold(Optional<Threshold<?>> threshold) {
-        if (threshold.isPresent()) {
-            this.threshold = threshold;
-            VType val = this.value.get().value;
-            this.value.set(new VTypePair(this.value.get().base, val, threshold));
-            this.liveStoredEqual.set(Utilities.areValuesEqual(liveValue.get(), val, threshold));
-            this.compareValues.forEach(e -> e.set(new VTypePair(val, e.get().value, threshold)));
-            this.readback.set(new VTypePair(this.readback.get().base, this.readback.get().value, threshold));
-            this.storedReadback
-                .set(new VTypePair(this.storedReadback.get().base, this.storedReadback.get().value, threshold));
-            this.compareStoredReadbacks.forEach(e -> e.set(new VTypePair(e.get().base, e.get().value, threshold)));
-        }
-    }
+//    /**
+//     * Set the threshold value for this entry. All value comparisons related to this entry are calculated using the
+//     * threshold (if it exists). Once the threshold is set, it cannot be unset.
+//     *
+//     * @param threshold the threshold
+//     */
+//    public void setThreshold(Optional<Threshold<?>> threshold) {
+//        if (threshold.isPresent()) {
+//            this.threshold = threshold;
+//            VType val = this.value.get().value;
+//            this.value.set(new VTypePair(this.value.get().base, val, threshold));
+//            this.liveStoredEqual.set(Utilities.areValuesEqual(liveValue.get(), val, threshold));
+//            this.compareValues.forEach(e -> e.set(new VTypePair(val, e.get().value, threshold)));
+//            this.liveReadback.set(new VTypePair(this.liveReadback.get().base, this.liveReadback.get().value, threshold));
+//            this.storedReadback
+//                .set(new VTypePair(this.storedReadback.get().base, this.storedReadback.get().value, threshold));
+//            this.compareStoredReadbacks.forEach(e -> e.set(new VTypePair(e.get().base, e.get().value, threshold)));
+//        }
+//    }
 }

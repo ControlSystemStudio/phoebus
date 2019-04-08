@@ -20,34 +20,46 @@ package org.phoebus.applications.saveandrestore.data;
 
 import java.util.List;
 
-import se.esss.ics.masar.model.Config;
+import se.esss.ics.masar.model.ConfigPv;
 import se.esss.ics.masar.model.Node;
-import se.esss.ics.masar.model.Snapshot;
+import se.esss.ics.masar.model.SnapshotItem;
 
 public interface DataProvider {
 
 	public Node getRootNode();
+
+	public Node getNode(String uniqueNodeId);
 	
 	public List<Node> getChildNodes(Node node);
 	
-	public boolean rename(Node treeNode);
+	public Node updateNode(Node nodeToUpdate);
 	
-	public Node createNewTreeNode(int parentId, Node node);
+	public Node createNode(String parentsUniqueId, Node node);
 	
-	public boolean deleteTreeNode(Node treeNode);
+	public boolean deleteNode(String uniqueNodeId);
 	
-	public Config getSaveSet(int id);
+	public List<ConfigPv> getConfigPvs(String uniqueNodeId);
+
+	public Node getSaveSetForSnapshot(String uniqueNodeId);
 	
-	public Config saveSaveSet(Config config);
+	public Node saveSaveSet(String parentsUniqueId, Node config);
 	
-	public Config updateSaveSet(Config config);
+	public Node updateSaveSet(Node configToUpdate, List<ConfigPv> configPvList);
 	
 	public String getServiceIdentifier();
 
 	public String getServiceVersion();
 
-	public Snapshot getSnapshot(int id);
+	public Node takeSnapshot(String uniqueNodeId);
 
-	public Snapshot takeSnapshot(int id);
+	public boolean tagSnapshotAsGolden(String uniqueNodeId);
+
+	public List<SnapshotItem> getSnapshotItems(String snapshotUniqueId);
+
+	public Node getParentNode(String uniqueNodeId);
+
+	public ConfigPv updateSingleConfigPv(String currentPvName, String newPvName, String currentReadbackPvName, String newReadbackPvName);
+
+	public Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment);
 	
 }

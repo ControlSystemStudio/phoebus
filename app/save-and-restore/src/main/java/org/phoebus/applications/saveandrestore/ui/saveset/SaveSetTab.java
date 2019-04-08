@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.phoebus.applications.saveandrestore.ui;
+package org.phoebus.applications.saveandrestore.ui.saveset;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXMLLoader;
@@ -25,6 +25,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.ui.javafx.ImageCache;
 import se.esss.ics.masar.model.Node;
 
@@ -32,8 +33,10 @@ public class SaveSetTab extends Tab{
 
     private SimpleStringProperty tabTitleProperty = new SimpleStringProperty("<unnamed>");
 
+    private SaveSetController saveSetController;
+
     public SaveSetTab(Node node){
-        setId(Integer.toString(node.getId()));
+        setId(node.getUniqueId());
 
         FXMLLoader loader = new FXMLLoader();
         try {
@@ -41,8 +44,8 @@ public class SaveSetTab extends Tab{
             setContent(loader.load());
             setGraphic(getTabGraphic());
 
-            SaveSetController controller = loader.getController();
-            String tabName = controller.loadSaveSet(node);
+            saveSetController = loader.getController();
+            String tabName = saveSetController.loadSaveSet(node);
             if(tabName != null) {
                 tabTitleProperty.set(tabName);
             }

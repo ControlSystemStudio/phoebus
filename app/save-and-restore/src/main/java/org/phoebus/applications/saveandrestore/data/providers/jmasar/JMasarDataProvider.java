@@ -23,10 +23,9 @@ import java.util.List;
 import org.phoebus.applications.saveandrestore.data.DataProvider;
 import org.phoebus.applications.saveandrestore.data.DataProviderException;
 
-import se.esss.ics.masar.model.Config;
+import se.esss.ics.masar.model.ConfigPv;
 import se.esss.ics.masar.model.Node;
-import se.esss.ics.masar.model.NodeType;
-import se.esss.ics.masar.model.Snapshot;
+import se.esss.ics.masar.model.SnapshotItem;
 
 public class JMasarDataProvider implements DataProvider {
 
@@ -42,23 +41,27 @@ public class JMasarDataProvider implements DataProvider {
 	}
 
 	@Override
-	public List<Node> getChildNodes(Node parentNode) {	
-		return jmasarClient.getChildNodes(parentNode.getId());		
+	public Node getNode(String uniqueNodeId){
+		return jmasarClient.getNode(uniqueNodeId);
 	}
 
 	@Override
-	public boolean rename(Node treeNode) {
+	public List<Node> getChildNodes(Node node) {
+		return jmasarClient.getChildNodes(node);
+	}
+
+	@Override
+	public Node updateNode(Node nodeToUpdate) {
 		try {
-			jmasarClient.rename(treeNode.getId(), treeNode.getName());
+			return jmasarClient.updateNode(nodeToUpdate);
 		} catch (Exception e) {
-			return false;
+			return null;
 		}
-		return true;
 	}
 
 	@Override
-	public Node createNewTreeNode(int parentId, Node node) {
-		return jmasarClient.createNewNode(node);
+	public Node createNode(String parentsUniqueId, Node node) {
+		return jmasarClient.createNewNode(parentsUniqueId, node);
 	}
 	
 	@Override
@@ -67,21 +70,10 @@ public class JMasarDataProvider implements DataProvider {
 	}
 
 	@Override
-	public boolean deleteTreeNode(Node treeNode) {
+	public boolean deleteNode(String uniqueNodeId) {
 
 		try {
-			switch (treeNode.getNodeType()) {
-			case FOLDER:
-				jmasarClient.deleteNode(NodeType.FOLDER, treeNode.getId());
-				break;
-			case CONFIGURATION:
-				jmasarClient.deleteNode(NodeType.CONFIGURATION, treeNode.getId());
-				break;
-			case SNAPSHOT:
-				jmasarClient.deleteSnapshot(treeNode.getId());
-				break;
-			default:
-			}
+			jmasarClient.deleteNode(uniqueNodeId);
 		} catch (DataProviderException e) {
 			return false;
 		}
@@ -89,19 +81,25 @@ public class JMasarDataProvider implements DataProvider {
 	}
 	
 	@Override
-	public Config getSaveSet(int id) {
+	public List<ConfigPv> getConfigPvs(String uniqueNodeId) {
 		
-		return jmasarClient.getConfiguration(id);
+		return jmasarClient.getConfigPvs(uniqueNodeId);
+	}
+
+    @Override
+    public Node getSaveSetForSnapshot(String uniqueNodeId) {
+
+        return jmasarClient.getParentNode(uniqueNodeId);
+    }
+	
+	@Override
+	public Node saveSaveSet(String parentsUniqueId, Node config) {
+		return jmasarClient.createNewNode(parentsUniqueId, config);
 	}
 	
 	@Override
-	public Config saveSaveSet(Config config) {
-		return jmasarClient.createConfiguration(config);
-	}
-	
-	@Override
-	public Config updateSaveSet(Config config) {
-		return jmasarClient.updateConfiguration(config);
+	public Node updateSaveSet(Node configToUpdate, List<ConfigPv> confgPvList) {
+		return jmasarClient.updateConfiguration(configToUpdate, confgPvList);
 	}
 
 	@Override
@@ -109,14 +107,41 @@ public class JMasarDataProvider implements DataProvider {
 		return jmasarClient.getJMasarServiceVersion();
 	}
 
+
+
 	@Override
-	public Snapshot getSnapshot(int id){
-		return jmasarClient.getSnapshot(id);
+	public Node takeSnapshot(String uniqueNodeId){
+		return jmasarClient.takeSnapshot(uniqueNodeId);
 	}
 
 	@Override
-	public Snapshot takeSnapshot(int id){
-		return jmasarClient.takeSnapshot(Integer.toString(id));
+	public boolean tagSnapshotAsGolden(String uniqueNodeId){
+		try {
+			jmasarClient.tagSnapshotAsGolden(uniqueNodeId);
+			return true;
+		}
+		catch(DataProviderException e){
+			return false;
+		}
 	}
-	
+
+	@Override
+	public List<SnapshotItem> getSnapshotItems(String snapshotUniqueId){
+		return jmasarClient.getSnapshotItems(snapshotUniqueId);
+	}
+
+	@Override
+	public Node getParentNode(String uniqueNodeId){
+		return jmasarClient.getParentNode(uniqueNodeId);
+	}
+
+	@Override
+	public ConfigPv updateSingleConfigPv(String currentPvName, String newPvName, String currentReadbackPvName, String newReadbackPvName){
+		return jmasarClient.updateSingleConfigPv(currentPvName, newPvName, currentReadbackPvName, newReadbackPvName);
+	}
+
+	@Override
+	public Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment){
+		return jmasarClient.saveSnapshot(configUniqueId, snapshotItems, snapshotName, comment);
+	}
 }

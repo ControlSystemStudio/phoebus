@@ -12,8 +12,8 @@ package org.phoebus.applications.saveandrestore.ui.model;
 
 
 import org.epics.vtype.VType;
-import org.phoebus.applications.saveandrestore.ui.TableEntry;
-import se.esss.ics.masar.model.Snapshot;
+import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTableEntry;
+
 
 /**
  * <code>VTypeNamePair</code> is a wrapper object around the {@link VType}, which in addition to the value provides also
@@ -28,7 +28,7 @@ public class VTypeNamePair {
     public final String name;
     public final VSnapshot snapshot;
     public final boolean readback;
-    public final TableEntry entry;
+    public final SnapshotTableEntry entry;
 
     /**
      * Construct a new vtype name pair.
@@ -39,7 +39,7 @@ public class VTypeNamePair {
      * @param readback true if this is a readback or false if a setpoint (readback is not editable)
      * @param entry the entry that the value belongs to
      */
-    public VTypeNamePair(VType value, String name, VSnapshot snapshot, boolean readback, TableEntry entry) {
+    public VTypeNamePair(VType value, String name, VSnapshot snapshot, boolean readback, SnapshotTableEntry entry) {
         this.value = value;
         this.name = name;
         this.snapshot = snapshot;

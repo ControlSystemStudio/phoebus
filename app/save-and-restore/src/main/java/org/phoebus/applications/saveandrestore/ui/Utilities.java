@@ -20,10 +20,9 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.epics.util.array.*;
+import org.epics.util.text.NumberFormats;
 import org.epics.vtype.*;
-import org.phoebus.applications.saveandrestore.ui.model.Threshold;
-import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
-import org.phoebus.applications.saveandrestore.ui.model.VNoData;
+import org.phoebus.applications.saveandrestore.ui.model.*;
 
 /**
  *
@@ -90,11 +89,11 @@ public final class Utilities {
     private static final char COMMA = ',';
     // All formats use thread locals, to avoid problems if any of the static methods are invoked concurrently
     private static final ThreadLocal FORMAT = ThreadLocal.withInitial(() -> {
-//        ValueFormat vf = new SimpleValueFormat(3);
-//        vf.setNumberFormat(NumberFormats.toStringFormat());
-//        return vf;
-            DecimalFormat decimalFormat = new DecimalFormat();
-            decimalFormat.setP
+        ValueFormat vf = new SimpleValueFormat(3);
+        vf.setNumberFormat(NumberFormats.toStringFormat());
+        return vf;
+
+
     });
     private static final ThreadLocal<DateFormat> LE_TIMESTAMP_FORMATTER = ThreadLocal
         .withInitial(() -> new SimpleDateFormat("HH:mm:ss.SSS MMM dd"));
@@ -479,7 +478,7 @@ public final class Utilities {
             StringBuilder sb = new StringBuilder(size * 15 + 2);
             sb.append('[');
             Pattern pattern = Pattern.compile("\\,");
-            NumberFormat formatter = new DecimalFormat();
+            NumberFormat formatter = ((SimpleValueFormat)FORMAT.get()).getNumberFormat();
             if (type instanceof VDoubleArray) {
                 for (int i = 0; i < size; i++) {
                     sb.append(pattern.matcher(formatter.format(list.getDouble(i))).replaceAll("\\.")).append(COMMA)
@@ -569,9 +568,9 @@ public final class Utilities {
             return sb.toString().trim();
         } else if (type instanceof VNumber) {
             if (type instanceof VDouble) {
-                return ((DecimalFormat)FORMAT.get()).format(((VDouble) type).getValue());
+                return ((SimpleValueFormat)FORMAT.get()).format(((VDouble) type).getValue());
             } else if (type instanceof VFloat) {
-                return ((DecimalFormat)FORMAT.get()).format(((VFloat) type).getValue());
+                return ((SimpleValueFormat)FORMAT.get()).format(((VFloat) type).getValue());
             } else {
                 return String.valueOf(((VNumber) type).getValue());
             }
@@ -629,7 +628,7 @@ public final class Utilities {
             StringBuilder sb = new StringBuilder(20);
             int diff = 0;
             boolean withinThreshold = threshold.isPresent();
-            sb.append(((DecimalFormat)FORMAT.get()).format(value));
+            sb.append(((SimpleValueFormat)FORMAT.get()).format(value));
             if (value instanceof VDouble) {
                 double data = ((VDouble) value).getValue();
                 double base = ((VNumber) baseValue).getValue().doubleValue();
@@ -644,7 +643,7 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((DecimalFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
             } else if (value instanceof VFloat) {
                 float data = ((VFloat) value).getValue();
                 float base = ((VNumber) baseValue).getValue().floatValue();
@@ -659,7 +658,7 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((DecimalFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
             } else if (value instanceof VLong) {
                 long data = ((VLong) value).getValue();
                 long base = ((VNumber) baseValue).getValue().longValue();
@@ -674,7 +673,7 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((DecimalFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
             } else if (value instanceof VInt) {
                 int data = ((VInt) value).getValue();
                 int base = ((VNumber) baseValue).getValue().intValue();
@@ -689,7 +688,7 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((DecimalFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
             } else if (value instanceof VShort) {
                 short data = ((VShort) value).getValue();
                 short base = ((VNumber) baseValue).getValue().shortValue();
@@ -704,7 +703,7 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((DecimalFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
             } else if (value instanceof VByte) {
                 byte data = ((VByte) value).getValue();
                 byte base = ((VNumber) baseValue).getValue().byteValue();
@@ -719,7 +718,7 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((DecimalFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
             }
             return new VTypeComparison(sb.toString(), diff, withinThreshold);
         } else if (value instanceof VBoolean && baseValue instanceof VBoolean) {
@@ -792,7 +791,7 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((DecimalFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
             } else if (value instanceof VFloat) {
                 float data = ((VFloat) value).getValue();
                 float base = ((VNumber) baseValue).getValue().floatValue();
@@ -806,7 +805,7 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((DecimalFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
             } else if (value instanceof VLong) {
                 long data = ((VLong) value).getValue();
                 long base = ((VNumber) baseValue).getValue().longValue();
@@ -820,7 +819,7 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((DecimalFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
             } else if (value instanceof VInt) {
                 int data = ((VInt) value).getValue();
                 int base = ((VNumber) baseValue).getValue().intValue();
@@ -834,7 +833,7 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((DecimalFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
             } else if (value instanceof VShort) {
                 short data = ((VShort) value).getValue();
                 short base = ((VNumber) baseValue).getValue().shortValue();
@@ -848,7 +847,7 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((DecimalFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
             } else if (value instanceof VByte) {
                 byte data = ((VByte) value).getValue();
                 byte base = ((VNumber) baseValue).getValue().byteValue();
@@ -862,7 +861,7 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((DecimalFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
             }
             return new VTypeComparison(sb.toString(), diff, withinThreshold);
         } else if (value instanceof VBoolean && baseValue instanceof VBoolean) {

@@ -18,6 +18,7 @@
 
 package org.phoebus.applications.saveandrestore.service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -30,9 +31,10 @@ import org.phoebus.applications.saveandrestore.data.DataProvider;
 import org.phoebus.applications.saveandrestore.data.DataProviderException;
 import org.phoebus.framework.preferences.PreferencesReader;
 
-import se.esss.ics.masar.model.Config;
+import se.esss.ics.masar.model.ConfigPv;
 import se.esss.ics.masar.model.Node;
-import se.esss.ics.masar.model.Snapshot;
+import se.esss.ics.masar.model.SnapshotItem;
+
 
 public class SaveAndRestoreService {
 
@@ -69,16 +71,13 @@ public class SaveAndRestoreService {
 		dataProvider = (DataProvider) clazz.getConstructor().newInstance();
 	}
 
-	public Future<?> execute(Runnable runnable) {
-		return executor.submit(runnable);
-	}
+//	public Future<?> execute(Runnable runnable) {
+//		return executor.submit(runnable);
+//	}
 
 	public Node getRootNode() {
 
-		Future<Node> future = executor.submit(() -> {
-
-			return dataProvider.getRootNode();
-		});
+		Future<Node> future = executor.submit(() -> dataProvider.getRootNode());
 
 		try {
 			return future.get();
@@ -89,11 +88,9 @@ public class SaveAndRestoreService {
 		return null;
 	}
 
-	public List<Node> getChildNodes(Node parentNode) {
-		Future<List<Node>> future = executor.submit(() -> {
+	public Node getNode(String uniqueNodeId) {
 
-			return dataProvider.getChildNodes(parentNode);
-		});
+		Future<Node> future = executor.submit(() -> dataProvider.getNode(uniqueNodeId));
 
 		try {
 			return future.get();
@@ -104,31 +101,35 @@ public class SaveAndRestoreService {
 		return null;
 	}
 
-	public void rename(Node treeNode) throws Exception {
-		Future<Void> future = executor.submit(() -> {
+	public List<Node> getChildNodes(Node node) {
+		Future<List<Node>> future = executor.submit(() -> dataProvider.getChildNodes(node));
 
-			if(!dataProvider.rename(treeNode)){
-				throw new DataProviderException("Unable to rename node");
-			}
-			return null;
-		});
+		try {
+			return future.get();
+		} catch (Exception ie) {
+			ie.printStackTrace();
+		}
 
-		future.get();
+		return null;
+
 	}
 
-	public Node createNewTreeNode(int parentId, Node newTreeNode) throws Exception {
-		Future<Node> future = executor.submit(() -> {
-
-			return dataProvider.createNewTreeNode(parentId, newTreeNode);
-		});
+	public Node updateNode(Node nodeToUpdate) throws Exception {
+		Future<Node> future = executor.submit(() -> dataProvider.updateNode(nodeToUpdate));
 
 		return future.get();
 	}
 
-	public boolean deleteNode(Node treeNode) throws Exception{
+	public Node createNode(String parentsUniqueId, Node newTreeNode) throws Exception {
+		Future<Node> future = executor.submit(() -> dataProvider.createNode(parentsUniqueId, newTreeNode));
+
+		return future.get();
+	}
+
+	public boolean deleteNode(String uniqueNodeId) throws Exception{
 		Future<Boolean> future = executor.submit(() -> {
 
-			return dataProvider.deleteTreeNode(treeNode);
+			return dataProvider.deleteNode(uniqueNodeId);
 			
 		});
 		
@@ -136,64 +137,71 @@ public class SaveAndRestoreService {
 
 	}
 
-	public Config getSaveSet(int id) throws Exception {
+	public List<ConfigPv> getConfigPvs(String uniqueNodeId) throws Exception {
 
-		Future<Config> future = executor.submit(() -> {
-
-			return dataProvider.getSaveSet(id);
-
-		});
+		Future<List<ConfigPv>> future = executor.submit(() -> dataProvider.getConfigPvs(uniqueNodeId));
 
 		return future.get();
 	}
 
-	public Config saveSaveSet(Config config) throws Exception {
-		Future<Config> future = executor.submit(() -> {
-
-			return dataProvider.saveSaveSet(config);
-
-		});
+	public Node updateSaveSet(Node configToUpdate, List<ConfigPv> configPvList) throws Exception {
+		Future<Node> future = executor.submit(() -> dataProvider.updateSaveSet(configToUpdate, configPvList));
 
 		return future.get();
 	}
-	
-	public Config updateSaveSet(Config config) throws Exception {
-		Future<Config> future = executor.submit(() -> {
 
-			return dataProvider.updateSaveSet(config);
 
-		});
-
-		return future.get();
-	}
-	
 	public String getServiceIdentifier() {
 		return dataProvider.getServiceIdentifier();
 	}
 
-	public String getServiceVersion() throws Exception {
-		Future<String> future = executor.submit(() -> {
+//	public String getServiceVersion() throws Exception {
+//		Future<String> future = executor.submit(() -> {
+//
+//			return dataProvider.getServiceVersion();
+//		});
+//
+//		return future.get();
+//	}
 
-			return dataProvider.getServiceVersion();
-		});
+	public List<SnapshotItem> getSnapshotItems(String uniqueNodeId) throws Exception {
 
-		return future.get();
-	}
-
-	public Snapshot getSnapshot(int id) throws Exception{
-		Future<Snapshot> future = executor.submit(() -> {
-
-			return dataProvider.getSnapshot(id);
-		});
+		Future<List<SnapshotItem>> future = executor.submit(() -> dataProvider.getSnapshotItems(uniqueNodeId));
 
 		return future.get();
 	}
 
-	public Snapshot takeSnapshot(int id) throws Exception{
-		Future<Snapshot> future = executor.submit(() -> {
+	public Node getParentNode(String uniqueNodeId) throws Exception{
+		Future<Node> future = executor.submit(() -> dataProvider.getSaveSetForSnapshot(uniqueNodeId));
 
-			return dataProvider.takeSnapshot(id);
+		return future.get();
+	}
+
+	public Node takeSnapshot(String uniqueNodeId) throws Exception{
+		Future<Node> future = executor.submit(() -> dataProvider.takeSnapshot(uniqueNodeId));
+
+		return future.get();
+	}
+
+	public void tagSnapshotAsGolden(String uniqueNodeId) throws  Exception {
+		Future<Void> future = executor.submit(() -> {
+
+			if (!dataProvider.tagSnapshotAsGolden(uniqueNodeId)) {
+				throw new DataProviderException("Unable to tag snapshot as Golden");
+			}
+			return null;
 		});
+
+		future.get();
+	}
+
+	public ConfigPv updateSingleConfigPv(String currentPvName, String newPvName, String currentReadbackPvName, String newReadbackPvName) throws Exception{
+		Future<ConfigPv> future = executor.submit(() -> dataProvider.updateSingleConfigPv(currentPvName, newPvName, currentReadbackPvName, newReadbackPvName));
+		return future.get();
+	}
+
+	public Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment) throws Exception{
+		Future<Node> future = executor.submit(() -> dataProvider.saveSnapshot(configUniqueId, snapshotItems, snapshotName, comment));
 
 		return future.get();
 	}

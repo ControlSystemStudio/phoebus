@@ -29,6 +29,7 @@ import javafx.fxml.FXMLLoader;
 import se.esss.ics.masar.model.Node;
 import se.esss.ics.masar.model.NodeType;
 
+
 public class BrowserTreeCell extends TreeCell<Node> {
 
 	private javafx.scene.Node folderBox;
@@ -70,7 +71,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
 	@Override
 	public void startEdit() {
 
-		if (getItem().getNodeType().equals(NodeType.SNAPSHOT) || getItem().getId() == Node.ROOT_NODE_ID) {
+		if (getItem().getNodeType().equals(NodeType.SNAPSHOT) || (getItem().getProperty("root") != null && Boolean.valueOf(getItem().getProperty("root")))) {
 			return;
 		}
 		super.startEdit();
@@ -95,37 +96,39 @@ public class BrowserTreeCell extends TreeCell<Node> {
 	}
 
 	@Override
-	public void updateItem(Node treeNode, boolean empty) {
-		super.updateItem(treeNode, empty);
+	public void updateItem(Node node, boolean empty) {
+		super.updateItem(node, empty);
 		if (empty) {
 			setGraphic(null);
 			setText(null);
 			return;
 		}
 
-		switch(treeNode.getNodeType()) {
-		case SNAPSHOT: 
-			((Label) snapshotBox.lookup("#primaryLabel")).setText(treeNode.getName());
-			((Label) snapshotBox.lookup("#secondaryLabel"))
-					.setText(treeNode.getLastModified() + " (" + treeNode.getUserName() + ")");
+		switch(node.getNodeType()) {
+		case SNAPSHOT:
+			((Label) snapshotBox.lookup("#primaryLabel"))
+					.setText(node.getName());
+			((Label) snapshotBox.lookup("#secondaryLabel")).setText(node.getLastModified() + " (" + node.getUserName() + ")");
 			setGraphic(snapshotBox);
+			if(node.getProperty("golden") != null && Boolean.valueOf(node.getProperty("golden"))){
+				snapshotBox.setStyle("-fx-background-color: #fff8d2;");
+			}
 			setTooltip(new Tooltip("Double click to open snapshot"));
 			setContextMenu(snapshotContextMenu);
 			setEditable(false);
 			break;
 		case CONFIGURATION:
-			((Label) saveSetBox.lookup("#savesetLabel")).setText(treeNode.getName());
+			((Label) saveSetBox.lookup("#savesetLabel")).setText(node.getName());
 			setGraphic(saveSetBox);
 			setTooltip(new Tooltip("Double click to open save set"));
 			setContextMenu(saveSetContextMenu);
 			break;
 		case FOLDER:
-			String labelText = treeNode.getName();
-			if (treeNode.getId() != se.esss.ics.masar.model.Node.ROOT_NODE_ID) {
-				setContextMenu(folderContextMenu);
-			} else {
-				//labelText = SaveAndRestoreService.getInstance().getServiceIdentifier();
+			String labelText = node.getName();
+			if (node.getProperty("root") != null && Boolean.valueOf(node.getProperty("root"))) {
 				setContextMenu(rootFolderContextMenu);
+			} else {
+				setContextMenu(folderContextMenu);
 			}
 			((Label) folderBox.lookup("#folderLabel")).setText(labelText);
 			setGraphic(folderBox);
@@ -162,7 +165,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
 		}
 		ObservableList<TreeItem<Node>> siblings = getTreeItem().getParent().getChildren();
 		for(TreeItem<Node> sibling : siblings){
-			if(sibling.getValue().getId() != getItem().getId() &&
+			if(!sibling.getValue().getUniqueId().equals(getItem().getUniqueId()) &&
 					sibling.getValue().getName().equals(textField.getText()) &&
 					sibling.getValue().getNodeType().equals(getItem().getNodeType())){
 				return false;

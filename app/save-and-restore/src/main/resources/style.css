@@ -11,6 +11,23 @@
     -fx-text-fill: -fx-selection-bar-text;
 }
 
+.table-view .column-header.toplevel .label {
+     -fx-text-fill: #595959FF;
+     -fx-font-weight: 700;
+     -fx-font-family: 'Liberation Sans';
+     -fx-font-size: 18px;
+}
+
+.table-view .column-header.second-level .label {
+  -fx-text-fill: #595959FF;
+  -fx-font-weight: 700;
+  -fx-font-family: 'Liberation Sans';
+}
+
+.table-cell.divider{
+    -fx-background-color: #f2f2f2FF;
+}
+
 .separator:vertical .line {
     -fx-border-style: dashed;
     -fx-padding: 0.0em 0.0em 0.0em 0.0em;
@@ -35,3 +52,6 @@
 	-fx-background-color: #E0E0E0;
 }
 
+.golden{
+    -fx-background-color: #fff8d2;
+}
