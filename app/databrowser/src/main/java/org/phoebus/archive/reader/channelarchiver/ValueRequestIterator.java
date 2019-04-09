@@ -23,7 +23,6 @@ import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
 import org.epics.vtype.EnumDisplay;
 import org.epics.vtype.Time;
-import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VEnum;
@@ -35,6 +34,7 @@ import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.archive.reader.ValueIterator;
 import org.phoebus.archive.vtype.VTypeHelper;
+import org.phoebus.pv.TimeHelper;
 import org.w3c.dom.Element;
 
 /** Value iterator for XML-RPC
@@ -256,7 +256,7 @@ class ValueRequestIterator implements ValueIterator
                     {
                         final double min = XmlRpc.getValue(min_el);
                         final double max = XmlRpc.getValue(max_el);
-                        sample = VStatistics.of(values[0], 0.0, min, max, 1, alarm, time);
+                        sample = VStatistics.of(values[0], 0.0, min, max, 1, alarm, time, display);
                     }
                     else
                         sample = VDouble.of(values[0], alarm, time, display);
@@ -279,7 +279,7 @@ class ValueRequestIterator implements ValueIterator
                     {
                         final double min = XmlRpc.getValue(min_el);
                         final double max = XmlRpc.getValue(max_el);
-                        sample = VStatistics.of(values[0], 0.0, min, max, 1, alarm, time);
+                        sample = VStatistics.of(values[0], 0.0, min, max, 1, alarm, time, display);
                     }
                     else
                         sample = VInt.of(values[0], alarm, time, display);

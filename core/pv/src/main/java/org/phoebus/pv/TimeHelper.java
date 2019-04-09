@@ -5,9 +5,11 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.epics.vtype;
+package org.phoebus.pv;
 
 import java.time.Instant;
+
+import org.epics.vtype.Time;
 
 /** Helper for VType {@link Time}
  *  @author Kay Kasemir

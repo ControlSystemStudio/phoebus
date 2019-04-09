@@ -61,25 +61,21 @@
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-controls</artifactId>
       <version>11.0.2</version>
-      <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-web</artifactId>
       <version>11.0.2</version>
-      <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-swing</artifactId>
       <version>11.0.2</version>
-      <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-fxml</artifactId>
       <version>11.0.2</version>
-      <type>pom</type>
     </dependency>
 
     <!--  Includes
@@ -92,14 +88,14 @@
     <dependency>
       <groupId>org.epics</groupId>
       <artifactId>epics-core</artifactId>
-      <version>7.0.2</version>
+      <version>${epics.version}</version>
       <type>pom</type>
     </dependency>
 
     <dependency>
       <groupId>org.epics</groupId>
       <artifactId>vtype</artifactId>
-      <version>1.0.0</version>
+      <version>${vtype.version}</version>
     </dependency>
 
     <dependency>

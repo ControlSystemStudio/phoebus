@@ -1,5 +1,5 @@
 from org.csstudio.scan.server import SimulationHook
-from org.csstudio.scan.server.device import VTypeHelper
+from org.csstudio.scan.device import VTypeHelper
 
 class SimulationHookDemo(SimulationHook):
 

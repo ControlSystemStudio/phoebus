@@ -8,6 +8,7 @@
 package org.phoebus.archive.vtype;
 
 import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VStatistics;
 
@@ -26,6 +27,12 @@ public class StatisticsAccumulator extends VStatistics
     /** Initialize empty statistics */
     public StatisticsAccumulator()
     {
+    }
+
+    @Override
+    public Display getDisplay()
+    {
+        return Display.none();
     }
 
     /** Initialize
@@ -51,31 +58,31 @@ public class StatisticsAccumulator extends VStatistics
     }
 
     @Override
-    public double getAverage()
+    public Double getAverage()
     {
         return sum / count;
     }
 
     @Override
-    public double getStdDev()
+    public Double getStdDev()
     {
         return Math.sqrt(count * square - sum * sum) / count;
     }
 
     @Override
-    public double getMin()
+    public Double getMin()
     {
         return min;
     }
 
     @Override
-    public double getMax()
+    public Double getMax()
     {
         return max;
     }
 
     @Override
-    public int getNSamples()
+    public Integer getNSamples()
     {
         return count;
     }

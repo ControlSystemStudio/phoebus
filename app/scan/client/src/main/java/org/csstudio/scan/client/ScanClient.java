@@ -508,6 +508,16 @@ public class ScanClient
         sendScanCommand(id, "resume");
     }
 
+    /** Move an idle scan up/down in the list of queued scans
+     *  @param id ID that uniquely identifies a scan (within JVM of the scan engine)
+     *  @param steps Positive to move up
+     *  @throws Exception on error
+     */
+    public void moveScan(final long id, final int steps) throws Exception
+    {
+        sendScanCommand(id, "move/" + steps);
+    }
+
     /** Abort a running or paused scan
      *  @param id ID that uniquely identifies a scan (within JVM of the scan engine)
      *  @throws Exception on error

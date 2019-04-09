@@ -25,7 +25,6 @@ import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
 import org.epics.vtype.EnumDisplay;
 import org.epics.vtype.Time;
-import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VEnum;
@@ -33,6 +32,7 @@ import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.archive.reader.ValueIterator;
 import org.phoebus.framework.rdb.RDBInfo.Dialect;
+import org.phoebus.pv.TimeHelper;
 
 /** Base for ValueIterators that read from the RDB
  *  @author Kay Kasemir

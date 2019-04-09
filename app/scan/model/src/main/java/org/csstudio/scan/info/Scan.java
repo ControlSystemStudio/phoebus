@@ -102,7 +102,7 @@ public class Scan
     public String toString()
     {
         final StringBuilder buf = new StringBuilder();
-        buf.append("Scan '").append(name).append("' [").append(id).append("]");
+        buf.append("Scan ID ").append(id).append(" \"").append(name).append("\"");
         return buf.toString();
     }
 }

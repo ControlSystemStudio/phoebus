@@ -350,6 +350,13 @@ public class ScanServerImpl implements ScanServer
 
     /** {@inheritDoc} */
     @Override
+    public void move(long id, int steps) throws Exception
+    {
+        scan_engine.move(id, steps);
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public void next(final long id) throws Exception
     {
         if (id >= 0)

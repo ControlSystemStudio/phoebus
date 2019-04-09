@@ -358,7 +358,21 @@ public class ScansTable extends VBox
         for (i=0; i<infos.size(); ++i)
         {
             if (i < scans.size())
-                scans.get(i).updateFrom(infos.get(i));
+            {
+                final boolean state_changed = scans.get(i).updateFrom(infos.get(i));
+                // Did the state change, it's not idle, but the row above is idle?
+                if (state_changed                             &&
+                    i > 0                                     &&
+                    infos.get(i).getState() != ScanState.Idle &&
+                    infos.get(i-1).getState() == ScanState.Idle)
+                {
+                    // Then 'move down' button in row above needs to be disabled,
+                    // so force a cell refresh
+                    // System.out.println("Must update state display for " + infos.get(i-1));
+                    scans.get(i-1).state.set(null);
+                    scans.get(i-1).state.set(infos.get(i-1).getState());
+                }
+            }
             else
                 scans.add(new ScanInfoProxy(infos.get(i)));
         }

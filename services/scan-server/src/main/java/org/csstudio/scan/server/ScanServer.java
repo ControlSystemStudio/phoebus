@@ -109,17 +109,27 @@ public interface ScanServer
      */
     public void updateScanProperty(long id, long address, String property_id, Object value) throws Exception;
 
-    /** Ask server to force transition to next command
-    *
-    *  <p>Has no effect if the scan is not running.
-    *
-    *  @param id ID that uniquely identifies a scan
-    *            -1 to force 'next' on all running scans
-    *  @throws Exception on error
-    */
-   public void next(long id) throws Exception;
+    /** Ask server to move idle scan in list
+     *
+     *  <p>Has no effect if the scan is not idle or target slot in scan list cannot be used.
+     *
+     *  @param id ID that uniquely identifies a scan
+     *  @param steps How far to move the scan 'up' (earlier) for positive steps, otherwise 'down'.
+     *  @throws Exception on error
+     */
+    public void move(long id, int steps) throws Exception;
 
-   /** Ask server to pause a scan
+    /** Ask server to force transition to next command
+     *
+     *  <p>Has no effect if the scan is not running.
+     *
+     *  @param id ID that uniquely identifies a scan
+     *            -1 to force 'next' on all running scans
+     *  @throws Exception on error
+     */
+    public void next(long id) throws Exception;
+
+    /** Ask server to pause a scan
      *
      *  <p>Note that pausing has no effect if the scan is not running.
      *  It is specifically not possible to pause an idle scan, i.e.

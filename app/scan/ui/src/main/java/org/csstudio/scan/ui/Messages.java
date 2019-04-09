@@ -17,6 +17,8 @@ public class Messages
     public static String scan_active_prompt;
     public static String scan_abort;
     public static String scan_jump_to_current_command;
+    public static String scan_move_down;
+    public static String scan_move_up;
     public static String scan_name_id_fmt;
     public static String scan_next;
     public static String scan_pause;
