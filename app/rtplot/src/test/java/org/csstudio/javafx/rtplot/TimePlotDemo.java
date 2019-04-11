@@ -63,9 +63,9 @@ public class TimePlotDemo extends Application
         final RGBFactory colors = new RGBFactory();
         final DynamicDemoData[] data = new DynamicDemoData[]
         { new DynamicDemoData(MAX_SIZE, 5.0), new DynamicDemoData(MAX_SIZE, 10.0), new DynamicDemoData(MAX_SIZE, 20.0) };
-        plot.addTrace("Fred", "socks", data[0], colors.next(), TraceType.AREA_DIRECT, 3, PointType.NONE, 3, 0);
-        plot.addTrace("Jane", "handbags", data[1], colors.next(), TraceType.AREA, 5, PointType.NONE, 5, 1);
-        plot.addTrace("Another", "mA", data[2], colors.next(), TraceType.LINES_DIRECT, 1, PointType.TRIANGLES, 15, 2);
+        plot.addTrace("Fred", "socks", data[0], colors.next(), TraceType.AREA_DIRECT, 3, LineStyle.SOLID, PointType.NONE, 3, 0);
+        plot.addTrace("Jane", "handbags", data[1], colors.next(), TraceType.AREA, 5, LineStyle.SOLID, PointType.NONE, 5, 1);
+        plot.addTrace("Another", "mA", data[2], colors.next(), TraceType.LINES_DIRECT, 1, LineStyle.SOLID, PointType.TRIANGLES, 15, 2);
 
         plot.addMarker(Color.BLUE, true, Instant.now().plusSeconds(5));
 
