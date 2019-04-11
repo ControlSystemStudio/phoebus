@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
+import org.csstudio.javafx.rtplot.LineStyle;
 import org.csstudio.javafx.rtplot.PointType;
 import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.javafx.rtplot.TraceType;
@@ -132,38 +133,38 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
                 drawMinMaxArea(gc, x_transform, y_axis, data);
                 gc.setPaint(color);
                 drawStdDevLines(gc, x_transform, y_axis, data, trace.getWidth());
-                drawValueStaircase(gc, x_transform, y_axis, data, trace.getWidth());
+                drawValueStaircase(gc, x_transform, y_axis, data, trace.getWidth(), trace.getLineStyle());
                 break;
             case AREA_DIRECT:
                 gc.setPaint(tpcolor);
                 drawMinMaxArea(gc, x_transform, y_axis, data);
                 gc.setPaint(color);
                 drawStdDevLines(gc, x_transform, y_axis, data, trace.getWidth());
-                drawValueLines(gc, x_transform, y_axis, data, trace.getWidth());
+                drawValueLines(gc, x_transform, y_axis, data, trace.getWidth(), trace.getLineStyle());
                 break;
             case LINES:
                 drawMinMaxLines(gc, x_transform, y_axis, data, trace.getWidth());
                 gc.setPaint(tpcolor);
                 drawStdDevLines(gc, x_transform, y_axis, data, trace.getWidth());
                 gc.setPaint(color);
-                drawValueStaircase(gc, x_transform, y_axis, data, trace.getWidth());
+                drawValueStaircase(gc, x_transform, y_axis, data, trace.getWidth(), trace.getLineStyle());
                 break;
             case LINES_DIRECT:
                 drawMinMaxLines(gc, x_transform, y_axis, data, trace.getWidth());
                 gc.setPaint(tpcolor);
                 drawStdDevLines(gc, x_transform, y_axis, data, trace.getWidth());
                 gc.setPaint(color);
-                drawValueLines(gc, x_transform, y_axis, data, trace.getWidth());
+                drawValueLines(gc, x_transform, y_axis, data, trace.getWidth(), trace.getLineStyle());
                 break;
             case SINGLE_LINE:
-                drawValueStaircase(gc, x_transform, y_axis, data, trace.getWidth());
+                drawValueStaircase(gc, x_transform, y_axis, data, trace.getWidth(), trace.getLineStyle());
                 break;
             case SINGLE_LINE_DIRECT:
-                drawValueLines(gc, x_transform, y_axis, data, trace.getWidth());
+                drawValueLines(gc, x_transform, y_axis, data, trace.getWidth(), trace.getLineStyle());
                 break;
             case LINES_ERROR_BARS:
                 drawErrorBars(gc, x_transform, y_axis, data, trace.getPointSize());
-                drawValueLines(gc, x_transform, y_axis, data, trace.getWidth());
+                drawValueLines(gc, x_transform, y_axis, data, trace.getWidth(), trace.getLineStyle());
                 break;
             case ERROR_BARS:
                 // Compare error bars to area and min/max lines
@@ -181,7 +182,7 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
                     drawHistogram(gc, x_transform, y_axis, data);
                 break;
             default:
-                drawValueStaircase(gc, x_transform, y_axis, data, trace.getWidth());
+                drawValueStaircase(gc, x_transform, y_axis, data, trace.getWidth(), trace.getLineStyle());
             }
 
             final PointType point_type = trace.getPointType();
@@ -197,22 +198,57 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
         gc.setColor(old_color);
     }
 
+    // Basic dash patterns
+    private static final float DASH[]       = { 10f,  5f };
+    private static final float DOT[]        = {  2f, 10f };
+    private static final float DASHDOT[]    = { 10f,  5f, 3f, 5f };
+    private static final float DASHDOTDOT[] = { 10f,  5f, 3f, 5f, 3f, 5f };
+
+    // Scale dash pattern as line width grows to prevent dots and dashes from merging
+    private static float[] scale_dash(final float[] dash, final int line_width)
+    {
+        final int N = dash.length;
+        final float[] scaled = new float[N];
+        for (int i=0; i<N; ++i)
+            scaled[i] = dash[i] * 0.5f * line_width;
+        return scaled;
+    }
+
+    private final static Stroke createStroke(final int line_width, final LineStyle line_style)
+    {
+        switch (line_style)
+        {
+        case DASH:
+            return new BasicStroke(line_width, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, scale_dash(DASH, line_width), 0.0f);
+        case DOT:
+            return new BasicStroke(line_width, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, scale_dash(DOT, line_width), 0.0f);
+        case DASHDOT:
+            return new BasicStroke(line_width, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, scale_dash(DASHDOT, line_width), 0.0f);
+        case DASHDOTDOT:
+            return new BasicStroke(line_width, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, scale_dash(DASHDOTDOT, line_width), 0.0f);
+        case SOLID:
+        default:
+            return new BasicStroke(line_width);
+        }
+    }
+
     /** Draw values of data as staircase line
      *  @param gc GC
      *  @param x_transform Horizontal axis
      *  @param y_axis Value axis
      *  @param data Data
      *  @param line_width
+     *  @param line_style
      */
     final private void drawValueStaircase(final Graphics2D gc,
             final ScreenTransform<XTYPE> x_transform, final YAxisImpl<XTYPE> y_axis,
-            final PlotDataProvider<XTYPE> data, final int line_width)
+            final PlotDataProvider<XTYPE> data, final int line_width, final LineStyle line_style)
     {
         final IntList poly_x = new IntList(INITIAL_ARRAY_SIZE);
         final IntList poly_y = new IntList(INITIAL_ARRAY_SIZE);
         final int N = data.size();
         int last_x = -1, last_y = -1;
-        gc.setStroke(new BasicStroke(line_width));
+        gc.setStroke(createStroke(line_width, line_style));
         for (int i=0; i<N; ++i)
         {
             final PlotDataItem<XTYPE> item = data.get(i);
@@ -248,16 +284,17 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
      *  @param y_axis Value axis
      *  @param data Data
      *  @param line_width
+     *  @param line_style
      */
     final private void drawValueLines(final Graphics2D gc,
             final ScreenTransform<XTYPE> x_transform, final YAxisImpl<XTYPE> y_axis,
-            final PlotDataProvider<XTYPE> data, final int line_width)
+            final PlotDataProvider<XTYPE> data, final int line_width, final LineStyle line_style)
     {
         final IntList value_poly_x = new IntList(INITIAL_ARRAY_SIZE);
         final IntList value_poly_y = new IntList(INITIAL_ARRAY_SIZE);
         final int N = data.size();
 
-        gc.setStroke(new BasicStroke(line_width));
+        gc.setStroke(createStroke(line_width, line_style));
         int last_x = -1, last_y = -1;
         for (int i=0; i<N; ++i)
         {

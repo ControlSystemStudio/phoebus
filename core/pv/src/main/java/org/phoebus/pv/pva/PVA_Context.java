@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.logging.Level;
 
 import org.epics.pvaccess.ClientFactory;
+import org.epics.pvaccess.PVAVersion;
 import org.epics.pvaccess.client.ChannelProvider;
 import org.epics.pvaccess.client.ChannelProviderRegistry;
 import org.epics.pvaccess.client.ChannelProviderRegistryFactory;
@@ -34,7 +35,9 @@ public class PVA_Context
         provider = registry.getProvider("pva");
         if (provider == null)
             throw new Exception("Tried to locate 'pva' provider, found " + Arrays.toString(registry.getProviderNames()));
-        logger.log(Level.CONFIG, "PVA Provider {0}:", provider.getProviderName());
+        logger.log(Level.CONFIG, "PVA Provider {0}: {1}.{2}.{3}",
+                   new Object[] { provider.getProviderName(), PVAVersion.VERSION_MAJOR, PVAVersion.VERSION_MINOR, PVAVersion.VERSION_MAINTENANCE });
+        // 0 - none, 1 - debug, 2 - more debug, 3 - dump messages
         logger.log(Level.CONFIG, getConfig("EPICS_PVA_DEBUG"));
         logger.log(Level.CONFIG, getConfig("EPICS_PVA_ADDR_LIST"));
         logger.log(Level.CONFIG, getConfig("EPICS_PVA_AUTO_ADDR_LIST"));

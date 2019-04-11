@@ -253,6 +253,7 @@ public class ModelBasedPlot
                 item.getSamples(),
                 item.getPaintColor(),
                 item.getTraceType(), item.getLineWidth(),
+                item.getLineStyle(),
                 item.getPointType(), item.getPointSize(),
                 item.getAxisIndex());
         items_by_trace.put(trace, item);
@@ -298,6 +299,7 @@ public class ModelBasedPlot
         trace.setColor(item.getPaintColor());
         trace.setType(item.getTraceType());
         trace.setWidth(item.getLineWidth());
+        trace.setLineStyle(item.getLineStyle());
         trace.setPointType(item.getPointType());
         trace.setPointSize(item.getPointSize());
 

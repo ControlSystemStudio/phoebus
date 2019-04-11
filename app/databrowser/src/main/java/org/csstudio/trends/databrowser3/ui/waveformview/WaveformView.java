@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import org.csstudio.javafx.rtplot.LineStyle;
 import org.csstudio.javafx.rtplot.PointType;
 import org.csstudio.javafx.rtplot.RTValuePlot;
 import org.csstudio.javafx.rtplot.Trace;
@@ -266,7 +267,7 @@ public class WaveformView extends VBox
         {
             final WaveformValueDataProvider waveform = new WaveformValueDataProvider();
             waveforms.add(waveform);
-            plot.addTrace(model_item.getResolvedDisplayName(), model_item.getUnits(), waveform, model_item.getPaintColor(), TraceType.NONE, 1, PointType.CIRCLES, 5, 0);
+            plot.addTrace(model_item.getResolvedDisplayName(), model_item.getUnits(), waveform, model_item.getPaintColor(), TraceType.NONE, 1, LineStyle.SOLID, PointType.CIRCLES, 5, 0);
         }
 
         // Enable waveform selection and update slider's range
