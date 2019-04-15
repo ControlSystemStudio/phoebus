@@ -19,6 +19,7 @@ import java.util.function.Consumer;
 import java.util.function.LongConsumer;
 import java.util.logging.Level;
 
+import org.csstudio.javafx.rtplot.LineStyle;
 import org.csstudio.javafx.rtplot.PointType;
 import org.csstudio.javafx.rtplot.RTValuePlot;
 import org.csstudio.javafx.rtplot.Trace;
@@ -316,7 +317,7 @@ public class DataPlot extends VBox
                 final ScanPlotDataProvider pd = new ScanPlotDataProvider(x_device, device);
                 if (data != null)
                     pd.update(data);
-                plot.addTrace(device, null, pd, colors.next(), TraceType.SINGLE_LINE_DIRECT, 3, PointType.CIRCLES, 10, 0);
+                plot.addTrace(device, null, pd, colors.next(), TraceType.SINGLE_LINE_DIRECT, 3, LineStyle.SOLID, PointType.CIRCLES, 10, 0);
                 new_plot_data.add(pd);
             }
 

@@ -39,7 +39,7 @@ public class BasicPlotDemo extends Application
         for (Handler handler : Logger.getLogger("").getHandlers())
             handler.setLevel(Level.FINE);
 
-        final Plot<Double> plot = new Plot<Double>(Double.class, true);
+        final Plot<Double> plot = new Plot<>(Double.class, true);
         plot.setTitle("Plot Demo");
         plot.getXAxis().setName("The horizontal quantities on 'X'");
         plot.addYAxis("Another Axis");
@@ -51,20 +51,20 @@ public class BasicPlotDemo extends Application
         for (double x = -10.0; x <= 10.0; x += 1.0)
             if (x == 2.0)
             {
-            	data1.add(new SimpleDataItem<Double>(x, Double.NaN));
-            	data2.add(new SimpleDataItem<Double>(x, Double.NaN));
-                data3.add(new SimpleDataItem<Double>(x, Double.NaN));
+            	data1.add(new SimpleDataItem<>(x, Double.NaN));
+            	data2.add(new SimpleDataItem<>(x, Double.NaN));
+                data3.add(new SimpleDataItem<>(x, Double.NaN));
             }
             else
             {
-                data1.add(new SimpleDataItem<Double>(x, x*x - 5.0));
-                data2.add(new SimpleDataItem<Double>(x, 2*x));
-                data3.add(new SimpleDataItem<Double>(x, x*x + 5.0));
+                data1.add(new SimpleDataItem<>(x, x*x - 5.0));
+                data2.add(new SimpleDataItem<>(x, 2*x));
+                data3.add(new SimpleDataItem<>(x, x*x + 5.0));
             }
-		plot.addTrace(new TraceImpl<Double>("Demo Data", "socks", data1, Color.BLUE, TraceType.BARS, 0, PointType.NONE, 15, 0));
-        plot.addTrace(new TraceImpl<Double>("Demo Data", "socks", data1, Color.VIOLET, TraceType.BARS, 10, PointType.NONE, 15, 0));
-		plot.addTrace(new TraceImpl<Double>("More Data", "pants", data2, Color.RED, TraceType.AREA, 3, PointType.SQUARES, 15, 1));
-        plot.addTrace(new TraceImpl<Double>("More Data", "pants", data3, Color.GREEN, TraceType.LINES_DIRECT, 1, PointType.XMARKS, 5, 0));
+		plot.addTrace(new TraceImpl<>("Demo Data", "socks", data1, Color.BLUE, TraceType.BARS, 0, LineStyle.SOLID, PointType.NONE, 15, 0));
+        plot.addTrace(new TraceImpl<>("Demo Data", "socks", data1, Color.VIOLET, TraceType.BARS, 10, LineStyle.SOLID, PointType.NONE, 15, 0));
+		plot.addTrace(new TraceImpl<>("More Data", "pants", data2, Color.RED, TraceType.AREA, 3, LineStyle.SOLID, PointType.SQUARES, 15, 1));
+        plot.addTrace(new TraceImpl<>("More Data", "pants", data3, Color.GREEN, TraceType.LINES_DIRECT, 1, LineStyle.DASHDOT, PointType.XMARKS, 5, 0));
         plot.getXAxis().setValueRange(-12.0, 12.0);
 
         // a) Fixed range

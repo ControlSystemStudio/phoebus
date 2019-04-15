@@ -459,10 +459,11 @@ public class RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
             final PlotDataProvider<XTYPE> data,
             final Color color,
             final TraceType type, final int width,
+            final LineStyle line_style,
             final PointType point_type, final int size,
             final int y_axis)
     {
-        final TraceImpl<XTYPE> trace = new TraceImpl<>(name, units, data, color, type, width, point_type, size, y_axis);
+        final TraceImpl<XTYPE> trace = new TraceImpl<>(name, units, data, color, type, width, line_style, point_type, size, y_axis);
         plot.addTrace(trace);
         return trace;
     }

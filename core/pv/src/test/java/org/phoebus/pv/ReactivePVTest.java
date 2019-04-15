@@ -21,7 +21,6 @@ import org.epics.vtype.Time;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VType;
 import org.junit.Test;
-import org.phoebus.util.time.TimestampFormats;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.disposables.Disposable;
@@ -176,14 +175,14 @@ public class ReactivePVTest
             .throttleLast(3, TimeUnit.SECONDS)
             .subscribe(value ->
             {
-                System.out.println("Last  : " + value + " @ " + TimestampFormats.MILLI_FORMAT.format(Instant.now()));
+                System.out.println("Last  : " + value + " @ " + Instant.now());
             });
         final Disposable latest = pv
             .onValueEvent(BackpressureStrategy.BUFFER)
             .throttleLatest(3, TimeUnit.SECONDS)
             .subscribe(value ->
             {
-                System.out.println("Latest: " + value + " @ " + TimestampFormats.MILLI_FORMAT.format(Instant.now()));
+                System.out.println("Latest: " + value + " @ " + Instant.now());
             });
 
         Thread.sleep(11000);
