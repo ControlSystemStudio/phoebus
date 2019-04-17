@@ -51,6 +51,7 @@ public class AlarmLogTable implements AppInstance {
         }).map(s->{return s.split("=")[1];}).collect(Collectors.joining(" "));
 
         controller.setSearchString(parsedQuery);
+        controller.setIsNodeTable(false);
     }
     
     public void setNodeResource(URI resource) {
@@ -61,5 +62,6 @@ public class AlarmLogTable implements AppInstance {
         }).map(s->{return s.split("=")[1];}).collect(Collectors.joining(" "));
 
         controller.setSearchString(parsedQuery);
+        controller.setIsNodeTable(true);
     }
 }
