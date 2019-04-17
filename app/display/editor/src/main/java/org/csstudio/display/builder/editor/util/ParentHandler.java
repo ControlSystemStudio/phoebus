@@ -8,12 +8,14 @@
 package org.csstudio.display.builder.editor.util;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.RecursiveTask;
 
 import org.csstudio.display.builder.editor.WidgetSelectionHandler;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.widgets.ArrayWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget;
@@ -146,7 +148,13 @@ public class ParentHandler
                         continue;
                 }
                 else
-                    continue;
+                {
+                    final Optional<WidgetProperty<List<Widget>>> widget_children = widget.checkProperty(ChildrenProperty.DESCRIPTOR);
+                    if (widget_children.isPresent())
+                        child_prop = (ChildrenProperty)widget_children.get();
+                    else
+                        continue;
+                }
                 if (checkIfWidgetWithinBounds(widget))
                     result.update(child_prop, depth);
                 result.update(new ParentWidgetSearch(bounds, child_prop.getValue(), ignore, depth + 1).compute());
