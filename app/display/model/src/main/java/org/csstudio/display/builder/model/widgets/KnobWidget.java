@@ -280,8 +280,8 @@ public class KnobWidget extends WritablePVWidget {
         properties.add(extrema_visible     = propExtremaVisible.createProperty(this, false));
         properties.add(level_hihi          = propLevelHiHi.createProperty(this, 90.0));
         properties.add(level_high          = propLevelHigh.createProperty(this, 80.0));
-        properties.add(level_lolo          = propLevelLoLo.createProperty(this, 10.0));
         properties.add(level_low           = propLevelLow.createProperty(this, 20.0));
+        properties.add(level_lolo          = propLevelLoLo.createProperty(this, 10.0));
         properties.add(show_hihi           = propShowHiHi.createProperty(this, true));
         properties.add(show_high           = propShowHigh.createProperty(this, true));
         properties.add(show_ok             = propShowOK.createProperty(this, true));
