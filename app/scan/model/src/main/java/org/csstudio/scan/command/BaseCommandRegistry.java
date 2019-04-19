@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -37,6 +37,7 @@ public class BaseCommandRegistry implements ScanCommandRegistry
             entry("comment", ScanSystem.class.getResource("/icons/comment.gif")),
             entry("config_log", ScanSystem.class.getResource("/icons/configcommand.gif")),
             entry("delay", ScanSystem.class.getResource("/icons/delaycommand.gif")),
+            entry("if", ScanSystem.class.getResource("/icons/ifcommand.gif")),
             entry("include", ScanSystem.class.getResource("/icons/includecommand.gif")),
             entry("log", ScanSystem.class.getResource("/icons/logcommand.gif")),
             entry("loop", ScanSystem.class.getResource("/icons/loopcommand.gif")),
@@ -55,6 +56,7 @@ public class BaseCommandRegistry implements ScanCommandRegistry
             entry("comment", CommentCommand::new),
             entry("config_log", ConfigLogCommand::new),
             entry("delay", DelayCommand::new),
+            entry("if", IfCommand::new),
             entry("include", IncludeCommand::new),
             entry("log", LogCommand::new),
             entry("loop", LoopCommand::new),

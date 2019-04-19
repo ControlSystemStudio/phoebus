@@ -73,6 +73,12 @@ public class TextValueCondition implements DeviceCondition, DeviceListener
         this.desired_value = desired_value;
     }
 
+    /** Fetch initial value with get-callback */
+    public void fetchInitialValue() throws Exception
+    {
+        device.read(NumericValueCondition.value_check_timeout);
+    }
+
     /** Wait for value of device to reach the desired value (within tolerance)
      *  @throws TimeoutException on timeout
      *  @throws Exception on interruption or device read error
@@ -84,7 +90,7 @@ public class TextValueCondition implements DeviceCondition, DeviceListener
 
         // Fetch initial value with get-callback
         // (will be obtained by device.read() in listener)
-        device.read(NumericValueCondition.value_check_timeout);
+        fetchInitialValue();
 
         device.addListener(this);
         try
