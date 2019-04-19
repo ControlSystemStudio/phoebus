@@ -121,7 +121,7 @@ public class IfCommandImpl extends ScanCommandImpl<IfCommand>
         }
 
         // Perform body or not
-        logger.log(Level.INFO, "If: {0}", device);
+        logger.log(Level.INFO, "'If' checking {0}: ", device);
         if (is_condition_met)
             context.execute(implementation);
     }
