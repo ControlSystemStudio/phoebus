@@ -48,14 +48,13 @@ public class IfCommand extends ScanCommandWithBody
      *  @param body Commands to execute when condition is met
      */
     public IfCommand(final String device_name,
-            final Comparison comparison, final Object desired_value,
-            final List<ScanCommand> body)
+                     final Comparison comparison, final Object desired_value,
+                     final List<ScanCommand> body)
     {
         super(body);
         this.device_name = Objects.requireNonNull(device_name);
         this.desired_value = desired_value;
         this.comparison = comparison;
-        this.tolerance = tolerance;
     }
 
     /** {@inheritDoc} */
