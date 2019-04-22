@@ -41,6 +41,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class AlarmLogSearchJob implements JobRunnable {
     private final RestHighLevelClient client;
     private final String pattern;
+    private final Boolean isNodeTable;
     private final ObservableMap<Keys, String> searchParameters;
     private final Consumer<List<AlarmLogTableType>> alarmMessageHandler;
     private final BiConsumer<String, Exception> errorHandler;
@@ -51,19 +52,20 @@ public class AlarmLogSearchJob implements JobRunnable {
     private final PreferencesReader prefs = new PreferencesReader(AlarmLogTableApp.class,
             "/alarm_logging_preferences.properties");
 
-    public static Job submit(RestHighLevelClient client, final String pattern, ObservableMap<Keys, String> searchParameters,
+    public static Job submit(RestHighLevelClient client, final String pattern, Boolean isNodeTable, ObservableMap<Keys, String> searchParameters,
             final Consumer<List<AlarmLogTableType>> alarmMessageHandler,
             final BiConsumer<String, Exception> errorHandler) {
 
         return JobManager.schedule("searching alarm log messages for : " + pattern,
-                new AlarmLogSearchJob(client, pattern, searchParameters, alarmMessageHandler, errorHandler));
+                new AlarmLogSearchJob(client, pattern, isNodeTable, searchParameters, alarmMessageHandler, errorHandler));
     }
 
-    private AlarmLogSearchJob(RestHighLevelClient client, String pattern, ObservableMap<Keys, String> searchParameters,
+    private AlarmLogSearchJob(RestHighLevelClient client, String pattern, Boolean isNodeTable, ObservableMap<Keys, String> searchParameters,
             Consumer<List<AlarmLogTableType>> alarmMessageHandler, BiConsumer<String, Exception> errorHandler) {
         super();
         this.client = client;
         this.pattern = pattern;
+        this.isNodeTable = isNodeTable;
         this.searchParameters = searchParameters;
         this.alarmMessageHandler = alarmMessageHandler;
         this.errorHandler = errorHandler;
@@ -76,9 +78,9 @@ public class AlarmLogSearchJob implements JobRunnable {
         monitor.beginTask("searching for alarm log entires : " + pattern);
         String from = "", to = "";
         String searchPattern = "*".concat(pattern).concat("*");
-
+        Boolean configSet = false;
         BoolQueryBuilder boolQuery = new BoolQueryBuilder(); 
-        boolQuery.must(QueryBuilders.wildcardQuery("config", searchPattern));
+
         for (Map.Entry<Keys, String> entry : searchParameters.entrySet()) {
             String key = entry.getKey().getName();
             String value = entry.getValue();
@@ -110,10 +112,20 @@ public class AlarmLogSearchJob implements JobRunnable {
                         value = "false";
                     }
                 }
+                if (key.equals("pv")) {
+                    if (isNodeTable == true) {
+                        value = "*".concat(value).concat("*");
+                        boolQuery.must(QueryBuilders.wildcardQuery("config", value));
+                        configSet = true;
+                    }
+                    continue;
+                }
                 boolQuery.must(QueryBuilders.matchQuery(key, value));
             }
         }
-
+        if (configSet == false) {
+            boolQuery.must(QueryBuilders.wildcardQuery("config", searchPattern));
+        }
         boolQuery.must(QueryBuilders.rangeQuery("message_time").from(from).to(to));
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         sourceBuilder = sourceBuilder.query(boolQuery);
@@ -142,6 +154,11 @@ public class AlarmLogSearchJob implements JobRunnable {
                                     Instant instant = LocalDateTime.parse(message_time.asText(), formatter)
                                             .atZone(ZoneId.systemDefault()).toInstant();
                                     alarmMessage.setMessage_time(instant);
+                                }
+                                if (alarmMessage.getPv() == null) {
+                                    String config = alarmMessage.getConfig();
+                                    String [] arrConfigStr = config.split("/");
+                                    alarmMessage.setPv(arrConfigStr[arrConfigStr.length -1]);
                                 }
                                 return alarmMessage;
                             } catch (Exception e) {

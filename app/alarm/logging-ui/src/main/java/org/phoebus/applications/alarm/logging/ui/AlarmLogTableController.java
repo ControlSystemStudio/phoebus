@@ -87,10 +87,11 @@ public class AlarmLogTableController {
     @FXML
     TextField endTime;
     // Search parameters
-    ObservableMap<Keys, String> searchParameters;
+    ObservableMap<Keys, String> searchParameters = FXCollections.<Keys, String>observableHashMap();
     // The search string
     // TODO need to standardize the search string so that it can be easily parsed
     private String searchString = "*";
+    private Boolean isNodeTable = true;
     // Result
     private List<AlarmLogTableType> alarmMessages;
 
@@ -226,7 +227,6 @@ public class AlarmLogTableController {
                 });
         tableView.getColumns().add(hostCol);
 
-        searchParameters = FXCollections.<Keys, String>observableHashMap();
         searchParameters.put(Keys.PV, "*");
         searchParameters.put(Keys.MESSAGE, "*");
         searchParameters.put(Keys.SEVERITY, "*");
@@ -257,7 +257,7 @@ public class AlarmLogTableController {
             if (alarmLogSearchJob != null) {
                 alarmLogSearchJob.cancel();
             }
-            alarmLogSearchJob = AlarmLogSearchJob.submit(searchClient, searchString, searchParameters,
+            alarmLogSearchJob = AlarmLogSearchJob.submit(searchClient, searchString, isNodeTable, searchParameters,
                     result -> Platform.runLater(() -> setAlarmMessages(result)), (url, ex) -> {
                         logger.log(Level.WARNING, "Shutting down alarm log message scheduler.", ex);
                         runningTask.cancel(true);
@@ -267,6 +267,30 @@ public class AlarmLogTableController {
 
     public void setSearchString(String searchString) {
         this.searchString = searchString;
+    }
+
+    public void setIsNodeTable(Boolean isNodeTable) {
+        this.isNodeTable = isNodeTable;
+        if (isNodeTable == false) {
+            searchParameters.put(Keys.PV, this.searchString);
+        } else {
+            searchParameters.put(Keys.PV, "*");
+        }
+        searchParameters.put(Keys.MESSAGE, "*");
+        searchParameters.put(Keys.SEVERITY, "*");
+        searchParameters.put(Keys.CURRENTSEVERITY, "*");
+        searchParameters.put(Keys.CURRENTMESSAGE, "*");
+        searchParameters.put(Keys.COMMAND, "*");
+        searchParameters.put(Keys.USER, "*");
+        searchParameters.put(Keys.HOST, "*");
+        searchParameters.put(Keys.STARTTIME, TimeParser.format(java.time.Duration.ofDays(7)));
+        searchParameters.put(Keys.ENDTIME, TimeParser.format(java.time.Duration.ZERO));
+
+        query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
+            return e.getKey().getName().trim() + "=" + e.getValue().trim();
+        }).collect(Collectors.joining("&")));
+
+        peroidicSearch();
     }
 
     public List<AlarmLogTableType> getAlarmMessages() {
