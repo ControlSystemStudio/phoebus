@@ -90,6 +90,12 @@ public class NumericValueCondition implements DeviceCondition, DeviceListener
         this.desired_value = desired_value;
     }
 
+    /** Fetch initial value with get-callback */
+    public void fetchInitialValue() throws Exception
+    {
+        initial_value = VTypeHelper.toDouble(device.read(value_check_timeout));
+    }
+
     /** Wait for value of device to reach the desired value (within tolerance)
      *  @throws TimeoutException on timeout
      *  @throws Exception on interruption or device read error
@@ -99,8 +105,7 @@ public class NumericValueCondition implements DeviceCondition, DeviceListener
     {
         final WaitWithTimeout timeout = new WaitWithTimeout(this.timeout);
 
-        // Fetch initial value with get-callback
-        initial_value = VTypeHelper.toDouble(device.read(value_check_timeout));
+        fetchInitialValue();
 
         device.addListener(this);
         try

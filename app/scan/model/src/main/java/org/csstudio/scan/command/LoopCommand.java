@@ -144,7 +144,7 @@ public class LoopCommand extends ScanCommandWithBody
     /** @param device_name Name of device */
     public void setDeviceName(final String device_name)
     {
-        if (readback == null)
+        if (device_name == null)
             throw new NullPointerException();
         this.device_name = device_name;
     }

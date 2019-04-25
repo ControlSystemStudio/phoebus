@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,6 +22,7 @@ import java.util.Map;
 import org.csstudio.scan.command.CommentCommand;
 import org.csstudio.scan.command.ConfigLogCommand;
 import org.csstudio.scan.command.DelayCommand;
+import org.csstudio.scan.command.IfCommand;
 import org.csstudio.scan.command.IncludeCommand;
 import org.csstudio.scan.command.LogCommand;
 import org.csstudio.scan.command.LoopCommand;
@@ -49,6 +50,7 @@ public class BaseScanCommandImplFactory implements ScanCommandImplFactory
             entry("comment", (command, jython) -> new CommentCommandImpl((CommentCommand)command, jython)),
             entry("config_log", (command, jython) -> new ConfigLogCommandImpl((ConfigLogCommand)command, jython)),
             entry("delay", (command, jython) -> new DelayCommandImpl((DelayCommand)command, jython)),
+            entry("if", (command, jython) -> new IfCommandImpl((IfCommand)command, jython)),
             entry("include", (command, jython) -> new IncludeCommandImpl((IncludeCommand)command, jython)),
             entry("log", (command, jython) -> new LogCommandImpl((LogCommand)command, jython)),
             entry("loop", (command, jython) -> new LoopCommandImpl((LoopCommand)command, jython)),
