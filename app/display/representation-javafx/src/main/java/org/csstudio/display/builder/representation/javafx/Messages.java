@@ -123,6 +123,10 @@ public class Messages
     public static String ScriptsDialog_ScriptsTT;
     public static String ScriptsDialog_Title;
     public static String Select;
+    public static String ShowConfirmationDialogTitle;
+    public static String ShowErrorDialogTitle;
+    public static String ShowMessageDialogTitle;
+    public static String ShowSaveAsDialogTitle;
     public static String WidgetColorPopOver_Alpha;
     public static String WidgetColorPopOver_Blue;
     public static String WidgetColorPopOver_Color;
