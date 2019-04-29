@@ -101,7 +101,7 @@ public class AlarmServerNode extends AlarmClientNode
         if (super.setActions(actions))
         {
             AutomatedActionsHelper.configure(automated_actions, this,
-                                             getState().severity.isActive(),
+                                             getState().severity,
                                              true, actions);
 
             String severity_pv_name = null;

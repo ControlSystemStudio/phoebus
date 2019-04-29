@@ -66,18 +66,28 @@ public class AutomatedActionTest
         final AlarmClientNode test_item = new AlarmClientNode(null, "test");
         test_item.setActions(List.of(email));
 
-        final AutomatedActions auto_action = new AutomatedActions(test_item, false, perform_action);
+        final AutomatedActions auto_action = new AutomatedActions(test_item, SeverityLevel.OK, perform_action);
 
         // Action has not been triggered, so should not be invoked
         assertThat(action_performed.poll(2*DELAY_MS, TimeUnit.MILLISECONDS), nullValue());
 
         // Trigger alarm
-        final long start = System.currentTimeMillis();
+        long start = System.currentTimeMillis();
+        auto_action.handleSeverityUpdate(SeverityLevel.MINOR);
+        // Should now happen after the delay
+        assertThat(action_performed.poll(2*DELAY_MS, TimeUnit.MILLISECONDS), equalTo("Send Email"));
+        long passed = System.currentTimeMillis() - start;
+        checkActionDelay(passed);
+
+
+        // Trigger again because severity rises to MAJOR
+        start = System.currentTimeMillis();
         auto_action.handleSeverityUpdate(SeverityLevel.MAJOR);
         // Should now happen after the delay
         assertThat(action_performed.poll(2*DELAY_MS, TimeUnit.MILLISECONDS), equalTo("Send Email"));
-        final long passed = System.currentTimeMillis() - start;
+        passed = System.currentTimeMillis() - start;
         checkActionDelay(passed);
+
 
         // When no longer needed, close to stop timers etc.
         auto_action.cancel();
@@ -107,7 +117,7 @@ public class AutomatedActionTest
         test_item.setActions(List.of(email));
 
         // Assume item was already in alarm
-        final AutomatedActions auto_action = new AutomatedActions(test_item, true, perform_action);
+        final AutomatedActions auto_action = new AutomatedActions(test_item, SeverityLevel.MAJOR, perform_action);
         // Receiving another alarm should _not_ trigger the action
         auto_action.handleSeverityUpdate(SeverityLevel.MAJOR);
         assertThat(action_performed.poll(2*DELAY_MS, TimeUnit.MILLISECONDS), nullValue());
@@ -131,7 +141,7 @@ public class AutomatedActionTest
         final AlarmClientNode test_item = new AlarmClientNode(null, "test");
         test_item.setActions(List.of(email));
 
-        final AutomatedActions auto_action = new AutomatedActions(test_item, false, perform_action);
+        final AutomatedActions auto_action = new AutomatedActions(test_item, SeverityLevel.OK, perform_action);
 
         // Trigger alarm via MINOR alarm
         final long start = System.currentTimeMillis();
@@ -157,7 +167,7 @@ public class AutomatedActionTest
         final AlarmClientNode test_item = new AlarmClientNode(null, "test");
         test_item.setActions(List.of(email));
 
-        final AutomatedActions auto_action = new AutomatedActions(test_item, false, perform_action);
+        final AutomatedActions auto_action = new AutomatedActions(test_item, SeverityLevel.OK, perform_action);
 
         // Trigger Action..
         auto_action.handleSeverityUpdate(SeverityLevel.MAJOR);
@@ -184,7 +194,7 @@ public class AutomatedActionTest
         final AlarmClientNode test_item = new AlarmClientNode(null, "test");
         test_item.setActions(List.of(email));
 
-        final AutomatedActions auto_action = new AutomatedActions(test_item, false, perform_action);
+        final AutomatedActions auto_action = new AutomatedActions(test_item, SeverityLevel.OK, perform_action);
 
         // Trigger Action..
         for (int i=0; i<5; ++i)
@@ -217,7 +227,7 @@ public class AutomatedActionTest
         final AlarmClientNode test_item = new AlarmClientNode(null, "test");
         test_item.setActions(List.of(email));
 
-        final AutomatedActions auto_action = new AutomatedActions(test_item, false, perform_action);
+        final AutomatedActions auto_action = new AutomatedActions(test_item, SeverityLevel.OK, perform_action);
 
         // Trigger Action, get email after DELAY_MS
         System.out.println("Expect alarm email in " + DELAY_MS + "ms");

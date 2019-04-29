@@ -649,7 +649,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
             final Alert alert = new Alert(Alert.AlertType.INFORMATION);
             DialogHelper.positionDialog(alert, node, -100, -50);
             alert.setResizable(true);
-            alert.setTitle("Message");
+            alert.setTitle(Messages.ShowMessageDialogTitle);
             // "header text" allows for larger content than the "content text"
             alert.setContentText(null);
             alert.setHeaderText(message);
@@ -676,7 +676,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
             final Alert alert = new Alert(Alert.AlertType.WARNING);
             DialogHelper.positionDialog(alert, node, -100, -50);
             alert.setResizable(true);
-            alert.setTitle("Error");
+            alert.setTitle(Messages.ShowErrorDialogTitle);
             alert.setHeaderText(error);
             alert.showAndWait();
             done.countDown();
@@ -701,7 +701,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
             final Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             DialogHelper.positionDialog(alert, node, -100, -50);
             alert.setResizable(true);
-            alert.setTitle("Please Confirm");
+            alert.setTitle(Messages.ShowConfirmationDialogTitle);
             alert.setHeaderText(question);
             // Setting "Yes", "No" buttons
             alert.getButtonTypes().clear();
@@ -775,7 +775,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     {
         File file = (initial_value != null) ? new File(initial_value) : null;
         final Window window = null;
-        file = new SaveAsDialog().promptForFile(window, "Save As", file, FilenameSupport.file_extensions);
+        file = new SaveAsDialog().promptForFile(window, Messages.ShowSaveAsDialogTitle, file, FilenameSupport.file_extensions);
         return file == null ? null : file.toString();
     }
 

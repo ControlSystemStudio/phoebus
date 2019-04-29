@@ -25,13 +25,13 @@ public class AutomatedActionsHelper
      *
      *  @param automated_actions {@link AutomatedActions} to configure
      *  @param item Item on which the actions should operate
-     *  @param is_active Is the alarm active at this time?
+     *  @param initial_severity Initial alarm severity (which is ignored)
      *  @param enabled Is the alarm enabled?
      *  @param actions Actions to execute
      */
     public static void configure(final AtomicReference<AutomatedActions> automated_actions,
                                  final AlarmTreeItem<?> item,
-                                 final boolean is_active,
+                                 final SeverityLevel initial_severity,
                                  final boolean enabled,
                                  final List<TitleDetailDelay> actions)
     {
@@ -39,7 +39,7 @@ public class AutomatedActionsHelper
         final AutomatedActions new_actions =
             (actions.isEmpty() ||  !enabled)
             ? null
-            : new AutomatedActions(item, is_active, AutomatedActionExecutor.INSTANCE);
+            : new AutomatedActions(item, initial_severity, AutomatedActionExecutor.INSTANCE);
 
         // Cancel previous ones.
         final AutomatedActions previous = automated_actions.getAndSet(new_actions);
