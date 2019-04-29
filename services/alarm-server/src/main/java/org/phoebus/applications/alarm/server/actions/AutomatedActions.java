@@ -16,7 +16,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 
@@ -40,8 +40,8 @@ public class AutomatedActions
     /** Item for which to handle automated actions */
     private final AlarmTreeItem<?> item;
 
-    /** Is the item in active alarm? */
-    private final AtomicBoolean active_alarm;
+    /** Severity level that was notified */
+    private final AtomicReference<SeverityLevel> notified_severity;
 
     /** Actions that have been scheduled with the timer */
     private final ConcurrentHashMap<TitleDetailDelay, ScheduledFuture<?>> scheduled_actions = new ConcurrentHashMap<>(1);
@@ -56,15 +56,15 @@ public class AutomatedActions
 
     /** Handle automated actions for one item
      *  @param item Item for which automated actions should be handled
-     *  @param start_active Start with an active alarm (which is ignored)?
+     *  @param initial_severity Initial alarm severity (which is ignored)
      *  @param perform_action Will be invoked to actually perform the action for an item
      */
     public AutomatedActions(final AlarmTreeItem<?> item,
-                            final boolean start_active,
+                            final SeverityLevel initial_severity,
                             final BiConsumer<AlarmTreeItem<?>, TitleDetailDelay> perform_action)
     {
         this.item = item;
-        this.active_alarm = new AtomicBoolean(start_active);
+        this.notified_severity = new AtomicReference<>(initial_severity);
         this.perform_action = perform_action;
 
         // If item is PV, and not enabled, this should never be called
@@ -80,11 +80,34 @@ public class AutomatedActions
      */
     public void handleSeverityUpdate(final SeverityLevel severity)
     {
-        // System.out.println(item.getPathName() + " auto actions update for " + severity);
+        logger.log(Level.INFO, item.getPathName() + " auto actions update for " + severity);
+
         final boolean is_active = severity.isActive();
-        // Is this a change?
-        if (! active_alarm.compareAndSet(!is_active, is_active))
-            return;
+
+        if (is_active)
+        {
+            // Is this a change to a higher alarm?
+            final SeverityLevel was = notified_severity.getAndUpdate(prev ->
+            {
+                if (severity.ordinal() > prev.ordinal())
+                    return severity;
+                return prev;
+            });
+
+            if (severity == was)
+            {
+                logger.log(Level.INFO, "No change");
+                return;
+            }
+        }
+        else
+        {
+            if (notified_severity.getAndSet(SeverityLevel.OK) == SeverityLevel.OK)
+            {
+                logger.log(Level.INFO, "No change");
+                return;
+            }
+        }
 
         if (is_active)
         {
@@ -106,11 +129,13 @@ public class AutomatedActions
                             perform_action.accept(item, a);
 
                             // Is follow up is requested for this type of action?
+                            logger.log(Level.INFO, "Does " + action + " require follow up? Checking " + AlarmSystem.automated_action_followup);
                             for (String followup : AlarmSystem.automated_action_followup)
                                 if (action.detail.startsWith(followup))
                                 {
                                     synchronized (performed_actions)
                                     {
+                                        logger.log(Level.INFO, "Yes!");
                                         performed_actions.add(action);
                                     }
                                     break;

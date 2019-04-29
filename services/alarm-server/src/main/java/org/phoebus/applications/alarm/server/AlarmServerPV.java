@@ -175,7 +175,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         {
             AutomatedActionsHelper.configure(automated_actions,
                                              this,
-                                             logic.getAlarmState().severity.isActive(),
+                                             logic.getAlarmState().severity,
                                              enable,
                                              getActions());
             return true;
@@ -272,7 +272,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         if (super.setActions(actions))
         {
             AutomatedActionsHelper.configure(automated_actions, this,
-                                             logic.getAlarmState().severity.isActive(),
+                                             logic.getAlarmState().severity,
                                              isEnabled(), actions);
             return true;
         }
