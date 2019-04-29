@@ -94,6 +94,10 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         // Model has width/height, but JFX widget has min, pref, max size.
         // updateChanges() will set the 'pref' size, so make min use that as well.
         button.setMinSize(ButtonBase.USE_PREF_SIZE, ButtonBase.USE_PREF_SIZE);
+
+        // Fix initial layout
+        toolkit.execute(() -> Platform.runLater(button::requestLayout));
+
         return button;
     }
 
