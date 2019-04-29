@@ -168,7 +168,7 @@ public class AutomatedActions
             // and can act accordingly by for example creating a differently worded email.
             for (TitleDetailDelay action : follow_up)
             {
-                logger.log(Level.INFO, () -> item.getPathName() + ": Follow up since alarm no longer active");
+                logger.log(Level.INFO, item.getPathName() + ": Follow up since alarm no longer active");
                 perform_action.accept(item, action);
             }
         }
@@ -181,7 +181,7 @@ public class AutomatedActions
         scheduled_actions.forEach((action, scheduled) ->
         {
             scheduled.cancel(false);
-            logger.log(Level.INFO, () -> item.getPathName() + ": Cancelled");
+            logger.log(Level.INFO, item.getPathName() + ": Cancelled");
             scheduled_actions.remove(action);
         });
     }
