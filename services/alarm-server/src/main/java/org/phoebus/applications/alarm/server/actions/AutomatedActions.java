@@ -16,7 +16,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 
@@ -40,8 +40,8 @@ public class AutomatedActions
     /** Item for which to handle automated actions */
     private final AlarmTreeItem<?> item;
 
-    /** Is the item in active alarm? */
-    private final AtomicBoolean active_alarm;
+    /** Severity level that was notified */
+    private final AtomicReference<SeverityLevel> notified_severity;
 
     /** Actions that have been scheduled with the timer */
     private final ConcurrentHashMap<TitleDetailDelay, ScheduledFuture<?>> scheduled_actions = new ConcurrentHashMap<>(1);
@@ -56,15 +56,15 @@ public class AutomatedActions
 
     /** Handle automated actions for one item
      *  @param item Item for which automated actions should be handled
-     *  @param start_active Start with an active alarm (which is ignored)?
+     *  @param initial_severity Initial alarm severity (which is ignored)
      *  @param perform_action Will be invoked to actually perform the action for an item
      */
     public AutomatedActions(final AlarmTreeItem<?> item,
-                            final boolean start_active,
+                            final SeverityLevel initial_severity,
                             final BiConsumer<AlarmTreeItem<?>, TitleDetailDelay> perform_action)
     {
         this.item = item;
-        this.active_alarm = new AtomicBoolean(start_active);
+        this.notified_severity = new AtomicReference<>(initial_severity);
         this.perform_action = perform_action;
 
         // If item is PV, and not enabled, this should never be called
@@ -80,11 +80,33 @@ public class AutomatedActions
      */
     public void handleSeverityUpdate(final SeverityLevel severity)
     {
-        // System.out.println(item.getPathName() + " auto actions update for " + severity);
         final boolean is_active = severity.isActive();
-        // Is this a change?
-        if (! active_alarm.compareAndSet(!is_active, is_active))
-            return;
+
+        if (is_active)
+        {
+            // Is this a change to a higher alarm?
+            final SeverityLevel was = notified_severity.getAndUpdate(prev ->
+            {
+                if (severity.ordinal() > prev.ordinal())
+                    return severity;
+                return prev;
+            });
+
+            if (severity == was)
+            {
+                logger.log(Level.FINE, () -> item.getPathName() + " no change in auto action from " + was + " to " + severity);
+                return;
+            }
+            logger.log(Level.FINE, () -> item.getPathName() + " auto action triggered by going from " + was + " to " + severity);
+        }
+        else
+        {
+            if (notified_severity.getAndSet(SeverityLevel.OK) == SeverityLevel.OK)
+            {
+                logger.log(Level.FINE, () -> item.getPathName() + " no change in auto action for " + severity);
+                return;
+            }
+        }
 
         if (is_active)
         {
@@ -98,6 +120,7 @@ public class AutomatedActions
                 {
                     final Runnable trigger_action = () ->
                     {
+                        // Cancelled, i.e. removed from scheduled_actions, just before we 'run'?
                         if (scheduled_actions.remove(a) == null)
                             logger.log(Level.INFO, item.getPathName() + ": Aborting execution of cancelled action " + a);
                         else
@@ -113,6 +136,7 @@ public class AutomatedActions
                                     {
                                         performed_actions.add(action);
                                     }
+                                    logger.log(Level.FINE, () -> "Will follow up on " + action + " when alarm clears");
                                     break;
                                 }
                         }
@@ -126,6 +150,8 @@ public class AutomatedActions
         {
             // Cancel all scheduled actions
             cancelScheduled();
+
+            logger.log(Level.FINE, () -> item.getPathName() + ": Clearing auto actions");
 
             // Follow up on actions that have been executed and now need an "It's OK"
             final List<TitleDetailDelay> follow_up;
