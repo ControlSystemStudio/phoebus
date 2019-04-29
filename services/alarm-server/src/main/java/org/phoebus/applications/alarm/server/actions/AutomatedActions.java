@@ -80,8 +80,6 @@ public class AutomatedActions
      */
     public void handleSeverityUpdate(final SeverityLevel severity)
     {
-        logger.log(Level.INFO, item.getPathName() + " auto actions update for " + severity);
-
         final boolean is_active = severity.isActive();
 
         if (is_active)
@@ -96,15 +94,16 @@ public class AutomatedActions
 
             if (severity == was)
             {
-                logger.log(Level.INFO, "No change");
+                logger.log(Level.FINE, () -> item.getPathName() + " no change in auto action from " + was + " to " + severity);
                 return;
             }
+            logger.log(Level.FINE, () -> item.getPathName() + " auto action triggered by going from " + was + " to " + severity);
         }
         else
         {
             if (notified_severity.getAndSet(SeverityLevel.OK) == SeverityLevel.OK)
             {
-                logger.log(Level.INFO, "No change");
+                logger.log(Level.FINE, () -> item.getPathName() + " no change in auto action for " + severity);
                 return;
             }
         }
@@ -121,6 +120,7 @@ public class AutomatedActions
                 {
                     final Runnable trigger_action = () ->
                     {
+                        // Cancelled, i.e. removed from scheduled_actions, just before we 'run'?
                         if (scheduled_actions.remove(a) == null)
                             logger.log(Level.INFO, item.getPathName() + ": Aborting execution of cancelled action " + a);
                         else
@@ -129,15 +129,14 @@ public class AutomatedActions
                             perform_action.accept(item, a);
 
                             // Is follow up is requested for this type of action?
-                            logger.log(Level.INFO, "Does " + action + " require follow up? Checking " + AlarmSystem.automated_action_followup);
                             for (String followup : AlarmSystem.automated_action_followup)
                                 if (action.detail.startsWith(followup))
                                 {
                                     synchronized (performed_actions)
                                     {
-                                        logger.log(Level.INFO, "Yes!");
                                         performed_actions.add(action);
                                     }
+                                    logger.log(Level.FINE, () -> "Will follow up on " + action + " when alarm clears");
                                     break;
                                 }
                         }
@@ -151,6 +150,8 @@ public class AutomatedActions
         {
             // Cancel all scheduled actions
             cancelScheduled();
+
+            logger.log(Level.FINE, () -> item.getPathName() + ": Clearing auto actions");
 
             // Follow up on actions that have been executed and now need an "It's OK"
             final List<TitleDetailDelay> follow_up;
@@ -167,7 +168,7 @@ public class AutomatedActions
             // and can act accordingly by for example creating a differently worded email.
             for (TitleDetailDelay action : follow_up)
             {
-                logger.log(Level.INFO, item.getPathName() + ": Follow up since alarm no longer active");
+                logger.log(Level.INFO, () -> item.getPathName() + ": Follow up since alarm no longer active");
                 perform_action.accept(item, action);
             }
         }
@@ -180,7 +181,7 @@ public class AutomatedActions
         scheduled_actions.forEach((action, scheduled) ->
         {
             scheduled.cancel(false);
-            logger.log(Level.INFO, item.getPathName() + ": Cancelled");
+            logger.log(Level.INFO, () -> item.getPathName() + ": Cancelled");
             scheduled_actions.remove(action);
         });
     }
