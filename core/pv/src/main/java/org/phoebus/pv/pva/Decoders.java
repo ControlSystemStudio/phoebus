@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -30,6 +30,7 @@ import org.epics.util.array.ArrayInteger;
 import org.epics.util.array.ArrayLong;
 import org.epics.util.array.ArrayShort;
 import org.epics.util.stats.Range;
+import org.epics.util.text.NumberFormats;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
@@ -222,11 +223,43 @@ class Decoders
             PVString str = section.getSubField(PVString.class, "units");
             units = str == null ? noDisplay.getUnit() : str.get();
 
-            str = section.getSubField(PVString.class, "format");
-            format = str == null
-                ? noDisplay.getFormat()
-                : createNumberFormat(str.get());
-
+            // Since EPICS Base 7.0.2.2, qsrv supports 'precision' and 'form'
+            final PVInt prec = section.getSubField(PVInt.class, "precision");
+            if (prec != null)
+            {
+                final PVStructure form = section.getSubField(PVStructure.class, "form");
+                if (form != null)
+                {
+                    final PVInt pv_idx = form.getSubField(PVInt.class, "index");
+                    final int idx = pv_idx == null ? 0 : pv_idx.get();
+                    // idx = ["Default", "String", "Binary", "Decimal", "Hex", "Exponential", "Engineering"]
+                    // XXX VType doesn't offer a good way to pass the 'form' options on.
+                    //     This format is later mostly ignored, only precision is recovered.
+                    switch (idx)
+                    {
+                    case 4:
+                        format = createNumberFormat("0x%X");
+                        break;
+                    case 5:
+                    case 6:
+                        format = createNumberFormat("%." + prec.get() + "E");
+                        break;
+                    default:
+                        format = NumberFormats.precisionFormat(prec.get());
+                    }
+                }
+                else
+                    format = NumberFormats.precisionFormat(prec.get());
+            }
+            else
+            {
+                // Earlier PV servers sent 'format' string
+                str = section.getSubField(PVString.class, "format");
+                format = str == null
+                    ? noDisplay.getFormat()
+                    : createNumberFormat(str.get());
+            }
+            
             display = Range.of(PVStructureHelper.getDoubleValue(section, "limitLow", Double.NaN),
                                PVStructureHelper.getDoubleValue(section, "limitHigh", Double.NaN));
         }
