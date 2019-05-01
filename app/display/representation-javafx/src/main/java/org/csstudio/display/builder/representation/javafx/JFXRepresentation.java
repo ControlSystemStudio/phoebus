@@ -436,8 +436,30 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         {   // Determine zoom to fit outline of display into available space
             final Bounds available = model_root.getLayoutBounds();
             final Bounds outline = widget_parent.getLayoutBounds();
-            final double zoom_x = outline.getWidth()  > 0 ? available.getWidth()  / outline.getWidth() : 1.0;
-            final double zoom_y = outline.getHeight() > 0 ? available.getHeight() / outline.getHeight() : 1.0;
+
+            // 'outline' will wrap the actual widgets when the display
+            // is larger than the available viewport.
+            // So it can be used to zoom 'out'.
+            // But when the viewport is much larger than the widget,
+            // the JavaFX outline grows to fill the viewport,
+            // so falling back to the self-declared model width and height
+            // to zoom 'in'.
+            // This requires displays to be created with
+            // correct width/height properties.
+            final double zoom_x, zoom_y;
+            if (outline.getWidth() > available.getWidth())
+                zoom_x = available.getWidth()  / outline.getWidth();
+            else if (model.propWidth().getValue() > 0)
+                zoom_x = available.getWidth()  / model.propWidth().getValue();
+            else
+                zoom_x = 1.0;
+
+            if (outline.getHeight() > available.getHeight())
+                zoom_y = available.getHeight() / outline.getHeight();
+            else if (model.propHeight().getValue() > 0)
+                zoom_y = available.getHeight() / model.propHeight().getValue();
+            else
+                zoom_y = 1.0;
 
             if (zoom == ZOOM_WIDTH)
                 zoom = zoom_x;
