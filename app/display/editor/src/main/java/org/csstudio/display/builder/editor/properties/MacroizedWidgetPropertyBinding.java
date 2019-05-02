@@ -36,7 +36,7 @@ public class MacroizedWidgetPropertyBinding
         updating = true;
         try
         {
-            jfx_node.setText(widget_property.getSpecification());
+            jfx_node.setText(widget_property.getSpecification().replaceAll("\n", "\\\\n").replaceAll("\t", "\\\\t"));
         }
         finally
         {
@@ -128,20 +128,21 @@ public class MacroizedWidgetPropertyBinding
 
     private void submit()
     {
-        undo.execute(new SetMacroizedWidgetPropertyAction(widget_property, jfx_node.getText()));
+        final String text = jfx_node.getText().replaceAll("\\\\n", "\n").replaceAll("\\\\t", "\t");
+        undo.execute(new SetMacroizedWidgetPropertyAction(widget_property, text));
         if (! other.isEmpty())
         {
             final String path = widget_property.getPath();
             for (Widget w : other)
             {
                 final MacroizedWidgetProperty<?> other_prop = (MacroizedWidgetProperty<?>) w.getProperty(path);
-                undo.execute(new SetMacroizedWidgetPropertyAction(other_prop, jfx_node.getText()));
+                undo.execute(new SetMacroizedWidgetPropertyAction(other_prop, text));
             }
         }
     }
 
     private void restore()
     {
-        jfx_node.setText(widget_property.getSpecification());
+        jfx_node.setText(widget_property.getSpecification().replaceAll("\n", "\\\\n").replaceAll("\t", "\\\\t"));
     }
 }
