@@ -46,6 +46,14 @@ To build the entire phoebus stack
 mvn clean install
 ```
 
+### Unit Tests
+
+Some unit tests may be sensitive to localization
+and fail when executed in a previously untested locale.
+Set the environment variable `LANG` to `en_US.UTF-8`
+to execute tests in a specific locale,
+or build with `mvn -DskipTests ...` to skip tests.
+
 ### Running the phoebus application  
 
 To run with maven
