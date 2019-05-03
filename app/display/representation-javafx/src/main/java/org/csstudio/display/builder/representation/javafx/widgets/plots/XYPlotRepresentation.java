@@ -213,6 +213,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
             model_trace.traceXValue().addUntypedPropertyListener(value_listener);
             model_trace.traceYValue().addUntypedPropertyListener(value_listener);
             model_trace.traceErrorValue().addUntypedPropertyListener(value_listener);
+            model_trace.traceVisible().addUntypedPropertyListener(trace_listener);
         }
 
         private TraceType map(final PlotWidgetTraceType value)
@@ -245,6 +246,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
             trace.setWidth(model_trace.traceWidth().getValue());
             trace.setPointType(map(model_trace.tracePointType().getValue()));
             trace.setPointSize(model_trace.tracePointSize().getValue());
+            trace.setVisible(model_trace.traceVisible().getValue());
 
             final int desired = model_trace.traceYAxis().getValue();
             if (desired != trace.getYAxis())
