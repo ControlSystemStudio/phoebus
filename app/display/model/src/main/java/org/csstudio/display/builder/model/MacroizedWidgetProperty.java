@@ -163,7 +163,7 @@ abstract public class MacroizedWidgetProperty<T> extends WidgetProperty<T>
             // Note that this ignores remaining macros as soon
             // as there is just one escaped macro, as in "$(MISSING_AND_IGNORED) \\$(ESCAPED)"
             if (MacroHandler.containsMacros(expanded)  &&  ! specification.contains("\\$"))
-                logger.log(Level.INFO, widget + " '" + getName() + "' is not fully resolved: " + expanded);
+                logger.log(Level.WARNING, widget + " '" + getName() + "' is not fully resolved: " + expanded);
 
             try
             {
