@@ -60,7 +60,9 @@ public class SnapshotTab extends Tab implements TabTitleChangedListener{
         }
 
         setOnCloseRequest(event -> {
-            snapshotController.handleSnapshotTabClosed();
+            if(snapshotController.handleSnapshotTabClosed()){
+                event.consume();
+            }
         });
     }
 
@@ -89,8 +91,8 @@ public class SnapshotTab extends Tab implements TabTitleChangedListener{
         new Thread(task).start();
     }
 
-    public void addSnapshot(String parentsUniqueId, se.esss.ics.masar.model.Node node){
-        snapshotController.addSnapshot(parentsUniqueId, node);
+    public void addSnapshot(se.esss.ics.masar.model.Node node){
+        snapshotController.addSnapshot(node);
     }
 
 

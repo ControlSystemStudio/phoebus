@@ -45,7 +45,7 @@
 
 			<TableView fx:id="pvTable" GridPane.columnSpan="2" GridPane.rowIndex="3" GridPane.vgrow="ALWAYS">
 				<columns>
-					<TableColumn fx:id="pvNameColumn" prefWidth="${parent.width * 0.4}" text="PV Name" editable="true">
+					<TableColumn fx:id="pvNameColumn" editable="true" prefWidth="${parent.width * 0.4}" text="PV Name">
 						<!--cellValueFactory>
 							<PropertyValueFactory property="pvName" />
 						</cellValueFactory-->
@@ -88,7 +88,10 @@
 								<ToggleGroup fx:id="providerToggleGroup" />
 							</toggleGroup>
 						</RadioButton>
-						<RadioButton fx:id="pva" mnemonicParsing="false" text="pva" toggleGroup="$providerToggleGroup" />
+						<RadioButton fx:id="pva" mnemonicParsing="false" text="pva" toggleGroup="$providerToggleGroup">
+                  <HBox.margin>
+                     <Insets left="8.0" />
+                  </HBox.margin></RadioButton>
 					</HBox>
 					<Button fx:id="addPvButton" disable="true" maxHeight="1.7976931348623157E308" mnemonicParsing="false" onAction="#addPv" text="Add" GridPane.columnIndex="4" GridPane.rowSpan="2">
 					   <GridPane.margin>

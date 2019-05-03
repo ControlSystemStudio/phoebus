@@ -245,6 +245,10 @@ public class SaveSetController {
 
 					@Override
 					public void updateItem(Object item, boolean empty) {
+						if(item == null){
+							setText(null);
+							return;
+						}
 						super.updateItem(item, empty);
 						selectionEmpty.set(empty);
 						if (empty) {

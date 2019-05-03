@@ -30,11 +30,9 @@ import org.phoebus.applications.saveandrestore.data.DataProvider;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
-import org.phoebus.ui.dialog.DialogHelper;
 import se.esss.ics.masar.model.Node;
 import se.esss.ics.masar.model.NodeType;
 
-import javax.swing.tree.TreeNode;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.Executor;
@@ -55,8 +53,6 @@ public class SaveAndRestoreController implements Initializable{
     private ContextMenu saveSetContextMenu;
     private ContextMenu snapshotContextMenu;
     private ContextMenu rootFolderContextMenu;
-
-    //private String nodeNameBeingEdited;
 
     public SaveAndRestoreController() {
         service = SaveAndRestoreService.getInstance();
@@ -127,15 +123,15 @@ public class SaveAndRestoreController implements Initializable{
     public void initialize(URL url, ResourceBundle resourceBundle) {
         treeView.setEditable(true);
 
-//        treeView.setOnMouseClicked(me -> {
-//            TreeItem<Node> item = treeView.getSelectionModel().getSelectedItem();
-//            if (item != null) {
-//                if (me.getClickCount() == 2) {
-//                    nodeDoubleClicked(treeView.getSelectionModel().getSelectedItem());
-//                }
-//            }
-//        });
-//
+        treeView.setOnMouseClicked(me -> {
+            TreeItem<Node> item = treeView.getSelectionModel().getSelectedItem();
+            if (item != null && item.getValue().getNodeType().equals(NodeType.SNAPSHOT)) {
+                if (me.getClickCount() == 2) {
+                    nodeDoubleClicked(treeView.getSelectionModel().getSelectedItem());
+                }
+            }
+        });
+
         treeView.setOnEditCommit(event -> {
             handleNodeRenamed(event);
         });
@@ -207,7 +203,7 @@ public class SaveAndRestoreController implements Initializable{
     private void handleCompareSnapshot(TreeItem<Node> treeItem) {
         try {
             SnapshotTab currentTab = (SnapshotTab)tabPane.getSelectionModel().getSelectedItem();
-            currentTab.addSnapshot(treeItem.getParent().getValue().getUniqueId(), treeItem.getValue());
+            currentTab.addSnapshot(treeItem.getValue());
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

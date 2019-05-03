@@ -96,7 +96,7 @@ save-and-restore UI, this tab design fxml is intentionally not using the TabPane
                      <GridPane.margin>
                          <Insets left="20.0" right="5.0" top="5.0" />
                      </GridPane.margin></Label>
-                <TextArea fx:id="commentTextArea" promptText="Enter a comment (optional)" GridPane.columnIndex="3" GridPane.rowSpan="3">
+                <TextArea fx:id="snapshotComment" promptText="Enter a comment (mandatory)" GridPane.columnIndex="3" GridPane.rowSpan="3">
                      <GridPane.margin>
                          <Insets bottom="5.0" right="5.0" top="5.0" />
                      </GridPane.margin></TextArea>

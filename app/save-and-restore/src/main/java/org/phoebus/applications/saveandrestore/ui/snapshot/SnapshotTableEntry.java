@@ -31,6 +31,7 @@ import org.phoebus.applications.saveandrestore.ui.model.Threshold;
 import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.model.VNoData;
 import org.phoebus.applications.saveandrestore.ui.model.VTypePair;
+import se.esss.ics.masar.model.ConfigPv;
 
 /**
  *
@@ -70,11 +71,15 @@ public class SnapshotTableEntry {
     private Optional<Threshold<?>> threshold = Optional.empty();
     private final BooleanProperty readOnly = new SimpleBooleanProperty(this,"readOnly",false);
 
+    //private final ObjectProperty<ConfigPv> configPvObjectProperty = new SimpleObjectProperty<>(this, "configPv", null);
+
+    private ConfigPv configPv;
+
     /**
      * Construct a new table entry.
      */
     public SnapshotTableEntry() {
-        //when read only is set to true, unselect this PV
+        //when read only is set to true, unselect this SnapshotTableEntryPvProxy
         readOnly.addListener((a,o,n) -> {
             if (n) {
                 selected.set(false);
@@ -86,6 +91,16 @@ public class SnapshotTableEntry {
                 selected.set(false);
             }
         });
+    }
+
+    public void setConfigPv(ConfigPv configPv){
+        this.configPv = configPv;
+        pvName.setValue(configPv.getPvName());
+        readbackName.setValue(configPv.getReadbackPvName());
+    }
+
+    public ConfigPv getConfigPv(){
+        return configPv;
     }
 
     /**
@@ -165,7 +180,7 @@ public class SnapshotTableEntry {
     }
 
     /**
-     * @return the property providing the live PV value
+     * @return the property providing the live SnapshotTableEntryPvProxy value
      */
     public ObjectProperty<VType> liveValueProperty() {
         return liveValue;
@@ -179,7 +194,7 @@ public class SnapshotTableEntry {
     }
 
     /**
-     * @return the property indicating the the PV is read only or read and write
+     * @return the property indicating the the SnapshotTableEntryPvProxy is read only or read and write
      */
     public BooleanProperty readOnlyProperty() {
         return readOnly;

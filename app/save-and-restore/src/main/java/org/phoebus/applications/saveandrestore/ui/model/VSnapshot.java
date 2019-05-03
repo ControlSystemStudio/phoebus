@@ -247,8 +247,11 @@ public class VSnapshot extends VType implements Serializable {
     public String toString() {
         if (isSaved()) {
             return Utilities.timestampToBigEndianString(Instant.ofEpochMilli(snapshot.getLastModified().getTime()), true);
-        } else {
+        } else if(snapshotTime != null){
             return Utilities.timestampToBigEndianString(snapshotTime, true);
+        }
+        else{
+            return "<unnamed snaphot>";
         }
     }
 

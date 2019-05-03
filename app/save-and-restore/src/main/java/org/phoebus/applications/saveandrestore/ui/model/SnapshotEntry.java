@@ -5,6 +5,7 @@ import java.util.Objects;
 
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.ui.Utilities;
+import se.esss.ics.masar.model.ConfigPv;
 import se.esss.ics.masar.model.SnapshotItem;
 
 
@@ -19,7 +20,7 @@ import se.esss.ics.masar.model.SnapshotItem;
 public class SnapshotEntry implements Serializable {
 
         private static final long serialVersionUID = 5181175467248870613L;
-        private final String name;
+        private final ConfigPv configPv;
         private transient VType value;
         private boolean selected;
         private final String readbackName;
@@ -28,7 +29,7 @@ public class SnapshotEntry implements Serializable {
         private final boolean readOnly;
 
         public SnapshotEntry(SnapshotItem snapshotItem, boolean selected){
-            this(snapshotItem.getConfigPv().getPvName(),
+            this(snapshotItem.getConfigPv(),
                     snapshotItem.getValue(),
                     selected,
                     snapshotItem.getConfigPv().getReadbackPvName(),
@@ -44,34 +45,38 @@ public class SnapshotEntry implements Serializable {
          * @param name the name of the PV
          * @param value the PV value
          */
-        public SnapshotEntry(String name, VType value) {
-            this(name, value, true);
-        }
+//        public SnapshotEntry(String name, VType value) {
+//            this(name, value, true);
+//        }
 
         /**
          * Constructs a new entry from the given parameters. The entry is writable. Other parameters are null or equivalent.
          *
-         * @param name the name of the PV
+         * @param configPv the {@link ConfigPv} of the PV
          * @param value the PV value
          * @param selected true if selected, false if not
          */
-        public SnapshotEntry(String name, VType value, boolean selected) {
-            this(name, value, selected, null, null, null, false);
-        }
+//        public SnapshotEntry(ConfigPv configPv, VType value, boolean selected) {
+//            this(configPv, value, selected, null, null, null, false);
+//        }
 
         /**
          * Constructs a new entry from pieces.
          *
          */
-        public SnapshotEntry(String name, VType value, boolean selected, String readbackName, VType readbackValue,
+        public SnapshotEntry(ConfigPv configPv, VType value, boolean selected, String readbackName, VType readbackValue,
                              String delta, boolean readOnly) {
             this.value = value == null ? VNoData.INSTANCE : value;
-            this.name = name;
+            this.configPv = configPv;
             this.selected = selected;
             this.readbackName = readbackName == null ? "" : readbackName;
             this.readbackValue = readbackValue == null ? VNoData.INSTANCE : readbackValue;
             this.delta = delta == null ? "" : delta;
             this.readOnly = readOnly;
+        }
+
+        public ConfigPv getConfigPv(){
+            return configPv;
         }
 
         /**
@@ -89,7 +94,7 @@ public class SnapshotEntry implements Serializable {
          * @return the PV name
          */
         public String getPVName() {
-            return name;
+            return configPv.getPvName();
         }
 
         /**
@@ -157,7 +162,7 @@ public class SnapshotEntry implements Serializable {
          */
         @Override
         public int hashCode() {
-            return Objects.hash(SnapshotEntry.class, name, selected, readOnly, readbackName, readbackValue, delta, value,
+            return Objects.hash(SnapshotEntry.class, configPv.getPvName(), selected, readOnly, readbackName, readbackValue, delta, value,
                     readbackValue);
         }
 
@@ -174,7 +179,7 @@ public class SnapshotEntry implements Serializable {
                 return false;
             }
             SnapshotEntry other = (SnapshotEntry) obj;
-            if (!(Objects.equals(name, other.name) && selected == other.selected && readOnly == other.readOnly
+            if (!(Objects.equals(configPv.getPvName(), other.configPv.getPvName()) && selected == other.selected && readOnly == other.readOnly
                     && Objects.equals(readbackName, other.readbackName) && Objects.equals(delta, other.delta))) {
                 return false;
             }
@@ -186,5 +191,4 @@ public class SnapshotEntry implements Serializable {
             }
             return true;
         }
-
-    }
+}
