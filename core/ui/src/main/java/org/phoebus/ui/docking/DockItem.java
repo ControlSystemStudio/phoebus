@@ -506,7 +506,9 @@ public class DockItem extends Tab
                         event.consume();
                         return;
                     }
-                close_check = null;
+                // Clear entries, but don't reset to null
+                // since onCloseRequest handler still registered
+                close_check.clear();
             });
         }
         close_check.add(ok_to_close);
