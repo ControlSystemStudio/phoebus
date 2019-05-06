@@ -163,15 +163,24 @@ public class ActionUtil
      */
     public static void handleClose(final DisplayModel model)
     {
+        final ToolkitRepresentation<Object, Object> toolkit = ToolkitRepresentation.getToolkit(model);
+
         // Called on UI thread
         // Stop runtime in background thread
-        RuntimeUtil.getExecutor().submit(() ->  RuntimeUtil.stopRuntime(model) );
+        RuntimeUtil.getExecutor().submit(() ->
+        {
+            RuntimeUtil.stopRuntime(model);
 
-        // .. while UI thread removes the representation
-        final ToolkitRepresentation<Object, Object> toolkit = ToolkitRepresentation.getToolkit(model);
-        toolkit.disposeRepresentation(model);
+            // After runtime stopped and is no longer accessing the model,
+            // dispose representation.
+            toolkit.execute(() ->
+            {
+                toolkit.disposeRepresentation(model);
 
-        model.dispose();
+                // Finally, dispose model
+                model.dispose();
+            });
+        });
     }
 
     /** Write a PV
