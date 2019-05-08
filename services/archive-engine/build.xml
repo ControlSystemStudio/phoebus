@@ -10,9 +10,9 @@
       <fileset dir="../..">
       	<include name="dependencies/**/jca-*.jar"/>
       	<include name="dependencies/**/vtype-*.jar"/>
-      	<include name="dependencies/**/epics-util-*.jar"/>
-      	<include name="dependencies/**/epics-pvaccess-*.jar"/>
-      	<include name="dependencies/**/epics-pvdata-*.jar"/>
+      	<include name="dependencies/**/epics-util*.jar"/>
+      	<include name="dependencies/**/epics-pvaccess*.jar"/>
+      	<include name="dependencies/**/epics-pvdata*.jar"/>
       	<include name="dependencies/**/reactive-streams-*.jar"/>
   		<include name="dependencies/**/rxjava-*.jar"/>
   		<include name="dependencies/**/hamcrest-all-*.jar"/>
@@ -32,8 +32,6 @@
       	<include name="core/**/core-pv-*.jar"/>
       	<include name="core/**/core-util-*.jar"/>
       	<include name="core/**/core-vtype-*.jar"/>
-      	
-      	<exclude name="**/*SNAPSHOT.jar"/>
       </fileset>
     </copy>
   	
