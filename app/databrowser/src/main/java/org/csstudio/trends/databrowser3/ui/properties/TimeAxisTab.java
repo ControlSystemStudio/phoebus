@@ -14,6 +14,7 @@ import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelListener;
+import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.csstudio.trends.databrowser3.ui.ChangeTimerangeAction;
 import org.phoebus.ui.undo.UndoableActionManager;
 import org.phoebus.util.time.TimeParser;
@@ -30,6 +31,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 
 /** Property tab for time axis
@@ -98,6 +100,21 @@ public class TimeAxisTab extends Tab
 
         layout.add(new Label(Messages.GridLbl), 0, 1);
         layout.add(grid, 1, 1);
+
+        final HBox presets = new HBox(5);
+        for (Preferences.TimePreset preset : Preferences.time_presets)
+        {
+            final Button button = new Button(preset.label);
+            button.setOnAction(event ->
+            {
+                updating = true;
+                new ChangeTimerangeCommand(model, undo, preset.range);
+                updating = false;
+                model_listener.changedTimerange();
+            });
+            presets.getChildren().add(button);
+        }
+        layout.add(presets, 1, 2, 4, 1);
 
         setContent(layout);
 
