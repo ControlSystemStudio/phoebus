@@ -197,7 +197,8 @@ public class PlotWidgetProperties
                                 tracePointSize.createProperty(widget, 10),
                                 traceXValue.createProperty(widget, null),
                                 traceYValue.createProperty(widget, null),
-                                traceErrValue.createProperty(widget, null)  ));
+                                traceErrValue.createProperty(widget, null),
+                                CommonWidgetProperties.propVisible.createProperty(widget, true)));
         }
         public WidgetProperty<String> traceName()                   { return getElement(0); }
         public WidgetProperty<String> traceXPV()                    { return getElement(1); }
@@ -212,6 +213,7 @@ public class PlotWidgetProperties
         public WidgetProperty<VType> traceXValue()                  { return getElement(10); }
         public WidgetProperty<VType> traceYValue()                  { return getElement(11); }
         public WidgetProperty<VType> traceErrorValue()              { return getElement(12); }
+        public WidgetProperty<Boolean> traceVisible()               { return getElement(13); }
     };
 
     /** 'traces' array */
