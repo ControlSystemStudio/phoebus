@@ -292,6 +292,14 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
     private void backgroundChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
         final DisplayModel content_model = active_content_model.get();
+        // TODO Haven't found perfect way to set the 'background' color
+        // of the embedded content.
+        // Setting the 'inner' background will sometimes leave a gray section in the right and or bottom edge
+        // of the embedded content if the container is (much) larger than the content
+        // The scroll pane background can only be set via style,
+        // and then shines through on the outside of the scrollbars
+        // scroll.setStyle("-fx-control-inner-background: " + JFXUtil.webRGB(content_model.propBackgroundColor().getValue()) +
+        //                  "; -fx-background: " + JFXUtil.webRGB(content_model.propBackgroundColor().getValue()));
         if (model_widget.propTransparent().getValue())
         {
             if (toolkit.isEditMode())
@@ -348,9 +356,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
             }
         }
         if (dirty_background.checkAndClear())
-        {
             inner.setBackground(inner_background);
-        }
     }
 
     @Override
