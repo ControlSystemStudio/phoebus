@@ -1040,7 +1040,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     public void shutdown()
     {
         if (! widget_parent.getChildren().isEmpty())
-            logger.log(Level.WARNING, "Display representation still contains items on shutdown", widget_parent.getChildren());
+            logger.log(Level.WARNING, "Display representation still contains items on shutdown: " + widget_parent.getChildren());
 
         widget_parent = null;
         model_root = null;

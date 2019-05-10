@@ -163,24 +163,23 @@ public class ActionUtil
      */
     public static void handleClose(final DisplayModel model)
     {
+        // Called on UI thread.
+        // Runtime needs to stop first.
+        // If stopped later, it would not find any widgets,
+        // and thus not completely stop PVs.
+        // Could stop runtime in background thread,
+        // but would have to wait for that before then disposing toolkit on UI thread.
+        // Finally, caller wants to be sure that we're done.
+        // -> Work is sequential anyway, do all in this thread
+        RuntimeUtil.stopRuntime(model);
+
+        // After runtime stopped and is no longer accessing the model,
+        // dispose representation.
         final ToolkitRepresentation<Object, Object> toolkit = ToolkitRepresentation.getToolkit(model);
+        toolkit.disposeRepresentation(model);
 
-        // Called on UI thread
-        // Stop runtime in background thread
-        RuntimeUtil.getExecutor().submit(() ->
-        {
-            RuntimeUtil.stopRuntime(model);
-
-            // After runtime stopped and is no longer accessing the model,
-            // dispose representation.
-            toolkit.execute(() ->
-            {
-                toolkit.disposeRepresentation(model);
-
-                // Finally, dispose model
-                model.dispose();
-            });
-        });
+        // Finally, dispose model
+        model.dispose();
     }
 
     /** Write a PV
