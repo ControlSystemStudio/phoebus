@@ -17,6 +17,8 @@ import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
 import org.csstudio.trends.databrowser3.model.ArchiveRescale;
 import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.util.time.TimeParser;
+import org.phoebus.util.time.TimeRelativeInterval;
 
 /** Helper for reading preference settings
  *
@@ -53,7 +55,18 @@ public class Preferences
         PROMPT_FOR_ERRORS = "prompt_for_errors",
         TIME_SPAN_SHORTCUTS = "time_span_shortcuts",
         EMAIL_DEFAULT_SENDER = "email_default_sender";
-        ;
+
+    public static class TimePreset
+    {
+        public final String label;
+        public final TimeRelativeInterval range;
+
+        public TimePreset(final String label, final TimeRelativeInterval range)
+        {
+            this.label = label;
+            this.range = range;
+        }
+    }
 
     public static int archive_fetch_delay;
     public static ArchiveRescale archive_rescale = ArchiveRescale.STAGGER;
@@ -74,7 +87,7 @@ public class Preferences
     public static boolean use_trace_names;
     public static boolean prompt_for_raw_data_request;
     public static boolean prompt_for_visibility;
-
+    public static List<TimePreset> time_presets;
 
     static
     {
@@ -121,6 +134,14 @@ public class Preferences
 
         prompt_for_raw_data_request = prefs.getBoolean(PROMPT_FOR_RAW_DATA);
         prompt_for_visibility = prefs.getBoolean(PROMPT_FOR_VISIBILITY);
+
+
+        time_presets = new ArrayList<>();
+        for (String preset : prefs.get("time_span_shortcuts").split("\\|"))
+        {
+            final String[] label_span = preset.split(",");
+            time_presets.add(new TimePreset(label_span[0], TimeRelativeInterval.startsAt(TimeParser.parseTemporalAmount(label_span[1]))));
+        }
     }
 
     public static void setRawDataPrompt(final boolean value)
