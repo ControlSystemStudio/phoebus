@@ -9,15 +9,19 @@ package org.phoebus.ui.dialog;
 
 import static org.phoebus.ui.application.PhoebusApplication.logger;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import javafx.application.Platform;
 import javafx.geometry.Bounds;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.control.Dialog;
+import javafx.stage.Screen;
 
 /** Helper for dialogs
  *  @author Kay Kasemir
@@ -46,15 +50,44 @@ public class DialogHelper
      */
     public static void positionDialog(final Dialog<?> dialog, final Node node, final int x_offset, final int y_offset)
     {
-        final Bounds pos = node.localToScreen(node.getBoundsInLocal());
-        if (pos == null)
-        {
-            logger.log(Level.WARNING, "Cannot determine dialog position", new NullPointerException());
-            return;
-        }
+        // Must runLater due to dialog Width/Height are initialized after dialog shows up
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                final Bounds pos = node.localToScreen(node.getBoundsInLocal());
+                if (pos == null)
+                {
+                    logger.log(Level.WARNING, "Cannot determine dialog position", new NullPointerException());
+                    return;
+                }
+                final double nodeX = pos.getMinX();
+                final double nodeY = pos.getMinY();
+                
+                double newX = nodeX + pos.getWidth()/2 + x_offset;
+                double newY = nodeY + pos.getHeight()/2 + y_offset;
+                
+                final double dw = dialog.getWidth();
+                final double dh = dialog.getHeight();
+                
+                List<Screen> scr = Screen.getScreensForRectangle(nodeX, nodeY, pos.getWidth(), pos.getHeight());
+                if (scr == null || scr.size() == 0)
+                {
+                    logger.log(Level.WARNING, "Cannot determine dialog position (node out of screen)");
+                    return;
+                }
+                // Take the first available screen
+                Rectangle2D sb = scr.get(0).getVisualBounds();
+                
+                newX = newX < sb.getMinX() ? sb.getMinX() : newX;
+                newX = newX + dw > sb.getMaxX() ? sb.getMaxX() - dw : newX;
 
-        dialog.setX(pos.getMinX() + pos.getWidth()/2 + x_offset);
-        dialog.setY(pos.getMinY() + pos.getHeight()/2 + y_offset);
+                newY = newY < sb.getMinY() ? sb.getMinY() : newY;
+                newY = newY + dh > sb.getMaxY() ? sb.getMaxY() - dh : newY;
+                        
+                dialog.setX(newX);
+                dialog.setY(newY);
+            }
+        });
     }
 
     /** Position the given {@code dialog} initially relative to {@code owner},
