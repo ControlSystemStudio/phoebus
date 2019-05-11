@@ -194,7 +194,8 @@ public class DialogHelper
         if (owner != null)
             dialog.initOwner(owner.getScene().getWindow());
 
-        final double prefX, prefY, prefWidth, prefHeight;
+        double prefX, prefY;
+        final double prefWidth, prefHeight;
         if (prefs == null)
         {   // Use available defaults
             prefX = Double.NaN;
@@ -234,6 +235,26 @@ public class DialogHelper
 
         if (!Double.isNaN(prefX)  &&  !Double.isNaN(prefY))
         {
+            // Check if prefX, Y are inside available screens
+            // Find bounds of all screens together, assuming same display size
+            // Can be enhanced, checking all displays individually
+            // Finding maxX,Y, while minX,Y = 0. is constant so no need to check
+            List<Screen> screens = Screen.getScreens();
+            double maxX = 0.;
+            double maxY = 0.;
+            for (Screen screen : screens)
+            {
+                Rectangle2D sb = screen.getVisualBounds();
+                maxX = Math.max(sb.getMaxX(), maxX);
+                maxY = Math.max(sb.getMaxY(), maxY);
+            }
+            // When no width/height available, set a reasonable
+            // default to take dialog to screen but not influence small dialog windows
+            final double dw = Double.isNaN(prefWidth) ? 100 : prefWidth;
+            final double dh = Double.isNaN(prefHeight) ? 100 : prefHeight;
+            prefX = prefX + dw > maxX ? maxX - dw : prefX;
+            prefY = prefY + dh > maxY ? maxY - dh : prefY;
+
             dialog.setX(prefX);
             dialog.setY(prefY);
         }
