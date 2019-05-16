@@ -22,7 +22,6 @@ import javafx.scene.control.Button;
  *  <p>Allows opening the more detailed {@link JobViewer}
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class StatusBarJobsIndicator extends Button
 {
     // Initially, the button is visible with "Jobs: ?" to size the button.
