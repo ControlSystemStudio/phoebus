@@ -74,6 +74,12 @@ public class UpdateApplication implements AppDescriptor
     private void promptForUpdate(final Node node, final Instant new_version)
     {
         final File install_location = Locations.install();
+        // Want to  update install_location, but that's locked on Windows,
+        // and replacing the jars of a running application might be bad.
+        // So download into a stage area.
+        // The start script needs to be aware of this stage area
+        // and move it to the install location on startup.
+        final File stage_area = new File(install_location.getParentFile(), "staged_update");
         final StringBuilder buf = new StringBuilder();
         buf.append("You are running version  ")
            .append(TimestampFormats.DATETIME_FORMAT.format(Update.current_version))
@@ -83,6 +89,7 @@ public class UpdateApplication implements AppDescriptor
            .append("\n\n")
            .append("The update will replace the installation in\n")
            .append(install_location)
+           .append("\n(").append(stage_area).append(")")
            .append("\nwith the content of ")
            .append(Update.update_url)
            .append("\n\n")
@@ -103,8 +110,8 @@ public class UpdateApplication implements AppDescriptor
             // Perform update
             JobManager.schedule(NAME, monitor ->
             {
+                Update.downloadAndUpdate(monitor, stage_area);
                 Update.adjustCurrentVersion();
-                Update.downloadAndUpdate(monitor, install_location);
                 if (! monitor.isCanceled())
                     Platform.runLater(() -> restart(node));
             });
