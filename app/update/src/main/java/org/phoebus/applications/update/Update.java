@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -47,16 +47,24 @@ public class Update
 {
     public static final Logger logger = Logger.getLogger(Update.class.getPackageName());
 
+    /** Initial delay to allow other apps to start */
+    public static final int delay;
+
     /** Current version, or <code>null</code> if not set */
     public static final Instant current_version;
 
     /** Update URL, or empty if not set */
     public static final String update_url;
 
+    /** Path removals */
+    public static final PathWrangler wrangler;
+
     static
     {
         final PreferencesReader prefs = new PreferencesReader(Update.class, "/update_preferences.properties");
         current_version = TimestampFormats.parse(prefs.get("current_version"));
+
+        delay = prefs.getInt("delay");
 
         String url = prefs.get("update_url");
         if (PlatformInfo.is_linux)
@@ -66,6 +74,8 @@ public class Update
         else
             url = url.replace("$(arch)", "win");
         update_url = PreferencesReader.replaceProperties(url);
+
+        wrangler = new PathWrangler(prefs.get("removals"));
     }
 
     /** Check version (i.e. date/time) of a distribution
@@ -138,10 +148,16 @@ public class Update
             {
                 final ZipEntry entry = entries.nextElement();
                 ++counter;
-                // Remove first directory from entry name
-                // to install _content_ of zip into install_location
-                // without creating yet another subdir for the top-level ZIP dir
-                final File outfile = new File(install_location, stripInitialDir(entry.getName()));
+
+                // Adjust path
+                String wrangled = wrangler.wrangle(entry.getName());
+                if (wrangled.isEmpty())
+                {
+                    logger.info(counter + "/" + num_entries + ": " + "Skip " + entry.getName());
+                    continue;
+                }
+
+                final File outfile = new File(install_location, wrangled);
                 if (entry.isDirectory())
                 {
                     logger.info(counter + "/" + num_entries + ": " + "Create " + outfile);
@@ -158,7 +174,7 @@ public class Update
                         Files.copy(in, outfile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                         // ZIP contains a few entries that are 'executable' for Linux and OS X.
                         // How to get file permissions from ZIP file?
-                        // For now just make shell scripts
+                        // For now just make shell scripts executable
                         if (outfile.getName().endsWith(".sh"))
                             outfile.setExecutable(true);
                     }
@@ -166,17 +182,6 @@ public class Update
                 sub.worked(1);
             }
         }
-    }
-
-    /** @param path File path
-     *  @return Path with first element removed
-     */
-    private static String stripInitialDir(final String path)
-    {
-        int sep = path.indexOf(File.separatorChar);
-        if (sep >= 0)
-            return path.substring(sep+1);
-        return path;
     }
 
     /** Check for update
