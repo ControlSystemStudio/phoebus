@@ -209,11 +209,9 @@ public class Update
         return null;
     }
 
-    /** Check for update
+    /** Perform update
      *
-     *  <p>Check if the `update_url` has an update that is newer
-     *  than the `current_version`.
-     *  If so, download and replace the current installation.
+     *  <p>Get & unpack `update_url` into the current installation.
      *
      *  @param monitor {@link JobMonitor}
      *  @param install_location Existing {@link Locations#install()}
