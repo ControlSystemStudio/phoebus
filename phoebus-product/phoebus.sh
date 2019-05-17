@@ -15,6 +15,17 @@ then
   TOP="$TOP/target"
 fi
 
+if [ -d "${TOP}/update" ]
+then
+  echo "Installing update..."
+  cd ${TOP}
+  rm -rf doc lib
+  mv update/* .
+  rmdir update
+  echo "Updated."
+fi
+
+
 V="0.0.1"
 
 # Use ant or maven jar?
@@ -26,6 +37,6 @@ else
 fi
 
 # To get one instance, use server mode
-OPT="-server 4918"
+# OPT="-server 4918"
 
 java -jar $JAR $OPT "$@" &
