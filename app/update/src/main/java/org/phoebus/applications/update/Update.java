@@ -125,8 +125,6 @@ public class Update
             return;
         if (! update_zip.canRead())
             throw new Exception("Cannot read " + update_zip);
-        if (! install_location.canWrite())
-            throw new Exception("Cannot write " + install_location);
 
         monitor.updateTaskName("Delete " + install_location);
         monitor.worked(10);
