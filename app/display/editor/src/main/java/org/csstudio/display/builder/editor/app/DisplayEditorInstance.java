@@ -22,11 +22,11 @@ import org.csstudio.display.builder.editor.actions.ActionDescription;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.ModelPlugin;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.persist.WidgetClassesService;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
-import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
@@ -53,6 +53,8 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Control;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFile;
 
 /** Display Editor Instance
  *  @author Kay Kasemir
@@ -160,11 +162,20 @@ public class DisplayEditorInstance implements AppInstance
         }
 
         final MenuItem embedded;
-        if (selection.size() == 1  &&  selection.get(0) instanceof EmbeddedDisplayWidget)
-            embedded = new EditEmbeddedDisplayAction(app, (EmbeddedDisplayWidget)selection.get(0));
+        if (selection.size() == 1)
+        {
+            final Optional<WidgetProperty<String>> pfile = selection.get(0).checkProperty(propFile);
+            if (pfile.isPresent() && pfile.get().getValue().endsWith(DisplayModel.FILE_EXTENSION))
+                embedded = new EditEmbeddedDisplayAction(app, selection.get(0), pfile.get().getValue());
+            else
+            {
+                embedded = new EditEmbeddedDisplayAction(app, null, null);
+                embedded.setDisable(true);
+            }
+        }
         else
         {
-            embedded = new EditEmbeddedDisplayAction(app, null);
+            embedded = new EditEmbeddedDisplayAction(app, null, null);
             embedded.setDisable(true);
         }
 
