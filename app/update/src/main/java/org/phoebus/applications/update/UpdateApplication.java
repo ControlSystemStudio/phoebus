@@ -79,7 +79,7 @@ public class UpdateApplication implements AppDescriptor
         // So download into a stage area.
         // The start script needs to be aware of this stage area
         // and move it to the install location on startup.
-        final File stage_area = new File(install_location.getParentFile(), "staged_update");
+        final File stage_area = new File(install_location.getParentFile(), "update");
         final StringBuilder buf = new StringBuilder();
         buf.append("You are running version  ")
            .append(TimestampFormats.DATETIME_FORMAT.format(Update.current_version))
