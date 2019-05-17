@@ -10,7 +10,7 @@
     @ECHO Found JDK %JAVA_HOME%
 )
 
-if EXIST "update" (
+@if EXIST "update" (
     @ECHO Installing update...
     @rd /S/Q doc
     @rd /S/Q lib
@@ -20,6 +20,8 @@ if EXIST "update" (
     @rmdir update
     @ECHO Updated.
 )
+
+@java -version
 
 @set V=0.0.1
 
