@@ -48,7 +48,7 @@
 
   <target name="compile-app" description="Compile application">
     <mkdir dir="${classes}"/>
-    <javac srcdir="${src}" destdir="${classes}" classpathref="app-classpath"/>
+    <javac srcdir="${src}" destdir="${classes}" debug="${debug}" classpathref="app-classpath"/>
   </target>
 	
   <target name="jfxarch" description="Determine JavaFX architecture">
