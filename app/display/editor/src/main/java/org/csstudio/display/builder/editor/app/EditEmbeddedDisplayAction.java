@@ -11,8 +11,8 @@ import java.net.URI;
 
 import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
-import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -26,7 +26,7 @@ import javafx.scene.control.MenuItem;
 @SuppressWarnings("nls")
 public class EditEmbeddedDisplayAction extends MenuItem
 {
-    public EditEmbeddedDisplayAction(final AppResourceDescriptor app, final EmbeddedDisplayWidget widget)
+    public EditEmbeddedDisplayAction(final AppResourceDescriptor app, final Widget widget, String file)
     {
         super(Messages.EditEmbededDisplay,
               ImageCache.getImageView(DisplayModel.class, "/icons/embedded.png"));
@@ -35,11 +35,11 @@ public class EditEmbeddedDisplayAction extends MenuItem
             String embedded;
             try
             {
-                embedded = ModelResourceUtil.resolveResource(widget.getDisplayModel(), widget.propFile().getValue());
+                embedded = ModelResourceUtil.resolveResource(widget.getDisplayModel(), file);
             }
             catch (Exception ex)
             {
-                embedded = widget.propFile().getValue();
+                embedded = file;
             }
             try
             {
