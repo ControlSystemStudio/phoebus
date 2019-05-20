@@ -259,7 +259,7 @@ class Decoders
                     ? noDisplay.getFormat()
                     : createNumberFormat(str.get());
             }
-            
+
             display = Range.of(PVStructureHelper.getDoubleValue(section, "limitLow", Double.NaN),
                                PVStructureHelper.getDoubleValue(section, "limitHigh", Double.NaN));
         }
@@ -279,7 +279,7 @@ class Decoders
             control = Range.undefined();
 
         // Decode valueAlarm_t valueAlarm
-        section = struct.getSubField(PVStructure.class, "control");
+        section = struct.getSubField(PVStructure.class, "valueAlarm");
         if (section != null)
         {
             alarm = Range.of(PVStructureHelper.getDoubleValue(section, "lowAlarmLimit", Double.NaN),
