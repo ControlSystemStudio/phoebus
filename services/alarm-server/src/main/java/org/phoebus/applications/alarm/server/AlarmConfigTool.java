@@ -16,7 +16,6 @@ import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.client.AlarmConfigMonitor;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
-import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.xml.XmlModelReader;
 import org.phoebus.applications.alarm.model.xml.XmlModelWriter;
 
@@ -125,12 +124,6 @@ public class AlarmConfigTool
 
 	private void addNodes(final AlarmClient client, final AlarmTreeItem<?> parent, final AlarmTreeItem<?> tree_item) throws Exception
 	{
-		// Determine if the item is a node or a leaf and add to the model appropriately.
-		if (tree_item instanceof AlarmTreeLeaf)
-			client.addPV(parent.getPathName(), tree_item.getName());
-		else if (tree_item instanceof AlarmTreeItem)
-			client.addComponent(parent.getPathName(), tree_item.getName());
-
 		// Send the configuration for the newly created node.
 		client.sendItemConfigurationUpdate(tree_item.getPathName(), tree_item);
 
