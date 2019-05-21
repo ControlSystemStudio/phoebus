@@ -197,7 +197,7 @@ public class XmlModelReader
 
         // New XML export always writes these three tags.
         // Legacy XML file only wrote them if false, true, true,
-        // i.e. missing tags meand true, false, false.
+        // i.e. missing tags meant true, false, false.
         pv.setEnabled(XMLUtil.getChildBoolean(node, TAG_ENABLED).orElse(true));
         pv.setLatching(XMLUtil.getChildBoolean(node, TAG_LATCHING).orElse(false));
         pv.setAnnunciating(XMLUtil.getChildBoolean(node, TAG_ANNUNCIATING).orElse(false));
