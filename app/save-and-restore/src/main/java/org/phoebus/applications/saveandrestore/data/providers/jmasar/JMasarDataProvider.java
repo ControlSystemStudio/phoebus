@@ -23,17 +23,15 @@ import java.util.List;
 import org.phoebus.applications.saveandrestore.data.DataProvider;
 import org.phoebus.applications.saveandrestore.data.DataProviderException;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import se.esss.ics.masar.model.ConfigPv;
 import se.esss.ics.masar.model.Node;
 import se.esss.ics.masar.model.SnapshotItem;
 
 public class JMasarDataProvider implements DataProvider {
 
-	private JMasarClient jmasarClient;
-
-	public JMasarDataProvider() {
-		jmasarClient = new JMasarClient();
-	}
+	@Autowired
+	private JMasarJerseyClient jmasarClient;
 
 	@Override
 	public Node getRootNode() {

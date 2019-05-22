@@ -555,8 +555,8 @@ class SnapshotTable extends TableView<SnapshotTableEntry> {
         idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         list.add(idColumn);
 
-        pvNameColumn = new TooltipTableColumn<>("SnapshotTableEntryPvProxy Name",
-            "The list of setpoint SnapshotTableEntryPvProxy names defined by the snapshot or save set", 100);
+        pvNameColumn = new TooltipTableColumn<>("PV Name",
+            "The list of setpoint PV names defined by the snapshot or save set", 100);
 
         pvNameColumn.setCellValueFactory(new PropertyValueFactory<>("pvName"));
         list.add(pvNameColumn);
@@ -577,9 +577,14 @@ class SnapshotTable extends TableView<SnapshotTableEntry> {
         list.add(timestampColumn);
 
         TableColumn<SnapshotTableEntry, String> statusColumn = new TooltipTableColumn<>("Status",
-            "Alarm status of the setpoint SnapshotTableEntryPvProxy when the snapshot was taken", 100, 100, true);
+            "Alarm status of the setpoint PV when the snapshot was taken", 100, 100, true);
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
         list.add(statusColumn);
+
+        TableColumn<SnapshotTableEntry, String> severityColumn = new TooltipTableColumn<>("Severity",
+                "Alarm severity of the setpoint PV when the snapshot was taken", 100, 100, true);
+        severityColumn.setCellValueFactory(new PropertyValueFactory<>("severity"));
+        list.add(severityColumn);
 
         TableColumn<SnapshotTableEntry, ?> storedValueBaseColumn = new TooltipTableColumn<>(
                 "Stored Setpoint", "", -1);

@@ -27,19 +27,25 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import org.epics.gpclient.*;
+import org.epics.pvdata.pv.PVScalarType;
 import org.epics.vtype.*;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.GUIUpdateThrottle;
+import org.phoebus.applications.saveandrestore.ui.Utilities;
 import org.phoebus.applications.saveandrestore.ui.model.SnapshotEntry;
 import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.model.VNoData;
 import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
+import org.springframework.beans.factory.annotation.Autowired;
 import se.esss.ics.masar.model.*;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 
@@ -80,7 +86,8 @@ public class SnapshotController {
 
     private SnapshotTable snapshotTable;
 
-    private SaveAndRestoreService service;
+    @Autowired
+    private SaveAndRestoreService saveAndRestoreService;
     private SimpleStringProperty createdByTextProperty = new SimpleStringProperty();
     private SimpleStringProperty createdDateTextProperty = new SimpleStringProperty();
     private SimpleStringProperty snapshotNameProperty = new SimpleStringProperty();
@@ -109,6 +116,9 @@ public class SnapshotController {
     private TabTitleChangedListener tabTitleChangedListener;
 
     private boolean snapshotDataDirty = false;
+
+    public static final Logger LOGGER = Logger.getLogger(SnapshotController.class.getName());
+
     /**
      * The rate at which the snapshotTable is updated
      */
@@ -122,19 +132,14 @@ public class SnapshotController {
                     return;
                 }
                 pvs.forEach((k, v) -> {
-
                     items.get(k).setLiveValue(v.pvValue);
                     items.get(k).setReadbackValue(v.readbackValue);
+
                 });
             });
         }
     };
 
-
-    public SnapshotController() {
-        service = SaveAndRestoreService.getInstance();
-        throttle.start();
-    }
 
     public void setTabTitleChangedListener(TabTitleChangedListener tabTitleChangedListener){
         this.tabTitleChangedListener = tabTitleChangedListener;
@@ -187,11 +192,12 @@ public class SnapshotController {
 //                snapshotTable.getItems()));
         restoreButton.disableProperty().bind(snapshotRestorableProperty.not());
 
+        throttle.start();
     }
 
     public void loadSnapshot(Node treeNode) {
         try {
-            this.config = service.getParentNode(treeNode.getUniqueId());
+            this.config = saveAndRestoreService.getParentNode(treeNode.getUniqueId());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -210,8 +216,8 @@ public class SnapshotController {
         }
 
         try {
-            Node snapshot = service.getNode(treeNode.getUniqueId());
-            List<SnapshotItem> snapshotItems = service.getSnapshotItems(snapshot.getUniqueId());
+            Node snapshot = saveAndRestoreService.getNode(treeNode.getUniqueId());
+            List<SnapshotItem> snapshotItems = saveAndRestoreService.getSnapshotItems(snapshot.getUniqueId());
             VSnapshot vSnapshot =
                     new VSnapshot(snapshot, snapshotItemsToSnapshotEntries(snapshotItems), Instant.ofEpochMilli(snapshot.getCreated().getTime()));
             List<SnapshotTableEntry> tableEntries = addSnapshot(vSnapshot);
@@ -222,10 +228,10 @@ public class SnapshotController {
     }
 
     public void loadSaveSet(String saveSetUniqueId){
-        this.config = service.getNode(saveSetUniqueId);
+        this.config = saveAndRestoreService.getNode(saveSetUniqueId);
 
         try {
-            List<ConfigPv> configPvs = service.getConfigPvs(config.getUniqueId());
+            List<ConfigPv> configPvs = saveAndRestoreService.getConfigPvs(config.getUniqueId());
             VSnapshot vSnapshot =
                     new VSnapshot(saveSetToSnapshotEntries(configPvs));
             List<SnapshotTableEntry> tableEntries = setSnapshotInternal(vSnapshot);
@@ -241,7 +247,7 @@ public class SnapshotController {
 
         try {
 
-            List<SnapshotItem> snapshotItems = service.getSnapshotItems(snapshot.getUniqueId());
+            List<SnapshotItem> snapshotItems = saveAndRestoreService.getSnapshotItems(snapshot.getUniqueId());
 
             snapshotCommentProperty.set(snapshot.getProperty("comment"));
             createdDateTextProperty.set(snapshot.getCreated().toString());
@@ -267,65 +273,60 @@ public class SnapshotController {
 
     @FXML
     public void restore(ActionEvent event) {
-//        VSnapshot s = snapshots.get(0);
-//        Map<SnapshotTableEntryPvProxy, PVWriterListener<?>> restorablePVs = new HashMap<>();
-//        try {
-//            suspend();
-//            List<SnapshotEntry> entries = s.getEntries();
-//            final Map<SnapshotTableEntryPvProxy, PVEvent> restoredPVs = new HashMap<>();
-//            for (SnapshotEntry entry : entries) {
-//                final SnapshotTableEntry e = items.get(entry.getPVName());
-//                // only restore the value if the entry is in the filtered list as well
-//                if (e.selectedProperty().get() && !e.readOnlyProperty().get()) {
-//                    final SnapshotTableEntryPvProxy snapshotTableEntryPvProxy = pvs.get(e);
-//                    if (snapshotTableEntryPvProxy.writer != null) {
-//                        PVWriterListener<?> l = w -> {
-//                            restoredPVs.put(snapshotTableEntryPvProxy, w);
-//                            synchronized (restoredPVs) {
-//                                restoredPVs.notifyAll();
-//                            }
-//                        };
-//                        restorablePVs.put(snapshotTableEntryPvProxy, l);
-//                        snapshotTableEntryPvProxy.writer.addPVWriterListener(l);
-//                        Object val = Utilities.toRawValue(entry.getValue());
-//                        if (val != null) {
-//                            snapshotTableEntryPvProxy.writer.write(val);
-//                        }
-//                    }
-//                }
-//            }
-//            try {
-//                long time = System.currentTimeMillis();
-//                while (System.currentTimeMillis() - time < 30000
-//                        && !SaveRestoreService.getInstance().isCurrentJobCancelled()) {
-//                    synchronized (restoredPVs) {
-//                        if (restoredPVs.size() == restorablePVs.size()) {
-//                            break;
-//                        } else {
-//                            restoredPVs.wait(100);
-//                        }
-//                    }
-//                }
-//            } catch (InterruptedException e) {
-//                // ignore
-//            }
-//
-//            List<String> messages = new ArrayList<>();
-//            for (Map.Entry<SnapshotTableEntryPvProxy, PVWriterEvent<?>> pv : restoredPVs.entrySet()) {
-//                if (pv.getValue().isWriteFailed()) {
-//                    StringBuilder sb = new StringBuilder(200);
-//                    sb.append(pv.getKey().pvName).append(':').append(' ');
-//                    Exception e = pv.getValue().getPvWriter().lastWriteException();
-//                    if (e == null || e.getMessage() == null || e.getMessage().isEmpty()) {
-//                        sb.append("Unknown error");
-//                    } else {
-//                        sb.append(e.getMessage());
-//                    }
-//                    messages.add(sb.toString());
-//                }
-//            }
-//
-//            if (restoredPVs.size() != restorablePVs.size()) {
+        VSnapshot s = snapshots.get(0);
+        Set<SnapshotTableEntryPvProxy> restorablePVs = new HashSet<>();
+        try {
+            suspend();
+            List<SnapshotEntry> entries = s.getEntries();
+            //final Set<SnapshotTableEntryPvProxy> restoredPVs = new HashSet<>();
+            for (SnapshotEntry entry : entries) {
+                final SnapshotTableEntry e = items.get(entry.getPVName());
+                // only restore the value if the entry is in the filtered list as well
+                if (e.selectedProperty().get() && !e.readOnlyProperty().get()) {
+                    final SnapshotTableEntryPvProxy snapshotTableEntryPvProxy = pvs.get(e);
+
+                    //restoredPVs.add(snapshotTableEntryPvProxy);
+                    restorablePVs.add(snapshotTableEntryPvProxy);
+                    //snapshotTableEntryPvProxy.pv.addPVWriterListener(l);
+                    Object val = Utilities.toRawValue(entry.getValue());
+                    if (val != null) {
+                        snapshotTableEntryPvProxy.pv.write(val);
+                    }
+
+                }
+            }
+            try {
+                long time = System.currentTimeMillis();
+                while (System.currentTimeMillis() - time < 30000
+                        /*&& !SaveRestoreService.getInstance().isCurrentJobCancelled()*/) {
+                    synchronized (restorablePVs) {
+                        boolean done = true;
+                        for(SnapshotTableEntryPvProxy proxy : restorablePVs){
+                            if(proxy.writeStatus == PVEvent.Type.WRITE_FAILED){
+                                restorablePVs.wait(100);
+                                done = false;
+                                break;
+                            }
+                        }
+                        if(done){
+                           break;
+                        }
+                    }
+                }
+            } catch (InterruptedException e) {
+                // ignore
+            }
+
+            List<String> messages = new ArrayList<>();
+            for (SnapshotTableEntryPvProxy proxy : restorablePVs) {
+                if (proxy.getWriteStatus().equals(PVEvent.Type.WRITE_FAILED)) {
+                    StringBuilder sb = new StringBuilder(200);
+                    sb.append(proxy.pvName).append(':').append(" error writing PV");
+                    messages.add(sb.toString());
+                }
+            }
+
+//            if (restoredPVs.size() != restorablePVCount) {
 //                // not all PVs responded in time
 //                for (SnapshotTableEntryPvProxy snapshotTableEntryPvProxy : restorablePVs.keySet()) {
 //                    if (restoredPVs.containsKey(snapshotTableEntryPvProxy)) {
@@ -333,26 +334,27 @@ public class SnapshotController {
 //                    }
 //                }
 //            }
-//            if (messages.isEmpty()) {
-//                SaveRestoreService.LOGGER.log(Level.FINE, "Restored snapshot {0}: {1}.",
-//                        new Object[] { s.getSaveSet().getFullyQualifiedName(), s.getSnapshot().get() });
-//            } else {
-//                Collections.sort(messages);
-//                StringBuilder sb = new StringBuilder(messages.size() * 200);
-//                messages.forEach(e -> sb.append(e).append('\n'));
-//                SaveRestoreService.LOGGER.log(Level.WARNING,
-//                        "Not all PVs could be restored for {0}: {1}. The following errors occured:\n{2}",
-//                        new Object[] { s.getSaveSet().getFullyQualifiedName(), s.getSnapshot().get(), sb.toString() });
-//
-//                FXDetailsDialog.open(getSnapshotReceiver().getShell(), "Restore error",
-//                        "There were some errors restoring the snapshot\n " + s.getSnapshot().get(), sb.toString());
-//            }
-//        } finally {
-//            for (Map.Entry<SnapshotTableEntryPvProxy, PVWriterListener<?>> e : restorablePVs.entrySet()) {
-//                e.getKey().writer.removePVWriterListener(e.getValue());
-//            }
-//            resume();
-//        }
+            if (messages.isEmpty()) {
+                LOGGER.log(Level.FINE, "Restored snapshot {0}", s.getSnapshot().get().getName());
+            } else {
+                Collections.sort(messages);
+                StringBuilder sb = new StringBuilder(messages.size() * 200);
+                messages.forEach(e -> sb.append(e).append('\n'));
+                LOGGER.log(Level.WARNING,
+                        "Not all PVs could be restored for {0}: {1}. The following errors occured:\n{2}",
+                        new Object[] { s.getSnapshot().get().getName(), s.getSnapshot().get(), sb.toString() });
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Restore Error");
+                alert.setContentText(sb.toString());
+                alert.setHeaderText("Not all PVs were restored.");
+                Optional<ButtonType> result = alert.showAndWait();
+            }
+        } finally {
+            for (SnapshotTableEntryPvProxy proxy : restorablePVs) {
+                proxy.restoreDone();
+            }
+            resume();
+        }
     }
 
     @FXML
@@ -420,7 +422,7 @@ public class SnapshotController {
                 .map(snapshotEntry -> SnapshotItem.builder().value(snapshotEntry.getValue()).configPv(snapshotEntry.getConfigPv()).readbackValue(snapshotEntry.getReadbackValue()).build())
                 .collect(Collectors.toList());
         try {
-            Node savedSnapshot = service.saveSnapshot(config.getUniqueId(), snapshotItems, snapshotNameProperty.get(), snapshotCommentProperty.get());
+            Node savedSnapshot = saveAndRestoreService.saveSnapshot(config.getUniqueId(), snapshotItems, snapshotNameProperty.get(), snapshotCommentProperty.get());
             snapshotDataDirty = false;
             loadSnapshot(savedSnapshot);
         } catch (Exception e) {
@@ -598,20 +600,12 @@ public class SnapshotController {
             items.values().forEach(snapshotTableEntry -> {
                 SnapshotTableEntryPvProxy snapshotTableEntryPvProxy = pvs.get(snapshotTableEntry);
                 if (snapshotTableEntryPvProxy == null) {
-                    snapshotTableEntryPvProxy = pvsForDisposal.remove(snapshotTableEntry.pvNameProperty().get());
-                    if (snapshotTableEntryPvProxy != null) {
-                        pvs.put(snapshotTableEntry.pvNameProperty().get(), snapshotTableEntryPvProxy);
-                    }
-                }
-                if (snapshotTableEntryPvProxy == null) {
-                    snapshotTableEntryPvProxy = pvsForDisposal.remove(snapshotTableEntry.pvNameProperty().get());
-                    if (snapshotTableEntryPvProxy != null) {
-                        pvs.put(snapshotTableEntry.pvNameProperty().get(), snapshotTableEntryPvProxy);
-                    }
-                }
-                if (snapshotTableEntryPvProxy == null) {
                     String pvName = snapshotTableEntry.pvNameProperty().get();
-                    if (pvName != null && !pvName.isEmpty()) {
+                    snapshotTableEntryPvProxy = pvsForDisposal.remove(pvName);
+                    if (snapshotTableEntryPvProxy != null) {
+                        pvs.put(snapshotTableEntry.pvNameProperty().get(), snapshotTableEntryPvProxy);
+                    }
+                    else{
                         pvs.put(pvName, new SnapshotTableEntryPvProxy(snapshotTableEntry));
                     }
                 }
@@ -628,26 +622,50 @@ public class SnapshotController {
         PV<VType, Object> pv;
         PVReader<VType> reader;
         PVReader<VType> readbackReader;
+        PVEvent.Type writeStatus = PVEvent.Type.WRITE_FAILED;
         //PVWriter<Object> writer;
         volatile VType pvValue = VDisconnectedData.INSTANCE;
         volatile VType readbackValue = VDisconnectedData.INSTANCE;
+        //PVWriterListener writeListener;
+        PVListener<VType, Object> listener;
+        PVConfiguration pvConfiguration;
 
         SnapshotTableEntryPvProxy(SnapshotTableEntry snapshotTableEntry) {
             this.pvName = snapshotTableEntry.pvNameProperty().get();
             this.readbackPvName = snapshotTableEntry.readbackNameProperty().get();
             this.provider = snapshotTableEntry.getConfigPv().getProvider().name();
-            this.pv = GPClient.readAndWrite(GPClient.channel(provider + "://" + this.pvName))
-                    .addListener((event, p) -> {
-                        synchronized (SnapshotController.this) {
-                            if (suspend.get() > 0) {
-                                return;
-                            }
+
+            this.listener = (event, p) -> {
+                if(event.getType().contains(PVEvent.Type.VALUE)){
+                    synchronized (SnapshotController.this) {
+                        if (suspend.get() > 0) {
+                            return;
                         }
-                        this.pvValue = p.isConnected() ? p.getValue() : VDisconnectedData.INSTANCE;
-                        throttle.trigger();
-                    }).start();
+                    }
+                    this.pvValue = p.getValue(); //p.isConnected() ? p.getValue() : VDisconnectedData.INSTANCE;
+                    throttle.trigger();
+                }
+                else if(event.getType().contains(PVEvent.Type.WRITE_SUCCEEDED)){
+                    writeStatus = PVEvent.Type.WRITE_SUCCEEDED;
+                }
+//                else if(event.getType().contains(PVEvent.Type.WRITE_FAILED)){
+//                    writeStatus = PVEvent.Type.WRITE_FAILED;
+//                }
+            };
+
+
+
+            this.pvConfiguration = GPClient.readAndWrite(GPClient.channel(provider + "://" + pvName));
+
+            this.pv = pvConfiguration
+                    .addListener(listener)
+                    .maxRate(Duration.ofMillis(500))
+                    .start();
+
             this.pvValue = pv.getValue();
-//            this.reader = GPClient.read(provider + "://" + this.pvName)
+
+            //this.reader = GPClient.read(provider + "://" + this.pvName)
+//            this.reader = GPClient.read("sim://noise(-5,5,0.01)")
 //                    .addReadListener((event, p) -> {
 //                        synchronized (SnapshotController.this) {
 //                            if (suspend.get() > 0) {
@@ -656,7 +674,9 @@ public class SnapshotController {
 //                        }
 //                        this.pvValue = p.isConnected() ? p.getValue() : VDisconnectedData.INSTANCE;
 //                        throttle.trigger();
-//                    }).start();
+//                    })
+//                    .maxRate(Duration.ofMillis(500))
+//                    .start();
 //            this.pvValue = reader.getValue();
 
             if (readbackPvName != null && !readbackPvName.isEmpty()) {
@@ -676,28 +696,42 @@ public class SnapshotController {
             }
         }
 
+        public PVEvent.Type getWriteStatus(){
+            return writeStatus;
+        }
+
+        public void restoreDone(){
+            pvConfiguration.addListener(listener);
+            writeStatus = PVEvent.Type.WRITE_FAILED;
+        }
+
         void resume() {
-//            if (reader != null) {
-//                this.pvValue = reader.getValue();
-//            }
-            if(pv != null){
-                pv.close();
+            if (reader != null) {
+                this.pvValue = reader.getValue();
             }
+//            if(pv != null){
+//                this.pvValue = pv.getValue();
+//            }
             if (readbackReader != null) {
                 readbackValue = readbackReader.getValue();
             }
         }
 
         void dispose() {
-//            if (reader != null && !reader.isClosed()) {
-//                reader.close();
-//            }
-            if(pv != null && !pv.isClosed()){
-                pv.close();
+            if (reader != null && !reader.isClosed()) {
+                reader.close();
             }
+//            if(pv != null && !pv.isClosed()){
+//                pv.close();
+//            }
             if (readbackReader != null && !readbackReader.isClosed()) {
                 readbackReader.close();
             }
+        }
+
+        @Override
+        public String toString(){
+            return "PV";
         }
     }
 
@@ -750,7 +784,7 @@ public class SnapshotController {
     /**
      * Returns true if items with equal live and snapshot values are currently hidden or false is shown.
      *
-     * @return true if equal items are hidden or false otherwise.
+     * @return true if equal items are hidd en or false otherwise.
      */
     public boolean isHideEqualItems() {
         return hideEqualItems;

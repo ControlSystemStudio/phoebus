@@ -18,62 +18,24 @@
 
 package org.phoebus.applications.saveandrestore.service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
-import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.data.DataProvider;
 import org.phoebus.applications.saveandrestore.data.DataProviderException;
-import org.phoebus.framework.preferences.PreferencesReader;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import se.esss.ics.masar.model.ConfigPv;
 import se.esss.ics.masar.model.Node;
 import se.esss.ics.masar.model.SnapshotItem;
 
+import java.util.List;
+import java.util.concurrent.*;
+
 
 public class SaveAndRestoreService {
 
-    private static SaveAndRestoreService instance;
+    @Autowired
     private ExecutorService executor;
+
+    @Autowired
     private DataProvider dataProvider;
-
-    private SaveAndRestoreService() {
-
-        executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
-
-    }
-
-    public static SaveAndRestoreService getInstance() {
-        if (instance == null) {
-            instance = new SaveAndRestoreService();
-            try {
-                PreferencesReader prefs = new PreferencesReader(SaveAndRestoreApplication.class,
-                        "/save_and_restore_preferences.properties");
-                String dataProviderClassName = PreferencesReader.replaceProperties(prefs.get("dataprovider"));
-                instance.setDataProvider(dataProviderClassName);
-            } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
-
-        return instance;
-    }
-
-    public void setDataProvider(String dataProviderClassName) throws Exception {
-        Class<?> clazz = Class.forName(dataProviderClassName);
-
-        dataProvider = (DataProvider) clazz.getConstructor().newInstance();
-    }
-
-//	public Future<?> execute(Runnable runnable) {
-//		return executor.submit(runnable);
-//	}
 
     public Node getRootNode() {
 
@@ -155,14 +117,6 @@ public class SaveAndRestoreService {
         return dataProvider.getServiceIdentifier();
     }
 
-//	public String getServiceVersion() throws Exception {
-//		Future<String> future = executor.submit(() -> {
-//
-//			return dataProvider.getServiceVersion();
-//		});
-//
-//		return future.get();
-//	}
 
     public List<SnapshotItem> getSnapshotItems(String uniqueNodeId) throws Exception {
 

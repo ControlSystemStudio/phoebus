@@ -75,7 +75,7 @@ public abstract class GUIUpdateThrottle extends Thread {
                     fire();
                 }
                 // Suppress further updates a little to prevent flicker
-                Thread.sleep(suppressionMillis);
+                //Thread.sleep(suppressionMillis);
             }
         } catch (InterruptedException ex) {
             //SaveRestoreService.LOGGER.log(Level.SEVERE, "GUI Update failed", ex);

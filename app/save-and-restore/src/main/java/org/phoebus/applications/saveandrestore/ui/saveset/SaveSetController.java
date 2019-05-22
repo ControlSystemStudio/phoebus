@@ -18,33 +18,31 @@
 
 package org.phoebus.applications.saveandrestore.ui.saveset;
 
-import java.io.ObjectInputFilter;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.Executor;
-
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.ListChangeListener;
-import javafx.event.ActionEvent;
-
-import javafx.scene.control.*;
-import javafx.scene.control.cell.TextFieldTableCell;
-import javafx.util.Callback;
-import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
-
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.util.Callback;
+import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
+import org.springframework.beans.factory.annotation.Autowired;
 import se.esss.ics.masar.model.ConfigPv;
 import se.esss.ics.masar.model.Node;
 import se.esss.ics.masar.model.Provider;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.Executor;
 
 public class SaveSetController {
 
@@ -100,24 +98,17 @@ public class SaveSetController {
 	@FXML
 	private SimpleBooleanProperty readOnlyProperty = new SimpleBooleanProperty(false);
 
+	@Autowired
 	private SaveAndRestoreService service;
 
 	private static Executor UI_EXECUTOR = Platform::runLater;
 
-	public SaveSetController() {
-		service = SaveAndRestoreService.getInstance();
-	}
-
 	private SimpleBooleanProperty dirty = new SimpleBooleanProperty(false);
-
-	//private String originalComment;
-//	private SimpleBooleanProperty commentUnchanged = new SimpleBooleanProperty(true);
-//	private SimpleBooleanProperty pvListUnchanged = new SimpleBooleanProperty(true);
-//	private SimpleStringProperty commentTextProperty = new SimpleStringProperty();
 
 	private ObservableList<ConfigPv> saveSetEntries = FXCollections.observableArrayList();
 
 	private SimpleBooleanProperty selectionEmpty = new SimpleBooleanProperty(false);
+	private SimpleBooleanProperty singelSelection = new SimpleBooleanProperty(false);
 
 	private static final String PROVIDER = "provider";
 
@@ -135,6 +126,14 @@ public class SaveSetController {
 		pvTable.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> {
 			selectionEmpty.set(nv == null);
 		});
+
+		pvTable.getSelectionModel().getSelectedItems().addListener(new ListChangeListener<ConfigPv>() {
+			@Override
+			public void onChanged(Change<? extends ConfigPv> c) {
+				singelSelection.set(c.getList().size() == 1);
+			}
+		});
+
 		defaultSelectionModel = pvTable.getSelectionModel();
 
 		pvTable.setRowFactory( tv -> {
@@ -177,58 +176,114 @@ public class SaveSetController {
 
 		MenuItem renamePvMenuItem = new MenuItem("Edit PV Name");
 		renamePvMenuItem.setOnAction(ae -> {
-			ObservableList<ConfigPv> selectedPvs = pvTable.getSelectionModel().getSelectedItems();
-			if(selectedPvs == null || selectedPvs.isEmpty()){
-				return;
+
+			ConfigPv configPv = pvTable.getSelectionModel().getSelectedItem();
+
+			Alert alert = new Alert(AlertType.CONFIRMATION);
+			alert.setTitle("Rename PV?");
+			alert.setContentText("NOTE: Renaming the \"" + configPv.getPvName() + "\" will affect all save sets and snapshots referring to this PV.\n\nDo you wish to continue?");
+			Optional<ButtonType> result = alert.showAndWait();
+			if (result.isPresent() && result.get().equals(ButtonType.OK)) {
+
 			}
-
-			// TODO: Launch dialog and call remote service
-
 		});
+		renamePvMenuItem.disableProperty().bind(singelSelection.not());
 
 		pvNameContextMenu.getItems().addAll(deleteMenuItem, renamePvMenuItem);
 
 		pvNameColumn.setEditable(true);
-		pvNameColumn.setCellValueFactory(
-				new PropertyValueFactory<ConfigPv, String>("pvName"));
-		pvNameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-//		pvNameColumn.setOnEditCommit(
-//				new EventHandler<TableColumn.CellEditEvent<ConfigPv, String>>() {
-//					@Override
-//					public void handle(TableColumn.CellEditEvent<ConfigPv, String> t) {
+		pvNameColumn.setCellValueFactory(new PropertyValueFactory<>("pvName"));
+		//pvNameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+		pvNameColumn.setOnEditCommit(
+				new EventHandler<TableColumn.CellEditEvent<ConfigPv, String>>() {
+					@Override
+					public void handle(TableColumn.CellEditEvent<ConfigPv, String> t) {
+
+					}
+				}
+		);
+
+		pvNameColumn.setContextMenu(pvNameContextMenu);
+
+		pvNameColumn.setCellFactory(new Callback<>() {
+			@Override
+			public TableCell call(TableColumn param) {
+
+				final TableCell<ConfigPv, String> cell = new TableCell<>() {
+
+//					private TextField textField;
 //
-//					}
-//				}
-//		);
-//		pvNameColumn.setCellFactory(new Callback<>() {
-//			@Override
-//			public TableCell<ConfigPv, String> call(TableColumn<ConfigPv, String> param) {
-//				final TableCell cell = new TableCell() {
-//
 //					@Override
-//					public void updateItem(Object item, boolean empty) {
-//						super.updateItem(item, empty);
-//						selectionEmpty.set(empty);
-//						if (empty) {
-//							setText(null);
-//						} else {
-//							if (isEditing()) {
-//								setText(null);
-//							} else {
-//								setText(getItem().toString());
-//								setGraphic(null);
-//							}
+//					public void startEdit() {
+//						if (!isEmpty()) {
+//							super.startEdit();
+//							createTextField();
+//							//setText(null);
+//							setGraphic(textField);
+//							textField.selectAll();
 //						}
 //					}
-//				};
-//				cell.setContextMenu(pvNameContextMenu);
-//				return cell;
-//			}
-//		});
+//
+//					@Override
+//					public void cancelEdit() {
+//						super.cancelEdit();
+//
+//						setText((String) getItem());
+//						setGraphic(null);
+//					}
+
+					@Override
+					public void updateItem(String item, boolean empty) {
+						super.updateItem(item, empty);
+						selectionEmpty.set(empty);
+						if (empty) {
+							setText(null);
+						} else {
+							if (isEditing()) {
+								setText(null);
+							} else {
+								setText(getItem().toString());
+								setGraphic(null);
+							}
+						}
+					}
+
+//					@Override
+//					public void commitEdit(String newValue){
+//						Alert alert = new Alert(AlertType.CONFIRMATION);
+//						alert.setTitle("Rename PV?");
+//						alert.setContentText("NOTE: Renaming the \"" + getItem() + "\" will affect all save sets and snapshots referring to this PV.\n\nDo you wish to continue?");
+//						Optional<ButtonType> result = alert.showAndWait();
+//						if (result.isPresent() && result.get().equals(ButtonType.OK)) {
+//
+//						}
+//					}
+//
+//					private void createTextField() {
+//						textField = new TextField(getString());
+//						textField.setMinWidth(this.getWidth() - this.getGraphicTextGap()* 2);
+//						textField.setOnKeyPressed(keyEvent -> {
+//									if (keyEvent.getCode() == KeyCode.ENTER && !textField.getText().isEmpty()) {
+//										setItem(textField.getText());
+//										commitEdit(getItem());
+//									} else if (keyEvent.getCode() == KeyCode.ESCAPE) {
+//										cancelEdit();
+//									}
+//							});
+//					}
+//
+//					private String getString() {
+//						return getItem() == null ? "" : getItem().toString();
+//					}
+				};
+				cell.setContextMenu(pvNameContextMenu);
+				return cell;
+			}
+		});
 
 		ContextMenu readbackPvNameContextMenu = new ContextMenu();
 		MenuItem renameReadbackPvMenuItem = new MenuItem("Edit read-back PV Name");
-		renamePvMenuItem.setOnAction(ae -> {
+		renameReadbackPvMenuItem.setOnAction(ae -> {
 			ObservableList<ConfigPv> selectedPvs = pvTable.getSelectionModel().getSelectedItems();
 			if(selectedPvs == null || selectedPvs.isEmpty()){
 				return;

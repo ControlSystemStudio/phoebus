@@ -19,7 +19,6 @@ package org.phoebus.applications.saveandrestore.ui.snapshot;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.concurrent.Task;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -28,7 +27,9 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import org.phoebus.applications.saveandrestore.SpringFxmlLoader;
 import org.phoebus.ui.javafx.ImageCache;
+
 
 
 public class SnapshotTab extends Tab implements TabTitleChangedListener{
@@ -39,18 +40,16 @@ public class SnapshotTab extends Tab implements TabTitleChangedListener{
 
     public SnapshotTab(se.esss.ics.masar.model.Node node){
 
-        //tabTitleProperty.set(node.getName() + " (" + node.getCreated() + ")");
         setId(node.getUniqueId());
 
-        FXMLLoader loader = new FXMLLoader();
+        SpringFxmlLoader springFxmlLoader = new SpringFxmlLoader();
         try {
-            loader.setLocation(this.getClass().getResource("fxml/SnapshotEditor.fxml"));
 
-            VBox borderPane = loader.load();
+            VBox borderPane = (VBox)springFxmlLoader.load("/org/phoebus/applications/saveandrestore/ui/snapshot/fxml/SnapshotEditor.fxml"); //loader.load();
             setContent(borderPane);
             setGraphic(getTabGraphic());
 
-            snapshotController = loader.getController();
+            snapshotController = springFxmlLoader.getLoader().getController();
             snapshotController.setTabTitleChangedListener(this);
 
 
@@ -67,6 +66,7 @@ public class SnapshotTab extends Tab implements TabTitleChangedListener{
     }
 
     public void loadSnapshot(se.esss.ics.masar.model.Node node){
+        snapshotController.setTabTitleChangedListener(this);
         Task task = new Task<Void>(){
             @Override
             public Void call() {

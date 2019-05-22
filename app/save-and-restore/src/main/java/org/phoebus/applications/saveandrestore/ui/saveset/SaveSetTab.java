@@ -25,6 +25,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import org.phoebus.applications.saveandrestore.SpringFxmlLoader;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.ui.javafx.ImageCache;
 import se.esss.ics.masar.model.Node;
@@ -38,13 +39,14 @@ public class SaveSetTab extends Tab{
     public SaveSetTab(Node node){
         setId(node.getUniqueId());
 
-        FXMLLoader loader = new FXMLLoader();
+        //FXMLLoader loader = new FXMLLoader();
+        SpringFxmlLoader springFxmlLoader = new SpringFxmlLoader();
         try {
-            loader.setLocation(this.getClass().getResource("fxml/SaveSetEditor.fxml"));
-            setContent(loader.load());
+            //loader.setLocation(this.getClass().getResource("fxml/SaveSetEditor.fxml"));
+            setContent((javafx.scene.Node)springFxmlLoader.load("/org/phoebus/applications/saveandrestore/ui/saveset/fxml/SaveSetEditor.fxml"));
             setGraphic(getTabGraphic());
 
-            saveSetController = loader.getController();
+            saveSetController = springFxmlLoader.getLoader().getController();
             String tabName = saveSetController.loadSaveSet(node);
             if(tabName != null) {
                 tabTitleProperty.set(tabName);

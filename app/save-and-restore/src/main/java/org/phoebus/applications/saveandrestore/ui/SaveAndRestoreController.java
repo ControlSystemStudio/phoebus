@@ -30,9 +30,11 @@ import org.phoebus.applications.saveandrestore.data.DataProvider;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
+import org.springframework.beans.factory.annotation.Autowired;
 import se.esss.ics.masar.model.Node;
 import se.esss.ics.masar.model.NodeType;
 
+import javax.annotation.PostConstruct;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.Executor;
@@ -48,14 +50,16 @@ public class SaveAndRestoreController implements Initializable{
     @FXML
     private TabPane tabPane;
 
-    private SaveAndRestoreService service;
+    @Autowired
+    private SaveAndRestoreService saveAndRestoreService;
     private ContextMenu folderContextMenu;
     private ContextMenu saveSetContextMenu;
     private ContextMenu snapshotContextMenu;
     private ContextMenu rootFolderContextMenu;
 
-    public SaveAndRestoreController() {
-        service = SaveAndRestoreService.getInstance();
+
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
         folderContextMenu = new ContextMenu();
         MenuItem newFolderMenuItem = new MenuItem("New Folder");
         newFolderMenuItem.setOnAction(ae -> {
@@ -117,10 +121,7 @@ public class SaveAndRestoreController implements Initializable{
         });
 
         snapshotContextMenu.getItems().addAll(deleteSnapshotMenuItem, compareSaveSetMenuItem, tagAsGolden);
-    }
 
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
         treeView.setEditable(true);
 
         treeView.setOnMouseClicked(me -> {
@@ -135,7 +136,6 @@ public class SaveAndRestoreController implements Initializable{
         treeView.setOnEditCommit(event -> {
             handleNodeRenamed(event);
         });
-
         loadInitialTreeData();
     }
 
@@ -148,8 +148,8 @@ public class SaveAndRestoreController implements Initializable{
 
         try {
 
-            Node rootNode = service.getRootNode();
-            rootNode.setName(service.getServiceIdentifier());
+            Node rootNode = saveAndRestoreService.getRootNode();
+            rootNode.setName(saveAndRestoreService.getServiceIdentifier());
 
             TreeItem<Node> rootItem = createNode(rootNode);
 
@@ -173,7 +173,7 @@ public class SaveAndRestoreController implements Initializable{
 
         targetItem.getChildren().clear();
 
-        List<Node> childNodes = service.getChildNodes(targetItem.getValue());;
+        List<Node> childNodes = saveAndRestoreService.getChildNodes(targetItem.getValue());;
 
         Collections.sort(childNodes);
         UI_EXECUTOR.execute(() -> {
@@ -189,7 +189,7 @@ public class SaveAndRestoreController implements Initializable{
         if (result.isPresent() && result.get().equals(ButtonType.OK)) {
             TreeItem<Node> parent = treeItem.getParent();
             try {
-                service.deleteNode(treeItem.getValue().getUniqueId());
+                saveAndRestoreService.deleteNode(treeItem.getValue().getUniqueId());
                 UI_EXECUTOR.execute(() -> {
                     parent.getChildren().remove(treeItem);
                 });
@@ -213,7 +213,7 @@ public class SaveAndRestoreController implements Initializable{
     private void handleTagAsGolden(TreeItem<Node> treeItem) {
 
         try {
-            service.tagSnapshotAsGolden(treeItem.getValue().getUniqueId());
+            saveAndRestoreService.tagSnapshotAsGolden(treeItem.getValue().getUniqueId());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -228,7 +228,7 @@ public class SaveAndRestoreController implements Initializable{
         if (result.isPresent() && result.get().equals(ButtonType.OK)) {
             TreeItem<Node> parent = treeItem.getParent();
             try {
-                service.deleteNode(treeItem.getValue().getUniqueId());
+                saveAndRestoreService.deleteNode(treeItem.getValue().getUniqueId());
                 UI_EXECUTOR.execute(() -> {
                     parent.getChildren().remove(treeItem);
                     for(Tab tab : tabPane.getTabs()) {
@@ -281,7 +281,7 @@ public class SaveAndRestoreController implements Initializable{
                     .name(result.get())
                     .build();
             try {
-                Node newTreeNode = service
+                Node newTreeNode = saveAndRestoreService
                         .createNode(treeView.getSelectionModel().getSelectedItem().getValue().getUniqueId(), newFolderNode);
                 parentTreeItem.getChildren().add(createNode(newTreeNode));
                 parentTreeItem.getChildren().sort((a, b) -> a.getValue().getName().compareTo(b.getValue().getName()));
@@ -304,7 +304,7 @@ public class SaveAndRestoreController implements Initializable{
         if (result.isPresent() && result.get().equals(ButtonType.OK)) {
             TreeItem<Node> parent = treeItem.getParent();
             try {
-                if(!service.deleteNode(treeItem.getValue().getUniqueId())) {
+                if(!saveAndRestoreService.deleteNode(treeItem.getValue().getUniqueId())) {
                     alert = new Alert(AlertType.ERROR);
                     alert.setTitle("Delete failed");
                     alert.setHeaderText("Selected folder was not deleted on server");
@@ -380,7 +380,7 @@ public class SaveAndRestoreController implements Initializable{
                     .name(result.get())
                     .build();
             try {
-                Node newTreeNode = service
+                Node newTreeNode = saveAndRestoreService
                         .createNode(treeView.getSelectionModel().getSelectedItem().getValue().getUniqueId(), newSateSetNode);
                 TreeItem<Node> newSaveSetNode = createNode(newTreeNode);
                 parentTreeItem.getChildren().add(newSaveSetNode);
@@ -430,7 +430,7 @@ public class SaveAndRestoreController implements Initializable{
 
 
     private void showJMasarServiceUnabvailable(){
-        Node node = Node.builder().name(service.getServiceIdentifier() + " - currently unavailable").build();
+        Node node = Node.builder().name(saveAndRestoreService.getServiceIdentifier() + " - currently unavailable").build();
         treeView.setRoot(new TreeItem<>(node));
         treeView.setCellFactory(new Callback<TreeView<Node>, TreeCell<Node>>() {
             @Override
@@ -465,7 +465,7 @@ public class SaveAndRestoreController implements Initializable{
             } catch (Exception e) {
                 Alert alert = new Alert(AlertType.ERROR);
                 alert.setTitle("Reconnection failed");
-                alert.setHeaderText("Unable to connect to " + service.getServiceIdentifier());
+                alert.setHeaderText("Unable to connect to " + saveAndRestoreService.getServiceIdentifier());
                 alert.showAndWait();
             }
         }

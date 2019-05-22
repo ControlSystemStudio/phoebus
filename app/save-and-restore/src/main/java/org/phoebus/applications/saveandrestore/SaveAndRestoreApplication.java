@@ -19,12 +19,21 @@
 
 package org.phoebus.applications.saveandrestore;
 
+import javafx.scene.Node;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.docking.DockItem;
+import org.phoebus.ui.docking.DockPane;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 public class SaveAndRestoreApplication implements AppDescriptor {
 	
 	public static final String NAME = "Save And Restore";
+
+	private AnnotationConfigApplicationContext context;
+	public SaveAndRestoreApplication(){
+		context = new AnnotationConfigApplicationContext(AppConfig.class);
+	}
 
 	@Override
 	public String getName() {
@@ -38,8 +47,20 @@ public class SaveAndRestoreApplication implements AppDescriptor {
 
 	@Override
 	public AppInstance create() {
-		
-		return new SaveAndRestoreAppInstance(this);
+
+		SpringFxmlLoader springFxmlLoader = new SpringFxmlLoader();
+		SaveAndRestoreAppInstance appInstance = context.getBean(SaveAndRestoreAppInstance.class);
+		appInstance.setAppDescriptor(this);
+
+		DockItem tab = null;
+		try {
+			tab = new DockItem(appInstance, (Node)springFxmlLoader.load("ui/fxml/SaveAndRestoreUI.fxml"));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		DockPane.getActiveDockPane().addTab(tab);
+
+		return appInstance;
 	}
 
 }

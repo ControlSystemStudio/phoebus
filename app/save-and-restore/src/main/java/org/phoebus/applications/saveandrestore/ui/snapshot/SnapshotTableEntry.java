@@ -50,6 +50,7 @@ public class SnapshotTableEntry {
     private final StringProperty pvName = new SimpleStringProperty(this, "pvName");
     private final ObjectProperty<Instant> timestamp = new SimpleObjectProperty<>(this, "timestamp");
     private final StringProperty status = new SimpleStringProperty(this, "status", AlarmStatus.UNDEFINED.name());
+    private final StringProperty severity = new SimpleStringProperty(this, "severity", AlarmSeverity.UNDEFINED.name());
     private final ObjectProperty<VType> snapshotVal = new SimpleObjectProperty<>(this, "snapshotValue", VNoData.INSTANCE);
 
     private final ObjectProperty<VTypePair> value = new SimpleObjectProperty<>(this, "value",
@@ -152,10 +153,17 @@ public class SnapshotTableEntry {
     }
 
     /**
-     * @return the property providing the alarm status of the primary snapshot value
+     * @return the property providing the alarm status of the PV value
      */
     public StringProperty statusProperty() {
         return status;
+    }
+
+    /**
+     * @return the property providing the alarm severity of the PV value
+     */
+    public StringProperty severityProperty(){
+        return severity;
     }
 
     /**
@@ -235,8 +243,10 @@ public class SnapshotTableEntry {
         final VType val = snapshotValue == null ? VDisconnectedData.INSTANCE : snapshotValue;
         if (index == 0) {
             if (val instanceof VNumber) {
-                status.set(((VNumber) val).getAlarm().getName());
+                status.set(((VNumber) val).getAlarm().getStatus().name());
+                severity.set(((VNumber)val).getAlarm().getSeverity().name());
             } else {
+                severity.set(AlarmSeverity.NONE.name());
                 status.set("---");
             }
             if (val instanceof VNumber) {
@@ -312,6 +322,13 @@ public class SnapshotTableEntry {
         VType stored = value.get().value;
         value.set(new VTypePair(val, stored, threshold));
         liveStoredEqual.set(Utilities.areValuesEqual(val, stored, threshold));
+        if (val instanceof VNumber) {
+            status.set(((VNumber) val).getAlarm().getStatus().name());
+            severity.set(((VNumber)val).getAlarm().getSeverity().name());
+        } else {
+            severity.set(AlarmSeverity.NONE.name());
+            status.set("---");
+        }
     }
 
 //    /**

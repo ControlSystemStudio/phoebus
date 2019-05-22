@@ -10,10 +10,6 @@
  */
 package org.phoebus.applications.saveandrestore.ui.model;
 
-import java.io.Serializable;
-
-
-import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.VType;
