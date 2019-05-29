@@ -29,8 +29,8 @@
   SET JAR=product-%V%.jar
 ) ELSE (
   SET JAR=product-%V%-SNAPSHOT.jar
-
 )
 
-@java -jar %JAR% %*
+@REM To get one instance, use server mode
+@java -jar %JAR% -server 4918 %*
 
