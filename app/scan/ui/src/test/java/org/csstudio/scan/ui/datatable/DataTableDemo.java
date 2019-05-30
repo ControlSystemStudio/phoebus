@@ -9,15 +9,15 @@ package org.csstudio.scan.ui.datatable;
 
 import org.csstudio.scan.client.Preferences;
 import org.csstudio.scan.client.ScanClient;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 /** Demo of {@link DataTable}
  *  @author Kay Kasemir
  */
-public class DataTableDemo extends Application
+public class DataTableDemo extends ApplicationWrapper
 {
     private static final int SCAN_ID = 66;
 
@@ -32,6 +32,6 @@ public class DataTableDemo extends Application
 
     public static void main(String[] args) throws Exception
     {
-        launch(args);
+        launch(DataTableDemo.class, args);
     }
 }
