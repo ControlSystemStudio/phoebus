@@ -618,7 +618,7 @@ public class SnapshotController {
     private class SnapshotTableEntryPvProxy {
         final String pvName;
         final String readbackPvName;
-        final String provider;
+
         PV<VType, Object> pv;
         PVReader<VType> reader;
         PVReader<VType> readbackReader;
@@ -633,7 +633,6 @@ public class SnapshotController {
         SnapshotTableEntryPvProxy(SnapshotTableEntry snapshotTableEntry) {
             this.pvName = snapshotTableEntry.pvNameProperty().get();
             this.readbackPvName = snapshotTableEntry.readbackNameProperty().get();
-            this.provider = snapshotTableEntry.getConfigPv().getProvider().name();
 
             this.listener = (event, p) -> {
                 if(event.getType().contains(PVEvent.Type.VALUE)){
@@ -655,7 +654,7 @@ public class SnapshotController {
 
 
 
-            this.pvConfiguration = GPClient.readAndWrite(GPClient.channel(provider + "://" + pvName));
+            this.pvConfiguration = GPClient.readAndWrite(GPClient.channel(pvName));
 
             this.pv = pvConfiguration
                     .addListener(listener)
@@ -680,7 +679,7 @@ public class SnapshotController {
 //            this.pvValue = reader.getValue();
 
             if (readbackPvName != null && !readbackPvName.isEmpty()) {
-                this.readbackReader = GPClient.read(provider + "://" + this.readbackPvName)
+                this.readbackReader = GPClient.read(this.readbackPvName)
                         .addReadListener((event, p) -> {
                             synchronized (SnapshotController.this) {
                                 if (suspend.get() > 0) {

@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.Scope;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -76,11 +77,13 @@ public class AppConfig {
     }
 
     @Bean
+    @Scope("prototype")
     public SnapshotController snapshotController(){
         return new SnapshotController();
     }
 
     @Bean
+    @Scope("prototype")
     public SaveSetController saveSetController(){
         return new SaveSetController();
     }

@@ -18,8 +18,11 @@
 
 package org.phoebus.applications.saveandrestore.service;
 
+import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.data.DataProvider;
 import org.phoebus.applications.saveandrestore.data.DataProviderException;
+import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
+import org.phoebus.applications.saveandrestore.ui.model.VNoData;
 import org.springframework.beans.factory.annotation.Autowired;
 import se.esss.ics.masar.model.ConfigPv;
 import se.esss.ics.masar.model.Node;
@@ -27,6 +30,7 @@ import se.esss.ics.masar.model.SnapshotItem;
 
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 
 public class SaveAndRestoreService {
@@ -155,7 +159,17 @@ public class SaveAndRestoreService {
     }
 
     public Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment) throws Exception{
-        Future<Node> future = executor.submit(() -> dataProvider.saveSnapshot(configUniqueId, snapshotItems, snapshotName, comment));
+        // Some beautifying is needed to ensure successful serialization.
+        List<SnapshotItem> beautifiedItems = snapshotItems.stream().map(snapshotItem -> {
+            if (snapshotItem.getValue() instanceof VNoData || snapshotItem.getValue() instanceof VDisconnectedData) {
+                snapshotItem.setValue(null);
+            }
+            if (snapshotItem.getReadbackValue() instanceof VNoData || snapshotItem.getReadbackValue() instanceof VDisconnectedData) {
+                snapshotItem.setReadbackValue(null);
+            }
+            return snapshotItem;
+        }).collect(Collectors.toList());
+        Future<Node> future = executor.submit(() -> dataProvider.saveSnapshot(configUniqueId, beautifiedItems, snapshotName, comment));
 
         return future.get();
     }

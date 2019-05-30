@@ -37,7 +37,6 @@ import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import se.esss.ics.masar.model.ConfigPv;
 import se.esss.ics.masar.model.Node;
-import se.esss.ics.masar.model.Provider;
 
 import java.util.Collections;
 import java.util.List;
@@ -46,8 +45,6 @@ import java.util.concurrent.Executor;
 
 public class SaveSetController {
 
-	@FXML
-	private TableColumn<ConfigPv, Provider> providerColumn;
 
 	@FXML
 	private TableColumn<ConfigPv, String> pvNameColumn;
@@ -92,8 +89,6 @@ public class SaveSetController {
 	private SimpleStringProperty pvNameProperty = new SimpleStringProperty("");
 	@FXML
 	private SimpleStringProperty readbackPvNameProperty = new SimpleStringProperty("");
-	@FXML
-	private ObjectProperty<Provider> providerProperty = new SimpleObjectProperty<>(Provider.ca);
 
 	@FXML
 	private SimpleBooleanProperty readOnlyProperty = new SimpleBooleanProperty(false);
@@ -149,12 +144,6 @@ public class SaveSetController {
 			return row ;
 		});
 
-		providerColumn.setCellValueFactory(new PropertyValueFactory<>(PROVIDER));
-		providerColumn.setOnEditCommit(t ->
-				(t.getTableView().getItems().get(t.getTablePosition().getRow()))
-						.setProvider(t.getNewValue()));
-		
-//		commentTextArea.textProperty().bindBidirectional(commentTextProperty);
 		commentTextArea.textProperty().addListener(ce -> {
 			dirty.set(true);
 		});
@@ -348,14 +337,6 @@ public class SaveSetController {
 			}
 		});
 
-
-		ca.getProperties().put(PROVIDER, Provider.ca);
-		pva.getProperties().put(PROVIDER, Provider.pva);
-
-		providerToggleGroup.selectedToggleProperty().addListener((obs, old, nv) -> {
-			providerProperty.set((Provider)nv.getProperties().get(PROVIDER));
-		});
-
 		pvNameField.textProperty().bindBidirectional(pvNameProperty);
 		readbackPvNameField.textProperty().bindBidirectional(readbackPvNameProperty);
 
@@ -406,7 +387,6 @@ public class SaveSetController {
 	public void addPv(ActionEvent event){
 		ConfigPv configPv = ConfigPv.builder()
 				.pvName(pvNameProperty.get().trim())
-				.provider(providerProperty.get())
 				.readOnly(readOnlyProperty.get())
 				.readbackPvName(readbackPvNameProperty.get() == null || readbackPvNameProperty.get().isEmpty() ?  null : readbackPvNameProperty.get().trim())
 				.build();
@@ -420,7 +400,6 @@ public class SaveSetController {
 
 	private void resetAddPv(){
 		pvNameProperty.set("");
-		providerProperty.set(Provider.ca);
 		readOnlyProperty.set(false);
 		readbackPvNameProperty.set("");
 	}

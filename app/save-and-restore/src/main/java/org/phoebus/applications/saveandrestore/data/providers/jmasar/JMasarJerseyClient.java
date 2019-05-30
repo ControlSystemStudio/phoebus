@@ -18,13 +18,10 @@
 
 package org.phoebus.applications.saveandrestore.data.providers.jmasar;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
 import org.phoebus.applications.saveandrestore.data.DataProviderException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,17 +38,6 @@ public class JMasarJerseyClient implements JMasarClient{
 
     @Value("${jmasar.service.url}")
     private String jmasarServiceUrl;
-
-    public JMasarJerseyClient() {
-
-        DefaultClientConfig defaultClientConfig = new DefaultClientConfig();
-        defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_READ_TIMEOUT, 1000);
-        defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, 1000);
-        defaultClientConfig.getClasses().add(JacksonJsonProvider.class);
-        client = Client.create(defaultClientConfig);
-    }
-
-
 
     @Override
     public String getServiceUrl() {
