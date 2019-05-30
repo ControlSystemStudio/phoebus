@@ -8,8 +8,8 @@
 package org.phoebus.app.viewer3d;
 
 import org.phoebus.applications.viewer3d.Viewer3dPane;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -17,7 +17,7 @@ import javafx.stage.Stage;
  * Demo class for the {@link Viewer3dPane} class.
  * @author Evan Smith
  */
-public class Demo3dViewer extends Application
+public class Demo3dViewer extends ApplicationWrapper
 {
     @Override
     public void start(Stage primaryStage) throws Exception
@@ -31,6 +31,6 @@ public class Demo3dViewer extends Application
     
     public static void main(String[] args)
     {
-        launch(args);
+        launch(Demo3dViewer.class, args);
     }
 }
