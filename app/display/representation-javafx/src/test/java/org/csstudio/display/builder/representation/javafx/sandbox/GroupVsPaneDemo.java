@@ -1,6 +1,7 @@
 package org.csstudio.display.builder.representation.javafx.sandbox;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
@@ -30,7 +31,7 @@ import javafx.stage.Stage;
  *  As you move the green rectangles "off screen", the group adjusts its bounds to incorporate the changes,
  *  wherever possible, whereas the pane remains fixed.<<
  */
-public class GroupVsPaneDemo extends Application
+public class GroupVsPaneDemo extends ApplicationWrapper
 {
     @Override
     public void start(Stage primaryStage)
@@ -80,6 +81,6 @@ public class GroupVsPaneDemo extends Application
 
     public static void main(String[] args)
     {
-        launch(args);
+        launch(GroupVsPaneDemo.class, args);
     }
 }

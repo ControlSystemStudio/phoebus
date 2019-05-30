@@ -7,7 +7,8 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.sandbox;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.geometry.Side;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -55,7 +56,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class TabDemo extends Application
+public class TabDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage)
@@ -103,6 +104,6 @@ public class TabDemo extends Application
 
     public static void main(String[] args)
     {
-        launch(args);
+        launch(TabDemo.class, args);
     }
 }

@@ -8,8 +8,8 @@
 package org.csstudio.display.builder.representation.javafx.sandbox;
 
 import org.csstudio.display.builder.representation.javafx.widgets.SliderMarkers;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.Slider;
@@ -21,11 +21,11 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class SliderDemo extends Application
+public class SliderDemo extends ApplicationWrapper
 {
     public static void main(String [] args)
     {
-        launch(args);
+        launch(SliderDemo.class, args);
     }
 
     @Override

@@ -77,6 +77,7 @@ import javafx.scene.shape.Line;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Transform;
 import javafx.stage.Window;
+import javafx.util.Duration;
 
 /** Represent model items in JavaFX toolkit
  *
@@ -976,6 +977,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
             {
                 final Media sound = new Media(url);
                 final MediaPlayer player = new MediaPlayer(sound);
+                player.setStartTime(Duration.ZERO);
                 result.complete(new AudioFuture(player));
             }
             catch (Exception ex)

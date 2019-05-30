@@ -10,8 +10,8 @@ package org.csstudio.display.builder.representation.javafx.sandbox;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
@@ -31,11 +31,11 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class MenuButtonDemo extends Application
+public class MenuButtonDemo extends ApplicationWrapper
 {
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(MenuButtonDemo.class, args);
     }
 
     @Override

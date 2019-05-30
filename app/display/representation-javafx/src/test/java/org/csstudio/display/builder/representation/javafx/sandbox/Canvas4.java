@@ -11,7 +11,8 @@ import java.awt.image.BufferedImage;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Scene;
@@ -36,7 +37,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class Canvas4 extends Application
+public class Canvas4 extends ApplicationWrapper
 {
     final private Canvas canvas = DemoHelper.createCanvas();
     private final AtomicLong counter = new AtomicLong();
@@ -47,7 +48,7 @@ public class Canvas4 extends Application
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(Canvas4.class, args);
     }
 
     @Override

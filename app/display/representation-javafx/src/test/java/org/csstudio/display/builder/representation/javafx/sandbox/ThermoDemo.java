@@ -7,7 +7,8 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.sandbox;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 import javafx.scene.Scene;
@@ -35,14 +36,14 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.VLineTo;
 import javafx.stage.Stage;
 
-public class ThermoDemo extends Application
+public class ThermoDemo extends ApplicationWrapper
 {
     private double myHeight = 200;
     private double myWidth = 100;
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(ThermoDemo.class, args);
     }
 
     @Override
