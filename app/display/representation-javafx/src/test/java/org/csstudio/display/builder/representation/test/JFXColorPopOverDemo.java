@@ -13,8 +13,8 @@ import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.properties.ColorWidgetProperty;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.representation.javafx.WidgetColorPopOver;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
@@ -25,11 +25,11 @@ import javafx.stage.Stage;
  */
 @SuppressWarnings("nls")
 
-public class JFXColorPopOverDemo  extends Application
+public class JFXColorPopOverDemo extends ApplicationWrapper
 {
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(JFXColorPopOverDemo.class, args);
     }
 
     @Override

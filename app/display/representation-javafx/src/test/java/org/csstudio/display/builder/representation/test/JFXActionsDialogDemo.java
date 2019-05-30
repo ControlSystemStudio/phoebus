@@ -20,21 +20,20 @@ import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo.Targe
 import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.properties.WritePVActionInfo;
 import org.csstudio.display.builder.representation.javafx.ActionsDialog;
-import org.csstudio.display.builder.representation.javafx.MacrosDialog;
 import org.phoebus.framework.macros.Macros;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.stage.Stage;
 
-/** Demo of {@link MacrosDialog}
+/** Demo of {@link ActionsDialog}
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class JFXActionsDialogDemo  extends Application
+public class JFXActionsDialogDemo extends ApplicationWrapper
 {
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(JFXActionsDialogDemo.class, args);
     }
 
     @Override

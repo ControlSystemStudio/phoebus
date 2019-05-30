@@ -9,19 +9,19 @@ package org.csstudio.display.builder.representation.test;
 
 import org.csstudio.display.builder.representation.javafx.MacrosDialog;
 import org.phoebus.framework.macros.Macros;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.stage.Stage;
 
 /** Demo of {@link MacrosDialog}
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class JFXMacrosDialogDemo extends Application
+public class JFXMacrosDialogDemo extends ApplicationWrapper
 {
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(JFXMacrosDialogDemo.class, args);
     }
 
     @Override

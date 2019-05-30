@@ -10,21 +10,21 @@ package org.csstudio.display.builder.representation.test;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.csstudio.display.builder.representation.javafx.JFXStageRepresentation;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.scene.Parent;
 import javafx.stage.Stage;
 
 /** Java FX Demo
  *  @author Kay Kasemir
  */
-public class RepresentationDemoJavaFX extends Application
+public class RepresentationDemoJavaFX extends ApplicationWrapper
 {
     public static DummyRuntime runtime;
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(RepresentationDemoJavaFX.class, args);
         runtime.shutdown();
     }
 
