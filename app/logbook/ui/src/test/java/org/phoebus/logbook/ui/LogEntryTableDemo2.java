@@ -16,15 +16,16 @@ import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookImpl;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.TagImpl;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-public class LogEntryTableDemo2 extends Application {
+public class LogEntryTableDemo2 extends ApplicationWrapper {
 
     public static void main(String[] args) {
-        launch(args);
+        launch(LogEntryTableDemo2.class, args);
     }
 
     private LogEntryTableControl control;
