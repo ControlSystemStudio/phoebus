@@ -7,14 +7,15 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 /** Demo of the {@link Perspective}
  *  @author Kay Kasemir
  */
-public class PerspectiveDemo extends Application
+public class PerspectiveDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage) throws Exception
@@ -27,6 +28,6 @@ public class PerspectiveDemo extends Application
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(PerspectiveDemo.class, args);
     }
 }
