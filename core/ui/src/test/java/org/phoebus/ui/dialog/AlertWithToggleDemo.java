@@ -7,7 +7,8 @@
  ******************************************************************************/
 package org.phoebus.ui.dialog;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.scene.control.Alert.AlertType;
 import javafx.stage.Stage;
 
@@ -15,7 +16,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class AlertWithToggleDemo  extends Application
+public class AlertWithToggleDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage)
@@ -35,6 +36,6 @@ public class AlertWithToggleDemo  extends Application
 
     public static void main(String[] args)
     {
-        launch(args);
+        launch(AlertWithToggleDemo.class, args);
     }
 }

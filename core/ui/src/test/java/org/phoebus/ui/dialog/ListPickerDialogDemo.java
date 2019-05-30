@@ -9,7 +9,8 @@ package org.phoebus.ui.dialog;
 
 import java.util.List;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Dialog;
@@ -20,7 +21,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ListPickerDialogDemo  extends Application
+public class ListPickerDialogDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage)
@@ -41,6 +42,6 @@ public class ListPickerDialogDemo  extends Application
 
     public static void main(String[] args)
     {
-        launch(args);
+        launch(ListPickerDialogDemo.class, args);
     }
 }
