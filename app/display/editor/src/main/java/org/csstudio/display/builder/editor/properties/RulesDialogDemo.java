@@ -12,15 +12,15 @@ import java.util.List;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.rules.RuleInfo;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 import org.phoebus.ui.undo.UndoableActionManager;
 
-import javafx.application.Application;
 import javafx.stage.Stage;
 
 /** Standalone demo if the RulesDialog
  *  @author Kay Kasemir
  */
-public class RulesDialogDemo extends Application
+public class RulesDialogDemo extends ApplicationWrapper
 {
     /** JavaFX Start */
     @Override
@@ -38,6 +38,6 @@ public class RulesDialogDemo extends Application
      */
     public static void main(final String[] args) throws Exception
     {
-        launch(args);
+        launch(RulesDialogDemo.class, args);
     }
 }

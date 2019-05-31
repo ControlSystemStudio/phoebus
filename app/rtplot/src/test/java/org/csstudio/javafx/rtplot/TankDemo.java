@@ -12,7 +12,8 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Font;
@@ -21,7 +22,7 @@ import javafx.stage.Stage;
 /** @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class TankDemo extends Application
+public class TankDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage) throws Exception
@@ -74,6 +75,6 @@ public class TankDemo extends Application
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(TankDemo.class, args);
     }
 }
