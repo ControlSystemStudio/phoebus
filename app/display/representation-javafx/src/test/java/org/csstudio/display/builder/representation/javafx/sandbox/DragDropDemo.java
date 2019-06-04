@@ -9,7 +9,8 @@ package org.csstudio.display.builder.representation.javafx.sandbox;
 
 import java.time.Instant;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.input.ClipboardContent;
@@ -26,7 +27,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class DragDropDemo extends Application
+public class DragDropDemo extends ApplicationWrapper
 {
     public static Scene createScene()
     {
@@ -87,6 +88,6 @@ public class DragDropDemo extends Application
 
     public static void main(String[] args)
     {
-        launch(args);
+        launch(DragDropDemo.class, args);
     }
 }

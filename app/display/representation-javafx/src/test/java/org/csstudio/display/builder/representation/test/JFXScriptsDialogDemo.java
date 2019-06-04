@@ -15,19 +15,19 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.properties.ScriptPV;
 import org.csstudio.display.builder.representation.javafx.ScriptsDialog;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.stage.Stage;
 
 /** Demo of {@link ScriptsDialog}
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class JFXScriptsDialogDemo extends Application
+public class JFXScriptsDialogDemo extends ApplicationWrapper
 {
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(JFXScriptsDialogDemo.class, args);
     }
 
     @Override

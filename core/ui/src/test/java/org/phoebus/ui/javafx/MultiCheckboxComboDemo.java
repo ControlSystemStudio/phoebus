@@ -9,7 +9,6 @@ package org.phoebus.ui.javafx;
 
 import java.util.List;
 
-import javafx.application.Application;
 import javafx.beans.Observable;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -21,7 +20,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class MultiCheckboxComboDemo extends Application
+public class MultiCheckboxComboDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage) throws Exception
@@ -49,6 +48,6 @@ public class MultiCheckboxComboDemo extends Application
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(MultiCheckboxComboDemo.class, args);
     }
 }

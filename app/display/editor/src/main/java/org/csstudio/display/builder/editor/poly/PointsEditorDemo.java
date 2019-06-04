@@ -9,8 +9,8 @@ package org.csstudio.display.builder.editor.poly;
 
 import org.csstudio.display.builder.editor.EditorUtil;
 import org.csstudio.display.builder.model.properties.Points;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.paint.Color;
@@ -22,7 +22,7 @@ import javafx.stage.Stage;
 /** Demo of {@link PointsEditor}
  *  @author Kay Kasemir
  */
-public class PointsEditorDemo extends Application
+public class PointsEditorDemo extends ApplicationWrapper
 {
     private final Points points = new Points();
     private final Polyline poly = new Polyline();
@@ -76,6 +76,6 @@ public class PointsEditorDemo extends Application
 
     public static void main(String[] args) throws Exception
     {
-        launch(args);
+        launch(PointsEditorDemo.class, args);
     }
 }

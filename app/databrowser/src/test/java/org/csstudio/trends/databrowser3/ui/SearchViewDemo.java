@@ -10,9 +10,9 @@ package org.csstudio.trends.databrowser3.ui;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
 import org.csstudio.trends.databrowser3.ui.search.SearchView;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 import org.phoebus.ui.undo.UndoableActionManager;
 
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
@@ -20,7 +20,7 @@ import javafx.stage.Stage;
 /** Demo of the {@link ModelBasedPlot}
  *  @author Kay Kasemir
  */
-public class SearchViewDemo extends Application
+public class SearchViewDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage) throws Exception
@@ -35,6 +35,6 @@ public class SearchViewDemo extends Application
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(SearchViewDemo.class, args);
     }
 }

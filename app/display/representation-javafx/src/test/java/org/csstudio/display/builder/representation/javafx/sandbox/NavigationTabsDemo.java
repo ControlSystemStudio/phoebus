@@ -14,8 +14,8 @@ import java.util.stream.IntStream;
 import org.csstudio.display.builder.model.properties.Direction;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.csstudio.display.builder.representation.javafx.widgets.NavigationTabs;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -27,7 +27,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class NavigationTabsDemo extends Application
+public class NavigationTabsDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage)
@@ -70,6 +70,6 @@ public class NavigationTabsDemo extends Application
 
     public static void main(String[] args)
     {
-        launch(args);
+        launch(NavigationTabsDemo.class, args);
     }
 }

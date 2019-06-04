@@ -7,7 +7,8 @@
  ******************************************************************************/
 package org.csstudio.javafx.rtplot.util;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.TilePane;
@@ -18,7 +19,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class RGBFactoryDemo extends Application
+public class RGBFactoryDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage)
@@ -43,7 +44,7 @@ public class RGBFactoryDemo extends Application
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(RGBFactoryDemo.class, args);
     }
 
 }

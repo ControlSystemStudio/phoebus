@@ -9,7 +9,8 @@ package org.csstudio.display.builder.representation.javafx.sandbox;
 
 import java.util.concurrent.Semaphore;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -25,7 +26,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class Canvas0 extends Application
+public class Canvas0 extends ApplicationWrapper
 {
     private final Canvas canvas = DemoHelper.createCanvas();
     private final Text updates = new Text("0");
@@ -34,7 +35,7 @@ public class Canvas0 extends Application
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(Canvas0.class, args);
     }
 
     @Override

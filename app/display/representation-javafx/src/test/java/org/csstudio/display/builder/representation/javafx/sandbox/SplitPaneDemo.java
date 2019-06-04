@@ -7,7 +7,8 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.sandbox;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -21,13 +22,13 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class SplitPaneDemo extends Application
+public class SplitPaneDemo extends ApplicationWrapper
 {
     final String DEBUG_STYLE = "-fx-background-color: rgb(255, 100, 0, 0.2)";
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(SplitPaneDemo.class, args);
     }
 
     @Override

@@ -11,8 +11,8 @@ import java.util.List;
 
 import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.applications.alarm.ui.tree.TitleDetailTable;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
@@ -22,7 +22,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class TitleDetailTableDemo extends Application
+public class TitleDetailTableDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage) throws Exception
@@ -56,6 +56,6 @@ public class TitleDetailTableDemo extends Application
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(TitleDetailTableDemo.class, args);
     }
 }
