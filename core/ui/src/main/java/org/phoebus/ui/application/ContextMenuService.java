@@ -70,10 +70,8 @@ public class ContextMenuService {
             }
             while (sc != Object.class);
 
-            AdapterService.getInstance().getAdaptersforAdaptable(s).ifPresent(a -> {
-                a.forEach(f -> {
-                    allAdaptableSelectionType.addAll(f.getAdapterList());
-                });
+            AdapterService.getAdaptersforAdaptable(s).stream().forEach(f -> {
+                allAdaptableSelectionType.addAll(f.getAdapterList());
             });
         });
 
