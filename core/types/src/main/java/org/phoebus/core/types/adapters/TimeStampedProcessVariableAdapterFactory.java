@@ -24,21 +24,21 @@ public class TimeStampedProcessVariableAdapterFactory implements AdapterFactory 
         return TimeStampedProcessVariable.class;
     }
 
-    public Optional getAdapter(Object adaptableObject, Class adapterType) {
-        if (adapterType.isAssignableFrom(LogEntry.class)) {
-            TimeStampedProcessVariable tpv = ((TimeStampedProcessVariable) adaptableObject);
-            LogEntry log = log().description("PV name: " + tpv.getName() + " " + tpv.getTime()).build();
-            LogService.getInstance().createLogEntry(log, null);
-            return Optional.of(log);
-        } else if (adapterType.isAssignableFrom(String.class)) {
-            TimeStampedProcessVariable tpv = ((TimeStampedProcessVariable) adaptableObject);
-            return Optional.of("PV name: " + tpv.getName() + " " + tpv.getTime());
-        }
-        return Optional.ofNullable(null);
-    }
-
     public List<? extends Class> getAdapterList() {
         return adaptableTypes;
     }
 
+    @Override
+    public <T> Optional<T> adapt(Object adaptableObject, Class<T> adapterType) {
+        if (adapterType.isAssignableFrom(LogEntry.class)) {
+            TimeStampedProcessVariable tpv = ((TimeStampedProcessVariable) adaptableObject);
+            LogEntry log = log().description("PV name: " + tpv.getName() + " " + tpv.getTime()).build();
+            LogService.getInstance().createLogEntry(log, null);
+            return Optional.of(adapterType.cast(log));
+        } else if (adapterType.isAssignableFrom(String.class)) {
+            TimeStampedProcessVariable tpv = ((TimeStampedProcessVariable) adaptableObject);
+            return Optional.of(adapterType.cast("PV name : " + tpv.getName()));
+        }
+        return Optional.ofNullable(null);
+    }
 }
