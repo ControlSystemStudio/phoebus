@@ -72,7 +72,9 @@ public class AdapterService {
     }
 
     public static <T> Optional<T> adapt(Object adaptableObject, Class<T> adapterType) {
-        // TODO check if the adaptableObject is instance of adapterType...if yes simply return the object
+        if(adapterType.isInstance(adaptableObject)) {
+            return Optional.of(adapterType.cast(adaptableObject));
+        }
         List<AdapterFactory> factories = AdapterService.getAdaptersforAdaptable(adapterType);
         return factories.get(0).adapt(adaptableObject, adapterType);
         
