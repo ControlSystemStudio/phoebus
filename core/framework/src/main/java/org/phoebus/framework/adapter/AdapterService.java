@@ -1,6 +1,7 @@
 package org.phoebus.framework.adapter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,15 +19,12 @@ public class AdapterService {
 
     static final java.lang.String SERVICE_NAME = "AdapterService";
 
-    private static AdapterService adapterService;
-    private ServiceLoader<AdapterFactory> loader;
+    private static ServiceLoader<AdapterFactory> loader;
 
-    private Map<Class, List<AdapterFactory>> adapters = new HashMap<Class, List<AdapterFactory>>();
+    private static Map<Class, List<AdapterFactory>> adapters = new HashMap<Class, List<AdapterFactory>>();
+    private static Map<Class, List<AdapterFactory>> adaptables = new HashMap<Class, List<AdapterFactory>>();
 
-    private Map<Class, List<AdapterFactory>> adaptables = new HashMap<Class, List<AdapterFactory>>();
-
-    private AdapterService() {
-        // Load available adapter factories
+    static {
         loader = ServiceLoader.load(AdapterFactory.class);
         loader.stream().forEach(p -> {
             AdapterFactory adapterFactory = p.get();
@@ -44,11 +42,7 @@ public class AdapterService {
         });
     }
 
-    public static AdapterService getInstance() {
-        if (adapterService == null) {
-            adapterService = new AdapterService();
-        }
-        return adapterService;
+    private AdapterService() {
     }
 
     /**
@@ -56,8 +50,12 @@ public class AdapterService {
      * @param cls the type for which we want AdapterFactories to be adapt to
      * @return List of {@link AdapterFactory}s that can adapt to type cls
      */
-    public Optional<List<AdapterFactory>> getAdapters(Class cls) {
-        return Optional.ofNullable(adapters.get(cls));
+    public List<AdapterFactory> getAdapters(Class cls) {
+        if(adapters.get(cls) != null) {
+            return adapters.get(cls);
+        } else {
+            return Collections.emptyList();
+        }
     }
 
     /**
@@ -65,7 +63,20 @@ public class AdapterService {
      * @param cls the class for which adapter factories are wanted.
      * @return List of {@link AdapterFactory}s that can handle cls
      */
-    public Optional<List<AdapterFactory>> getAdaptersforAdaptable(Class cls) {
-        return Optional.ofNullable(adaptables.get(cls.getName()));
+    public static List<AdapterFactory> getAdaptersforAdaptable(Class cls) {
+        if(adaptables.get(cls.getName()) != null) {
+            return adaptables.get(cls.getName());
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    public static <T> Optional<T> adapt(Object adaptableObject, Class<T> adapterType) {
+        if(adapterType.isInstance(adaptableObject)) {
+            return Optional.of(adapterType.cast(adaptableObject));
+        }
+        List<AdapterFactory> factories = AdapterService.getAdaptersforAdaptable(adapterType);
+        return factories.get(0).adapt(adaptableObject, adapterType);
+        
     }
 }

@@ -17,7 +17,7 @@ import org.phoebus.ui.spi.ContextMenuEntry;
  *
  */
 @SuppressWarnings("rawtypes")
-public class contextMenuLogging implements ContextMenuEntry {
+public class ContextMenuLogging implements ContextMenuEntry {
 
     private static final String NAME = "Create Log";
     private static final List<Class> supportedTypes = Arrays.asList(LogEntry.class);
@@ -33,12 +33,8 @@ public class contextMenuLogging implements ContextMenuEntry {
 
         List<LogEntry> adaptedSelections = new ArrayList<LogEntry>();
         selection.getSelections().stream().forEach(s -> {
-            AdapterService.getInstance().getAdaptersforAdaptable(s.getClass()).ifPresent(a -> {
-                a.forEach(af -> {
-                    af.getAdapter(s, LogEntry.class).ifPresent(adapted -> {
-                        adaptedSelections.add((LogEntry) adapted);
-                    });
-                });
+            AdapterService.adapt(s, LogEntry.class).ifPresent(adapted -> {
+                adaptedSelections.add((LogEntry) adapted);
             });
         });
         LogService.getInstance().createLogEntry(adaptedSelections, null);
