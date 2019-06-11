@@ -70,7 +70,7 @@ public class AlarmClient
         command_topic = config_name + AlarmSystem.COMMAND_TOPIC_SUFFIX;
 
         root = new AlarmClientNode(null, config_name);
-        final List<String> topics = List.of(config_topic, config_name + AlarmSystem.STATE_TOPIC_SUFFIX);
+        final List<String> topics = List.of(config_topic);
         consumer = KafkaHelper.connectConsumer(server, topics, topics);
         producer = KafkaHelper.connectProducer(server);
 
@@ -124,7 +124,7 @@ public class AlarmClient
         try
         {
             final String json = new String (JsonModelWriter.commandToBytes(cmd));
-            final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, root.getPathName(), json);
+            final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, AlarmSystem.COMMAND_PREFIX + root.getPathName(), json);
             producer.send(record);
         }
         catch (final Exception ex)
@@ -173,8 +173,15 @@ public class AlarmClient
         final ConsumerRecords<String, String> records = consumer.poll(POLL_PERIOD);
         for (final ConsumerRecord<String, String> record : records)
         {
+            if (record.key().length() < 2)
+            {
+                logger.log(Level.WARNING, "Invalid key, expecting type:path, got " + record.key());
+                continue;
+            }
+
+            final String type = record.key().substring(0, 2);
+            final String path = record.key().substring(3);
             final long timestamp = record.timestamp();
-            final String path = record.key();
             final String node_config = record.value();
 
             if (record.timestampType() != TimestampType.CREATE_TIME)
@@ -183,8 +190,9 @@ public class AlarmClient
             logger.log(Level.FINE, () ->
                 record.topic() + " @ " +
                 TimestampFormats.MILLI_FORMAT.format(Instant.ofEpochMilli(timestamp)) + " " +
-                path + " = " + node_config);
+                type + path + " = " + node_config);
 
+            // TODO Remove this, no longer relevant
             // Messages within a topic are ordered by time,
             // but messages from the 'config' and 'state' topic can be mixed.
             // Deleting an item and adding it back creates these messages:
@@ -220,10 +228,6 @@ public class AlarmClient
             {
                 if (node_config == null)
                 {   // No config -> Delete node
-                    // Message may actually come from either config topic,
-                    // where some client originally requested the removal,
-                    // or the state topic, where running alarm server
-                    // replaced the last state update with an empty one.
                     final AlarmTreeItem<?> node = deleteNode(timestamp, path);
                     // If this was a known node, notify listeners
                     if (node != null)
@@ -245,6 +249,8 @@ public class AlarmClient
                     final boolean need_update;
                     if (JsonModelReader.isStateUpdate(json))
                     {
+                        if (! type.equals(AlarmSystem.STATE_PREFIX))
+                            logger.log(Level.WARNING, "Got state update content on non-state key: " + record.key() + " " + node_config);
                         final boolean maint = JsonModelReader.isMaintenanceMode(json);
                         if (maintenance_mode.getAndSet(maint) != maint)
                             for (final AlarmClientListener listener : listeners)
@@ -254,7 +260,11 @@ public class AlarmClient
                         last_state_update = System.currentTimeMillis();
                     }
                     else
+                    {
+                        if (! type.equals(AlarmSystem.CONFIG_PREFIX))
+                            logger.log(Level.WARNING, "Got config update content on non-config key: " + record.key() + " " + node_config);
                         need_update = JsonModelReader.updateAlarmItemConfig(node, json);
+                    }
                     // If there were changes, notify listeners
                     if (need_update)
                     {
@@ -445,7 +455,7 @@ public class AlarmClient
     public void sendItemConfigurationUpdate(final String path, final AlarmTreeItem<?> config) throws Exception
     {
         final String json = new String(JsonModelWriter.toJsonBytes(config));
-        final ProducerRecord<String, String> record = new ProducerRecord<>(config_topic, path, json);
+        final ProducerRecord<String, String> record = new ProducerRecord<>(config_topic, AlarmSystem.CONFIG_PREFIX + path, json);
         producer.send(record);
     }
 
@@ -469,10 +479,10 @@ public class AlarmClient
             // Create and send a message identifying who is deleting the node.
             // The id message must arrive before the tombstone.
             final String json = new String(JsonModelWriter.deleteMessageToBytes());
-            final ProducerRecord<String, String> id = new ProducerRecord<>(config_topic, item.getPathName(), json);
+            final ProducerRecord<String, String> id = new ProducerRecord<>(config_topic, AlarmSystem.CONFIG_PREFIX + item.getPathName(), json);
             producer.send(id);
 
-            final ProducerRecord<String, String> tombstone = new ProducerRecord<>(config_topic, item.getPathName(), null);
+            final ProducerRecord<String, String> tombstone = new ProducerRecord<>(config_topic, AlarmSystem.CONFIG_PREFIX + item.getPathName(), null);
             producer.send(tombstone);
         }
         catch (Exception ex)
@@ -490,7 +500,7 @@ public class AlarmClient
         {
             final String cmd = acknowledge ? "acknowledge" : "unacknowledge";
             final String json = new String (JsonModelWriter.commandToBytes(cmd));
-            final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, item.getPathName(), json);
+            final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, AlarmSystem.COMMAND_PREFIX + item.getPathName(), json);
             producer.send(record);
         }
         catch (final Exception ex)

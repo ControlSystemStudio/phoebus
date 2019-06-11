@@ -508,7 +508,7 @@ public class AlarmServerMain implements ServerModelListener
         System.out.println("-help                       - This text");
         System.out.println("-server   localhost:9092    - Kafka server");
         System.out.println("-config   Accelerator       - Alarm configuration");
-        // TODO Don't mention this option, prefer examples/create_topics.sh for now
+        // Don't mention this option, prefer examples/create_topics.sh
         // System.out.println("-create_topics              - Create Kafka topics for alarm configuration?");
         System.out.println("-settings settings.xml      - Import preferences (PV connectivity) from property format file");
         System.out.println("-export   config.xml        - Export alarm configuration to file");
@@ -578,7 +578,6 @@ public class AlarmServerMain implements ServerModelListener
                     iter.remove();
                     logger.info("Discovering and creating any missing topics at " + server);
                     CreateTopics.discoverAndCreateTopics(server, true, List.of(config,
-                                                                               config + AlarmSystem.STATE_TOPIC_SUFFIX,
                                                                                config + AlarmSystem.COMMAND_TOPIC_SUFFIX,
                                                                                config + AlarmSystem.TALK_TOPIC_SUFFIX));
                 }

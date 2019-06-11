@@ -9,6 +9,7 @@ package org.phoebus.applications.alarm.server;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -57,7 +58,7 @@ class ServerModel
 
     private final ConcurrentHashMap<String, ClientState> initial_states;
 
-    private final String config_topic, command_topic, state_topic, talk_topic;
+    private final String config_state_topic, command_topic, talk_topic;
     private final ServerModelListener listener;
     private final AlarmServerNode root;
     private volatile boolean running = true;
@@ -80,17 +81,16 @@ class ServerModel
         // initial_states.entrySet().forEach(state ->
         //    System.out.println("Initial state for " + state.getKey() + " : " + state.getValue()));
 
-        config_topic = Objects.requireNonNull(config_name);
+        config_state_topic = Objects.requireNonNull(config_name);
         command_topic  = config_name + AlarmSystem.COMMAND_TOPIC_SUFFIX;
-        state_topic    = config_name + AlarmSystem.STATE_TOPIC_SUFFIX;
         talk_topic     = config_name + AlarmSystem.TALK_TOPIC_SUFFIX;
         this.listener = Objects.requireNonNull(listener);
 
         root = new AlarmServerNode(this, null, config_name);
 
         consumer = KafkaHelper.connectConsumer(Objects.requireNonNull(kafka_servers),
-                                               List.of(config_topic, command_topic),
-                                               List.of(config_topic));
+                                               List.of(config_state_topic, command_topic),
+                                               List.of(config_state_topic));
         producer = KafkaHelper.connectProducer(kafka_servers);
 
         thread = new Thread(this::run, "ServerModel");
@@ -143,18 +143,23 @@ class ServerModel
     /** Perform one check for updates */
     private void checkUpdates()
     {
-        final ConsumerRecords<String, String> records = consumer.poll(100);
+        final ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
         for (ConsumerRecord<String, String> record : records)
         {
-            if (record.topic().equals(command_topic))
+            if (record.key().length() < 2)
             {
-                final String path = record.key();
+                logger.log(Level.WARNING, "Invalid key, expecting type:path, got " + record.key());
+                continue;
+            }
+            final String type = record.key().substring(0, 2);
+            final String path = record.key().substring(3);
+            if (type.equals(AlarmSystem.COMMAND_PREFIX)  ||  record.topic().equals(command_topic))
+            {
                 final String json = record.value();
                 listener.handleCommand(path, json);
             }
-            else
+            else if (type.equals(AlarmSystem.CONFIG_PREFIX))
             {
-                final String path = record.key();
                 final String node_config = record.value();
                 try
                 {
@@ -164,13 +169,6 @@ class ServerModel
                         final AlarmTreeItem<?> node = deleteNode(path);
                         if (node != null)
                             stopPVs(node);
-
-                        // If this was the configuration message where client
-                        // removed an item, add a null state update.
-                        // Otherwise, if there ever was a state update,
-                        // that last state update would add the item back into the client alarm tree
-                        if (record.topic().equals(config_topic))
-                            sendStateUpdate(path, null);
                     }
                     else
                     {
@@ -211,6 +209,7 @@ class ServerModel
                                ", config " + node_config, ex);
                 }
             }
+            // else: Ignore state updates (which we sent ourselves)
         }
     }
 
@@ -371,7 +370,7 @@ class ServerModel
         try
         {
             final String json = new_state == null ? null : new String(JsonModelWriter.toJsonBytes(new_state, AlarmLogic.getMaintenanceMode()));
-            final ProducerRecord<String, String> record = new ProducerRecord<>(state_topic, path, json);
+            final ProducerRecord<String, String> record = new ProducerRecord<>(config_state_topic, AlarmSystem.STATE_PREFIX + path, json);
             producer.send(record);
             last_state_update = System.currentTimeMillis();
         }
