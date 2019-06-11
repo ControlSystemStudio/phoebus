@@ -20,8 +20,8 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.table.AlarmInfoRow;
 import org.phoebus.applications.alarm.ui.table.AlarmTableUI;
 import org.phoebus.framework.jobs.NamedThreadFactory;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.scene.Scene;
@@ -31,7 +31,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class AlarmTableUIDemo extends Application
+public class AlarmTableUIDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage) throws Exception
@@ -99,6 +99,6 @@ public class AlarmTableUIDemo extends Application
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(AlarmTableUIDemo.class, args);
     }
 }

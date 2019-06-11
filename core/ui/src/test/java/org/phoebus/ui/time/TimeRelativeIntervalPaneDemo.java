@@ -9,10 +9,10 @@ package org.phoebus.ui.time;
 
 import java.time.Duration;
 
+import org.phoebus.ui.javafx.ApplicationWrapper;
 import org.phoebus.ui.time.TemporalAmountPane.Type;
 import org.phoebus.util.time.TimeRelativeInterval;
 
-import javafx.application.Application;
 import javafx.geometry.HPos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -23,7 +23,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class TimeRelativeIntervalPaneDemo extends Application
+public class TimeRelativeIntervalPaneDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage) throws Exception
@@ -51,6 +51,6 @@ public class TimeRelativeIntervalPaneDemo extends Application
 
     public static void main(final String[] args)
     {
-        Application.launch(args);
+        launch(TimeRelativeIntervalPaneDemo.class, args);
     }
 }

@@ -8,11 +8,11 @@
 package org.phoebus.applications.email;
 
 import org.phoebus.applications.email.actions.SendEmailAction;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.stage.Stage;
 
-public class EmailDialogDemo extends Application
+public class EmailDialogDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage) throws Exception
@@ -22,6 +22,6 @@ public class EmailDialogDemo extends Application
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(EmailDialogDemo.class, args);
     }
 }

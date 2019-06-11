@@ -9,8 +9,8 @@ package org.phoebus.applications.alarm;
 
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.ui.area.AlarmAreaView;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -18,7 +18,7 @@ import javafx.stage.Stage;
  *  @author Evan Smith
  */
 @SuppressWarnings("nls")
-public class AlarmAreaUIDemo extends Application
+public class AlarmAreaUIDemo extends ApplicationWrapper
 {
     @Override
 	public void start(final Stage stage) throws Exception
@@ -38,6 +38,6 @@ public class AlarmAreaUIDemo extends Application
 
 	public static void main(String[] args)
 	{
-		launch(args);
+		launch(AlarmAreaUIDemo.class, args);
 	}
 }

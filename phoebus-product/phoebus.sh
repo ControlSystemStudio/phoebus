@@ -37,6 +37,6 @@ else
 fi
 
 # To get one instance, use server mode
-# OPT="-server 4918"
+OPT="-server 4918"
 
 java -jar $JAR $OPT "$@" &

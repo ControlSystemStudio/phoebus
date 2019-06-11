@@ -9,8 +9,8 @@ package org.csstudio.trends.databrowser3.ui;
 
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
 import org.csstudio.trends.databrowser3.ui.properties.FontButton;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.text.Font;
@@ -22,7 +22,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class FontButtonDemo extends Application
+public class FontButtonDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage) throws Exception
@@ -40,6 +40,6 @@ public class FontButtonDemo extends Application
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(FontButtonDemo.class, args);
     }
 }

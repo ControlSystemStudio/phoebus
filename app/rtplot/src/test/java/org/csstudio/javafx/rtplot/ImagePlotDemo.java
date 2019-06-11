@@ -18,9 +18,9 @@ import java.util.logging.Logger;
 import org.csstudio.javafx.rtplot.internal.ImagePlot;
 import org.epics.util.array.ArrayDouble;
 import org.epics.util.array.ListDouble;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 import org.phoebus.ui.javafx.Styles;
 
-import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
@@ -32,7 +32,7 @@ import javafx.stage.Stage;
 /** @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ImagePlotDemo extends Application
+public class ImagePlotDemo extends ApplicationWrapper
 {
     private static final int WIDTH = 600, HEIGHT = 400;
 
@@ -145,6 +145,6 @@ public class ImagePlotDemo extends Application
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(ImagePlotDemo.class, args);
     }
 }

@@ -10,8 +10,8 @@ package org.csstudio.scan.ui.editor;
 import java.util.List;
 
 import org.csstudio.scan.ui.editor.properties.StringArrayEditor;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -19,7 +19,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class StringArrayEditorDemo extends Application
+public class StringArrayEditorDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage) throws Exception
@@ -33,6 +33,6 @@ public class StringArrayEditorDemo extends Application
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(StringArrayEditorDemo.class, args);
     }
 }

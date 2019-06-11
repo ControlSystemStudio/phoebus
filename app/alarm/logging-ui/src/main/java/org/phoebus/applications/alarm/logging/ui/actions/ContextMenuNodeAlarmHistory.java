@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.phoebus.applications.alarm.logging.ui.AlarmLogTable;
 import org.phoebus.applications.alarm.logging.ui.AlarmLogTableApp;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.adapter.AdapterService;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.workbench.ApplicationService;
@@ -41,17 +42,7 @@ public class ContextMenuNodeAlarmHistory implements ContextMenuEntry {
 
         List<AlarmTreeItem> selectedNodes = new ArrayList<AlarmTreeItem>();
         selection.getSelections().stream().forEach(s -> {
-            if (s instanceof AlarmTreeItem) {
-                selectedNodes.add((AlarmTreeItem) s);
-            } else {
-                AdapterService.getInstance().getAdaptersforAdaptable(s.getClass()).ifPresent(a -> {
-                    a.forEach(af -> {
-                        af.getAdapter(s, AlarmTreeItem.class).ifPresent(adapted -> {
-                            selectedNodes.add((AlarmTreeItem) adapted);
-                        });
-                    });
-                });
-            }
+            AdapterService.adapt(s, AlarmTreeItem.class).ifPresent(selectedNodes::add);
         });
         AlarmLogTable table = ApplicationService.createInstance(AlarmLogTableApp.NAME);
         URI uri = new URI(AlarmLogTableApp.SUPPORTED_SCHEMA, "", "", "node="+selectedNodes.stream().map(AlarmTreeItem::getName).collect(Collectors.joining(",")), "");

@@ -7,7 +7,8 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.sandbox;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.geometry.VPos;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -24,12 +25,11 @@ import javafx.stage.Stage;
 
 //incorporate changing values, somehow
 @SuppressWarnings("nls")
-public class PaneEllipsesDemo extends Application
+public class PaneEllipsesDemo extends ApplicationWrapper
 {
-
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(PaneEllipsesDemo.class, args);
     }
 
 	final int number = 8;

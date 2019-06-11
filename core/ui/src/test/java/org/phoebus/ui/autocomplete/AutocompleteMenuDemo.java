@@ -11,7 +11,8 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -23,7 +24,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class AutocompleteMenuDemo extends Application
+public class AutocompleteMenuDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage) throws Exception
@@ -58,6 +59,6 @@ public class AutocompleteMenuDemo extends Application
 
     public static void main(String[] args)
     {
-        Application.launch(args);
+        launch(AutocompleteMenuDemo.class, args);
     }
 }

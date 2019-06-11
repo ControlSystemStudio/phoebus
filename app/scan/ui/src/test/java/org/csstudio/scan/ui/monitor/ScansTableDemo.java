@@ -14,8 +14,8 @@ import org.csstudio.scan.client.ScanInfoModel;
 import org.csstudio.scan.client.ScanInfoModelListener;
 import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.info.ScanServerInfo;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -23,7 +23,7 @@ import javafx.stage.Stage;
 /** {@link ScansTable} demo
  *  @author Kay Kasemir
  */
-public class ScansTableDemo extends Application
+public class ScansTableDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage) throws Exception
@@ -70,6 +70,6 @@ public class ScansTableDemo extends Application
 
     public static void main(String[] args)
     {
-        launch(args);
+        launch(ScansTableDemo.class, args);
     }
 }

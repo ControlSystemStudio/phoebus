@@ -29,13 +29,13 @@ public class ChannelAdapterFactory implements AdapterFactory {
     }
 
     @Override
-    public Optional getAdapter(Object adaptableObject, Class adapterType) {
+    public <T> Optional<T> adapt(Object adaptableObject, Class<T> adapterType) {
 
         Channel channel = ((Channel) adaptableObject);
         if (adapterType.isAssignableFrom(ProcessVariable.class)) {
-            return Optional.of(new ProcessVariable(channel.getName()));
+            return Optional.of(adapterType.cast(new ProcessVariable(channel.getName())));
         } else if (adapterType.isAssignableFrom(String.class)) {
-            return Optional.ofNullable("PV name : " + channel.getName());
+            return Optional.ofNullable(adapterType.cast("PV name : " + channel.getName()));
         }
         return Optional.ofNullable(null);
     }

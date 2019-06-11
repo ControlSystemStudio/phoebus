@@ -7,7 +7,8 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.sandbox;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -26,11 +27,11 @@ import javafx.stage.Stage;
  *  @author Amanda Carpenter
  */
 @SuppressWarnings("nls")
-public class SpinnerDemo extends Application
+public class SpinnerDemo extends ApplicationWrapper
 {
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(SpinnerDemo.class, args);
     }
 
     @Override

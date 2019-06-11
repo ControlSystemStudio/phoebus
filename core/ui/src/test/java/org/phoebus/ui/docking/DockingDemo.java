@@ -9,7 +9,8 @@ package org.phoebus.ui.docking;
 
 import java.util.List;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
@@ -21,7 +22,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class DockingDemo extends Application
+public class DockingDemo extends ApplicationWrapper
 {
     public static void main(String[] args)
     {
@@ -33,7 +34,7 @@ public class DockingDemo extends Application
                                    "java.runtime.version"))
             System.out.println(prop + " = " + System.getProperty(prop));
 
-        launch(args);
+        launch(DockingDemo.class, args);
     }
 
     @Override

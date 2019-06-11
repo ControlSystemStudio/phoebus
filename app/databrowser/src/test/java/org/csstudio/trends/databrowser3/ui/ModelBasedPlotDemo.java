@@ -14,8 +14,8 @@ import java.util.concurrent.TimeUnit;
 import org.csstudio.trends.databrowser3.model.AxisConfig;
 import org.csstudio.trends.databrowser3.model.PVItem;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -26,7 +26,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ModelBasedPlotDemo extends Application
+public class ModelBasedPlotDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage) throws Exception
@@ -59,6 +59,6 @@ public class ModelBasedPlotDemo extends Application
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(ModelBasedPlotDemo.class, args);
     }
 }
