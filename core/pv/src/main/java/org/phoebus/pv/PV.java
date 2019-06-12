@@ -37,7 +37,7 @@ import io.reactivex.Flowable;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-abstract public class PV
+public class PV
 {
     /** Suggested logger for all vtype.pv packages */
     public static final Logger logger = Logger.getLogger(PV.class.getPackageName());
@@ -203,7 +203,10 @@ abstract public class PV
      *  @see PV#write(Object, PVWriteListener)
      *  @exception Exception on error
      */
-    abstract public void write(final Object new_value) throws Exception;
+    public void write(final Object new_value) throws Exception
+    {
+        throw new Exception(this + " is read-only");
+    }
 
     /** Write value with confirmation
      *
