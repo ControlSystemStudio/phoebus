@@ -25,9 +25,9 @@ public class EquationPV extends PV
 {
     private final Formula formula;
 
-    protected EquationPV(final String expression)
+    protected EquationPV(final String name, final String expression)
     {
-        super(expression);
+        super(name);
         formula = parse(expression);
     }
 

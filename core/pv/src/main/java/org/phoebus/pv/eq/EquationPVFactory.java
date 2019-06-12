@@ -27,6 +27,6 @@ public class EquationPVFactory implements PVFactory
     @Override
     public PV createPV(final String name, final String base_name) throws Exception
     {
-        return new EquationPV(base_name);
+        return new EquationPV(name, base_name);
     }
 }
