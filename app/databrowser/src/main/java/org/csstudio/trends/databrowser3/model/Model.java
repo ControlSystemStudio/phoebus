@@ -858,7 +858,11 @@ public class Model
     public void stop()
     {
         if (!is_running)
-            throw new RuntimeException("Model wasn't started");
+        {
+            // Warn. Throwing exception would prevent closing when there was an error during start
+            logger.log(Level.WARNING, "Data Browser Model wasn't started");
+            return;
+        }
         is_running = false;
         for (ModelItem item : items)
         {
