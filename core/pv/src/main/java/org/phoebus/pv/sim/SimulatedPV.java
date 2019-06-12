@@ -51,13 +51,6 @@ abstract public class SimulatedPV extends PV
         task = executor.scheduleAtFixedRate(this::update, milli, milli, TimeUnit.MILLISECONDS);
     }
 
-    /** Prohibit write access */
-    @Override
-    public void write(final Object new_value) throws Exception
-    {
-        throw new Exception("Cannot write data of type" + new_value.getClass().getName());
-    }
-
     /** Called by periodic timer */
     abstract protected void update();
 

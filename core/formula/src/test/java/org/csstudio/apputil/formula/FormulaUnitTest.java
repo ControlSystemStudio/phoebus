@@ -271,5 +271,13 @@ public class FormulaUnitTest
         assertEquals(0.0, f.eval(), epsilon);
         vars[0].setValue(4);
         assertEquals(1.0, f.eval(), epsilon);
+
+        // Allow backticks for PV name
+        f = new Formula("`SomePV` + 3", true);
+        vars = f.getVariables();
+        assertEquals(1, vars.length);
+        assertEquals("SomePV", vars[0].getName());
+        vars[0].setValue(1);
+        assertEquals(4.0, f.eval(), epsilon);
     }
 }

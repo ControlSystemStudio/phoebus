@@ -9,12 +9,12 @@
     <ant target="clean" dir="core/framework"/>
     <ant target="clean" dir="core/util"/>
     <ant target="clean" dir="core/email"/>
+    <ant target="clean" dir="core/formula"/>
     <ant target="clean" dir="core/pv"/>
     <ant target="clean" dir="core/security"/>
     <ant target="clean" dir="core/ui"/>
     <ant target="clean" dir="core/logbook"/>
     <ant target="clean" dir="core/types"/>
-    <ant target="clean" dir="core/formula"/>
     <ant target="clean" dir="app/diag"/>
     <ant target="clean" dir="app/email"/>
     <ant target="clean" dir="app/filebrowser"/>
@@ -67,12 +67,12 @@
     <ant dir="core/framework"/>
     <ant dir="core/util"/>
     <ant dir="core/email"/>
+    <ant dir="core/formula"/>
     <ant dir="core/pv"/>
     <ant dir="core/security"/>
     <ant dir="core/ui"/>
     <ant dir="core/logbook"/>
     <ant dir="core/types"/>
-    <ant dir="core/formula"/>
   </target>
 
   <target name="app" depends="core" description="Build app modules">

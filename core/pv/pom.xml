@@ -46,7 +46,7 @@
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>core-util</artifactId>
+      <artifactId>core-formula</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>

@@ -37,7 +37,7 @@ import io.reactivex.Flowable;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-abstract public class PV
+public class PV
 {
     /** Suggested logger for all vtype.pv packages */
     public static final Logger logger = Logger.getLogger(PV.class.getPackageName());
@@ -48,8 +48,14 @@ abstract public class PV
 
     final private List<AccessRightsEventHandler.Subscription> access_subs = new CopyOnWriteArrayList<>();
 
+    /** Is PV read-only?
+     *  Derived class typically updates via {@link #notifyListenersOfPermissions}
+     */
     private volatile boolean is_readonly = false;
 
+    /** Most recent value?
+     *  Derived class typically updates via {@link #notifyListenersOfValue}
+     */
     private volatile VType last_value = null;
 
     /** Initialize
@@ -203,7 +209,10 @@ abstract public class PV
      *  @see PV#write(Object, PVWriteListener)
      *  @exception Exception on error
      */
-    abstract public void write(final Object new_value) throws Exception;
+    public void write(final Object new_value) throws Exception
+    {
+        throw new Exception(this + " is read-only");
+    }
 
     /** Write value with confirmation
      *
@@ -222,7 +231,9 @@ abstract public class PV
         return CompletableFuture.completedFuture(null);
     }
 
-    /** Helper for PV implementation to notify listeners */
+    /** Helper for PV implementation to notify listeners
+     *  @param value New value of the PV
+     */
     protected void notifyListenersOfValue(final VType value)
     {
         last_value = value;
@@ -246,7 +257,9 @@ abstract public class PV
         notifyListenersOfValue(disconnected);
     }
 
-    /** Helper for PV implementation to notify listeners */
+    /** Helper for PV implementation to notify listeners
+     *  @param readonly Read-only state of the PV
+     */
     protected void notifyListenersOfPermissions(final boolean readonly)
     {
         is_readonly = readonly;
