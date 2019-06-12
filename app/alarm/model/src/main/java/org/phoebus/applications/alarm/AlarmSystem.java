@@ -31,10 +31,10 @@ public class AlarmSystem
     /** Path prefix for state updates */
     public static final String STATE_PREFIX = "S:";
 
-    /** Path prefix for state updates */
+    /** Path prefix for commands */
     public static final String COMMAND_PREFIX = "A:";
 
-    /** Path prefix for talk updates */
+    /** Path prefix for talk messages */
     public static final String TALK_PREFIX = "T:";
 
     // In principle, all messages can be sent via the same topic,
