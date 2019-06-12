@@ -17,6 +17,7 @@ import java.util.logging.Level;
 
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.pv.RefCountMap.ReferencedEntry;
+import org.phoebus.pv.eq.EquationPVFactory;
 
 /** Pool of {@link PV}s
  *
@@ -151,6 +152,11 @@ public class PVPool
         {
             type = name.substring(0, sep);
             base = name.substring(sep+SEPARATOR.length());
+        }
+        else if (name.startsWith("="))
+        {   // Special handling of equations, treating "=...." as "eq://...."
+            type = EquationPVFactory.TYPE;
+            base = name.substring(1);
         }
         else
         {
