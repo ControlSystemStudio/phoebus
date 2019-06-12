@@ -228,7 +228,7 @@ public class AlarmClient
             {
                 if (node_config == null)
                 {   // No config -> Delete node
-                    final AlarmTreeItem<?> node = deleteNode(timestamp, path);
+                    final AlarmTreeItem<?> node = deleteNode(path);
                     // If this was a known node, notify listeners
                     if (node != null)
                     {
@@ -256,7 +256,7 @@ public class AlarmClient
                             for (final AlarmClientListener listener : listeners)
                                 listener.serverModeChanged(maint);
 
-                        need_update = JsonModelReader.updateAlarmState(timestamp, node, json);
+                        need_update = JsonModelReader.updateAlarmState(node, json);
                         last_state_update = System.currentTimeMillis();
                     }
                     else
@@ -319,30 +319,15 @@ public class AlarmClient
      *  A new model that reads this node-to-delete information
      *  thus never knew the node.
      *
-     *  @param timestamp Timestamp of the deletion request
      *  @param path Path to node to delete
      *  @return Node that was removed, or <code>null</code> if model never knew that node
      *  @throws Exception on error
      */
-    private AlarmTreeItem<?> deleteNode(final long timestamp, final String path) throws Exception
+    private AlarmTreeItem<?> deleteNode(final String path) throws Exception
     {
         final AlarmTreeItem<?> node = findNode(path);
         if (node == null)
             return null;
-
-        final long last_update = node instanceof AlarmClientLeaf
-            ? ((AlarmClientLeaf) node).getLastUpdateTimestamp()
-            : ((AlarmClientNode) node).getLastUpdateTimestamp();
-        if (last_update > timestamp)
-        {
-            logger.log(Level.FINE,
-                       "Ignoring deletion of " + node.getPathName() + " at " +
-                       TimestampFormats.MILLI_FORMAT.format(Instant.ofEpochMilli(timestamp)) +
-                       ". Superseded by more recent state update at " +
-                       TimestampFormats.MILLI_FORMAT.format(Instant.ofEpochMilli(last_update))
-                      );
-            return null;
-        }
 
         // Node is known: Detach it
         node.detachFromParent();

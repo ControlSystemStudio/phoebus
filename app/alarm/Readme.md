@@ -5,10 +5,8 @@ Update of the alarm system that originally used RDB for configuration,
 JMS for updates, RDB for persistence of most recent state.
  
 This development uses Kafka to handle both, using "Compacted Topics".
-For an "Accelerator" configuration, a topic of that name holds the configuration,
-and an "AcceleratorState" topic holds the state changes.
-Clients subscribe to both topics.
-They receive the most recent configuration and state, and from then on updates. 
+For an "Accelerator" configuration, a topic of that name holds the configuration and state changes.
+When clients subscribe, they receive the most recent configuration and state, and from then on updates. 
 
 
 Kafka Installation
@@ -108,6 +106,10 @@ for running Zookeeper, Kafka and the alarm server as Linux services:
 Kafka Demo
 ----------
 
+This is a Kafka message demonstration using a 'test' topic.
+It is not required for the alarm system setup
+but simply meant to learn about Kafka or test connectivity.
+
     # Create new topic
     kafka/bin/kafka-topics.sh  --zookeeper localhost:2181 --create --replication-factor 1 --partitions 1 --topic test
     
@@ -151,20 +153,25 @@ Run this to create the topics for an "Accelerator" configuration:
 
      sh create_alarm_topics.sh Accelerator
 
-The alarm server includes a command-line option to `-create_topics`,
-but the `create_alarm_topics.sh` scripts is likely most up-to-date
-regarding the recommended settings.
-     
-If will create these topics:
+It will create these topics:
 
- * "Accelerator": Alarm configuration (compacted)
- * "AcceleratorState": Alarm state (compacted)
+ * "Accelerator": Alarm configuration and state (compacted)
  * "AcceleratorCommand": Commands like "acknowledge" from UI to the alarm server (deleted)
  * "AcceleratorTalk": Annunciations (deleted)
  
-The deleted topics are configured to delete older messages, because only new messages are relevant.
- 
-The compacted topics use `cleanup.policy=compact` to keep "at least the last known value".
+The command messages are unidirectional from the alarm UI to the alarm server.
+The talk messages are unidirectional from the alarm server to the alarm annunciator.
+Both command and talk topics are configured to delete older messages, because only new messages are relevant.
+
+The primary topic is bidirectional. The alarm server receives configuration messages
+and sends state updates. Both types of messages are combined in one topic to assert
+that their order is preserved. If they were sent via separate, unidirectional topics,
+both the server and the client would need to merge the messages based on their time
+stamp, which adds unnecessary complexity. Instead, we communicate both configuration
+and state updates in one topic, distinguishing the message type via the `key` as
+described below.
+The primary topic is compacted, i.e. it uses `cleanup.policy=compact` to keep
+"at least the last known value".
 In practice, the topic will retain more messages because the log cleaner only runs
 every 15 seconds, it only acts when the ratio of old to new messages is sufficient,
 and it only cleans inactive segments.
@@ -196,14 +203,19 @@ Open Alarm Table as the primary runtime user interface to see and acknowledge ac
 Message Formats
 ---------------
 
-In general, most messages use the path to the alarm tree item as the `key`.
+All messages use a `key` that starts with the message type, followed by
+the path to the alarm tree item.
 Messages sent by the UI also include the user name and host name to help identify the origin of the message.
 
 _______________
 
-- Config Topic:
+- Type `C:`, Config Topic:
 
 The messages in the config topic consist of a path to the alarm tree item that is being configured along with a JSON of its configuration.
+Example key:
+
+    C:/Accelerator/Vacuum/SomePV
+    
 The message always contains the user name and host name of who is changing the configuration. 
 
 The full config topic JSON format for a alarm tree leaf:
@@ -238,7 +250,7 @@ format will only contain the used elements.
 
 For example, a PV that has no guidance, displays, commands, actions will look like this:
 
-    /path/to/pv : {"user":"user name", "host":"host name", "description":"This is a PV. Believe it or not."}
+    C:/path/to/pv : {"user":"user name", "host":"host name", "description":"This is a PV. Believe it or not."}
 
 - Deletions in the Config Topic
 
@@ -246,9 +258,9 @@ Deleting an item consists of marking a path with a value of null. This "tombston
 
 For example:
 
-    /path/to/pv : null
+    C:/path/to/pv : null
     
-This process variable is now marked as deleted. However, there is an issue. We do not know when, why, or by whom it was deleted. To address this, a message including the missing relevant information is sent before the tombstone is set.
+This process variable is now marked as deleted. However, there is an issue. We do not know why, or by whom it was deleted. To address this, a message including the missing relevant information is sent before the tombstone is set.
 This message consists of a user name, host name, and a delete message.
 The delete message may offer details on why the item was deleted.
 
@@ -262,12 +274,12 @@ The config delete message JSON format:
     
 The above example of deleting a PV would then look like this:
 
-    /path/to/pv : {"user":"user name", "host":"host name", "delete": "Deleting"}
-    /path/to/pv : null
+    C:/path/to/pv : {"user":"user name", "host":"host name", "delete": "Deleting"}
+    C:/path/to/pv : null
     
 The message about who deleted the PV would obviously be compacted and deleted itself, but it would be aggregated into the long term topic beforehand thus preserving a record of the deletion.
 ______________
-- State Topic:
+- Type `S:`, State Topic:
 
 The messages in the state topic consist of a path to the alarm tree item that's state is being updated along with a JSON of its new state.
 
@@ -305,15 +317,15 @@ For normal operational mode, the "mode" tag is omitted.
 
 Example messages that could appear in a state topic:
 
-    /path/to/pv :{"severity":"MAJOR","latch":true,"message":"LOLO","value":"0.0","time":{"seconds":123456789,"nano":123456789},"current_severity":"MAJOR","current_message":"LOLO"}
-    /path/to/pv :{"severity":"MAJOR","message":"LOLO","value":"0.0","time":{"seconds":123456789,"nano":123456789},"current_severity":"MINOR","current_message":"LOW"}
+    S:/path/to/pv :{"severity":"MAJOR","latch":true,"message":"LOLO","value":"0.0","time":{"seconds":123456789,"nano":123456789},"current_severity":"MAJOR","current_message":"LOLO"}
+    S:/path/to/pv :{"severity":"MAJOR","message":"LOLO","value":"0.0","time":{"seconds":123456789,"nano":123456789},"current_severity":"MINOR","current_message":"LOW"}
 
 In this example, the first message is issued when the alarm latches to the MAJOR severity.
 The following update indicates that the PV's current severity dropped to MINOR, while the alarm severity, message, time and value
 continue to reflect the latched state.
  
 ________________
-- Command Topic:
+- Type `A:`, Command Topic:
 
 The messages in the command topic consist of a path to the alarm tree item that is the subject of the command along with a JSON of the command. The JSON always contains the user name and host name of who is issuing the command.
 
@@ -327,10 +339,10 @@ The command topic JSON format:
     
 An example message that could appear in a command topic:
 
-    /path/to/pv : {"user":"user name", "host":"host name", "command":"acknowledge"}
+    A:/path/to/pv : {"user":"user name", "host":"host name", "command":"acknowledge"}
 
 ____________
-- Talk Topic:
+- Type `T:`, Talk Topic:
 
 The messages in the talk topic consist of a path to the alarm tree item being referenced along with a JSON. The JSON contains the alarm severity, a boolean value to indicate if the message should always be annunciated, and the message to annunciate.
 
@@ -344,14 +356,13 @@ The talk topic JSON format:
 
 An example message that could appear in a talk topic:
 
-    /path/to/pv : {"severity":"MAJOR", "standout":true, "message":"We are out of potato salad!"}
+    T:/path/to/pv : {"severity":"MAJOR", "standout":true, "message":"We are out of potato salad!"}
 
 
 __________
 
 When aggregating all messages into a long-term topic to preserve a history of all alarm system operations over time,
-the talk, command and state messages can be identified because they contain a "talk", "command" respectively "severity" element in their value.
-The remaining messages are from the configuration topic. Their content can be as short as "null". 
+the talk, command and state messages can be identified by the type code at the start of the message key, i.e. `C:` for configuration, `S:` for state, `A:` for commands (actions) or `T:` for talk messages.
 
 __________________
 Demos
@@ -565,16 +576,6 @@ This is an example configuration, as printed by Kafka on startup:
 	zookeeper.sync.time.ms = 2000
 
 
-
-The alarm topics are created by `examples/create_alarm_topics.sh` as follows (output of `examples/list_topics.sh`):
-
-	Topic:Accelerator	PartitionCount:1	ReplicationFactor:1	Configs:cleanup.policy=compact,delete,segment.ms=10000,min.cleanable.dirty.ratio=0.01,delete.retention.ms=100
-		Topic: Accelerator	Partition: 0	Leader: 0	Replicas: 0	Isr: 0
-	Topic:AcceleratorCommand	PartitionCount:1	ReplicationFactor:1	Configs:cleanup.policy=compact,delete,segment.ms=10000,min.cleanable.dirty.ratio=0.01,delete.retention.ms=100
-		Topic: AcceleratorCommand	Partition: 0	Leader: 0	Replicas: 0	Isr: 0
-	Topic:AcceleratorState	PartitionCount:1	ReplicationFactor:1	Configs:cleanup.policy=compact,delete,segment.ms=10000,min.cleanable.dirty.ratio=0.01,delete.retention.ms=100
-		Topic: AcceleratorState	Partition: 0	Leader: 0	Replicas: 0	Isr: 0
-
 The file `kafka/logs/log-cleaner.log` will often not show any log-cleaner action:
  
 	[2018-06-01 14:54:19,322] INFO Starting the log cleaner (kafka.log.LogCleaner)
@@ -590,15 +591,15 @@ Now `kafka/logs/log-cleaner.log` shows periodic compaction:
 	[2018-06-01 15:00:53,759] INFO [kafka-log-cleaner-thread-0]: Shutdown completed (kafka.log.LogCleaner)
 	[2018-06-01 15:01:01,652] INFO Starting the log cleaner (kafka.log.LogCleaner)
 	[2018-06-01 15:01:01,682] INFO [kafka-log-cleaner-thread-0]: Starting (kafka.log.LogCleaner)
-	[2018-06-01 15:01:16,697] INFO Cleaner 0: Beginning cleaning of log AcceleratorState-0. (kafka.log.LogCleaner)
-	[2018-06-01 15:01:16,697] INFO Cleaner 0: Building offset map for AcceleratorState-0... (kafka.log.LogCleaner)
-	[2018-06-01 15:01:16,715] INFO Cleaner 0: Building offset map for log AcceleratorState-0 for 1 segments in offset range [0, 414). (kafka.log.LogCleaner)
-	[2018-06-01 15:01:16,731] INFO Cleaner 0: Offset map for log AcceleratorState-0 complete. (kafka.log.LogCleaner)
-	[2018-06-01 15:01:16,736] INFO Cleaner 0: Cleaning log AcceleratorState-0 (cleaning prior to Fri Jun 01 15:00:00 EDT 2018, discarding tombstones prior to Wed Dec 31 19:00:00 EST 1969)... (kafka.log.LogCleaner)
-	[2018-06-01 15:01:16,739] INFO Cleaner 0: Cleaning segment 0 in log AcceleratorState-0 (largest timestamp Fri Jun 01 15:00:00 EDT 2018) into 0, retaining deletes. (kafka.log.LogCleaner)
-	[2018-06-01 15:01:16,809] INFO Cleaner 0: Swapping in cleaned segment 0 for segment(s) 0 in log AcceleratorState-0 (kafka.log.LogCleaner)
+	[2018-06-01 15:01:16,697] INFO Cleaner 0: Beginning cleaning of log Accelerator-0. (kafka.log.LogCleaner)
+	[2018-06-01 15:01:16,697] INFO Cleaner 0: Building offset map for Accelerator-0... (kafka.log.LogCleaner)
+	[2018-06-01 15:01:16,715] INFO Cleaner 0: Building offset map for log Accelerator-0 for 1 segments in offset range [0, 414). (kafka.log.LogCleaner)
+	[2018-06-01 15:01:16,731] INFO Cleaner 0: Offset map for log Accelerator-0 complete. (kafka.log.LogCleaner)
+	[2018-06-01 15:01:16,736] INFO Cleaner 0: Cleaning log Accelerator-0 (cleaning prior to Fri Jun 01 15:00:00 EDT 2018, discarding tombstones prior to Wed Dec 31 19:00:00 EST 1969)... (kafka.log.LogCleaner)
+	[2018-06-01 15:01:16,739] INFO Cleaner 0: Cleaning segment 0 in log Accelerator-0 (largest timestamp Fri Jun 01 15:00:00 EDT 2018) into 0, retaining deletes. (kafka.log.LogCleaner)
+	[2018-06-01 15:01:16,809] INFO Cleaner 0: Swapping in cleaned segment 0 for segment(s) 0 in log Accelerator-0 (kafka.log.LogCleaner)
 	[2018-06-01 15:01:16,811] INFO [kafka-log-cleaner-thread-0]: 
-		Log cleaner thread 0 cleaned log AcceleratorState-0 (dirty section = [0, 0])
+		Log cleaner thread 0 cleaned log Accelerator-0 (dirty section = [0, 0])
 		0.1 MB of log processed in 0.1 seconds (0.8 MB/sec).
 		Indexed 0.1 MB in 0.0 seconds (2.5 Mb/sec, 31.3% of total time)
 		Buffer utilization: 0.0%
