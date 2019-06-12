@@ -325,7 +325,11 @@ public class PVItem extends ModelItem
     public void stop()
     {
         if (pv == null)
-            throw new RuntimeException("Not running " + getName());
+        {   // Warn. Throwing exception would prevent closing when there was an error during start
+            logger.log(Level.WARNING, "Data Browser PV closed while not running: " + getName());
+            return;
+        }
+
         pv_flow.dispose();
         if (scanner != null)
         {
