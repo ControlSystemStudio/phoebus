@@ -87,6 +87,7 @@ public class ScanServerInstance
         System.out.println("-config scan_config.xml     - Scan config (REST port, jython paths, simulation settings");
         System.out.println("-settings settings.xml      - Import preferences (PV connectivity) from property format file");
         System.out.println("-logging logging.properties - Load log settings");
+        System.out.println("-noshell                    - Disable the command shell for running without a terminal");
         System.out.println();
     }
 
@@ -188,6 +189,7 @@ public class ScanServerInstance
         LogManager.getLogManager().readConfiguration(ScanServerInstance.class.getResourceAsStream("/scan_server_logging.properties"));
 
         // Handle arguments
+        boolean use_shell = true;
         final List<String> args = new ArrayList<>(List.of(original_args));
         final Iterator<String> iter = args.iterator();
         try
@@ -227,6 +229,10 @@ public class ScanServerInstance
                     iter.remove();
                     LogManager.getLogManager().readConfiguration(new FileInputStream(filename));
                 }
+                else if (cmd.equals("-noshell"))
+                {
+                    use_shell = false;
+                }
                 else
                     throw new Exception("Unknown option " + cmd);
             }
@@ -255,14 +261,20 @@ public class ScanServerInstance
         {
             httpd.start();
 
-            final CommandShell shell = new CommandShell(COMMANDS,
-                                                        ScanServerInstance::handleShellCommands);
-            shell.start();
+            final CommandShell shell;
+            if (use_shell)
+            {
+                shell = new CommandShell(COMMANDS, ScanServerInstance::handleShellCommands);
+                shell.start();
+            }
+            else
+                shell = null;
 
             // Main thread could do other things while web server is running...
             done.await();
 
-            shell.stop();
+            if (shell != null)
+                shell.stop();
         }
         catch (Exception ex)
         {
