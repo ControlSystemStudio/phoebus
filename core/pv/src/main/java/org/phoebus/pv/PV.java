@@ -48,8 +48,14 @@ public class PV
 
     final private List<AccessRightsEventHandler.Subscription> access_subs = new CopyOnWriteArrayList<>();
 
+    /** Is PV read-only?
+     *  Derived class typically updates via {@link #notifyListenersOfPermissions}
+     */
     private volatile boolean is_readonly = false;
 
+    /** Most recent value?
+     *  Derived class typically updates via {@link #notifyListenersOfValue}
+     */
     private volatile VType last_value = null;
 
     /** Initialize
@@ -225,7 +231,9 @@ public class PV
         return CompletableFuture.completedFuture(null);
     }
 
-    /** Helper for PV implementation to notify listeners */
+    /** Helper for PV implementation to notify listeners
+     *  @param value New value of the PV
+     */
     protected void notifyListenersOfValue(final VType value)
     {
         last_value = value;
@@ -249,7 +257,9 @@ public class PV
         notifyListenersOfValue(disconnected);
     }
 
-    /** Helper for PV implementation to notify listeners */
+    /** Helper for PV implementation to notify listeners
+     *  @param readonly Read-only state of the PV
+     */
     protected void notifyListenersOfPermissions(final boolean readonly)
     {
         is_readonly = readonly;

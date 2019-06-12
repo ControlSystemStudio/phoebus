@@ -3,4 +3,4 @@ org.phoebus.pv.sim.SimPVFactory
 org.phoebus.pv.loc.LocalPVFactory
 org.phoebus.pv.pva.PVA_PVFactory
 org.phoebus.pv.mqtt.MQTT_PVFactory
-org.phoebus.pv.eq.EquationPVFactory
+org.phoebus.pv.formula.FormulaPVFactory

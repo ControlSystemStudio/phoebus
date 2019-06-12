@@ -5,16 +5,16 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.phoebus.pv.eq;
+package org.phoebus.pv.formula;
 
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVFactory;
 
-/** Factory for creating {@link EquationPV}s
+/** Factory for creating {@link FormulaPV}s
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class EquationPVFactory implements PVFactory
+public class FormulaPVFactory implements PVFactory
 {
     final public static String TYPE = "eq";
 
@@ -27,6 +27,6 @@ public class EquationPVFactory implements PVFactory
     @Override
     public PV createPV(final String name, final String base_name) throws Exception
     {
-        return new EquationPV(name, base_name);
+        return new FormulaPV(name, base_name);
     }
 }
