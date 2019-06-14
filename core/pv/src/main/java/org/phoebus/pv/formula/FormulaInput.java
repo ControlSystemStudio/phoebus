@@ -46,6 +46,11 @@ class FormulaInput
                          .subscribe(this::handleUpdate);
     }
 
+    PV getPV()
+    {
+        return pv;
+    }
+
     private void handleUpdate(final VType value)
     {
         logger.log(Level.FINE, () -> formula_pv.getName() + " updated by " + pv);
