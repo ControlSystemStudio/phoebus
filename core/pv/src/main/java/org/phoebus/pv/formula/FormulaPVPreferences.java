@@ -19,7 +19,7 @@ class FormulaPVPreferences
 
     static
     {
-        final PreferencesReader prefs = new PreferencesReader(FormulaPVFactory.class, "/pv_eq_preferences.properties");
+        final PreferencesReader prefs = new PreferencesReader(FormulaPVFactory.class, "/pv_formula_preferences.properties");
         throttle_ms = prefs.getInt("throttle_ms");
     }
 }
