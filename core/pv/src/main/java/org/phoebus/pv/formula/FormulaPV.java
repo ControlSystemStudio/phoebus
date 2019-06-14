@@ -7,6 +7,9 @@
  ******************************************************************************/
 package org.phoebus.pv.formula;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.logging.Level;
 
 import org.csstudio.apputil.formula.Formula;
@@ -22,7 +25,7 @@ import org.phoebus.pv.PV;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-class FormulaPV extends PV
+public class FormulaPV extends PV
 {
     private Formula formula;
     private volatile FormulaInput[] inputs;
@@ -51,6 +54,21 @@ class FormulaPV extends PV
             // Set initial value
             notifyListenersOfValue(VString.of(ex.getMessage(), Alarm.noValue(), Time.now()));
         }
+    }
+
+    /** @return Formula expression */
+    public String getExpression()
+    {
+        return formula.getFormula();
+    }
+
+    /** @return PVs that are inputs to this formula */
+    public Collection<PV> getInputs()
+    {
+        final List<PV> pvs = new ArrayList<>(inputs.length);
+        for (FormulaInput input : inputs)
+            pvs.add(input.getPV());
+        return pvs;
     }
 
     /** Compute updated value of formula and notify listeners */
