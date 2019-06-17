@@ -97,6 +97,8 @@ public class Messages
     public static String Rotation_180;
     public static String Rotation_270;
     public static String Rotation_90;
+    public static String ScatterPlot_Description;
+    public static String ScatterPlot_Name;
     public static String ScrollBar_ShowValueTip;
     public static String ScrollBar_BarLength;
     public static String SlideButton_Label;

@@ -333,7 +333,12 @@ public class XYPlotWidget extends VisibleWidget
 
     public XYPlotWidget()
     {
-        super(WIDGET_DESCRIPTOR.getType(), 400, 300);
+        this(WIDGET_DESCRIPTOR.getType());
+    }
+
+    protected XYPlotWidget(final String type)
+    {
+        super(type, 400, 300);
     }
 
     @Override

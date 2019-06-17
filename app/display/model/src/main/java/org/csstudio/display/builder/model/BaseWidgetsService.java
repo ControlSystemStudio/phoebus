@@ -54,6 +54,7 @@ import org.csstudio.display.builder.model.widgets.Viewer3dWidget;
 import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.DataBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
+import org.csstudio.display.builder.model.widgets.plots.ScatterPlotWidget;
 import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget;
 
 /** SPI for the base widgets
@@ -95,6 +96,7 @@ public class BaseWidgetsService implements WidgetsService
             RadioWidget.WIDGET_DESCRIPTOR,
             RectangleWidget.WIDGET_DESCRIPTOR,
             ScaledSliderWidget.WIDGET_DESCRIPTOR,
+            ScatterPlotWidget.WIDGET_DESCRIPTOR,
             ScrollBarWidget.WIDGET_DESCRIPTOR,
             SlideButtonWidget.WIDGET_DESCRIPTOR,
             SpinnerWidget.WIDGET_DESCRIPTOR,
