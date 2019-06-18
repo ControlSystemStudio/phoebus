@@ -20,11 +20,13 @@ import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.TextEntryWidget;
+import org.csstudio.display.builder.representation.javafx.Cursors;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.VType;
 import org.phoebus.ui.javafx.Styles;
 import org.phoebus.ui.vtype.FormatOptionHandler;
 
+import javafx.scene.Cursor;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
@@ -362,6 +364,7 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
             // Just apply a style that matches the disabled look.
             jfx_node.setEditable(enabled);
             Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
+            jfx_node.setCursor(enabled ? Cursor.DEFAULT : Cursors.NO_WRITE);
         }
         if (! active)
         {
