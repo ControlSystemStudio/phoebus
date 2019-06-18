@@ -24,6 +24,7 @@ import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
 import org.csstudio.display.builder.model.properties.RotationStep;
 import org.csstudio.display.builder.model.properties.StringWidgetProperty;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
+import org.csstudio.display.builder.representation.javafx.Cursors;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.csstudio.display.builder.representation.javafx.Messages;
 import org.phoebus.framework.macros.MacroHandler;
@@ -420,6 +421,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         {
             base.setDisable(! enabled);
             Styles.update(base, Styles.NOT_ENABLED, !enabled);
+            jfx_node.setCursor(enabled ? Cursor.DEFAULT : Cursors.NO_WRITE);
         }
     }
 }
