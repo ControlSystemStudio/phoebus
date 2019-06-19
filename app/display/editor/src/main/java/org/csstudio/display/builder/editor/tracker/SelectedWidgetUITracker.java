@@ -409,12 +409,14 @@ public class SelectedWidgetUITracker extends Tracker
                 if (parent_children == null)
                     parent_children = widget.getDisplayModel().runtimeChildren();
 
+                final int orig_index;
                 if (orig_parent_children == parent_children)
                 {   // Slightly faster since parent stays the same
                     if (! widget.propX().isUsingWidgetClass())
                         widget.propX().setValue((int) (orig.getMinX() + dx));
                     if (! widget.propY().isUsingWidgetClass())
                         widget.propY().setValue((int) (orig.getMinY() + dy));
+                    orig_index = -1;
                 }
                 else
                 {   // Update to new parent
@@ -425,7 +427,7 @@ public class SelectedWidgetUITracker extends Tracker
                     }
 
                     final Point2D old_offset = GeometryTools.getDisplayOffset(widget);
-                    orig_parent_children.removeChild(widget);
+                    orig_index = orig_parent_children.removeChild(widget);
                     parent_children.addChild(widget);
                     final Point2D new_offset = GeometryTools.getDisplayOffset(widget);
 
@@ -446,6 +448,7 @@ public class SelectedWidgetUITracker extends Tracker
                 final UndoableAction step = new UpdateWidgetLocationAction(widget,
                                                                            orig_parent_children,
                                                                            parent_children,
+                                                                           orig_index,
                                                                            (int) orig.getMinX(),  (int) orig.getMinY(),
                                                                            (int) orig.getWidth(), (int) orig.getHeight());
                 if (compound == null)
