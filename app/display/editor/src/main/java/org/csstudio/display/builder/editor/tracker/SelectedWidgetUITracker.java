@@ -520,6 +520,7 @@ public class SelectedWidgetUITracker extends Tracker
         if (widgets.size() <= 0)
         {
             setVisible(false);
+            group_handler.hide();
             return;
         }
 

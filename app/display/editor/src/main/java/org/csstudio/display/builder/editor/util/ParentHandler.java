@@ -186,7 +186,7 @@ public class ParentHandler
     {
         this.model = model;
         active_parent_children = null;
-        parent_highlight.setVisible(false);
+        hide();
     }
 
     /** Locate parent for region of display.
@@ -209,7 +209,7 @@ public class ParentHandler
         final ParentSearchResult res = new ParentWidgetSearch(bounds, model, selected_widgets).compute();
         final ChildrenProperty parent = res.children;
         if (parent == null)
-            parent_highlight.setVisible(false);
+            hide();
         else
         {
             final Rectangle2D group_bounds = GeometryTools.getDisplayBounds(parent.getWidget());
