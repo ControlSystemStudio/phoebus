@@ -334,6 +334,9 @@ public class ImageWidget extends PVWidget
                 XMLUtil.getChildString(xml, "show_ramp")
                        .ifPresent(show -> image.color_bar.visible().setValue(Boolean.parseBoolean(show)));
 
+                // Background color was ignored, always transparent
+                image.propBackground().setValue(NamedWidgetColors.TRANSPARENT);
+
                 final Element el = XMLUtil.getChildElement(xml, "font");
                 if (el != null)
                     image.propColorbar().scaleFont().readFromXML(model_reader, el);
