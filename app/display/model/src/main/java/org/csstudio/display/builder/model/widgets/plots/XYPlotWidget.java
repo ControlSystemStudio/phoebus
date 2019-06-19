@@ -151,7 +151,22 @@ public class XYPlotWidget extends VisibleWidget
                 if (XMLUtil.getChildBoolean(xml, "transparent").orElse(false))
                     plot.propBackground().setValue(NamedWidgetColors.TRANSPARENT);
 
-                return handleLegacyTraces(model_reader, widget, xml, pv_macro);
+                // Foreground color was basically ignored since there was a separate
+                // color for each axis  =>  Use X axis color
+                final Element e = XMLUtil.getChildElement(xml, "axis_0_axis_color");
+                if (e != null)
+                    plot.propForeground().readFromXML(model_reader, e);
+                else
+                    plot.propForeground().setValue(WidgetColorService.getColor(NamedWidgetColors.TEXT));
+
+                if (! handleLegacyTraces(model_reader, widget, xml, pv_macro))
+                    return false;
+
+                // If legend was turned off, clear the trace names since they would
+                // otherwise show on the Y axes
+                if (! plot.propLegend().getValue())
+                    for (TraceWidgetProperty trace : plot.propTraces().getValue())
+                        trace.traceName().setValue("");
             }
             return true;
         }
