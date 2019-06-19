@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.phoebus.pv.pva;
+package org.phoebus.pv.opva;
 
 import static org.phoebus.pv.PV.logger;
 

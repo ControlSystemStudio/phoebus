@@ -10,6 +10,7 @@
     <ant target="clean" dir="core/util"/>
     <ant target="clean" dir="core/email"/>
     <ant target="clean" dir="core/formula"/>
+    <ant target="clean" dir="core/pva"/>
     <ant target="clean" dir="core/pv"/>
     <ant target="clean" dir="core/security"/>
     <ant target="clean" dir="core/ui"/>
@@ -68,6 +69,7 @@
     <ant dir="core/util"/>
     <ant dir="core/email"/>
     <ant dir="core/formula"/>
+    <ant dir="core/pva"/>
     <ant dir="core/pv"/>
     <ant dir="core/security"/>
     <ant dir="core/ui"/>
