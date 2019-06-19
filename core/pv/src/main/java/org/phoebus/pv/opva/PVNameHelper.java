@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.phoebus.pv.pva;
+package org.phoebus.pv.opva;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,7 +27,7 @@ public class PVNameHelper
     final private static Pattern REQUEST_PATTERN = Pattern.compile("\\?request=field\\((.*)\\)");
     final private static int REQUEST_FIELD_START = "?request=".length();
 
-    final private String channel, field, read, write;
+    final private String channel, read, write;
 
     /** Create parser
      *
@@ -50,7 +50,7 @@ public class PVNameHelper
         if (pos >= 0)
             return PVNameHelper.forNameWithPath(name.substring(0, pos), name.substring(pos+1));
         // Plain channel name
-        return new PVNameHelper(name, "value", "field()", "field(value)");
+        return new PVNameHelper(name, "field()", "field(value)");
     }
 
     /** @param channel Channel name
@@ -63,16 +63,11 @@ public class PVNameHelper
         final Matcher matcher = REQUEST_PATTERN.matcher(request);
         if (! matcher.matches())
             throw new Exception("Expect ?request=field(...) but got \"" + request + "\"");
-        String field = matcher.group(1);
-        final String write;
-        if (field.isEmpty())
-        {
-            field = "value";
-            write = "field(value)";
-        }
-        else
-            write = "field(" + field + ".value)";
-        return new PVNameHelper(channel, field, request.substring(REQUEST_FIELD_START), write);
+        final String field = matcher.group(1);
+        final String write = field.isEmpty()
+            ? "field(value)"
+            : "field(" + field + ".value)";
+        return new PVNameHelper(channel, request.substring(REQUEST_FIELD_START), write);
     }
 
     /** @param channel Channel name
@@ -86,16 +81,15 @@ public class PVNameHelper
         final String write = field.isEmpty()
                 ? "field(value)"
                 : "field(" + field + ".value)";
-        return new PVNameHelper(channel, field, "field(" + field + ")",  write);
+        return new PVNameHelper(channel, "field(" + field + ")",  write);
     }
 
     /** Private to enforce use of <code>forName</code> */
-    private PVNameHelper(final String channel, final String field, final String read, final String write) throws Exception
+    private PVNameHelper(final String channel, final String read, final String write) throws Exception
     {
         if (channel.isEmpty())
             throw new Exception("Empty channel name");
         this.channel = channel;
-        this.field = field;
         this.read = read;
         this.write = write;
     }
@@ -104,12 +98,6 @@ public class PVNameHelper
     public String getChannel()
     {
         return channel;
-    }
-
-    /** @return Plain 'value' or 'struct.sub.value' */
-    public String getField()
-    {
-        return field;
     }
 
     /** @return Request "field(..)" for reading */
@@ -129,7 +117,6 @@ public class PVNameHelper
     public String toString()
     {
         return "Channel '" + channel +
-                "', field '" + field +
                 "', read request '" + read +
                 "', write request '" + write + "'";
     }
