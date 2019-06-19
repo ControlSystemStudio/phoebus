@@ -38,6 +38,8 @@ public class NamedWidgetColors extends ConfigFileParser
                                BUTTON_BACKGROUND = "Button_Background",
                                GRID = "Grid";
 
+    public static final NamedWidgetColor TRANSPARENT = new NamedWidgetColor("Transparent", 0, 0, 0, 0);
+
     private static final NamedWidgetColor DEFAULT_ALARM_OK = new NamedWidgetColor(ALARM_OK, 0, 255, 0);
     private static final NamedWidgetColor DEFAULT_ALARM_MINOR = new NamedWidgetColor(ALARM_MINOR, 255, 128, 0);
     private static final NamedWidgetColor DEFAULT_ALARM_MAJOR = new NamedWidgetColor(ALARM_MAJOR, 255, 0, 0);

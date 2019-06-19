@@ -147,6 +147,10 @@ public class XYPlotWidget extends VisibleWidget
 
                 handleLegacyYAxes(model_reader, widget, xml, pv_macro);
 
+                // Turn 'transparent' flag into transparent background color
+                if (XMLUtil.getChildBoolean(xml, "transparent").orElse(false))
+                    plot.propBackground().setValue(NamedWidgetColors.TRANSPARENT);
+
                 return handleLegacyTraces(model_reader, widget, xml, pv_macro);
             }
             return true;
