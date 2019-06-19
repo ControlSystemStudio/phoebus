@@ -347,6 +347,8 @@ public class ImageWidget extends PVWidget
                        .ifPresent(value -> image.x_axis.minimum().setValue(value));
                 XMLUtil.getChildDouble(xml, "x_axis_maximum")
                        .ifPresent(value -> image.x_axis.maximum().setValue(value));
+                XMLUtil.getChildString(xml, "x_axis_axis_title")
+                       .ifPresent(title ->  image.x_axis.title().setValue(title));
 
                 XMLUtil.getChildString(xml, "y_axis_visible")
                        .ifPresent(show -> image.y_axis.visible().setValue(Boolean.parseBoolean(show)));
@@ -354,6 +356,8 @@ public class ImageWidget extends PVWidget
                        .ifPresent(value -> image.y_axis.minimum().setValue(value));
                 XMLUtil.getChildDouble(xml, "y_axis_maximum")
                        .ifPresent(value -> image.y_axis.maximum().setValue(value));
+                XMLUtil.getChildString(xml, "y_axis_axis_title")
+                       .ifPresent(title ->  image.y_axis.title().setValue(title));
             }
 
             return true;
