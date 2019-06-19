@@ -1,0 +1,45 @@
+<project name="pvaclient" default="jar">
+    
+    <!-- Paths -->
+    <property name="build" value="target"/>
+    <property name="classes" value="target/classes"/>
+    <property name="src" value="src/main/java"/>
+    <property name="resources" value="src/main/resources"/>
+    
+    <!-- Avoid the 'includeantruntime' warning -->
+    <property name="build.sysclasspath" value="last"/>
+
+    <!-- Include debug info? true or off -->
+    <property name="debug" value="true"/>
+    
+    <target name="clean">
+        <delete dir="${build}"/>
+    </target>
+
+    <target name="compile">
+        <mkdir dir="${classes}"/>
+        <javac destdir="${classes}" debug="${debug}">
+              <src path="${src}"/>
+            </javac>
+    </target>
+    
+    <target name="jar" depends="compile">
+        <jar destfile="${build}/core-pva.jar">
+            <fileset dir="${classes}"/>
+            <fileset dir="${resources}"/>
+            <manifest>
+                <attribute name="Main-Class" value="org.epics.pva.client.PVAClientMain" />
+            </manifest>
+        </jar>
+    </target>
+    
+    <target name="run" depends="jar, runargs">
+        <java jar="${build}/core-pva.jar" fork="true">
+            <arg line="${args}"/>
+        </java>
+    </target>
+    
+    <target name="runargs" unless="args">
+        <input addProperty="args" message="Type the desired command line arguments:"/>
+    </target>
+</project>
