@@ -412,11 +412,12 @@ public class DockPane extends TabPane
             header.setPrefHeight(do_hide  ?  0  :  -1);
 
         // If header for single tab is not shown,
+        // and this is the only tab in the window,
         // put its label into the window tile
         if (! (scene.getWindow() instanceof Stage))
             throw new IllegalStateException("Expect Stage, got " + scene.getWindow());
         final Stage stage = ((Stage) scene.getWindow());
-        if (do_hide)
+        if (do_hide  &&  DockStage.getPaneOrSplit(stage) == this)
         {   // Bind to get actual header, which for DockItemWithInput may contain 'dirty' marker,
             // and keep updating as it changes
             final Tab tab = getTabs().get(0);
