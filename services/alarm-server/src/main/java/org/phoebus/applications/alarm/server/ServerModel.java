@@ -394,7 +394,7 @@ class ServerModel
             last_annunciation = System.currentTimeMillis();
 
             final String json = JsonModelWriter.talkToString(severity, message);
-            final ProducerRecord<String, String> record = new ProducerRecord<>(talk_topic, path, json);
+            final ProducerRecord<String, String> record = new ProducerRecord<>(talk_topic, AlarmSystem.TALK_PREFIX + path, json);
             producer.send(record);
         }
         catch (Throwable ex)
