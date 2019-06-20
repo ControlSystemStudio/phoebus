@@ -193,38 +193,6 @@ public class AlarmClient
                 TimestampFormats.MILLI_FORMAT.format(Instant.ofEpochMilli(timestamp)) + " " +
                 type + path + " = " + node_config);
 
-            // TODO Remove this, no longer relevant
-            // Messages within a topic are ordered by time,
-            // but messages from the 'config' and 'state' topic can be mixed.
-            // Deleting an item and adding it back creates these messages:
-            //
-            // Config, Time  1: PV description="Original description"
-            // State , Time  2: PV state=MINOR
-            // Config, Time  5: PV null  (deleted)
-            // Config, Time 10: PV description="Added back in"
-            // State , Time 11: PV state=MINOR
-            //
-            // We could receive them like this, with State updates combined,
-            // i.e. no longer ordered by time:
-            //
-            // Config, Time  1: PV description="Original description"
-            // State , Time  2: PV state=MINOR
-            // State , Time 11: PV state=MINOR
-            // Config, Time  5: PV null  (deleted)
-            // Config, Time 10: PV description="Added back in"
-            //
-            // As a result, the PV would be deleted and then re-created
-            // with an OK state, missing the correct MINOR state.
-            //
-            // To guard against this, each PV node (leaf) tracks the timestamp
-            // of the last _state_ update.
-            // When receiving a deletion with an _older_ time stamp, we ignore it:
-            //
-            // Config, Time  1: PV description="Original description"
-            // State , Time  2: PV state=MINOR
-            // State , Time 11: PV state=MINOR
-            // Config, Time 10: PV description="Added back in"
-
             try
             {
                 if (node_config == null)
