@@ -96,6 +96,26 @@ are always a compromise that often results in inconsistent widget sizes.</text>
     <width>103</width>
     <height>26</height>
   </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>Embedded_1</name>
+    <file>embedded.bob</file>
+    <macros>
+      <X>Content gets distorted</X>
+    </macros>
+    <x>570</x>
+    <y>217</y>
+    <width>460</width>
+    <height>103</height>
+    <resize>3</resize>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <text>Stretch the content</text>
+    <x>570</x>
+    <y>187</y>
+    <width>180</width>
+    <height>26</height>
+  </widget>
   <widget type="label" version="2.0.0">
     <name>Label_3</name>
     <text>A typical use case defines, for example, a macro-based "Motor" display,

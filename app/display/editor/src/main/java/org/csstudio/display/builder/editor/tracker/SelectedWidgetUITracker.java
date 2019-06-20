@@ -33,6 +33,7 @@ import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
+import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.javafx.PlatformInfo;
 import org.phoebus.ui.javafx.Tracker;
@@ -94,15 +95,15 @@ public class SelectedWidgetUITracker extends Tracker
      *  @param selection Selection handler
      *  @param undo 'Undo' manager
      */
-    public SelectedWidgetUITracker(final ToolkitRepresentation<Parent, Node> toolkit,
-                            final ParentHandler group_handler,
-                            final WidgetSelectionHandler selection,
-                            final UndoableActionManager undo)
+    public SelectedWidgetUITracker(final JFXRepresentation toolkit,
+                                   final ParentHandler group_handler,
+                                   final WidgetSelectionHandler selection,
+                                   final UndoableActionManager undo)
     {
         this.toolkit = toolkit;
         this.group_handler = group_handler;
         this.undo = undo;
-        this.snap_constraint = new TrackerSnapConstraint(this);
+        this.snap_constraint = new TrackerSnapConstraint(toolkit, this);
         this.grid_constraint = new TrackerGridConstraint();
 
         // Updates to the position can originate from any thread,

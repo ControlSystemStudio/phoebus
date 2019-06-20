@@ -92,6 +92,7 @@ public class Messages
     public static String Resize_Container;
     public static String Resize_Content;
     public static String Resize_None;
+    public static String Resize_Stretch;
     public static String Right;
     public static String Rotation_0;
     public static String Rotation_180;

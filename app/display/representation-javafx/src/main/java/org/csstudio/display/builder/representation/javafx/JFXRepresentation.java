@@ -362,6 +362,12 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         zoom_listener = listener;
     }
 
+    /** @return Top-level scroll pane */
+    final public ScrollPane getModelRoot()
+    {
+        return model_root;
+    }
+
     /** @return Parent node of model widgets */
     final public Parent getModelParent()
     {
