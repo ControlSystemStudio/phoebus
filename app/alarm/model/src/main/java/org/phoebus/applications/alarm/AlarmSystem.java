@@ -26,16 +26,16 @@ public class AlarmSystem
     public static final Logger logger = Logger.getLogger(AlarmSystem.class.getPackageName());
 
     /** Path prefix for config updates */
-    public static final String CONFIG_PREFIX = "C:";
+    public static final String CONFIG_PREFIX = "config:";
 
     /** Path prefix for state updates */
-    public static final String STATE_PREFIX = "S:";
+    public static final String STATE_PREFIX = "state:";
 
     /** Path prefix for commands */
-    public static final String COMMAND_PREFIX = "A:";
+    public static final String COMMAND_PREFIX = "command:";
 
     /** Path prefix for talk messages */
-    public static final String TALK_PREFIX = "T:";
+    public static final String TALK_PREFIX = "talk:";
 
     // In principle, all messages can be sent via the same topic,
     // which also asserts that their order is preserved.

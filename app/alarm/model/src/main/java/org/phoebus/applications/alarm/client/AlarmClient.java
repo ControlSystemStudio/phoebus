@@ -173,14 +173,15 @@ public class AlarmClient
         final ConsumerRecords<String, String> records = consumer.poll(POLL_PERIOD);
         for (final ConsumerRecord<String, String> record : records)
         {
-            if (record.key().length() < 2)
+            final int sep = record.key().indexOf(':');
+            if (sep < 0)
             {
                 logger.log(Level.WARNING, "Invalid key, expecting type:path, got " + record.key());
                 continue;
             }
 
-            final String type = record.key().substring(0, 2);
-            final String path = record.key().substring(3);
+            final String type = record.key().substring(0, sep+1);
+            final String path = record.key().substring(sep+1);
             final long timestamp = record.timestamp();
             final String node_config = record.value();
 

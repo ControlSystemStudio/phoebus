@@ -209,12 +209,12 @@ Messages sent by the UI also include the user name and host name to help identif
 
 _______________
 
-- Type `C:`, Config Topic:
+- Type `config:`, Config Topic:
 
 The messages in the config topic consist of a path to the alarm tree item that is being configured along with a JSON of its configuration.
 Example key:
 
-    C:/Accelerator/Vacuum/SomePV
+    config:/Accelerator/Vacuum/SomePV
     
 The message always contains the user name and host name of who is changing the configuration. 
 
@@ -250,7 +250,7 @@ format will only contain the used elements.
 
 For example, a PV that has no guidance, displays, commands, actions will look like this:
 
-    C:/path/to/pv : {"user":"user name", "host":"host name", "description":"This is a PV. Believe it or not."}
+    config:/path/to/pv : {"user":"user name", "host":"host name", "description":"This is a PV. Believe it or not."}
 
 - Deletions in the Config Topic
 
@@ -258,7 +258,7 @@ Deleting an item consists of marking a path with a value of null. This "tombston
 
 For example:
 
-    C:/path/to/pv : null
+    config:/path/to/pv : null
     
 This process variable is now marked as deleted. However, there is an issue. We do not know why, or by whom it was deleted. To address this, a message including the missing relevant information is sent before the tombstone is set.
 This message consists of a user name, host name, and a delete message.
@@ -274,12 +274,12 @@ The config delete message JSON format:
     
 The above example of deleting a PV would then look like this:
 
-    C:/path/to/pv : {"user":"user name", "host":"host name", "delete": "Deleting"}
-    C:/path/to/pv : null
+    config:/path/to/pv : {"user":"user name", "host":"host name", "delete": "Deleting"}
+    config:/path/to/pv : null
     
 The message about who deleted the PV would obviously be compacted and deleted itself, but it would be aggregated into the long term topic beforehand thus preserving a record of the deletion.
 ______________
-- Type `S:`, State Topic:
+- Type `state:`, State Topic:
 
 The messages in the state topic consist of a path to the alarm tree item that's state is being updated along with a JSON of its new state.
 
@@ -317,15 +317,15 @@ For normal operational mode, the "mode" tag is omitted.
 
 Example messages that could appear in a state topic:
 
-    S:/path/to/pv :{"severity":"MAJOR","latch":true,"message":"LOLO","value":"0.0","time":{"seconds":123456789,"nano":123456789},"current_severity":"MAJOR","current_message":"LOLO"}
-    S:/path/to/pv :{"severity":"MAJOR","message":"LOLO","value":"0.0","time":{"seconds":123456789,"nano":123456789},"current_severity":"MINOR","current_message":"LOW"}
+    state:/path/to/pv :{"severity":"MAJOR","latch":true,"message":"LOLO","value":"0.0","time":{"seconds":123456789,"nano":123456789},"current_severity":"MAJOR","current_message":"LOLO"}
+    state:/path/to/pv :{"severity":"MAJOR","message":"LOLO","value":"0.0","time":{"seconds":123456789,"nano":123456789},"current_severity":"MINOR","current_message":"LOW"}
 
 In this example, the first message is issued when the alarm latches to the MAJOR severity.
 The following update indicates that the PV's current severity dropped to MINOR, while the alarm severity, message, time and value
 continue to reflect the latched state.
  
 ________________
-- Type `A:`, Command Topic:
+- Type `command:`, Command Topic:
 
 The messages in the command topic consist of a path to the alarm tree item that is the subject of the command along with a JSON of the command. The JSON always contains the user name and host name of who is issuing the command.
 
@@ -339,10 +339,10 @@ The command topic JSON format:
     
 An example message that could appear in a command topic:
 
-    A:/path/to/pv : {"user":"user name", "host":"host name", "command":"acknowledge"}
+    command:/path/to/pv : {"user":"user name", "host":"host name", "command":"acknowledge"}
 
 ____________
-- Type `T:`, Talk Topic:
+- Type `talk:`, Talk Topic:
 
 The messages in the talk topic consist of a path to the alarm tree item being referenced along with a JSON. The JSON contains the alarm severity, a boolean value to indicate if the message should always be annunciated, and the message to annunciate.
 
@@ -356,13 +356,14 @@ The talk topic JSON format:
 
 An example message that could appear in a talk topic:
 
-    T:/path/to/pv : {"severity":"MAJOR", "standout":true, "message":"We are out of potato salad!"}
+    talk:/path/to/pv : {"severity":"MAJOR", "standout":true, "message":"We are out of potato salad!"}
 
 
 __________
 
 When aggregating all messages into a long-term topic to preserve a history of all alarm system operations over time,
-the talk, command and state messages can be identified by the type code at the start of the message key, i.e. `C:` for configuration, `S:` for state, `A:` for commands (actions) or `T:` for talk messages.
+the talk, command and state messages can be identified by the type code at the start of the message key,
+i.e. `config:` for configuration, `state:` for state, `command:` for commands (actions) or `talk:` for talk messages.
 
 __________________
 Demos

@@ -146,13 +146,15 @@ class ServerModel
         final ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
         for (ConsumerRecord<String, String> record : records)
         {
-            if (record.key().length() < 2)
+            final int sep = record.key().indexOf(':');
+            if (sep < 0)
             {
                 logger.log(Level.WARNING, "Invalid key, expecting type:path, got " + record.key());
                 continue;
             }
-            final String type = record.key().substring(0, 2);
-            final String path = record.key().substring(3);
+
+            final String type = record.key().substring(0, sep+1);
+            final String path = record.key().substring(sep+1);
             if (type.equals(AlarmSystem.COMMAND_PREFIX)  ||  record.topic().equals(command_topic))
             {
                 final String json = record.value();
