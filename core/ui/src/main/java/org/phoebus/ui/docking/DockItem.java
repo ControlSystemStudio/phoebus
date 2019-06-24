@@ -383,7 +383,7 @@ public class DockItem extends Tab
             logger.log(Level.SEVERE, "Empty drop, " + event);
         else
         {
-            // System.out.println("Somebody dropped " + item + " onto " + this);
+            logger.log(Level.INFO, "Somebody dropped " + item + " onto " + this);
             final DockPane old_parent = item.getDockPane();
             final DockPane new_parent = getDockPane();
             if (new_parent != old_parent)
