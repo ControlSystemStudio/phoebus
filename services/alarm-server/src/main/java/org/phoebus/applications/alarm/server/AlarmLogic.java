@@ -532,6 +532,15 @@ public class AlarmLogic // implements GlobalAlarmListener
         listener.alarmStateChanged(current, alarm);
     }
 
+    /** Dispose alarm logic
+     *
+     *  <p>Cancel delayed check.
+     */
+    public void dispose()
+    {
+        delayed_check.cancel();
+    }
+
     /** @return String representation for debugging */
     @SuppressWarnings("nls")
     @Override
