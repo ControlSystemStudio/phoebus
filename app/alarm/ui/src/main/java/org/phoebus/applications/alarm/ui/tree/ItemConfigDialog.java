@@ -12,6 +12,7 @@ import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.util.time.SecondsParser;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -29,6 +30,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.stage.Modality;
+import javafx.util.Duration;
 
 /** Dialog for editing {@link AlarmTreeItem}
  *
@@ -84,7 +86,22 @@ class ItemConfigDialog extends Dialog<Boolean>
 
             layout.add(new Label("Alarm Delay [seconds]:"), 0, row);
             delay = new Spinner<>(0, Integer.MAX_VALUE, leaf.getDelay());
-            delay.setTooltip(new Tooltip("Alarms are indicated when they persist for at least this long"));
+            final Tooltip delay_tt = new Tooltip();
+            delay_tt.setShowDuration(Duration.seconds(30));
+            delay_tt.setOnShowing(event ->
+            {
+                final int seconds = leaf.getDelay();
+                final String detail;
+                if (seconds <= 0)
+                    detail = "With the current delay of 0 seconds, alarms trigger immediately";
+                else
+                {
+                    final String hhmmss = SecondsParser.formatSeconds(seconds);
+                    detail = "With the current delay of " + seconds + " seconds, alarms trigger after " + hhmmss + " hours:minutes:seconds";
+                }
+                delay_tt.setText("Alarms are indicated when they persist for at least this long.\n" + detail);
+            });
+            delay.setTooltip(delay_tt);
             delay.setEditable(true);
             delay.setPrefWidth(80);
             layout.add(delay, 1, row++);

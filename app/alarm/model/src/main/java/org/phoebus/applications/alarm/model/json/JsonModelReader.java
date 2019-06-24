@@ -233,13 +233,13 @@ public class JsonModelReader
         return false;
     }
 
-    public static boolean updateAlarmState(final long timestamp, final AlarmTreeItem<?> node, final Object json)
+    public static boolean updateAlarmState(final AlarmTreeItem<?> node, final Object json)
     {
         final JsonNode actual = (JsonNode) json;
         if (node instanceof AlarmClientLeaf)
-            return updateAlarmLeafState(timestamp, (AlarmClientLeaf) node, actual);
+            return updateAlarmLeafState((AlarmClientLeaf) node, actual);
         if (node instanceof AlarmClientNode)
-            return updateAlarmNodeState(timestamp, (AlarmClientNode) node, actual);
+            return updateAlarmNodeState((AlarmClientNode) node, actual);
         return false;
     }
 
@@ -300,18 +300,17 @@ public class JsonModelReader
         return new ClientState(severity, message, value, time, current_severity, current_message, latch);
     }
 
-    /** @param timestamp Timestamp of the update
-     *  @param node Node to update from json
+    /** @param node Node to update from json
      *  @param json Json that might contain {@link ClientState}
      *  @return <code>true</code> if this changed the alarm state of the node
      */
-    private static boolean updateAlarmLeafState(final long timestamp, final AlarmClientLeaf node, final JsonNode json)
+    private static boolean updateAlarmLeafState(final AlarmClientLeaf node, final JsonNode json)
     {
         final ClientState state = parseClientState(json);
-        return (state != null)  &&  node.setState(timestamp, state);
+        return (state != null)  &&  node.setState(state);
     }
 
-    private static boolean updateAlarmNodeState(final long timestamp, final AlarmClientNode node, final JsonNode json)
+    private static boolean updateAlarmNodeState(final AlarmClientNode node, final JsonNode json)
     {
         SeverityLevel severity = SeverityLevel.UNDEFINED;
 
@@ -324,7 +323,7 @@ public class JsonModelReader
         if (node.getState().severity == severity)
             return false;
         final BasicState state = new BasicState(severity);
-        node.setState(timestamp, state);
+        node.setState(state);
 
         return true;
     }

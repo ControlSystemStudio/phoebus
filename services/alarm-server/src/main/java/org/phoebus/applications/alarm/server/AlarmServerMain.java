@@ -67,7 +67,7 @@ public class AlarmServerMain implements ServerModelListener
                         "\trestart          - Re-load alarm configuration and restart.\n" +
                         "\tshutdown         - Shut alarm server down and exit.\n";
 
-    private AlarmServerMain(final String server, final String config)
+    private AlarmServerMain(final String server, final String config, final boolean use_shell)
     {
         logger.info("Server: " + server);
         logger.info("Config: " + config);
@@ -89,13 +89,15 @@ public class AlarmServerMain implements ServerModelListener
                 model = new ServerModel(server, config, initial_states, this);
                 model.start();
 
-                shell = new CommandShell(COMMANDS, this::handleShellCommands);
+                if (use_shell)
+                {
+                    shell = new CommandShell(COMMANDS, this::handleShellCommands);
 
-                // Start the command shell at the root node.
-                current_path = model.getRoot().getPathName();
-                shell.setPrompt(current_path);
-                shell.start();
-
+                    // Start the command shell at the root node.
+                    current_path = model.getRoot().getPathName();
+                    shell.setPrompt(current_path);
+                    shell.start();
+                }
                 // Run until, via command topic or shell input, asked to
                 // a) restart (restart given with value 'true')
                 // b) shut down (restart given with value 'false')
@@ -105,7 +107,8 @@ public class AlarmServerMain implements ServerModelListener
                 else
                     logger.info("Shutting down");
 
-                shell.stop();
+                if (use_shell)
+                    shell.stop();
 
                 model.shutdown();
             }
@@ -508,9 +511,10 @@ public class AlarmServerMain implements ServerModelListener
         System.out.println("-help                       - This text");
         System.out.println("-server   localhost:9092    - Kafka server");
         System.out.println("-config   Accelerator       - Alarm configuration");
-        // TODO Don't mention this option, prefer examples/create_topics.sh for now
+        // Don't mention this option, prefer examples/create_topics.sh
         // System.out.println("-create_topics              - Create Kafka topics for alarm configuration?");
         System.out.println("-settings settings.xml      - Import preferences (PV connectivity) from property format file");
+        System.out.println("-noshell                    - Disable the command shell for running without a terminal");
         System.out.println("-export   config.xml        - Export alarm configuration to file");
         System.out.println("-import   config.xml        - Import alarm configruation from file");
         System.out.println("-logging logging.properties -  Load log settings");
@@ -524,6 +528,7 @@ public class AlarmServerMain implements ServerModelListener
 
         String server = "localhost:9092";
         String config = "Accelerator";
+        boolean use_shell = true;
 
         // Handle arguments
         final List<String> args = new ArrayList<>(List.of(original_args));
@@ -573,12 +578,15 @@ public class AlarmServerMain implements ServerModelListener
                     logger.info("Loading settings from " + filename);
                     PropertyPreferenceLoader.load(new FileInputStream(filename));
                 }
+                else if (cmd.equals("-noshell"))
+                {
+                    use_shell = false;
+                }
                 else if (cmd.equals("-create_topics"))
                 {
                     iter.remove();
                     logger.info("Discovering and creating any missing topics at " + server);
                     CreateTopics.discoverAndCreateTopics(server, true, List.of(config,
-                                                                               config + AlarmSystem.STATE_TOPIC_SUFFIX,
                                                                                config + AlarmSystem.COMMAND_TOPIC_SUFFIX,
                                                                                config + AlarmSystem.TALK_TOPIC_SUFFIX));
                 }
@@ -618,6 +626,6 @@ public class AlarmServerMain implements ServerModelListener
 
         logger.info("Alarm Server (PID " + ProcessHandle.current().pid() + ")");
 
-        new AlarmServerMain(server, config);
+        new AlarmServerMain(server, config, use_shell);
     }
 }

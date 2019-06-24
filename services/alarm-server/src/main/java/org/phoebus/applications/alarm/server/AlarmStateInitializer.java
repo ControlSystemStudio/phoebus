@@ -9,6 +9,7 @@ package org.phoebus.applications.alarm.server;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -53,9 +54,7 @@ public class AlarmStateInitializer
      */
     public AlarmStateInitializer(final String server, final String config_name)
     {
-        final String state_topic = config_name + AlarmSystem.STATE_TOPIC_SUFFIX;
-
-        consumer = KafkaHelper.connectConsumer(server, List.of(state_topic), List.of(state_topic));
+        consumer = KafkaHelper.connectConsumer(server, List.of(config_name), List.of(config_name));
 
         thread = new Thread(this::run, "AlarmStateInitializer");
         thread.setDaemon(true);
@@ -85,40 +84,50 @@ public class AlarmStateInitializer
     /** Perform one check for updates */
     private void checkUpdates()
     {
-        final ConsumerRecords<String, String> records = consumer.poll(100);
+        final ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
         for (final ConsumerRecord<String, String> record : records)
         {
-            final String path = record.key();
-            final String node_config = record.value();
-            try
+            if (record.key().length() < 2)
             {
-                // System.out.printf("\n%s - %s:\n", path, node_config);
-                if (node_config == null)
-                {   // No config -> Delete node
-                    inititial_severity.remove(path);
-                    timer.reset();
-                }
-                else
+                logger.log(Level.WARNING, "Invalid key, expecting type:path, got " + record.key());
+                continue;
+            }
+            final String type = record.key().substring(0, 2);
+            // Only handle state updates
+            if (type.equals(AlarmSystem.STATE_PREFIX))
+            {
+                final String path = record.key().substring(3);
+                final String node_config = record.value();
+                try
                 {
-                    // Get node_config as JSON map to check for "pv" key
-                    final Object json = JsonModelReader.parseJsonText(node_config);
-                    final ClientState state = JsonModelReader.parseClientState(json);
-                    if (state != null)
-                    {
-                        // Delete when PV was OK, or track non-OK severity.
-                        if (state.severity == SeverityLevel.OK)
-                            inititial_severity.remove(path);
-                        else
-                            inititial_severity.put(path, state);
+                    // System.out.printf("\n%s - %s:\n", path, node_config);
+                    if (node_config == null)
+                    {   // No config -> Delete node
+                        inititial_severity.remove(path);
                         timer.reset();
                     }
+                    else
+                    {
+                        // Get node_config as JSON map to check for "pv" key
+                        final Object json = JsonModelReader.parseJsonText(node_config);
+                        final ClientState state = JsonModelReader.parseClientState(json);
+                        if (state != null)
+                        {
+                            // Delete when PV was OK, or track non-OK severity.
+                            if (state.severity == SeverityLevel.OK)
+                                inititial_severity.remove(path);
+                            else
+                                inititial_severity.put(path, state);
+                            timer.reset();
+                        }
+                    }
                 }
-            }
-            catch (final Exception ex)
-            {
-                logger.log(Level.WARNING,
-                           "Alarm state check error for path " + path +
-                           ", config " + node_config, ex);
+                catch (final Exception ex)
+                {
+                    logger.log(Level.WARNING,
+                               "Alarm state check error for path " + path +
+                               ", config " + node_config, ex);
+                }
             }
         }
     }
