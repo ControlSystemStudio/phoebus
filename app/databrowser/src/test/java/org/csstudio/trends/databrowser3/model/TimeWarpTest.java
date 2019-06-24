@@ -51,6 +51,9 @@ public class TimeWarpTest
         amount = TimeWarp.parseLegacy("  -2.00 hours    ");
         assertThat(amount, equalTo(Duration.ofHours(2)));
 
+        amount = TimeWarp.parseLegacy(" -1 day -2.00 hours -3 minutes   ");
+        assertThat(amount, equalTo(Duration.ofMinutes(24L*60 + 2*60 + 3)));
+
         amount = TimeWarp.parseLegacy("-2.00 h");
         assertThat(amount, equalTo(Duration.ofHours(2)));
 
