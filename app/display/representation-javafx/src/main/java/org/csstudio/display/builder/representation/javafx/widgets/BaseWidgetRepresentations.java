@@ -50,11 +50,13 @@ import org.csstudio.display.builder.model.widgets.Viewer3dWidget;
 import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.DataBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
+import org.csstudio.display.builder.model.widgets.plots.StripchartWidget;
 import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget;
 import org.csstudio.display.builder.representation.WidgetRepresentation;
 import org.csstudio.display.builder.representation.WidgetRepresentationFactory;
 import org.csstudio.display.builder.representation.javafx.widgets.plots.DataBrowserRepresentation;
 import org.csstudio.display.builder.representation.javafx.widgets.plots.ImageRepresentation;
+import org.csstudio.display.builder.representation.javafx.widgets.plots.StripchartRepresentation;
 import org.csstudio.display.builder.representation.javafx.widgets.plots.XYPlotRepresentation;
 import org.csstudio.display.builder.representation.spi.WidgetRepresentationsService;
 
@@ -105,6 +107,7 @@ public class BaseWidgetRepresentations implements WidgetRepresentationsService
             entry(ScrollBarWidget.WIDGET_DESCRIPTOR,       () -> (WidgetRepresentation) new ScrollBarRepresentation()),
             entry(SlideButtonWidget.WIDGET_DESCRIPTOR,     () -> (WidgetRepresentation) new SlideButtonRepresentation()),
             entry(SpinnerWidget.WIDGET_DESCRIPTOR,         () -> (WidgetRepresentation) new SpinnerRepresentation()),
+            entry(StripchartWidget.WIDGET_DESCRIPTOR,      () -> (WidgetRepresentation) new StripchartRepresentation()),
             entry(SymbolWidget.WIDGET_DESCRIPTOR,          () -> (WidgetRepresentation) new SymbolRepresentation()),
             entry(TableWidget.WIDGET_DESCRIPTOR,           () -> (WidgetRepresentation) new TableRepresentation()),
             entry(TabsWidget.WIDGET_DESCRIPTOR,            () -> (WidgetRepresentation) new TabsRepresentation()),

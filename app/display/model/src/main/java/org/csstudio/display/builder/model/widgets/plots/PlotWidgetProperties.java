@@ -136,15 +136,15 @@ public class PlotWidgetProperties
     // Elements of the 'trace' structure
     private static final WidgetPropertyDescriptor<String> traceX =
         CommonWidgetProperties.newPVNamePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "x_pv", Messages.PlotWidget_XPV);
-    private static final WidgetPropertyDescriptor<String> traceY =
+    public static final WidgetPropertyDescriptor<String> traceY =
         CommonWidgetProperties.newPVNamePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "y_pv", Messages.PlotWidget_YPV);
     private static final WidgetPropertyDescriptor<String> traceErr =
         CommonWidgetProperties.newPVNamePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "err_pv", Messages.PlotWidget_ErrorPV);
-    private static final WidgetPropertyDescriptor<Integer> traceYAxis =
+    public static final WidgetPropertyDescriptor<Integer> traceYAxis =
         CommonWidgetProperties.newIntegerPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "axis", Messages.PlotWidget_YAxis);
-    private static final WidgetPropertyDescriptor<WidgetColor> traceColor =
+    public static final WidgetPropertyDescriptor<WidgetColor> traceColor =
         CommonWidgetProperties.newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "color", Messages.PlotWidget_Color);
-    private static final WidgetPropertyDescriptor<PlotWidgetTraceType> traceType =
+    public static final WidgetPropertyDescriptor<PlotWidgetTraceType> traceType =
         new WidgetPropertyDescriptor<>(
             WidgetPropertyCategory.BEHAVIOR, "trace_type", Messages.PlotWidget_TraceType)
         {
@@ -155,7 +155,7 @@ public class PlotWidgetProperties
                 return new EnumWidgetProperty<>(this, widget, default_value);
             }
         };
-    private static final WidgetPropertyDescriptor<PlotWidgetPointType> tracePointType =
+    public static final WidgetPropertyDescriptor<PlotWidgetPointType> tracePointType =
         new WidgetPropertyDescriptor<>(
             WidgetPropertyCategory.BEHAVIOR, "point_type", Messages.PlotWidget_PointType)
         {
@@ -166,7 +166,7 @@ public class PlotWidgetProperties
                 return new EnumWidgetProperty<>(this, widget, default_value);
             }
         };
-    private static final WidgetPropertyDescriptor<Integer> tracePointSize =
+    public static final WidgetPropertyDescriptor<Integer> tracePointSize =
         CommonWidgetProperties.newIntegerPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "point_size", Messages.PlotWidget_PointSize,
                                                             0, Integer.MAX_VALUE);
     private static final WidgetPropertyDescriptor<VType> traceXValue =
@@ -175,7 +175,7 @@ public class PlotWidgetProperties
         CommonWidgetProperties.newRuntimeValue("y_value", Messages.PlotWidget_Y);
     private static final WidgetPropertyDescriptor<VType> traceErrValue =
             CommonWidgetProperties.newRuntimeValue("err_value", "Error");
-    private final static StructuredWidgetProperty.Descriptor propTrace =
+    public final static StructuredWidgetProperty.Descriptor propTrace =
         new Descriptor(WidgetPropertyCategory.BEHAVIOR, "trace", Messages.PlotWidget_Trace);
 
     /** 'trace' structure */
