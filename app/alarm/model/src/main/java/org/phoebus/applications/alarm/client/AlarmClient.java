@@ -25,7 +25,6 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.record.TimestampType;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
-import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
@@ -195,53 +194,68 @@ public class AlarmClient
 
             try
             {
-                if (node_config == null)
-                {   // No config -> Delete node
-                    final AlarmTreeItem<?> node = deleteNode(path);
-                    // If this was a known node, notify listeners
-                    if (node != null)
-                    {
-                        if (node instanceof AlarmTreeLeaf)
-                            logger.log(Level.FINE, () -> "Delete " + path);
-                        for (final AlarmClientListener listener : listeners)
-                            listener.itemRemoved(node);
-                    }
-                }
-                else
+                // Only update listeners if the node changed
+                AlarmTreeItem<?> changed_node = null;
+                final Object json = node_config == null ? null : JsonModelReader.parseJsonText(node_config);
+                if (type.equals(AlarmSystem.CONFIG_PREFIX))
                 {
-                    // Get node_config as JSON map to check for "pv" key
-                    final Object json = JsonModelReader.parseJsonText(node_config);
-                    AlarmTreeItem<?> node = findNode(path);
-                    // Only update listeners if this is a new node or the config changed
-                    if (node == null)
-                        node = findOrCreateNode(path, JsonModelReader.isLeafConfigOrState(json));
-                    final boolean need_update;
-                    if (JsonModelReader.isStateUpdate(json))
-                    {
-                        if (! type.equals(AlarmSystem.STATE_PREFIX))
-                            logger.log(Level.WARNING, "Got state update content on non-state key: " + record.key() + " " + node_config);
-                        final boolean maint = JsonModelReader.isMaintenanceMode(json);
-                        if (maintenance_mode.getAndSet(maint) != maint)
+                    if (json == null)
+                    {   // No config -> Delete node
+                        final AlarmTreeItem<?> node = deleteNode(path);
+                        // If this was a known node, notify listeners
+                        if (node != null)
+                        {
+                            logger.log(Level.FINE, () -> "Delete " + path);
                             for (final AlarmClientListener listener : listeners)
-                                listener.serverModeChanged(maint);
-
-                        need_update = JsonModelReader.updateAlarmState(node, json);
-                        last_state_update = System.currentTimeMillis();
+                                listener.itemRemoved(node);
+                        }
                     }
                     else
-                    {
-                        if (! type.equals(AlarmSystem.CONFIG_PREFIX))
-                            logger.log(Level.WARNING, "Got config update content on non-config key: " + record.key() + " " + node_config);
-                        need_update = JsonModelReader.updateAlarmItemConfig(node, json);
+                    {   // Configuration update
+                        if (JsonModelReader.isStateUpdate(json))
+                            logger.log(Level.WARNING, "Got config update with state content: " + record.key() + " " + node_config);
+                        else
+                        {
+                            AlarmTreeItem<?> node = findNode(path);
+                            // New node? Will need to send update. Otherwise update when there's a change
+                            if (node == null)
+                                changed_node = node = findOrCreateNode(path, JsonModelReader.isLeafConfigOrState(json));
+                            if (JsonModelReader.updateAlarmItemConfig(node, json))
+                                changed_node = node;
+                        }
                     }
-                    // If there were changes, notify listeners
-                    if (need_update)
+                }
+                else if (type.equals(AlarmSystem.STATE_PREFIX))
+                {   // State update
+                    if (json == null)
+                        logger.log(Level.WARNING, "Got state update with null content: " + record.key() + " " + node_config);
+                    else if (! JsonModelReader.isStateUpdate(json))
+                        logger.log(Level.WARNING, "Got state update with config content: " + record.key() + " " + node_config);
+                    else
                     {
-                        final AlarmTreeItem<?> changed_node = node;
-                        logger.log(Level.FINE, () -> "Update " + path + " to " + changed_node.getState());
-                        for (final AlarmClientListener listener : listeners)
-                            listener.itemUpdated(changed_node);
+                        final AlarmTreeItem<?> node = findNode(path);
+                        if (node == null)
+                            logger.log(Level.FINE, "Ignoring state for unknown item: " + record.key() + " " + node_config);
+                        else
+                        {
+                            final boolean maint = JsonModelReader.isMaintenanceMode(json);
+                            if (maintenance_mode.getAndSet(maint) != maint)
+                                for (final AlarmClientListener listener : listeners)
+                                    listener.serverModeChanged(maint);
+                            if (JsonModelReader.updateAlarmState(node, json))
+                                changed_node = node;
+                            last_state_update = System.currentTimeMillis();
+                        }
                     }
+                }
+                // else: Neither config nor state update; ignore.
+
+                // If there were changes, notify listeners
+                if (changed_node != null)
+                {
+                    logger.log(Level.FINE, "Update " + path + " to " + changed_node.getState());
+                    for (final AlarmClientListener listener : listeners)
+                        listener.itemUpdated(changed_node);
                 }
             }
             catch (final Exception ex)
