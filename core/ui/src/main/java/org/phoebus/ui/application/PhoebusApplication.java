@@ -160,9 +160,15 @@ public class PhoebusApplication extends Application {
         public void activeDockItemChanged(final DockItem item)
         {
             if (item instanceof DockItemWithInput)
+            {
+                logger.log(Level.INFO, "Activated " + item);
                 active_item_with_input = new WeakReference<>((DockItemWithInput) item);
+            }
             else
+            {
+                logger.log(Level.INFO, "Activated " + item + ", no input");
                 active_item_with_input = NO_ACTIVE_ITEM_WITH_INPUT;
+            }
         }
     };
 
