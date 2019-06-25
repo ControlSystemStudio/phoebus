@@ -63,6 +63,7 @@ public class AlarmMessageLogger implements Runnable {
         }
         // Attach a message time stamp.
         StreamsBuilder builder = new StreamsBuilder();
+
         KStream<String, AlarmMessage> alarms = builder.stream(topic,
                 Consumed.with(Serdes.String(), alarmMessageSerde).withTimestampExtractor(new TimestampExtractor() {
 
@@ -75,8 +76,13 @@ public class AlarmMessageLogger implements Runnable {
             logger.config("Processing alarm message " + k + " " + v.toString());
         });
 
+        alarms = alarms.map((key,value) -> {
+            value.setKey(key);
+            return new KeyValue<String, AlarmMessage>(key, value);
+        });
+
         @SuppressWarnings("unchecked")
-        KStream<String, AlarmMessage>[] alarmBranches = alarms.branch((k,v) -> k.startsWith("State"),
+        KStream<String, AlarmMessage>[] alarmBranches = alarms.branch((k,v) -> k.startsWith("state"),
                                                                       (k,v) -> k.startsWith("config"),
                                                                       (k,v) -> false
                                                                      );

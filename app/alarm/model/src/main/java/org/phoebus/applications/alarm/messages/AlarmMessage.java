@@ -23,9 +23,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @JsonInclude(Include.NON_NULL)
 public class AlarmMessage {
 
-    // Flag describing if the message is a configuration message or a state update message
-    private boolean config = true;
-
     private String user;
     private String host;
     private String description;
@@ -35,9 +32,9 @@ public class AlarmMessage {
     private Instant alarmTime;
 
     // config message
-    private boolean enabled = true;
-    private boolean latching = true;
-    private boolean annunciating = true;
+    private boolean enabled;
+    private boolean latching;
+    private boolean annunciating;
     private int delay;
     private int count;
     private String filter;
@@ -45,6 +42,8 @@ public class AlarmMessage {
     private List<AlarmDetail> displays;
     private List<AlarmDetail> commands;
     private List<AlarmDetail> actions;
+
+    private String delete;
 
     // state message
     private String severity;
@@ -55,24 +54,10 @@ public class AlarmMessage {
     private String mode;
 
     // The following fields encapsulate additional information for simplifying processing
-    private boolean latch;
-    private String delete;
-
-    private Instant message_time;
-
-    private String path;
-    private String pv;
+    // Flag describing if the message is a configuration message or a state update message
+    private String key;
 
     public AlarmMessage() {
-
-    }
-
-    public boolean isConfig() {
-        return config;
-    }
-
-    public void setConfig(boolean config) {
-        this.config = config;
     }
 
     public String getUser() {
@@ -234,19 +219,43 @@ public class AlarmMessage {
     public void setMode(String mode) {
         this.mode = mode;
     }
-    
-    public Instant getMsgTime() {
-        return message_time;
+
+    public String getKey() {
+        return this.key;
     }
 
-    public void setMsgTime(Instant message_time) {
-        this.message_time = message_time;
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    private boolean isConfig() {
+        if(key != null && !key.isEmpty()) {
+            return key.startsWith("config");
+        }
+        return false;
+    }
+
+    private boolean isState() {
+        if(key != null && !key.isEmpty()) {
+            return key.startsWith("state");
+        }
+        return false;
     }
 
     @JsonIgnore
     public AlarmConfigMessage getAlarmConfigMessage() {
         if (isConfig()) {
             AlarmConfigMessage configMessage = new AlarmConfigMessage();
+            configMessage.setUser(user);
+            configMessage.setHost(host);
+            configMessage.setDescription(description);
+            configMessage.setEnabled(enabled);
+            configMessage.setLatching(latching);
+            configMessage.setAnnunciating(annunciating);
+            configMessage.setDelay(delay);
+            configMessage.setCount(count);
+            configMessage.setFilter(filter);
+
             return configMessage;
         } else {
             return null;
@@ -255,8 +264,16 @@ public class AlarmMessage {
 
     @JsonIgnore
     public AlarmStateMessage getAlarmStateMessage() {
-        if (!isConfig()) {
+        if (isState()) {
             AlarmStateMessage stateMessage = new AlarmStateMessage();
+            stateMessage.setSeverity(severity);
+            stateMessage.setMessage(message);
+            stateMessage.setValue(value);
+            stateMessage.setTime(time);
+            stateMessage.setCurrent_severity(current_severity);
+            stateMessage.setCurrent_message(current_message);
+            stateMessage.setMode(mode);
+            stateMessage.setLatch(latching);
             return stateMessage;
         } else {
             return null;
@@ -308,8 +325,10 @@ public class AlarmMessage {
     public String toJson() throws JsonProcessingException {
         if (isConfig()) {
             return objectConfigMapper.writeValueAsString(this);
-        } else {
+        } else if (isState()){
             return objectStateMapper.writeValueAsString(this);
+        } else {
+            return objectStateMapper.writeValueAsString("");
         }
     }
 
@@ -320,13 +339,17 @@ public class AlarmMessage {
         private String message;
         @JsonIgnore
         private String value;
+        @JsonIgnore
+        private String current_severity;
+        @JsonIgnore
+        private String current_message;
+        @JsonIgnore
+        private String mode;
     }
 
     private static class AlarmStateJsonMessage {
         @JsonIgnore
         private boolean enabled;
-        @JsonIgnore
-        private boolean latching;
         @JsonIgnore
         private boolean annunciating;
         @JsonIgnore
