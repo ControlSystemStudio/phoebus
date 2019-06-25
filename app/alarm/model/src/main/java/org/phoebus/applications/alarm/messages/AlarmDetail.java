@@ -3,12 +3,17 @@ package org.phoebus.applications.alarm.messages;
 public class AlarmDetail {
 
     private String title;
-    private String action;
+    private String details;
+    private int delay;
+
+    public AlarmDetail() {
+        super();
+    }
 
     public AlarmDetail(String title, String action) {
         super();
         this.title = title;
-        this.action = action;
+        this.details = action;
     }
 
     public String getTitle() {
@@ -19,12 +24,20 @@ public class AlarmDetail {
         this.title = title;
     }
 
-    public String getAction() {
-        return action;
+    public String getDetails() {
+        return details;
     }
 
-    public void setAction(String action) {
-        this.action = action;
+    public void setDetails(String details) {
+        this.details = details;
+    }
+
+    public int getDelay() {
+        return delay;
+    }
+
+    public void setDelay(int delay) {
+        this.delay = delay;
     }
 
 }
