@@ -166,6 +166,8 @@ public class StripchartWidget extends VisibleWidget
     private volatile ArrayWidgetProperty<AxisWidgetProperty> y_axes;
     private volatile ArrayWidgetProperty<TraceWidgetProperty> traces;
     private volatile RuntimeEventProperty configure;
+    private volatile RuntimeEventProperty open_full;
+
 
     public StripchartWidget()
     {
@@ -189,8 +191,8 @@ public class StripchartWidget extends VisibleWidget
         properties.add(y_axes = propYAxes.createProperty(this, Arrays.asList(AxisWidgetProperty.create(propYAxis, this, Messages.PlotWidget_Y))));
         properties.add(traces = propTraces.createProperty(this, Arrays.asList(new TraceWidgetProperty(this, 0))));
         properties.add(configure = (RuntimeEventProperty) runtimePropConfigure.createProperty(this, null));
+        properties.add(open_full = (RuntimeEventProperty) DataBrowserWidget.runtimePropOpenFull.createProperty(this, null));
     }
-
 
     /** @return 'background_color' property */
     public WidgetProperty<WidgetColor> propBackground()
@@ -268,5 +270,11 @@ public class StripchartWidget extends VisibleWidget
     public RuntimeEventProperty runtimePropConfigure()
     {
         return configure;
+    }
+
+    /** @return 'open_full' property */
+    public RuntimeEventProperty runtimePropOpenDataBrowser()
+    {
+        return open_full;
     }
 }

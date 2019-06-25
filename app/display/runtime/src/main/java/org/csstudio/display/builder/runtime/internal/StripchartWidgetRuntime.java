@@ -11,26 +11,35 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.csstudio.display.builder.model.widgets.plots.DataBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.StripchartWidget;
+import org.csstudio.display.builder.runtime.Messages;
 import org.csstudio.display.builder.runtime.RuntimeAction;
 import org.csstudio.display.builder.runtime.WidgetRuntime;
 
-/** Runtime for the {@link DataBrowserWidget}
+/** Runtime for the {@link StripchartWidget}
  *
  *  <p>Adds 'configure' and toolbar entries to context menu.
  *
- *  <p>Updates 'selection_value' from 'selection_value_pv'.
- *  Selection PV must be set when runtime starts.
- *  Can not be changed while running.
- *
- *  @author Megan Grodowitz Initial version
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class StripchartWidgetRuntime  extends WidgetRuntime<StripchartWidget>
 {
-    private final List<RuntimeAction> runtime_actions = new ArrayList<>(2);
+    private class OpenDataBrowserAction extends RuntimeAction
+    {
+        OpenDataBrowserAction()
+        {
+            super(Messages.OpenDataBrowser, "/icons/databrowser.png");
+        }
+
+        @Override
+        public void run()
+        {
+            widget.runtimePropOpenDataBrowser().trigger();
+        }
+    }
+
+    private final List<RuntimeAction> runtime_actions = new ArrayList<>(3);
 
     @Override
     public void initialize(final StripchartWidget widget)
@@ -38,6 +47,7 @@ public class StripchartWidgetRuntime  extends WidgetRuntime<StripchartWidget>
         super.initialize(widget);
         runtime_actions.add(new ConfigureAction("Configure Plot", widget.runtimePropConfigure()));
         runtime_actions.add(new ToggleToolbarAction(widget));
+        runtime_actions.add(new OpenDataBrowserAction());
     }
 
     @Override

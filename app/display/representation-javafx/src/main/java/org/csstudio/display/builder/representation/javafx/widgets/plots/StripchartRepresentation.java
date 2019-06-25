@@ -70,6 +70,9 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
     private final WidgetPropertyListener<List<AxisWidgetProperty>> axes_listener = this::axesChanged;
     private final WidgetPropertyListener<List<TraceWidgetProperty>> traces_listener = this::tracesChanged;
     private final WidgetPropertyListener<Instant> config_dialog_listener = (p, o, n) -> plot.getPlot().showConfigurationDialog();
+    private final WidgetPropertyListener<Instant> open_databrowser_listener = (p, o, n) ->
+        DataBrowserRepresentation.openFullDataBrowser(model, model_widget.getMacrosOrProperties(), model_widget.propToolbar().getValue());
+
 
     @Override
     protected Pane createJFXNode() throws Exception
@@ -118,7 +121,10 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
         model_widget.propTraces().addPropertyListener(traces_listener);
 
         if (! toolkit.isEditMode())
+        {
             model_widget.runtimePropConfigure().addPropertyListener(config_dialog_listener);
+            model_widget.runtimePropOpenDataBrowser().addPropertyListener(open_databrowser_listener);
+        }
 
         // Initial update
         for (TraceWidgetProperty trace : model_widget.propTraces().getValue())
@@ -144,9 +150,10 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
         model_widget.propYAxes().removePropertyListener(axes_listener);
 
         if (! toolkit.isEditMode())
+        {
             model_widget.runtimePropConfigure().removePropertyListener(config_dialog_listener);
-
-        // TODO Unregister all the listeners
+            model_widget.runtimePropOpenDataBrowser().removePropertyListener(open_databrowser_listener);
+        }
 
         super.unregisterListeners();
     }
