@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -133,6 +133,9 @@ public class XYPlotWidget extends VisibleWidget
 
             if (xml_version.getMajor() < 2)
             {
+                if (StripchartWidget.isLegacyStripchart(xml))
+                    return false;
+
                 // Legacy widget had a "pv_name" property that was basically used as a macro within the widget
                 final String pv_macro = XMLUtil.getChildString(xml, "pv_name").orElse("");
                 final XYPlotWidget plot = (XYPlotWidget) widget;
@@ -229,50 +232,6 @@ public class XYPlotWidget extends VisibleWidget
             }
         }
 
-        private PlotWidgetTraceType mapTraceType(final int legacy_type)
-        {
-            switch (legacy_type)
-            {
-            case 2: // POINT
-                return PlotWidgetTraceType.NONE;
-            case 6: // STEP_HORIZONTALLY
-                return PlotWidgetTraceType.STEP;
-            case 0: // SOLID_LINE
-            case 1: // DASH_LINE
-            case 3: // BAR
-            case 4: // AREA
-            case 5: // STEP_VERTICALLY
-            default:
-                return PlotWidgetTraceType.LINE;
-            }
-        }
-
-        private PlotWidgetPointType mapPointType(final int legacy_style)
-        {
-            switch (legacy_style)
-            {
-            case 0: // None
-                return PlotWidgetPointType.NONE;
-            case 1: // POINT
-            case 2: // CIRCLE
-                return PlotWidgetPointType.CIRCLES;
-            case 3: // TRIANGLE
-            case 4: // FILLED_TRIANGLE
-                return PlotWidgetPointType.TRIANGLES;
-            case 5: // SQUARE
-            case 6: // FILLED_SQUARE
-                return PlotWidgetPointType.SQUARES;
-            case 7: // DIAMOND
-            case 8: // FILLED_DIAMOND
-                return PlotWidgetPointType.DIAMONDS;
-            case 9: // XCROSS
-            case 10: // CROSS
-            case 11: // BAR
-            default:
-                return PlotWidgetPointType.XMARKS;
-            }
-        }
-
         private boolean handleLegacyTraces(final ModelReader model_reader,
                                            final Widget widget, final Element xml, final String pv_macro) throws Exception
         {
@@ -291,7 +250,7 @@ public class XYPlotWidget extends VisibleWidget
                 if (concat.isPresent()  &&  concat.get().equals("true"))
                 {
                 	logger.log(Level.WARNING, plot + " does not support 'concatenate_data' for trace " + legacy_trace + ", PV " + pv_name);
-                	logger.log(Level.WARNING, "To plot a scalar PV over time, consider the Data Browser widget");
+                	logger.log(Level.WARNING, "To plot a scalar PV over time, consider the Strip Chart or Data Browser widget");
                 }
 
                 final TraceWidgetProperty trace;
@@ -314,13 +273,13 @@ public class XYPlotWidget extends VisibleWidget
                     trace.traceColor().readFromXML(model_reader, element);
 
                 XMLUtil.getChildInteger(xml, "trace_" + legacy_trace + "_trace_type")
-                        .ifPresent(type -> trace.traceType().setValue(mapTraceType(type)));
+                        .ifPresent(type -> trace.traceType().setValue(StripchartWidget.mapTraceType(type)));
 
                 XMLUtil.getChildInteger(xml, "trace_" + legacy_trace + "_point_size")
                        .ifPresent(size -> trace.tracePointSize().setValue(size));
 
                 XMLUtil.getChildInteger(xml, "trace_" + legacy_trace + "_point_style")
-                       .ifPresent(style -> trace.tracePointType().setValue(mapPointType(style)));
+                       .ifPresent(style -> trace.tracePointType().setValue(StripchartWidget.mapPointType(style)));
 
                 // Name
                 String name = XMLUtil.getChildString(xml, "trace_" + legacy_trace + "_name").orElse("");
