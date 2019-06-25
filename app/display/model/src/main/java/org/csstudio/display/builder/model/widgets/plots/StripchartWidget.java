@@ -128,10 +128,10 @@ public class StripchartWidget extends VisibleWidget
                   Arrays.asList(CommonWidgetProperties.propName.createProperty(widget, "$(traces[" + index + "].y_pv)"),
                                 traceY.createProperty(widget, ""),
                                 traceYAxis.createProperty(widget, 0),
-                                traceType.createProperty(widget, PlotWidgetTraceType.LINE),
+                                traceType.createProperty(widget, PlotWidgetTraceType.STEP),
                                 // TODO Pick a default trace color based on index
                                 traceColor.createProperty(widget, new WidgetColor(0, 0, 255)),
-                                CommonWidgetProperties.propLineWidth.createProperty(widget, 1),
+                                CommonWidgetProperties.propLineWidth.createProperty(widget, 2),
                                 tracePointType.createProperty(widget, PlotWidgetPointType.NONE),
                                 tracePointSize.createProperty(widget, 10),
                                 CommonWidgetProperties.propVisible.createProperty(widget, true)));
@@ -186,7 +186,7 @@ public class StripchartWidget extends VisibleWidget
         properties.add(scale_font = PlotWidgetProperties.propScaleFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(show_toolbar = propToolbar.createProperty(this, true));
         properties.add(show_legend = PlotWidgetProperties.propLegend.createProperty(this, true));
-        properties.add(time_range = propTimeRange.createProperty(this, "30 minutes"));
+        properties.add(time_range = propTimeRange.createProperty(this, "1 minute"));
         properties.add(y_axes = propYAxes.createProperty(this, Arrays.asList(AxisWidgetProperty.create(propYAxis, this, Messages.PlotWidget_Y))));
         properties.add(traces = propTraces.createProperty(this, Arrays.asList(new TraceWidgetProperty(this, 0))));
         properties.add(configure = (RuntimeEventProperty) runtimePropConfigure.createProperty(this, null));

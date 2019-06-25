@@ -9,6 +9,7 @@ package org.csstudio.display.builder.representation.javafx.widgets.plots;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
+import java.time.Instant;
 import java.time.temporal.TemporalAmount;
 import java.util.List;
 import java.util.logging.Level;
@@ -19,10 +20,13 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.widgets.plots.StripchartWidget;
 import org.csstudio.display.builder.model.widgets.plots.StripchartWidget.AxisWidgetProperty;
+import org.csstudio.display.builder.model.widgets.plots.StripchartWidget.TraceWidgetProperty;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.csstudio.display.builder.representation.javafx.widgets.RegionBaseRepresentation;
 import org.csstudio.trends.databrowser3.model.AxisConfig;
 import org.csstudio.trends.databrowser3.model.Model;
+import org.csstudio.trends.databrowser3.model.ModelItem;
+import org.csstudio.trends.databrowser3.model.PVItem;
 import org.csstudio.trends.databrowser3.ui.Controller;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
 import org.phoebus.util.time.TimeParser;
@@ -64,6 +68,8 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
     private final UntypedWidgetPropertyListener optsChangedListener = this::optsChanged;
     private final UntypedWidgetPropertyListener modelChangedListener = this::modelChanged;
     private final WidgetPropertyListener<List<AxisWidgetProperty>> axes_listener = this::axesChanged;
+    private final WidgetPropertyListener<List<TraceWidgetProperty>> traces_listener = this::tracesChanged;
+    private final WidgetPropertyListener<Instant> config_dialog_listener = (p, o, n) -> plot.getPlot().showConfigurationDialog();
 
     @Override
     protected Pane createJFXNode() throws Exception
@@ -106,16 +112,17 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
         model_widget.propLabelFont().addUntypedPropertyListener(modelChangedListener);
         model_widget.propScaleFont().addUntypedPropertyListener(modelChangedListener);
         model_widget.propToolbar().addUntypedPropertyListener(optsChangedListener);
-        model_widget.propLegend().addUntypedPropertyListener(optsChangedListener);
+        model_widget.propLegend().addUntypedPropertyListener(modelChangedListener);
         model_widget.propTimeRange().addUntypedPropertyListener(modelChangedListener);
         model_widget.propYAxes().addPropertyListener(axes_listener);
+        model_widget.propTraces().addPropertyListener(traces_listener);
 
         if (! toolkit.isEditMode())
-        {
-            model_widget.runtimePropConfigure().addPropertyListener((p, o, n) -> plot.getPlot().showConfigurationDialog());
-        }
+            model_widget.runtimePropConfigure().addPropertyListener(config_dialog_listener);
 
         // Initial update
+        for (TraceWidgetProperty trace : model_widget.propTraces().getValue())
+            trackTraceChanges(trace);
         axesChanged(null, null, model_widget.propYAxes().getValue());
     }
 
@@ -124,13 +131,25 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
     {
         model_widget.propWidth().removePropertyListener(sizeChangedListener);
         model_widget.propHeight().removePropertyListener(sizeChangedListener);
+        model_widget.propForeground().removePropertyListener(modelChangedListener);
+        model_widget.propBackground().removePropertyListener(modelChangedListener);
+        model_widget.propGrid().removePropertyListener(modelChangedListener);
+        model_widget.propTitle().removePropertyListener(modelChangedListener);
+        model_widget.propTitleFont().removePropertyListener(modelChangedListener);
+        model_widget.propLabelFont().removePropertyListener(modelChangedListener);
+        model_widget.propScaleFont().removePropertyListener(modelChangedListener);
         model_widget.propToolbar().removePropertyListener(optsChangedListener);
+        model_widget.propLegend().removePropertyListener(modelChangedListener);
+        model_widget.propTimeRange().removePropertyListener(modelChangedListener);
+        model_widget.propYAxes().removePropertyListener(axes_listener);
+
+        if (! toolkit.isEditMode())
+            model_widget.runtimePropConfigure().removePropertyListener(config_dialog_listener);
 
         // TODO Unregister all the listeners
 
         super.unregisterListeners();
     }
-
 
     private void axesChanged(final WidgetProperty<List<AxisWidgetProperty>> prop, final List<AxisWidgetProperty> removed, final List<AxisWidgetProperty> added)
     {
@@ -169,6 +188,48 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
         axis.visible().removePropertyListener(modelChangedListener);
     }
 
+
+    private void tracesChanged(final WidgetProperty<List<TraceWidgetProperty>> prop, final List<TraceWidgetProperty> removed, final List<TraceWidgetProperty> added)
+    {
+        // Track/ignore axes
+        if (removed != null)
+            for (TraceWidgetProperty trace : removed)
+                ignoreTraceChanges(trace);
+
+        if (added != null)
+            for (TraceWidgetProperty trace : added)
+                trackTraceChanges(trace);
+
+        // Anything changed -> Update complete model
+        modelChanged(null, null, null);
+    }
+
+    private void trackTraceChanges(final TraceWidgetProperty trace)
+    {
+        trace.traceName().addUntypedPropertyListener(modelChangedListener);
+        trace.traceYPV().addUntypedPropertyListener(modelChangedListener);
+        trace.traceYAxis().addUntypedPropertyListener(modelChangedListener);
+        trace.traceType().addUntypedPropertyListener(modelChangedListener);
+        trace.traceColor().addUntypedPropertyListener(modelChangedListener);
+        trace.traceWidth().addUntypedPropertyListener(modelChangedListener);
+        trace.tracePointType().addUntypedPropertyListener(modelChangedListener);
+        trace.tracePointSize().addUntypedPropertyListener(modelChangedListener);
+        trace.traceVisible().addUntypedPropertyListener(modelChangedListener);
+    }
+
+    private void ignoreTraceChanges(final TraceWidgetProperty trace)
+    {
+        trace.traceName().removePropertyListener(modelChangedListener);
+        trace.traceYPV().removePropertyListener(modelChangedListener);
+        trace.traceYAxis().removePropertyListener(modelChangedListener);
+        trace.traceType().removePropertyListener(modelChangedListener);
+        trace.traceColor().removePropertyListener(modelChangedListener);
+        trace.traceWidth().removePropertyListener(modelChangedListener);
+        trace.tracePointType().removePropertyListener(modelChangedListener);
+        trace.tracePointSize().removePropertyListener(modelChangedListener);
+        trace.traceVisible().removePropertyListener(modelChangedListener);
+    }
+
     private void sizeChanged(final WidgetProperty<Integer> property, final Integer old_value, final Integer new_value)
     {
         dirty_size.mark();
@@ -196,8 +257,6 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
 
     private void updateModel()
     {
-        // TODO Monitor traces. When trace added, set its color?
-
         model.setPlotForeground(JFXUtil.convert(model_widget.propForeground().getValue()));
         model.setPlotBackground(JFXUtil.convert(model_widget.propBackground().getValue()));
         model.setGridVisible(model_widget.propGrid().getValue());
@@ -209,6 +268,10 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
         final TemporalAmount rel_start = TimeParser.parseTemporalAmount(model_widget.propTimeRange().getValue());
         model.setTimerange(TimeRelativeInterval.startsAt(rel_start));
 
+        final boolean show_legend = model_widget.propLegend().getValue();
+        model.setLegendVisible(show_legend);
+
+        // Value Axes
         int index = 0;
         final List<AxisWidgetProperty> axes = model_widget.propYAxes().getValue();
         while (model.getAxisCount() > axes.size())
@@ -221,6 +284,7 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
             else
                 config = model.addAxis();
             config.useAxisName(! axis.title().getValue().isEmpty());
+            config.useTraceNames(! show_legend);
             config.setName(axis.title().getValue());
             config.setRange(axis.minimum().getValue(), axis.maximum().getValue());
             config.setAutoScale(axis.autoscale().getValue());
@@ -228,6 +292,34 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
             config.setGridVisible(axis.grid().getValue());
             config.setVisible(axis.visible().getValue());
             ++index;
+        }
+
+        // PV traces
+        final List<ModelItem> items = model.getItems();
+        for (int i=items.size()-1;  i>=0;  --i)
+            model.removeItem(items.get(i));
+
+        for (TraceWidgetProperty trace : model_widget.propTraces().getValue())
+        {
+            if (! trace.traceVisible().getValue())
+                continue;
+
+            final PVItem item = new PVItem(trace.traceYPV().getValue(), 0.0);
+            item.setDisplayName(trace.traceName().getValue());
+            item.setAxis(model.getAxis(trace.traceYAxis().getValue()));
+            item.setTraceType(XYPlotRepresentation.map(trace.traceType().getValue()));
+            item.setColor(JFXUtil.convert(trace.traceColor().getValue()));
+            item.setLineWidth(trace.traceWidth().getValue());
+            item.setPointType(XYPlotRepresentation.map(trace.tracePointType().getValue()));
+            item.setPointSize(trace.tracePointSize().getValue());
+            try
+            {
+                model.addItem(item);
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Cannot add trace to strip chart", ex);
+            }
         }
     }
 
@@ -246,7 +338,6 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
         if (dirty_opts.checkAndClear())
         {
             plot.getPlot().showToolbar(model_widget.propToolbar().getValue());
-            model.setLegendVisible(model_widget.propLegend().getValue());
         }
     }
 

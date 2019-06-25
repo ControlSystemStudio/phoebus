@@ -88,6 +88,28 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
 
     private volatile boolean changing_marker = false;
 
+    static TraceType map(final PlotWidgetTraceType value)
+    {
+        // AREA* types create just a line if the input data is
+        // a plain array, but will also handle VStatistics
+        switch (value)
+        {
+        case NONE:          return TraceType.NONE;
+        case STEP:          return TraceType.AREA;
+        case ERRORBAR:      return TraceType.ERROR_BARS;
+        case LINE_ERRORBAR: return TraceType.LINES_ERROR_BARS;
+        case BARS:          return TraceType.BARS;
+        case LINE:
+        default:            return TraceType.AREA_DIRECT;
+        }
+    }
+
+    static PointType map(final PlotWidgetPointType value)
+    {   // For now the ordinals match,
+        // only different types to keep the Model separate from the Representation
+        return PointType.values()[value.ordinal()];
+    }
+
     private final RTPlotListener<Double> plot_listener = new RTPlotListener<>()
     {
         @Override
@@ -214,28 +236,6 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
             model_trace.traceYValue().addUntypedPropertyListener(value_listener);
             model_trace.traceErrorValue().addUntypedPropertyListener(value_listener);
             model_trace.traceVisible().addUntypedPropertyListener(trace_listener);
-        }
-
-        private TraceType map(final PlotWidgetTraceType value)
-        {
-            // AREA* types create just a line if the input data is
-            // a plain array, but will also handle VStatistics
-            switch (value)
-            {
-            case NONE:          return TraceType.NONE;
-            case STEP:          return TraceType.AREA;
-            case ERRORBAR:      return TraceType.ERROR_BARS;
-            case LINE_ERRORBAR: return TraceType.LINES_ERROR_BARS;
-            case BARS:          return TraceType.BARS;
-            case LINE:
-            default:            return TraceType.AREA_DIRECT;
-            }
-        }
-
-        private PointType map(final PlotWidgetPointType value)
-        {   // For now the ordinals match,
-            // only different types to keep the Model separate from the Representation
-            return PointType.values()[value.ordinal()];
         }
 
         private void traceChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
