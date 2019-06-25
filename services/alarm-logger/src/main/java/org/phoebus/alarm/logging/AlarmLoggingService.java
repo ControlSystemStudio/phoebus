@@ -172,22 +172,21 @@ public class AlarmLoggingService {
         final List<String> topicNames = Arrays.asList(properties.getProperty("alarm_topics").split(","));
         logger.info("Starting logger for '..State': " + topicNames);
 
-        // Check all the topic index already exist.
-        if (topicNames.stream().allMatch(topic -> {
-            return ElasticClientHelper.getInstance().indexExists(topic.toLowerCase() + "_alarms");
-        })) {
-            logger.info("found elastic indexes for all alarm topics");
-        } else {
-            logger.warning("WARNING: elastic index missing for the configured topics.");
-        }
+//        // Check all the topic index already exist.
+//        if (topicNames.stream().allMatch(topic -> {
+//            return ElasticClientHelper.getInstance().indexExists(topic.toLowerCase() + "_alarms");
+//        })) {
+//            logger.info("found elastic indexes for all alarm topics");
+//        } else {
+//            logger.warning("WARNING: elastic index missing for the configured topics.");
+//        }
 
         // Start a new stream consumer for each topic
         topicNames.forEach(topic -> {
             try
             {
-                Scheduler.execute(new AlarmStateLogger(topic));
+                Scheduler.execute(new AlarmMessageLogger(topic));
                 Scheduler.execute(new AlarmCmdLogger(topic));
-                Scheduler.execute(new AlarmConfigLogger(topic));
             } 
             catch (Exception ex)
             {
