@@ -103,6 +103,7 @@ public class Messages
     public static String SlideButton_Label;
     public static String Spinner_ButtonsOnLeft;
     public static String Stripchart_Description;
+    public static String Stripchart_LabelFont;
     public static String Stripchart_Name;
     public static String Stripchart_TimeRange;
     public static String Style;

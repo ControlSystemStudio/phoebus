@@ -10,7 +10,7 @@ package org.csstudio.display.builder.model.widgets.plots;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.runtimePropConfigure;
-import static org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.propGridColor;
+import static org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.propGrid;
 import static org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.propToolbar;
 import static org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.propTrace;
 import static org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.propYAxis;
@@ -38,11 +38,11 @@ import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
+import org.csstudio.display.builder.model.properties.FontWidgetProperty;
 import org.csstudio.display.builder.model.properties.RuntimeEventProperty;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.csstudio.display.builder.model.widgets.VisibleWidget;
-import org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.AxisWidgetProperty;
 
 /** Widget that displays X/Y waveforms
  *  @author Kay Kasemir
@@ -66,6 +66,57 @@ public class StripchartWidget extends VisibleWidget
 
     public static final WidgetPropertyDescriptor<String> propTimeRange =
             CommonWidgetProperties.newStringPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "time_range", Messages.Stripchart_TimeRange);
+
+    public static final WidgetPropertyDescriptor<WidgetFont> propLabelFont =
+            new WidgetPropertyDescriptor<>(
+                    WidgetPropertyCategory.DISPLAY, "label_font", Messages.Stripchart_LabelFont)
+    {
+        @Override
+        public WidgetProperty<WidgetFont> createProperty(final Widget widget,
+                final WidgetFont font)
+        {
+            return new FontWidgetProperty(this, widget, font);
+        }
+    };
+
+    // 'axis' structure
+    public static class AxisWidgetProperty extends StructuredWidgetProperty
+    {
+        public static AxisWidgetProperty create(final StructuredWidgetProperty.Descriptor descriptor, final Widget widget, final String title_text)
+        {
+            return new AxisWidgetProperty(descriptor, widget,
+                  Arrays.asList(PlotWidgetProperties.propTitle.createProperty(widget, title_text),
+                                PlotWidgetProperties.propAutoscale.createProperty(widget, false),
+                                PlotWidgetProperties.propLogscale.createProperty(widget, false),
+                                CommonWidgetProperties.propMinimum.createProperty(widget, 0.0),
+                                CommonWidgetProperties.propMaximum.createProperty(widget, 100.0),
+                                PlotWidgetProperties.propGrid.createProperty(widget, false),
+                                CommonWidgetProperties.propVisible.createProperty(widget, true)));
+        }
+
+        protected AxisWidgetProperty(final StructuredWidgetProperty.Descriptor axis_descriptor,
+                                     final Widget widget, final List<WidgetProperty<?>> elements)
+        {
+            super(axis_descriptor, widget, elements);
+        }
+
+        public WidgetProperty<String> title()           { return getElement(0); }
+        public WidgetProperty<Boolean> autoscale()      { return getElement(1); }
+        public WidgetProperty<Boolean> logscale()       { return getElement(2); }
+        public WidgetProperty<Double> minimum()         { return getElement(3); }
+        public WidgetProperty<Double> maximum()         { return getElement(4); }
+        public WidgetProperty<Boolean> grid()           { return getElement(5); }
+        public WidgetProperty<Boolean> visible()        { return getElement(6); }
+    };
+
+    // 'y_axes' array
+    public static final ArrayWidgetProperty.Descriptor<AxisWidgetProperty> propYAxes =
+        new ArrayWidgetProperty.Descriptor<>(WidgetPropertyCategory.BEHAVIOR, "y_axes", Messages.PlotWidget_YAxes,
+                                             (widget, index) ->
+                                             AxisWidgetProperty.create(propYAxis, widget,
+                                                                       index > 0
+                                                                       ? Messages.PlotWidget_Y + " " + index
+                                                                       : Messages.PlotWidget_Y));
 
 
     /** 'trace' structure */
@@ -105,9 +156,11 @@ public class StripchartWidget extends VisibleWidget
 
     private volatile WidgetProperty<WidgetColor> foreground;
     private volatile WidgetProperty<WidgetColor> background;
-    private volatile WidgetProperty<WidgetColor> grid;
+    private volatile WidgetProperty<Boolean> show_grid;
     private volatile WidgetProperty<String> title;
     private volatile WidgetProperty<WidgetFont> title_font;
+    private volatile WidgetProperty<WidgetFont> label_font;
+    private volatile WidgetProperty<WidgetFont> scale_font;
     private volatile WidgetProperty<Boolean> show_toolbar;
     private volatile WidgetProperty<Boolean> show_legend;
     private volatile WidgetProperty<String> time_range;
@@ -126,13 +179,15 @@ public class StripchartWidget extends VisibleWidget
         super.defineProperties(properties);
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)));
-        properties.add(grid = propGridColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.GRID)));
+        properties.add(show_grid = propGrid.createProperty(this, false));
         properties.add(title = PlotWidgetProperties.propTitle.createProperty(this, ""));
         properties.add(title_font = PlotWidgetProperties.propTitleFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.HEADER2)));
-        properties.add(show_toolbar = propToolbar.createProperty(this,false));
+        properties.add(label_font = propLabelFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT_BOLD)));
+        properties.add(scale_font = PlotWidgetProperties.propScaleFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
+        properties.add(show_toolbar = propToolbar.createProperty(this, true));
         properties.add(show_legend = PlotWidgetProperties.propLegend.createProperty(this, true));
         properties.add(time_range = propTimeRange.createProperty(this, "30 minutes"));
-        properties.add(y_axes = PlotWidgetProperties.propYAxes.createProperty(this, Arrays.asList(AxisWidgetProperty.create(propYAxis, this, Messages.PlotWidget_Y))));
+        properties.add(y_axes = propYAxes.createProperty(this, Arrays.asList(AxisWidgetProperty.create(propYAxis, this, Messages.PlotWidget_Y))));
         properties.add(traces = propTraces.createProperty(this, Arrays.asList(new TraceWidgetProperty(this, 0))));
         properties.add(configure = (RuntimeEventProperty) runtimePropConfigure.createProperty(this, null));
     }
@@ -150,10 +205,10 @@ public class StripchartWidget extends VisibleWidget
         return foreground;
     }
 
-    /** @return 'grid_color' property */
-    public WidgetProperty<WidgetColor> propGridColor()
+    /** @return 'show_grid' property */
+    public WidgetProperty<Boolean> propGrid()
     {
-        return grid;
+        return show_grid;
     }
 
     /** @return 'title' property */
@@ -166,6 +221,18 @@ public class StripchartWidget extends VisibleWidget
     public WidgetProperty<WidgetFont> propTitleFont()
     {
         return title_font;
+    }
+
+    /** @return 'label_font' property */
+    public WidgetProperty<WidgetFont> propLabelFont()
+    {
+        return label_font;
+    }
+
+    /** @return 'scale_font' property */
+    public WidgetProperty<WidgetFont> propScaleFont()
+    {
+        return scale_font;
     }
 
     /** @return 'show_toolbar' property */
