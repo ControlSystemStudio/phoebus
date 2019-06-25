@@ -40,4 +40,9 @@ public class AlarmDetail {
         this.delay = delay;
     }
 
+    @Override
+    public String toString() {
+        return "AlarmDetail [title=" + title + ", details=" + details + ", delay=" + delay + "]";
+    }
+
 }

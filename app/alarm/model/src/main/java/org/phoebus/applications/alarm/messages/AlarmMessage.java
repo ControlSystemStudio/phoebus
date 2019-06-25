@@ -256,6 +256,10 @@ public class AlarmMessage {
             configMessage.setCount(count);
             configMessage.setFilter(filter);
 
+            configMessage.setGuidance(guidance);
+            configMessage.setDisplays(displays);
+            configMessage.setCommands(commands);
+            configMessage.setActions(actions);
             return configMessage;
         } else {
             return null;

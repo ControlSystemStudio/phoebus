@@ -33,10 +33,10 @@ public class AlarmConfigMessage {
     private int delay;
     private int count;
     private String filter;
-    private List<Map<String, String>> guidance;
-    private List<Map<String, String>> displays;
-    private List<Map<String, String>> commands;
-    private List<Map<String, String>> actions;
+    private List<AlarmDetail> guidance;
+    private List<AlarmDetail> displays;
+    private List<AlarmDetail> commands;
+    private List<AlarmDetail> actions;
 
     private String delete;
 
@@ -119,35 +119,35 @@ public class AlarmConfigMessage {
         this.filter = filter;
     }
 
-    public List<Map<String, String>> getGuidance() {
+    public List<AlarmDetail> getGuidance() {
         return guidance;
     }
 
-    public void setGuidance(List<Map<String, String>> guidance) {
+    public void setGuidance(List<AlarmDetail> guidance) {
         this.guidance = guidance;
     }
 
-    public List<Map<String, String>> getDisplays() {
+    public List<AlarmDetail> getDisplays() {
         return displays;
     }
 
-    public void setDisplays(List<Map<String, String>> displays) {
+    public void setDisplays(List<AlarmDetail> displays) {
         this.displays = displays;
     }
 
-    public List<Map<String, String>> getCommands() {
+    public List<AlarmDetail> getCommands() {
         return commands;
     }
 
-    public void setCommands(List<Map<String, String>> commands) {
+    public void setCommands(List<AlarmDetail> commands) {
         this.commands = commands;
     }
 
-    public List<Map<String, String>> getActions() {
+    public List<AlarmDetail> getActions() {
         return actions;
     }
 
-    public void setActions(List<Map<String, String>> actions) {
+    public void setActions(List<AlarmDetail> actions) {
         this.actions = actions;
     }
 
