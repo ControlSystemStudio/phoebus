@@ -2,7 +2,9 @@ package org.phoebus.applications.alarm.messages;
 
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.phoebus.util.time.TimestampFormats;
 
@@ -15,22 +17,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * A message which describes both state and configuration events
  * 
- * @author kunal
+ * @author Kunal Shroff
  *
  */
 @JsonInclude(Include.NON_NULL)
 public class AlarmMessage {
 
+    // Flag describing if the message is a configuration message or a state update message
     private boolean config = true;
 
     private String user;
     private String host;
     private String description;
 
+    private Map<String, String> time;
+    @JsonIgnore
     private Instant alarmTime;
-    private Instant msgTime;
 
-    // config
+    // config message
     private boolean enabled = true;
     private boolean latching = true;
     private boolean annunciating = true;
@@ -42,13 +46,22 @@ public class AlarmMessage {
     private List<AlarmDetail> commands;
     private List<AlarmDetail> actions;
 
-    // State
+    // state message
     private String severity;
     private String message;
     private String value;
     private String current_severity;
     private String current_message;
     private String mode;
+
+    // The following fields encapsulate additional information for simplifying processing
+    private boolean latch;
+    private String delete;
+
+    private Instant message_time;
+
+    private String path;
+    private String pv;
 
     public AlarmMessage() {
 
@@ -86,20 +99,12 @@ public class AlarmMessage {
         this.description = description;
     }
 
-    public Instant getAlarmTime() {
-        return alarmTime;
+    public Map<String, String> getTime() {
+        return time;
     }
 
-    public void setAlarmTime(Instant alarmTime) {
-        this.alarmTime = alarmTime;
-    }
-
-    public Instant getMsgTime() {
-        return msgTime;
-    }
-
-    public void setMsgTime(Instant msgTime) {
-        this.msgTime = msgTime;
+    public void setTime(Map<String, String> time) {
+        this.time = time;
     }
 
     public boolean isEnabled() {
@@ -229,8 +234,57 @@ public class AlarmMessage {
     public void setMode(String mode) {
         this.mode = mode;
     }
-
     
+    public Instant getMsgTime() {
+        return message_time;
+    }
+
+    public void setMsgTime(Instant message_time) {
+        this.message_time = message_time;
+    }
+
+    @JsonIgnore
+    public AlarmConfigMessage getAlarmConfigMessage() {
+        if (isConfig()) {
+            AlarmConfigMessage configMessage = new AlarmConfigMessage();
+            return configMessage;
+        } else {
+            return null;
+        }
+    }
+
+    @JsonIgnore
+    public AlarmStateMessage getAlarmStateMessage() {
+        if (!isConfig()) {
+            AlarmStateMessage stateMessage = new AlarmStateMessage();
+            return stateMessage;
+        } else {
+            return null;
+        }
+    }
+
+    @JsonIgnore
+    public Instant getAlarmTime() {
+        return Instant.ofEpochSecond(Long.parseLong(time.get("seconds")), Long.parseLong(time.get("nano")));
+    }
+
+    @JsonIgnore
+    public void setAlarmTime(Instant alarmTime) {
+        this.time = new HashMap<>();
+        this.time.put("seconds", String.valueOf(alarmTime.getEpochSecond()));
+        this.time.put("nano", String.valueOf(alarmTime.getNano()));
+    }
+
+    @JsonIgnore
+    public String getDelete() {
+        return delete;
+    }
+
+    @JsonIgnore
+    public void setDelete(String delete) {
+        this.delete = delete;
+    }
+
     // The methods and classes below this are examples for handling the combined alarm state and config message
     @JsonIgnore
     private static final ObjectMapper objectStateMapper = new ObjectMapper();
