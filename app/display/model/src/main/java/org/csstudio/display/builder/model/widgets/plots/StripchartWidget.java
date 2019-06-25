@@ -197,9 +197,10 @@ public class StripchartWidget extends VisibleWidget
             return PlotWidgetTraceType.NONE;
         case 6: // STEP_HORIZONTALLY
             return PlotWidgetTraceType.STEP;
+        case 3: // BAR
+            return PlotWidgetTraceType.BARS;
         case 0: // SOLID_LINE
         case 1: // DASH_LINE
-        case 3: // BAR
         case 4: // AREA
         case 5: // STEP_VERTICALLY
         default:
