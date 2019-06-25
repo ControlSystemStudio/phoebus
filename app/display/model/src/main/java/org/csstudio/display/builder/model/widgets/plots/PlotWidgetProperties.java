@@ -18,6 +18,7 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
+import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
@@ -190,8 +191,7 @@ public class PlotWidgetProperties
                                 traceErr.createProperty(widget, ""),
                                 traceYAxis.createProperty(widget, 0),
                                 traceType.createProperty(widget, PlotWidgetTraceType.LINE),
-                                // TODO Pick a default trace color based on index
-                                traceColor.createProperty(widget, new WidgetColor(0, 0, 255)),
+                                traceColor.createProperty(widget, NamedWidgetColors.getPaletteColor(index)),
                                 CommonWidgetProperties.propLineWidth.createProperty(widget, 1),
                                 tracePointType.createProperty(widget, PlotWidgetPointType.NONE),
                                 tracePointSize.createProperty(widget, 10),

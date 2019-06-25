@@ -265,30 +265,8 @@ public class WidgetColorPopOverController implements Initializable {
         //  Add the 24 Visually Unique colors to the user's palette.
         //  They are useful to create plot tracks.
         //  See: http://phrogz.net/tmp/24colors.html
-        picker.getCustomColors().add(Color.rgb(255, 0, 0));
-        picker.getCustomColors().add(Color.rgb(255, 255, 0));
-        picker.getCustomColors().add(Color.rgb(0, 234, 255));
-        picker.getCustomColors().add(Color.rgb(170, 0, 255));
-        picker.getCustomColors().add(Color.rgb(255, 127, 0));
-        picker.getCustomColors().add(Color.rgb(191, 255, 0));
-        picker.getCustomColors().add(Color.rgb(0, 149, 255));
-        picker.getCustomColors().add(Color.rgb(255, 0, 170));
-        picker.getCustomColors().add(Color.rgb(255, 212, 0));
-        picker.getCustomColors().add(Color.rgb(106, 255, 0));
-        picker.getCustomColors().add(Color.rgb(0, 64, 255));
-        picker.getCustomColors().add(Color.rgb(237, 185, 185));
-        picker.getCustomColors().add(Color.rgb(185, 215, 237));
-        picker.getCustomColors().add(Color.rgb(231, 233, 185));
-        picker.getCustomColors().add(Color.rgb(220, 185, 237));
-        picker.getCustomColors().add(Color.rgb(185, 237, 224));
-        picker.getCustomColors().add(Color.rgb(143, 35, 35));
-        picker.getCustomColors().add(Color.rgb(35, 98, 143));
-        picker.getCustomColors().add(Color.rgb(143, 106, 35));
-        picker.getCustomColors().add(Color.rgb(107, 35, 143));
-        picker.getCustomColors().add(Color.rgb(79, 143, 35));
-        picker.getCustomColors().add(Color.rgb(0, 0, 0));
-        picker.getCustomColors().add(Color.rgb(115, 115, 115));
-        picker.getCustomColors().add(Color.rgb(204, 204, 204));
+        for (WidgetColor c : NamedWidgetColors.PALETTE)
+            picker.getCustomColors().add(JFXUtil.convert(c));
 
         //  Search field
         //searchField.setPromptText(Messages.WidgetColorPopOver_SearchField);

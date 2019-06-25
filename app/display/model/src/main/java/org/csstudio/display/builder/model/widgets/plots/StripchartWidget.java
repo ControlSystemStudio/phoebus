@@ -129,8 +129,7 @@ public class StripchartWidget extends VisibleWidget
                                 traceY.createProperty(widget, ""),
                                 traceYAxis.createProperty(widget, 0),
                                 traceType.createProperty(widget, PlotWidgetTraceType.STEP),
-                                // TODO Pick a default trace color based on index
-                                traceColor.createProperty(widget, new WidgetColor(0, 0, 255)),
+                                traceColor.createProperty(widget, NamedWidgetColors.getPaletteColor(index)),
                                 CommonWidgetProperties.propLineWidth.createProperty(widget, 2),
                                 tracePointType.createProperty(widget, PlotWidgetPointType.NONE),
                                 tracePointSize.createProperty(widget, 10),
