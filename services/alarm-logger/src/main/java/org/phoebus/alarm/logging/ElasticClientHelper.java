@@ -67,8 +67,8 @@ public class ElasticClientHelper {
     }
 
     /**
-     * Check if an index exists with the given name Note: this is an synchronous
-     * call
+     * Check if an index exists with the given name 
+     * Note: this is an synchronous call
      *
      * @param indexName
      * @return true if index exists
@@ -92,6 +92,7 @@ public class ElasticClientHelper {
             IndexResponse indexResponse = client.index(indexRequest);
             return indexResponse.getResult().equals(Result.CREATED);
         } catch (IOException e) {
+            logger.log(Level.SEVERE, "failed to log message " + alarmStateMessage + " to index " + indexName, e);
             return false;
         }
     }
@@ -103,6 +104,7 @@ public class ElasticClientHelper {
             IndexResponse indexResponse = client.index(indexRequest);
             return indexResponse.getResult().equals(Result.CREATED);
         } catch (IOException e) {
+            logger.log(Level.SEVERE, "failed to log message " + alarmCommandMessage + " to index " + indexName, e);
             return false;
         }
     }
@@ -114,6 +116,7 @@ public class ElasticClientHelper {
             IndexResponse indexResponse = client.index(indexRequest);
             return indexResponse.getResult().equals(Result.CREATED);
         } catch (IOException e) {
+            logger.log(Level.SEVERE, "failed to log message " + alarmConfigMessage + " to index " + indexName, e);
             return false;
         }
     }
