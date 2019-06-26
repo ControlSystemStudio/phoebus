@@ -55,18 +55,32 @@ public class PVAStructure extends PVADataWithID
      *
      *  <p>The value of each element may be updated, but
      *  no elements can be added, removed, replaced.
+     *
      */
     private final List<PVAData> elements;
 
+    /** @param name Name of the structure (may be "")
+     *  @param struct_name Type name of the structure (may be "")
+     *  @param elements Elements, must be named
+     *  @throws IllegalArgumentException when an element is not named
+     */
     public PVAStructure(final String name, final String struct_name, final PVAData... elements)
     {
         this(name, struct_name, List.of(elements));
     }
 
+    /** @param name Name of the structure (may be "")
+     *  @param struct_name Type name of the structure (may be "")
+     *  @param elements Elements, must be named
+     *  @throws IllegalArgumentException when an element is not named
+     */
     public PVAStructure(final String name, final String struct_name, final List<PVAData> elements)
     {
         super(name);
         this.struct_name = struct_name;
+        for (PVAData element : elements)
+            if (element.getName().isEmpty())
+                throw new IllegalArgumentException("Structure with unnamed element");
         this.elements = Collections.unmodifiableList(elements);
     }
 
