@@ -115,10 +115,13 @@ PVA Server:
  * Responds to searches
  * Forward unicast searches to local multicast group
  * Reply to 'list' search with GUID
+ * Reply to 'info'
  * Reply to 'get'
  * Support 'monitor'
    
 TODO:
 
  * Testing
- * Handle all the data types: Fixed size or bounded arrays
+ * Server: Support RPC
+ * Server: Support Put
+ * Handle fixed size or bounded arrays?
