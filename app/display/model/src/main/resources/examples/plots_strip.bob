@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Data Browser Plot</name>
+  <width>530</width>
+  <height>609</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Strip Chart Plot Widget</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>481</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Displays PVs over time.
+Similar to the Data Browser Plot widget, but configured using widget properties instead of a standalone Data Browser *.plt config file.</text>
+    <y>41</y>
+    <width>530</width>
+    <height>69</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Runtime Usage of Plot</text>
+    <y>490</y>
+    <width>221</width>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>The plot supports the same zoom and pan operations as the XYPlot.
+
+In addition, the context menu of the widget allows opening the full Data Browser for the *.plt file.</text>
+    <y>529</y>
+    <width>400</width>
+    <height>100</height>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_1</name>
+    <actions>
+      <action type="open_display">
+        <file>plots_xy.bob</file>
+        <target>replace</target>
+        <description>XY Plot</description>
+      </action>
+    </actions>
+    <x>410</x>
+    <y>529</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="stripchart" version="2.0.0">
+    <name>Strip Chart</name>
+    <y>110</y>
+    <width>520</width>
+    <height>360</height>
+    <show_toolbar>false</show_toolbar>
+    <show_legend>false</show_legend>
+    <y_axes>
+      <y_axis>
+        <title></title>
+        <autoscale>false</autoscale>
+        <log_scale>false</log_scale>
+        <minimum>-0.2</minimum>
+        <maximum>2.5</maximum>
+        <show_grid>false</show_grid>
+        <visible>true</visible>
+      </y_axis>
+      <y_axis>
+        <title></title>
+        <autoscale>false</autoscale>
+        <log_scale>false</log_scale>
+        <minimum>-20.0</minimum>
+        <maximum>5.5</maximum>
+        <show_grid>false</show_grid>
+        <visible>true</visible>
+      </y_axis>
+    </y_axes>
+    <traces>
+      <trace>
+        <name>$(traces[0].y_pv)</name>
+        <y_pv>sim://flipflop</y_pv>
+        <axis>0</axis>
+        <trace_type>2</trace_type>
+        <color>
+          <color red="0" green="0" blue="255">
+          </color>
+        </color>
+        <line_width>2</line_width>
+        <point_type>0</point_type>
+        <point_size>10</point_size>
+        <visible>true</visible>
+      </trace>
+      <trace>
+        <name>$(traces[1].y_pv)</name>
+        <y_pv>sim://sine</y_pv>
+        <axis>1</axis>
+        <trace_type>2</trace_type>
+        <color>
+          <color red="255" green="0" blue="0">
+          </color>
+        </color>
+        <line_width>2</line_width>
+        <point_type>0</point_type>
+        <point_size>10</point_size>
+        <visible>true</visible>
+      </trace>
+      <trace>
+        <name>$(traces[2].y_pv)</name>
+        <y_pv>sim://ramp</y_pv>
+        <axis>1</axis>
+        <trace_type>2</trace_type>
+        <color>
+          <color red="0" green="255" blue="0">
+          </color>
+        </color>
+        <line_width>2</line_width>
+        <point_type>0</point_type>
+        <point_size>10</point_size>
+        <visible>true</visible>
+      </trace>
+    </traces>
+  </widget>
+</display>
