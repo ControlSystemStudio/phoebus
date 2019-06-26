@@ -2,7 +2,6 @@ sudo: required
 language: java
 dist: trusty
 jdk:
-  - oraclejdk9
   - openjdk11
 
 before_install:
