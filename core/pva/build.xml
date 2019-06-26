@@ -5,11 +5,6 @@
         <mkdir dir="${classes}"/>
         <javac destdir="${classes}" debug="${debug}">
             <src path="${src}"/>
-            <classpath>
-                <fileset dir="${dependencies}/phoebus-target/target/lib">
-                    <include name="*.jar"/>
-                </fileset>
-            </classpath>
         </javac>
         <jar destfile="${build}/core-pva-${version}.jar">
             <fileset dir="${classes}"/>
