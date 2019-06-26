@@ -50,15 +50,17 @@ public class RPCDemo
         final PVAChannel ch = pva.getChannel("sum");
         ch.connect().get(2, TimeUnit.SECONDS);
 
+        // Assemble request parameters
         final PVAStructure request = new PVAStructure("", "",
                                                       new PVAString("a", "11"),
                                                       new PVADouble("b", 3.14));
-
         System.out.println("Request:\n" + request);
 
+        // Invoke RPC, get response
         final PVAStructure response = ch.invoke(request).get(10, TimeUnit.SECONDS);
         System.out.println("Response:\n" + response);
 
+        // Decode some element from response
         PVADouble sum = response.get("c");
         System.out.println("Sum: " + sum.get());
 
