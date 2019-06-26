@@ -55,8 +55,8 @@ public class PVAClient
     public PVAClient() throws Exception
     {
         List<InetSocketAddress> search_addresses = Network.parseAddresses(PVASettings.EPICS_PVA_ADDR_LIST.split("\\s+"));
-        if (search_addresses.isEmpty())
-            search_addresses = Network.getBroadcastAddresses(PVASettings.EPICS_PVA_BROADCAST_PORT);
+        if (PVASettings.EPICS_PVA_AUTO_ADDR_LIST)
+            search_addresses.addAll(Network.getBroadcastAddresses(PVASettings.EPICS_PVA_BROADCAST_PORT));
 
         udp = new ClientUDPHandler(this::handleBeacon, this::handleSearchResponse);
         search = new ChannelSearch(udp, search_addresses);
