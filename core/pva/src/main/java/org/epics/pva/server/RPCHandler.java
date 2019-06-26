@@ -49,7 +49,7 @@ class RPCHandler implements CommandHandler<ServerTCPHandler>
         final ServerPV pv = tcp.getServer().getPV(sid);
         if (pv == null)
         {
-            sendError(tcp, PVAHeader.CMD_RPC, req, subcmd, "bad channel id");
+            GetHandler.sendError(tcp, PVAHeader.CMD_RPC, req, subcmd, "bad channel id");
             return;
         }
 
@@ -72,27 +72,19 @@ class RPCHandler implements CommandHandler<ServerTCPHandler>
             parameters.decode(tcp.getClientTypes(), buffer);
 
             logger.log(Level.FINE, () -> "RPC call parameters:\n" + parameters);
-            final PVAStructure result = pv.call(parameters);
-
+            PVAStructure result;
+            try
+            {
+                result = pv.call(parameters);
+            }
+            catch (Throwable ex)
+            {
+                logger.log(Level.WARNING, "RPC call to " + pv + " failed", ex);
+                GetHandler.sendError(tcp, PVAHeader.CMD_RPC, req, subcmd, ex.getMessage());
+                return;
+            }
             sendRCPReply(tcp, req, pv, result);
         }
-    }
-
-    static void sendError(final ServerTCPHandler tcp, final byte command, final int req, final byte subcmd, final String message)
-    {
-        tcp.submit((version, buffer) ->
-        {
-            logger.log(Level.FINE, () -> "Sending error: " + message);
-
-            PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_SERVER, command, 0);
-            final int payload_start = buffer.position();
-            buffer.putInt(req);
-            buffer.put(subcmd);
-            final PVAStatus error = new PVAStatus(PVAStatus.Type.ERROR, message, "");
-            error.encode(buffer);
-
-            buffer.putInt(PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE, buffer.position() - payload_start);
-        });
     }
 
     static void sendInitReply(final ServerTCPHandler tcp, final byte command, final int req, final ServerPV pv)

@@ -139,8 +139,9 @@ public class ServerPV
     /** Incoke RPC service
      *  @param parameters RPC parameters
      *  @return RPC result
+     *  @throws Exception on error, for example invalid parameters
      */
-    PVAStructure call(final PVAStructure parameters)
+    PVAStructure call(final PVAStructure parameters) throws Exception
     {
         return rpc.call(parameters);
     }

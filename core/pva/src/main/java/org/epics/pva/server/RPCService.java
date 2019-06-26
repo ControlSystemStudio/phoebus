@@ -19,5 +19,5 @@ public interface RPCService
      *  @param parameters Service call parameters, i.e. arguments of the call
      *  @return Result
      */
-    public PVAStructure call(PVAStructure parameters);
+    public PVAStructure call(PVAStructure parameters) throws Exception;
 }
