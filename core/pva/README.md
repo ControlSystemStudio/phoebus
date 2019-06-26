@@ -103,6 +103,7 @@ PVA Client:
  * Get: Init, get structure, get value, destroy
  * Monitor: Init, get structure, subscribe, get changes, stop/destroy
  * Put: Init, get structure, update field, write, destroy
+ * RPC: Send request structure, get response structure
  * Decode data sent by IOC and 'image' demo
  * Close (destroy) channel
  * Close client
