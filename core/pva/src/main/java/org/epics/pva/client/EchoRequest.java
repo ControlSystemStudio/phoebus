@@ -15,6 +15,9 @@ import java.util.logging.Level;
 import org.epics.pva.common.PVAHeader;
 import org.epics.pva.common.RequestEncoder;
 
+/** Send a 'ECHO' request to server
+ *  @author Kay Kasemir
+ */
 @SuppressWarnings("nls")
 class EchoRequest implements RequestEncoder
 {

@@ -1,19 +1,23 @@
 <project default="core-pva">
     <import file="../../dependencies/ant_settings.xml"/>
 
-	<target name="core-pva">
-	    <mkdir dir="${classes}"/>
-	    <javac destdir="${classes}" debug="${debug}">
-	      <src path="${src}"/>
-	      <classpath>
-	        <fileset dir="${dependencies}/phoebus-target/target/lib">
-	          <include name="*.jar"/>
-	        </fileset>
-	      </classpath>
-	    </javac>
-	  	<jar destfile="${build}/core-pva-${version}.jar">
-	      <fileset dir="${classes}"/>
-	      <fileset dir="${resources}"/>
-	    </jar>
-	  </target>
+    <target name="core-pva">
+        <mkdir dir="${classes}"/>
+        <javac destdir="${classes}" debug="${debug}">
+            <src path="${src}"/>
+            <classpath>
+                <fileset dir="${dependencies}/phoebus-target/target/lib">
+                    <include name="*.jar"/>
+                </fileset>
+            </classpath>
+        </javac>
+        <jar destfile="${build}/core-pva-${version}.jar">
+            <fileset dir="${classes}"/>
+            <fileset dir="${resources}"/>
+            <manifest>
+            <attribute name="Main-Class"
+                       value="org.epics.pva.client.PVAClientMain"/>
+            </manifest>
+        </jar>
+    </target>
 </project>

@@ -50,7 +50,8 @@ class ClientTCPHandler extends TCPHandler
                               new GetHandler(),
                               new PutHandler(),
                               new MonitorHandler(),
-                              new GetTypeHandler());
+                              new GetTypeHandler(),
+                              new RPCHandler());
 
     /** Client context */
     private final PVAClient client;

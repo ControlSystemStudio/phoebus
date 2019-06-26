@@ -21,6 +21,9 @@ import org.epics.pva.data.PVAData;
 import org.epics.pva.data.PVAStatus;
 import org.epics.pva.data.PVAStructure;
 
+/** Send a 'GET' request to server and handle response
+ *  @author Kay Kasemir
+ */
 @SuppressWarnings("nls")
 class GetRequest extends CompletableFuture<PVAStructure> implements RequestEncoder, ResponseHandler
 {
