@@ -421,7 +421,7 @@ public class StripchartWidget extends VisibleWidget
         properties.add(label_font = propLabelFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT_BOLD)));
         properties.add(scale_font = PlotWidgetProperties.propScaleFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(show_toolbar = propToolbar.createProperty(this, true));
-        properties.add(show_legend = PlotWidgetProperties.propLegend.createProperty(this, true));
+        properties.add(show_legend = PlotWidgetProperties.propLegend.createProperty(this, false));
         properties.add(time_range = propTimeRange.createProperty(this, "1 minute"));
         properties.add(y_axes = propYAxes.createProperty(this, Arrays.asList(AxisWidgetProperty.create(propYAxis, this, Messages.PlotWidget_Y))));
         properties.add(traces = propTraces.createProperty(this, Arrays.asList(new TraceWidgetProperty(this, 0))));
