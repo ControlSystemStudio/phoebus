@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -102,6 +102,10 @@ public class Messages
     public static String ScrollBar_BarLength;
     public static String SlideButton_Label;
     public static String Spinner_ButtonsOnLeft;
+    public static String Stripchart_Description;
+    public static String Stripchart_LabelFont;
+    public static String Stripchart_Name;
+    public static String Stripchart_TimeRange;
     public static String Style;
     public static String Style_Group;
     public static String Style_Line;

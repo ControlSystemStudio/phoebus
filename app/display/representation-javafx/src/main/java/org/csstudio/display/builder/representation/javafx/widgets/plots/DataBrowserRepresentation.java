@@ -40,6 +40,7 @@ import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
 import org.epics.util.array.ArrayDouble;
 import org.epics.vtype.VTable;
 import org.epics.vtype.VType;
+import org.phoebus.framework.macros.MacroValueProvider;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -162,7 +163,8 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
         if (! toolkit.isEditMode())
         {
             model_widget.runtimePropConfigure().addPropertyListener((p, o, n) -> plot.getPlot().showConfigurationDialog());
-            model_widget.runtimePropOpenFull().addPropertyListener((p, o, n) -> openFullDataBrowser());
+            model_widget.runtimePropOpenFull().addPropertyListener((p, o, n) ->
+                openFullDataBrowser(model, model_widget.getMacrosOrProperties(), model_widget.propShowToolbar().getValue()));
 
             // Track selected sample?
             // 'selection_value_pv' must be set when runtime starts,
@@ -267,7 +269,7 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
             plot.getPlot().showToolbar(model_widget.propShowToolbar().getValue());
     }
 
-    private void openFullDataBrowser()
+    static void openFullDataBrowser(final Model model, final MacroValueProvider macros, final boolean show_toolbar)
     {
         try
         {
@@ -280,8 +282,8 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
             final Model clone = new Model();
             XMLPersistence.load(clone, in);
             // Override settings in *.plt file with those of widget
-            clone.setToolbarVisible(model_widget.propShowToolbar().getValue());
-            clone.setMacros(model_widget.getMacrosOrProperties());
+            clone.setToolbarVisible(show_toolbar);
+            clone.setMacros(macros);
             instance.getModel().load(clone);
         }
         catch (Throwable ex)

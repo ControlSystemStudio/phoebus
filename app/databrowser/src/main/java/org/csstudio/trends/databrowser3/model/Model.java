@@ -734,13 +734,13 @@ public class Model
             listener.changedLayout();
     }
 
-    /** @return <code>true</code> if toolbar is visible*/
+    /** @return <code>true</code> if legend is visible*/
     public boolean isLegendVisible()
     {
         return show_legend;
     }
 
-    /** @param visible Should toolbar be visible? */
+    /** @param visible Should legend be visible? */
     public void setLegendVisible(final boolean legend)
     {
         if (show_legend == legend)

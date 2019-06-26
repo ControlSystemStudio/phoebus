@@ -9,7 +9,6 @@ package org.csstudio.display.builder.representation.javafx;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
@@ -19,7 +18,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.text.TextAlignment;
 
 /** Dialog that prompts for password
  *
@@ -51,15 +49,15 @@ public class PasswordDialog extends Dialog<String>
         this.correct_password = correct_password;
         final DialogPane pane = getDialogPane();
 
-        pass_caption.setTextAlignment(TextAlignment.RIGHT);
-        pass_caption.setAlignment(Pos.CENTER_RIGHT);
-        pass_caption.setMaxHeight(Double.MAX_VALUE);
-
         pass_entry.setPromptText(Messages.Password_Prompt);
         pass_entry.setMaxWidth(Double.MAX_VALUE);
+
         HBox.setHgrow(pass_entry, Priority.ALWAYS);
 
         pane.setContent(new HBox(6, pass_caption, pass_entry));
+
+        pane.setMinSize(300, 150);
+        setResizable(true);
 
         setTitle(Messages.Password);
         setHeaderText(title);
@@ -91,7 +89,11 @@ public class PasswordDialog extends Dialog<String>
         if (correct_password.equals(password))
             return true;
         setHeaderText(Messages.Password_Error);
-        Platform.runLater(() -> pass_entry.requestFocus());
+        Platform.runLater(() ->
+        {
+            pass_entry.requestFocus();
+            pass_entry.selectAll();
+        });
         return false;
     }
 }

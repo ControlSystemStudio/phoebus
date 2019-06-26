@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -54,6 +54,7 @@ import org.csstudio.display.builder.model.widgets.Viewer3dWidget;
 import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.DataBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
+import org.csstudio.display.builder.model.widgets.plots.StripchartWidget;
 import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget;
 
 /** SPI for the base widgets
@@ -98,6 +99,7 @@ public class BaseWidgetsService implements WidgetsService
             ScrollBarWidget.WIDGET_DESCRIPTOR,
             SlideButtonWidget.WIDGET_DESCRIPTOR,
             SpinnerWidget.WIDGET_DESCRIPTOR,
+            StripchartWidget.WIDGET_DESCRIPTOR,
             SymbolWidget.WIDGET_DESCRIPTOR,
             TableWidget.WIDGET_DESCRIPTOR,
             TabsWidget.WIDGET_DESCRIPTOR,

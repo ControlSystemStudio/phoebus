@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.StringTokenizer;
 
 import org.csstudio.display.builder.model.properties.NamedWidgetColor;
+import org.csstudio.display.builder.model.properties.WidgetColor;
 
 /** Provider of {@link NamedWidgetColor}
  *
@@ -23,6 +24,48 @@ import org.csstudio.display.builder.model.properties.NamedWidgetColor;
 @SuppressWarnings("nls")
 public class NamedWidgetColors extends ConfigFileParser
 {
+    /** Palette of colors which are visually distinct from their neighbor
+     *  http://phrogz.net/tmp/24colors.html
+     */
+    public static final WidgetColor[] PALETTE = new WidgetColor[]
+    {
+        new WidgetColor(0, 0, 255),
+        new WidgetColor(255, 0, 0),
+        new WidgetColor(0, 255, 0),
+        new WidgetColor(170, 0, 255),
+        new WidgetColor(255, 255, 0),
+        new WidgetColor(0, 234, 255),
+        new WidgetColor(255, 127, 0),
+        new WidgetColor(191, 255, 0),
+        new WidgetColor(0, 149, 255),
+        new WidgetColor(255, 0, 170),
+        new WidgetColor(255, 212, 0),
+        new WidgetColor(237, 185, 185),
+        new WidgetColor(185, 215, 237),
+        new WidgetColor(231, 233, 185),
+        new WidgetColor(220, 185, 237),
+        new WidgetColor(185, 237, 224),
+        new WidgetColor(143, 35, 35),
+        new WidgetColor(35, 98, 143),
+        new WidgetColor(143, 106, 35),
+        new WidgetColor(107, 35, 143),
+        new WidgetColor(79, 143, 35),
+        new WidgetColor(0, 0, 0),
+        new WidgetColor(115, 115, 115),
+        new WidgetColor(204, 204, 204)
+    };
+
+    /** Get a palette color,
+     *  re-using colors when asking for more than palette holds
+     *
+     *  @param index Palette index
+     *  @return {@link WidgetColor}
+     */
+    public static WidgetColor getPaletteColor(final int index)
+    {
+        return PALETTE[index % PALETTE.length];
+    }
+
     /** Name of predefined color */
     public static final String ALARM_OK = "OK",
                                ALARM_MINOR = "MINOR",
