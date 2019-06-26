@@ -27,6 +27,9 @@ public class PVASettings
     /** Address list. When empty, local subnet is used */
     public static String EPICS_PVA_ADDR_LIST = "";
 
+    /** Add local broadcast addresses to addr list? */
+    public static boolean EPICS_PVA_AUTO_ADDR_LIST = true;
+
     /** First PVA port */
     public static int EPICS_PVA_SERVER_PORT = 5075;
 
@@ -77,6 +80,7 @@ public class PVASettings
     static
     {
         EPICS_PVA_ADDR_LIST = set("EPICS_PVA_ADDR_LIST", EPICS_PVA_ADDR_LIST);
+        EPICS_PVA_AUTO_ADDR_LIST = set("EPICS_PVA_AUTO_ADDR_LIST", EPICS_PVA_AUTO_ADDR_LIST);
         EPICS_PVA_SERVER_PORT = set("EPICS_PVA_SERVER_PORT", EPICS_PVA_SERVER_PORT);
         EPICS_PVA_BROADCAST_PORT = set("EPICS_PVA_BROADCAST_PORT", EPICS_PVA_BROADCAST_PORT);
         EPICS_CA_CONN_TMO = set("EPICS_CA_CONN_TMO", EPICS_CA_CONN_TMO);
@@ -99,6 +103,12 @@ public class PVASettings
         }
         logger.log(Level.CONFIG, name + " = " + default_value + " (default)");
         return default_value;
+    }
+
+    private static boolean set(final String name, final boolean default_value)
+    {
+        String text = set(name, default_value ? "YES" : "NO").toLowerCase();
+        return Boolean.parseBoolean(text)  ||  "yes".equals(text);
     }
 
     private static int set(final String name, final int default_value)

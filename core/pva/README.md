@@ -21,7 +21,7 @@ Build
 -----
 Both Ant and Maven are supported:
 
-    ant clean jar
+    ant clean core-pva
     mvn clean install
 
 Configuration
@@ -68,7 +68,8 @@ Then access it via
     pvaclient put ramp 5
     pvaclient monitor ramp rnd
 
-To test the server, run ServerDemo and then access it via
+To test the server, run ServerDemo in the IDE of your choice and then access it via
+the tools provided by EPICS base:
 
     pvinfo demo
     pvget demo

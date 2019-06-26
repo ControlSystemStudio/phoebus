@@ -88,6 +88,9 @@ public class PVAHeader
     /** Application command: Get type info */
     public static final byte CMD_GET_TYPE = 0x11;
 
+    /** Application command: Remote Procedure Call */
+    public static final byte CMD_RPC = 0x14;
+
     /** Application command: Cancel request */
     public static final byte CMD_CANCEL = 0x15;
 
@@ -95,7 +98,7 @@ public class PVAHeader
     public static final byte CMD_ORIGIN_TAG = 0x16;
 
 
-    /** Sub command to initialize GET/PUT/MONITOR (get data description) */
+    /** Sub command to initialize GET/PUT/MONITOR/RPC (get data description) */
     public static final byte CMD_SUB_INIT = 0x08;
 
     /** Sub command to (re)start getting monitor values */
@@ -104,7 +107,7 @@ public class PVAHeader
     /** Sub command to stop/pause a monitor*/
     public static final byte CMD_SUB_STOP = 0x04;
 
-    /** Sub command delete a request GET/PUT/MONITOR */
+    /** Sub command delete a request GET/PUT/MONITOR/RPC */
     public static final byte CMD_SUB_DESTROY = 0x10;
 
 

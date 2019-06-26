@@ -265,6 +265,15 @@ public class PVAChannel
             throw new Exception("Invalid monitor request ID " + subscription);
     }
 
+    /** Invoke remote procecure call (RPC)
+     *  @param request Request, i.e. parameters sent to the RPC call
+     *  @return {@link Future} for fetching the result returned by the RPC call
+     */
+    public Future<PVAStructure> invoke(final PVAStructure request)
+    {
+        return new RPCRequest(this, request);
+    }
+
     /** Called when server confirms channel has been destroyed
      *  @param sid Server ID for channel
      */
