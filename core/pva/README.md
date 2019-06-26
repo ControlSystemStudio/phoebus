@@ -118,10 +118,10 @@ PVA Server:
  * Reply to 'info'
  * Reply to 'get'
  * Support 'monitor'
+ * Support RPC
    
 TODO:
 
  * Testing
- * Server: Support RPC
  * Server: Support Put
  * Handle fixed size or bounded arrays?

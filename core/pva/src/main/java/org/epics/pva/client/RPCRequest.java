@@ -11,7 +11,6 @@ import static org.epics.pva.PVASettings.logger;
 
 import java.nio.ByteBuffer;
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
@@ -79,7 +78,7 @@ class RPCRequest extends CompletableFuture<PVAStructure> implements RequestEncod
             buffer.putInt(request_id);
             buffer.put(PVAHeader.CMD_SUB_INIT);
 
-            final PVAStructure generic_struct = new PVAStructure("", "", Collections.emptyList());
+            final PVAStructure generic_struct = new PVAStructure("", "");
             generic_struct.setTypeID((short)1);
             generic_struct.encodeType(buffer, new BitSet());
 

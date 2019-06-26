@@ -53,7 +53,7 @@ public class RPCDemo
         // Assemble request parameters
         final PVAStructure request = new PVAStructure("", "",
                                                       new PVAString("a", "11"),
-                                                      new PVADouble("b", 3.14));
+                                                      new PVAString("b", "3.14"));
         System.out.println("Request:\n" + request);
 
         // Invoke RPC, get response

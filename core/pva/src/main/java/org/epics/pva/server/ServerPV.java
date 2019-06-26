@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap.KeySetView;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
+import org.epics.pva.data.PVAString;
 import org.epics.pva.data.PVAStructure;
 
 /** A served PV with data
@@ -26,6 +27,15 @@ import org.epics.pva.data.PVAStructure;
 @SuppressWarnings("nls")
 public class ServerPV
 {
+    /** Value used when accessing an RPC PV as a data PV */
+    private static final PVAStructure RPC_SERVICE_VALUE = new PVAStructure("", "", new PVAString("value", "This is an RPC server"));
+
+    /** Value returned from RPC call to data PV */
+    private static final PVAStructure NO_SERVICE_VALUE = new PVAStructure("", "", new PVAString("value", "This is no RPC server"));
+
+    /** Service implementation when accessing a data PV as an RPC service */
+    private static final RPCService DEFAULT_RPC_SERVICE = request -> NO_SERVICE_VALUE;
+
     private static final AtomicInteger IDs = new AtomicInteger();
 
     private final String name;
@@ -37,14 +47,33 @@ public class ServerPV
      */
     private final PVAStructure data;
 
+    private final RPCService rpc;
+
     /** All the 'monitor' subscriptions to this PV */
     private final KeySetView<MonitorSubscription, Boolean> subscriptions = ConcurrentHashMap.newKeySet();
 
+    /** Create PV for serving data
+     *  @param name PV name
+     *  @param data Initial value
+     */
     ServerPV(final String name, final PVAStructure data)
     {
         this.name = name;
         this.sid = IDs.incrementAndGet();
         this.data = data.cloneData();
+        rpc = DEFAULT_RPC_SERVICE;
+    }
+
+    /** Create PV for handling RPC calls
+     *  @param name PV name
+     *  @param rpc {@link RPCService}
+     */
+    ServerPV(final String name, final RPCService rpc)
+    {
+        this.name = name;
+        this.sid = IDs.incrementAndGet();
+        this.data = RPC_SERVICE_VALUE;
+        this.rpc = rpc;
     }
 
     public int getSID()
@@ -105,6 +134,15 @@ public class ServerPV
         {
             return data.cloneData();
         }
+    }
+
+    /** Incoke RPC service
+     *  @param parameters RPC parameters
+     *  @return RPC result
+     */
+    PVAStructure call(final PVAStructure parameters)
+    {
+        return rpc.call(parameters);
     }
 
     @Override
