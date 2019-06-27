@@ -37,7 +37,6 @@ public class ServerDemo
                                                    new PVADouble("value", 3.13),
                                                    new PVAString("tag",   "Hello!"),
                                                    time);
-        time.set(Instant.now());
 
         // Create PVs
         final ServerPV pv = server.createPV("demo", data);
