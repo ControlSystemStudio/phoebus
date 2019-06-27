@@ -10,6 +10,7 @@ record(calc, "ramp$(N)")
   field(HIGH, "100")
   field(LSV,  "MINOR")
   field(HSV,  "MINOR")
+  field(FLNK, "waveform$(N)")
 }
 
 record(calc, "saw$(N)")
@@ -30,4 +31,12 @@ record(ai, "static$(N)")
   field(INP,  "42")
   field(PINI, "YES")
 }
+
+record(compress, "waveform$(N)")
+{
+  field(INP, "ramp$(N)")
+  field(NSAM, "100")
+  field(ALG, "Circular Buffer")
+}
+
 
