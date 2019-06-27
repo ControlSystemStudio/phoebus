@@ -21,7 +21,7 @@ import org.epics.pva.data.PVAStatus;
 import org.epics.pva.data.PVAStructure;
 
 @SuppressWarnings("nls")
-class MonitorRequest implements Monitor, RequestEncoder, ResponseHandler
+class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
 {
     private final PVAChannel channel;
 

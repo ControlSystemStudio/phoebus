@@ -238,10 +238,10 @@ public class PVAChannel
      *
      *  @param request Request, "" for all fields, or "field_a, field_b.subfield"
      *  @param listener Will be invoked with channel and latest value
-     *  @return {@link Monitor}, used to close the subscription
+     *  @return {@link AutoCloseable}, used to close the subscription
      *  @throws Exception on error
      */
-    public Monitor subscribe(final String request, final MonitorListener listener) throws Exception
+    public AutoCloseable subscribe(final String request, final MonitorListener listener) throws Exception
     {
         // MonitorRequest submits itself to TCPHandler
         // and registers as response handler,

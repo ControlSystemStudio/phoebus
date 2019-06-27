@@ -99,7 +99,7 @@ public class ClientDemo
 
         // Subscribe for 3 seconds...
         final AtomicInteger updates = new AtomicInteger();
-        final Monitor subscription = channel.subscribe("", (ch, changes, overruns, data) ->
+        final AutoCloseable subscription = channel.subscribe("", (ch, changes, overruns, data) ->
         {
             System.out.println(data);
             updates.incrementAndGet();
@@ -272,7 +272,7 @@ public class ClientDemo
                 }
             }
         };
-        Monitor monitor = ch1.subscribe("", monitor_listener);
+        AutoCloseable monitor = ch1.subscribe("", monitor_listener);
         Thread.sleep(5000);
 
         // Cancel subscription, subscribe to other channel
