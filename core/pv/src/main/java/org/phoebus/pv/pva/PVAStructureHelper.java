@@ -31,10 +31,16 @@ import org.epics.util.array.ArrayUInteger;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Display;
 import org.epics.vtype.Time;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VString;
+import org.epics.vtype.VStringArray;
 import org.epics.vtype.VTable;
 import org.epics.vtype.VType;
+
+import static org.phoebus.pv.pva.Decoders.*;
 
 @SuppressWarnings("nls")
 public class PVAStructureHelper
@@ -63,6 +69,10 @@ public class PVAStructureHelper
             if (field instanceof PVAStructureArray)
             {
                 actual = ((PVAStructureArray) field).get()[elementIndex.get()];
+            }
+            else if(field instanceof PVAArray)
+            {
+                return decodeNTArray(actual, elementIndex.get());
             }
             else
             {
@@ -186,5 +196,70 @@ public class PVAStructureHelper
         return VString.of(struct.format(),
                           Alarm.of(AlarmSeverity.UNDEFINED, AlarmStatus.CLIENT, "Unknown array type"),
                           Time.now());
+    }
+
+    /**
+     * Decode 'value', 'timeStamp', 'alarm' of NTArray and extract the value at index
+     * @param struct
+     * @param index
+     * @return {@link VType} 
+     * @throws Exception
+     */
+    private static VType decodeNTArray(PVAStructure struct, Integer index) throws Exception {
+        final PVAData field = struct.get("value");
+        if (field instanceof PVADoubleArray)
+        {
+            return VNumber.of(((VNumberArray) Decoders.decodeDoubleArray(struct, (PVADoubleArray) field)).getData().getDouble(index), 
+                    decodeAlarm(struct),
+                    decodeTime(struct),
+                    Display.none());
+        }
+        else if (field instanceof PVAFloatArray)
+        {
+            return VNumber.of(((VNumberArray) Decoders.decodeFloatArray(struct, (PVAFloatArray) field)).getData().getFloat(index), 
+                    decodeAlarm(struct),
+                    decodeTime(struct),
+                    Display.none());
+        }
+        else if (field instanceof PVALongArray)
+        {
+            return VNumber.of(((VNumberArray) Decoders.decodeLongArray(struct, (PVALongArray) field)).getData().getLong(index), 
+                    decodeAlarm(struct),
+                    decodeTime(struct),
+                    Display.none());
+        }
+        else if (field instanceof PVAIntArray)
+        {
+            return VNumber.of(((VNumberArray) Decoders.decodeIntArray(struct, (PVAIntArray) field)).getData().getInt(index), 
+                    decodeAlarm(struct),
+                    decodeTime(struct),
+                    Display.none());
+        }
+        else if (field instanceof PVAShortArray)
+        {
+            return VNumber.of(((VNumberArray) Decoders.decodeShortArray(struct, (PVAShortArray) field)).getData().getShort(index), 
+                    decodeAlarm(struct),
+                    decodeTime(struct),
+                    Display.none());
+        }
+        else if (field instanceof PVAByteArray)
+        {
+            return VNumber.of(((VNumberArray) Decoders.decodeByteArray(struct, (PVAByteArray) field)).getData().getByte(index), 
+                    decodeAlarm(struct),
+                    decodeTime(struct),
+                    Display.none());
+        }
+        else if (field instanceof PVAStringArray)
+        {
+            return VString.of(((VStringArray) Decoders.decodeStringArray(struct, (PVAStringArray) field)).getData().get(index), 
+                    decodeAlarm(struct),
+                    decodeTime(struct));
+        }
+        else
+        {
+            return VString.of(struct.format(),
+                    Alarm.of(AlarmSeverity.UNDEFINED, AlarmStatus.CLIENT, "Unknown array type"),
+                    Time.now());
+        }
     }
 }
