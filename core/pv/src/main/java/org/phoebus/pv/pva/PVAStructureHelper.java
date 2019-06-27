@@ -9,6 +9,7 @@ package org.phoebus.pv.pva;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.epics.pva.data.PVAArray;
 import org.epics.pva.data.PVAByteArray;
@@ -22,6 +23,7 @@ import org.epics.pva.data.PVAShortArray;
 import org.epics.pva.data.PVAString;
 import org.epics.pva.data.PVAStringArray;
 import org.epics.pva.data.PVAStructure;
+import org.epics.pva.data.PVAStructureArray;
 import org.epics.util.array.ArrayDouble;
 import org.epics.util.array.ArrayFloat;
 import org.epics.util.array.ArrayInteger;
@@ -40,6 +42,9 @@ public class PVAStructureHelper
     public static VType getVType(final PVAStructure struct, final PVNameHelper name_helper) throws Exception
     {
         PVAStructure actual = struct;
+
+        final Optional<Integer> elementIndex = name_helper.getElementIndex(); 
+       
         if (! name_helper.getField().equals("value"))
         {   // Fetch data from a sub-field
             final PVAData field = struct.get(name_helper.getField());
@@ -51,6 +56,19 @@ public class PVAStructureHelper
                 return Decoders.decodeString(struct, (PVAString) field);
         }
 
+        // Handle element references in arrays
+        if(elementIndex.isPresent())
+        {
+            final PVAData field = struct.get(name_helper.getField());
+            if (field instanceof PVAStructureArray)
+            {
+                actual = ((PVAStructureArray) field).get()[elementIndex.get()];
+            }
+            else
+            {
+                throw new Exception("Expected struct array for field " + name_helper.getField() + ", got " + struct);
+            }
+        }
         // Handle normative types
         String type = actual.getStructureName();
         if (type.startsWith("epics:nt/"))
