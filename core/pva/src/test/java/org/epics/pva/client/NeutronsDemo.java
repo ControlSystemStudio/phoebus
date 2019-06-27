@@ -63,9 +63,9 @@ public class NeutronsDemo
         {
             System.out.println(data);
         };
-        final int subscription = ch.subscribe("proton_charge, timeStamp.secondsPastEpoch, pixel", monitor_listener);
+        final Monitor subscription = ch.subscribe("proton_charge, timeStamp.secondsPastEpoch, pixel", monitor_listener);
         TimeUnit.SECONDS.sleep(5);
-        ch.unsubscribe(subscription);
+        subscription.close();
 
         // Close channels
         ch.close();

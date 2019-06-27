@@ -99,7 +99,7 @@ public class ClientDemo
 
         // Subscribe for 3 seconds...
         final AtomicInteger updates = new AtomicInteger();
-        final int subscription = channel.subscribe("", (ch, changes, overruns, data) ->
+        final Monitor subscription = channel.subscribe("", (ch, changes, overruns, data) ->
         {
             System.out.println(data);
             updates.incrementAndGet();
@@ -108,7 +108,7 @@ public class ClientDemo
         assertTrue(updates.get() > 0);
 
         // Unsubscribe, check that updates subside
-        channel.unsubscribe(subscription);
+        subscription.close();
         updates.set(0);
         TimeUnit.SECONDS.sleep(3);
         assertThat(updates.get(), equalTo(0));
@@ -272,14 +272,14 @@ public class ClientDemo
                 }
             }
         };
-        int monitor = ch1.subscribe("", monitor_listener);
+        Monitor monitor = ch1.subscribe("", monitor_listener);
         Thread.sleep(5000);
 
         // Cancel subscription, subscribe to other channel
-        ch1.unsubscribe(monitor);
+        monitor.close();
         monitor = ch2.subscribe("", monitor_listener);
         Thread.sleep(5000);
-        ch2.unsubscribe(monitor);
+        monitor.close();
 
         // write
         ch1.write("value", -5).get();
