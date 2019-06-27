@@ -18,6 +18,7 @@ import java.util.regex.Pattern;
  *  pva://channel_name
  *  pva://channel_name?request=field(some.structure.element)
  *  pva://channel_name/some/structure.element
+ *  pva://channel_name/some/array/structure.element[index]
  *  </pre>
  *
  *  @author Kay Kasemir
@@ -28,6 +29,7 @@ public class PVNameHelper
     final private static Pattern REQUEST_PATTERN = Pattern.compile("\\?request=field\\((.*)\\)");
     final private static int REQUEST_FIELD_START = "?request=".length();
 
+    // Regular expression for parsing out the array index value if present
     final private static Pattern ARRAY_PATTERN = Pattern.compile(".*(\\[\\S*\\])$");
     final private static Pattern ARRAY_INDEX_PATTERN = Pattern.compile("\\[(\\d*)\\]$");
     
@@ -79,6 +81,8 @@ public class PVNameHelper
         }
         else
         {
+            // Check if the channel name ends with "[index]", if present extract the array
+            // index part from the channel name and use it to populate the elementIndex optional
             final Matcher arraySyntax = ARRAY_PATTERN.matcher(field);
             if(arraySyntax.matches())
             {
@@ -91,8 +95,8 @@ public class PVNameHelper
                 }
                 else
                 {
-                    // error the 
-                    elementIndex = Optional.empty();
+                    // Error, the array index has not be correct defined, the index consist of non digit chars
+                    throw new Exception("Expect [index], where the index is a valid int but got \"" + field + "\"");
                 }
             }
             else
@@ -133,8 +137,8 @@ public class PVNameHelper
                 }
                 else
                 {
-                    // error the 
-                    elementIndex = Optional.empty();
+                    // Error, the array index has not be correct defined, the index consist of non digit chars
+                    throw new Exception("Expect [index], where the index is a valid int but got \"" + field + "\"");
                 }
             }
             else
