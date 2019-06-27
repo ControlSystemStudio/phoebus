@@ -55,7 +55,7 @@ class MonitorHandler implements CommandHandler<ServerTCPHandler>
             // FieldDesc pvRequestIF
             // PVField pvRequest
             final PVAData requested_type = tcp.getClientTypes().decodeType("", buffer);
-            logger.log(Level.FINE, () -> "Recieved MONITOR INIT request for " + pv + " as\n" + requested_type.formatType());
+            logger.log(Level.FINE, () -> "Received MONITOR INIT request for " + pv + " as\n" + requested_type.formatType());
             GetHandler.sendDataInitReply(tcp, PVAHeader.CMD_MONITOR, req, pv, requested_type);
         }
         else if (subcmd == PVAHeader.CMD_SUB_START)

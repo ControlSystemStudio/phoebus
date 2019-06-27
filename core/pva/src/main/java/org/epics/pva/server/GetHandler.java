@@ -59,7 +59,7 @@ class GetHandler implements CommandHandler<ServerTCPHandler>
             // FieldDesc pvRequestIF
             // PVField pvRequest
             final PVAData requested_type = tcp.getClientTypes().decodeType("", buffer);
-            logger.log(Level.FINE, () -> "Recieved GET INIT request for " + pv + " as\n" + requested_type.formatType());
+            logger.log(Level.FINE, () -> "Received GET INIT request for " + pv + " as\n" + requested_type.formatType());
             sendDataInitReply(tcp, PVAHeader.CMD_GET, req, pv, requested_type);
         }
         else

@@ -58,9 +58,9 @@ public class ImageDemo
             final PVAShortArray array = value.get();
             System.out.println("value: " + array.get().length + " elements");
         };
-        final int subscription = ch.subscribe("value, dimension, timeStamp", monitor_listener);
+        final AutoCloseable subscription = ch.subscribe("value, dimension, timeStamp", monitor_listener);
         TimeUnit.SECONDS.sleep(3000);
-        ch.unsubscribe(subscription);
+        subscription.close();
 
         // Close channels
         ch.close();

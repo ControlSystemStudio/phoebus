@@ -21,7 +21,7 @@ import org.epics.pva.data.PVAStatus;
 import org.epics.pva.data.PVAStructure;
 
 @SuppressWarnings("nls")
-class MonitorRequest implements RequestEncoder, ResponseHandler
+class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
 {
     private final PVAChannel channel;
 
@@ -160,7 +160,8 @@ class MonitorRequest implements RequestEncoder, ResponseHandler
         }
     }
 
-    public void cancel() throws Exception
+    @Override
+    public void close() throws Exception
     {
         // Submit request again, this time to stop getting data
         state = PVAHeader.CMD_SUB_DESTROY;
@@ -168,5 +169,11 @@ class MonitorRequest implements RequestEncoder, ResponseHandler
         tcp.submit(this, this);
         // Not expecting more replies
         tcp.removeResponseHandler(request_id);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "Monitor for " + channel + ", request ID " + request_id;
     }
 }

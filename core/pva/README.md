@@ -103,6 +103,7 @@ PVA Client:
  * Get: Init, get structure, get value, destroy
  * Monitor: Init, get structure, subscribe, get changes, stop/destroy
  * Put: Init, get structure, update field, write, destroy
+ * RPC: Send request structure, get response structure
  * Decode data sent by IOC and 'image' demo
  * Close (destroy) channel
  * Close client
@@ -114,10 +115,13 @@ PVA Server:
  * Responds to searches
  * Forward unicast searches to local multicast group
  * Reply to 'list' search with GUID
+ * Reply to 'info'
  * Reply to 'get'
  * Support 'monitor'
+ * Support RPC
    
 TODO:
 
  * Testing
- * Handle all the data types: Fixed size or bounded arrays
+ * Server: Support Put
+ * Handle fixed size or bounded arrays?

@@ -11,6 +11,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.util.BitSet;
 
@@ -112,6 +113,25 @@ public class StructureTest
         sub = data.get(i);
         System.out.println("Index " + i + ": " + sub);
         assertThat(sub, nullValue());
+    }
+
+    /** Check structure errors */
+    @Test
+    public void testError() throws Exception
+    {
+        // OK for structure to be empty, not named
+        new PVAStructure("", "");
+
+        // But _elements_ of the structure need names to address them
+        try
+        {
+            new PVAStructure("", "", new PVADouble(""));
+            fail("Structure elements must be named");
+        }
+        catch (Exception ex)
+        {
+            System.out.println("Expected: " + ex.getMessage());
+        }
     }
 
     /** Assign structure elements from a few different types */

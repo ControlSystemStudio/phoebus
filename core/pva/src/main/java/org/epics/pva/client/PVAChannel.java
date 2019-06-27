@@ -238,31 +238,15 @@ public class PVAChannel
      *
      *  @param request Request, "" for all fields, or "field_a, field_b.subfield"
      *  @param listener Will be invoked with channel and latest value
-     *  @return Subscription ID, used to {@link #unsubscribe}
+     *  @return {@link AutoCloseable}, used to close the subscription
      *  @throws Exception on error
      */
-    public int subscribe(final String request, final MonitorListener listener) throws Exception
+    public AutoCloseable subscribe(final String request, final MonitorListener listener) throws Exception
     {
         // MonitorRequest submits itself to TCPHandler
         // and registers as response handler,
         // so we can later retrieve it via its requestID
-        final MonitorRequest monitor = new MonitorRequest(this, request, listener);
-        // Use that request ID as subscription ID
-        return monitor.getRequestID();
-    }
-
-    /** Cancel a subscription
-     *  @param subscription Subscription ID obtained by {@link #subscribe}
-     *  @throws Exception on error
-     */
-    public void unsubscribe(final int subscription) throws Exception
-    {
-        // Locate MonitorRequest by ID
-        final ResponseHandler monitor = getTCP().getResponseHandler(subscription);
-        if (monitor != null  &&  monitor instanceof MonitorRequest)
-            ((MonitorRequest) monitor).cancel();
-        else
-            throw new Exception("Invalid monitor request ID " + subscription);
+        return new MonitorRequest(this, request, listener);
     }
 
     /** Invoke remote procecure call (RPC)
