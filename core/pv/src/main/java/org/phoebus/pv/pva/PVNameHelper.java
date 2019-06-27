@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.phoebus.pv.pva;
 
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,7 +28,11 @@ public class PVNameHelper
     final private static Pattern REQUEST_PATTERN = Pattern.compile("\\?request=field\\((.*)\\)");
     final private static int REQUEST_FIELD_START = "?request=".length();
 
+    final private static Pattern ARRAY_PATTERN = Pattern.compile(".*(\\[\\S*\\])$");
+    final private static Pattern ARRAY_INDEX_PATTERN = Pattern.compile("\\[(\\d*)\\]$");
+    
     final private String channel, field, read, write;
+    final private Optional<Integer> elementIndex;
 
     /** Create parser
      *
@@ -50,7 +55,7 @@ public class PVNameHelper
         if (pos >= 0)
             return PVNameHelper.forNameWithPath(name.substring(0, pos), name.substring(pos+1));
         // Plain channel name
-        return new PVNameHelper(name, "value", "field()", "field(value)");
+        return new PVNameHelper(name, "value", Optional.empty(), "field()", "field(value)");
     }
 
     /** @param channel Channel name
@@ -64,15 +69,39 @@ public class PVNameHelper
         if (! matcher.matches())
             throw new Exception("Expect ?request=field(...) but got \"" + request + "\"");
         String field = matcher.group(1);
+        final Optional<Integer> elementIndex;
         final String write;
         if (field.isEmpty())
         {
             field = "value";
             write = "field(value)";
+            elementIndex = Optional.empty();
         }
         else
+        {
+            final Matcher arraySyntax = ARRAY_PATTERN.matcher(field);
+            if(arraySyntax.matches())
+            {
+                String arraySyntaxString = arraySyntax.group(1);
+                field = field.substring(0, arraySyntax.start(1));
+                final Matcher arrayIndex = ARRAY_INDEX_PATTERN.matcher(arraySyntaxString);
+                if(arrayIndex.matches())
+                {
+                    elementIndex = Optional.of(Integer.valueOf(arrayIndex.group(1)));
+                }
+                else
+                {
+                    // error the 
+                    elementIndex = Optional.empty();
+                }
+            }
+            else
+            {
+                elementIndex = Optional.empty();
+            }
             write = "field(" + field + ".value)";
-        return new PVNameHelper(channel, field, request.substring(REQUEST_FIELD_START), write);
+        }
+        return new PVNameHelper(channel, field, elementIndex, request.substring(REQUEST_FIELD_START), write);
     }
 
     /** @param channel Channel name
@@ -82,20 +111,49 @@ public class PVNameHelper
      */
     private static PVNameHelper forNameWithPath(final String channel, final String path) throws Exception
     {
-        final String field = path.replace('/', '.');
-        final String write = field.isEmpty()
-                ? "field(value)"
-                : "field(" + field + ".value)";
-        return new PVNameHelper(channel, field, "field(" + field + ")",  write);
+        String field = path.replace('/', '.');
+        final String write;
+        final Optional<Integer> elementIndex;
+        if(field.isEmpty())
+        {
+            write = "field(value)";
+            elementIndex = Optional.empty();
+        }
+        else
+        {
+            final Matcher arraySyntax = ARRAY_PATTERN.matcher(field);
+            if(arraySyntax.matches())
+            {
+                String arraySyntaxString = arraySyntax.group(1);
+                field = field.substring(0, arraySyntax.start(1));
+                final Matcher arrayIndex = ARRAY_INDEX_PATTERN.matcher(arraySyntaxString);
+                if(arrayIndex.matches())
+                {
+                    elementIndex = Optional.of(Integer.valueOf(arrayIndex.group(1)));
+                }
+                else
+                {
+                    // error the 
+                    elementIndex = Optional.empty();
+                }
+            }
+            else
+            {
+                elementIndex = Optional.empty();
+            }
+            write = "field(" + field + ".value)";
+        }
+        return new PVNameHelper(channel, field, elementIndex,"field(" + field + ")",  write);
     }
 
     /** Private to enforce use of <code>forName</code> */
-    private PVNameHelper(final String channel, final String field, final String read, final String write) throws Exception
+    private PVNameHelper(final String channel, final String field, final Optional<Integer> elementIndex, final String read, final String write) throws Exception
     {
         if (channel.isEmpty())
             throw new Exception("Empty channel name");
         this.channel = channel;
         this.field = field;
+        this.elementIndex = elementIndex;
         this.read = read;
         this.write = write;
     }
@@ -124,13 +182,23 @@ public class PVNameHelper
         return write;
     }
 
+    /** @return The element index in the subscribed array*/
+    public Optional<Integer> getElementIndex()
+    {
+        return elementIndex;
+    }
+
     /** @return Debug representation */
     @Override
     public String toString()
     {
-        return "Channel '" + channel +
-                "', field '" + field +
-                "', read request '" + read +
-                "', write request '" + write + "'";
+        StringBuilder sb = new StringBuilder();
+        sb.append("Channel '").append(channel).append("'");
+        sb.append(", field '").append(field).append("'");
+        if(elementIndex.isPresent())
+            sb.append(", element index '").append(String.valueOf(elementIndex.get())).append("'");
+        sb.append(", read request '").append(read).append("'");
+        sb.append(", write request '").append(write).append("'");
+        return sb.toString();
     }
 }
