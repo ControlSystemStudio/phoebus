@@ -57,7 +57,7 @@ public class PVNameHelper
         if (pos >= 0)
             return PVNameHelper.forNameWithPath(name.substring(0, pos), name.substring(pos+1));
         // Plain channel name
-        return new PVNameHelper(name, "value", Optional.empty(), "field()", "field(value)");
+        return PVNameHelper.forPlainName(name);
     }
 
     /** @param channel Channel name
@@ -148,6 +148,37 @@ public class PVNameHelper
             write = "field(" + field + ".value)";
         }
         return new PVNameHelper(channel, field, elementIndex,"field(" + field + ")",  write);
+    }
+
+    /**
+     * @param channel plain channel name w/t array index
+     * @return {@link PVNameHelper}
+     * @throws Exception on invalid channel name
+     */
+    private static PVNameHelper forPlainName(String channel) throws Exception
+    {
+        final Matcher arraySyntax = ARRAY_PATTERN.matcher(channel);
+        final Optional<Integer> elementIndex;
+        if(arraySyntax.matches())
+        {
+            String arraySyntaxString = arraySyntax.group(1);
+            channel = channel.substring(0, arraySyntax.start(1));
+            final Matcher arrayIndex = ARRAY_INDEX_PATTERN.matcher(arraySyntaxString);
+            if(arrayIndex.matches())
+            {
+                elementIndex = Optional.of(Integer.valueOf(arrayIndex.group(1)));
+            }
+            else
+            {
+                // Error, the array index has not be correct defined, the index consist of non digit chars
+                throw new Exception("Expect [index], where the index is a valid int but got \"" + channel + "\"");
+            }
+        }
+        else
+        {
+            elementIndex = Optional.empty();
+        }
+        return new PVNameHelper(channel, "value", elementIndex, "field()", "field(value)");
     }
 
     /** Private to enforce use of <code>forName</code> */
