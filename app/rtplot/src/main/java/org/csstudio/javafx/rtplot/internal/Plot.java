@@ -9,7 +9,9 @@ package org.csstudio.javafx.rtplot.internal;
 
 import static org.csstudio.javafx.rtplot.Activator.logger;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -624,8 +626,24 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
 
         final Rectangle plot_bounds = plot_area.getBounds();
 
-        gc.setColor(background);
-        gc.fillRect(0, 0, area_copy.width, area_copy.height);
+        final Composite orig_composite;
+        if (background.getAlpha() < 255)
+        {   // Transparent background:
+            // Enable alpha and clear image by filling with 'transparent' white
+            orig_composite = gc.getComposite();
+            gc.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
+            gc.setColor(new Color(255, 255, 255, 0));
+            gc.fillRect(0, 0, area_copy.width, area_copy.height);
+        }
+        else
+            orig_composite = null;
+
+        // Skip fully transparent background (was included in 'clear' above)
+        if (background.getAlpha() > 0)
+        {
+            gc.setColor(background);
+            gc.fillRect(0, 0, area_copy.width, area_copy.height);
+        }
 
         title_part.setColor(foreground);
         title_part.paint(gc, title_font);
@@ -666,6 +684,10 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         // Annotations use label font
         for (AnnotationImpl<XTYPE> annotation : annotations)
             annotation.paint(gc, x_axis, y_axes.get(annotation.getTrace().getYAxis()));
+
+        // Restore composite (was set in case background not 100% opaque)
+        if (orig_composite != null)
+            gc.setComposite(orig_composite);
 
         return image;
     }
