@@ -626,24 +626,21 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
 
         final Rectangle plot_bounds = plot_area.getBounds();
 
-        final Composite orig_composite;
         if (background.getAlpha() < 255)
         {   // Transparent background:
-            // Enable alpha and clear image by filling with 'transparent' white
-            orig_composite = gc.getComposite();
-            gc.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
-            gc.setColor(new Color(255, 255, 255, 0));
+            // Enable alpha and clear image
+            final Composite orig_composite = gc.getComposite();
+            gc.setComposite(AlphaComposite.Clear);
             gc.fillRect(0, 0, area_copy.width, area_copy.height);
+            gc.setComposite(orig_composite);
         }
-        else
-            orig_composite = null;
 
-        // Skip fully transparent background (was included in 'clear' above)
         if (background.getAlpha() > 0)
         {
             gc.setColor(background);
             gc.fillRect(0, 0, area_copy.width, area_copy.height);
         }
+        // else: Skip fully transparent background (was already 'cleared')
 
         title_part.setColor(foreground);
         title_part.paint(gc, title_font);
@@ -685,9 +682,6 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         for (AnnotationImpl<XTYPE> annotation : annotations)
             annotation.paint(gc, x_axis, y_axes.get(annotation.getTrace().getYAxis()));
 
-        // Restore composite (was set in case background not 100% opaque)
-        if (orig_composite != null)
-            gc.setComposite(orig_composite);
 
         return image;
     }
