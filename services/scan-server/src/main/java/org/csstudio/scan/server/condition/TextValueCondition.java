@@ -129,6 +129,8 @@ public class TextValueCondition implements DeviceCondition, DeviceListener
         {
         case EQUALS:
             return desired_value.equals(value);
+        case UNEQUAL:
+            return ! desired_value.equals(value);
         case AT_LEAST:
             return value.compareTo(desired_value) >= 0;
         case ABOVE:
