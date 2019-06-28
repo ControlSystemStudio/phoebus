@@ -145,6 +145,8 @@ public class NumericValueCondition implements DeviceCondition, DeviceListener
         {
         case EQUALS:
             return Math.abs(desired_value - value) <= tolerance;
+        case UNEQUAL:
+            return value != desired_value;
         case AT_LEAST:
             return value >= desired_value;
         case ABOVE:

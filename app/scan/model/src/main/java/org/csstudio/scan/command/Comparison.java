@@ -24,6 +24,9 @@ public enum Comparison
     /** Value is at desired value, within tolerance */
     EQUALS("="),
 
+    /** Different from given value */
+    UNEQUAL("!="),
+
     /** Value above desired value, '>' */
     ABOVE(">"),
 

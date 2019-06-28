@@ -41,7 +41,7 @@ public class ScanServerInstance
 
     private static final CountDownLatch done = new CountDownLatch(1);
 
-    public static final String VERSION = "4.5.3";
+    public static final String VERSION = "4.5.4";
 
     private static URL scan_config_file = ScanServerInstance.class.getResource("/examples/scan_config.xml");
 
