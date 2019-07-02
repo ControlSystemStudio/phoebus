@@ -35,7 +35,7 @@ import se.esss.ics.masar.model.ConfigPv;
 
 /**
  *
- * <code>SnapshotTableEntry</code> represents a single line in the snapshot viewer table. It provides values for all columns in
+ * <code>TableEntry</code> represents a single line in the snapshot viewer table. It provides values for all columns in
  * the table, be it a single snapshot table or a multi snapthos table.
  *
  * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
@@ -43,7 +43,7 @@ import se.esss.ics.masar.model.ConfigPv;
  * This code has been modified at the European Spallation Source (ESS), Lund, Sweden.
  *
  */
-public class SnapshotTableEntry {
+public class TableEntry {
 
     private final IntegerProperty id = new SimpleIntegerProperty(this, "id");
     private final SingleListenerBooleanProperty selected = new SingleListenerBooleanProperty(this, "selected", true);
@@ -79,8 +79,8 @@ public class SnapshotTableEntry {
     /**
      * Construct a new table entry.
      */
-    public SnapshotTableEntry() {
-        //when read only is set to true, unselect this SnapshotTableEntryPvProxy
+    public TableEntry() {
+        //when read only is set to true, unselect this PV
         readOnly.addListener((a,o,n) -> {
             if (n) {
                 selected.set(false);
@@ -188,7 +188,7 @@ public class SnapshotTableEntry {
     }
 
     /**
-     * @return the property providing the live SnapshotTableEntryPvProxy value
+     * @return the property providing the live PV value
      */
     public ObjectProperty<VType> liveValueProperty() {
         return liveValue;
@@ -202,7 +202,7 @@ public class SnapshotTableEntry {
     }
 
     /**
-     * @return the property indicating the the SnapshotTableEntryPvProxy is read only or read and write
+     * @return the property indicating the the PV is read only or read and write
      */
     public BooleanProperty readOnlyProperty() {
         return readOnly;

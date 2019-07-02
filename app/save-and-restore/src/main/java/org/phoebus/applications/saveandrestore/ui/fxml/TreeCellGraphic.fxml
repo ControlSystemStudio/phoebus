@@ -1,45 +1,65 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.TextField?>
 
+<FlowPane xmlns="http://javafx.com/javafx/8.0.999-ea" xmlns:fx="http://javafx.com/fxml/1">
 
-<FlowPane xmlns:fx="http://javafx.com/fxml/1"
-			xmlns="http://javafx.com/javafx/8">
 	<HBox fx:id="folder">
 		<children>
 			<ImageView pickOnBounds="true" preserveRatio="true">
 				<image>
-					<Image url="/icons/fldr_obj.png" />
+					<Image url="/icons/small/Folder@.png" />
 				</image>
 			</ImageView>
-			<Label text="Label" fx:id="folderLabel" />
+			<Label fx:id="folderLabel" text="Label" />
 		</children>
 	</HBox>
 
-	<HBox fx:id="saveset" >
+	<HBox fx:id="saveset">
 		<children>
 			<ImageView pickOnBounds="true" preserveRatio="true">
 				<image>
-					<Image url="/icons/txt.png" />
+					<Image url="/icons/small/Save-set@.png" />
 				</image>
+            <HBox.margin>
+               <Insets top="-1.0" />
+            </HBox.margin>
 			</ImageView>
-			<Label text="Label" fx:id="savesetLabel" />
+			<Label fx:id="savesetLabel" text="Label">
+            <HBox.margin>
+               <Insets />
+            </HBox.margin></Label>
 		</children>
 	</HBox>
 
 	<VBox fx:id="snapshot">
 		<children>
 			<HBox>
-				<ImageView pickOnBounds="true" preserveRatio="true">
+				<ImageView fx:id="snapshotIcon" pickOnBounds="true" preserveRatio="true">
 					<image>
-						<Image url="/icons/ksnapshot.png" />
+						<Image url="/icons/small/Snap-shot@.png" />
 					</image>
+               <HBox.margin>
+                  <Insets top="3.0" />
+               </HBox.margin>
 				</ImageView>
 				<VBox fx:id="snapshotNodeName">
-					<Label text="Label" fx:id="primaryLabel" />
-					<Label text="Label" fx:id="secondaryLabel" style="-fx-font-size: 8pt;"/>
+					<Label fx:id="primaryLabel" text="Label" />
+					<Label fx:id="secondaryLabel" style="-fx-font-size: 8pt;" text="Label">
+                  <VBox.margin>
+                     <Insets left="2.0" />
+                  </VBox.margin></Label>
+               <HBox.margin>
+                  <Insets left="2.0" />
+               </HBox.margin>
+
 				</VBox>
 			</HBox>
 		</children>

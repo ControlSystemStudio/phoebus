@@ -29,12 +29,14 @@ import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetController;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotController;
-import org.springframework.beans.factory.annotation.Value;
+import org.phoebus.framework.preferences.PreferencesReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 
+import javax.annotation.PostConstruct;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -42,18 +44,24 @@ import java.util.concurrent.TimeUnit;
 
 
 @Configuration
-@PropertySource("${propertiesLocation:classpath:save_and_restore_preferences.properties}")
 public class AppConfig {
 
-    @Value("${httpClient.readTimeout:1000}")
-    private int readTimeout;
+    private static final int DEFAULT_READ_TIMEOUT = 1000; // ms
+    private static final int DEFAULT_CONNECT_TIMEOUT = 1000; // ms
 
-    @Value("${httpClient.connectTimeout:1000}")
-    private int connectTimeout;
+    private PreferencesReader prefs;
+
+    @PostConstruct
+    public void init(){
+        prefs = new PreferencesReader(getClass(), "/save_and_restore_preferences.properties");
+    }
 
     @Bean
     public JMasarJerseyClient jmasarClient(){
-        return new JMasarJerseyClient();
+        JMasarJerseyClient jMasarJerseyClient = new JMasarJerseyClient();
+        jMasarJerseyClient.setServiceUrl(prefs.get("jmasar.service.url"));
+
+        return jMasarJerseyClient;
     }
 
     @Bean
@@ -100,6 +108,26 @@ public class AppConfig {
 
     @Bean
     public Client client(){
+        Logger logger = LoggerFactory.getLogger(AppConfig.class.getName());
+
+        int readTimeout = DEFAULT_READ_TIMEOUT;
+        String readTimeoutString = prefs.get("httpClient.readTimeout");
+        try {
+            readTimeout = Integer.parseInt(readTimeoutString);
+            logger.debug("JMasar client using read timeout " + readTimeout + " ms");
+        } catch (NumberFormatException e) {
+            logger.error("Property httpClient.readTimeout \"" + readTimeoutString + "\" is not a number, using default value " + DEFAULT_READ_TIMEOUT + " ms");
+        }
+
+        int connectTimeout = DEFAULT_CONNECT_TIMEOUT;
+        String connectTimeoutString = prefs.get("httpClient.connectTimeout");
+        try {
+            connectTimeout = Integer.parseInt(connectTimeoutString);
+            logger.debug("JMasar client using connect timeout " + connectTimeout + " ms");
+        } catch (NumberFormatException e) {
+            logger.error("Property httpClient.connectTimeout \"" + connectTimeoutString + "\" is not a number, using default value " + DEFAULT_CONNECT_TIMEOUT + " ms");
+        }
+
         DefaultClientConfig defaultClientConfig = new DefaultClientConfig();
         defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_READ_TIMEOUT, readTimeout);
         defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, connectTimeout);

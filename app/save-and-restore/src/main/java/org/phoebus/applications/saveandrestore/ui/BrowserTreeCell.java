@@ -22,14 +22,21 @@ import java.io.IOException;
 
 import javafx.collections.ObservableList;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 
 
 import javafx.fxml.FXMLLoader;
+import org.phoebus.ui.javafx.ImageCache;
 import se.esss.ics.masar.model.Node;
 import se.esss.ics.masar.model.NodeType;
 
 
+/**
+ * A cell editor managing the different type of nodes in the save-and-restore tree.
+ * Implements aspects like icon selection, text layout, context menu and editing.
+ */
 public class BrowserTreeCell extends TreeCell<Node> {
 
 	private javafx.scene.Node folderBox;
@@ -66,34 +73,35 @@ public class BrowserTreeCell extends TreeCell<Node> {
 		this.saveSetContextMenu = saveSetContextMenu;
 		this.snapshotContextMenu = snapshotContextMenu;
 		this.rootFolderContextMenu = rootFolderContextMenu;
+
 	}
 
-	@Override
-	public void startEdit() {
+//	@Override
+//	public void startEdit() {
+//
+//		if (getItem().getNodeType().equals(NodeType.SNAPSHOT) || (getItem().getProperty("root") != null && Boolean.valueOf(getItem().getProperty("root")))) {
+//			return;
+//		}
+//		super.startEdit();
+//
+//		if (textField == null) {
+//			createTextField();
+//		}
+//		textField.setText(getItem().getName());
+//		setGraphic(textField);
+//		textField.selectAll();
+//	}
 
-		if (getItem().getNodeType().equals(NodeType.SNAPSHOT) || (getItem().getProperty("root") != null && Boolean.valueOf(getItem().getProperty("root")))) {
-			return;
-		}
-		super.startEdit();
-		if (textField == null) {
-			createTextField();
-		}
-		//setText(null);
-		textField.setText(getItem().getName());
-		setGraphic(textField);
-		textField.selectAll();
-	}
-
-	@Override
-	public void cancelEdit() {
-		super.cancelEdit();
-		if(getItem().getNodeType().equals(NodeType.CONFIGURATION)){
-			setGraphic(saveSetBox);
-		}
-		else if(getItem().getNodeType().equals(NodeType.FOLDER)){
-			setGraphic(folderBox);
-		}
-	}
+//	@Override
+//	public void cancelEdit() {
+//		super.cancelEdit();
+//		if(getItem().getNodeType().equals(NodeType.CONFIGURATION)){
+//			setGraphic(saveSetBox);
+//		}
+//		else if(getItem().getNodeType().equals(NodeType.FOLDER)){
+//			setGraphic(folderBox);
+//		}
+//	}
 
 	@Override
 	public void updateItem(Node node, boolean empty) {
@@ -108,13 +116,17 @@ public class BrowserTreeCell extends TreeCell<Node> {
 		case SNAPSHOT:
 			((Label) snapshotBox.lookup("#primaryLabel"))
 					.setText(node.getName());
-			((Label) snapshotBox.lookup("#secondaryLabel")).setText(node.getLastModified() + " (" + node.getUserName() + ")");
+			((Label) snapshotBox.lookup("#secondaryLabel")).setText(node.getCreated() + " (" + node.getUserName() + ")");
 			setGraphic(snapshotBox);
 			if(node.getProperty("golden") != null && Boolean.valueOf(node.getProperty("golden"))){
-				snapshotBox.setStyle("-fx-background-color: #fff8d2;");
+				((ImageView)snapshotBox.lookup("#snapshotIcon")).setImage(ImageCache.getImage(BrowserTreeCell.class, "/icons/small/Snap-shot-golden@.png"));
 			}
-			setTooltip(new Tooltip("Double click to open snapshot"));
+			else{
+				((ImageView)snapshotBox.lookup("#snapshotIcon")).setImage(ImageCache.getImage(BrowserTreeCell.class, "/icons/small/Snap-shot@.png"));
+
+			}
 			setContextMenu(snapshotContextMenu);
+			setTooltip(new Tooltip("Double click to open snapshot"));
 			setEditable(false);
 			break;
 		case CONFIGURATION:
@@ -136,23 +148,28 @@ public class BrowserTreeCell extends TreeCell<Node> {
 		}
 	}
 
-	private void createTextField() {
-		textField = new TextField(getString());
+//	@Override
+//	public void commitEdit(Node s){
+//		System.out.println(s.getName());
+//	}
 
-		textField.setOnKeyPressed(keyEvent -> {
-			if (keyEvent.getCode() == KeyCode.ENTER && isNewNameValid()) {
-				getItem().setName(textField.getText());
-				super.commitEdit(getItem());
-			}
-			else if(keyEvent.getCode() == KeyCode.ESCAPE){
-				cancelEdit();
-			}
-		});
-	}
+//	private void createTextField() {
+//		textField = new TextField(getString());
+//
+//		textField.setOnKeyPressed(keyEvent -> {
+//			if (keyEvent.getCode() == KeyCode.ENTER && isNewNameValid()) {
+//				getItem().setName(textField.getText());
+//				super.commitEdit(getItem());
+//			}
+//			else if(keyEvent.getCode() == KeyCode.ESCAPE){
+//				cancelEdit();
+//			}
+//		});
+//	}
 
-	private String getString() {
-		return getItem() == null ? "" : getItem().getName();
-	}
+//	private String getString() {
+//		return getItem() == null ? "" : getItem().getName();
+//	}
 
 	/**
 	 * Checks if the specified new name for a node is valid. It cannot be empty,

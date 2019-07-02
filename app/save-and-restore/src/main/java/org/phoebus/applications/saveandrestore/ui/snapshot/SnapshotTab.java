@@ -17,6 +17,8 @@
  */
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
+import javafx.application.Platform;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
@@ -28,30 +30,61 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.phoebus.applications.saveandrestore.SpringFxmlLoader;
+import org.phoebus.applications.saveandrestore.data.NodeChangeListener;
+import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
+import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetTab;
 import org.phoebus.ui.javafx.ImageCache;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import java.util.concurrent.Executor;
 
+public class SnapshotTab extends Tab implements TabTitleChangedListener, NodeChangeListener {
 
-public class SnapshotTab extends Tab implements TabTitleChangedListener{
+    public SaveAndRestoreService saveAndRestoreService;
 
     private SimpleStringProperty tabTitleProperty = new SimpleStringProperty();
 
     private SnapshotController snapshotController;
 
-    public SnapshotTab(se.esss.ics.masar.model.Node node){
+    private SimpleObjectProperty<Image> tabGraphicImageProperty = new SimpleObjectProperty<Image>();
+
+    private Image regularImage;
+    private Image goldenImage;
+
+    private static Executor UI_EXECUTOR = Platform::runLater;
+
+    public SnapshotTab(se.esss.ics.masar.model.Node node, SaveAndRestoreService saveAndRestoreService){
+
+        this.saveAndRestoreService = saveAndRestoreService;
 
         setId(node.getUniqueId());
 
         SpringFxmlLoader springFxmlLoader = new SpringFxmlLoader();
         try {
 
-            VBox borderPane = (VBox)springFxmlLoader.load("/org/phoebus/applications/saveandrestore/ui/snapshot/fxml/SnapshotEditor.fxml"); //loader.load();
+            VBox borderPane = (VBox)springFxmlLoader.load("/org/phoebus/applications/saveandrestore/ui/snapshot/fxml/SnapshotEditor.fxml");
             setContent(borderPane);
-            setGraphic(getTabGraphic());
+
+            regularImage = ImageCache.getImage(SnapshotTab.class, "/icons/small/Snap-shot@.png");
+            goldenImage = ImageCache.getImage(SnapshotTab.class, "/icons/small/Snap-shot-golden@.png");
+
+            HBox container = new HBox();
+            ImageView imageView = new ImageView();
+            imageView.imageProperty().bind(tabGraphicImageProperty);
+            Label label = new Label("");
+            label.textProperty().bind(tabTitleProperty);
+            HBox.setMargin(label, new Insets(1, 0, 0,5));
+            container.getChildren().addAll(imageView, label);
+
+            setGraphic(container);
 
             snapshotController = springFxmlLoader.getLoader().getController();
             snapshotController.setTabTitleChangedListener(this);
 
+            tabGraphicImageProperty.set(Boolean.parseBoolean(node.getProperty("golden")) ? goldenImage : regularImage);
+
+            saveAndRestoreService.addNodeChangeListener(this);
 
         } catch (Exception e) {
             // TODO Auto-generated catch block
@@ -59,8 +92,11 @@ public class SnapshotTab extends Tab implements TabTitleChangedListener{
         }
 
         setOnCloseRequest(event -> {
-            if(snapshotController.handleSnapshotTabClosed()){
+            if(!snapshotController.handleSnapshotTabClosed()){
                 event.consume();
+            }
+            else{
+                saveAndRestoreService.removeNodeChangeListener(this);
             }
         });
     }
@@ -95,21 +131,17 @@ public class SnapshotTab extends Tab implements TabTitleChangedListener{
         snapshotController.addSnapshot(node);
     }
 
-
-    private Node getTabGraphic(){
-        HBox container = new HBox();
-        Image icon = ImageCache.getImage(SnapshotTab.class, "/icons/ksnapshot.png");
-        ImageView imageView = new ImageView(icon);
-        Label label = new Label("");
-        label.textProperty().bind(tabTitleProperty);
-        HBox.setMargin(label, new Insets(0, 5, 0,5));
-        container.getChildren().addAll(imageView, label);
-
-        return container;
-    }
-
     @Override
     public void tabTitleChanged(String tabTitle){
         tabTitleProperty.set(tabTitle);
+    }
+
+    @Override
+    public void nodeChanged(se.esss.ics.masar.model.Node node){
+
+        UI_EXECUTOR.execute(() -> {
+            tabGraphicImageProperty.set(Boolean.parseBoolean(node.getProperty("golden")) ? goldenImage : regularImage);
+            tabTitleProperty.set(node.getName());
+        });
     }
 }

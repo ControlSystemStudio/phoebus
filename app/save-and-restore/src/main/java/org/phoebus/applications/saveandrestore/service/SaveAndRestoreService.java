@@ -18,21 +18,26 @@
 
 package org.phoebus.applications.saveandrestore.service;
 
-import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.data.DataProvider;
-import org.phoebus.applications.saveandrestore.data.DataProviderException;
+import org.phoebus.applications.saveandrestore.data.NodeChangeListener;
 import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.model.VNoData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import se.esss.ics.masar.model.ConfigPv;
 import se.esss.ics.masar.model.Node;
 import se.esss.ics.masar.model.SnapshotItem;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-
+@Component
 public class SaveAndRestoreService {
 
     @Autowired
@@ -41,6 +46,10 @@ public class SaveAndRestoreService {
     @Autowired
     private DataProvider dataProvider;
 
+    private List<NodeChangeListener> nodeChangeListeners = Collections.synchronizedList(new ArrayList());
+
+    private static final Logger LOG = LoggerFactory.getLogger(SaveAndRestoreService.class.getName());
+
     public Node getRootNode() {
 
         Future<Node> future = executor.submit(() -> dataProvider.getRootNode());
@@ -48,7 +57,7 @@ public class SaveAndRestoreService {
         try {
             return future.get();
         } catch (Exception ie) {
-            ie.printStackTrace();
+            LOG.error("Unable to retrieve root node, cause: " + ie.getMessage());
         }
 
         return null;
@@ -83,7 +92,11 @@ public class SaveAndRestoreService {
     public Node updateNode(Node nodeToUpdate) throws Exception {
         Future<Node> future = executor.submit(() -> dataProvider.updateNode(nodeToUpdate));
 
-        return future.get();
+        Node node = future.get();
+
+        notifyNodeChangeListeners(node);
+
+        return node;
     }
 
     public Node createNode(String parentsUniqueId, Node newTreeNode) throws Exception {
@@ -92,7 +105,7 @@ public class SaveAndRestoreService {
         return future.get();
     }
 
-    public boolean deleteNode(String uniqueNodeId) throws Exception{
+    public boolean deleteNode(String uniqueNodeId) throws Exception {
         Future<Boolean> future = executor.submit(() -> {
 
             return dataProvider.deleteNode(uniqueNodeId);
@@ -100,7 +113,6 @@ public class SaveAndRestoreService {
         });
 
         return future.get();
-
     }
 
     public List<ConfigPv> getConfigPvs(String uniqueNodeId) throws Exception {
@@ -118,9 +130,8 @@ public class SaveAndRestoreService {
 
 
     public String getServiceIdentifier() {
-        return dataProvider.getServiceIdentifier();
+        return dataProvider.getServiceUrl();
     }
-
 
     public List<SnapshotItem> getSnapshotItems(String uniqueNodeId) throws Exception {
 
@@ -129,36 +140,37 @@ public class SaveAndRestoreService {
         return future.get();
     }
 
-    public Node getParentNode(String uniqueNodeId) throws Exception{
+    public Node getParentNode(String uniqueNodeId) throws Exception {
         Future<Node> future = executor.submit(() -> dataProvider.getSaveSetForSnapshot(uniqueNodeId));
 
         return future.get();
     }
 
-    public Node takeSnapshot(String uniqueNodeId) throws Exception{
+    public Node takeSnapshot(String uniqueNodeId) throws Exception {
         Future<Node> future = executor.submit(() -> dataProvider.takeSnapshot(uniqueNodeId));
 
         return future.get();
     }
 
-    public void tagSnapshotAsGolden(String uniqueNodeId) throws  Exception {
-        Future<Void> future = executor.submit(() -> {
-
-            if (!dataProvider.tagSnapshotAsGolden(uniqueNodeId)) {
-                throw new DataProviderException("Unable to tag snapshot as Golden");
-            }
-            return null;
+    public Node tagSnapshotAsGolden(final Node node, boolean golden) throws Exception {
+        Future<Node> future = executor.submit(() -> {
+            node.getProperties().put("golden", golden ? "true" : "false");
+            return dataProvider.updateNode(node);
         });
 
-        future.get();
+        Node updatedNode = future.get();
+
+        notifyNodeChangeListeners(updatedNode);
+
+        return updatedNode;
     }
 
-    public ConfigPv updateSingleConfigPv(String currentPvName, String newPvName, String currentReadbackPvName, String newReadbackPvName) throws Exception{
+    public ConfigPv updateSingleConfigPv(String currentPvName, String newPvName, String currentReadbackPvName, String newReadbackPvName) throws Exception {
         Future<ConfigPv> future = executor.submit(() -> dataProvider.updateSingleConfigPv(currentPvName, newPvName, currentReadbackPvName, newReadbackPvName));
         return future.get();
     }
 
-    public Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment) throws Exception{
+    public Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment) throws Exception {
         // Some beautifying is needed to ensure successful serialization.
         List<SnapshotItem> beautifiedItems = snapshotItems.stream().map(snapshotItem -> {
             if (snapshotItem.getValue() instanceof VNoData || snapshotItem.getValue() instanceof VDisconnectedData) {
@@ -172,5 +184,17 @@ public class SaveAndRestoreService {
         Future<Node> future = executor.submit(() -> dataProvider.saveSnapshot(configUniqueId, beautifiedItems, snapshotName, comment));
 
         return future.get();
+    }
+
+    public void addNodeChangeListener(NodeChangeListener nodeChangeListener){
+        nodeChangeListeners.add(nodeChangeListener);
+    }
+
+    public void removeNodeChangeListener(NodeChangeListener nodeChangeListener){
+        nodeChangeListeners.remove(nodeChangeListener);
+    }
+
+    private void notifyNodeChangeListeners(Node changedNode){
+        nodeChangeListeners.stream().forEach(listener -> listener.nodeChanged(changedNode));
     }
 }

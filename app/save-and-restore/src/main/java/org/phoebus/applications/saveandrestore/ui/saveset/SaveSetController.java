@@ -19,9 +19,8 @@
 package org.phoebus.applications.saveandrestore.ui.saveset;
 
 import javafx.application.Platform;
-import javafx.beans.property.ObjectProperty;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -33,6 +32,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.util.Callback;
+import org.phoebus.applications.saveandrestore.data.NodeChangeListener;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import se.esss.ics.masar.model.ConfigPv;
@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 
-public class SaveSetController {
+public class SaveSetController implements NodeChangeListener {
 
 
 	@FXML
@@ -71,15 +71,6 @@ public class SaveSetController {
 	private TextField readbackPvNameField;
 
 	@FXML
-	private RadioButton ca;
-
-	@FXML
-	private RadioButton pva;
-
-	@FXML
-	private ToggleGroup providerToggleGroup;
-
-	@FXML
 	private Button addPvButton;
 
 	@FXML
@@ -94,7 +85,7 @@ public class SaveSetController {
 	private SimpleBooleanProperty readOnlyProperty = new SimpleBooleanProperty(false);
 
 	@Autowired
-	private SaveAndRestoreService service;
+	private SaveAndRestoreService saveAndRestoreService;
 
 	private static Executor UI_EXECUTOR = Platform::runLater;
 
@@ -104,18 +95,29 @@ public class SaveSetController {
 
 	private SimpleBooleanProperty selectionEmpty = new SimpleBooleanProperty(false);
 	private SimpleBooleanProperty singelSelection = new SimpleBooleanProperty(false);
-
-	private static final String PROVIDER = "provider";
-
+	private SimpleStringProperty saveSetCommentProperty = new SimpleStringProperty();
+	private SimpleStringProperty tabTitleProperty = new SimpleStringProperty();
 	private Node loadedConfig;
 
 	private TableView.TableViewSelectionModel<ConfigPv> defaultSelectionModel;
 
 	private static final String DESCRIPTION_PROPERTY = "description";
 
+	private String saveSetName;
+
 	@FXML
 	public void initialize() {
 
+		dirty.addListener((observable, oldValue, newValue) -> {
+			if(newValue){
+				tabTitleProperty.set("* " + saveSetName);
+			}
+			else{
+				tabTitleProperty.set(saveSetName);
+			}
+		});
+
+		commentTextArea.textProperty().bindBidirectional(saveSetCommentProperty);
 
 		pvTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		pvTable.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> {
@@ -142,10 +144,6 @@ public class SaveSetController {
 				}
 			});
 			return row ;
-		});
-
-		commentTextArea.textProperty().addListener(ce -> {
-			dirty.set(true);
 		});
 
 		ContextMenu pvNameContextMenu = new ContextMenu();
@@ -278,7 +276,7 @@ public class SaveSetController {
 				return;
 			}
 
-			// TODO: Launch dialog and call remote service
+			// TODO: Launch dialog and call remote saveAndRestoreService
 		});
 
 		readbackPvNameContextMenu.getItems().add(renameReadbackPvMenuItem);
@@ -341,27 +339,31 @@ public class SaveSetController {
 		readbackPvNameField.textProperty().bindBidirectional(readbackPvNameProperty);
 
 		saveSetEntries.addListener(new ListChangeListener<ConfigPv>() {
-
 			@Override
 			public void onChanged(Change<? extends ConfigPv> change) {
 				while (change.next()) {
 					if (change.wasAdded() || change.wasRemoved()) {
 						FXCollections.sort(saveSetEntries);
-						//pvListUnchanged.set(false);
 						dirty.setValue(true);
 					}
 				}
 			}
 		});
 
-//		saveButton.disableProperty().bind(Bindings.createBooleanBinding(() -> {
-//			return (commentUnchanged.get() && pvListUnchanged.get()) || commentTextProperty.isEmpty().get();
-//		}, commentUnchanged, pvListUnchanged, commentTextProperty));
+		saveButton.disableProperty().bind(Bindings.createBooleanBinding(() -> {
+			return dirty.not().get() || saveSetCommentProperty.isEmpty().get();},
+				dirty, saveSetCommentProperty));
 
-		saveButton.disableProperty().bind(dirty.not());
 		addPvButton.disableProperty().bind(pvNameField.textProperty().isEmpty());
 
 		readOnlyCheckBox.selectedProperty().bindBidirectional(readOnlyProperty);
+
+		commentTextArea.textProperty().addListener((observable, oldValue, newValue) -> {
+			if(!newValue.equals(oldValue)) {
+				dirty.set(true);
+			}
+		});
+
 
 	}
 
@@ -370,8 +372,8 @@ public class SaveSetController {
 
 		UI_EXECUTOR.execute(() -> {
 			try {
-				loadedConfig.putProperty(DESCRIPTION_PROPERTY, commentTextArea.textProperty().getValue());
-				loadedConfig = service.updateSaveSet(loadedConfig, saveSetEntries);
+				loadedConfig.putProperty(DESCRIPTION_PROPERTY, saveSetCommentProperty.getValue());
+				loadedConfig = saveAndRestoreService.updateSaveSet(loadedConfig, saveSetEntries);
 				loadSaveSet(loadedConfig);
 			} catch (Exception e1) {
 				Alert errorAlert = new Alert(AlertType.ERROR);
@@ -385,13 +387,13 @@ public class SaveSetController {
 
 	@FXML
 	public void addPv(ActionEvent event){
-		ConfigPv configPv = ConfigPv.builder()
-				.pvName(pvNameProperty.get().trim())
-				.readOnly(readOnlyProperty.get())
-				.readbackPvName(readbackPvNameProperty.get() == null || readbackPvNameProperty.get().isEmpty() ?  null : readbackPvNameProperty.get().trim())
-				.build();
 
 		UI_EXECUTOR.execute(() -> {
+			ConfigPv configPv = ConfigPv.builder()
+					.pvName(pvNameProperty.get().trim())
+					.readOnly(readOnlyProperty.get())
+					.readbackPvName(readbackPvNameProperty.get() == null || readbackPvNameProperty.get().isEmpty() ?  null : readbackPvNameProperty.get().trim())
+					.build();
 			saveSetEntries.add(configPv);
 			resetAddPv();
 		});
@@ -405,28 +407,51 @@ public class SaveSetController {
 	}
 
 
-	public String loadSaveSet(Node node) {
-		try {
-			List<ConfigPv> configPvs = service.getConfigPvs(node.getUniqueId());
-			loadedConfig = node;
-			Collections.sort(configPvs);
-			UI_EXECUTOR.execute(() -> {
-				commentTextArea.textProperty().setValue(loadedConfig.getProperty(DESCRIPTION_PROPERTY));
-//				commentTextProperty.set(loadedConfig.getProperty("description"));
-//				originalComment = loadedConfig.getProperty("description");
+	public void loadSaveSet(Node node) {
+
+		UI_EXECUTOR.execute(() -> {
+			try {
+				List<ConfigPv> configPvs = saveAndRestoreService.getConfigPvs(node.getUniqueId());
+				loadedConfig = node;
+				Collections.sort(configPvs);
+				saveSetName = node.getName();
+				tabTitleProperty.set(saveSetName);
+				saveSetCommentProperty.set(loadedConfig.getProperty(DESCRIPTION_PROPERTY));
 				saveSetEntries.setAll(configPvs);
 				pvTable.setItems(saveSetEntries);
 				pvTable.setEditable(true);
-//				commentUnchanged.set(true);
-//				pvListUnchanged.set(true);
 				dirty.set(false);
-			});
-			return loadedConfig.getName();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});
+	}
 
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	public boolean handleSaveSetTabClosed(){
+		if(dirty.get()){
+			Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+			alert.setTitle("Close tab?");
+			alert.setContentText("Save set has been modified but is not saved. Do you wish to continue?");
+			Optional<ButtonType> result = alert.showAndWait();
+			if (result.isPresent() && result.get().equals(ButtonType.OK)) {
+				return true;
+			}
+			else{
+				return false;
+			}
 		}
-		return null;
+		return true;
+	}
+
+	public SimpleStringProperty getTabTitleProperty(){
+		return tabTitleProperty;
+	}
+
+	@Override
+	public void nodeChanged(Node node){
+		if(loadedConfig.getUniqueId().equals(node.getUniqueId())){
+			tabTitleProperty.set(node.getName());
+		}
 	}
 }

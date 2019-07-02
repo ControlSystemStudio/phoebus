@@ -19,30 +19,46 @@
 package org.phoebus.applications.saveandrestore.ui;
 
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
-import javafx.util.Callback;
 import org.phoebus.applications.saveandrestore.data.DataProvider;
+import org.phoebus.applications.saveandrestore.data.NodeChangeListener;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
+import org.phoebus.ui.javafx.ImageCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import se.esss.ics.masar.model.Node;
 import se.esss.ics.masar.model.NodeType;
 
-import javax.annotation.PostConstruct;
 import java.net.URL;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
-public class SaveAndRestoreController implements Initializable{
+public class SaveAndRestoreController implements Initializable, NodeChangeListener {
 
     private static Executor UI_EXECUTOR = Platform::runLater;
+
+    public static final Image folderIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/small/Folder@.png");
+    public static final Image saveSetIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/small/Save-set@.png");
+    public static final Image deleteIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/delete.png");
+    public static final Image renameIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/rename_col.png");
+    public static final Image snapshotIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/small/Snap-shot@.png");
+    public static final Image snapshotGoldenIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/small/Snap-shot-golden@.png");
 
     @FXML
     private TreeView<Node> treeView;
@@ -50,36 +66,59 @@ public class SaveAndRestoreController implements Initializable{
     @FXML
     private TabPane tabPane;
 
+    @FXML
+    private Label jmasarServiceTitle;
+
+    @FXML
+    private Button reconnectButton;
+
+    @FXML
+    private Label emptyTreeInstruction;
+
     @Autowired
     private SaveAndRestoreService saveAndRestoreService;
+
     private ContextMenu folderContextMenu;
     private ContextMenu saveSetContextMenu;
     private ContextMenu snapshotContextMenu;
     private ContextMenu rootFolderContextMenu;
 
+    private SimpleStringProperty toggleGoldenMenuItemText = new SimpleStringProperty();
+    private SimpleStringProperty jmasarServiceTitleProperty = new SimpleStringProperty();
+    private BooleanProperty remoteServiceUnavailable = new SimpleBooleanProperty(false);
+    private BooleanProperty treeViewEmpty = new SimpleBooleanProperty(false);
+    private SimpleObjectProperty<ImageView> toggleGoldenImageViewProperty = new SimpleObjectProperty<>();
+
+    private ImageView snapshotImageView = new ImageView(snapshotIcon);
+    private ImageView snapshotGoldenImageView = new ImageView(snapshotGoldenIcon);
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         folderContextMenu = new ContextMenu();
-        MenuItem newFolderMenuItem = new MenuItem("New Folder");
+        MenuItem newFolderMenuItem = new MenuItem("New Folder", new ImageView(folderIcon));
         newFolderMenuItem.setOnAction(ae -> {
             handleNewFolder(treeView.getSelectionModel().getSelectedItem());
         });
 
-        MenuItem deleteFolderMenuItem = new MenuItem("Delete Folder");
+        MenuItem renameFolderMenuItem = new MenuItem("Rename", new ImageView(renameIcon));
+        renameFolderMenuItem.setOnAction(ae -> {
+            handleRenameNode(treeView.getSelectionModel().getSelectedItem());
+        });
+
+        MenuItem deleteFolderMenuItem = new MenuItem("Delete", new ImageView(deleteIcon));
         deleteFolderMenuItem.setOnAction(ae -> {
             deleteFolder(treeView.getSelectionModel().getSelectedItem());
         });
 
-        MenuItem newSaveSetMenuItem = new MenuItem("New Save Set");
+        MenuItem newSaveSetMenuItem = new MenuItem("New Save Set", new ImageView(saveSetIcon));
         newSaveSetMenuItem.setOnAction(ae -> {
             handleNewSaveSet(treeView.getSelectionModel().getSelectedItem());
         });
 
-        folderContextMenu.getItems().addAll(newFolderMenuItem, deleteFolderMenuItem, newSaveSetMenuItem);
+        folderContextMenu.getItems().addAll(newFolderMenuItem, renameFolderMenuItem, deleteFolderMenuItem, newSaveSetMenuItem);
 
         rootFolderContextMenu = new ContextMenu();
-        MenuItem newRootFolderMenuItem = new MenuItem("New Folder");
+        MenuItem newRootFolderMenuItem = new MenuItem("New Folder", new ImageView(folderIcon));
         newRootFolderMenuItem.setOnAction(ae -> {
             handleNewFolder(treeView.getSelectionModel().getSelectedItem());
         });
@@ -87,12 +126,17 @@ public class SaveAndRestoreController implements Initializable{
 
         saveSetContextMenu = new ContextMenu();
 
-        MenuItem deleteSaveSetMenuItem = new MenuItem("Delete");
+        MenuItem deleteSaveSetMenuItem = new MenuItem("Delete", new ImageView(deleteIcon));
         deleteSaveSetMenuItem.setOnAction(ae -> {
             handleDeleteSaveSet(treeView.getSelectionModel().getSelectedItem());
         });
 
-        MenuItem openSaveSetMenuItem = new MenuItem("Open");
+        MenuItem renameSaveSetMenuItem = new MenuItem("Rename", new ImageView(renameIcon));
+        renameSaveSetMenuItem.setOnAction(ae -> {
+            handleRenameNode(treeView.getSelectionModel().getSelectedItem());
+        });
+
+        MenuItem openSaveSetMenuItem = new MenuItem("Open", new ImageView(saveSetIcon));
         openSaveSetMenuItem.setOnAction(ae -> {
             handleOpenSaveSet(treeView.getSelectionModel().getSelectedItem());
         });
@@ -102,12 +146,17 @@ public class SaveAndRestoreController implements Initializable{
             nodeDoubleClicked(treeView.getSelectionModel().getSelectedItem());
         });
 
-        saveSetContextMenu.getItems().addAll(openSaveSetMenuItem, editSaveSetMenuItem, deleteSaveSetMenuItem);
+        saveSetContextMenu.getItems().addAll(openSaveSetMenuItem, editSaveSetMenuItem, renameSaveSetMenuItem, deleteSaveSetMenuItem);
 
         snapshotContextMenu = new ContextMenu();
-        MenuItem deleteSnapshotMenuItem = new MenuItem("Delete Snapshot");
+        MenuItem deleteSnapshotMenuItem = new MenuItem("Delete", new ImageView(deleteIcon));
         deleteSnapshotMenuItem.setOnAction(ae -> {
             handleDeleteSnapshot(treeView.getSelectionModel().getSelectedItem());
+        });
+
+        MenuItem renameSnapshotItem = new MenuItem("Rename", new ImageView(renameIcon));
+        renameSnapshotItem.setOnAction(ae -> {
+            handleRenameNode(treeView.getSelectionModel().getSelectedItem());
         });
 
         MenuItem compareSaveSetMenuItem = new MenuItem("Compare Snapshots");
@@ -115,28 +164,60 @@ public class SaveAndRestoreController implements Initializable{
             handleCompareSnapshot(treeView.getSelectionModel().getSelectedItem());
         });
 
-        MenuItem tagAsGolden = new MenuItem("Tag as Golden");
+        MenuItem tagAsGolden = new MenuItem("Tag as Golden", new ImageView(snapshotGoldenIcon));
+        tagAsGolden.textProperty().bind(toggleGoldenMenuItemText);
+        tagAsGolden.graphicProperty().bind(toggleGoldenImageViewProperty);
         tagAsGolden.setOnAction(ae -> {
-            handleTagAsGolden(treeView.getSelectionModel().getSelectedItem());
+            Node node = toggleGoldenProperty(treeView.getSelectionModel().getSelectedItem());
+            treeView.getSelectionModel().getSelectedItem().setValue(node);
         });
 
-        snapshotContextMenu.getItems().addAll(deleteSnapshotMenuItem, compareSaveSetMenuItem, tagAsGolden);
+        snapshotContextMenu.getItems().addAll(renameSnapshotItem, deleteSnapshotMenuItem, compareSaveSetMenuItem, tagAsGolden);
 
         treeView.setEditable(true);
 
         treeView.setOnMouseClicked(me -> {
             TreeItem<Node> item = treeView.getSelectionModel().getSelectedItem();
             if (item != null && item.getValue().getNodeType().equals(NodeType.SNAPSHOT)) {
+                toggleGoldenMenuItemText.set(Boolean.parseBoolean(item.getValue().getProperty("golden")) ? "Remove Golden tag" : "Tag as Golden");
+                toggleGoldenImageViewProperty.set(Boolean.parseBoolean(item.getValue().getProperty("golden")) ? snapshotImageView : snapshotGoldenImageView);
                 if (me.getClickCount() == 2) {
                     nodeDoubleClicked(treeView.getSelectionModel().getSelectedItem());
                 }
             }
         });
 
-        treeView.setOnEditCommit(event -> {
-            handleNodeRenamed(event);
+        treeView.setShowRoot(false);
+
+        reconnectButton.visibleProperty().bind(remoteServiceUnavailable);
+        jmasarServiceTitle.textProperty().bind(jmasarServiceTitleProperty);
+
+        ContextMenu treeViewContextMenu = new ContextMenu();
+        MenuItem newTopLevelFolderMenuItem = new MenuItem("New Folder", new ImageView(folderIcon));
+        newTopLevelFolderMenuItem.setOnAction(ae -> {
+            handleNewFolder(treeView.getRoot());
         });
+
+        treeViewContextMenu.getItems().addAll(newTopLevelFolderMenuItem);
+
+        treeView.setContextMenu(treeViewContextMenu);
+
+        emptyTreeInstruction.visibleProperty().bindBidirectional(treeViewEmpty);
+
         loadInitialTreeData();
+
+        saveAndRestoreService.addNodeChangeListener(this);
+    }
+
+    @FXML
+    public void reconnect(){
+        if(!loadInitialTreeData()){
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("ERROR");
+            alert.setHeaderText(null);
+            alert.setContentText("Unable to reconnect to JMasar service.");
+            alert.showAndWait();
+        }
     }
 
     /**
@@ -144,28 +225,36 @@ public class SaveAndRestoreController implements Initializable{
      * {@link DataProvider}.
      */
     @SuppressWarnings({"rawtypes","unchecked"})
-    private void loadInitialTreeData() {
-
-        try {
-
-            Node rootNode = saveAndRestoreService.getRootNode();
-            rootNode.setName(saveAndRestoreService.getServiceIdentifier());
-
-            TreeItem<Node> rootItem = createNode(rootNode);
-
-            treeView.setCellFactory(p -> new BrowserTreeCell(folderContextMenu, saveSetContextMenu, snapshotContextMenu, rootFolderContextMenu));
-
-            rootItem.addEventHandler(TreeItem.branchExpandedEvent(), e -> {
-                expandTreeNode(((TreeItem.TreeModificationEvent)e).getTreeItem());
-            });
-
-            UI_EXECUTOR.execute(() -> {
-                treeView.setRoot(rootItem);
-                rootItem.setExpanded(true);
-            });
-        } catch (Exception e) {
-            showJMasarServiceUnabvailable();
+    private boolean loadInitialTreeData() {
+        Node rootNode = saveAndRestoreService.getRootNode();
+        if(rootNode == null){
+            jmasarServiceTitleProperty.set("JMasar serivce @ " +  saveAndRestoreService.getServiceIdentifier() + " unavailable!");
+            remoteServiceUnavailable.set(true);
+            return false;
         }
+
+        remoteServiceUnavailable.set(false);
+        jmasarServiceTitleProperty.set(saveAndRestoreService.getServiceIdentifier());
+
+        TreeItem<Node> rootItem = createNode(rootNode);
+
+        treeView.setCellFactory(p -> new BrowserTreeCell(folderContextMenu,
+                saveSetContextMenu, snapshotContextMenu, rootFolderContextMenu));
+
+        rootItem.addEventHandler(TreeItem.branchExpandedEvent(), e -> {
+            expandTreeNode(((TreeItem.TreeModificationEvent)e).getTreeItem());
+        });
+
+        rootItem.addEventHandler(TreeItem.treeNotificationEvent(), e -> {
+            treeViewEmpty.set(treeView.getRoot().getChildren().isEmpty());
+        });
+
+        UI_EXECUTOR.execute(() -> {
+            treeView.setRoot(rootItem);
+            rootItem.setExpanded(true);
+        });
+
+        return true;
     }
 
 
@@ -188,15 +277,14 @@ public class SaveAndRestoreController implements Initializable{
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get().equals(ButtonType.OK)) {
             TreeItem<Node> parent = treeItem.getParent();
-            try {
-                saveAndRestoreService.deleteNode(treeItem.getValue().getUniqueId());
-                UI_EXECUTOR.execute(() -> {
+            UI_EXECUTOR.execute(() -> {
+                try {
+                    saveAndRestoreService.deleteNode(treeItem.getValue().getUniqueId());
                     parent.getChildren().remove(treeItem);
-                });
-            } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
         }
     }
 
@@ -210,12 +298,14 @@ public class SaveAndRestoreController implements Initializable{
         }
     }
 
-    private void handleTagAsGolden(TreeItem<Node> treeItem) {
+    private Node toggleGoldenProperty(TreeItem<Node> treeItem) {
 
         try {
-            saveAndRestoreService.tagSnapshotAsGolden(treeItem.getValue().getUniqueId());
+            return saveAndRestoreService.tagSnapshotAsGolden(treeItem.getValue(),
+                    !Boolean.parseBoolean(treeItem.getValue().getProperty("golden")));
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
     }
 
@@ -246,13 +336,12 @@ public class SaveAndRestoreController implements Initializable{
     }
 
     private void handleOpenSaveSet(TreeItem<Node> treeItem) {
-        SnapshotTab tab = new SnapshotTab(treeView.getSelectionModel().getSelectedItem().getValue());
+        SnapshotTab tab = new SnapshotTab(treeView.getSelectionModel().getSelectedItem().getValue(), saveAndRestoreService);
         tab.loadSaveSet(treeView.getSelectionModel().getSelectedItem().getValue());
 
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
     }
-
 
     private void handleNewFolder(TreeItem<Node> parentTreeItem) {
 
@@ -264,7 +353,7 @@ public class SaveAndRestoreController implements Initializable{
 
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("New Folder");
-        dialog.setContentText("Specify a folder name:");
+        dialog.setContentText("Specify a folder name (case sensitive):");
         dialog.setHeaderText(null);
         dialog.getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
 
@@ -282,7 +371,7 @@ public class SaveAndRestoreController implements Initializable{
                     .build();
             try {
                 Node newTreeNode = saveAndRestoreService
-                        .createNode(treeView.getSelectionModel().getSelectedItem().getValue().getUniqueId(), newFolderNode);
+                        .createNode(parentTreeItem.getValue().getUniqueId(), newFolderNode);
                 parentTreeItem.getChildren().add(createNode(newTreeNode));
                 parentTreeItem.getChildren().sort((a, b) -> a.getValue().getName().compareTo(b.getValue().getName()));
                 parentTreeItem.setExpanded(true);
@@ -323,23 +412,23 @@ public class SaveAndRestoreController implements Initializable{
     }
 
 
-    private void nodeDoubleClicked(TreeItem<Node> newValue) {
+    private void nodeDoubleClicked(TreeItem<Node> node) {
 
         // Disallow opening a tab multiple times for the same save set.
         for(Tab tab : tabPane.getTabs()) {
-            if(tab.getId().equals(newValue.getValue().getUniqueId())) {
+            if(tab.getId().equals(node.getValue().getUniqueId())) {
                 return;
             }
         }
 
         Tab tab;
 
-        switch (newValue.getValue().getNodeType()) {
+        switch (node.getValue().getNodeType()) {
             case CONFIGURATION:
-                tab = new SaveSetTab(treeView.getSelectionModel().getSelectedItem().getValue());
+                tab = new SaveSetTab(node.getValue(), saveAndRestoreService);
                 break;
             case SNAPSHOT:
-                tab = new SnapshotTab(treeView.getSelectionModel().getSelectedItem().getValue());
+                tab = new SnapshotTab(treeView.getSelectionModel().getSelectedItem().getValue(), saveAndRestoreService);
                 ((SnapshotTab) tab).loadSnapshot(treeView.getSelectionModel().getSelectedItem().getValue());
                 break;
             case FOLDER:
@@ -362,7 +451,7 @@ public class SaveAndRestoreController implements Initializable{
 
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("New Save Set");
-        dialog.setContentText("Specify a save set name:");
+        dialog.setContentText("Specify a save set name (case sensitive):");
         dialog.setHeaderText(null);
         dialog.getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
 
@@ -402,79 +491,41 @@ public class SaveAndRestoreController implements Initializable{
      * Renames a node through the service and its underlying data provider.
      * If there is a problem in the call to the remote JMasar service,
      * the user is shown a suitable error dialog and the name of the node is restored.
-     * If the node being renamed is a save set ({@link Node} and if it is opened
-     * in the editor, the tab title is also updated with the new name.
-     * to its old value.
-     * @param event The event holding the data needed to find the new name.
+     * @param node The node being renamed
      */
-    private void handleNodeRenamed(TreeView.EditEvent<Node> event){
-//        try {
-//            service.rename(event.getSource().g);
-//            if(event.getTreeItem().getValue().getNodeType().equals(NodeType.CONFIGURATION)){
-//                for(Tab tab : tabPane.getTabs()){
-//                    if(tab.getId().equals(Integer.toString(event.getTreeItem().getValue().getId()))){
-//                        tab.setText(event.getNewValue().getName());
-//                        break;
-//                    }
-//                }
-//            }
-//        } catch (Exception e) {
-//            event.getTreeItem().getValue().setName(nodeNameBeingEdited);
-//            Alert alert = new Alert(AlertType.ERROR);
-//            alert.setTitle("Rename failed");
-//            alert.setHeaderText("Selected node not renamed on server");
+    private void handleRenameNode(TreeItem<Node> node){
 
-//            alert.showAndWait();
-//        }
-    }
+        List<String> existingSiblingNodes =
+                node.getParent().getChildren().stream()
+                        .filter(item -> item.getValue().getNodeType().equals(node.getValue().getNodeType()))
+                        .map(item -> item.getValue().getName())
+                        .collect(Collectors.toList());
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Rename node");
+        dialog.setContentText("Specify a new name (case sensitive):");
+        dialog.setHeaderText(null);
+        dialog.getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
+        dialog.getEditor().textProperty().setValue(node.getValue().getName());
 
 
-    private void showJMasarServiceUnabvailable(){
-        Node node = Node.builder().name(saveAndRestoreService.getServiceIdentifier() + " - currently unavailable").build();
-        treeView.setRoot(new TreeItem<>(node));
-        treeView.setCellFactory(new Callback<TreeView<Node>, TreeCell<Node>>() {
-            @Override
-            public TreeCell<Node> call(TreeView<Node> p) {
-                return new RemoteServiceUnavailableCell();
-            }
+        dialog.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
+            String value = newValue.trim();
+            dialog.getDialogPane().lookupButton(ButtonType.OK)
+                    .setDisable(existingSiblingNodes.contains(value) || value.isEmpty());
         });
-    }
 
-    private class RemoteServiceUnavailableCell extends TreeCell<Node>{
+        Optional<String> result = dialog.showAndWait();
 
-        private HBox cellGraphic;
-
-        public RemoteServiceUnavailableCell(){
-
-            cellGraphic = new HBox();
-            HBox.setMargin(cellGraphic, new Insets(100, 0, 0,0));
-            Label label = new Label("JMasar Service unavailable");
-            label.setMaxHeight(Double.MAX_VALUE);
-            HBox.setMargin(label, new Insets(5, 10, 5,5));
-            Button reconnect = new Button("Reconnect");
-            reconnect.setOnAction(ae -> {
-                reconnect();
-            });
-
-            cellGraphic.getChildren().addAll(label, reconnect);
-        }
-
-        public void reconnect(){
+        if (result.isPresent()) {
+            node.getValue().setName(result.get());
             try {
-                loadInitialTreeData();
+                saveAndRestoreService.updateNode(node.getValue());
             } catch (Exception e) {
                 Alert alert = new Alert(AlertType.ERROR);
-                alert.setTitle("Reconnection failed");
-                alert.setHeaderText("Unable to connect to " + saveAndRestoreService.getServiceIdentifier());
+                alert.setTitle("Action failed");
+                alert.setHeaderText(e.getMessage());
                 alert.showAndWait();
-            }
-        }
-
-        @Override
-        public void updateItem(Node node, boolean empty) {
-            super.updateItem(node, empty);
-            if(!empty){
-                setGraphic(cellGraphic);
             }
         }
     }
@@ -486,5 +537,27 @@ public class SaveAndRestoreController implements Initializable{
                 return node.getNodeType().equals(NodeType.SNAPSHOT);
             }
         };
+    }
+
+    @Override
+    public void nodeChanged(Node node){
+        // Find the node that has changed
+        TreeItem<Node> nodeSubjectToUpdate = recursiveSearch(node.getUniqueId(), treeView.getRoot());
+        if(nodeSubjectToUpdate == null){
+            // TODO: log this
+            return;
+        }
+        nodeSubjectToUpdate.setValue(node);
+    }
+
+    private TreeItem<Node> recursiveSearch(String nodeIdToLocate, TreeItem<Node> node){
+        if (node.getValue().getUniqueId().equals(nodeIdToLocate))
+            return node;
+        List<TreeItem<Node>> childNodes = node.getChildren();
+        TreeItem<Node> result = null;
+        for (int i = 0; result == null && i < childNodes.size(); i++) {
+            result = recursiveSearch(nodeIdToLocate, childNodes.get(i));
+        }
+        return result;
     }
 }

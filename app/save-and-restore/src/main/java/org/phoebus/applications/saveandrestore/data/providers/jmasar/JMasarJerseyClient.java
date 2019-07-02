@@ -36,8 +36,11 @@ public class JMasarJerseyClient implements JMasarClient{
 
     private static final String CONTENT_TYPE_JSON = "application/json; charset=UTF-8";
 
-    @Value("${jmasar.service.url}")
     private String jmasarServiceUrl;
+
+    public void setServiceUrl(String serviceUrl){
+        this.jmasarServiceUrl = serviceUrl;
+    }
 
     @Override
     public String getServiceUrl() {
@@ -68,13 +71,13 @@ public class JMasarJerseyClient implements JMasarClient{
         else{
             response = getCall("/node/" + node.getUniqueId() + "/children");
         }
-        return response.getEntity(new GenericType<>(){});
+        return response.getEntity(new GenericType<List<Node>>(){});
     }
 
     @Override
     public List<SnapshotItem> getSnapshotItems(String snapshotUniqueId){
         ClientResponse response = getCall("/snapshot/" + snapshotUniqueId + "/items");
-        return response.getEntity(new GenericType<>(){});
+        return response.getEntity(new GenericType<List<SnapshotItem>>(){});
     }
 
     @Override
@@ -97,7 +100,7 @@ public class JMasarJerseyClient implements JMasarClient{
     @Override
     public List<ConfigPv> getConfigPvs(String configUniqueId){
         ClientResponse response = getCall("/config/" + configUniqueId + "/items");
-        return response.getEntity(new GenericType<>(){});
+        return response.getEntity(new GenericType<List<ConfigPv>>(){});
     }
 
     @Override
@@ -124,6 +127,7 @@ public class JMasarJerseyClient implements JMasarClient{
         WebResource webResource = client.resource(jmasarServiceUrl + "/node/" + nodeToUpdate.getUniqueId() + "/update");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+                .entity(nodeToUpdate, CONTENT_TYPE_JSON)
                 .post(ClientResponse.class);
 
         if (response.getStatus() != 200) {
@@ -143,16 +147,6 @@ public class JMasarJerseyClient implements JMasarClient{
         }
 
         return response.getEntity(Node.class);
-    }
-
-    @Override
-    public void tagSnapshotAsGolden(String uniqueNodeId){
-        WebResource webResource = client.resource(jmasarServiceUrl + "/snapshot/" + uniqueNodeId + "/golden");
-
-        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).post(ClientResponse.class);
-        if (response.getStatus() != 200) {
-            throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
-        }
     }
 
     private <T> T getCall(String relativeUrl, Class<T> clazz) {

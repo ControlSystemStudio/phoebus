@@ -18,15 +18,14 @@
 
 package org.phoebus.applications.saveandrestore.data.providers.jmasar;
 
-import java.util.List;
-
 import org.phoebus.applications.saveandrestore.data.DataProvider;
 import org.phoebus.applications.saveandrestore.data.DataProviderException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import se.esss.ics.masar.model.ConfigPv;
 import se.esss.ics.masar.model.Node;
 import se.esss.ics.masar.model.SnapshotItem;
+
+import java.util.List;
 
 public class JMasarDataProvider implements DataProvider {
 
@@ -63,8 +62,8 @@ public class JMasarDataProvider implements DataProvider {
 	}
 	
 	@Override
-	public String getServiceIdentifier() {
-		return "JMasar service (" + jmasarClient.getServiceUrl() + ")";
+	public String getServiceUrl() {
+		return jmasarClient.getServiceUrl();
 	}
 
 	@Override
@@ -105,23 +104,11 @@ public class JMasarDataProvider implements DataProvider {
 		return jmasarClient.getJMasarServiceVersion();
 	}
 
-
-
 	@Override
 	public Node takeSnapshot(String uniqueNodeId){
 		return jmasarClient.takeSnapshot(uniqueNodeId);
 	}
 
-	@Override
-	public boolean tagSnapshotAsGolden(String uniqueNodeId){
-		try {
-			jmasarClient.tagSnapshotAsGolden(uniqueNodeId);
-			return true;
-		}
-		catch(DataProviderException e){
-			return false;
-		}
-	}
 
 	@Override
 	public List<SnapshotItem> getSnapshotItems(String snapshotUniqueId){

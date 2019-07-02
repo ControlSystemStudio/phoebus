@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 
-<GridPane id="parent" fx:id="parent" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.saveset.SaveSetController">
+<GridPane id="parent" fx:id="parent" xmlns="http://javafx.com/javafx/8.0.999-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.saveset.SaveSetController">
 
 		<children>
 			<Button fx:id="saveButton" mnemonicParsing="false" onAction="#saveSaveSet" text="Save" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="0">
@@ -111,7 +111,7 @@
 					<RowConstraints />
 				</rowConstraints>
          <GridPane.margin>
-            <Insets top="5.0" />
+            <Insets bottom="5.0" top="5.0" />
          </GridPane.margin>
 			</GridPane>
 		</children>

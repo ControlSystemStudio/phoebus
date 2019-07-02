@@ -26,47 +26,61 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import org.phoebus.applications.saveandrestore.SpringFxmlLoader;
+import org.phoebus.applications.saveandrestore.data.NodeChangeListener;
+import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.ui.javafx.ImageCache;
 import se.esss.ics.masar.model.Node;
 
-public class SaveSetTab extends Tab{
+public class SaveSetTab extends Tab implements NodeChangeListener {
 
-    private SimpleStringProperty tabTitleProperty = new SimpleStringProperty("<unnamed>");
+    //private SimpleStringProperty tabTitleProperty = new SimpleStringProperty("<unnamed>");
 
     private SaveSetController saveSetController;
+    private SaveAndRestoreService saveAndRestoreService;
 
-    public SaveSetTab(Node node){
+    public SaveSetTab(Node node, SaveAndRestoreService saveAndRestoreService){
+        this.saveAndRestoreService = saveAndRestoreService;
+        this.saveAndRestoreService.addNodeChangeListener(this);
         setId(node.getUniqueId());
 
-        //FXMLLoader loader = new FXMLLoader();
         SpringFxmlLoader springFxmlLoader = new SpringFxmlLoader();
         try {
-            //loader.setLocation(this.getClass().getResource("fxml/SaveSetEditor.fxml"));
             setContent((javafx.scene.Node)springFxmlLoader.load("/org/phoebus/applications/saveandrestore/ui/saveset/fxml/SaveSetEditor.fxml"));
-            setGraphic(getTabGraphic());
 
             saveSetController = springFxmlLoader.getLoader().getController();
-            String tabName = saveSetController.loadSaveSet(node);
-            if(tabName != null) {
-                tabTitleProperty.set(tabName);
-            }
-
+            setGraphic(getTabGraphic());
+            //tabTitleProperty.bindBidirectional(saveSetController.getTabTitleProperty());
+            saveSetController.loadSaveSet(node);
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+
+        setOnCloseRequest(event -> {
+            if(!saveSetController.handleSaveSetTabClosed()){
+                event.consume();
+            }
+            else{
+                this.saveAndRestoreService.removeNodeChangeListener(this);
+            }
+        });
     }
 
     private javafx.scene.Node getTabGraphic(){
         HBox container = new HBox();
-        Image icon = ImageCache.getImage(SnapshotTab.class, "/icons/txt.png");
+        Image icon = ImageCache.getImage(SnapshotTab.class, "/icons/small/Save-set@.png");
         ImageView imageView = new ImageView(icon);
         Label label = new Label("");
-        label.textProperty().bind(tabTitleProperty);
-        HBox.setMargin(label, new Insets(0, 5, 0,5));
+        label.textProperty().bindBidirectional(saveSetController.getTabTitleProperty());
+        HBox.setMargin(label, new Insets(3, 5, 0,5));
         container.getChildren().addAll(imageView, label);
 
         return container;
+    }
+
+    @Override
+    public void nodeChanged(Node node){
+        //tabTitleProperty.set(node.getName());
     }
 }

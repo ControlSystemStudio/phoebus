@@ -46,13 +46,11 @@ public interface DataProvider {
 	
 	public Node updateSaveSet(Node configToUpdate, List<ConfigPv> configPvList);
 	
-	public String getServiceIdentifier();
+	public String getServiceUrl();
 
 	public String getServiceVersion();
 
 	public Node takeSnapshot(String uniqueNodeId);
-
-	public boolean tagSnapshotAsGolden(String uniqueNodeId);
 
 	public List<SnapshotItem> getSnapshotItems(String snapshotUniqueId);
 

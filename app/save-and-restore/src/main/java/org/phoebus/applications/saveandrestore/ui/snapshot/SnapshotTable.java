@@ -47,9 +47,9 @@ import org.phoebus.applications.saveandrestore.ui.model.*;
 import se.esss.ics.masar.model.ConfigPv;
 
 
-class SnapshotTable extends TableView<SnapshotTableEntry> {
+class SnapshotTable extends TableView<TableEntry> {
 
-    private TableColumn<SnapshotTableEntry, ConfigPv> pvNameColumn;
+    private TableColumn<TableEntry, ConfigPv> pvNameColumn;
 
     private static boolean resizePolicyNotInitialized = true;
     private static PrivilegedAction<Object> resizePolicyAction = () -> {
@@ -73,7 +73,7 @@ class SnapshotTable extends TableView<SnapshotTableEntry> {
      * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
      *
      */
-    private static class TimestampTableCell extends TableCell<SnapshotTableEntry, Instant> {
+    private static class TimestampTableCell extends TableCell<TableEntry, Instant> {
         @Override
         protected void updateItem(Instant item, boolean empty) {
             super.updateItem(item, empty);
@@ -97,7 +97,7 @@ class SnapshotTable extends TableView<SnapshotTableEntry> {
      *
      * @param <T> {@link org.epics.vtype.VType} or {@link org.phoebus.applications.saveandrestore.ui.model.VTypePair}
      */
-    private static class VTypeCellEditor<T> extends MultitypeTableCell<SnapshotTableEntry, T> {
+    private static class VTypeCellEditor<T> extends MultitypeTableCell<TableEntry, T> {
         private static final Image WARNING_IMAGE = new Image(
             SnapshotController.class.getResourceAsStream("/icons/hprio_tsk.png"));
         private static final Image DISCONNECTED_IMAGE = new Image(
@@ -370,7 +370,7 @@ class SnapshotTable extends TableView<SnapshotTableEntry> {
      *
      * @param <T> the type of the values displayed by this column
      */
-    private class TooltipTableColumn<T> extends TableColumn<SnapshotTableEntry, T> {
+    private class TooltipTableColumn<T> extends TableColumn<TableEntry, T> {
         private String text;
         private Label label;
 
@@ -418,23 +418,23 @@ class SnapshotTable extends TableView<SnapshotTableEntry> {
 
     /**
      * <code>SelectionTableColumn</code> is the table column for the first column in the table, which displays
-     * a checkbox, whether the SnapshotTableEntryPvProxy should be selected or not.
+     * a checkbox, whether the PV should be selected or not.
      *
      * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
      *
      */
     private class SelectionTableColumn extends TooltipTableColumn<Boolean> {
         SelectionTableColumn() {
-            super("", "Include this SnapshotTableEntryPvProxy when restoring values", 30, 30, false);
+            super("", "Include this PV when restoring values", 30, 30, false);
             setCellValueFactory(new PropertyValueFactory<>("selected"));
             //for those entries, which have a read-only property, disable the checkbox
             setCellFactory(column -> {
-                TableCell<SnapshotTableEntry, Boolean> cell = new CheckBoxTableCell<>(null,null);
+                TableCell<TableEntry, Boolean> cell = new CheckBoxTableCell<>(null,null);
                 cell.itemProperty().addListener((a, o, n) -> {
                     cell.getStyleClass().remove("check-box-table-cell-disabled");
                     TableRow<?> row = cell.getTableRow();
                     if (row != null) {
-                        SnapshotTableEntry item = (SnapshotTableEntry) row.getItem();
+                        TableEntry item = (TableEntry) row.getItem();
                         if (item != null) {
                             cell.setEditable(!item.readOnlyProperty().get());
                             if (item.readOnlyProperty().get()) {
@@ -470,7 +470,7 @@ class SnapshotTable extends TableView<SnapshotTableEntry> {
     private final SnapshotController controller;
     private CheckBox selectAllCheckBox;
 
-    private TableColumn<SnapshotTableEntry, ?> columnAtMouse;
+    private TableColumn<TableEntry, ?> columnAtMouse;
     private int rowAtMouse = -1;
     private int clickedColumn = -1;
     private int clickedRow = -1;
@@ -529,7 +529,7 @@ class SnapshotTable extends TableView<SnapshotTableEntry> {
      * @param column the column at mouse cursor (null if none)
      * @param row the row index at mouse cursor
      */
-    private void setColumnAndRowAtMouse(TableColumn<SnapshotTableEntry, ?> column, int row) {
+    private void setColumnAndRowAtMouse(TableColumn<TableEntry, ?> column, int row) {
         this.columnAtMouse = column;
         this.rowAtMouse = row;
     }
@@ -544,54 +544,54 @@ class SnapshotTable extends TableView<SnapshotTableEntry> {
 
 
     private void createTableForSingleSnapshot(boolean showLiveReadback, boolean showStoredReadback) {
-        List<TableColumn<SnapshotTableEntry, ?>> list = new ArrayList<>(12);
+        List<TableColumn<TableEntry, ?>> snapshotTableEntries = new ArrayList<>(12);
 
-        TableColumn<SnapshotTableEntry, Boolean> selectedColumn = new SelectionTableColumn();
-        list.add(selectedColumn);
+        TableColumn<TableEntry, Boolean> selectedColumn = new SelectionTableColumn();
+        snapshotTableEntries.add(selectedColumn);
 
         int width = measureStringWidth("000", Font.font(20));
-        TableColumn<SnapshotTableEntry, Integer> idColumn = new TooltipTableColumn<>("#",
-            "The order number of the SnapshotTableEntryPvProxy in the save set", width, width, false);
+        TableColumn<TableEntry, Integer> idColumn = new TooltipTableColumn<>("#",
+            "The order number of the PV in the save set", width, width, false);
         idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
-        list.add(idColumn);
+        snapshotTableEntries.add(idColumn);
 
         pvNameColumn = new TooltipTableColumn<>("PV Name",
             "The list of setpoint PV names defined by the snapshot or save set", 100);
 
         pvNameColumn.setCellValueFactory(new PropertyValueFactory<>("pvName"));
-        list.add(pvNameColumn);
+        snapshotTableEntries.add(pvNameColumn);
 
         if (showLiveReadback) {
-            TableColumn<SnapshotTableEntry, ConfigPv> readbackPVName = new TooltipTableColumn<>("Readback\nSnapshotTableEntryPvProxy Name",
-                    "The list of readback SnapshotTableEntryPvProxy names associated with the setpoints", 100);
+            TableColumn<TableEntry, ConfigPv> readbackPVName = new TooltipTableColumn<>("Readback\nPV Name",
+                    "The list of readback PV names associated with the setpoints", 100);
             readbackPVName.setCellValueFactory(new PropertyValueFactory<>("readbackName"));
-            list.add(readbackPVName);
+            snapshotTableEntries.add(readbackPVName);
         }
 
         width = measureStringWidth("MM:MM:MM.MMM MMM MM M", null);
-        TableColumn<SnapshotTableEntry, Instant> timestampColumn = new TooltipTableColumn<>("Timestamp",
+        TableColumn<TableEntry, Instant> timestampColumn = new TooltipTableColumn<>("Timestamp",
             "Timestamp of the setpoint value when the snapshot was taken", width, width, true);
-        timestampColumn.setCellValueFactory(new PropertyValueFactory<SnapshotTableEntry, Instant>("timestamp"));
+        timestampColumn.setCellValueFactory(new PropertyValueFactory<TableEntry, Instant>("timestamp"));
         timestampColumn.setCellFactory(c -> new TimestampTableCell());
         timestampColumn.setPrefWidth(width);
-        list.add(timestampColumn);
+        snapshotTableEntries.add(timestampColumn);
 
-        TableColumn<SnapshotTableEntry, String> statusColumn = new TooltipTableColumn<>("Status",
+        TableColumn<TableEntry, String> statusColumn = new TooltipTableColumn<>("Status",
             "Alarm status of the setpoint PV when the snapshot was taken", 100, 100, true);
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
-        list.add(statusColumn);
+        snapshotTableEntries.add(statusColumn);
 
-        TableColumn<SnapshotTableEntry, String> severityColumn = new TooltipTableColumn<>("Severity",
+        TableColumn<TableEntry, String> severityColumn = new TooltipTableColumn<>("Severity",
                 "Alarm severity of the setpoint PV when the snapshot was taken", 100, 100, true);
         severityColumn.setCellValueFactory(new PropertyValueFactory<>("severity"));
-        list.add(severityColumn);
+        snapshotTableEntries.add(severityColumn);
 
-        TableColumn<SnapshotTableEntry, ?> storedValueBaseColumn = new TooltipTableColumn<>(
+        TableColumn<TableEntry, ?> storedValueBaseColumn = new TooltipTableColumn<>(
                 "Stored Setpoint", "", -1);
 
-        TableColumn<SnapshotTableEntry, VType> storedValueColumn = new TooltipTableColumn<>(
+        TableColumn<TableEntry, VType> storedValueColumn = new TooltipTableColumn<>(
             "Stored Setpoint",
-            "Setpoint SnapshotTableEntryPvProxy value when the snapshot was taken", 100);
+            "Setpoint PV value when the snapshot was taken", 100);
         storedValueColumn.setCellValueFactory(new PropertyValueFactory<>("snapshotVal"));
         storedValueColumn.setCellFactory(e -> new VTypeCellEditor<>());
         storedValueColumn.setEditable(true);
@@ -604,7 +604,7 @@ class SnapshotTable extends TableView<SnapshotTableEntry> {
 
         storedValueBaseColumn.getColumns().add(storedValueColumn);
         // show deltas in separate column
-        TableColumn<SnapshotTableEntry, VTypePair> delta = new TooltipTableColumn<>(
+        TableColumn<TableEntry, VTypePair> delta = new TooltipTableColumn<>(
                 Utilities.DELTA_CHAR + " Live Setpoint",
                 "", 100);
         delta.setCellValueFactory(e -> e.getValue().valueProperty());
@@ -612,71 +612,71 @@ class SnapshotTable extends TableView<SnapshotTableEntry> {
         delta.setEditable(false);
         storedValueBaseColumn.getColumns().add(delta);
 
-        list.add(storedValueBaseColumn);
+        snapshotTableEntries.add(storedValueBaseColumn);
 
         if (showStoredReadback) {
-            TableColumn<SnapshotTableEntry, VType> storedReadbackColumn = new TooltipTableColumn<>(
+            TableColumn<TableEntry, VType> storedReadbackColumn = new TooltipTableColumn<>(
                     "Stored Readback\n(" + Utilities.DELTA_CHAR + " Stored Setpoint)", "Stored Readback Value", 100);
             storedReadbackColumn.setCellValueFactory(new PropertyValueFactory<>("storedReadback"));
             storedReadbackColumn.setCellFactory(e -> new VTypeCellEditor<>());
             storedReadbackColumn.setEditable(false);
-            list.add(storedReadbackColumn);
+            snapshotTableEntries.add(storedReadbackColumn);
         }
 
-        TableColumn<SnapshotTableEntry, VType> liveValueColumn = new TooltipTableColumn<>("Live Setpoint", "Current SnapshotTableEntryPvProxy Value",
+        TableColumn<TableEntry, VType> liveValueColumn = new TooltipTableColumn<>("Live Setpoint", "Current PV Value",
             100);
         liveValueColumn.setCellValueFactory(new PropertyValueFactory<>("liveValue"));
         liveValueColumn.setCellFactory(e -> new VTypeCellEditor<>());
         liveValueColumn.setEditable(false);
-        list.add(liveValueColumn);
+        snapshotTableEntries.add(liveValueColumn);
 
 
         if (showLiveReadback) {
-            TableColumn<SnapshotTableEntry, VType> readbackColumn = new TooltipTableColumn<>(
+            TableColumn<TableEntry, VType> readbackColumn = new TooltipTableColumn<>(
                     "Live Readback\n(" + Utilities.DELTA_CHAR + " Live Setpoint)", "Current Readback Value", 100);
             readbackColumn.setCellValueFactory(new PropertyValueFactory<>("liveReadback"));
             readbackColumn.setCellFactory(e -> new VTypeCellEditor<>());
             readbackColumn.setEditable(false);
-            list.add(readbackColumn);
+            snapshotTableEntries.add(readbackColumn);
         }
 
-        getColumns().addAll(list);
+        getColumns().addAll(snapshotTableEntries);
     }
 
     private void createTableForMultipleSnapshots(List<VSnapshot> snapshots) {
-        List<TableColumn<SnapshotTableEntry, ?>> list = new ArrayList<>(7);
-        TableColumn<SnapshotTableEntry, Boolean> selectedColumn = new SelectionTableColumn();
+        List<TableColumn<TableEntry, ?>> list = new ArrayList<>(7);
+        TableColumn<TableEntry, Boolean> selectedColumn = new SelectionTableColumn();
         list.add(selectedColumn);
 
         int width = measureStringWidth("000", Font.font(20));
-        TableColumn<SnapshotTableEntry, Integer> idColumn = new TooltipTableColumn<>("#",
-            "The order number of the SnapshotTableEntryPvProxy in the save set", width, width, false);
+        TableColumn<TableEntry, Integer> idColumn = new TooltipTableColumn<>("#",
+            "The order number of the PV in the save set", width, width, false);
         idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         list.add(idColumn);
 
-        TableColumn<SnapshotTableEntry, String> setpointPVName = new TooltipTableColumn<>("SnapshotTableEntryPvProxy Name",
-            "Union of setpoint SnapshotTableEntryPvProxy names defined by all compared snapshots", 100);
+        TableColumn<TableEntry, String> setpointPVName = new TooltipTableColumn<>("PV Name",
+            "Union of setpoint PV names defined by all compared snapshots", 100);
         setpointPVName.setCellValueFactory(new PropertyValueFactory<>("pvName"));
         list.add(setpointPVName);
 
         list.add(new DividerTableColumn());
 
-        TableColumn<SnapshotTableEntry, ?> storedValueColumn = new TooltipTableColumn<>("Stored Values",
-            "SnapshotTableEntryPvProxy values when the snapshots were taken", -1);
+        TableColumn<TableEntry, ?> storedValueColumn = new TooltipTableColumn<>("Stored Values",
+            "PV values when the snapshots were taken", -1);
         storedValueColumn.getStyleClass().add("toplevel");
 
         String snapshotName = snapshots.get(0).getSnapshot().get().getName() + " (" +
                 String.valueOf(snapshots.get(0)) + ")";
 
 
-        TableColumn<SnapshotTableEntry, ?> baseCol = new TooltipTableColumn<>(
+        TableColumn<TableEntry, ?> baseCol = new TooltipTableColumn<>(
             snapshotName,
-            "Setpoint SnapshotTableEntryPvProxy value when the base snapshot was taken", 33);
+            "Setpoint PV value when the base snapshot was taken", 33);
         baseCol.getStyleClass().add("second-level");
 
-        TableColumn<SnapshotTableEntry, VType> storedBaseSetpointValueColumn = new TooltipTableColumn<>(
+        TableColumn<TableEntry, VType> storedBaseSetpointValueColumn = new TooltipTableColumn<>(
             "Base Setpoint",
-            "Base Setpoint SnapshotTableEntryPvProxy value when the snapshot was taken", 100);
+            "Base Setpoint PV value when the snapshot was taken", 100);
 
         storedBaseSetpointValueColumn.setCellValueFactory(new PropertyValueFactory<>("snapshotVal"));
         storedBaseSetpointValueColumn.setCellFactory(e -> new VTypeCellEditor<>());
@@ -691,7 +691,7 @@ class SnapshotTable extends TableView<SnapshotTableEntry> {
         baseCol.getColumns().add(storedBaseSetpointValueColumn);
 
         // show deltas in separate column
-        TableColumn<SnapshotTableEntry, VTypePair> delta = new TooltipTableColumn<>(
+        TableColumn<TableEntry, VTypePair> delta = new TooltipTableColumn<>(
                 Utilities.DELTA_CHAR + " Live Setpoint",
                 "", 100);
 
@@ -710,13 +710,13 @@ class SnapshotTable extends TableView<SnapshotTableEntry> {
             final ContextMenu menu = createContextMenu(snapshotIndex);
 
             TooltipTableColumn<VTypePair> baseSnapshotCol = new TooltipTableColumn<>(snapshotName,
-                    "Setpoint SnapshotTableEntryPvProxy value when the " + snapshotName + " snapshot was taken", 100);
+                    "Setpoint PV value when the " + snapshotName + " snapshot was taken", 100);
             baseSnapshotCol.label.setContextMenu(menu);
             baseSnapshotCol.getStyleClass().add("second-level");
 
             TooltipTableColumn<VTypePair> setpointValueCol = new TooltipTableColumn<>(
                     "Setpoint",
-                    "Setpoint SnapshotTableEntryPvProxy value when the " + snapshotName + " snapshot was taken", 66);
+                    "Setpoint PV value when the " + snapshotName + " snapshot was taken", 66);
 
             setpointValueCol.label.setContextMenu(menu);
             setpointValueCol.setCellValueFactory(e -> e.getValue().compareValueProperty(snapshotIndex));
@@ -752,7 +752,7 @@ class SnapshotTable extends TableView<SnapshotTableEntry> {
         }
         list.add(storedValueColumn);
 
-        TableColumn<SnapshotTableEntry, VType> liveValueColumn = new TooltipTableColumn<>("Live Setpoint",
+        TableColumn<TableEntry, VType> liveValueColumn = new TooltipTableColumn<>("Live Setpoint",
             "Current Setpoint value", 100);
 
         liveValueColumn.setCellValueFactory(new PropertyValueFactory<>("liveValue"));
@@ -776,7 +776,7 @@ class SnapshotTable extends TableView<SnapshotTableEntry> {
         return new ContextMenu(removeItem, setAsBaseItem, new SeparatorMenuItem(), moveToNewEditor);
     }
 
-//    private void update(final List<SnapshotTableEntry> entries) {
+//    private void update(final List<TableEntry> entries) {
 //        final List<Snapshot> snaps = controller.getAllSnapshots();
 //        // the readback properties are changed on the UI thread, however they are just flags, which do not have any
 //        // effect on the data model, so they can be read by anyone at anytime
@@ -794,7 +794,7 @@ class SnapshotTable extends TableView<SnapshotTableEntry> {
      * @param showLiveReadback true if readback column should be visible or false otherwise
      * @param showStoredReadback true if the stored readback value columns should be visible or false otherwise
      */
-    void updateTable(List<SnapshotTableEntry> entries, List<VSnapshot> snapshots, boolean showLiveReadback, boolean showStoredReadback) {
+    void updateTable(List<TableEntry> entries, List<VSnapshot> snapshots, boolean showLiveReadback, boolean showStoredReadback) {
         getColumns().clear();
         uiSnapshots.clear();
         // we should always know if we are showing the stored readback or not, to properly extract the selection
@@ -815,8 +815,8 @@ class SnapshotTable extends TableView<SnapshotTableEntry> {
      *
      * @param entries the entries to set
      */
-    public void updateTable(List<SnapshotTableEntry> entries) {
-        final ObservableList<SnapshotTableEntry> items = getItems();
+    public void updateTable(List<TableEntry> entries) {
+        final ObservableList<TableEntry> items = getItems();
         final boolean notHide = !controller.isHideEqualItems();
         items.clear();
         entries.forEach(e -> {
@@ -844,7 +844,7 @@ class SnapshotTable extends TableView<SnapshotTableEntry> {
      *
      * @param entry the item to add
      */
-//    void addItem(SnapshotTableEntry entry) {
+//    void addItem(TableEntry entry) {
 //        entry.selectedProperty()
 //            .addListener((a, o, n) -> selectAllCheckBox.setSelected(n ? selectAllCheckBox.isSelected() : false));
 //        entry.liveStoredEqualProperty().addListener((a, o, n) -> {
@@ -864,7 +864,7 @@ class SnapshotTable extends TableView<SnapshotTableEntry> {
      *
      * @param entry the entry to remove
      */
-//    void removeItem(SnapshotTableEntry entry) {
+//    void removeItem(TableEntry entry) {
 //        getItems().remove(entry);
 //    }
 
@@ -877,7 +877,7 @@ class SnapshotTable extends TableView<SnapshotTableEntry> {
         if (uiSnapshots.size() == 1) {
             ((TooltipTableColumn<?>) getColumns().get(6)).setSaved(true); //uiSnapshots.get(0).isSaved());
         } else {
-            TableColumn<SnapshotTableEntry, ?> column = getColumns().get(4);
+            TableColumn<TableEntry, ?> column = getColumns().get(4);
             for (int i = 0; i < uiSnapshots.size(); i++) {
                 TableColumn tableColumn = column.getColumns().get(i);
                 if(tableColumn instanceof DividerTableColumn){
@@ -1009,7 +1009,7 @@ class SnapshotTable extends TableView<SnapshotTableEntry> {
 //            value = null;
 //        }
 //        if (getItems().size() > clickedRow) {
-//            SnapshotTableEntry entry = getItems().get(clickedRow);
+//            TableEntry entry = getItems().get(clickedRow);
 //            VSnapshot snapshot = snapshotIndex > -1 ? uiSnapshots.get(snapshotIndex) : null;
 //            String name = (readback ? entry.readbackNameProperty() : entry.pvNameProperty()).get();
 //            return new VTypeNamePair(value, name, snapshot, readback, entry);

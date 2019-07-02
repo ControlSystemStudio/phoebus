@@ -5,62 +5,40 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TabPane?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TreeView?>
 <?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
 
-<SplitPane dividerPositions="0.3"
-	xmlns="http://javafx.com/javafx/10.0.1"
-	xmlns:fx="http://javafx.com/fxml/1"
-	fx:controller="org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController">
+<?import javafx.scene.layout.StackPane?>
+<SplitPane dividerPositions="0.3" prefHeight="1847.0" prefWidth="707.0" xmlns="http://javafx.com/javafx/8.0.999-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController">
 	<items>
 		<BorderPane prefHeight="200.0" prefWidth="200.0">
+			<top>
+				<HBox>
+					<Label fx:id="jmasarServiceTitle" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" text="JMasar service" HBox.hgrow="ALWAYS">
+						<HBox.margin>
+							<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+						</HBox.margin>
+					</Label>
+					<Region HBox.hgrow="ALWAYS" />
+					<Button fx:id="reconnectButton" onAction="#reconnect" text="Reconnect" visible="false">
+                  		<HBox.margin>
+                     		<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                  		</HBox.margin>
+					</Button>
+				</HBox>
+			</top>
 			<center>
-				<TreeView fx:id="treeView" prefHeight="347.0"
-					prefWidth="195.0" BorderPane.alignment="CENTER">
-
-				</TreeView>
+				<StackPane>
+					<TreeView fx:id="treeView" prefHeight="347.0" prefWidth="195.0" BorderPane.alignment="CENTER" VBox.vgrow="ALWAYS">
+					</TreeView>
+					<Label fx:id="emptyTreeInstruction" text="Right-click to create a top-level folder" visible="false"></Label>
+				</StackPane>
 			</center>
-			<bottom>
-				<GridPane BorderPane.alignment="CENTER">
-					<columnConstraints>
-						<ColumnConstraints hgrow="SOMETIMES"
-							minWidth="10.0" prefWidth="100.0" />
-						<ColumnConstraints hgrow="SOMETIMES"
-							minWidth="10.0" prefWidth="100.0" />
-					</columnConstraints>
-					<rowConstraints>
-						<RowConstraints minHeight="10.0" prefHeight="30.0"
-							vgrow="SOMETIMES" />
-						<RowConstraints minHeight="10.0" prefHeight="30.0"
-							vgrow="SOMETIMES" />
-
-					</rowConstraints>
-					<children>
-						<Button alignment="CENTER" mnemonicParsing="false"
-							text="Search" GridPane.columnIndex="1"
-							GridPane.halignment="RIGHT" GridPane.hgrow="NEVER">
-							<GridPane.margin>
-								<Insets />
-							</GridPane.margin>
-						</Button>
-						<TextField GridPane.halignment="LEFT"
-							GridPane.hgrow="ALWAYS">
-							<GridPane.margin>
-								<Insets />
-							</GridPane.margin>
-						</TextField>
-					</children>
-					<padding>
-						<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-					</padding>
-				</GridPane>
-			</bottom>
 		</BorderPane>
-		<TabPane fx:id="tabPane">
+		<TabPane fx:id="tabPane" prefHeight="1872.0" prefWidth="398.0" style="-fx-padding: 1; -fx-background-color: grey, -fx-control-inner-background; -fx-background-insets: 0, 1;">
 		</TabPane>
 	</items>
 
