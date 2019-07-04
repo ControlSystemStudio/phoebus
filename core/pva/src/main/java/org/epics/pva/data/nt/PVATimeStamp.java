@@ -24,9 +24,14 @@ public class PVATimeStamp extends PVAStructure
 
     public PVATimeStamp()
     {
+        this(Instant.now());
+    }
+
+    public PVATimeStamp(final Instant time)
+    {
         super("timeStamp", "time_t",
-              new PVALong("secondsPastEpoch", false, 0),
-              new PVAInt("nanoseconds", false,  0),
+              new PVALong("secondsPastEpoch", false, time.getEpochSecond()),
+              new PVAInt("nanoseconds", false, time.getNano()),
               new PVAInt("userTag", 0));
         secs = get(1);
         nano = get(2);

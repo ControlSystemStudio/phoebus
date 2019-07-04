@@ -41,7 +41,6 @@ public class ConnectDemo
             final PVAStructure data = new PVAStructure("demo", "demo_t",
                                                        value,
                                                        time);
-            time.set(Instant.now());
             final ServerPV pv = server.createPV(name, data);
             while (true)
             {
