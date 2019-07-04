@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app-display</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>4.6.0-SNAPSHOT</version>
   </parent>
   <artifactId>app-display-representation</artifactId>
   <dependencies>
@@ -23,7 +23,7 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-display-model</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>4.6.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
 </project>
