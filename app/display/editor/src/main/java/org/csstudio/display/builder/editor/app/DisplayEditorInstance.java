@@ -24,6 +24,7 @@ import org.csstudio.display.builder.model.ModelPlugin;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.WidgetClassSupport;
 import org.csstudio.display.builder.model.persist.WidgetClassesService;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
@@ -311,8 +312,20 @@ public class DisplayEditorInstance implements AppInstance
     {
         final URI orig_input = dock_item.getInput();
         final File file = Objects.requireNonNull(ResourceParser.getFile(orig_input));
+        
+        final DisplayModel model = editor_gui.getDisplayEditor().getModel();
 
-        final File proper = ModelResourceUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
+        // Check if it's a class file (*.bcf)
+        File proper;
+        if(model.isClassModel())
+        {
+            proper = ModelResourceUtil.enforceFileExtension(file, WidgetClassSupport.FILE_EXTENSION);
+        }
+        else
+        {
+            proper = ModelResourceUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
+        }
+
         if (file.equals(proper))
         {
             // Check if file has been changed outside of this editor
