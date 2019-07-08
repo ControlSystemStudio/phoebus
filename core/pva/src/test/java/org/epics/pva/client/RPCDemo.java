@@ -36,7 +36,7 @@ public class RPCDemo
     {
         try
         {
-            LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/logging.properties"));
+            LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/pva_logging.properties"));
             if (stress)
                 Logger.getLogger("").setLevel(Level.WARNING);
         }

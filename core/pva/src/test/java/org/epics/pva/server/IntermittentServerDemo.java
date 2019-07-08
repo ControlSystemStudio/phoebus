@@ -28,7 +28,7 @@ public class IntermittentServerDemo
 {
     public static void main(String[] args) throws Exception
     {
-        LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/logging.properties"));
+        LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/pva_logging.properties"));
 
         while (true)
         {

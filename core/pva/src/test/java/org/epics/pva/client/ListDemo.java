@@ -28,7 +28,7 @@ public class ListDemo
     {
         try
         {
-            LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/logging.properties"));
+            LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/pva_logging.properties"));
         }
         catch (Exception ex)
         {
