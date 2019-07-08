@@ -14,6 +14,7 @@
     @ECHO Installing update...
     @rd /S/Q doc
     @rd /S/Q lib
+    @del product*.jar
     @move /Y update\*.* .
     @move /Y update\doc .
     @move /Y update\lib .
