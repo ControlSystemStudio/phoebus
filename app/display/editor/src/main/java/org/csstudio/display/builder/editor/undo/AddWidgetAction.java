@@ -23,19 +23,26 @@ public class AddWidgetAction extends UndoableAction
     private final WidgetSelectionHandler selection;
     private final ChildrenProperty children;
     private final Widget widget;
+    private final int index;
 
     public AddWidgetAction(final WidgetSelectionHandler selection, final ChildrenProperty children, final Widget widget)
+    {
+        this(selection, children, widget, -1);
+    }
+
+    public AddWidgetAction(final WidgetSelectionHandler selection, final ChildrenProperty children, final Widget widget, final int index)
     {
         super(Messages.AddWidget);
         this.selection = selection;
         this.children = children;
         this.widget = widget;
+        this.index = index;
     }
 
     @Override
     public void run()
     {
-        children.addChild(widget);
+        children.addChild(index, widget);
         selection.setSelection(Arrays.asList(widget));
     }
 
