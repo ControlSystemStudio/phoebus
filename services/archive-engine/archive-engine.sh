@@ -15,14 +15,6 @@ then
   TOP="$TOP/target"
 fi
 
-V="0.0.1"
-
-# Use ant or maven jar?
-if [ -f ${TOP}/service-archive-engine-${V}.jar ]
-then
-  JAR="${TOP}/service-archive-engine-${V}.jar"
-else
-  JAR="${TOP}/service-archive-engine-${V}-SNAPSHOT.jar"
-fi
+JAR=`echo "${TOP}/service-archive-engine-*.jar"`
 
 java -jar $JAR $OPT "$@"

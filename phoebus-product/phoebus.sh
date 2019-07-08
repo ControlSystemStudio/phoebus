@@ -26,15 +26,7 @@ then
 fi
 
 
-V="0.0.1"
-
-# Use ant or maven jar?
-if [ -f ${TOP}/product-${V}.jar ]
-then
-  JAR="${TOP}/product-${V}.jar"
-else
-  JAR="${TOP}/product-${V}-SNAPSHOT.jar"
-fi
+JAR=`echo ${TOP}/product-*.jar`
 
 # To get one instance, use server mode
 OPT="-server 4918"
