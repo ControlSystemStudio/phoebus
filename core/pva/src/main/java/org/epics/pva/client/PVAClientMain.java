@@ -207,7 +207,7 @@ public class PVAClientMain
 
     public static void main(final String[] args) throws Exception
     {
-        LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/logging.properties"));
+        LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/pva_logging.properties"));
         setLogLevel(Level.WARNING);
 
         final List<String> names = new ArrayList<>();

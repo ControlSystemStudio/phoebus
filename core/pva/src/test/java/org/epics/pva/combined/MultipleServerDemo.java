@@ -30,7 +30,7 @@ public class MultipleServerDemo
     public static void main(String[] args) throws Exception
     {
         // Configure logging
-        LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/logging.properties"));
+        LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/pva_logging.properties"));
         final Logger root = Logger.getLogger("");
         // Profiler shows blocking in ConsoleHandler,
         // so reduce log messages to only warnings for performance tests

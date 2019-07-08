@@ -59,7 +59,7 @@ public class ConnectDemo
     public static void main(String[] args) throws Exception
     {
         // Configure logging
-        LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/logging.properties"));
+        LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/pva_logging.properties"));
         final Logger root = Logger.getLogger("");
         root.setLevel(Level.CONFIG);
         for (Handler handler : root.getHandlers())
