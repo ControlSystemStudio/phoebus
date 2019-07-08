@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>dependencies</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>4.6.0-SNAPSHOT</version>
   </parent>
   <artifactId>install-jars</artifactId>
 
@@ -14,7 +14,7 @@
        Otherwise the plugin would run once with a mix of setups,
        like install the ojdbc jar with the pbraw/pom.xml:
 
- maven-install-plugin:2.5.2:install-file (install-jar-lib) @ install-jars 
+ maven-install-plugin:2.5.2:install-file (install-jar-lib) @ install-jars
  Installing dependencies/install-jars/lib/ojdbc/ojdbc8-12.2.0.1.jar to .m2/repository/com/oracle/jdbc/ojdbc8/12.2.0.1/ojdbc8-12.2.0.1.jar
  Installing dependencies/install-jars/lib/pbraw/pom.xml to .m2/repository/com/oracle/jdbc/ojdbc8/12.2.0.1/ojdbc8-12.2.0.1.pom
     -->
