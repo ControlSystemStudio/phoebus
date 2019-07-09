@@ -8,7 +8,10 @@
 package org.epics.pva.client;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import org.epics.pva.PVASettings;
 
@@ -24,7 +27,7 @@ public class SpamDemo
         try
         {
             LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/pva_logging.properties"));
-            // Logger.getLogger("").setLevel(Level.CONFIG);
+            Logger.getLogger("").setLevel(Level.CONFIG);
         }
         catch (Exception ex)
         {
@@ -42,15 +45,22 @@ public class SpamDemo
         final PVAChannel channel = pva.getChannel("spam");
         channel.connect().get(5, TimeUnit.SECONDS);
 
+        AtomicInteger updates = new AtomicInteger();
         final AutoCloseable subscription = channel.subscribe("", pipeline, (ch, changes, overruns, data) ->
         {
-            System.out.println(data);
+            updates.incrementAndGet();
+            // System.out.println(data);
         });
 
-        TimeUnit.HOURS.sleep(1);
+        while (true)
+        {
+            TimeUnit.SECONDS.sleep(10);
+            final int got = updates.getAndSet(0);
+            System.err.println(got + " updates in 10 seconds");
+        }
 
-        subscription.close();
-        channel.close();
-        pva.close();
+//        subscription.close();
+//        channel.close();
+//        pva.close();
     }
 }
