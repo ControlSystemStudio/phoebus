@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.epics.pva.data.PVAData;
+import org.epics.pva.data.PVAString;
 import org.epics.pva.data.PVAStructure;
 
 /** Description of the 'field(..)' request used to get/monitor a channel
@@ -50,6 +51,28 @@ class FieldRequest
      */
     public FieldRequest(final String request)
     {
+        this(false, request);
+    }
+
+    /** Parse field request
+     *  @param pipeline Enable 'pipeline' mode for monitor?
+     *  @param request Examples:
+     *                 "", "field()",
+     *                 "value", "field(value)",
+     *                 "field(value, timeStamp.userTag)"
+     */
+    public FieldRequest(final boolean pipeline, final String request)
+    {
+        final List<PVAData> items = new ArrayList<>();
+
+        if (pipeline)
+        {
+            // record._options.pipeline=true
+            // 'camonitor' encodes as String 'true', not PVABoolean
+            final PVAStructure options = new PVAStructure("_options", "", new PVAString("pipeline", "true"));
+            items.add(new PVAStructure("record", "", options));
+        }
+
         // XXX Not using any client type registry,
         //     but (re-)defining from 1 each time
         // [#1] : desc
@@ -57,18 +80,18 @@ class FieldRequest
         // [#3] : All the plain elements
         // [#4, 5, ..]: Additional sub-structs
         final List<String> fields = parseFields(request);
-        if (fields.isEmpty())
-            desc = new PVAStructure("", "");
-        else
+        if (! fields.isEmpty())
         {
             final List<PVAData> field_elements = new ArrayList<>(fields.size());
             final AtomicInteger struct_id = new AtomicInteger(4);
             for (String field : fields)
                 field_elements.add(createFieldElement(field, struct_id));
             final PVAStructure field_struct = new PVAStructure("field", "", field_elements);
-            desc = new PVAStructure("", "", field_struct);
+            items.add(field_struct);
             field_struct.setTypeID((short)2);
         }
+
+        desc = new PVAStructure("", "", items);
         desc.setTypeID((short)1);
     }
 
@@ -133,18 +156,25 @@ class FieldRequest
         return result;
     }
 
-    /** Encode the request
+    /** Encode the request description
      *
      *  @param buffer {@link ByteBuffer}
-     *  @return Number of encoded bytes
      *  @throws Exception on error
      */
-    public int encodeType(final ByteBuffer buffer) throws Exception
+    public void encodeType(final ByteBuffer buffer) throws Exception
     {
         final BitSet described = new BitSet();
-        final int start = buffer.position();
         desc.encodeType(buffer, described);
-        return buffer.position() - start;
+    }
+
+    /** Encode the request value (pipeline option)
+     *
+     *  @param buffer {@link ByteBuffer}
+     *  @throws Exception on error
+     */
+    public void encode(final ByteBuffer buffer) throws Exception
+    {
+        desc.encode(buffer);
     }
 
     @Override

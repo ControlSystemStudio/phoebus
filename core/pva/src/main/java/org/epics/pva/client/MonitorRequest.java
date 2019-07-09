@@ -63,13 +63,30 @@ class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
             // Guess size based on empty field request (6)
             final int size_offset = buffer.position() + PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE;
             PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_MONITOR, 4+4+1+6);
+            final int payload_start = buffer.position();
             buffer.putInt(channel.sid);
             buffer.putInt(request_id);
-            buffer.put(PVAHeader.CMD_SUB_INIT);
 
-            final FieldRequest field_request = new FieldRequest(request);
-            final int request_size = field_request.encodeType(buffer);
-            buffer.putInt(size_offset, 4+4+1+request_size);
+            final boolean pipeline = false;
+            if (pipeline)
+                buffer.put((byte) (PVAHeader.CMD_SUB_PIPELINE | PVAHeader.CMD_SUB_INIT));
+            else
+                buffer.put(PVAHeader.CMD_SUB_INIT);
+
+            // TODO Set pipeline flag, send nfree=10
+            // record._options.pipeline=true
+
+            final FieldRequest field_request = new FieldRequest(pipeline, request);
+            logger.log(Level.FINE, () -> "Monitor INIT request " + field_request);
+            field_request.encodeType(buffer);
+            // TODO Encode pipeline value
+            if (pipeline)
+            {
+                field_request.encode(buffer);
+                // nfree = 10
+                buffer.putInt(10);
+            }
+            buffer.putInt(size_offset, buffer.position() - payload_start);
         }
         else
         {
@@ -145,7 +162,7 @@ class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
                        () -> "Received monitor #" + request_id +
                              " update for " + channel);
 
-            // Decode data from GET reply
+            // Decode data from monitor update
             // 1) Bitset that indicates which elements of struct have changed
             final BitSet changes = PVABitSet.decodeBitSet(buffer);
 
@@ -157,6 +174,8 @@ class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
 
             // Notify listener of latest value
             listener.handleMonitor(channel, changes, overrun, data);
+
+            // TODO With pipelining, once we receive nfree/2, request another nfree
         }
     }
 

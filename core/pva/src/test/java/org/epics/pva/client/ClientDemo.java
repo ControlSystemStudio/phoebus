@@ -36,6 +36,7 @@ public class ClientDemo
         try
         {
             LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/pva_logging.properties"));
+            // Logger.getLogger("").setLevel(Level.CONFIG);
         }
         catch (Exception ex)
         {
@@ -97,18 +98,19 @@ public class ClientDemo
         final PVAChannel channel = pva.getChannel("ramp");
         channel.connect().get(5, TimeUnit.SECONDS);
 
-        // Subscribe for 3 seconds...
+        // Subscribe for 10 seconds...
         final AtomicInteger updates = new AtomicInteger();
         final AutoCloseable subscription = channel.subscribe("", (ch, changes, overruns, data) ->
         {
             System.out.println(data);
             updates.incrementAndGet();
         });
-        TimeUnit.SECONDS.sleep(3);
+        TimeUnit.SECONDS.sleep(10);
         assertTrue(updates.get() > 0);
 
         // Unsubscribe, check that updates subside
         subscription.close();
+        System.out.println("Subscription closed");
         updates.set(0);
         TimeUnit.SECONDS.sleep(3);
         assertThat(updates.get(), equalTo(0));

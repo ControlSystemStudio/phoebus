@@ -73,7 +73,7 @@ class MonitorHandler implements CommandHandler<ServerTCPHandler>
         }
         else
         {
-            logger.log(Level.WARNING, () -> "Ignoring MONITOR request for " + pv + ", subcommand " + subcmd);
+            logger.log(Level.WARNING, () -> "Ignoring MONITOR request for " + pv + ", subcommand 0x" + Integer.toHexString(Byte.toUnsignedInt(subcmd)));
         }
     }
 }
