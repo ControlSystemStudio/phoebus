@@ -80,6 +80,7 @@ class GetRequest extends CompletableFuture<PVAStructure> implements RequestEncod
 
             final FieldRequest field_request = new FieldRequest(request);
             field_request.encodeType(buffer);
+            field_request.encode(buffer);
             buffer.putInt(size_offset, buffer.position() - payload_start);
 
             init = false;

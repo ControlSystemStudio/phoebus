@@ -123,15 +123,9 @@ public class TestFieldRequest
     @Test
     public void testPipeline() throws Exception
     {
-        FieldRequest request = new FieldRequest(true, "field(value)");
+        FieldRequest request = new FieldRequest(10, "field(value)");
         System.out.println(request);
-
-        final ByteBuffer buffer = ByteBuffer.allocate(100);
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
-        request.encodeType(buffer);
-        request.encode(buffer);
-        buffer.flip();
-
+        ByteBuffer buffer = encode(request);
         System.out.println(Hexdump.toHexdump(buffer));
     }
 
@@ -140,6 +134,7 @@ public class TestFieldRequest
         final ByteBuffer buffer = ByteBuffer.allocate(100);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         request.encodeType(buffer);
+        request.encode(buffer);
         buffer.flip();
         return buffer;
     }

@@ -100,7 +100,7 @@ public class ClientDemo
 
         // Subscribe for 10 seconds...
         final AtomicInteger updates = new AtomicInteger();
-        final AutoCloseable subscription = channel.subscribe("", (ch, changes, overruns, data) ->
+        final AutoCloseable subscription = channel.subscribe("", 4, (ch, changes, overruns, data) ->
         {
             System.out.println(data);
             updates.incrementAndGet();

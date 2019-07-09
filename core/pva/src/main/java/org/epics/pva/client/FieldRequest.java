@@ -13,8 +13,8 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.epics.pva.data.PVABool;
 import org.epics.pva.data.PVAData;
-import org.epics.pva.data.PVAString;
 import org.epics.pva.data.PVAStructure;
 
 /** Description of the 'field(..)' request used to get/monitor a channel
@@ -51,26 +51,31 @@ class FieldRequest
      */
     public FieldRequest(final String request)
     {
-        this(false, request);
+        this(0, request);
     }
 
     /** Parse field request
-     *  @param pipeline Enable 'pipeline' mode for monitor?
+     *  @param pipeline Number of elements for 'pipeline' mode, 0 to disable
      *  @param request Examples:
      *                 "", "field()",
      *                 "value", "field(value)",
      *                 "field(value, timeStamp.userTag)"
      */
-    public FieldRequest(final boolean pipeline, final String request)
+    public FieldRequest(final int pipeline, final String request)
     {
         final List<PVAData> items = new ArrayList<>();
 
-        if (pipeline)
+        if (pipeline > 0)
         {
             // record._options.pipeline=true
-            // 'camonitor' encodes as String 'true', not PVABoolean
-            final PVAStructure options = new PVAStructure("_options", "", new PVAString("pipeline", "true"));
-            items.add(new PVAStructure("record", "", options));
+            // 'camonitor' encodes as PVAString 'true', not PVABool
+            items.add(
+                new PVAStructure("record", "",
+                    new PVAStructure("_options", "",
+                        new PVABool("pipeline", true)
+                        // , new PVAInt("queueSize", 100)
+                        ))
+                     );
         }
 
         // XXX Not using any client type registry,
