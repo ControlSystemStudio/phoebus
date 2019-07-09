@@ -202,7 +202,10 @@ class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
             // Notify listener of latest value
             listener.handleMonitor(channel, changes, overrun, data);
 
-            // With pipelining, once we receive nfree/2, request another nfree
+            // With pipelining, once we receive nfree/2, request as many again.
+            // With a responsive client, this jumps nfree up to the original 'pipeline' count.
+            // With a slow client, for example stuck in listener.handleMonitor(),
+            // the server will stop after sending nfree updates.
             if (pipeline > 0  &&
                 received_updates.incrementAndGet() >= pipeline/2)
             {
