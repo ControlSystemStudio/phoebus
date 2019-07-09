@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.epics.pva.data.PVABool;
 import org.epics.pva.data.PVAData;
+import org.epics.pva.data.PVAInt;
 import org.epics.pva.data.PVAStructure;
 
 /** Description of the 'field(..)' request used to get/monitor a channel
@@ -72,10 +73,9 @@ class FieldRequest
             items.add(
                 new PVAStructure("record", "",
                     new PVAStructure("_options", "",
-                        new PVABool("pipeline", true)
-                        // , new PVAInt("queueSize", 100)
-                        ))
-                     );
+                        new PVABool("pipeline", true),
+                        new PVAInt("queueSize", pipeline)
+                        )));
         }
 
         // XXX Not using any client type registry,
@@ -185,6 +185,6 @@ class FieldRequest
     @Override
     public String toString()
     {
-        return desc.formatType();
+        return desc.format();
     }
 }
