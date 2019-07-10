@@ -37,6 +37,10 @@ public class SpamDemo
 
     public static void main(final String[] args) throws Exception
     {
+        // * base-7.0.2.2
+        //   pipeline= 2 (ack every 1):    OK, > 60000 updates/sec
+        //   pipeline= 4 (ack every 2):    OK, >100000 updates/sec
+        //   pipeline=10 (ack every 5):    Stops after 4 updates
         int pipeline = 4;
         if (args.length == 1)
             pipeline = Integer.parseInt(args[0]);
@@ -56,7 +60,7 @@ public class SpamDemo
         {
             TimeUnit.SECONDS.sleep(10);
             final int got = updates.getAndSet(0);
-            System.err.println(got + " updates in 10 seconds");
+            System.err.println("pipeline=" + pipeline + " got " + got + " updates in 10 seconds, " + got/10 + " per sec");
         }
 
 //        subscription.close();
