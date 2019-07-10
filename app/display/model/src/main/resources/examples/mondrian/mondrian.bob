@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Mondrian</name>
+  <width>605</width>
+  <height>500</height>
+  <scripts>
+    <script file="EmbeddedPy">
+      <text><![CDATA[# Embedded python script
+from random import random, randint
+from org.csstudio.display.builder.model import WidgetFactory
+from org.csstudio.display.builder.model.properties import WidgetColor
+
+display = widget.getDisplayModel()
+
+border = 4
+line = WidgetColor(0, 0, 0)
+limit = 150
+
+def mondrian(x, y, width, height):
+    if  width < limit  or  height < limit:
+        rect = WidgetFactory.getInstance().getWidgetDescriptor("rectangle").createWidget();
+        rect.setPropertyValue("x", x)
+        rect.setPropertyValue("y", y)
+        rect.setPropertyValue("width", width)
+        rect.setPropertyValue("height", height)
+        rect.setPropertyValue("line_width", border)
+        rect.setPropertyValue("line_color", line)
+        rect.setPropertyValue("background_color",
+                              WidgetColor(randint(50, 255), randint(50, 255), randint(50, 255)))
+        display.runtimeChildren().addChild(rect)
+    else:
+        if random() < 0.5:
+	        # Horizontal
+	        sep = width * randint(30, 60) / 100
+	        mondrian(x, y, sep+border, height)
+	        mondrian(x+sep, y, width-sep, height)
+        else:
+	        # Vertical
+	        sep = height * randint(30, 60) / 100
+	        mondrian(x, y, width, sep+border)
+	        mondrian(x, y+sep, width, height-sep)
+
+mondrian(5, 40, 600, 410)
+]]></text>
+      <pv_name>loc://$(DID)init(1)</pv_name>
+    </script>
+  </scripts>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Mondrian-Style Partitions</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>550</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Example for using script to create widgets.</text>
+    <x>5</x>
+    <y>475</y>
+    <width>330</width>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button</name>
+    <actions>
+      <action type="execute">
+        <script file="EmbeddedPy">
+          <text><![CDATA[# Embedded python script
+from org.csstudio.display.builder.runtime.script import ScriptUtil
+ScriptUtil.openDisplay(widget, "mondrian.bob", "REPLACE", None)
+]]></text>
+        </script>
+        <description>Reload</description>
+      </action>
+    </actions>
+    <x>535</x>
+    <y>470</y>
+    <width>70</width>
+    <height>20</height>
+  </widget>
+</display>

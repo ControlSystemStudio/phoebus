@@ -685,4 +685,16 @@ to it, in this case by making the widget invisible.</text>
     <y>831</y>
     <tooltip>$(actions)</tooltip>
   </widget>
+  <widget type="action_button" version="3.0.0">
+    <actions>
+      <action type="open_display">
+        <file>mondrian/mondrian.bob</file>
+        <target>replace</target>
+        <description>Mondrian</description>
+      </action>
+    </actions>
+    <x>600</x>
+    <y>831</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
 </display>
