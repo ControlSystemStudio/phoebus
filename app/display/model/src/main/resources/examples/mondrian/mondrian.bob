@@ -6,13 +6,9 @@
   <scripts>
     <script file="EmbeddedPy">
       <text><![CDATA[# Embedded python script
-
 from random import random, randint
 from org.csstudio.display.builder.model import WidgetFactory
 from org.csstudio.display.builder.model.properties import WidgetColor
-from org.csstudio.display.builder.runtime.script import PVUtil, ScriptUtil
-
-print 'Rects ?'
 
 display = widget.getDisplayModel()
 
@@ -21,7 +17,6 @@ line = WidgetColor(0, 0, 0)
 limit = 150
 
 def mondrian(x, y, width, height):
-    print((x, y, width, height))
     if  width < limit  or  height < limit:
         rect = WidgetFactory.getInstance().getWidgetDescriptor("rectangle").createWidget();
         rect.setPropertyValue("x", x)
@@ -30,26 +25,22 @@ def mondrian(x, y, width, height):
         rect.setPropertyValue("height", height)
         rect.setPropertyValue("line_width", border)
         rect.setPropertyValue("line_color", line)
-        rect.setPropertyValue("background_color", WidgetColor(randint(50, 255),
-                                                              randint(50, 255),
-                                                              randint(50, 255)))
+        rect.setPropertyValue("background_color",
+                              WidgetColor(randint(50, 255), randint(50, 255), randint(50, 255)))
         display.runtimeChildren().addChild(rect)
     else:
         if random() < 0.5:
 	        # Horizontal
-	        split = width * randint(30, 60) / 100
-	        mondrian(x, y, split+border, height)
-	        mondrian(x+split, y, width-split, height)
+	        sep = width * randint(30, 60) / 100
+	        mondrian(x, y, sep+border, height)
+	        mondrian(x+sep, y, width-sep, height)
         else:
 	        # Vertical
-	        split = height * randint(30, 60) / 100
-	        mondrian(x, y, width, split+border)
-	        mondrian(x, y+split, width, height-split)
-
+	        sep = height * randint(30, 60) / 100
+	        mondrian(x, y, width, sep+border)
+	        mondrian(x, y+sep, width, height-sep)
 
 mondrian(5, 40, 600, 410)
-
-
 ]]></text>
       <pv_name>loc://$(DID)init(1)</pv_name>
     </script>
