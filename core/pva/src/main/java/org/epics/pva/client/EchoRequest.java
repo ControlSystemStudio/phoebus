@@ -26,12 +26,15 @@ class EchoRequest implements RequestEncoder
     @Override
     public void encodeRequest(final byte version, final ByteBuffer buffer) throws Exception
     {
-        logger.log(Level.FINE, "Sending ECHO request");
         // Protocol always required server to echo the payload, but version 1 servers didn't
         if (version < 2)
+        {
+            logger.log(Level.FINE, () -> "Sending ECHO request (Version " + version + " without content)");
             PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_ECHO, 0);
+        }
         else
         {
+            logger.log(Level.FINE, () -> "Sending ECHO request (Version " + version + ")");
             PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_ECHO, CHECK.length);
             buffer.put(CHECK);
         }

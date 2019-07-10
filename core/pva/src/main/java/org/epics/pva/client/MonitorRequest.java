@@ -11,6 +11,7 @@ import static org.epics.pva.PVASettings.logger;
 
 import java.nio.ByteBuffer;
 import java.util.BitSet;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 import org.epics.pva.common.PVAHeader;
@@ -20,6 +21,19 @@ import org.epics.pva.data.PVAData;
 import org.epics.pva.data.PVAStatus;
 import org.epics.pva.data.PVAStructure;
 
+/** Client's request and response handler for 'monitor'
+ *
+ *  <p>Establishes a 'monitor' with the PVA server,
+ *  captures the PV's structure
+ *  starts the subscription,
+ *  updates the PV structure with received data
+ *  and notifies listener.
+ *
+ *  <p>In pipeline mode, acknowledges to server when
+ *  half the pipelines number of updates have been received.
+ *
+ *  @author Kay Kasemir
+ */
 @SuppressWarnings("nls")
 class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
 {
@@ -38,10 +52,20 @@ class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
 
     private volatile PVAStructure data;
 
-    public MonitorRequest(final PVAChannel channel, final String request, final MonitorListener listener) throws Exception
+    private final int pipeline;
+    private final AtomicInteger received_updates = new AtomicInteger();
+
+    /** @param channel Channel to 'monitor'
+     *  @param request Request string to monitor only selected fields of PV
+     *  @param pipeline Number of updates that server should pipeline, 0 to disable
+     *  @param listener Listener to invoke with received updates
+     *  @throws Exception on error
+     */
+    public MonitorRequest(final PVAChannel channel, final String request, final int pipeline, final MonitorListener listener) throws Exception
     {
         this.channel = channel;
         this.request = request;
+        this.pipeline = pipeline;
         this.listener = listener;
         this.request_id = channel.getClient().allocateRequestID();
         channel.getTCP().submit(this, this);
@@ -63,13 +87,33 @@ class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
             // Guess size based on empty field request (6)
             final int size_offset = buffer.position() + PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE;
             PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_MONITOR, 4+4+1+6);
+            final int payload_start = buffer.position();
             buffer.putInt(channel.sid);
             buffer.putInt(request_id);
-            buffer.put(PVAHeader.CMD_SUB_INIT);
 
-            final FieldRequest field_request = new FieldRequest(request);
-            final int request_size = field_request.encodeType(buffer);
-            buffer.putInt(size_offset, 4+4+1+request_size);
+            if (pipeline > 0)
+                state = (byte) (PVAHeader.CMD_SUB_PIPELINE | PVAHeader.CMD_SUB_INIT);
+            buffer.put(state);
+
+            // For pipeline, add record._options.pipeline=true to request
+            final FieldRequest field_request = new FieldRequest(pipeline, request);
+            logger.log(Level.FINE, () -> "Monitor INIT request " + field_request);
+            field_request.encodeType(buffer);
+            field_request.encode(buffer);
+            // Encode pipeline 'nfree'
+            if (pipeline > 0)
+                buffer.putInt(pipeline);
+            buffer.putInt(size_offset, buffer.position() - payload_start);
+        }
+        else if (state == PVAHeader.CMD_SUB_PIPELINE)
+        {
+            final int ack = received_updates.getAndSet(0);
+            logger.log(Level.FINE, () -> "Sending monitor pipeline ack of " + ack + " updates, request #" + request_id + " for " + channel);
+            PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_MONITOR, 4+4+1+4);
+            buffer.putInt(channel.sid);
+            buffer.putInt(request_id);
+            buffer.put(PVAHeader.CMD_SUB_PIPELINE);
+            buffer.putInt(ack);
         }
         else
         {
@@ -145,7 +189,7 @@ class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
                        () -> "Received monitor #" + request_id +
                              " update for " + channel);
 
-            // Decode data from GET reply
+            // Decode data from monitor update
             // 1) Bitset that indicates which elements of struct have changed
             final BitSet changes = PVABitSet.decodeBitSet(buffer);
 
@@ -157,6 +201,17 @@ class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
 
             // Notify listener of latest value
             listener.handleMonitor(channel, changes, overrun, data);
+
+            // With pipelining, once we receive nfree/2, request as many again.
+            // With a responsive client, this jumps nfree up to the original 'pipeline' count.
+            // With a slow client, for example stuck in listener.handleMonitor(),
+            // the server will stop after sending nfree updates.
+            if (pipeline > 0  &&
+                received_updates.incrementAndGet() >= pipeline/2)
+            {
+                state = PVAHeader.CMD_SUB_PIPELINE;
+                channel.getTCP().submit(this, this);
+            }
         }
     }
 

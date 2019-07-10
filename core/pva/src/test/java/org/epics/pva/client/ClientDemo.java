@@ -36,6 +36,7 @@ public class ClientDemo
         try
         {
             LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/pva_logging.properties"));
+            // Logger.getLogger("").setLevel(Level.CONFIG);
         }
         catch (Exception ex)
         {
@@ -93,29 +94,38 @@ public class ClientDemo
     @Test
     public void testMonitor() throws Exception
     {
-        final PVAClient pva = new PVAClient();
-        final PVAChannel channel = pva.getChannel("ramp");
-        channel.connect().get(5, TimeUnit.SECONDS);
-
-        // Subscribe for 3 seconds...
-        final AtomicInteger updates = new AtomicInteger();
-        final AutoCloseable subscription = channel.subscribe("", (ch, changes, overruns, data) ->
+        // pipeline=10 fails with Base 7.0.2.2
+        for (int pipeline : new int[] { 0, 4 /*, 10*/ })
         {
-            System.out.println(data);
-            updates.incrementAndGet();
-        });
-        TimeUnit.SECONDS.sleep(3);
-        assertTrue(updates.get() > 0);
+            final PVAClient pva = new PVAClient();
+            final PVAChannel channel = pva.getChannel("ramp");
+            channel.connect().get(5, TimeUnit.SECONDS);
 
-        // Unsubscribe, check that updates subside
-        subscription.close();
-        updates.set(0);
-        TimeUnit.SECONDS.sleep(3);
-        assertThat(updates.get(), equalTo(0));
+            // Subscribe for 10 seconds...
+            final AtomicInteger updates = new AtomicInteger();
+            final AutoCloseable subscription = channel.subscribe("", pipeline, (ch, changes, overruns, data) ->
+            {
+                System.out.println(data);
+                updates.incrementAndGet();
+            });
+            TimeUnit.SECONDS.sleep(10);
+            System.out.println("Updates with pipeline=" + pipeline + ": " + updates.get());
+            // 10 seconds should get 10 updates.
+            // Expect at least 5.
+            assertTrue(updates.get() > 5);
 
-        channel.close();
-        pva.close();
+            // Unsubscribe, check that updates subside
+            subscription.close();
+            System.out.println("Subscription closed");
+            updates.set(0);
+            TimeUnit.SECONDS.sleep(3);
+            assertThat(updates.get(), equalTo(0));
+
+            channel.close();
+            pva.close();
+        }
     }
+
 
     @Test
     public void testConnection() throws Exception

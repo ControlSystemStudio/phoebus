@@ -47,7 +47,7 @@ public class EchoHandler implements CommandHandler<ClientTCPHandler>
             }
         }
         else
-            logger.log(Level.FINE, "Received ECHO");
+            logger.log(Level.FINE, "Received ECHO (no content)");
         tcp.markAlive();
     }
 }

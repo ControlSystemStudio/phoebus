@@ -101,6 +101,9 @@ public class PVAHeader
     /** Sub command to initialize GET/PUT/MONITOR/RPC (get data description) */
     public static final byte CMD_SUB_INIT = 0x08;
 
+    /** MONITOR PIPELINE flag */
+    public static final byte CMD_SUB_PIPELINE = (byte) 0x80;
+
     /** Sub command to (re)start getting monitor values */
     public static final byte CMD_SUB_START = 0x44;
 
