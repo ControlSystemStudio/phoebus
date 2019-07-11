@@ -21,6 +21,7 @@ import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.opibuilder.adl2boy.translator.Display2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Oval2Model;
+import org.csstudio.opibuilder.adl2boy.translator.PolyLine2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Rectangle2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Text2Model;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
@@ -108,18 +109,20 @@ public class Converter
         {
             try
             {
-                String widgetType = adlWidget.getType();
+                final String widgetType = adlWidget.getType();
                 logger.log(Level.FINE, "Handling #" + adlWidget.getObjectNr() + " " + adlWidget.getType());
 
                 if (widgetType.equals("oval"))
                     new Oval2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("polyline"))
+                    new PolyLine2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("text"))
                     new Text2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("rectangle"))
                     new Rectangle2Model(adlWidget, colorMap, parentModel);
                 // TODO Add all the widgets
                 else
-                    logger.log(Level.FINE, "Ignoring convert #" + adlWidget.getObjectNr() + " " + adlWidget.getType());
+                    logger.log(Level.FINE, "Ignoring #" + adlWidget.getObjectNr() + " " + adlWidget.getType());
             }
             catch (Exception ex)
             {

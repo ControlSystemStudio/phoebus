@@ -34,7 +34,7 @@ public class Display2Model extends AbstractADL2Model<DisplayModel> {
         ADLDisplay adlDisp = new ADLDisplay(adlWidget);
 
         setADLObjectProps(adlDisp, widgetModel);
-        setColor(adlDisp.getBackgroundColor(), CommonWidgetProperties.propBackgroundColor.getName());
+        setColor(adlDisp.getBackgroundColor(), CommonWidgetProperties.propBackgroundColor);
         widgetModel.setPropertyValue(DisplayModel.propGridVisible, adlDisp.is_gridOn());
         widgetModel.setPropertyValue(DisplayModel.propGridStepX.getName(), adlDisp.get_gridSpacing());
     }

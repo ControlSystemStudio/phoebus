@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
 package org.csstudio.display.converter.medm;
 
 import java.io.File;
@@ -15,6 +22,9 @@ import org.phoebus.ui.docking.DockPane;
 
 import javafx.stage.Stage;
 
+/** Phoebus application for MEDM converter
+ *  @author Kay Kasemir
+ */
 @SuppressWarnings("nls")
 public class MEDMConverterApplication implements AppResourceDescriptor
 {

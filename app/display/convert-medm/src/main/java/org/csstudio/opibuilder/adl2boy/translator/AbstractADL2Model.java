@@ -14,6 +14,7 @@ import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.LineStyle;
 import org.csstudio.display.builder.model.properties.ScriptPV;
@@ -106,22 +107,17 @@ public abstract class AbstractADL2Model<WM extends Widget>
             adlWidget.setAdlBasicAttribute(basAttr);
         }
         if (basAttr.isColorDefined()) {
-            if (colorForeground) {
-                setColor(basAttr.getClr(),
-                        CommonWidgetProperties.propForegroundColor.getName());
-            } else {
-                setColor(basAttr.getClr(),
-                        CommonWidgetProperties.propBackgroundColor.getName());
-            }
+            if (colorForeground)
+                setColor(basAttr.getClr(), CommonWidgetProperties.propForegroundColor);
+            else
+                setColor(basAttr.getClr(), CommonWidgetProperties.propBackgroundColor);
         } else {
             if (colorForeground) {
                 setForegroundColorSameAsParent(widgetModel);
             } else {
                 setBackgroundColorSameAsParent(widgetModel);
             }
-
         }
-
     }
 
     /**
@@ -322,21 +318,18 @@ public abstract class AbstractADL2Model<WM extends Widget>
             ADLConnected adlConnected) throws Exception
     {
         if (adlConnected.isForeColorDefined())
-            setColor(adlConnected.getForegroundColor(),
-                    CommonWidgetProperties.propForegroundColor.getName());
+            setColor(adlConnected.getForegroundColor(), CommonWidgetProperties.propForegroundColor);
         else
             setForegroundColorSameAsParent(widgetModel);
 
         if (adlConnected.isBackColorDefined())
-            setColor(adlConnected.getBackgroundColor(),
-                    CommonWidgetProperties.propBackgroundColor.getName());
+            setColor(adlConnected.getBackgroundColor(), CommonWidgetProperties.propBackgroundColor);
         else
             setBackgroundColorSameAsParent(widgetModel);
 
         String channel = adlConnected.getChan();
         if (channel != null && !channel.isEmpty())
-            widgetModel.setPropertyValue(CommonWidgetProperties.propPVName.getName(),
-                    channel);
+            widgetModel.setPropertyValue(CommonWidgetProperties.propPVName, channel);
     }
 
     /**
@@ -344,10 +337,8 @@ public abstract class AbstractADL2Model<WM extends Widget>
      * @throws Exception
      */
     public void setBackgroundColorSameAsParent(Widget widgetModel) throws Exception {
-        widgetModel.setPropertyValue(
-                CommonWidgetProperties.propBackgroundColor.getName(),
-                widgetModel.getParent().get().getPropertyValue(
-                        CommonWidgetProperties.propBackgroundColor.getName()));
+        widgetModel.setPropertyValue(CommonWidgetProperties.propBackgroundColor,
+                widgetModel.getParent().get().getPropertyValue(CommonWidgetProperties.propBackgroundColor));
     }
 
     /**
@@ -355,20 +346,18 @@ public abstract class AbstractADL2Model<WM extends Widget>
      * @throws Exception
      */
     public void setForegroundColorSameAsParent(Widget widgetModel) throws Exception {
-        widgetModel.setPropertyValue(
-                CommonWidgetProperties.propForegroundColor.getName(),
-                widgetModel.getParent().get().getPropertyValue(
-                        CommonWidgetProperties.propForegroundColor.getName()));
+        widgetModel.setPropertyValue(CommonWidgetProperties.propForegroundColor,
+                widgetModel.getParent().get().getPropertyValue(CommonWidgetProperties.propForegroundColor));
     }
 
     /**
      * @param color_index
-     * @param propertyName
+     * @param color_prop
      * @throws Exception
      */
-    public void setColor(int color_index, String propertyName) throws Exception {
+    public void setColor(int color_index, WidgetPropertyDescriptor<WidgetColor> color_prop) throws Exception {
         if (color_index >= 0  &&  color_index < colorMap.length)
-            widgetModel.setPropertyValue(propertyName, colorMap[color_index]);
+            widgetModel.setPropertyValue(color_prop, colorMap[color_index]);
         else
             throw new Exception("Invalid color map index " + color_index);
     }
@@ -378,7 +367,7 @@ public abstract class AbstractADL2Model<WM extends Widget>
         {
             widgetModel.checkProperty(CommonWidgetProperties.propTransparent).ifPresent(prop -> prop.setValue(false));
 
-            WidgetColor fColor = widgetModel.getPropertyValue(CommonWidgetProperties.propBackgroundColor.getName());
+            WidgetColor fColor = widgetModel.getPropertyValue(CommonWidgetProperties.propBackgroundColor);
             widgetModel.setPropertyValue(CommonWidgetProperties.propLineColor, fColor);
         }
         else if (shapeWidget.getAdlBasicAttribute().getFill().equals("outline"))
@@ -451,13 +440,10 @@ public abstract class AbstractADL2Model<WM extends Widget>
      * @throws Exception
      */
     public void setWidgetColors(IWidgetWithColorsInBase rdWidget) throws Exception {
-        if (rdWidget.isForeColorDefined()) {
-            setColor(rdWidget.getForegroundColor(),
-                    CommonWidgetProperties.propForegroundColor.getName());
-        }
-        if (rdWidget.isBackColorDefined()) {
-            setColor(rdWidget.getBackgroundColor(),
-                    CommonWidgetProperties.propBackgroundColor.getName());
-        }
+        if (rdWidget.isForeColorDefined())
+            setColor(rdWidget.getForegroundColor(), CommonWidgetProperties.propForegroundColor);
+
+        if (rdWidget.isBackColorDefined())
+            setColor(rdWidget.getBackgroundColor(), CommonWidgetProperties.propBackgroundColor);
     }
 }
