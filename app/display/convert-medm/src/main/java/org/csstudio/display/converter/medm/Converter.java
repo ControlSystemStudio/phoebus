@@ -19,6 +19,7 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.csstudio.opibuilder.adl2boy.translator.Composite2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Display2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Oval2Model;
 import org.csstudio.opibuilder.adl2boy.translator.PolyLine2Model;
@@ -112,7 +113,9 @@ public class Converter
                 final String widgetType = adlWidget.getType();
                 logger.log(Level.FINE, "Handling #" + adlWidget.getObjectNr() + " " + adlWidget.getType());
 
-                if (widgetType.equals("oval"))
+                if (widgetType.equals("composite"))
+                    new Composite2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("oval"))
                     new Oval2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("polyline"))
                     new PolyLine2Model(adlWidget, colorMap, parentModel);
