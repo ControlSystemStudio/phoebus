@@ -1,6 +1,8 @@
 package org.csstudio.display.converter.medm;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,6 +28,13 @@ public class ConverterTest
         final String filename = ConverterTest.class.getResource("/Main_XXXX.adl").getFile();
         if (filename.isEmpty())
             throw new Exception("Cannot obtain test file");
-        new MEDMConverter(new File(filename), null);
+
+        final File output = File.createTempFile("Main_XXX", ".bob");
+        output.deleteOnExit();
+        new MEDMConverter(new File(filename), output);
+
+        final BufferedReader dump = new BufferedReader(new FileReader(output));
+        dump.lines().forEach(System.out::println);
+        dump.close();
     }
 }

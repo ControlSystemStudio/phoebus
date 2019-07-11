@@ -1,6 +1,6 @@
 package org.csstudio.utility.adlparser.fileParser;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.utility.adlparser.internationalization.Messages;
@@ -47,7 +47,7 @@ public class ColorMap {
 
         }
         else if ( colorsWidget.getType().equals("dl_color")){
-            ArrayList<ADLWidget> colorList = colorMap.getObjects();
+            List<ADLWidget> colorList = colorMap.getObjects();
             if (colorList.size() == numColors) {
                 for (int ii=0; ii<numColors; ii++){
                     int red=0, green=0, blue =0;

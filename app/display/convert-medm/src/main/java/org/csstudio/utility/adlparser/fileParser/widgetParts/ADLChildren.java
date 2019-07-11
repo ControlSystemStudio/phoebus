@@ -25,10 +25,11 @@
 package org.csstudio.utility.adlparser.fileParser.widgetParts;
 
 import java.util.ArrayList;
+import java.util.List;
 
-import org.csstudio.utility.adlparser.internationalization.Messages;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.WrongADLFormatException;
+import org.csstudio.utility.adlparser.internationalization.Messages;
 
 /**
  * @author hrickens
@@ -41,7 +42,7 @@ public class ADLChildren extends WidgetPart {
     /**
      * ADL Grouping Container Children's.
      */
-    private ArrayList<ADLWidget> _childrens;
+    private List<ADLWidget> _childrens;
 
     /**
      * @param adlChildren
@@ -61,13 +62,13 @@ public class ADLChildren extends WidgetPart {
     /**
      * @return the ADL Grouping Container Children's.
      */
-    public final ArrayList<ADLWidget> getAdlChildrens() {
+    public final List<ADLWidget> getAdlChildrens() {
         return _childrens;
     }
 
     @Override
     public Object[] getChildren() {
-        ArrayList<Object> ret = new ArrayList<Object>();
+        ArrayList<Object> ret = new ArrayList<>();
         if (_childrens != null)ret.add(_childrens);
         return ret.toArray();
     }
@@ -75,7 +76,7 @@ public class ADLChildren extends WidgetPart {
     @Override
     void init() {
         name = String.valueOf("children");
-        _childrens = new ArrayList<ADLWidget>();
+        _childrens = new ArrayList<>();
     }
 
     @Override

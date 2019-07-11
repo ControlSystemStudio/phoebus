@@ -1,6 +1,7 @@
 package org.csstudio.utility.adlparser.fileParser.widgets;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.csstudio.utility.adlparser.fileParser.ADLResource;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
@@ -89,7 +90,7 @@ public class Composite extends ADLAbstractWidget {
      *
      * @return
      */
-    public ArrayList<ADLWidget> getChildWidgets() {
+    public List<ADLWidget> getChildWidgets() {
         if (_adlChildren != null){
             return _adlChildren.getAdlChildrens();
         }

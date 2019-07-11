@@ -25,6 +25,7 @@
 package org.csstudio.utility.adlparser.fileParser;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author hrickens
@@ -41,9 +42,9 @@ public class ADLWidget {
     /** The parent Widget.*/
     private ADLWidget _parent;
     /** A list whit all body properties. */
-    private ArrayList<FileLine> _body = new ArrayList<FileLine>();
+    private ArrayList<FileLine> _body = new ArrayList<>();
     /** A list whit all ADLobjectparts. */
-    private ArrayList<ADLWidget> _objects = new ArrayList<ADLWidget>();
+    private ArrayList<ADLWidget> _objects = new ArrayList<>();
     /** The Number of this object in the Display. useful for Debugging and Error handling.*/
     private int _objectNr;
 
@@ -88,7 +89,7 @@ public class ADLWidget {
      *
      * @return a list of children objects.
      */
-    public final ArrayList<ADLWidget> getObjects() {
+    public final List<ADLWidget> getObjects() {
         return _objects;
     }
 

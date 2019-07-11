@@ -6,10 +6,6 @@
 
 package org.csstudio.opibuilder.adl2boy.translator;
 
-import static org.csstudio.display.converter.medm.MEDMConverter.logger;
-
-import java.util.logging.Level;
-
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
@@ -41,7 +37,5 @@ public class Display2Model extends AbstractADL2Model<DisplayModel> {
         setColor(adlDisp.getBackgroundColor(), CommonWidgetProperties.propBackgroundColor.getName());
         widgetModel.setPropertyValue(DisplayModel.propGridVisible, adlDisp.is_gridOn());
         widgetModel.setPropertyValue(DisplayModel.propGridStepX.getName(), adlDisp.get_gridSpacing());
-
-        logger.log(Level.FINE, "Display size " + widgetModel.propWidth().getValue() + " x " + widgetModel.propHeight().getValue());
     }
 }
