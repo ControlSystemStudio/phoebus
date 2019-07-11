@@ -270,8 +270,7 @@ class ClientTCPHandler extends TCPHandler
     protected void handleApplicationMessage(final byte command, final ByteBuffer buffer) throws Exception
     {
         if (! handlers.handleCommand(command, this, buffer))
-            logger.log(Level.WARNING, "Cannot handle reply for application command " + command);
-
+            super.handleApplicationMessage(command, buffer);
     }
 
     void handleValidationRequest(final int server_receive_buffer_size,

@@ -23,6 +23,8 @@ import java.util.logging.Level;
 
 import org.epics.pva.PVASettings;
 import org.epics.pva.data.Hexdump;
+import org.epics.pva.data.PVAStatus;
+import org.epics.pva.data.PVAString;
 
 /** Read and write TCP messages
  *
@@ -371,7 +373,33 @@ abstract public class TCPHandler
      */
     protected void handleApplicationMessage(final byte command, final ByteBuffer buffer) throws Exception
     {
-        logger.log(Level.WARNING, String.format("Cannot handle application command 0x%02x", command));
+        if (command == PVAHeader.CMD_MESSAGE)
+        {
+            final int req = buffer.getInt();
+            final byte b = buffer.get();
+            if (b < 0  ||  b > 3)
+                throw new Exception("Message with invalid type " + b);
+            final PVAStatus.Type type = PVAStatus.Type.values()[b];
+            final String message = PVAString.decodeString(buffer);
+
+            switch (type)
+            {
+            case WARNING:
+                logger.log(Level.WARNING, "Warning for request #" + req + ": " + message);
+                break;
+            case ERROR:
+                logger.log(Level.SEVERE, "Error for request #" + req + ": " + message);
+                break;
+            case FATAL:
+                logger.log(Level.SEVERE, "Fatal Error for request #" + req + ": " + message);
+                break;
+            case OK:
+            default:
+                logger.log(Level.INFO, "Message for request #" + req + ": " + message);
+            }
+        }
+        else
+            logger.log(Level.WARNING, String.format("Cannot handle application command 0x%02x", command));
     }
 
     /** Close network socket and threads

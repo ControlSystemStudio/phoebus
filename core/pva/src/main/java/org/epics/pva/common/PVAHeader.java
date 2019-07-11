@@ -88,6 +88,9 @@ public class PVAHeader
     /** Application command: Get type info */
     public static final byte CMD_GET_TYPE = 0x11;
 
+    /** Application command: Message */
+    public static final byte CMD_MESSAGE = 0x12;
+
     /** Application command: Remote Procedure Call */
     public static final byte CMD_RPC = 0x14;
 
