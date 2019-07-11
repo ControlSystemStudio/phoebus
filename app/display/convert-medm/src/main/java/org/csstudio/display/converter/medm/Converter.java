@@ -23,6 +23,7 @@ import org.csstudio.opibuilder.adl2boy.translator.Composite2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Display2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Oval2Model;
 import org.csstudio.opibuilder.adl2boy.translator.PolyLine2Model;
+import org.csstudio.opibuilder.adl2boy.translator.Polygon2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Rectangle2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Text2Model;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
@@ -122,6 +123,8 @@ public class Converter
                     continue;
                 else if (widgetType.equals("oval"))
                     new Oval2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("polygon"))
+                    new Polygon2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("polyline"))
                     new PolyLine2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("text"))

@@ -61,7 +61,6 @@ public class ADLDisplay extends ADLAbstractWidget {
                     set_snapToGrid(FileLine.getBooleanValue(row[1]));
                 }else if(FileLine.argEquals(row[0], "cmap")){ //$NON-NLS-1$
                     //TODO figure out cmap in ADLDisplay
-                    // System.out.println("cmap not handled in ADLDisplay");
                 }else {
                     throw new WrongADLFormatException("\n"+Messages.ADLMonitor_WrongADLFormatException_Parameter_Begin+" "+row[0]+"\n "+Messages.ADLMonitor_WrongADLFormatException_Parameter_End+" "+row[1]);
                 }

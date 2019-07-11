@@ -31,7 +31,7 @@ public class PolyLine2Model extends AbstractADL2Model<PolylineWidget> {
         {
             if (polylineWidget.getAdlBasicAttribute().isColorDefined())
                 setColor(polylineWidget.getAdlBasicAttribute().getClr(), CommonWidgetProperties.propLineColor);
-
+            
             if (polylineWidget.getAdlBasicAttribute().getStyle().equals("dash"))
                 widgetModel.propLineStyle().setValue(LineStyle.DASH);
 

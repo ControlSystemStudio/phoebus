@@ -26,7 +26,7 @@ public class ADLPlotTrace extends WidgetPart {
 
     @Override
     public Object[] getChildren() {
-        ArrayList<Object> ret = new ArrayList<Object>();
+        ArrayList<Object> ret = new ArrayList<>();
         if (!xData.equals(""))ret.add(new ADLResource(ADLResource.PLOT_XDATA, xData));
         if (!yData.equals(""))ret.add(new ADLResource(ADLResource.PLOT_YDATA, yData));
         ret.add(new ADLResource(ADLResource.PLOT_DATA_COLOR, new Integer(dataColor)));
@@ -60,7 +60,7 @@ public class ADLPlotTrace extends WidgetPart {
                 }else if(FileLine.argEquals(row[0], "ydata")){ //$NON-NLS-1$
                     setyData(FileLine.getTrimmedValue(row[1]));
                 }else {
-                    System.out.println("Ignoring " + parameter);
+                    // System.out.println("Ignoring " + parameter);
                 }
             }
 
