@@ -20,6 +20,7 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.opibuilder.adl2boy.translator.Display2Model;
+import org.csstudio.opibuilder.adl2boy.translator.Rectangle2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Text2Model;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.ColorMap;
@@ -111,6 +112,8 @@ public class Converter
 
                 if (widgetType.equals("text"))
                     new Text2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("rectangle"))
+                    new Rectangle2Model(adlWidget, colorMap, parentModel);
                 // TODO Add all the widgets
                 else
                     logger.log(Level.FINE, "Ignoring convert #" + adlWidget.getObjectNr() + " " + adlWidget.getType());

@@ -376,22 +376,20 @@ public abstract class AbstractADL2Model<WM extends Widget>
     protected void setShapesColorFillLine(ADLAbstractWidget shapeWidget) throws Exception {
         if (shapeWidget.getAdlBasicAttribute().getFill().equals("solid") )
         {
-            // TODO Clear 'transparent' for some widgets
-//            if (!(widgetModel instanceof ArcWidget)){
-//                widgetModel.setPropertyValue(AbstractShapeModel.PROP_TRANSPARENT, false);
-//            }
+            widgetModel.checkProperty(CommonWidgetProperties.propTransparent).ifPresent(prop -> prop.setValue(false));
         }
         else if (shapeWidget.getAdlBasicAttribute().getFill().equals("outline"))
         {
-//            if (!(widgetModel instanceof ArcModel)){
-//                widgetModel.setPropertyValue(AbstractShapeModel.PROP_TRANSPARENT, true);
-//            }
-            WidgetColor fColor = widgetModel.getPropertyValue(CommonWidgetProperties.propForegroundColor.getName());
+            widgetModel.checkProperty(CommonWidgetProperties.propTransparent).ifPresent(prop -> prop.setValue(true));
+
+            WidgetColor fColor = widgetModel.getPropertyValue(CommonWidgetProperties.propBackgroundColor.getName());
             widgetModel.setPropertyValue(CommonWidgetProperties.propLineColor.getName(), fColor);
+
             if ( shapeWidget.getAdlBasicAttribute().getStyle().equals("solid") )
                 widgetModel.setPropertyValue(CommonWidgetProperties.propLineStyle.getName(), LineStyle.SOLID);
             if ( shapeWidget.getAdlBasicAttribute().getStyle().equals("dash") )
                 widgetModel.setPropertyValue(CommonWidgetProperties.propLineStyle.getName(), LineStyle.DASH);
+
             int lineWidth = shapeWidget.getAdlBasicAttribute().getWidth();
             if (lineWidth <= 0)
                 lineWidth = 1;
