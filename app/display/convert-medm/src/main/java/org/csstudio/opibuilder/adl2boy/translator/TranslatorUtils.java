@@ -17,5 +17,5 @@ import org.csstudio.utility.adlparser.fileParser.widgetParts.ADLDynamicAttribute
 public class TranslatorUtils
 {
     static final ADLBasicAttribute defaultBasicAttribute = new ADLBasicAttribute();
-    static final  ADLDynamicAttribute defaultDynamicAttribute = new ADLDynamicAttribute();
+    static final ADLDynamicAttribute defaultDynamicAttribute = new ADLDynamicAttribute();
 }

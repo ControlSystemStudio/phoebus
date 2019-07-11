@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.csstudio.opibuilder.adl2boy.translator.Display2Model;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.ColorMap;
 import org.csstudio.utility.adlparser.fileParser.ParserADL;
@@ -16,7 +17,7 @@ public class MEDMConverter
 {
     public static final Logger logger = Logger.getLogger(MEDMConverter.class.getPackageName());
 
-    private final DisplayModel display = new DisplayModel();
+    private DisplayModel display = new DisplayModel();
     private final WidgetColor[] colorMap;
 
     public MEDMConverter(final File input, final File output) throws Exception
@@ -52,16 +53,16 @@ public class MEDMConverter
         return colorMap;
     }
 
-    private void initializeDisplayModel(final ADLWidget root)
+    private void initializeDisplayModel(final ADLWidget root) throws Exception
     {
-        // TODO Auto-generated method stub
-        for (ADLWidget adlWidget : root.getObjects()){
-            String widgetType = adlWidget.getType();
-            if (widgetType.equals("display")){
-                // displayModel = (DisplayModel)(new Display2Model(adlWidget, colorMap, null)).getWidgetModel();
+        for (ADLWidget adlWidget : root.getObjects())
+        {
+            final String widgetType = adlWidget.getType();
+            if (widgetType.equals("display"))
+            {
+                display = (new Display2Model(adlWidget, colorMap, null)).getWidgetModel();
+                return;
             }
         }
-
-
     }
 }
