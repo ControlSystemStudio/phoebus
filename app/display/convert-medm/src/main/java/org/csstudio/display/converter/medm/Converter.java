@@ -111,10 +111,15 @@ public class Converter
             try
             {
                 final String widgetType = adlWidget.getType();
-                logger.log(Level.FINE, "Handling #" + adlWidget.getObjectNr() + " " + adlWidget.getType());
 
-                if (widgetType.equals("composite"))
+                if (widgetType.equals("display"))
+                    continue;
+                else if (widgetType.equals("color map"))
+                    continue;
+                else if (widgetType.equals("composite"))
                     new Composite2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("file"))
+                    continue;
                 else if (widgetType.equals("oval"))
                     new Oval2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("polyline"))

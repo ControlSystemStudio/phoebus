@@ -8,6 +8,8 @@ package org.csstudio.opibuilder.adl2boy.translator;
 
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
+import org.csstudio.display.builder.model.properties.LineStyle;
 import org.csstudio.display.builder.model.properties.Points;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.PolylineWidget;
@@ -24,12 +26,20 @@ public class PolyLine2Model extends AbstractADL2Model<PolylineWidget> {
     public void processWidget(ADLWidget adlWidget) throws Exception {
         PolyLine polylineWidget = new PolyLine(adlWidget);
         setADLObjectProps(polylineWidget, widgetModel);
-        setADLBasicAttributeProps(polylineWidget, widgetModel, false);
+
+        if (polylineWidget.hasADLBasicAttribute())
+        {
+            if (polylineWidget.getAdlBasicAttribute().isColorDefined())
+                setColor(polylineWidget.getAdlBasicAttribute().getClr(), CommonWidgetProperties.propLineColor);
+
+            if (polylineWidget.getAdlBasicAttribute().getStyle().equals("dash"))
+                widgetModel.propLineStyle().setValue(LineStyle.DASH);
+
+            widgetModel.propLineWidth().setValue(polylineWidget.getAdlBasicAttribute().getWidth());
+        }
+
         setADLDynamicAttributeProps(polylineWidget, widgetModel);
         widgetModel.propPoints().setValue(correctPoints(widgetModel, polylineWidget.getAdlPoints().getPointsList()));
-        widgetModel.propLineWidth().setValue(polylineWidget.getAdlBasicAttribute().getWidth());
-        if ( polylineWidget.hasADLBasicAttribute() )
-            setShapesColorFillLine(polylineWidget);
     }
 
     /** Shift points by widget location
