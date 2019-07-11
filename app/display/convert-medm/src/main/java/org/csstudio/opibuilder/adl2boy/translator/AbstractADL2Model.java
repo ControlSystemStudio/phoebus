@@ -78,6 +78,7 @@ public abstract class AbstractADL2Model<WM extends Widget>
      * @param widgetModel
      */
     protected void setADLObjectProps(ADLAbstractWidget adlWidget, Widget widgetModel) {
+        widgetModel.propName().setValue(adlWidget.getName());
         if (adlWidget.hasADLObject()) {
             ADLObject adlObj = adlWidget.getAdlObject();
             widgetModel.propX().setValue(adlObj.getX());

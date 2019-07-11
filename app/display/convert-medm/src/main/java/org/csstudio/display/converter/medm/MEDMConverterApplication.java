@@ -9,7 +9,11 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.docking.DockPane;
+
+import javafx.stage.Stage;
 
 @SuppressWarnings("nls")
 public class MEDMConverterApplication implements AppResourceDescriptor
@@ -54,9 +58,16 @@ public class MEDMConverterApplication implements AppResourceDescriptor
     {
         try
         {
+            // Convert file
             final File input = ModelResourceUtil.getFile(resource);
             final File output = new File(input.getAbsolutePath().replace(".adl", ".bob"));
             new MEDMConverter(input, output);
+
+            // On success, open in display editor, runtime, other editor
+            ApplicationLauncherService.openFile(output, true, (Stage)DockPane.getActiveDockPane().getScene().getWindow());
+            // On success, open the display editor
+            // final AppResourceDescriptor editor = ApplicationService.findApplication("display_editor");
+            // editor.create(output.toURI());
         }
         catch (Exception ex)
         {
