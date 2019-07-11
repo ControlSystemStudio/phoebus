@@ -9,34 +9,35 @@ package org.csstudio.opibuilder.adl2boy.translator;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.WidgetColor;
-import org.csstudio.display.builder.model.widgets.RectangleWidget;
+import org.csstudio.display.builder.model.widgets.EllipseWidget;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.widgets.ADLAbstractWidget;
-import org.csstudio.utility.adlparser.fileParser.widgets.Rectangle;
+import org.csstudio.utility.adlparser.fileParser.widgets.Oval;
 
-public class Rectangle2Model extends AbstractADL2Model<RectangleWidget> {
+public class Oval2Model extends AbstractADL2Model<EllipseWidget> {
 
-    public Rectangle2Model(ADLWidget adlWidget, WidgetColor[] colorMap, Widget parentModel) throws Exception {
+    public Oval2Model(ADLWidget adlWidget, WidgetColor[] colorMap, Widget parentModel) throws Exception {
         super(adlWidget, colorMap, parentModel);
     }
 
     @Override
     public void processWidget(ADLWidget adlWidget) throws Exception {
-        ADLAbstractWidget rectWidget = new Rectangle(adlWidget);
-        if (rectWidget != null) {
-            setADLObjectProps(rectWidget, widgetModel);
-            setADLBasicAttributeProps(rectWidget, widgetModel, false);
-            setADLDynamicAttributeProps(rectWidget, widgetModel);
+        ADLAbstractWidget ovalWidget = new Oval(adlWidget);
+        if (ovalWidget != null) {
+            setADLObjectProps(ovalWidget, widgetModel);
+            setADLBasicAttributeProps(ovalWidget, widgetModel, false);
+            setADLDynamicAttributeProps(ovalWidget, widgetModel);
         }
         //check fill parameters
-        if ( rectWidget.hasADLBasicAttribute() )
-            setShapesColorFillLine(rectWidget);
+        if ( ovalWidget.hasADLBasicAttribute() ) {
+            setShapesColorFillLine(ovalWidget);
+        }
     }
 
     @Override
     public void makeModel(ADLWidget adlWidget,
             Widget parentModel) {
-        widgetModel = new RectangleWidget();
+        widgetModel = new EllipseWidget();
         ChildrenProperty.getChildren(parentModel).addChild(widgetModel);
     }
 }

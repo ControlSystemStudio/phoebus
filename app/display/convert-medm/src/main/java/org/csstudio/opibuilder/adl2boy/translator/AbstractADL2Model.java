@@ -377,23 +377,30 @@ public abstract class AbstractADL2Model<WM extends Widget>
         if (shapeWidget.getAdlBasicAttribute().getFill().equals("solid") )
         {
             widgetModel.checkProperty(CommonWidgetProperties.propTransparent).ifPresent(prop -> prop.setValue(false));
+
+            WidgetColor fColor = widgetModel.getPropertyValue(CommonWidgetProperties.propBackgroundColor.getName());
+            widgetModel.setPropertyValue(CommonWidgetProperties.propLineColor, fColor);
         }
         else if (shapeWidget.getAdlBasicAttribute().getFill().equals("outline"))
         {
             widgetModel.checkProperty(CommonWidgetProperties.propTransparent).ifPresent(prop -> prop.setValue(true));
 
-            WidgetColor fColor = widgetModel.getPropertyValue(CommonWidgetProperties.propBackgroundColor.getName());
-            widgetModel.setPropertyValue(CommonWidgetProperties.propLineColor.getName(), fColor);
+            WidgetColor fColor = widgetModel.getPropertyValue(CommonWidgetProperties.propBackgroundColor);
+            widgetModel.setPropertyValue(CommonWidgetProperties.propLineColor, fColor);
 
-            if ( shapeWidget.getAdlBasicAttribute().getStyle().equals("solid") )
-                widgetModel.setPropertyValue(CommonWidgetProperties.propLineStyle.getName(), LineStyle.SOLID);
-            if ( shapeWidget.getAdlBasicAttribute().getStyle().equals("dash") )
-                widgetModel.setPropertyValue(CommonWidgetProperties.propLineStyle.getName(), LineStyle.DASH);
+            widgetModel.checkProperty(CommonWidgetProperties.propLineStyle)
+                       .ifPresent(ls ->
+                       {
+                           if ( shapeWidget.getAdlBasicAttribute().getStyle().equals("solid") )
+                               ls.setValue(LineStyle.SOLID);
+                           else if ( shapeWidget.getAdlBasicAttribute().getStyle().equals("dash") )
+                               ls.setValue(LineStyle.DASH);
+                       });
 
             int lineWidth = shapeWidget.getAdlBasicAttribute().getWidth();
             if (lineWidth <= 0)
                 lineWidth = 1;
-            widgetModel.setPropertyValue(CommonWidgetProperties.propLineWidth.getName(), lineWidth );
+            widgetModel.setPropertyValue(CommonWidgetProperties.propLineWidth, lineWidth );
         }
     }
 
