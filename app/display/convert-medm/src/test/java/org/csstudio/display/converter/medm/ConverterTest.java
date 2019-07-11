@@ -31,7 +31,7 @@ public class ConverterTest
 
         final File output = File.createTempFile("Main_XXX", ".bob");
         output.deleteOnExit();
-        new MEDMConverter(new File(filename), output);
+        new Converter(new File(filename), output);
 
         final BufferedReader dump = new BufferedReader(new FileReader(output));
         dump.lines().forEach(System.out::println);

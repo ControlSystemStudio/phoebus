@@ -58,7 +58,7 @@ public class Converter
             outfile = new File(output_dir, outfile.getName());
         if (outfile.canRead())
             throw new Exception("Output file " + outfile + " exists");
-        
+
         convert(infile, outfile);
     }
 
@@ -66,7 +66,9 @@ public class Converter
     {
         if (args.length == 0  || args[0].startsWith("-h"))
         {
-            System.out.println("Usage: -main org.csstudio.display.builder.model.Converter [-output /path/to/folder] <files>");
+            System.out.println("Usage: -main org.csstudio.display.builder.model.Converter [-help] [-output /path/to/folder] <files>");
+            System.out.println();
+            System.out.println("Converts BOY *.opi files to Display Builder *.bob format");
             System.out.println();
             System.out.println("-output /path/to/folder   - Folder into which converted files are written");
             System.out.println("<files>                   - One or more files to convert");

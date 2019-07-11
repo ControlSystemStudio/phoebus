@@ -6,7 +6,7 @@
 
 package org.csstudio.opibuilder.adl2boy.translator;
 
-import static org.csstudio.display.converter.medm.MEDMConverter.logger;
+import static org.csstudio.display.converter.medm.Converter.logger;
 
 import java.util.ArrayList;
 import java.util.List;

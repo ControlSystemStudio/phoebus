@@ -4,7 +4,7 @@
 package org.csstudio.opibuilder.adl2boy.utilities;
 
 
-import static org.csstudio.display.converter.medm.MEDMConverter.logger;
+import static org.csstudio.display.converter.medm.Converter.logger;
 
 import java.util.logging.Level;
 

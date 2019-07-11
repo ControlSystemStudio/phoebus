@@ -61,7 +61,7 @@ public class MEDMConverterApplication implements AppResourceDescriptor
             // Convert file
             final File input = ModelResourceUtil.getFile(resource);
             final File output = new File(input.getAbsolutePath().replace(".adl", ".bob"));
-            new MEDMConverter(input, output);
+            new Converter(input, output);
 
             // On success, open in display editor, runtime, other editor
             ApplicationLauncherService.openFile(output, true, (Stage)DockPane.getActiveDockPane().getScene().getWindow());
