@@ -32,6 +32,7 @@ public class Text2Model extends AbstractADL2Model<LabelWidget> {
                 widgetModel.propText().setValue(textWidget.getTextix());
             }
         }
+        widgetModel.propAutoSize().setValue(true);
         TextUtilities.setWidgetFont(widgetModel);
         TextUtilities.setAlignment(widgetModel, textWidget);
     }

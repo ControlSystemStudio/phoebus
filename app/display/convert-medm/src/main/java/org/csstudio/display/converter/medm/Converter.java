@@ -26,6 +26,7 @@ import org.csstudio.opibuilder.adl2boy.translator.Oval2Model;
 import org.csstudio.opibuilder.adl2boy.translator.PolyLine2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Polygon2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Rectangle2Model;
+import org.csstudio.opibuilder.adl2boy.translator.RelatedDisplay2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Text2Model;
 import org.csstudio.opibuilder.adl2boy.translator.TextEntry2Model;
 import org.csstudio.opibuilder.adl2boy.translator.TextUpdate2Model;
@@ -135,6 +136,8 @@ public class Converter
                     new PolyLine2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("rectangle"))
                     new Rectangle2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("related display"))
+                    new RelatedDisplay2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("text"))
                     new Text2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("text entry"))
