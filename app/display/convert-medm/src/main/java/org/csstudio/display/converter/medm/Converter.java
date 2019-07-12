@@ -23,6 +23,7 @@ import org.csstudio.opibuilder.adl2boy.translator.ChoiceButton2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Composite2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Display2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Image2Model;
+import org.csstudio.opibuilder.adl2boy.translator.Menu2Model;
 import org.csstudio.opibuilder.adl2boy.translator.MessageButton2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Oval2Model;
 import org.csstudio.opibuilder.adl2boy.translator.PolyLine2Model;
@@ -133,6 +134,8 @@ public class Converter
                     continue;
                 else if (widgetType.equals("image"))
                     new Image2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("menu"))
+                    new Menu2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("message button"))
                     new MessageButton2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("oval"))
