@@ -109,7 +109,7 @@ public class ScrollBarWidget extends WritablePVWidget
         super.defineProperties(properties);
         properties.add(minimum = propMinimum.createProperty(this, 0.0));
         properties.add(maximum = propMaximum.createProperty(this, 100.0));
-        properties.add(limits_from_pv = propLimitsFromPV.createProperty(this, false));
+        properties.add(limits_from_pv = propLimitsFromPV.createProperty(this, true));
         properties.add(horizontal = propHorizontal.createProperty(this, true));
         properties.add(show_value_tip = propShowValueTip.createProperty(this, true));
         properties.add(bar_length = propBarLength.createProperty(this, 10.0));
