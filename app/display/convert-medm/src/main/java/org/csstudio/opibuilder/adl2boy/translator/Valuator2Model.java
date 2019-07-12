@@ -33,6 +33,7 @@ public class Valuator2Model extends AbstractADL2Model<ScrollBarWidget> {
             setADLControlProps(valuatorWidget, widgetModel);
         }
 
+        widgetModel.propLimitsFromPV().setValue(true);
         widgetModel.propBarLength().setValue(1.0);
         widgetModel.propIncrement().setValue((double) valuatorWidget.getIncrement());
         widgetModel.propHorizontal().setValue(valuatorWidget.getDirection().equals("right"));
