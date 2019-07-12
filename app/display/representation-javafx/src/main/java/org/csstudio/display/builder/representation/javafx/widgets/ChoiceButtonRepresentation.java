@@ -73,10 +73,11 @@ public class ChoiceButtonRepresentation extends JFXBaseRepresentation<TilePane, 
 
     private ButtonBase createButton(final String text)
     {
-        final ToggleButton rb = new ToggleButton(text);
-        rb.setToggleGroup(toggle);
-        rb.setMnemonicParsing(false);
-        return rb;
+        final ToggleButton b = new ToggleButton(text);
+        b.getStyleClass().add("action_button");
+        b.setToggleGroup(toggle);
+        b.setMnemonicParsing(false);
+        return b;
     }
 
     @Override
@@ -87,8 +88,9 @@ public class ChoiceButtonRepresentation extends JFXBaseRepresentation<TilePane, 
         model_widget.propHeight().addUntypedPropertyListener(sizeChangedListener);
         model_widget.propHorizontal().addUntypedPropertyListener(sizeChangedListener);
 
-        model_widget.propForegroundColor().addUntypedPropertyListener(styleChangedListener);
         model_widget.propFont().addUntypedPropertyListener(styleChangedListener);
+        model_widget.propForegroundColor().addUntypedPropertyListener(styleChangedListener);
+        model_widget.propBackgroundColor().addUntypedPropertyListener(styleChangedListener);
         model_widget.propEnabled().addUntypedPropertyListener(styleChangedListener);
         model_widget.runtimePropPVWritable().addUntypedPropertyListener(styleChangedListener);
 
@@ -113,8 +115,9 @@ public class ChoiceButtonRepresentation extends JFXBaseRepresentation<TilePane, 
         model_widget.propWidth().removePropertyListener(sizeChangedListener);
         model_widget.propHeight().removePropertyListener(sizeChangedListener);
         model_widget.propHorizontal().removePropertyListener(sizeChangedListener);
-        model_widget.propForegroundColor().removePropertyListener(styleChangedListener);
         model_widget.propFont().removePropertyListener(styleChangedListener);
+        model_widget.propForegroundColor().removePropertyListener(styleChangedListener);
+        model_widget.propBackgroundColor().removePropertyListener(styleChangedListener);
         model_widget.propEnabled().removePropertyListener(styleChangedListener);
         model_widget.runtimePropPVWritable().removePropertyListener(styleChangedListener);
         model_widget.runtimePropValue().removePropertyListener(contentChangedListener);
@@ -292,8 +295,9 @@ public class ChoiceButtonRepresentation extends JFXBaseRepresentation<TilePane, 
         }
         if (dirty_style.checkAndClear())
         {
-            final Color fg = JFXUtil.convert(model_widget.propForegroundColor().getValue());
             final Font font = JFXUtil.convert(model_widget.propFont().getValue());
+            final Color fg = JFXUtil.convert(model_widget.propForegroundColor().getValue());
+            final String background = JFXUtil.shadedStyle(model_widget.propBackgroundColor().getValue());
             // Don't disable the widget, because that would also remove the
             // context menu etc.
             // Just apply a style that matches the disabled look.
@@ -305,6 +309,7 @@ public class ChoiceButtonRepresentation extends JFXBaseRepresentation<TilePane, 
                 final ButtonBase b = (ButtonBase) node;
                 b.setTextFill(fg);
                 b.setFont(font);
+                b.setStyle(background);
             }
         }
     }

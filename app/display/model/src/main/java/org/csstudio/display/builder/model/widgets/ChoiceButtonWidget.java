@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.widgets;
 
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmDialog;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmMessage;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
@@ -55,8 +56,9 @@ public class ChoiceButtonWidget extends WritablePVWidget
         }
     };
 
-    private volatile WidgetProperty<WidgetColor> foreground;
     private volatile WidgetProperty<WidgetFont> font;
+    private volatile WidgetProperty<WidgetColor> foreground;
+    private volatile WidgetProperty<WidgetColor> background;
     private volatile WidgetProperty<List<WidgetProperty<String>>> items;
     private volatile WidgetProperty<Boolean> items_from_pv;
     private volatile WidgetProperty<Boolean> horizontal;
@@ -76,6 +78,7 @@ public class ChoiceButtonWidget extends WritablePVWidget
         super.defineProperties(properties);
         properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
+        properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BUTTON_BACKGROUND)));
         properties.add(items = propItems.createProperty(this, Arrays.asList(propItem.createProperty(this, "Item 1"), propItem.createProperty(this, "Item 2"))));
         properties.add(items_from_pv = propItemsFromPV.createProperty(this, true));
         properties.add(horizontal = propHorizontal.createProperty(this, true));
@@ -89,6 +92,12 @@ public class ChoiceButtonWidget extends WritablePVWidget
     public WidgetProperty<WidgetColor> propForegroundColor()
     {
         return foreground;
+    }
+
+    /** @return 'background_color' property */
+    public WidgetProperty<WidgetColor> propBackgroundColor()
+    {
+        return background;
     }
 
     /** @return 'font' property */
