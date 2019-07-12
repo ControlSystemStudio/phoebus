@@ -26,6 +26,8 @@ import org.csstudio.opibuilder.adl2boy.translator.PolyLine2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Polygon2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Rectangle2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Text2Model;
+import org.csstudio.opibuilder.adl2boy.translator.TextEntry2Model;
+import org.csstudio.opibuilder.adl2boy.translator.TextUpdate2Model;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.ColorMap;
 import org.csstudio.utility.adlparser.fileParser.ParserADL;
@@ -127,10 +129,14 @@ public class Converter
                     new Polygon2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("polyline"))
                     new PolyLine2Model(adlWidget, colorMap, parentModel);
-                else if (widgetType.equals("text"))
-                    new Text2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("rectangle"))
                     new Rectangle2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("text"))
+                    new Text2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("text entry"))
+                    new TextEntry2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("text update"))
+                    new TextUpdate2Model(adlWidget, colorMap, parentModel);
                 // TODO Add all the widgets
                 else
                     logger.log(Level.FINE, "Ignoring #" + adlWidget.getObjectNr() + " " + adlWidget.getType());
