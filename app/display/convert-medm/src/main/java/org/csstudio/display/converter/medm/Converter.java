@@ -23,6 +23,7 @@ import org.csstudio.opibuilder.adl2boy.translator.ChoiceButton2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Composite2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Display2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Image2Model;
+import org.csstudio.opibuilder.adl2boy.translator.MessageButton2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Oval2Model;
 import org.csstudio.opibuilder.adl2boy.translator.PolyLine2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Polygon2Model;
@@ -132,6 +133,8 @@ public class Converter
                     continue;
                 else if (widgetType.equals("image"))
                     new Image2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("message button"))
+                    new MessageButton2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("oval"))
                     new Oval2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("polygon"))
@@ -159,7 +162,6 @@ public class Converter
                 logger.log(Level.WARNING, "Cannot convert #" + adlWidget.getObjectNr() + " " + adlWidget.getType(), ex);
             }
         }
-
     }
 
     /** @param infile Input file (*.opi, older *.bob)
@@ -171,6 +173,15 @@ public class Converter
         final File infile = new File(input);
         if (! infile.canRead())
             throw new Exception("Cannot read " + infile);
+
+        if (infile.isDirectory())
+        {
+            logger.log(Level.INFO, "Converting all files in directory " + infile);
+            for (File file : infile.listFiles())
+                convert(file.getAbsolutePath(), output_dir);
+            return;
+        }
+
         File outfile;
         if (input.endsWith(".adl"))
             outfile = new File(input.substring(0, input.length()-4) + ".bob");

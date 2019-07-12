@@ -350,14 +350,13 @@ public abstract class AbstractADL2Model<WM extends Widget>
                 widgetModel.getParent().get().getPropertyValue(CommonWidgetProperties.propForegroundColor));
     }
 
-    /**
-     * @param color_index
-     * @param color_prop
-     * @throws Exception
+    /** @param color_index Color to use
+     *  @param color_prop Widget property to set, if it exists
+     *  @throws Exception
      */
     public void setColor(int color_index, WidgetPropertyDescriptor<WidgetColor> color_prop) throws Exception {
         if (color_index >= 0  &&  color_index < colorMap.length)
-            widgetModel.setPropertyValue(color_prop, colorMap[color_index]);
+            widgetModel.checkProperty(color_prop).ifPresent(prop -> prop.setValue(colorMap[color_index]));
         else
             throw new Exception("Invalid color map index " + color_index);
     }
