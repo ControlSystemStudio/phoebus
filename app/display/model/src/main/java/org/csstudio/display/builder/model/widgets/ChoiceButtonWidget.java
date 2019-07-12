@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -32,24 +32,26 @@ import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 
-/** Widget that writes to PV from selection of items
- *  @author Amanda Carpenter
+/** Widget for PV with choices (enum)
+ *
+ *  <p>Creates one button per choice
+ *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class RadioWidget extends WritablePVWidget
+public class ChoiceButtonWidget extends WritablePVWidget
 {
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
-            new WidgetDescriptor("radio", WidgetCategory.CONTROL,
-                    "Radio Button",
-                    "/icons/radiobutton.png",
-                    "Selects one of multiple items using radio buttons",
-                    Arrays.asList("org.csstudio.opibuilder.widgets.radioBox"))
+            new WidgetDescriptor("choice", WidgetCategory.CONTROL,
+                    "Choice Button",
+                    "/icons/choice_button.png",
+                    "Selects one of multiple items using buttons",
+                    Arrays.asList("org.csstudio.opibuilder.widgets.choiceButton"))
     {
         @Override
         public Widget createWidget()
         {
-            return new RadioWidget();
+            return new ChoiceButtonWidget();
         }
     };
 
@@ -63,7 +65,7 @@ public class RadioWidget extends WritablePVWidget
     private volatile WidgetProperty<String> confirm_message;
     private volatile WidgetProperty<String> password;
 
-    public RadioWidget()
+    public ChoiceButtonWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 100, 43);
     }
@@ -136,7 +138,4 @@ public class RadioWidget extends WritablePVWidget
     {
         return password;
     }
-
-    //  TODO: CR: Changing the name of a radio button item has no immediate effect,
-    //            only after a resize the name is changed.
 }

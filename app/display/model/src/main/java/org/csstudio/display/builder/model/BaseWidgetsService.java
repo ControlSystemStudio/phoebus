@@ -17,6 +17,7 @@ import org.csstudio.display.builder.model.widgets.ArrayWidget;
 import org.csstudio.display.builder.model.widgets.BoolButtonWidget;
 import org.csstudio.display.builder.model.widgets.ByteMonitorWidget;
 import org.csstudio.display.builder.model.widgets.CheckBoxWidget;
+import org.csstudio.display.builder.model.widgets.ChoiceButtonWidget;
 import org.csstudio.display.builder.model.widgets.ClockWidget;
 import org.csstudio.display.builder.model.widgets.ComboWidget;
 import org.csstudio.display.builder.model.widgets.DigitalClockWidget;
@@ -72,6 +73,7 @@ public class BaseWidgetsService implements WidgetsService
             BoolButtonWidget.WIDGET_DESCRIPTOR,
             ByteMonitorWidget.WIDGET_DESCRIPTOR,
             CheckBoxWidget.WIDGET_DESCRIPTOR,
+            ChoiceButtonWidget.WIDGET_DESCRIPTOR,
             ClockWidget.WIDGET_DESCRIPTOR,
             ComboWidget.WIDGET_DESCRIPTOR,
             DataBrowserWidget.WIDGET_DESCRIPTOR,
