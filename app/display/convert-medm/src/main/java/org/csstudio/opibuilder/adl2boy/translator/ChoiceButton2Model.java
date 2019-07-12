@@ -10,11 +10,11 @@ import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.WidgetColor;
-import org.csstudio.display.builder.model.widgets.RadioWidget;
+import org.csstudio.display.builder.model.widgets.ChoiceButtonWidget;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.widgets.ChoiceButton;
 
-public class ChoiceButton2Model extends AbstractADL2Model<RadioWidget> {
+public class ChoiceButton2Model extends AbstractADL2Model<ChoiceButtonWidget> {
 
     public ChoiceButton2Model(ADLWidget adlWidget, WidgetColor[] colorMap, Widget parentModel) throws Exception {
         super(adlWidget, colorMap, parentModel);
@@ -42,7 +42,7 @@ public class ChoiceButton2Model extends AbstractADL2Model<RadioWidget> {
     @Override
     public void makeModel(ADLWidget adlWidget,
             Widget parentModel) {
-        widgetModel = new RadioWidget();
+        widgetModel = new ChoiceButtonWidget();
         ChildrenProperty.getChildren(parentModel).addChild(widgetModel);
     }
 }
