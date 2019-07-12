@@ -19,6 +19,7 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.csstudio.opibuilder.adl2boy.translator.ChoiceButton2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Composite2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Display2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Image2Model;
@@ -120,6 +121,8 @@ public class Converter
                 // Alphabetical order
                 if (widgetType.equals("display"))
                     continue;
+                else if (widgetType.equals("choice button"))
+                    new ChoiceButton2Model(adlWidget, colorMap,parentModel);
                 else if (widgetType.equals("color map"))
                     continue;
                 else if (widgetType.equals("composite"))
