@@ -31,6 +31,7 @@ import org.csstudio.opibuilder.adl2boy.translator.RelatedDisplay2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Text2Model;
 import org.csstudio.opibuilder.adl2boy.translator.TextEntry2Model;
 import org.csstudio.opibuilder.adl2boy.translator.TextUpdate2Model;
+import org.csstudio.opibuilder.adl2boy.translator.Valuator2Model;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.ColorMap;
 import org.csstudio.utility.adlparser.fileParser.ParserADL;
@@ -147,6 +148,8 @@ public class Converter
                     new TextEntry2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("text update"))
                     new TextUpdate2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("valuator"))
+                    new Valuator2Model(adlWidget, colorMap, parentModel);
                 // TODO Add all the widgets
                 else
                     logger.log(Level.FINE, "Ignoring #" + adlWidget.getObjectNr() + " " + adlWidget.getType());
