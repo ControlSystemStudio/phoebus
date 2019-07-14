@@ -149,7 +149,8 @@ public class MorphWidgetsMenu extends Menu
         selection.setSelection(replacements);
     }
 
-    private Widget createNewWidget(final WidgetDescriptor descriptor, final Widget widget)
+    @SuppressWarnings("unchecked")
+    public static <W extends Widget> W createNewWidget(final WidgetDescriptor descriptor, final Widget widget)
     {
         final Widget new_widget = descriptor.createWidget();
         final Set<WidgetProperty<?>> props = widget.getProperties();
@@ -175,6 +176,6 @@ public class MorphWidgetsMenu extends Menu
                 logger.log(Level.WARNING, "Cannot morph " + prop, ex);
             }
         }
-        return new_widget;
+        return (W)new_widget;
     }
 }

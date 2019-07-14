@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,23 +15,20 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontal;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propItemsFromPV;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPassword;
+import static org.csstudio.display.builder.model.widgets.ComboWidget.propItem;
+import static org.csstudio.display.builder.model.widgets.ComboWidget.propItems;
 
 import java.util.Arrays;
 import java.util.List;
 
-import org.csstudio.display.builder.model.ArrayWidgetProperty;
-import org.csstudio.display.builder.model.Messages;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetCategory;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
-import org.csstudio.display.builder.model.WidgetPropertyCategory;
-import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
-import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 
@@ -47,8 +44,7 @@ public class RadioWidget extends WritablePVWidget
                     "Radio Button",
                     "/icons/radiobutton.png",
                     "Selects one of multiple items using radio buttons",
-                    Arrays.asList("org.csstudio.opibuilder.widgets.radioBox",
-                                  "org.csstudio.opibuilder.widgets.choiceButton"))
+                    Arrays.asList("org.csstudio.opibuilder.widgets.radioBox"))
     {
         @Override
         public Widget createWidget()
@@ -56,15 +52,6 @@ public class RadioWidget extends WritablePVWidget
             return new RadioWidget();
         }
     };
-
-    /** 'item' property: element for list of 'items' property */
-    private static final WidgetPropertyDescriptor<String> propItem =
-            CommonWidgetProperties.newStringPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "item", Messages.ComboWidget_Item);
-
-    /** 'items' property: list of items (string properties) for combo box */
-    public static final WidgetPropertyDescriptor< List<WidgetProperty<String>> > propItems =
-            new ArrayWidgetProperty.Descriptor< >(WidgetPropertyCategory.BEHAVIOR, "items", Messages.ComboWidget_Items,
-                                                                         (widget, index) -> propItem.createProperty(widget, "Item " + index));
 
     private volatile WidgetProperty<WidgetColor> foreground;
     private volatile WidgetProperty<WidgetFont> font;

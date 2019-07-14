@@ -216,7 +216,13 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
 
             final Iterator<?> iter = items.iterator();
             for (int i=0; i<N; ++i)
-                getElement(i).setValueFromObject(iter.next());
+            {
+                final WPE element = getElement(i);
+                if (element instanceof MacroizedWidgetProperty<?>)
+                    ((MacroizedWidgetProperty<?>)element).setSpecification(((MacroizedWidgetProperty<?>) iter.next()).getSpecification());
+                else
+                    element.setValueFromObject(iter.next());
+            }
 
             // Notify listeners of the whole array
             firePropertyChange(this, null, this.value);
