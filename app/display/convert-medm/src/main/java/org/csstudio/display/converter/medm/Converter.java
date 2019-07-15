@@ -32,6 +32,7 @@ import org.csstudio.opibuilder.adl2boy.translator.PolyLine2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Polygon2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Rectangle2Model;
 import org.csstudio.opibuilder.adl2boy.translator.RelatedDisplay2Model;
+import org.csstudio.opibuilder.adl2boy.translator.StripChart2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Text2Model;
 import org.csstudio.opibuilder.adl2boy.translator.TextEntry2Model;
 import org.csstudio.opibuilder.adl2boy.translator.TextUpdate2Model;
@@ -153,6 +154,8 @@ public class Converter
                     new Rectangle2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("related display"))
                     new RelatedDisplay2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("strip chart"))
+                    new StripChart2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("text"))
                     new Text2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("text entry"))
@@ -164,7 +167,7 @@ public class Converter
                 // TODO Add all the widgets
                 else
                 {
-                    logger.log(Level.FINE, "Ignoring #" + adlWidget.getObjectNr() + " " + widgetType);
+                    logger.log(Level.WARNING, "Ignoring #" + adlWidget.getObjectNr() + " " + widgetType);
                     new Placeholder(adlWidget, colorMap, parentModel);
                 }
             }
