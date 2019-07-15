@@ -6,11 +6,8 @@
 
 package org.csstudio.opibuilder.adl2boy.translator;
 
-import static org.csstudio.display.converter.medm.Converter.logger;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
@@ -61,10 +58,7 @@ public class RelatedDisplay2Model extends AbstractADL2Model<ActionButtonWidget> 
         final List<ActionInfo> actions = new ArrayList<>();
         final RelatedDisplayItem[] displays = rdWidget.getRelatedDisplayItems();
         if (displays == null  ||  displays.length < 0)
-        {
-            logger.log(Level.WARNING, "Related display without, well, display");
             return;
-        }
         // For menu, always new tab because menu button doesn't
         // allow user to use 'Ctrl' etc at runtime.
         // Users can always close the new tab, but have no other way
