@@ -336,7 +336,8 @@ public abstract class AbstractADL2Model<WM extends Widget>
      * @param widgetModel
      * @throws Exception
      */
-    public void setBackgroundColorSameAsParent(Widget widgetModel) throws Exception {
+    public void setBackgroundColorSameAsParent(Widget widgetModel) throws Exception
+    {
         widgetModel.setPropertyValue(CommonWidgetProperties.propBackgroundColor,
                 widgetModel.getParent().get().getPropertyValue(CommonWidgetProperties.propBackgroundColor));
     }
@@ -345,9 +346,12 @@ public abstract class AbstractADL2Model<WM extends Widget>
      * @param widgetModel
      * @throws Exception
      */
-    public void setForegroundColorSameAsParent(Widget widgetModel) throws Exception {
-        widgetModel.setPropertyValue(CommonWidgetProperties.propForegroundColor,
-                widgetModel.getParent().get().getPropertyValue(CommonWidgetProperties.propForegroundColor));
+    public void setForegroundColorSameAsParent(Widget widgetModel) throws Exception
+    {
+        widgetModel.getParent()
+                   .get()
+                   .checkProperty(CommonWidgetProperties.propForegroundColor)
+                   .ifPresent(pcol -> widgetModel.setPropertyValue(CommonWidgetProperties.propForegroundColor, pcol.getValue()));
     }
 
     /** @param color_index Color to use
