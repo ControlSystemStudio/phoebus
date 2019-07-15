@@ -47,7 +47,7 @@ public class MessageButton2Model extends AbstractADL2Model<ActionButtonWidget> {
             // TODO Need new widget support for writing value on button release.
             // Bool button writes 0/1, not arbitrary values
 
-            logger.log(Level.WARNING, "Message Button 'release_msg' is ignored");
+            logger.log(Level.WARNING, "Message Button '" + messageButtonWidget.getLabel() + "' release_msg='" +  release_msg + "' is ignored. Only writing press_msg='" + press_msg + "' to " + messageButtonWidget.getAdlControl().getChan());
 //            widgetModel.setPropertyValue(ActionButtonModel.PROP_TOGGLE_BUTTON, true);
 //            ActionsInput ai = widgetModel.getActionsInput();
 //            WritePVAction wpvAction = new WritePVAction();
