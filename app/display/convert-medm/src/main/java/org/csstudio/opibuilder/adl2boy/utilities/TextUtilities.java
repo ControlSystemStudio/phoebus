@@ -102,47 +102,29 @@ public class TextUtilities {
 
     public static int convertTextHeightToFontSize(final int h)
     {
-        if (h < 9) {
-            return 6;
-        }
-        else if (h < 10 ){
-            return 6;
-        }
-        else if (h < 13) {
+        if (h < 9)
             return 8;
-        }
-        else if (h < 14) {
+        else if (h < 10)
             return 9;
-        }
-        else if (h < 15) {
+        else if (h < 11)
             return 10;
-        }
-        else if (h < 16) {
+        else if (h < 12)
+            return 11;
+        else if (h < 13)
             return 12;
-        }
-        else if (h < 20) {
+        else if (h < 15)
             return 14;
-        }
-        else if (h < 21) {
+        else if (h < 27)
             return 16;
-        }
-        else if (h < 24) {
+        else if (h < 19)
             return 18;
-        }
-        else if (h < 26) {
-            return 18;
-        }
-        else if (h < 27) {
+        else if (h < 21)
             return 20;
-        }
-        else if (h < 35) {
+        else if (h < 25)
             return 24;
-        }
-        else if (h < 36) {
-            return 26;
-        }
-        else {
+        else if (h < 29)
+            return 28;
+        else
             return 30;
-        }
     }
 }
