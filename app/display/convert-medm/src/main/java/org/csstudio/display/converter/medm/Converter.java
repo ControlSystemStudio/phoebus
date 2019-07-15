@@ -19,6 +19,7 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.csstudio.opibuilder.adl2boy.translator.Arc2Model;
 import org.csstudio.opibuilder.adl2boy.translator.CartesianPlot2Model;
 import org.csstudio.opibuilder.adl2boy.translator.ChoiceButton2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Composite2Model;
@@ -128,6 +129,8 @@ public class Converter
                 if (widgetType.equals("display"))
                     continue;
 
+                if (widgetType.equals("arc"))
+                    new Arc2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("cartesian plot"))
                     new CartesianPlot2Model(adlWidget, colorMap,parentModel);
                 else if (widgetType.equals("choice button"))
