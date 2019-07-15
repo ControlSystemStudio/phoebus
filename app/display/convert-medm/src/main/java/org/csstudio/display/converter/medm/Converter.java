@@ -27,6 +27,7 @@ import org.csstudio.opibuilder.adl2boy.translator.Display2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Image2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Menu2Model;
 import org.csstudio.opibuilder.adl2boy.translator.MessageButton2Model;
+import org.csstudio.opibuilder.adl2boy.translator.Meter2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Oval2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Placeholder;
 import org.csstudio.opibuilder.adl2boy.translator.PolyLine2Model;
@@ -37,6 +38,7 @@ import org.csstudio.opibuilder.adl2boy.translator.StripChart2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Text2Model;
 import org.csstudio.opibuilder.adl2boy.translator.TextEntry2Model;
 import org.csstudio.opibuilder.adl2boy.translator.TextUpdate2Model;
+import org.csstudio.opibuilder.adl2boy.translator.TranslatorUtils;
 import org.csstudio.opibuilder.adl2boy.translator.Valuator2Model;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.ColorMap;
@@ -126,12 +128,18 @@ public class Converter
             {
                 final String widgetType = adlWidget.getType();
 
-                // Alphabetical order
+                // Top-level entries that are already handled or ignored
                 if (widgetType.equals("display"))
                     continue;
 
+                // Alphabetical order
                 if (widgetType.equals("arc"))
                     new Arc2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("basic attribute"))
+                {
+                    for (ADLWidget child : adlWidget.getObjects())
+                        TranslatorUtils.setDefaultBasicAttribute(child);
+                }
                 else if (widgetType.equals("cartesian plot"))
                     new CartesianPlot2Model(adlWidget, colorMap,parentModel);
                 else if (widgetType.equals("choice button"))
@@ -140,12 +148,19 @@ public class Converter
                     continue;
                 else if (widgetType.equals("composite"))
                     new Composite2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("dynamic attribute"))
+                {
+                    for (ADLWidget child : adlWidget.getObjects())
+                        TranslatorUtils.setDefaultDynamicAttribute(child);
+                }
                 else if (widgetType.equals("file"))
                     continue;
                 else if (widgetType.equals("image"))
                     new Image2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("menu"))
                     new Menu2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("meter"))
+                    new Meter2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("message button"))
                     new MessageButton2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("oval"))
