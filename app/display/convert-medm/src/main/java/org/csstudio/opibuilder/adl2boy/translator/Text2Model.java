@@ -8,6 +8,7 @@ package org.csstudio.opibuilder.adl2boy.translator;
 
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.properties.HorizontalAlignment;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
 import org.csstudio.opibuilder.adl2boy.utilities.TextUtilities;
@@ -32,9 +33,13 @@ public class Text2Model extends AbstractADL2Model<LabelWidget> {
                 widgetModel.propText().setValue(textWidget.getTextix());
             }
         }
-        widgetModel.propAutoSize().setValue(true);
         TextUtilities.setWidgetFont(widgetModel);
         TextUtilities.setAlignment(widgetModel, textWidget);
+
+        // Auto-size when 'left' aligned.
+        // Otherwise it changes the size and then 'center' won't work any longer
+        if (widgetModel.propHorizontalAlignment().getValue() == HorizontalAlignment.LEFT)
+            widgetModel.propAutoSize().setValue(true);
     }
 
     @Override
