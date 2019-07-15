@@ -64,7 +64,7 @@ public class Converter
 
         // Get color map
         colorMap = getColorMap(root);
-        logger.log(Level.INFO, "Color map: " + Arrays.toString(colorMap));
+        logger.log(Level.FINE, "Color map: " + Arrays.toString(colorMap));
 
         // Get overall display info
         initializeDisplayModel(input.getName(), root);
