@@ -21,6 +21,7 @@ import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.opibuilder.adl2boy.translator.Arc2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Bar2Model;
+import org.csstudio.opibuilder.adl2boy.translator.Byte2Model;
 import org.csstudio.opibuilder.adl2boy.translator.CartesianPlot2Model;
 import org.csstudio.opibuilder.adl2boy.translator.ChoiceButton2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Composite2Model;
@@ -35,6 +36,7 @@ import org.csstudio.opibuilder.adl2boy.translator.PolyLine2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Polygon2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Rectangle2Model;
 import org.csstudio.opibuilder.adl2boy.translator.RelatedDisplay2Model;
+import org.csstudio.opibuilder.adl2boy.translator.ShellCommand2Model;
 import org.csstudio.opibuilder.adl2boy.translator.StripChart2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Text2Model;
 import org.csstudio.opibuilder.adl2boy.translator.TextEntry2Model;
@@ -143,6 +145,8 @@ public class Converter
                     for (ADLWidget child : adlWidget.getObjects())
                         TranslatorUtils.setDefaultBasicAttribute(child);
                 }
+                else if (widgetType.equals("byte"))
+                    new Byte2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("cartesian plot"))
                     new CartesianPlot2Model(adlWidget, colorMap,parentModel);
                 else if (widgetType.equals("choice button"))
@@ -176,6 +180,8 @@ public class Converter
                     new Rectangle2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("related display"))
                     new RelatedDisplay2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("shell command"))
+                    new ShellCommand2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("strip chart"))
                     new StripChart2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("text"))
