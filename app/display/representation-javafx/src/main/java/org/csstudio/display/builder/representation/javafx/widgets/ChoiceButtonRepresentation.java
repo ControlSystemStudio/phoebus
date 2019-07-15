@@ -63,10 +63,12 @@ public class ChoiceButtonRepresentation extends JFXBaseRepresentation<TilePane, 
     private volatile int index = -1;
     protected volatile boolean enabled = true;
 
+    private static final double GAP = 1.0;
+
     @Override
     public TilePane createJFXNode() throws Exception
     {
-        final TilePane pane = new TilePane(5.0, 5.0, createButton(null));
+        final TilePane pane = new TilePane(GAP, GAP, createButton(null));
         pane.setTileAlignment(Pos.BASELINE_LEFT);
         return pane;
     }

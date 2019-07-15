@@ -14,8 +14,14 @@ public class ADLPlotData extends WidgetPart {
     private float minRange;
     private float maxRange;
 
-    public ADLPlotData(ADLWidget widgetPart) throws WrongADLFormatException {
-        super(widgetPart);
+    public ADLPlotData(ADLWidget widgetPart) throws WrongADLFormatException
+    {
+        // This super-constructor will check name,
+        // but actual widget part will be called "x_axis" etc.,
+        // not "plot data"
+        // super(widgetPart);
+        super();
+        parseWidgetPart(widgetPart);
     }
 
     /**
@@ -27,7 +33,7 @@ public class ADLPlotData extends WidgetPart {
 
     @Override
     public Object[] getChildren() {
-        ArrayList<Object> ret = new ArrayList<Object>();
+        ArrayList<Object> ret = new ArrayList<>();
         ret.add(new ADLResource(ADLResource.PLOT_AXIS_STYLE, axisStyle));
         ret.add(new ADLResource(ADLResource.PLOT_RANGE_STYLE, rangeStyle));
         ret.add(new ADLResource(ADLResource.PLOT_RANGE_MIN, new Float(minRange)));

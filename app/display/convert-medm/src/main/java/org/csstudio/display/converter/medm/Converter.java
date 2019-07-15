@@ -19,24 +19,34 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.csstudio.opibuilder.adl2boy.translator.Arc2Model;
+import org.csstudio.opibuilder.adl2boy.translator.Bar2Model;
+import org.csstudio.opibuilder.adl2boy.translator.Byte2Model;
+import org.csstudio.opibuilder.adl2boy.translator.CartesianPlot2Model;
 import org.csstudio.opibuilder.adl2boy.translator.ChoiceButton2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Composite2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Display2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Image2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Menu2Model;
 import org.csstudio.opibuilder.adl2boy.translator.MessageButton2Model;
+import org.csstudio.opibuilder.adl2boy.translator.Meter2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Oval2Model;
+import org.csstudio.opibuilder.adl2boy.translator.Placeholder;
 import org.csstudio.opibuilder.adl2boy.translator.PolyLine2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Polygon2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Rectangle2Model;
 import org.csstudio.opibuilder.adl2boy.translator.RelatedDisplay2Model;
+import org.csstudio.opibuilder.adl2boy.translator.ShellCommand2Model;
+import org.csstudio.opibuilder.adl2boy.translator.StripChart2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Text2Model;
 import org.csstudio.opibuilder.adl2boy.translator.TextEntry2Model;
 import org.csstudio.opibuilder.adl2boy.translator.TextUpdate2Model;
+import org.csstudio.opibuilder.adl2boy.translator.TranslatorUtils;
 import org.csstudio.opibuilder.adl2boy.translator.Valuator2Model;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.ColorMap;
 import org.csstudio.utility.adlparser.fileParser.ParserADL;
+import org.phoebus.framework.workbench.FileHelper;
 
 /** MEDM Converter
  *
@@ -62,7 +72,7 @@ public class Converter
 
         // Get color map
         colorMap = getColorMap(root);
-        logger.log(Level.INFO, "Color map: " + Arrays.toString(colorMap));
+        logger.log(Level.FINE, "Color map: " + Arrays.toString(colorMap));
 
         // Get overall display info
         initializeDisplayModel(input.getName(), root);
@@ -121,21 +131,43 @@ public class Converter
             {
                 final String widgetType = adlWidget.getType();
 
-                // Alphabetical order
+                // Top-level entries that are already handled or ignored
                 if (widgetType.equals("display"))
                     continue;
+
+                // Alphabetical order
+                if (widgetType.equals("arc"))
+                    new Arc2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("bar"))
+                    new Bar2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("basic attribute"))
+                {
+                    for (ADLWidget child : adlWidget.getObjects())
+                        TranslatorUtils.setDefaultBasicAttribute(child);
+                }
+                else if (widgetType.equals("byte"))
+                    new Byte2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("cartesian plot"))
+                    new CartesianPlot2Model(adlWidget, colorMap,parentModel);
                 else if (widgetType.equals("choice button"))
                     new ChoiceButton2Model(adlWidget, colorMap,parentModel);
                 else if (widgetType.equals("color map"))
                     continue;
                 else if (widgetType.equals("composite"))
                     new Composite2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("dynamic attribute"))
+                {
+                    for (ADLWidget child : adlWidget.getObjects())
+                        TranslatorUtils.setDefaultDynamicAttribute(child);
+                }
                 else if (widgetType.equals("file"))
                     continue;
                 else if (widgetType.equals("image"))
                     new Image2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("menu"))
                     new Menu2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("meter"))
+                    new Meter2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("message button"))
                     new MessageButton2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("oval"))
@@ -148,6 +180,10 @@ public class Converter
                     new Rectangle2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("related display"))
                     new RelatedDisplay2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("shell command"))
+                    new ShellCommand2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("strip chart"))
+                    new StripChart2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("text"))
                     new Text2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("text entry"))
@@ -158,7 +194,10 @@ public class Converter
                     new Valuator2Model(adlWidget, colorMap, parentModel);
                 // TODO Add all the widgets
                 else
-                    logger.log(Level.FINE, "Ignoring #" + adlWidget.getObjectNr() + " " + adlWidget.getType());
+                {
+                    logger.log(Level.WARNING, "Ignoring #" + adlWidget.getObjectNr() + " " + widgetType);
+                    new Placeholder(adlWidget, colorMap, parentModel);
+                }
             }
             catch (Exception ex)
             {
@@ -185,17 +224,25 @@ public class Converter
             return;
         }
 
-        File outfile;
-        if (input.endsWith(".adl"))
-            outfile = new File(input.substring(0, input.length()-4) + ".bob");
+        // Convert *.adl file
+        // Copy other file types, which could be *.gif etc.
+        if (! input.endsWith(".adl"))
+        {
+            logger.log(Level.INFO, "Copying file " + input + " into " + output_dir);
+            FileHelper.copy(new File(input), output_dir);
+            return;
+        }
         else
-            outfile = new File(input);
-        if (output_dir != null)
-            outfile = new File(output_dir, outfile.getName());
-        if (outfile.canRead())
-            throw new Exception("Output file " + outfile + " exists");
+        {
+            File outfile = new File(input.substring(0, input.length()-4) + ".bob");
 
-        new Converter(infile, outfile);
+            if (output_dir != null)
+                outfile = new File(output_dir, outfile.getName());
+            if (outfile.canRead())
+                throw new Exception("Output file " + outfile + " exists");
+
+            new Converter(infile, outfile);
+        }
     }
 
     public static void main(final String[] args)

@@ -49,7 +49,7 @@ public class StripChart extends ADLAbstractWidget {
                     throw new WrongADLFormatException(Messages.Label_WrongADLFormatException_Parameter_Begin + bodyPart + Messages.Label_WrongADLFormatException_Parameter_End);
                 }
                 if (FileLine.argEquals(row[0], "period")){
-                    setPeriod(FileLine.getIntValue(row[1]));
+                    setPeriod(Math.round(FileLine.getFloatValue(row[1])));
                 }
                 else if (FileLine.argEquals(row[0], "units")){
                     setUnits(FileLine.getTrimmedValue(row[1]));
@@ -86,7 +86,7 @@ public class StripChart extends ADLAbstractWidget {
     /**
      * @return the period
      */
-    public int getPeriod() {
+    public float getPeriod() {
         return period;
     }
 
@@ -108,7 +108,7 @@ public class StripChart extends ADLAbstractWidget {
             }
         }
         if (!(units.equals(""))) ret.add(new ADLResource(ADLResource.UNITS, units));
-        ret.add(new ADLResource(ADLResource.PERIOD, new Integer(period)));
+        ret.add(new ADLResource(ADLResource.PERIOD, period));
         return ret.toArray();
     }
 

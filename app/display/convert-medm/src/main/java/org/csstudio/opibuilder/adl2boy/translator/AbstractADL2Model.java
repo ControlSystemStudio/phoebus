@@ -336,7 +336,8 @@ public abstract class AbstractADL2Model<WM extends Widget>
      * @param widgetModel
      * @throws Exception
      */
-    public void setBackgroundColorSameAsParent(Widget widgetModel) throws Exception {
+    public void setBackgroundColorSameAsParent(Widget widgetModel) throws Exception
+    {
         widgetModel.setPropertyValue(CommonWidgetProperties.propBackgroundColor,
                 widgetModel.getParent().get().getPropertyValue(CommonWidgetProperties.propBackgroundColor));
     }
@@ -345,9 +346,12 @@ public abstract class AbstractADL2Model<WM extends Widget>
      * @param widgetModel
      * @throws Exception
      */
-    public void setForegroundColorSameAsParent(Widget widgetModel) throws Exception {
-        widgetModel.setPropertyValue(CommonWidgetProperties.propForegroundColor,
-                widgetModel.getParent().get().getPropertyValue(CommonWidgetProperties.propForegroundColor));
+    public void setForegroundColorSameAsParent(Widget widgetModel) throws Exception
+    {
+        widgetModel.getParent()
+                   .get()
+                   .checkProperty(CommonWidgetProperties.propForegroundColor)
+                   .ifPresent(pcol -> widgetModel.setPropertyValue(CommonWidgetProperties.propForegroundColor, pcol.getValue()));
     }
 
     /** @param color_index Color to use
@@ -398,17 +402,18 @@ public abstract class AbstractADL2Model<WM extends Widget>
      */
     public Macros makeMacros(String args)
     {
-        String resArgs = removeParentMacros(args);
-        Macros macIn = null;
         try
         {
+            String resArgs = removeParentMacros(args);
+            Macros macIn = null;
             macIn = Macros.fromSimpleSpec(resArgs);
+            return macIn;
         }
-        catch (Exception ex)
+        catch (Throwable ex)
         {
             logger.log(Level.WARNING, "Error in macros " + args, ex);
         }
-        return macIn;
+        return new Macros();
     }
 
     /**
@@ -423,12 +428,15 @@ public abstract class AbstractADL2Model<WM extends Widget>
         StringBuffer strBuff = new StringBuffer();
         for (int ii = 0; ii < argList.length; ii++) {
             String[] argParts = argList[ii].split("=");
-            if (!argParts[1].replaceAll(" ", "").equals(
-                    "$(" + argParts[0].trim() + ")")) {
-                if (strBuff.length() != 0)
-                    strBuff.append(", ");
-                strBuff.append(argList[ii]);
-            }
+            if (argParts.length != 2)
+                logger.log(Level.WARNING, "Erroneous macro setting in " + args);
+            else
+                if (!argParts[1].replaceAll(" ", "").equals(
+                        "$(" + argParts[0].trim() + ")")) {
+                    if (strBuff.length() != 0)
+                        strBuff.append(", ");
+                    strBuff.append(argList[ii]);
+                }
         }
         String resArgs = strBuff.toString();
         return resArgs;

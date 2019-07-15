@@ -57,6 +57,8 @@ public class RelatedDisplay2Model extends AbstractADL2Model<ActionButtonWidget> 
 
         final List<ActionInfo> actions = new ArrayList<>();
         final RelatedDisplayItem[] displays = rdWidget.getRelatedDisplayItems();
+        if (displays == null  ||  displays.length < 0)
+            return;
         // For menu, always new tab because menu button doesn't
         // allow user to use 'Ctrl' etc at runtime.
         // Users can always close the new tab, but have no other way

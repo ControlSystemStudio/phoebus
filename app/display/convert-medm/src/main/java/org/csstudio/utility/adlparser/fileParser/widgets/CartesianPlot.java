@@ -1,6 +1,8 @@
 package org.csstudio.utility.adlparser.fileParser.widgets;
+import static org.csstudio.display.converter.medm.Converter.logger;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
 
 import org.csstudio.utility.adlparser.fileParser.ADLResource;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
@@ -66,29 +68,22 @@ public class CartesianPlot extends ADLAbstractWidget {
                 if (row.length < 2){
                     throw new WrongADLFormatException(Messages.Label_WrongADLFormatException_Parameter_Begin + bodyPart + Messages.Label_WrongADLFormatException_Parameter_End);
                 }
-                if (FileLine.argEquals(row[0], "countpvname")){
+                if (FileLine.argEquals(row[0], "countpvname"))
                     setCount(FileLine.getTrimmedValue(row[1]));
-                }
-                if (FileLine.argEquals(row[0], "count")){
+                else if (FileLine.argEquals(row[0], "count"))
                     setCount(FileLine.getTrimmedValue(row[1]));
-                }
-                if (FileLine.argEquals(row[0], "erase")){
+                else if (FileLine.argEquals(row[0], "erase"))
                     setErase(FileLine.getTrimmedValue(row[1]));
-                }
-                if (FileLine.argEquals(row[0], "trigger")){
+                else if (FileLine.argEquals(row[0], "trigger"))
                     setTrigger(FileLine.getTrimmedValue(row[1]));
-                }
-                if (FileLine.argEquals(row[0], "erasemode")){
+                else if (FileLine.argEquals(row[0], "erasemode"))
                     setEraseMode(FileLine.getTrimmedValue(row[1]));
-                }
-                if (FileLine.argEquals(row[0], "style")){
+                else if (FileLine.argEquals(row[0], "style"))
                     setPlotStyle(FileLine.getTrimmedValue(row[1]));
-                }
-                if (FileLine.argEquals(row[0], "erase_oldest")){
+                else if (FileLine.argEquals(row[0], "erase_oldest"))
                     setPlotMode(FileLine.getTrimmedValue(row[1]));
-                }else {
-                    throw new WrongADLFormatException("\n"+Messages.ADLMonitor_WrongADLFormatException_Parameter_Begin+" "+row[0]+"\n "+Messages.ADLMonitor_WrongADLFormatException_Parameter_End+" "+row[1] + "\n");
-                }
+                else
+                    logger.log(Level.FINE, "Cartesian ignores " + row[0] + " = " + row[1]);
             }
         }
         catch (WrongADLFormatException ex) {

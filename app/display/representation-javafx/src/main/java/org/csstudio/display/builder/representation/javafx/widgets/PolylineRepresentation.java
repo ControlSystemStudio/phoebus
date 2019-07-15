@@ -136,7 +136,8 @@ public class PolylineRepresentation extends JFXBaseRepresentation<Group, Polylin
                 }
                 final List<Node> children = jfx_node.getChildrenUnmodifiable();
                 final Color color = JFXUtil.convert(model_widget.propLineColor().getValue());
-                final int line_width = model_widget.propLineWidth().getValue();
+                // Line width of 0 breaks the dash computation
+                final int line_width = Math.max(1, model_widget.propLineWidth().getValue());
                 final int arrows_val = model_widget.propArrows().getValue().ordinal();
                 final int length = model_widget.propArrowLength().getValue();
                 int i = 0;
