@@ -41,6 +41,7 @@ import org.csstudio.opibuilder.adl2boy.translator.Valuator2Model;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.ColorMap;
 import org.csstudio.utility.adlparser.fileParser.ParserADL;
+import org.phoebus.framework.workbench.FileHelper;
 
 /** MEDM Converter
  *
@@ -199,19 +200,25 @@ public class Converter
             return;
         }
 
+        // Convert *.adl file
+        // Copy other file types, which could be *.gif etc.
         if (! input.endsWith(".adl"))
         {
-            logger.log(Level.INFO, "Ignoring file " + input);
+            logger.log(Level.INFO, "Copying file " + input + " into " + output_dir);
+            FileHelper.copy(new File(input), output_dir);
             return;
         }
-        File outfile = new File(input.substring(0, input.length()-4) + ".bob");
+        else
+        {
+            File outfile = new File(input.substring(0, input.length()-4) + ".bob");
 
-        if (output_dir != null)
-            outfile = new File(output_dir, outfile.getName());
-        if (outfile.canRead())
-            throw new Exception("Output file " + outfile + " exists");
+            if (output_dir != null)
+                outfile = new File(output_dir, outfile.getName());
+            if (outfile.canRead())
+                throw new Exception("Output file " + outfile + " exists");
 
-        new Converter(infile, outfile);
+            new Converter(infile, outfile);
+        }
     }
 
     public static void main(final String[] args)
