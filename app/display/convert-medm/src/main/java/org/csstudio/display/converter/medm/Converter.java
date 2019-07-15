@@ -193,11 +193,13 @@ public class Converter
             return;
         }
 
-        File outfile;
-        if (input.endsWith(".adl"))
-            outfile = new File(input.substring(0, input.length()-4) + ".bob");
-        else
-            outfile = new File(input);
+        if (! input.endsWith(".adl"))
+        {
+            logger.log(Level.INFO, "Ignoring file " + input);
+            return;
+        }
+        File outfile = new File(input.substring(0, input.length()-4) + ".bob");
+
         if (output_dir != null)
             outfile = new File(output_dir, outfile.getName());
         if (outfile.canRead())
