@@ -1286,7 +1286,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
     }
 
     /** Notify listeners */
-    public void fireLogarithmicChange(final YAxis<?> axis)
+    public void fireLogarithmicChange(final Axis<?> axis)
     {
         for (RTPlotListener<?> listener : listeners)
             listener.changedLogarithmic(axis);

@@ -109,10 +109,10 @@ public class ModelBasedPlot
             }
 
             @Override
-            public void changedLogarithmic(final YAxis<?> axis)
+            public void changedLogarithmic(final Axis<?> axis)
             {
                 final int index = plot.getYAxes().indexOf(axis);
-                listener.ifPresent(l -> l.logarithmicChanged(index, axis.isLogarithmic()));
+                listener.ifPresent(l -> l.logarithmicChanged(index, ((YAxis<?>)axis).isLogarithmic()));
             }
 
             @Override
