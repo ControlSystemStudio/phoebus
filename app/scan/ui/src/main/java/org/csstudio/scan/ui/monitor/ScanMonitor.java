@@ -34,6 +34,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 /** Scan monitor application instance (singleton)
@@ -152,6 +153,8 @@ public class ScanMonitor implements AppInstance
             final ToolBar toolbar = new ToolBar(ToolbarHelper.createSpring(), resume, pause, abort);
             scans = new ScansTable(client);
             model.addListener(model_listener);
+
+            VBox.setVgrow(scans, Priority.ALWAYS);
 
             return new VBox(toolbar, scans);
         }
