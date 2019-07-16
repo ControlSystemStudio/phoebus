@@ -227,7 +227,7 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
             logscale.setOnAction(event ->
             {
                 num_axis.setLogarithmic(logscale.isSelected());
-                plot.internalGetPlot().fireLogarithmicChange((YAxis<?>)num_axis);
+                plot.internalGetPlot().fireLogarithmicChange(num_axis);
             });
             layout.add(logscale, 2, row++);
         }

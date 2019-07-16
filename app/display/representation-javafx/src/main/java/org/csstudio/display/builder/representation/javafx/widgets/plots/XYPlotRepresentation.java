@@ -145,11 +145,11 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
                 updateModelAxis(model_widget.propYAxes().getElement(index), y_axis);
         }
 
-        public void changedLogarithmic(final YAxis<?> y_axis)
+        public void changedLogarithmic(final Axis<?> y_axis)
         {
             final int index = plot.getYAxes().indexOf(y_axis);
             if (index >= 0  &&  index < model_widget.propYAxes().size())
-                model_widget.propYAxes().getElement(index).logscale().setValue(y_axis.isLogarithmic());
+                model_widget.propYAxes().getElement(index).logscale().setValue(((YAxis<?>)y_axis).isLogarithmic());
         };
 
         /** Invoked when auto scale is enabled or disabled by user interaction */

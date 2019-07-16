@@ -8,6 +8,7 @@
 package org.csstudio.javafx.rtplot;
 
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
+import org.csstudio.javafx.rtplot.internal.HorizontalNumericAxis;
 
 /** Listener to changes in the plot
  *  @param <XTYPE> Data type used for the {@link PlotDataItem}
@@ -27,8 +28,10 @@ public interface RTPlotListener<XTYPE extends Comparable<XTYPE>>
     /** Invoked when grid is enabled/disabled by user interaction */
     default public void changedGrid(Axis<?> axis) {};
 
-    /** Invoked when logarithmic mode is enabled/disabled by user interaction */
-    default public void changedLogarithmic(YAxis<?> axis) {};
+    /** Invoked when logarithmic mode is enabled/disabled by user interaction
+     *  @param axis {@link YAxis} or {@link HorizontalNumericAxis} with changed log setting
+     */
+    default public void changedLogarithmic(Axis<?> axis) {};
 
     /** Invoked when a PlotMarker has been moved
      *  @param index Index 0, .. of the {@link PlotMarker}
