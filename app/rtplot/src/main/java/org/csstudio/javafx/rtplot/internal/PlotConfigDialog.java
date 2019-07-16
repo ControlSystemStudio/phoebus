@@ -15,6 +15,7 @@ import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.javafx.rtplot.YAxis;
 import org.csstudio.javafx.rtplot.util.RGBFactory;
 
+import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
@@ -114,6 +115,7 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
 
         final TextField title = new TextField(plot.getTitle());
         title.setOnAction(event -> plot.setTitle(title.getText()));
+        title.focusedProperty().addListener((prop, old, focus) -> { if (!focus) plot.setTitle(title.getText()); });
         layout.add(title, 1, row++, 2, 1);
 
         final CheckBox legend = new CheckBox(Messages.PlotConfigShowLegend);
@@ -167,6 +169,7 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
         layout.add(new Label(Messages.PlotConfigAxName), 0, row);
         final TextField axis_name = new TextField(axis.getName());
         axis_name.setOnAction(event -> axis.setName(axis_name.getText()));
+        axis_name.focusedProperty().addListener((prop, old, focus) -> { if (!focus) axis.setName(axis_name.getText());});
         layout.add(axis_name, 1, row++, 2, 1);
 
         // Don't support auto-scale for time axis
@@ -203,8 +206,15 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
                 else if (axis instanceof HorizontalNumericAxis)
                     plot.internalGetPlot().fireXAxisChange();
             };
+            final ChangeListener<? super Boolean> focus_listener = (prop, old, focus) ->
+            {
+                if (! focus)
+                    update_range.handle(null);
+            };
             start.setOnAction(update_range);
+            start.focusedProperty().addListener(focus_listener);
             end.setOnAction(update_range);
+            end.focusedProperty().addListener(focus_listener);
 
             final CheckBox autoscale = new CheckBox(Messages.PlotConfigAutoScale);
             if (axis.isAutoscale())
