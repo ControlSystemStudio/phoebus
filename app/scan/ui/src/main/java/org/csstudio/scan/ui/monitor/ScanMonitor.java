@@ -13,20 +13,28 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 
+import org.csstudio.scan.client.ScanClient;
 import org.csstudio.scan.client.ScanInfoModel;
 import org.csstudio.scan.client.ScanInfoModelListener;
 import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.info.ScanServerInfo;
+import org.csstudio.scan.ui.Messages;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
+import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.ToolbarHelper;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.VBox;
 
 /** Scan monitor application instance (singleton)
  *  @author Kay Kasemir
@@ -97,9 +105,55 @@ public class ScanMonitor implements AppInstance
         try
         {
             model = ScanInfoModel.getInstance();
-            scans = new ScansTable(model.getScanClient());
+            final ScanClient client = model.getScanClient();
+
+            final Button resume = new Button("", ImageCache.getImageView(StateCell.class, "/icons/resume.png"));
+            resume.setTooltip(new Tooltip(Messages.scan_resume_all));
+            resume.setOnAction(event ->
+            {
+                try
+                {
+                    client.resumeScan(-1);
+                }
+                catch (Exception ex)
+                {
+                    logger.log(Level.WARNING, "Cannot resume scans", ex);
+                }
+            });
+
+            final Button pause = new Button("", ImageCache.getImageView(StateCell.class, "/icons/pause.png"));
+            pause.setTooltip(new Tooltip(Messages.scan_pause_all));
+            pause.setOnAction(event ->
+            {
+                try
+                {
+                    client.pauseScan(-1);
+                }
+                catch (Exception ex)
+                {
+                    logger.log(Level.WARNING, "Cannot pause scans", ex);
+                }
+            });
+
+            final Button abort = new Button("", ImageCache.getImageView(StateCell.class, "/icons/abort.png"));
+            abort.setTooltip(new Tooltip(Messages.scan_abort_all));
+            abort.setOnAction(event ->
+            {
+                try
+                {
+                    client.abortScan(-1);
+                }
+                catch (Exception ex)
+                {
+                    logger.log(Level.WARNING, "Cannot abort scans", ex);
+                }
+            });
+
+            final ToolBar toolbar = new ToolBar(ToolbarHelper.createSpring(), resume, pause, abort);
+            scans = new ScansTable(client);
             model.addListener(model_listener);
-            return scans;
+
+            return new VBox(toolbar, scans);
         }
         catch (Exception ex)
         {
