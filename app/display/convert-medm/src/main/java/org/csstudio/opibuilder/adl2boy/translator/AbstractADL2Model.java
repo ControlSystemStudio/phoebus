@@ -79,7 +79,8 @@ public abstract class AbstractADL2Model<WM extends Widget>
      * @param widgetModel
      */
     protected void setADLObjectProps(ADLAbstractWidget adlWidget, Widget widgetModel) {
-        widgetModel.propName().setValue(adlWidget.getName());
+        widgetModel.propName().setValue(adlWidget.getName() + " #" + adlWidget.getObjectNr());
+
         if (adlWidget.hasADLObject()) {
             ADLObject adlObj = adlWidget.getAdlObject();
             widgetModel.propX().setValue(adlObj.getX());
@@ -210,71 +211,28 @@ public abstract class AbstractADL2Model<WM extends Widget>
      *        B = pv1
      *        C = pv2
      *        D = PV3
-     * 3. Only basic desion maiking is hapenning
+     * 3. Only basic decision making is happening
      *    ()+-/*=<># were used.  No use of math
      *    functions like ABS, SIN, ...
      * 4. The characters = and # are replaced by
-     *    == and != respecively.
+     *    == and != respectively.
      * @param adlExpr
      * @return
      */
     private String translateExpression(String adlExpr) {
-        String opiExpr = adlExpr;
-        opiExpr = replaceChannel("A", "pv0", opiExpr);
-        opiExpr = replaceChannel("B", "pv1", opiExpr);
-        opiExpr = replaceChannel("C", "pv2", opiExpr);
-        opiExpr = replaceChannel("D", "pv3", opiExpr);
-        opiExpr = replaceString("=", "==", opiExpr);
-        opiExpr = replaceString("#", "!=", opiExpr);
+        String opiExpr = adlExpr.replace("A", "pv0")
+                                .replace("B", "pv1")
+                                .replace("C", "pv2")
+                                .replace("D", "pv3")
+                                .replace("=", "==")
+                                .replace("#", "!=");
 
-        // The above can result in "pv0====7".
-        // Patch that back into a plain "pv0==7"
+        // The above can result in "pv0====7" or "pv1 !== 8"
+        // when exiting "==" or "!=" gets replaced.
+        // Patch that back into a plain "==" resp. "!="
         opiExpr = opiExpr.replaceAll("==+", "==");
-        return opiExpr.toString();
-    }
 
-    /**
-     *
-     * @param adlChanName
-     * @param opiChanName
-     * @param opiExpr
-     * @return
-     */
-    private String replaceChannel(String adlChanName, String opiChanName,
-            String opiExpr) {
-        opiExpr = replaceString(adlChanName, opiChanName, opiExpr);
-        opiExpr = replaceString(adlChanName.toLowerCase(), opiChanName, opiExpr);
         return opiExpr;
-    }
-
-    private String replaceString(String inName, String outName, String expr) {
-        String retExpr = expr;
-        if (retExpr.contains(inName)){
-            StringBuffer tempExpr = new StringBuffer();
-            String[] parts = retExpr.split(inName);
-            tempExpr.append(parts[0]);
-            for (int occur = 0; occur<(parts.length-1); occur++){
-                if (!inName.equals("=")) {
-                    if (inName.equals("=")
-                            && (tempExpr.toString().endsWith(">") ||
-                                    tempExpr.toString().endsWith("<") ))
-
-                    {
-                        tempExpr.append("=");
-                        tempExpr.append(parts[occur + 1]);
-                    } else {
-                        tempExpr.append(outName);
-                        tempExpr.append(parts[occur + 1]);
-                    }
-                }
-                else {
-                    tempExpr.append(outName);
-                    tempExpr.append(parts[occur + 1]);
-                }
-            }
-            retExpr = tempExpr.toString();
-        }
-        return retExpr;
     }
 
     /**
