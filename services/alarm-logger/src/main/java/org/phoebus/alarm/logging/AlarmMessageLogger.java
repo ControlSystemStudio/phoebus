@@ -37,7 +37,8 @@ public class AlarmMessageLogger implements Runnable {
 
     private final Pattern pattern = Pattern.compile("(\\w*://\\S*)");
 
-    private IndexNameHelper indexNameHelper;
+    private IndexNameHelper stateIndexNameHelper;
+    private IndexNameHelper configIndexNameHelper;
     private static final String CONFIG_INDEX_FORMAT = "_alarms_config";
     private static final String STATE_INDEX_FORMAT = "_alarms_state";
 
@@ -61,6 +62,18 @@ public class AlarmMessageLogger implements Runnable {
         if (!props.containsKey(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG)) {
             props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         }
+        
+        
+        final String indexDateSpanUnits = props.getProperty("date_span_units");
+        final Integer indexDateSpanValue = Integer.parseInt(props.getProperty("date_span_value"));
+
+        try {
+            stateIndexNameHelper = new IndexNameHelper(topic + STATE_INDEX_FORMAT, indexDateSpanUnits, indexDateSpanValue);
+            configIndexNameHelper = new IndexNameHelper(topic + CONFIG_INDEX_FORMAT , indexDateSpanUnits, indexDateSpanValue);
+        } catch (Exception ex) {
+            logger.log(Level.SEVERE, "Time based index creation failed.", ex);
+        }
+        
         // Attach a message time stamp.
         StreamsBuilder builder = new StreamsBuilder();
 
@@ -72,11 +85,14 @@ public class AlarmMessageLogger implements Runnable {
                         return record.timestamp();
                     }
                 }));
-        alarms.foreach((k,v) -> {
-            logger.config("Processing alarm message " + k + " " + v.toString());
+
+        alarms = alarms.filter((k, v) -> {
+            return v != null;
         });
 
-        alarms = alarms.map((key,value) -> {
+        alarms = alarms.map((key, value) -> {
+            logger.config("Processing alarm message with key : " + key != null ? key
+                    : "null" + " " + value != null ? value.toString() : "null");
             value.setKey(key);
             return new KeyValue<String, AlarmMessage>(key, value);
         });
@@ -155,18 +171,9 @@ public class AlarmMessageLogger implements Runnable {
             return v != null ? v.isLeaf() : false;
         });
 
-        final String indexDateSpanUnits = props.getProperty("date_span_units");
-        final Integer indexDateSpanValue = Integer.parseInt(props.getProperty("date_span_value"));
-
-        try {
-            indexNameHelper = new IndexNameHelper(topic + STATE_INDEX_FORMAT, indexDateSpanUnits, indexDateSpanValue);
-        } catch (Exception ex) {
-            logger.log(Level.SEVERE, "Time based index creation failed.", ex);
-        }
-
         // Commit to elastic
         filteredAlarms.foreach((k, v) -> {
-            String topic_name = indexNameHelper.getIndexName(v.getMessage_time());
+            String topic_name = stateIndexNameHelper.getIndexName(v.getMessage_time());
             ElasticClientHelper.getInstance().indexAlarmStateDocument(topic_name, v);
         });
 
@@ -207,17 +214,9 @@ public class AlarmMessageLogger implements Runnable {
             }
         });
 
-        final String indexDateSpanUnits = props.getProperty("date_span_units");
-        final Integer indexDateSpanValue = Integer.parseInt(props.getProperty("date_span_value"));
-
-        try {
-            indexNameHelper = new IndexNameHelper(topic + CONFIG_INDEX_FORMAT , indexDateSpanUnits, indexDateSpanValue);
-        } catch (Exception ex) {
-            logger.log(Level.SEVERE, "Time based index creation failed.", ex);
-        }
         // Commit to elastic
         alarmConfigMessages.foreach((k, v) -> {
-            String topic_name = indexNameHelper.getIndexName(v.getMessage_time());
+            String topic_name = configIndexNameHelper.getIndexName(v.getMessage_time());
             ElasticClientHelper.getInstance().indexAlarmConfigDocument(topic_name, v);
         });
     }
