@@ -52,6 +52,7 @@ public class AlarmMessage {
     private String current_severity;
     private String current_message;
     private String mode;
+    private boolean latch;
 
     // The following fields encapsulate additional information for simplifying processing
     // Flag describing if the message is a configuration message or a state update message
@@ -224,6 +225,14 @@ public class AlarmMessage {
         return this.key;
     }
 
+    public boolean isLatch() {
+        return latch;
+    }
+
+    public void setLatch(boolean latch) {
+        this.latch = latch;
+    }
+
     public void setKey(String key) {
         this.key = key;
     }
@@ -241,6 +250,7 @@ public class AlarmMessage {
         }
         return false;
     }
+
 
     @JsonIgnore
     public AlarmConfigMessage getAlarmConfigMessage() {
@@ -277,7 +287,7 @@ public class AlarmMessage {
             stateMessage.setCurrent_severity(current_severity);
             stateMessage.setCurrent_message(current_message);
             stateMessage.setMode(mode);
-            stateMessage.setLatch(latching);
+            stateMessage.setLatch(latch);
             return stateMessage;
         } else {
             return null;
@@ -336,6 +346,7 @@ public class AlarmMessage {
         }
     }
 
+
     private static class AlarmConfigJsonMessage {
         @JsonIgnore
         private String severity;
@@ -349,6 +360,8 @@ public class AlarmMessage {
         private String current_message;
         @JsonIgnore
         private String mode;
+        @JsonIgnore
+        private boolean latch;
     }
 
     private static class AlarmStateJsonMessage {
