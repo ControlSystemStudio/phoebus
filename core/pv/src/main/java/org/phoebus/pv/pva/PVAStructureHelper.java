@@ -7,7 +7,11 @@
  ******************************************************************************/
 package org.phoebus.pv.pva;
 
+import static org.phoebus.pv.pva.Decoders.decodeAlarm;
+import static org.phoebus.pv.pva.Decoders.decodeTime;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,8 +44,6 @@ import org.epics.vtype.VStringArray;
 import org.epics.vtype.VTable;
 import org.epics.vtype.VType;
 
-import static org.phoebus.pv.pva.Decoders.*;
-
 @SuppressWarnings("nls")
 public class PVAStructureHelper
 {
@@ -49,8 +51,8 @@ public class PVAStructureHelper
     {
         PVAStructure actual = struct;
 
-        final Optional<Integer> elementIndex = name_helper.getElementIndex(); 
-       
+        final Optional<Integer> elementIndex = name_helper.getElementIndex();
+
         if (! name_helper.getField().equals("value"))
         {   // Fetch data from a sub-field
             final PVAData field = struct.get(name_helper.getField());
@@ -132,7 +134,7 @@ public class PVAStructureHelper
     private static VType decodeNTTable(final PVAStructure struct) throws Exception
     {
         final PVAStringArray labels_array = struct.get("labels");
-        final List<String> names  = new ArrayList<>(List.of(labels_array.get()));
+        final List<String> names  = new ArrayList<>(Arrays.asList(labels_array.get()));
 
         final List<Class<?>> types = new ArrayList<>(names.size());
         final List<Object> values = new ArrayList<>(names.size());
@@ -164,7 +166,7 @@ public class PVAStructureHelper
             {
                 final PVAStringArray typed = (PVAStringArray)column;
                 types.add(String.class);
-                values.add(List.of(typed.get()));
+                values.add(Arrays.asList(typed.get()));
             }
         }
 
@@ -202,56 +204,56 @@ public class PVAStructureHelper
      * Decode 'value', 'timeStamp', 'alarm' of NTArray and extract the value at index
      * @param struct
      * @param index
-     * @return {@link VType} 
+     * @return {@link VType}
      * @throws Exception
      */
     private static VType decodeNTArray(PVAStructure struct, Integer index) throws Exception {
         final PVAData field = struct.get("value");
         if (field instanceof PVADoubleArray)
         {
-            return VNumber.of(((VNumberArray) Decoders.decodeDoubleArray(struct, (PVADoubleArray) field)).getData().getDouble(index), 
+            return VNumber.of(((VNumberArray) Decoders.decodeDoubleArray(struct, (PVADoubleArray) field)).getData().getDouble(index),
                     decodeAlarm(struct),
                     decodeTime(struct),
                     Display.none());
         }
         else if (field instanceof PVAFloatArray)
         {
-            return VNumber.of(((VNumberArray) Decoders.decodeFloatArray(struct, (PVAFloatArray) field)).getData().getFloat(index), 
+            return VNumber.of(((VNumberArray) Decoders.decodeFloatArray(struct, (PVAFloatArray) field)).getData().getFloat(index),
                     decodeAlarm(struct),
                     decodeTime(struct),
                     Display.none());
         }
         else if (field instanceof PVALongArray)
         {
-            return VNumber.of(((VNumberArray) Decoders.decodeLongArray(struct, (PVALongArray) field)).getData().getLong(index), 
+            return VNumber.of(((VNumberArray) Decoders.decodeLongArray(struct, (PVALongArray) field)).getData().getLong(index),
                     decodeAlarm(struct),
                     decodeTime(struct),
                     Display.none());
         }
         else if (field instanceof PVAIntArray)
         {
-            return VNumber.of(((VNumberArray) Decoders.decodeIntArray(struct, (PVAIntArray) field)).getData().getInt(index), 
+            return VNumber.of(((VNumberArray) Decoders.decodeIntArray(struct, (PVAIntArray) field)).getData().getInt(index),
                     decodeAlarm(struct),
                     decodeTime(struct),
                     Display.none());
         }
         else if (field instanceof PVAShortArray)
         {
-            return VNumber.of(((VNumberArray) Decoders.decodeShortArray(struct, (PVAShortArray) field)).getData().getShort(index), 
+            return VNumber.of(((VNumberArray) Decoders.decodeShortArray(struct, (PVAShortArray) field)).getData().getShort(index),
                     decodeAlarm(struct),
                     decodeTime(struct),
                     Display.none());
         }
         else if (field instanceof PVAByteArray)
         {
-            return VNumber.of(((VNumberArray) Decoders.decodeByteArray(struct, (PVAByteArray) field)).getData().getByte(index), 
+            return VNumber.of(((VNumberArray) Decoders.decodeByteArray(struct, (PVAByteArray) field)).getData().getByte(index),
                     decodeAlarm(struct),
                     decodeTime(struct),
                     Display.none());
         }
         else if (field instanceof PVAStringArray)
         {
-            return VString.of(((VStringArray) Decoders.decodeStringArray(struct, (PVAStringArray) field)).getData().get(index), 
+            return VString.of(((VStringArray) Decoders.decodeStringArray(struct, (PVAStringArray) field)).getData().get(index),
                     decodeAlarm(struct),
                     decodeTime(struct));
         }

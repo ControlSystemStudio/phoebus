@@ -11,7 +11,7 @@ import static org.phoebus.pv.PV.logger;
 
 import java.text.NumberFormat;
 import java.time.Instant;
-import java.util.List;
+import java.util.Arrays;
 import java.util.logging.Level;
 
 import org.epics.util.array.ArrayByte;
@@ -197,7 +197,7 @@ public class DBRHelper
         {
             final DBR_String xx = (DBR_String) dbr;
             if (is_array)
-                return VStringArray.of(List.of(xx.getStringValue()), convertAlarm(xx), convertTime(xx));
+                return VStringArray.of(Arrays.asList(xx.getStringValue()), convertAlarm(xx), convertTime(xx));
             else
                 return VString.of(xx.getStringValue()[0], convertAlarm(xx), convertTime(xx));
         }
