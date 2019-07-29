@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
@@ -66,7 +67,7 @@ public class PVAStructure extends PVADataWithID
      */
     public PVAStructure(final String name, final String struct_name, final PVAData... elements)
     {
-        this(name, struct_name, List.of(elements));
+        this(name, struct_name, Arrays.asList(elements));
     }
 
     /** @param name Name of the structure (may be "")

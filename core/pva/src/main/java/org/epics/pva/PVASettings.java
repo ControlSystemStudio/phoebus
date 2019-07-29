@@ -22,7 +22,7 @@ import java.util.logging.Logger;
 public class PVASettings
 {
     /** Common logger */
-    public static final Logger logger = Logger.getLogger(PVASettings.class.getPackageName());
+    public static final Logger logger = Logger.getLogger(PVASettings.class.getPackage().getName());
 
     /** Address list. When empty, local subnet is used */
     public static String EPICS_PVA_ADDR_LIST = "";

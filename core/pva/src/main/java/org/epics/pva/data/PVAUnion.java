@@ -11,6 +11,7 @@ import static org.epics.pva.PVASettings.logger;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
@@ -60,7 +61,7 @@ public class PVAUnion extends PVADataWithID
 
     public PVAUnion(final String name, final String struct_name, final PVAData... elements)
     {
-        this(name, struct_name, List.of(elements));
+        this(name, struct_name, Arrays.asList(elements));
     }
 
     public PVAUnion(final String name, final String struct_name, final List<PVAData> elements)

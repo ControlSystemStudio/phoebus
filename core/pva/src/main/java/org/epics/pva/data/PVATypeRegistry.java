@@ -78,7 +78,7 @@ public class PVATypeRegistry
         }
         else if (field_desc == PVAFieldDesc.NULL_TYPE_CODE)
             return null;
-        else if (Byte.compareUnsigned(field_desc, PVAFieldDesc.FULL_TYPE_CODE_MAX) <= 0)
+        else if (Byte.toUnsignedInt(field_desc) - Byte.toUnsignedInt(PVAFieldDesc.FULL_TYPE_CODE_MAX) <= 0)
         {   // FULL_TYPE_CODE
             final byte type = (byte) (field_desc & 0b11100000);
             if (type == PVAComplex.FIELD_DESC_TYPE)
