@@ -10,8 +10,17 @@ package org.csstudio.javafx.rtplot.internal;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
+import org.csstudio.javafx.rtplot.PointType;
+import org.csstudio.javafx.rtplot.TraceType;
+import org.csstudio.javafx.rtplot.data.PlotDataItem;
+import org.csstudio.javafx.rtplot.data.PlotDataProvider;
+import org.csstudio.javafx.rtplot.data.PlotDataSearch;
 import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
 
 /** Mark where a trace crosses the cursor.
@@ -22,6 +31,7 @@ import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
  *  @author Davy Dequidt - Original org.csstudio.swt.xygraph.figures.HoverLabels
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 class CursorMarker implements Comparable<CursorMarker>
 {
     /** Border around the marker's text */
@@ -84,6 +94,60 @@ class CursorMarker implements Comparable<CursorMarker>
             height = Math.max(height, mark_height + 2 * BORDER);
             last_y = y;
         }
+    }
+
+    /** Compute cursor values for the various traces
+    *
+    *  <p>Updates the 'selected' sample for each trace.
+    *
+    *  @param plot Plot for which to compute cursor markers
+    *  @param cursor_x Pixel location of cursor
+    *  @param location Corresponding position on X axis
+    *  @return {@link CursorMarker}s
+    */
+    public static <XTYPE extends Comparable<XTYPE>> List<CursorMarker>
+        compute(final Plot<XTYPE> plot, final int cursor_x, final XTYPE location)
+        throws Exception
+    {
+        final List<CursorMarker> markers = new ArrayList<>();
+        final PlotDataSearch<XTYPE> search = new PlotDataSearch<>();
+        for (YAxisImpl<XTYPE> axis : plot.getYAxes())
+            for (TraceImpl<XTYPE> trace : axis.getTraces())
+            {
+                if (trace.isVisible() == false ||
+                    (trace.getType() == TraceType.NONE  &&  trace.getPointType() == PointType.NONE))
+                    continue;
+                final PlotDataProvider<XTYPE> data = trace.getData();
+                final PlotDataItem<XTYPE> sample;
+                if (! data.getLock().tryLock(10, TimeUnit.SECONDS))
+                    throw new TimeoutException("Cannot update cursor markers, no lock on " + data);
+                try
+                {
+                    final int index = search.findSampleLessOrEqual(data, location);
+                    sample = index >= 0 ? data.get(index) : null;
+                }
+                finally
+                {
+                    data.getLock().unlock();
+                }
+                trace.selectSample(sample);
+                if (sample == null)
+                    continue;
+                final double value = sample.getValue();
+                if (Double.isFinite(value)  &&  axis.getValueRange().contains(value))
+                {
+                    String label = axis.getTicks().formatDetailed(value);
+                    final String units = trace.getUnits();
+                    if (! units.isEmpty())
+                        label += " " + units;
+                    final String info = sample.getInfo();
+                    if (info != null  &&  info.length() > 0)
+                        label += " (" + info + ")";
+                    markers.add(new CursorMarker(cursor_x, axis.getScreenCoord(value), GraphicsUtils.convert(trace.getColor()), label));
+                }
+            }
+        Collections.sort(markers);
+        return markers;
     }
 
     private static int drawMark(final Graphics2D gc, final int y, final CursorMarker mark, final Rectangle bounds)
