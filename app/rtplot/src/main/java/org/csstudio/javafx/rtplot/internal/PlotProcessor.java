@@ -449,28 +449,11 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
         // Run in thread
         thread_pool.submit(() ->
         {
-            final PlotDataSearch<XTYPE> search = new PlotDataSearch<>();
-            final PlotDataProvider<XTYPE> data = annotation.getTrace().getData();
-            XTYPE position;
-            double value;
-            String info;
-            if (! data.getLock().tryLock(10, TimeUnit.SECONDS))
-                throw new TimeoutException("Cannot update annotation, no lock on " + data);
-            try
+            if (annotation.updateValue(location))
             {
-                final int index = search.findSampleLessOrEqual(data, location);
-                if (index < 0)
-                    return null;
-                final PlotDataItem<XTYPE> sample = data.get(index);
-                position = sample.getPosition();
-                value = sample.getValue();
-                info = sample.getInfo();
+                plot.requestUpdate();
+                plot.fireAnnotationsChanged();
             }
-            finally
-            {
-                data.getLock().unlock();
-            }
-            plot.updateAnnotation(annotation, position, value, info, annotation.getOffset());
             return null;
         });
     }

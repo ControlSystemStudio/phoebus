@@ -17,12 +17,16 @@ import java.awt.Rectangle;
 import java.awt.Stroke;
 import java.text.MessageFormat;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 import org.csstudio.javafx.rtplot.Annotation;
 import org.csstudio.javafx.rtplot.Messages;
 import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
+import org.csstudio.javafx.rtplot.data.PlotDataProvider;
+import org.csstudio.javafx.rtplot.data.PlotDataSearch;
 import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
 
 import javafx.geometry.Point2D;
@@ -67,12 +71,19 @@ public class AnnotationImpl<XTYPE extends Comparable<XTYPE>> extends Annotation<
      *  @param position
      *  @param value
      *  @param info
+     *  @return true on change
      */
-    public void setLocation(final XTYPE position, final double value, final String info)
+    public boolean setLocation(final XTYPE position, final double value, final String info)
     {
-        this.position = position;
-        this.value = value;
-        this.info = info;
+        if (this.position != position  ||
+            this.value != value)
+        {
+            this.position = position;
+            this.value = value;
+            this.info = info;
+            return true;
+        }
+        return false;
     }
 
     /** @param offset New offset from reference point to body of annotation */
@@ -131,6 +142,31 @@ public class AnnotationImpl<XTYPE extends Comparable<XTYPE>> extends Annotation<
             return dx*dx + dy*dy <= X_RADIUS*X_RADIUS;
         }
         return false;
+    }
+
+    /** Compute new annotation position, value, info
+     *  @param location Location near which the annotation should latch to a sample
+     *  @return <code>true</code> if annotation changed
+     *  @throws Exception
+     */
+    boolean updateValue(final XTYPE location) throws Exception
+    {
+        final PlotDataSearch<XTYPE> search = new PlotDataSearch<>();
+        final PlotDataProvider<XTYPE> data = getTrace().getData();
+        if (! data.getLock().tryLock(10, TimeUnit.SECONDS))
+            throw new TimeoutException("Cannot update annotation, no lock on " + data);
+        try
+        {
+            final int index = search.findSampleLessOrEqual(data, location);
+            if (index < 0)
+                return false;
+            final PlotDataItem<XTYPE> sample = data.get(index);
+            return setLocation(sample.getPosition(), sample.getValue(), sample.getInfo());
+        }
+        finally
+        {
+            data.getLock().unlock();
+        }
     }
 
     /** Paint the annotation on given gc and axes. */

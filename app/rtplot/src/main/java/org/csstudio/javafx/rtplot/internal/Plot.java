@@ -680,8 +680,17 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
 
         // Annotations use label font
         for (AnnotationImpl<XTYPE> annotation : annotations)
+        {
+            try
+            {
+                annotation.updateValue(annotation.getPosition());
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Cannot update annotation", ex);
+            }
             annotation.paint(gc, x_axis, y_axes.get(annotation.getTrace().getYAxis()));
-
+        }
 
         return image;
     }
@@ -1300,7 +1309,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
     }
 
     /** Notify listeners */
-    private void fireAnnotationsChanged()
+    void fireAnnotationsChanged()
     {
         for (RTPlotListener<XTYPE> listener : listeners)
             listener.changedAnnotations();
