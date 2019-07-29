@@ -67,13 +67,27 @@ public class AnnotationImpl<XTYPE extends Comparable<XTYPE>> extends Annotation<
         super(internal, trace, position, value, offset, text);
     }
 
+    /** Set to new position
+     *  @param position
+     *  @return true on change
+     */
+    boolean setPosition(final XTYPE position)
+    {
+        if (this.position != position)
+        {
+            this.position = position;
+            return true;
+        }
+        return false;
+    }
+
     /** Set to new location and info
      *  @param position
      *  @param value
      *  @param info
      *  @return true on change
      */
-    public boolean setLocation(final XTYPE position, final double value, final String info)
+    boolean setLocation(final XTYPE position, final double value, final String info)
     {
         if (this.position != position  ||
             this.value != value)

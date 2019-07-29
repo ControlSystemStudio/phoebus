@@ -968,7 +968,13 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
                 fireAnnotationsChanged();
             }
             else
-                plot_processor.updateAnnotation(anno, x_axis.getValue((int)current.getX()));
+            {
+                if (anno.setPosition(x_axis.getValue((int)current.getX())))
+                {
+                    requestUpdate();
+                    fireAnnotationsChanged();
+                }
+            }
         }
         else if (mouse_mode == MouseMode.PAN_X  &&  start != null)
             x_axis.pan(mouse_start_x_range, x_axis.getValue((int)start.getX()), x_axis.getValue((int)current.getX()));

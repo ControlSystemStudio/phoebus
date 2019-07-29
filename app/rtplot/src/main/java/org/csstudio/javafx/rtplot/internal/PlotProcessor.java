@@ -444,20 +444,6 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
         });
     }
 
-    public void updateAnnotation(final AnnotationImpl<XTYPE> annotation, final XTYPE location)
-    {
-        // Run in thread
-        thread_pool.submit(() ->
-        {
-            if (annotation.updateValue(location))
-            {
-                plot.requestUpdate();
-                plot.fireAnnotationsChanged();
-            }
-            return null;
-        });
-    }
-
     /** Perform autoscale for all axes that are marked as such */
     public void autoscale()
     {
