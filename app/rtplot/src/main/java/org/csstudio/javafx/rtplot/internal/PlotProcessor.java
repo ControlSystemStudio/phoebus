@@ -10,7 +10,6 @@ package org.csstudio.javafx.rtplot.internal;
 import static org.csstudio.javafx.rtplot.Activator.logger;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Callable;
@@ -19,7 +18,6 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 
 import org.csstudio.javafx.rtplot.Axis;
@@ -34,7 +32,6 @@ import org.csstudio.javafx.rtplot.data.PlotDataSearch;
 import org.csstudio.javafx.rtplot.data.ValueRange;
 import org.csstudio.javafx.rtplot.internal.undo.AddAnnotationAction;
 import org.csstudio.javafx.rtplot.internal.undo.ChangeAxisRanges;
-import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
 import org.csstudio.javafx.rtplot.internal.util.Log10;
 
 import javafx.geometry.Point2D;
@@ -342,63 +339,6 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
             // or executed infrequently as archived data arrives after a zoom operation
             // -> Use undo, which also notifies listeners
             plot.getUndoableActionManager().execute(new ChangeAxisRanges<>(plot, Messages.Zoom_Stagger, y_axes, original_ranges, new_ranges, null));
-        });
-    }
-
-    /** Compute cursor values for the various traces
-     *
-     *  <p>Updates the 'selected' sample for each trace,
-     *  and sends valid {@link CursorMarker}s to the {@link Plot}
-     *
-     *  @param cursor_x Pixel location of cursor
-     *  @param location Corresponding position on X axis
-     *  @param callback Will be called with markers for the cursor location
-     */
-    public void updateCursorMarkers(final int cursor_x, final XTYPE location, final Consumer<List<CursorMarker>> callback)
-    {
-        // Run in thread
-        thread_pool.submit(() ->
-        {
-            final List<CursorMarker> markers = new ArrayList<>();
-            final PlotDataSearch<XTYPE> search = new PlotDataSearch<>();
-            for (YAxisImpl<XTYPE> axis : plot.getYAxes())
-                for (TraceImpl<XTYPE> trace : axis.getTraces())
-                {
-                    if (trace.isVisible() == false ||
-                        (trace.getType() == TraceType.NONE  &&  trace.getPointType() == PointType.NONE))
-                        continue;
-                    final PlotDataProvider<XTYPE> data = trace.getData();
-                    final PlotDataItem<XTYPE> sample;
-                    if (! data.getLock().tryLock(10, TimeUnit.SECONDS))
-                        throw new TimeoutException("Cannot update cursor markers, no lock on " + data);
-                    try
-                    {
-                        final int index = search.findSampleLessOrEqual(data, location);
-                        sample = index >= 0 ? data.get(index) : null;
-                    }
-                    finally
-                    {
-                        data.getLock().unlock();
-                    }
-                    trace.selectSample(sample);
-                    if (sample == null)
-                        continue;
-                    final double value = sample.getValue();
-                    if (Double.isFinite(value)  &&  axis.getValueRange().contains(value))
-                    {
-                        String label = axis.getTicks().formatDetailed(value);
-                        final String units = trace.getUnits();
-                        if (! units.isEmpty())
-                            label += " " + units;
-                        final String info = sample.getInfo();
-                        if (info != null  &&  info.length() > 0)
-                            label += " (" + info + ")";
-                        markers.add(new CursorMarker(cursor_x, axis.getScreenCoord(value), GraphicsUtils.convert(trace.getColor()), label));
-                    }
-                }
-            Collections.sort(markers);
-            callback.accept(markers);
-            return null;
         });
     }
 

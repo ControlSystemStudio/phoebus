@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -114,9 +115,6 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
     private final List<PlotMarker<XTYPE>> plot_markers = new CopyOnWriteArrayList<>();
     // Selected plot marker that's being moved by the mouse
     private PlotMarker<XTYPE> plot_marker = null;
-
-    private volatile List<CursorMarker> cursor_markers = null;
-
 
     /** Constructor
      *  @param active Active mode where plot reacts to mouse/keyboard?
@@ -724,6 +722,21 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         if (current == null)
             return;
 
+        // Compute values at cursor
+        final int x = (int) current.getX();
+        final XTYPE location = x_axis.getValue(x);
+        List<CursorMarker> markers;
+        try
+        {
+            markers = CursorMarker.compute(this, x, location);
+            fireCursorsChanged();
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot compute cursor markers", ex);
+            markers = Collections.emptyList();
+        }
+
         final Point2D start = mouse_start.orElse(null);
         final Rectangle plot_bounds = plot_area.getBounds();
 
@@ -749,9 +762,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
             for (YAxisImpl<XTYPE> axis : y_axes)
                 axis.drawTickLabel(gc, axis.getValue((int)current.getY()));
             // Trace markers
-            final List<CursorMarker> safe_markers = cursor_markers;
-            if (safe_markers != null)
-                CursorMarker.drawMarkers(gc, safe_markers, area);
+            CursorMarker.drawMarkers(gc, markers, area);
         }
 
         if (mouse_mode == MouseMode.ZOOM_IN_X  &&  start != null)
@@ -1005,34 +1016,8 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         {   // Show mouse feedback for ongoing zoom
             requestRedraw();
         }
-        else
-            updateCursor();
-    }
-
-    /** Request update of cursor markers */
-    private void updateCursor()
-    {
-        final Point2D current = mouse_current.orElse(null);
-        if (current == null)
-            return;
-        final int x = (int) current.getX();
-        final XTYPE location = x_axis.getValue(x);
-        plot_processor.updateCursorMarkers(x, location, this::updateCursors);
-    }
-
-    /** Called by {@link PlotProcessor}
-     *  @param markers Markers for current cursor position, may be <code>null</code>
-     */
-    private void updateCursors(final List<CursorMarker> markers)
-    {
-        if (markers != null  &&  ! markers.isEmpty())
-            cursor_markers = markers;
-        else
-            cursor_markers = null;
-        // Need to redraw for crosshair?
-        if (show_crosshair)
+        else if (show_crosshair)
             requestRedraw();
-        fireCursorsChanged();
     }
 
     /** setOnMouseReleased */
@@ -1348,6 +1333,5 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         listeners.clear();
         plot_markers.clear();
         plot_marker = null;
-        cursor_markers = null;
     }
 }
