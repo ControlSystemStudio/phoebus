@@ -202,7 +202,13 @@ public class RTMeter extends ImageView
     /** @param value Current value */
     public void setValue(final double value, final String label)
     {
-        this.value = value;
+        final AxisRange<Double> range = scale.getValueRange();
+        if (value < range.low)
+            this.value = range.low;
+        else if (value > range.high)
+            this.value = range.high;
+        else
+            this.value = value;
         this.label = label;
         requestUpdate();
     }
@@ -315,10 +321,13 @@ public class RTMeter extends ImageView
         gc.setStroke(orig_stroke);
 
         gc.setColor(foreground);
+        final Font orig_font = gc.getFont();
+        gc.setFont(font);
         final Rectangle metrics = GraphicsUtils.measureText(gc, label);
         final int tx = (area_copy.width - metrics.width)/2;
         final int ty = (area_copy.height + metrics.height)/2;
         gc.drawString(label, tx, ty);
+        gc.setFont(orig_font);
 
         return image;
     }

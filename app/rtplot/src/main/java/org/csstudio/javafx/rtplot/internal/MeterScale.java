@@ -120,29 +120,46 @@ public class MeterScale extends NumericAxis
         Rectangle avoid = null;
         for (MajorTick<Double> tick : ticks.getMajorTicks())
         {
+            // (x, y): Where the needle would point for this value
             final double angle = Math.toRadians(getAngle(tick.getValue()));
-            gc.setStroke(TICK_STROKE);
-            gc.drawLine((int) (center_x + (scale_rx-TICK_LENGTH)*Math.cos(angle) + 0.5),
-                        (int) (center_y - (scale_ry-TICK_LENGTH)*Math.sin(angle) + 0.5),
-                        (int) (center_x + (scale_rx)*Math.cos(angle) + 0.5),
-                        (int) (center_y - (scale_ry)*Math.sin(angle) + 0.5));
+            final double dx = scale_rx*Math.cos(angle);
+            final double dy = scale_ry*Math.sin(angle);
+            final int x = (int) (center_x + dx + 0.5);
+            final int y = (int) (center_y - dy + 0.5);
 
+            // Scale dx, dy to get TICK_LENGTH
+            final double len = Math.sqrt(dx*dx+dy*dy);
+            double factor = TICK_LENGTH/len;
+
+            // Draw tick mark from (x, y) to center
+            gc.setStroke(TICK_STROKE);
+            gc.drawLine(x, y,
+                        (int) (x - dx*factor + 0.5),
+                        (int) (y + dy*factor + 0.5));
             gc.setStroke(old_width);
 
-            // Tick Label
-            final int cx = (int) (center_x + (scale_rx-3*TICK_LENGTH)*Math.cos(angle) + 0.5);
-            final int cy = (int) (center_y - (scale_ry-3*TICK_LENGTH)*Math.sin(angle) + 0.5);
-            avoid = drawTickLabel(gc, cx, cy, tick.getLabel(), avoid);
+            // Tick labels are 3 tick length inward
+            factor = 3*TICK_LENGTH/len;
+            avoid = drawTickLabel(gc,
+                                  (int) (x - dx*factor + 0.5),
+                                  (int) (y + dy*factor + 0.5),
+                                  tick.getLabel(), avoid);
         }
 
         // Minor tick marks
         for (MinorTick<Double> tick : ticks.getMinorTicks())
         {
             final double angle = Math.toRadians(getAngle(tick.getValue()));
-            gc.drawLine((int) (center_x + (scale_rx-TICK_LENGTH)*Math.cos(angle) + 0.5),
-                        (int) (center_y - (scale_ry-TICK_LENGTH)*Math.sin(angle) + 0.5),
-                        (int) (center_x + (scale_rx)*Math.cos(angle) + 0.5),
-                        (int) (center_y - (scale_ry)*Math.sin(angle) + 0.5));
+            final double dx = scale_rx*Math.cos(angle);
+            final double dy = scale_ry*Math.sin(angle);
+            final int x = (int) (center_x + dx + 0.5);
+            final int y = (int) (center_y - dy + 0.5);
+            final double len = Math.sqrt(dx*dx+dy*dy);
+            final double factor = TICK_LENGTH/len;
+
+            final int x1 = (int) (x - dx*factor + 0.5);
+            final int y1 = (int) (y + dy*factor + 0.5);
+            gc.drawLine(x, y, x1, y1);
         }
 
         // Label: centered
