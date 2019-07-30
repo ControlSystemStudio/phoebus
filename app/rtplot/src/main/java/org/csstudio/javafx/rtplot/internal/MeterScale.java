@@ -18,7 +18,6 @@ import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
 /** 'Round' numeric scale for a meter.
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class MeterScale extends NumericAxis
 {
     private int center_x, center_y;

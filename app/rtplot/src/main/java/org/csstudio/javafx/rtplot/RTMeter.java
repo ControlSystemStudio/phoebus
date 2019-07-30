@@ -10,6 +10,7 @@ package org.csstudio.javafx.rtplot;
 import static org.csstudio.javafx.rtplot.Activator.logger;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -25,6 +26,7 @@ import org.csstudio.javafx.rtplot.internal.AxisPart;
 import org.csstudio.javafx.rtplot.internal.MeterScale;
 import org.csstudio.javafx.rtplot.internal.PlotPart;
 import org.csstudio.javafx.rtplot.internal.PlotPartListener;
+import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
 import org.phoebus.ui.javafx.BufferUtil;
 import org.phoebus.ui.javafx.DoubleBuffer;
 import org.phoebus.ui.javafx.UpdateThrottle;
@@ -45,16 +47,19 @@ public class RTMeter extends ImageView
 {
     private static final int NEEDLE_BASE = 2*AxisPart.TICK_WIDTH;
 
-    /** Background color */
-    private volatile Color background = Color.WHITE,
-                           needle = Color.RED;
+    /** Colors */
+    private volatile Color foreground = Color.BLACK,
+                           background = Color.WHITE,
+                           needle = Color.RED,
+                           knob = Color.GRAY;
 
-    public static final String FONT_FAMILY = "Liberation Sans";
+    /** Fonts */
+    private Font font;
 
-    /** Area of this plot */
+    /** Area of this meter */
     protected volatile Rectangle area = new Rectangle(0, 0, 0, 0);
 
-    /** Listener to {@link PlotPart}s, triggering refresh of plot */
+    /** Listener to {@link PlotPart}s, triggering refresh of meter */
     protected final PlotPartListener plot_part_listener = new PlotPartListener()
     {
         @Override
@@ -71,32 +76,35 @@ public class RTMeter extends ImageView
         }
     };
 
-    private final MeterScale scale = new MeterScale("scale", plot_part_listener);
+    private final MeterScale scale = new MeterScale("", plot_part_listener);
 
     private volatile double value = 0.0;
 
-    /** Suppress updates triggered by axis changes from layout or autoscale
+    private volatile String label = "";
+
+
+    /** Suppress updates triggered by scale changes from layout
      *
-     *  Calling updateImageBuffer can trigger axis changes because of layout
-     *  or autoscale, which call the plot_part_listener.
+     *  Calling updateImageBuffer can trigger changes because of layout,
+     *  which call the plot_part_listener.
      */
     private volatile boolean in_update = false;
 
     /** Does layout need to be re-computed? */
     protected final AtomicBoolean need_layout = new AtomicBoolean(true);
 
-    /** Does plot image to be re-created? */
+    /** Does meter image need to be re-created? */
     protected final AtomicBoolean need_update = new AtomicBoolean(true);
 
     /** Throttle updates, enforcing a 'dormant' period */
     private final UpdateThrottle update_throttle;
 
-    /** Buffer for image and color bar
+    /** Buffer for image
      *
      *  <p>UpdateThrottle calls updateImageBuffer() to set the image
      *  in its thread, then redrawn in UI thread.
      */
-    private volatile BufferedImage plot_image = null;
+    private volatile BufferedImage meter_image = null;
 
     /** Has a call to redraw_runnable already been queued?
      *  Cleared when redraw_runnable is executed
@@ -105,24 +113,21 @@ public class RTMeter extends ImageView
 
     private WritableImage awt_jfx_convert_buffer = null;
 
-
-
-    /** Redraw the plot on UI thread by painting the 'plot_image' */
+    /** Redraw on UI thread by painting the 'meter_image' */
     private final Runnable redraw_runnable = () ->
     {
         // Indicate that a redraw has occurred
         pending_redraw.set(false);
 
-        final BufferedImage copy = plot_image;
+        final BufferedImage copy = meter_image;
         if (copy != null)
         {
-            // Create copy of basic plot
+            // Convert to JFX image and show
             if (copy.getType() != BufferedImage.TYPE_INT_ARGB)
                 throw new IllegalPathStateException("Need TYPE_INT_ARGB for direct buffer access, not " + copy.getType());
             final int width = copy.getWidth(), height = copy.getHeight();
-            final int[] src  = ((DataBufferInt)     copy.getRaster().getDataBuffer()).getData();
+            final int[] src = ((DataBufferInt) copy.getRaster().getDataBuffer()).getData();
 
-            // Convert to JFX image and show
             if (awt_jfx_convert_buffer == null  ||
                 awt_jfx_convert_buffer.getWidth() != width ||
                 awt_jfx_convert_buffer.getHeight() != height)
@@ -148,14 +153,14 @@ public class RTMeter extends ImageView
                     // Update failed, request another
                     requestUpdate();
                 else
-                    plot_image = latest;
+                    meter_image = latest;
             }
             if (!pending_redraw.getAndSet(true))
                 Platform.runLater(redraw_runnable);
         });
     }
 
-    /** Call to update size of plot
+    /** Call to update size of meter
      *
      *  @param width
      *  @param height
@@ -167,13 +172,50 @@ public class RTMeter extends ImageView
         requestUpdate();
     }
 
-    public void setValue(final double value)
+    public void setForeground(javafx.scene.paint.Color color)
+    {
+        foreground = GraphicsUtils.convert(color);
+        scale.setColor(color);
+    }
+
+    public void setBackground(javafx.scene.paint.Color color)
+    {
+        background = GraphicsUtils.convert(color);
+    }
+
+    public void setNeedle(javafx.scene.paint.Color color)
+    {
+        needle = GraphicsUtils.convert(color);
+    }
+
+    public void setKnob(javafx.scene.paint.Color color)
+    {
+        knob = GraphicsUtils.convert(color);
+    }
+
+    public void setFont(javafx.scene.text.Font font)
+    {
+        scale.setScaleFont(font);
+        this.font = GraphicsUtils.convert(font);
+    }
+
+    /** @param value Current value */
+    public void setValue(final double value, final String label)
     {
         this.value = value;
+        this.label = label;
         requestUpdate();
     }
 
-    /** Request a complete redraw of the plot with new layout */
+    /** @param min_val Minimum of value range
+     *  @param max_val Maximum of value range
+     */
+    public void setRange(double min_val, double max_val)
+    {
+        scale.setValueRange(min_val, max_val);
+    }
+
+    /** Request a complete redraw with new layout */
     final public void requestLayout()
     {
         need_layout.set(true);
@@ -181,7 +223,7 @@ public class RTMeter extends ImageView
         update_throttle.trigger();
     }
 
-    /** Request a complete update of plot image */
+    /** Request a complete update of image */
     final public void requestUpdate()
     {
         need_update.set(true);
@@ -194,7 +236,7 @@ public class RTMeter extends ImageView
 
         // Needle origin
         int center_x = bounds.x + bounds.width/2;
-        int center_y = bounds.height;
+        int center_y = bounds.height-NEEDLE_BASE;
 
         // Start and range of scale
         int start_angle = 160;
@@ -202,7 +244,7 @@ public class RTMeter extends ImageView
 
         // Radius (from origin) of scale
         int scale_rx = bounds.width /2 - AxisPart.TICK_WIDTH;
-        int scale_ry = bounds.height - AxisPart.TICK_WIDTH;
+        int scale_ry = bounds.height - AxisPart.TICK_WIDTH-2*NEEDLE_BASE;
 
         scale.setBounds(bounds);
         scale.configure(center_x, center_y, scale_rx, scale_ry, start_angle, angle_range);
@@ -244,10 +286,10 @@ public class RTMeter extends ImageView
 
         scale.paint(gc, area_copy);
 
+        // TODO Split drawing into background (scale) and needle+label
+
         // Needle
         double angle = scale.getAngle(value);
-        System.out.println("Value: " + value);
-        System.out.println("Angle: " + angle);
         angle = Math.toRadians(angle);
         final Stroke orig_stroke = gc.getStroke();
         gc.setStroke(AxisPart.TICK_STROKE);
@@ -267,7 +309,16 @@ public class RTMeter extends ImageView
         gc.setColor(needle);
         gc.fillPolygon(nx, ny, 3);
 
+        gc.setColor(knob);
+        gc.fillOval(scale.getCenterX()-NEEDLE_BASE, scale.getCenterY()-NEEDLE_BASE, 2*NEEDLE_BASE, 2*NEEDLE_BASE);
+
         gc.setStroke(orig_stroke);
+
+        gc.setColor(foreground);
+        final Rectangle metrics = GraphicsUtils.measureText(gc, label);
+        final int tx = (area_copy.width - metrics.width)/2;
+        final int ty = (area_copy.height + metrics.height)/2;
+        gc.drawString(label, tx, ty);
 
         return image;
     }

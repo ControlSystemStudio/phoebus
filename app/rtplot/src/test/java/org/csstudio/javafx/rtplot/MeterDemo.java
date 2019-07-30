@@ -53,7 +53,7 @@ public class MeterDemo extends ApplicationWrapper
                 while (run.get())
                 {
                     TimeUnit.SECONDS.sleep(2);
-                    meter.setValue(10.0*Math.random());
+                    meter.setValue(10.0*Math.random(), "");
                 }
             }
             catch (Exception ex)
