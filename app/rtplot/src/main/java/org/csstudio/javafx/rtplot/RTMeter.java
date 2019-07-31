@@ -38,13 +38,15 @@ import javafx.scene.image.WritableImage;
 
 /** Meter with scale and needle
  *
- *  <p>A 'canvas' that draws its content in a background thread.
+ *  <p>Meter scale is painted in background thread.
+ * UI thread adds needle and label, then updates image view.
  *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class RTMeter extends ImageView
 {
+    /** Width of the needle at base */
     private static final int NEEDLE_BASE = 2*AxisPart.TICK_WIDTH;
 
     /** Colors */
@@ -59,7 +61,7 @@ public class RTMeter extends ImageView
     /** Area of this meter */
     protected volatile Rectangle area = new Rectangle(0, 0, 0, 0);
 
-    /** Listener to {@link PlotPart}s, triggering refresh of meter */
+    /** Listener to {@link PlotPart}s (scale), triggering refresh of meter */
     protected final PlotPartListener plot_part_listener = new PlotPartListener()
     {
         @Override
@@ -135,9 +137,9 @@ public class RTMeter extends ImageView
             final int[] dest = ((DataBufferInt) combined.getRaster().getDataBuffer()).getData();
             System.arraycopy(src, 0, dest, 0, width * height);
 
-            // Add mouse mode feedback
+            // Add needle & label
             final Graphics2D gc = buffer.getGraphics();
-            drawNeedle(gc);
+            drawValue(gc);
 
             // Convert to JFX image and show
             if (awt_jfx_convert_buffer == null  ||
@@ -154,8 +156,8 @@ public class RTMeter extends ImageView
 
     public RTMeter()
     {
-        // 200ms = 5Hz default throttle
-        update_throttle = new UpdateThrottle(200, TimeUnit.MILLISECONDS, () ->
+        // 100ms = 10Hz default throttle
+        update_throttle = new UpdateThrottle(100, TimeUnit.MILLISECONDS, () ->
         {
             if (need_layout.getAndSet(false))
             {
@@ -184,31 +186,58 @@ public class RTMeter extends ImageView
         requestLayout();
     }
 
-    public void setForeground(javafx.scene.paint.Color color)
+    /** @param color Forground (labels, tick marks) color */
+    public void setForeground(final javafx.scene.paint.Color color)
     {
         foreground = GraphicsUtils.convert(color);
         scale.setColor(color);
     }
 
-    public void setBackground(javafx.scene.paint.Color color)
+    /** @param color Background color */
+    public void setBackground(final javafx.scene.paint.Color color)
     {
         background = GraphicsUtils.convert(color);
     }
 
-    public void setNeedle(javafx.scene.paint.Color color)
+    /** @param color Needle color */
+    public void setNeedle(final javafx.scene.paint.Color color)
     {
         needle = GraphicsUtils.convert(color);
     }
 
-    public void setKnob(javafx.scene.paint.Color color)
+    /** @param color Needle knob color */
+    public void setKnob(final javafx.scene.paint.Color color)
     {
         knob = GraphicsUtils.convert(color);
     }
 
+    /** @param minor Minor alarm range (low, high) color
+     *  @param major Majow alarm range (lolo, hihi) color
+     */
+    public void setLimitColors(final javafx.scene.paint.Color minor,
+                               final javafx.scene.paint.Color major)
+    {
+        scale.setLimitColors(GraphicsUtils.convert(minor),
+                             GraphicsUtils.convert(major));
+    }
+
+    /** @param font Label font */
     public void setFont(javafx.scene.text.Font font)
     {
         scale.setScaleFont(font);
         this.font = GraphicsUtils.convert(font);
+    }
+
+    /** Set alarm limits
+     *  @param lolo Really way low
+     *  @param low  Somewhat low
+     *  @param high A little high, maybe
+     *  @param hihi Way, way high
+     */
+    public void setLimits(final double lolo, final double low,
+                          final double high, final  double hihi)
+    {
+        scale.setLimits(lolo, low, high, hihi);
     }
 
     /** @param value Current value */
@@ -234,14 +263,14 @@ public class RTMeter extends ImageView
     }
 
     /** Request a complete redraw with new layout */
-    public void requestLayout()
+    private void requestLayout()
     {
         need_layout.set(true);
         requestUpdate();
     }
 
     /** Request a complete update of image */
-    public void requestUpdate()
+    private void requestUpdate()
     {
         update_throttle.trigger();
     }
@@ -266,7 +295,7 @@ public class RTMeter extends ImageView
         scale.configure(center_x, center_y, scale_rx, scale_ry, start_angle, angle_range);
     }
 
-    /** Draw all components into image buffer
+    /** Draw meter background (scale) into image buffer
      *  @return Latest image, must be of type BufferedImage.TYPE_INT_ARGB
      */
     private BufferedImage updateMeterBackground()
@@ -301,7 +330,8 @@ public class RTMeter extends ImageView
         return image;
     }
 
-    private void drawNeedle(final Graphics2D gc)
+    /** Draw needle and label for current value */
+    private void drawValue(final Graphics2D gc)
     {
         gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         gc.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
@@ -333,13 +363,14 @@ public class RTMeter extends ImageView
 
         gc.setStroke(orig_stroke);
 
+        // Label
         gc.setColor(foreground);
         final Font orig_font = gc.getFont();
         gc.setFont(font);
         final Rectangle metrics = GraphicsUtils.measureText(gc, label);
         final Rectangle area_copy = area;
         final int tx = (area_copy.width - metrics.width)/2;
-        final int ty = (area_copy.height + metrics.height)/2;
+        final int ty = 2*(area_copy.height + metrics.height)/3;
         gc.drawString(label, tx, ty);
         gc.setFont(orig_font);
     }
@@ -348,5 +379,7 @@ public class RTMeter extends ImageView
     public void dispose()
     {
         // Release memory ASAP
+        update_throttle.dispose();
+        meter_background = null;
     }
 }

@@ -10,10 +10,13 @@ package org.csstudio.display.builder.representation.javafx.widgets;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.persist.NamedWidgetColors;
+import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.MeterWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.csstudio.javafx.rtplot.RTMeter;
+import org.epics.util.stats.Range;
 import org.epics.vtype.Display;
 import org.epics.vtype.VType;
 import org.phoebus.ui.vtype.FormatOptionHandler;
@@ -23,6 +26,7 @@ import javafx.scene.layout.Pane;
 /** Creates JavaFX item for model widget
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class MeterRepresentation extends RegionBaseRepresentation<Pane, MeterWidget>
 {
     private final DirtyFlag dirty_look = new DirtyFlag();
@@ -35,6 +39,10 @@ public class MeterRepresentation extends RegionBaseRepresentation<Pane, MeterWid
     public Pane createJFXNode() throws Exception
     {
         meter = new RTMeter();
+        meter.setLimitColors(JFXUtil.convert(WidgetColorService.getColor(NamedWidgetColors.ALARM_MINOR)),
+                             JFXUtil.convert(WidgetColorService.getColor(NamedWidgetColors.ALARM_MAJOR)));
+
+
         meter.setManaged(false);
         // Wrapper pane (managed) to get alarm-sensitive border
         return new Pane(meter);
@@ -90,10 +98,10 @@ public class MeterRepresentation extends RegionBaseRepresentation<Pane, MeterWid
         final boolean limits_from_pv = model_widget.propLimitsFromPV().getValue();
         double min_val = model_widget.propMinimum().getValue();
         double max_val = model_widget.propMaximum().getValue();
+        final org.epics.vtype.Display display_info = Display.displayOf(vtype);
         if (limits_from_pv  &&  !toolkit.isEditMode())
         {
             // Try display range from PV
-            final org.epics.vtype.Display display_info = Display.displayOf(vtype);
             if (display_info != null)
             {
                 min_val = display_info.getDisplayRange().getMinimum();
@@ -107,6 +115,15 @@ public class MeterRepresentation extends RegionBaseRepresentation<Pane, MeterWid
             value = (min_val + max_val) / 2;
         else
             value = VTypeUtil.getValueNumber(vtype).doubleValue();
+
+        if (model_widget.propShowLimits().getValue()  &&  display_info != null)
+        {
+            final Range minor = display_info.getWarningRange();
+            final Range major = display_info.getAlarmRange();
+            meter.setLimits(major.getMinimum(), minor.getMinimum(), minor.getMaximum(), major.getMaximum());
+        }
+        else
+            meter.setLimits(Double.NaN, Double.NaN, Double.NaN, Double.NaN);
 
         if (model_widget.propShowValue().getValue())
         {

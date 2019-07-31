@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.csstudio.javafx.rtplot.internal;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -20,11 +21,19 @@ import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
  */
 public class MeterScale extends NumericAxis
 {
+    private Color minor = Color.YELLOW,
+                  major = Color.RED;
+
     private int center_x, center_y;
 
     private int scale_rx, scale_ry;
 
     private int start_angle, angle_range;
+
+    private volatile double lolo = Double.NaN,
+                            low = Double.NaN,
+                            high = Double.NaN,
+                            hihi = Double.NaN;
 
     /** Create scale with label and listener. */
     public MeterScale(final String name, final PlotPartListener listener)
@@ -34,6 +43,38 @@ public class MeterScale extends NumericAxis
               0.0, 10.0); // Initial range
     }
 
+    /** @param minor Minor alarm range (low, high) color
+     *  @param major Majow alarm range (lolo, hihi) color
+     */
+    public void setLimitColors(final Color minor, final Color major)
+    {
+        this.minor = minor;
+        this.major = major;
+    }
+
+    /** Set alarm limits
+     *  @param lolo Really way low
+     *  @param low  Somewhat low
+     *  @param high A little high, maybe
+     *  @param hihi Way, way high
+     */
+    public void setLimits(final double lolo, final double low,
+                          final double high, final  double hihi)
+    {
+        this.lolo = lolo;
+        this.low = low;
+        this.high = high;
+        this.hihi = hihi;
+    }
+
+    /** Configure scale layout
+     *  @param center_x Needle base, center of scale X
+     *  @param center_y .. and Y
+     *  @param scale_rx X radius of scale
+     *  @param scale_ry Y radius
+     *  @param start_angle Start angle in degrees, 0 being 3:00 o'clock, CCW
+     *  @param angle_range Range, CCW from start
+     */
     public void configure(final int center_x, final int center_y,
                           final int scale_rx, final int scale_ry,
                           final int start_angle, final int angle_range)
@@ -80,8 +121,13 @@ public class MeterScale extends NumericAxis
 
     public double getAngle(final double value)
     {
-        final AxisRange<Double> range = getValueRange();
-        return start_angle + (value - range.getLow()) * angle_range / (range.getHigh() - range.getLow());
+        if (Double.isFinite(value))
+        {
+            final AxisRange<Double> range = getValueRange();
+            return start_angle + (value - range.getLow()) * angle_range / (range.getHigh() - range.getLow());
+        }
+        else
+            return Double.NaN;
     }
 
     @Override
@@ -103,17 +149,77 @@ public class MeterScale extends NumericAxis
         final Stroke old_width = gc.getStroke();
         final Color old_fg = gc.getColor();
         final Color foreground = GraphicsUtils.convert(getColor());
-        gc.setColor(foreground);
         gc.setFont(scale_font);
 
         super.paint(gc);
 
         computeTicks(gc);
 
-        // Scale
-        // gc.drawArc(center_x - scale_rx,
-        //            center_y - scale_ry,
-        //            2*scale_rx,    2*scale_ry,
+        // Arc along center of scale, between outer and inner edge,
+        // for alarm limit sections
+        gc.setStroke(new BasicStroke(TICK_LENGTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1.0f));
+
+        double last = start_angle;
+        double next = getAngle(lolo);
+        if (next < last)
+        {
+            gc.setColor(major);
+            gc.drawArc(center_x-scale_rx+TICK_LENGTH/2,
+                       center_y-scale_ry+TICK_LENGTH/2,
+                       2*(scale_rx-TICK_LENGTH/2),
+                       2*(scale_ry-TICK_LENGTH/2),
+                       (int) last, (int) (next - last));
+            last = next;
+        }
+        next = getAngle(low);
+        if (next < last)
+        {
+            gc.setColor(minor);
+            gc.drawArc(center_x-scale_rx+TICK_LENGTH/2,
+                       center_y-scale_ry+TICK_LENGTH/2,
+                       2*(scale_rx-TICK_LENGTH/2),
+                       2*(scale_ry-TICK_LENGTH/2),
+                       (int) last, (int) (next - last));
+            last = next;
+        }
+        last = start_angle + angle_range;
+        next = getAngle(hihi);
+        if (next > last)
+        {
+            gc.setColor(major);
+            gc.drawArc(center_x-scale_rx+TICK_LENGTH/2,
+                       center_y-scale_ry+TICK_LENGTH/2,
+                       2*(scale_rx-TICK_LENGTH/2),
+                       2*(scale_ry-TICK_LENGTH/2),
+                       (int) next, (int) (last - next));
+            last = next;
+        }
+        next = getAngle(high);
+        if (next > last)
+        {
+            gc.setColor(minor);
+            gc.drawArc(center_x-scale_rx+TICK_LENGTH/2,
+                       center_y-scale_ry+TICK_LENGTH/2,
+                       2*(scale_rx-TICK_LENGTH/2),
+                       2*(scale_ry-TICK_LENGTH/2),
+                       (int) next, (int) (last - next));
+            last = next;
+        }
+
+        // Arc around outer edge of scale
+        gc.setStroke(old_width);
+        gc.setColor(foreground);
+        gc.drawArc(center_x-scale_rx,
+                   center_y-scale_ry,
+                   2*scale_rx,
+                   2*scale_ry,
+                   start_angle, angle_range);
+
+        // Arc around inner edge of scale
+        // gc.drawArc(center_x-scale_rx+TICK_LENGTH,
+        //            center_y-scale_ry+TICK_LENGTH,
+        //            2*(scale_rx-TICK_LENGTH),
+        //            2*(scale_ry-TICK_LENGTH),
         //            start_angle, angle_range);
 
         // Major tick marks
