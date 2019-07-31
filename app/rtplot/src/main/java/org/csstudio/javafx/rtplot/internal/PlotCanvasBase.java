@@ -118,7 +118,7 @@ abstract class PlotCanvasBase extends ImageView
         }
     };
 
-    /** (Double) buffer used to combined the plot with mouse feedback overlays */
+    /** (Double) buffer used to combine the plot with mouse feedback overlays */
     private final DoubleBuffer buffers = new DoubleBuffer();
 
     /** Has a call to redraw_runnable already been queued?
