@@ -97,10 +97,14 @@ public class MeterWidget extends PVWidget
 
                 XMLUtil.getChildBoolean(xml, "show_value_label")
                        .ifPresent(meter.propShowValue()::setValue);
-                if (!XMLUtil.getChildBoolean(xml, "show_hihi").orElse(true) &&
-                    !XMLUtil.getChildBoolean(xml, "show_hi").orElse(true) &&
-                    !XMLUtil.getChildBoolean(xml, "show_lo").orElse(true)  &&
-                    !XMLUtil.getChildBoolean(xml, "show_lolo").orElse(true))
+                // Are any of the limits disabled, or 'Show Ramp' disabled?
+                if ((!XMLUtil.getChildBoolean(xml, "show_hihi").orElse(true) &&
+                     !XMLUtil.getChildBoolean(xml, "show_hi").orElse(true) &&
+                     !XMLUtil.getChildBoolean(xml, "show_lo").orElse(true)  &&
+                     !XMLUtil.getChildBoolean(xml, "show_lolo").orElse(true)
+                    )
+                    ||
+                    !XMLUtil.getChildBoolean(xml, "show_markers").orElse(true))
                     meter.propShowLimits().setValue(false);
             }
             else if (xml_version.getMajor() < 3)

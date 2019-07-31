@@ -50,6 +50,7 @@ public class MeterScale extends NumericAxis
     {
         this.minor = minor;
         this.major = major;
+        requestLayout();
     }
 
     /** Set alarm limits
@@ -61,10 +62,16 @@ public class MeterScale extends NumericAxis
     public void setLimits(final double lolo, final double low,
                           final double high, final  double hihi)
     {
+        if (Double.doubleToLongBits(this.lolo) == Double.doubleToLongBits(lolo)  &&
+            Double.doubleToLongBits(this.low)  == Double.doubleToLongBits(low)   &&
+            Double.doubleToLongBits(this.high) == Double.doubleToLongBits(high)  &&
+            Double.doubleToLongBits(this.hihi) == Double.doubleToLongBits(hihi))
+            return;
         this.lolo = lolo;
         this.low = low;
         this.high = high;
         this.hihi = hihi;
+        requestLayout();
     }
 
     /** Configure scale layout
