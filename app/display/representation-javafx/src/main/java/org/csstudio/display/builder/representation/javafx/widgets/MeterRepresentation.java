@@ -36,9 +36,8 @@ public class MeterRepresentation extends RegionBaseRepresentation<Pane, MeterWid
     {
         meter = new RTMeter();
         meter.setManaged(false);
-        final Pane pane = new Pane(meter);
-        pane.setManaged(false);
-        return pane;
+        // Wrapper pane (managed) to get alarm-sensitive border
+        return new Pane(meter);
     }
 
     @Override
