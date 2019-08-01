@@ -330,8 +330,8 @@ and the "Active" label moves next to the selected mode.</text>
         <description>Solitaire</description>
       </action>
     </actions>
-    <x>411</x>
-    <y>791</y>
+    <x>410</x>
+    <y>790</y>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="action_button" version="3.0.0">
@@ -343,8 +343,8 @@ and the "Active" label moves next to the selected mode.</text>
         <description>Tic-Tac-Toe</description>
       </action>
     </actions>
-    <x>411</x>
-    <y>831</y>
+    <x>410</x>
+    <y>830</y>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="label" version="2.0.0">
@@ -449,8 +449,8 @@ from new locations.</text>
         <description>Web Service</description>
       </action>
     </actions>
-    <x>631</x>
-    <y>791</y>
+    <x>630</x>
+    <y>790</y>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="action_button" version="3.0.0">
@@ -681,8 +681,8 @@ to it, in this case by making the widget invisible.</text>
         <description>Conway</description>
       </action>
     </actions>
-    <x>524</x>
-    <y>831</y>
+    <x>520</x>
+    <y>830</y>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="action_button" version="3.0.0">
@@ -693,8 +693,8 @@ to it, in this case by making the widget invisible.</text>
         <description>Mondrian</description>
       </action>
     </actions>
-    <x>600</x>
-    <y>831</y>
+    <x>630</x>
+    <y>830</y>
     <tooltip>$(actions)</tooltip>
   </widget>
 </display>
