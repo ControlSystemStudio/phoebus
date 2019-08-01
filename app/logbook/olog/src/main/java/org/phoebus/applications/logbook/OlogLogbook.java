@@ -5,14 +5,13 @@ import java.util.logging.Logger;
 
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogFactory;
-import org.phoebus.olog.api.OlogClient;
 import org.phoebus.olog.api.OlogClient.OlogClientBuilder;
 
 public class OlogLogbook implements LogFactory {
 
     private static final Logger logger = Logger.getLogger(OlogLogbook.class.getName());
     private static final String ID = "olog";
-    private OlogClient oLogClient;
+    private LogClient oLogClient;
 
     @Override
     public String getId() {

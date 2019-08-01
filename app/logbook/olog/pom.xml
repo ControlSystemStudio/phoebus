@@ -9,36 +9,13 @@
   <artifactId>app-logbook-olog</artifactId>
   <dependencies>
     <!-- https://mvnrepository.com/artifact/com.sun.jersey/jersey-core -->
-    <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-core</artifactId>
-      <version>1.19</version>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-client</artifactId>
-      <version>1.19</version>
-    </dependency>
     <!-- https://mvnrepository.com/artifact/com.sun.jersey.contribs/jersey-multipart -->
+    <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations -->
+    <!-- https://mvnrepository.com/artifact/com.sun.xml.bind/jaxb-impl -->
     <dependency>
-      <groupId>com.sun.jersey.contribs</groupId>
-      <artifactId>jersey-multipart</artifactId>
-      <version>1.19</version>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-jsr310</artifactId>
-      <version>2.8.10</version>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.persistence</groupId>
-      <artifactId>eclipselink</artifactId>
-      <version>2.7.0</version>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.activation</groupId>
-      <artifactId>javax.activation</artifactId>
-      <version>1.2.0</version>
+      <groupId>org.phoebus</groupId>
+      <artifactId>core-logbook</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -51,10 +28,21 @@
       <artifactId>jackson-annotations</artifactId>
       <version>2.9.4</version>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <version>2.9.4</version>
+    </dependency>
+    <dependency>
+        <groupId>com.sun.jersey</groupId>
+        <artifactId>jersey-client</artifactId>
+        <version>1.19</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jersey.contribs</groupId>
+      <artifactId>jersey-multipart</artifactId>
+      <version>1.19</version>
     </dependency>
     <dependency>
       <groupId>javax.xml.bind</groupId>
@@ -62,15 +50,25 @@
       <version>2.3.0</version>
     </dependency>
     <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>21.0</version>
+      <groupId>org.glassfish.jaxb</groupId>
+      <artifactId>jaxb-runtime</artifactId>
+      <version>2.3.0</version>
     </dependency>
-    <!-- https://mvnrepository.com/artifact/com.sun.xml.bind/jaxb-impl -->
     <dependency>
+<<<<<<< Upstream, based on origin/master
       <groupId>org.phoebus</groupId>
       <artifactId>core-logbook</artifactId>
       <version>4.6.0-SNAPSHOT</version>
+=======
+      <groupId>com.sun.activation</groupId>
+      <artifactId>javax.activation</artifactId>
+      <version>1.2.0</version>
+    </dependency>
+    <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>21.0</version>
+>>>>>>> ea92510 converting olog factory to work with olog 2.9 and older
     </dependency>
   </dependencies>
 </project>
