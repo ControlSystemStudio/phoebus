@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.plots.StripchartWidget;
 import org.csstudio.display.builder.model.widgets.plots.StripchartWidget.TraceWidgetProperty;
@@ -25,7 +26,7 @@ public class StripChart2Model extends AbstractADL2Model<StripchartWidget> {
     }
 
     @Override
-    public void processWidget(ADLWidget adlWidget)
+    public void processWidget(ADLWidget adlWidget) throws Exception
     {
         widgetModel.propToolbar().setValue(false);
         final StripChart plotWidget = new StripChart(adlWidget);
@@ -36,9 +37,11 @@ public class StripChart2Model extends AbstractADL2Model<StripchartWidget> {
             widgetModel.propTitle().setValue(plotcom.getTitle());
             widgetModel.propYAxes().getElement(0).autoscale().setValue(true);
             widgetModel.propYAxes().getElement(0).title().setValue("");
+            setColor(plotcom.getForegroundColor(), CommonWidgetProperties.propForegroundColor);
+            setColor(plotcom.getBackgroundColor(), CommonWidgetProperties.propBackgroundColor);
         }
 
-        widgetModel.propTimeRange().setValue(plotWidget.getPeriod() + " seconds");
+        widgetModel.propTimeRange().setValue(Math.round(plotWidget.getPeriod()) + " " + plotWidget.getUnits());
 
         final List<ADLPen> pens = plotWidget.getPens();
         if (pens.size() > 0)
