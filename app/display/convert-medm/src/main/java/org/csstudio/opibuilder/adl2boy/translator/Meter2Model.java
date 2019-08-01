@@ -6,20 +6,15 @@
 
 package org.csstudio.opibuilder.adl2boy.translator;
 
-import static org.csstudio.display.converter.medm.Converter.logger;
-
-import java.util.logging.Level;
-
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.properties.HorizontalAlignment;
-import org.csstudio.display.builder.model.properties.VerticalAlignment;
+import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.WidgetColor;
-import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
+import org.csstudio.display.builder.model.widgets.MeterWidget;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.widgets.Meter;
 
-public class Meter2Model extends AbstractADL2Model<TextUpdateWidget> {
+public class Meter2Model extends AbstractADL2Model<MeterWidget> {
 
     public Meter2Model(ADLWidget adlWidget, WidgetColor[] colorMap, Widget parentModel) throws Exception {
         super(adlWidget, colorMap, parentModel);
@@ -28,25 +23,18 @@ public class Meter2Model extends AbstractADL2Model<TextUpdateWidget> {
     @Override
     public void processWidget(ADLWidget adlWidget) throws Exception {
         Meter meterWidget = new Meter(adlWidget);
+
         setADLObjectProps(meterWidget, widgetModel);
         setADLMonitorProps(meterWidget, widgetModel);
 
-        logger.log(Level.WARNING, "Meter widget replaced with text update");
-        widgetModel.propHorizontalAlignment().setValue(HorizontalAlignment.CENTER);
-        widgetModel.propVerticalAlignment().setValue(VerticalAlignment.MIDDLE);
+        widgetModel.propNeedleColor().setValue(widgetModel.propForeground().getValue());
+        widgetModel.propKnobColor().setValue(widgetModel.propForeground().getValue());
+        widgetModel.propShowValue().setValue(false);
 
-//        //set color mode
-//        String color_mode = meterWidget.getColor_mode();
-//        if ( color_mode.equals("static") ){
-//            widgetModel.setPropertyValue(AbstractPVWidgetModel.PROP_FORECOLOR_ALARMSENSITIVE, false);
-//        }
-//        else if (color_mode.equals("alarm") ){
-//            widgetModel.setPropertyValue(AbstractPVWidgetModel.PROP_FORECOLOR_ALARMSENSITIVE, true);
-//        }
-//        else if (color_mode.equals("discrete") ){
-//            widgetModel.setPropertyValue(AbstractPVWidgetModel.PROP_FORECOLOR_ALARMSENSITIVE, false);
-//            //TODO Meter2Model Figure out what to do if colorMode is discrete
-//        }
+        //set color mode
+        String color_mode = meterWidget.getColor_mode();
+        if (color_mode.equals("static"))
+            widgetModel.setPropertyValue(CommonWidgetProperties.propBorderAlarmSensitive, false);
 //
 //        //TODO Add PV Limits to Meter2Model
 //        // Decorate the meter Model
@@ -77,7 +65,7 @@ public class Meter2Model extends AbstractADL2Model<TextUpdateWidget> {
     @Override
     public void makeModel(ADLWidget adlWidget,
             Widget parentModel) {
-        widgetModel = new TextUpdateWidget();
+        widgetModel = new MeterWidget();
         ChildrenProperty.getChildren(parentModel).addChild(widgetModel);
     }
 }
