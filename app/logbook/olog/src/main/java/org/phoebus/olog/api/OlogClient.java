@@ -1,14 +1,12 @@
 package org.phoebus.olog.api;
 
 import java.io.File;
-import java.io.InputStream;
-import java.util.Collection;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-
-import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -25,6 +23,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -33,6 +32,13 @@ import javax.net.ssl.TrustManager;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
+
+import org.phoebus.logbook.Attachment;
+import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.Property;
+import org.phoebus.logbook.Tag;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
@@ -43,19 +49,7 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import com.sun.jersey.client.urlconnection.HTTPSProperties;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
-import com.sun.jersey.multipart.FormDataMultiPart;
-import com.sun.jersey.multipart.file.FileDataBodyPart;
 import com.sun.jersey.multipart.impl.MultiPartWriter;
-import javax.ws.rs.core.MultivaluedMap;
-
-import org.phoebus.logbook.Attachment;
-import org.phoebus.logbook.LogClient;
-import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.Logbook;
-import org.phoebus.logbook.Property;
-import org.phoebus.logbook.Tag;
-
-import com.sun.jersey.api.client.WebResource;
 
 public class OlogClient implements LogClient {
 
@@ -367,14 +361,15 @@ public class OlogClient implements LogClient {
     @Override
     public InputStream getAttachment(Long logId, String attachmentName) {
         try {
-            ClientResponse response = service.path("attachments")
-                            .path(logId.toString())
-                            .path(attachmentName)
-                            .get(ClientResponse.class);
+            ClientResponse response = service
+                    .path("attachments")
+                    .path(logId.toString())
+                    .path(attachmentName)
+                    .get(ClientResponse.class);
             return response.getEntity(InputStream.class);
-    } catch (Exception e) {
-    }
-    return null;
+        } catch (Exception e) {
+        }
+        return null;
     }
 
     @Override
@@ -648,10 +643,31 @@ public class OlogClient implements LogClient {
         @Override
         public List<LogEntry> call() throws Exception {
             List<LogEntry> logs = new ArrayList<LogEntry>();
-            XmlLogs xmlLogs = service.path("logs").queryParams(map).accept(MediaType.APPLICATION_XML)
-                    .accept(MediaType.APPLICATION_JSON).get(XmlLogs.class);
+            XmlLogs xmlLogs = service
+                    .path("logs")
+                    .queryParams(map)
+                    .accept(MediaType.APPLICATION_XML)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .get(XmlLogs.class);
             for (XmlLog xmllog : xmlLogs.getLogs()) {
-                logs.add(new OlogLog(xmllog));
+                OlogLog log = new OlogLog(xmllog);
+                if (!xmllog.getXmlAttachments().getAttachments().isEmpty()) {
+                    Collection<Attachment> populatedAttachments = xmllog.getXmlAttachments().getAttachments().stream()
+                            .map((attachment) -> {
+                                OlogAttachment a = new OlogAttachment(attachment);
+                                try {
+                                    Path temp = Files.createTempFile("phoebus", attachment.getFileName());
+                                    Files.copy(getAttachment(log.getId(), attachment.getFileName()), temp,
+                                            StandardCopyOption.REPLACE_EXISTING);
+                                    a.setFile(temp.toFile());
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                                return a;
+                            }).collect(Collectors.toList());
+                    log.setXmlAttachments(populatedAttachments);
+                }
+                logs.add(log);
             }
             return Collections.unmodifiableList(logs);
         }

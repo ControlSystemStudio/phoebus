@@ -34,6 +34,10 @@ public class OlogAttachment implements Attachment {
         return file;
     }
 
+    public void setFile(File file) {
+        this.file = file;
+    }
+
     public String getContentType() {
         return contentType;
     }
