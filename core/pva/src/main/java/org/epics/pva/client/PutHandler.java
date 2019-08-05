@@ -16,7 +16,7 @@ import org.epics.pva.common.PVAHeader;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PutHandler implements CommandHandler<ClientTCPHandler>
+class PutHandler implements CommandHandler<ClientTCPHandler>
 {
     @Override
     public byte getCommand()

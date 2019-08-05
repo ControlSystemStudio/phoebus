@@ -25,11 +25,33 @@ import java.util.logging.Level;
  *  <p>Holds one or more {@link PVAData} elements.
  *  Often named as for example a normative type.
  *
+ *  <p>Usage example:
+ *  <pre>
+ *  PVAChannel channel = ...;
+ *  PVAStructure data = channel.read("").get();
+ *
+ *  // To debug, dump complete structure
+ *  System.out.println(data);
+ *
+ *  // Introspect
+ *  System.out.println("Structure of type " + data.getStructureName());
+ *  for (PVAData element : data.get())
+ *      System.out.println(element);*
+ *
+ *  // For known structure, get elements by name
+ *  PVAString value = data.get("value");
+ *  System.out.println("value = " + value.get());
+ *  </pre>
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class PVAStructure extends PVADataWithID
 {
+    static
+    {
+    }
+
     static PVAStructure decodeType(final PVATypeRegistry types, final String name, final ByteBuffer buffer) throws Exception
     {
         final String struct_name = PVAString.decodeString(buffer);
@@ -274,6 +296,7 @@ public class PVAStructure extends PVADataWithID
      *
      *  @param element_name Name of structure element
      *  @return Located element or <code>null</code>
+     *  @param <PVA> PVAData or subclass
      */
     @SuppressWarnings("unchecked")
     public <PVA extends PVAData> PVA get(final String element_name)
@@ -308,6 +331,7 @@ public class PVAStructure extends PVADataWithID
      *
      *  @param index Element index
      *  @return Located element or <code>null</code>
+     *  @param <PVA> PVAData or subclass
      */
     @SuppressWarnings("unchecked")
     public <PVA extends PVAData> PVA get(final int index)

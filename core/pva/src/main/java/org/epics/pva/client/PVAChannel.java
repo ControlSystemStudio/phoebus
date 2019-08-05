@@ -22,14 +22,20 @@ import org.epics.pva.data.PVAStructure;
 
 /** Client channel
  *
- *  <p>Obtained via {@link PVAClient#getChannel()}.
+ *  <p>Obtained via {@link PVAClient#getChannel(String)}.
  *  Allows reading and writing a channel's data.
  *
  *  <p>Channel 'connects' automatically.
- *  A listener will be informed when connection state changes,
- *  with helpers to await connection or check current connection state.
+ *  When obtaining the channel from the {@link PVAClient},
+ *  a listener can be provided to receive connection state updates.
+ *  In addition, {@link PVAChannel#connect()} can be used to await
+ *  connection, or {@link PVAChannel#isConnected()} can be used to check
+ *  the current state.
  *
- *  <p>Once connected, channel can read or write data.
+ *  <p>Once connected, a channel can {@link #read(String)} or {@link #write(String, Object)} data,
+ *  {@link #subscribe(String, MonitorListener)} to value updates, or {@link #invoke(PVAStructure)} RPC calls.
+ *
+ *  <p>When no longer in use, the channel should be {@link #close()}d.
  *
  *  @author Kay Kasemir
  */
@@ -213,11 +219,11 @@ public class PVAChannel
      *  and the value to write must be accepted by that field.
      *
      *  <p>For example, when "field(value)" addresses a double field,
-     *  {@link PVADouble#setValue()} will be called, so <code>new_value</code>
+     *  {@link PVADouble#setValue(Object)} will be called, so <code>new_value</code>
      *  may be a {@link Number}.
      *
      *  <p>When "field(value)" addresses a text field,
-     *  {@link PVAString#setValue()} will be called,
+     *  {@link PVAString#setValue(Object)} will be called,
      *  which accepts any object by converting it to a string.
      *
      *  <p>When writing an enumerated field, its <code>int index</code>

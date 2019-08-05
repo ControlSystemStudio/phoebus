@@ -71,7 +71,9 @@ public class PVAUnion extends PVADataWithID
         this.elements = Collections.unmodifiableList(elements);
     }
 
-    /** @return Selected element of the union, <code>null</code> if none */
+    /** @return Selected element of the union, <code>null</code> if none
+     *  @param <PVA> PVAData or subclass
+     */
     @SuppressWarnings("unchecked")
     public <PVA extends PVAData> PVA get()
     {
