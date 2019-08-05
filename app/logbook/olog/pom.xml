@@ -15,7 +15,7 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-logbook</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>4.6.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -55,11 +55,6 @@
       <version>2.3.0</version>
     </dependency>
     <dependency>
-<<<<<<< Upstream, based on origin/master
-      <groupId>org.phoebus</groupId>
-      <artifactId>core-logbook</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
-=======
       <groupId>com.sun.activation</groupId>
       <artifactId>javax.activation</artifactId>
       <version>1.2.0</version>
@@ -68,7 +63,6 @@
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
         <version>21.0</version>
->>>>>>> ea92510 converting olog factory to work with olog 2.9 and older
     </dependency>
   </dependencies>
 </project>
