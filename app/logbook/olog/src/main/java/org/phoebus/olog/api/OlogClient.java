@@ -82,10 +82,8 @@ public class OlogClient implements LogClient {
 
         private OlogProperties properties = new OlogProperties();
 
-        private static final String DEFAULT_OLOG_URL = "https://logbook.nsls2.bnl.gov/Olog-Operations/Olog/resources"; //$NON-NLS-1$
-
         private OlogClientBuilder() {
-            this.ologURI = URI.create(this.properties.getPreferenceValue("olog_url", DEFAULT_OLOG_URL));
+            this.ologURI = URI.create(this.properties.getPreferenceValue("olog_url"));
             this.protocol = this.ologURI.getScheme();
         }
 
@@ -231,7 +229,7 @@ public class OlogClient implements LogClient {
 
         private String ifNullReturnPreferenceValue(String value, String key, String Default) {
             if (value == null) {
-                return this.properties.getPreferenceValue(key, Default);
+                return this.properties.getPreferenceValue(key);
             } else {
                 return value;
             }
