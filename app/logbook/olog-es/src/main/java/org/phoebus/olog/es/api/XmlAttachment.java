@@ -3,7 +3,9 @@
  * and open the template in the editor.
  */
 
-package org.phoebus.olog.api;
+package org.phoebus.olog.es.api;
+
+import java.io.File;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
@@ -12,26 +14,30 @@ import javax.xml.bind.annotation.XmlType;
 import org.phoebus.logbook.Attachment;
 
 /**
- * Attachment object that can be represented as XML/JSON in payload data.
- * TODO: pass attachments over XML / without webdav? make log entries with attachments atomic?
+ * Attachment object that can be represented as XML/JSON in payload data. TODO:
+ * pass attachments over XML / without webdav? make log entries with attachments
+ * atomic?
+ * 
  * @author Eric Berryman
  */
 
-
 @XmlType
 @XmlRootElement(name = "attachment")
-public class XmlAttachment {
+public class XmlAttachment implements Attachment {
+
     @XmlTransient
     protected String fileName;
 
     @XmlTransient
     protected String contentType;
-    
+
     @XmlTransient
     protected Boolean thumbnail;
-    
+
     @XmlTransient
     protected Long fileSize;
+
+    private File file;
 
     /**
      * Creates a new instance of XmlAttachment
@@ -40,19 +46,11 @@ public class XmlAttachment {
         this.thumbnail = false;
     }
 
-    public XmlAttachment(Attachment a) {
-        fileName = a.getName();
-        contentType = a.getContentType();
-        thumbnail = a.getThumbnail();
-        // TODO
-        fileSize = 0L;
-    }
-
     /**
      * @return the fileName
      */
     public String getFileName() {
-    	return fileName;
+        return fileName;
     }
 
     /**
@@ -60,14 +58,14 @@ public class XmlAttachment {
      *            the fileName to set
      */
     public void setFileName(String fileName) {
-    	this.fileName = fileName;
+        this.fileName = fileName;
     }
-    
-        /**
+
+    /**
      * @return the fileSize
      */
     public Long getFileSize() {
-    	return fileSize;
+        return fileSize;
     }
 
     /**
@@ -75,7 +73,7 @@ public class XmlAttachment {
      *            the fileSize to set
      */
     public void setFileSize(Long fileSize) {
-    	this.fileSize = fileSize;
+        this.fileSize = fileSize;
     }
 
     /**
@@ -90,31 +88,47 @@ public class XmlAttachment {
      *            the contentType to set
      */
     public void setContentType(String contentType) {
-	this.contentType = contentType;
+        this.contentType = contentType;
     }
-    
-        /**
+
+    /**
      * @return the thumbnail name
      */
-    public boolean getThumbnail() {
+    public Boolean getThumbnail() {
         return thumbnail;
     }
 
     /**
-     * @param thumbnail name
-     *            the contentType to set
+     * @param thumbnail
+     *            name the contentType to set
      */
     public void setThumbnail(Boolean thumbnail) {
-	this.thumbnail = thumbnail;
+        this.thumbnail = thumbnail;
     }
 
     /**
      * Creates a compact string representation for the log.
      *
-     * @param data the XmlAttach to log
+     * @param data
+     *            the XmlAttach to log
      * @return string representation for log
      */
     public static String toLog(XmlAttachment data) {
         return data.getFileName() + "(" + data.getContentType() + ")";
     }
+
+    @Override
+    public File getFile() {
+        return file;
+    }
+
+    void setFile(File file) {
+        this.file = file;
+    }
+
+    @Override
+    public String getName() {
+        return fileName;
+    }
+
 }

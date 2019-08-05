@@ -13,5 +13,6 @@
     <module>utility</module>
     <module>ui</module>
     <module>olog</module>
+    <module>olog-es</module>
   </modules>
 </project>

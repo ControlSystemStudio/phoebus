@@ -1,0 +1,9 @@
+<project default="app-olog-es">
+  <import file="../../../dependencies/ant_settings.xml"/>
+
+  <target name="app-olog-es" depends="compile-app">
+    <jar destfile="${build}/olog-es-${version}.jar">
+      <fileset dir="${classes}"/>
+    </jar>
+  </target>
+</project>

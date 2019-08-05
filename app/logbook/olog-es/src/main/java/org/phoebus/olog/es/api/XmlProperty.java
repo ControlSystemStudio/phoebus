@@ -3,18 +3,15 @@
  * Copyright (c) 2010-2011 Helmholtz-Zentrum Berlin fuer Materialien und Energie GmbH
  * All rights reserved. Use is subject to license terms and conditions.
  */
-package org.phoebus.olog.api;
+package org.phoebus.olog.es.api;
 
 import java.util.Map;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 
 import org.phoebus.logbook.Property;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * Property object that can be represented as XML/JSON in payload data.
@@ -22,14 +19,14 @@ import org.phoebus.logbook.Property;
  * @author Eric Berryman taken from Ralph Lange
  *         <Ralph.Lange@helmholtz-berlin.de>
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 @XmlRootElement(name = "property")
-public class XmlProperty {
+public class XmlProperty implements Property{
 
     private int id;
     private int groupingNum;
     private String name = null;
     private Map<String, String> attributes;
-    private XmlLogs logs = null;
 
     /**
      * Creates a new instance of XmlProperty.
@@ -57,17 +54,11 @@ public class XmlProperty {
         this.attributes = attributes;
     }
 
-    public XmlProperty(Property p) {
-       name = p.getName();
-       attributes = p.getAttributes();
-    }
-
     /**
      * Getter for property id.
      * 
      * @return property id
      */
-    @XmlAttribute
     public int getId() {
         return id;
     }
@@ -86,7 +77,6 @@ public class XmlProperty {
      * 
      * @return property id
      */
-    @XmlAttribute
     public int getGroupingNum() {
         return groupingNum;
     }
@@ -105,7 +95,6 @@ public class XmlProperty {
      * 
      * @return property name
      */
-    @XmlAttribute
     public String getName() {
         return name;
     }
@@ -135,39 +124,4 @@ public class XmlProperty {
         this.attributes = attributes;
     }
 
-    /**
-     * Getter for property's XmlLogs.
-     * 
-     * @return XmlChannels object
-     */
-    @XmlElement(name = "logs")
-    public XmlLogs getXmlLogs() {
-        return logs;
-    }
-
-    /**
-     * Setter for property's XmlLogs.
-     * 
-     * @param logs
-     *            XmlLogs object
-     */
-    public void setXmlLogs(XmlLogs logs) {
-        this.logs = logs;
-    }
-
-    /**
-     * Creates a compact string representation for the log.
-     * 
-     * @param data
-     *            the XmlProperty to log
-     * @return string representation for log
-     */
-    public static String toLog(XmlProperty data) {
-        if (data.logs == null) {
-            return data.getName() + "(" + data.getAttributes().toString() + ")";
-        } else {
-            return data.getName() + "(" + data.getAttributes().toString() + ")"
-                    + XmlLogs.toLog(data.logs);
-        }
-    }
 }
