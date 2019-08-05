@@ -416,7 +416,9 @@ public class OlogClient implements LogClient {
         public Collection<LogEntry> call() {
             XmlLogs xmlLogs = new XmlLogs();
             for (LogEntry log : logs) {
-                xmlLogs.getLogs().add(new XmlLog(log));
+                XmlLog xmlLog = new XmlLog(log);
+                xmlLog.setLevel("Info");
+                xmlLogs.getLogs().add(xmlLog);
             }
             ClientResponse clientResponse = service.path("logs")
                     .accept(MediaType.APPLICATION_XML)

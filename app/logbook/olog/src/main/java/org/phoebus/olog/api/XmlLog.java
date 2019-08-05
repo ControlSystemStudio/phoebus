@@ -101,7 +101,7 @@ public class XmlLog {
         md5Recent = "";
         createdDate = Date.from(log.getCreatedDate());
         modifiedDate = Date.from(log.getModifiedDate());
-        description = log.getDescription();
+        description = log.getTitle() + System.lineSeparator() +log.getDescription();
 
         tags = log.getTags().stream().map(t -> {return new XmlTag(t);}).collect(Collectors.toList());
         logbooks = log.getLogbooks().stream().map(l -> {return new XmlLogbook(l);}).collect(Collectors.toList());
