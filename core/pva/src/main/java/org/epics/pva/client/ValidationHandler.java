@@ -22,7 +22,7 @@ import org.epics.pva.data.PVAString;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ValidationHandler implements CommandHandler<ClientTCPHandler>
+class ValidationHandler implements CommandHandler<ClientTCPHandler>
 {
     @Override
     public byte getCommand()

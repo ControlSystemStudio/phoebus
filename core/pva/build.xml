@@ -1,7 +1,14 @@
 <project default="core-pva">
     <import file="../../dependencies/ant_settings.xml"/>
 
-    <target name="core-pva">
+    <target name="javadoc">
+    	<javadoc sourcepath="src/main/java"
+    		     destdir="target/site/apidocs"
+    		     author="no">
+    	</javadoc>
+    </target>
+	
+    <target name="core-pva" depends="javadoc">
         <mkdir dir="${classes}"/>
         <javac destdir="${classes}" debug="${debug}">
             <src path="${src}"/>

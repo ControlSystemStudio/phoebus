@@ -126,8 +126,8 @@ public class Network
      *
      *  @param broadcast Support broadcast?
      *  @param port Port to use or 0 to auto-assign
-     *  @return
-     *  @throws Exception
+     *  @return UDP channel
+     *  @throws Exception on error
      */
     public static DatagramChannel createUDP(boolean broadcast, int port) throws Exception
     {
@@ -142,6 +142,7 @@ public class Network
     }
 
     /** Try to listen to multicast messages
+     *  @param udp UDP channel that should listen to multicast messages
      *  @return Local multicast address, or <code>null</code> if no multicast support
      */
     public static InetSocketAddress configureMulticast(final DatagramChannel udp)

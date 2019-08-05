@@ -16,7 +16,8 @@ import org.epics.pva.server.Guid;
 
 /** Info for a server
  *
- *  <p>Obtained via {@link PVAClient#list()}
+ *  <p>Obtained via {@link PVAClient#list(java.util.concurrent.TimeUnit, long)}
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
