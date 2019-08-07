@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.phoebus.ui.help;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
@@ -24,6 +25,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
@@ -35,6 +38,23 @@ import javafx.scene.image.Image;
 @SuppressWarnings("nls")
 public class OpenAbout implements MenuEntry
 {
+    private static class OpenFileBrowserCell extends TableCell<List<String>, String>
+    {
+        @Override
+        protected void updateItem(final String item, boolean empty)
+        {
+            super.updateItem(item, empty);
+            if (empty || getIndex() > 2)
+                setGraphic(null);
+            else
+            {
+                final Button button = new Button("...");
+                button.setOnAction(event ->  ApplicationService.createInstance("file_browser", new File(item).toURI()));
+                setGraphic(button);
+            }
+        }
+    }
+
     @Override
     public String getName()
     {
@@ -64,8 +84,10 @@ public class OpenAbout implements MenuEntry
 
         // Table with Name, Value columns
         final ObservableList<List<String>> infos = FXCollections.observableArrayList();
-        infos.add(Arrays.asList(Messages.HelpAboutInst, Locations.install().toString()));
+        // Start with most user-specific to most generic: User location, install, JDK, ...
+        // Note that OpenFileBrowserCell will only activate for first 3 entries.
         infos.add(Arrays.asList(Messages.HelpAboutUser, Locations.user().toString()));
+        infos.add(Arrays.asList(Messages.HelpAboutInst, Locations.install().toString()));
         infos.add(Arrays.asList(Messages.HelpJavaHome, System.getProperty("java.home")));
         infos.add(Arrays.asList(Messages.HelpAboutJava, System.getProperty("java.specification.vendor") + " " + System.getProperty("java.runtime.version")));
         infos.add(Arrays.asList(Messages.HelpAboutJfx, System.getProperty("javafx.runtime.version")));
@@ -83,6 +105,13 @@ public class OpenAbout implements MenuEntry
         value_col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().get(1)));
         value_col.setCellFactory(col -> new ReadOnlyTextCell<>());
         info_table.getColumns().add(value_col);
+
+        final TableColumn<List<String>, String> link_col = new TableColumn<>();
+        link_col.setMinWidth(50);
+        link_col.setMaxWidth(50);
+        link_col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().get(1)));
+        link_col.setCellFactory(col ->  new OpenFileBrowserCell());
+        info_table.getColumns().add(link_col);
 
         dialog.getDialogPane().setContent(info_table);
 

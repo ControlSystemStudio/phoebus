@@ -15,6 +15,9 @@ public class Messages
     public static String AllFiles;
     public static String AlwaysShowTabs;
     public static String Applications;
+    public static String DeleteLayouts;
+    public static String DeleteLayoutsConfirmFmt;
+    public static String DeleteLayoutsInfo;
     public static String DockAlertMsg;
     public static String DockAlertTitle;
     public static String DockAll;
