@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -35,6 +35,9 @@ public class WidgetColorPropertyField extends HBox
 
     public WidgetColorPropertyField()
     {
+        // Button with label "Button_Background" for color name
+        // must not react to Alt-B (used to move widgets for/back in order)
+        button.setMnemonicParsing(false);
         button.setMaxWidth(Double.MAX_VALUE);
 
         HBox.setMargin(blob, new Insets(5, 5, 5, 0));
