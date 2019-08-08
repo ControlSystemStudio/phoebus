@@ -8,6 +8,7 @@
 package org.csstudio.display.builder.runtime.app;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.csstudio.display.builder.model.DisplayModel;
@@ -36,8 +37,6 @@ import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.javafx.Screenshot;
-
-import com.google.common.base.Objects;
 
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -180,7 +179,7 @@ class ContextMenuSupport
             final DisplayModel model = widget.getDisplayModel();
             final String name = model.getDisplayName();
             final String input =  model.getUserData(DisplayModel.USER_DATA_INPUT_FILE);
-            if (Objects.equal(name, input))
+            if (Objects.equals(name, input))
                 display_info = "Display '" + name + "'";
             else
                 display_info = "Display '" + name + "' (" + input + ")";
