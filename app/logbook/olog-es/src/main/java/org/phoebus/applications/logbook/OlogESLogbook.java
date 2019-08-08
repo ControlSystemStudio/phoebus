@@ -7,6 +7,7 @@ import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogFactory;
 import org.phoebus.olog.es.api.OlogClient;
 import org.phoebus.olog.es.api.OlogClient.OlogClientBuilder;
+import org.phoebus.security.tokens.SimpleAuthenticationToken;
 /**
  * Logbook client for the new es based olog.
  * TODO: in the future this client would replace the old olog client
@@ -38,12 +39,17 @@ public class OlogESLogbook implements LogFactory {
 
     @Override
     public LogClient getLogClient(Object authToken) {
-        if (oLogClient == null) {
-            try {
+        try {
+            if (authToken instanceof SimpleAuthenticationToken) {
+                SimpleAuthenticationToken token = (SimpleAuthenticationToken) authToken;
+                return OlogClientBuilder.serviceURL().withHTTPAuthentication(true).username(token.getUsername()).password(token.getPassword())
+                        .create();
+            } else if (oLogClient == null) {
                 oLogClient = OlogClientBuilder.serviceURL().create();
-            } catch (Exception e) {
-                logger.log(Level.SEVERE, "Failed to create olog es client", e);
+
             }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to create olog client", e);
         }
         return oLogClient;
     }
