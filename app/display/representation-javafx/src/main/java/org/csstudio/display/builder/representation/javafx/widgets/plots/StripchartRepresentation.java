@@ -257,7 +257,6 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
 
     private void modelChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
-        System.out.println("model changed: " + property);
         dirty_model.mark();
         toolkit.scheduleUpdate(this);
     }
