@@ -323,8 +323,7 @@ public class Decoders
 
         final PVAStructure section = struct.get("value");
         final int value = ((PVAInt)section.get("index")).get();
-
-        final PVAStringArray choices = struct.get("choices");
+        final PVAStringArray choices = section.get("choices");
 
         return VEnum.of(value, EnumDisplay.of(choices.get()), alarm, time);
     }
