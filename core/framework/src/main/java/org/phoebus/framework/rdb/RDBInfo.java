@@ -28,7 +28,7 @@ public class RDBInfo
     private static final String JDBC_MYSQL = "jdbc:mysql:";
 
     /** Start of PostgreSQL URL */
-    private static final String JDBC_POSTGRESQL = "jdbc:postgresql://";
+    private static final String JDBC_POSTGRESQL = "jdbc:postgresql:";
 
     /** Start of Oracle URL */
     private static final String JDBC_ORACLE = "jdbc:oracle:";
