@@ -494,6 +494,7 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
         }
         else if (new_value instanceof Long)
         {   // Channel only supports put(int), not long
+            logger.log(Level.WARNING, "Truncating long to int for PV " + getName());
             final int val = ((Long)new_value).intValue();
             if (put_listener != null)
                 channel.put(val, put_listener);
@@ -502,10 +503,23 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
         }
         else if (new_value instanceof Long [])
         {   // Channel only supports put(int[]), not long[]
+            logger.log(Level.WARNING, "Truncating long[] to int[] for PV " + getName());
             final Long lval[] = (Long [])new_value;
             final int val[] = new int[lval.length];
             for (int i=0; i<val.length; ++i)
                 val[i] = lval[i].intValue();
+            if (put_listener != null)
+                channel.put(val, put_listener);
+            else
+                channel.put(val);
+        }
+        else if (new_value instanceof long [])
+        {   // Channel only supports put(int[]), not long[]
+            logger.log(Level.WARNING, "Truncating long[] to int[] for PV " + getName());
+            final long lval[] = (long [])new_value;
+            final int val[] = new int[lval.length];
+            for (int i=0; i<val.length; ++i)
+                val[i] = (int) lval[i];
             if (put_listener != null)
                 channel.put(val, put_listener);
             else
