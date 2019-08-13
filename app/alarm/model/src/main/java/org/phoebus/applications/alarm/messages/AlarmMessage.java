@@ -1,12 +1,9 @@
 package org.phoebus.applications.alarm.messages;
 
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.phoebus.util.time.TimestampFormats;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -327,9 +324,6 @@ public class AlarmMessage {
     static {
         objectConfigMapper.addMixIn(AlarmMessage.class, AlarmConfigJsonMessage.class);
     }
-
-    @JsonIgnore
-    private static DateTimeFormatter formatter = TimestampFormats.MILLI_FORMAT;
 
     /**
      * Returns the json string representation of this object
