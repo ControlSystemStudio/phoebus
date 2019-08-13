@@ -359,6 +359,8 @@ public class PhoebusApplication extends Application {
                 final URI resource = ResourceParser.createResourceURI(parametersIterator.next());
                 launchResources.add(resource);
             }
+            else
+                logger.log(Level.WARNING, "Ignoring launch parameter '" + cmd + "'");
         }
 
         // May have been invoked from background thread,
