@@ -34,6 +34,7 @@ import org.csstudio.javafx.rtplot.AxisRange;
 import org.csstudio.javafx.rtplot.LineStyle;
 import org.csstudio.javafx.rtplot.PlotMarker;
 import org.csstudio.javafx.rtplot.PointType;
+import org.csstudio.javafx.rtplot.RTPlot;
 import org.csstudio.javafx.rtplot.RTPlotListener;
 import org.csstudio.javafx.rtplot.RTValuePlot;
 import org.csstudio.javafx.rtplot.Trace;
@@ -207,7 +208,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
                                                     value_listener = this::valueChanged;
         private final Trace<Double> trace;
         // Throttle this trace's x, y, error value changes
-        private final UpdateThrottle throttle = new UpdateThrottle(Preferences.plot_update_delay, TimeUnit.MILLISECONDS, this::computeTrace);
+        private final UpdateThrottle throttle = new UpdateThrottle(Preferences.plot_update_delay, TimeUnit.MILLISECONDS, this::computeTrace, RTPlot.UPDATE_TIMER);
 
         TraceHandler(final TraceWidgetProperty model_trace)
         {

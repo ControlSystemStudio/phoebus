@@ -47,7 +47,8 @@ abstract public class SimulatedPV extends PV
      */
     protected void start(final double update_seconds)
     {
-        final long milli = Math.round(Math.max(update_seconds, 0.1) * 1000);
+        // Limit rate to 100 Hz
+        final long milli = Math.round(Math.max(update_seconds, 0.01) * 1000);
         task = executor.scheduleAtFixedRate(this::update, milli, milli, TimeUnit.MILLISECONDS);
     }
 

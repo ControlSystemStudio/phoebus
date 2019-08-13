@@ -34,7 +34,14 @@ import org.phoebus.framework.jobs.NamedThreadFactory;
 @SuppressWarnings("nls")
 public class UpdateThrottle
 {
+    /** Common 'throttle' executor */
     public static final ScheduledExecutorService TIMER = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("UpdateThrottle"));
+
+    /** Actual timer used by this throttle */
+    private final ScheduledExecutorService timer;
+
+    /** How long to delay an update to allow more triggers to accumulate */
+    private volatile long accumulate_ms;
 
     /** How long to stay dormant after an update */
     private volatile long dormant_ms;
@@ -54,20 +61,32 @@ public class UpdateThrottle
     /** Stop ongoing activity because throttle was disposed? */
     private volatile boolean disposed = false;
 
-    /** Initialize
+    /** Initialize with common timer
      *  @param dormant_time How long throttle remains dormant after a trigger
      *  @param unit Units for the dormant period
      *  @param update {@link Runnable} to invoke for triggers
      */
     public UpdateThrottle(final long dormant_time, final TimeUnit unit, final Runnable update)
     {
+        this(dormant_time, unit, update, TIMER);
+    }
+
+    /** Initialize
+     *  @param dormant_time How long throttle remains dormant after a trigger
+     *  @param unit Units for the dormant period
+     *  @param update {@link Runnable} to invoke for triggers
+     *  @param timer Executor to use for scheduling and performing updates
+     */
+    public UpdateThrottle(final long dormant_time, final TimeUnit unit, final Runnable update, final ScheduledExecutorService timer)
+    {
+        this.timer = timer;
         setDormantTime(dormant_time, unit);
         this.update_then_wake = () ->
         {   // Perform the update
             try
             {
                 // Wait a little to allow more updates to accumulate
-                Thread.sleep(20);
+                Thread.sleep(accumulate_ms);
                 pending_trigger.set(false);
                 if (! disposed)
                     update.run();
@@ -83,17 +102,22 @@ public class UpdateThrottle
             }
             // Schedule wakeup
             if (! disposed)
-                scheduled_wakeup = TIMER.schedule(this::wakeUp, dormant_ms, TimeUnit.MILLISECONDS);
+                scheduled_wakeup = timer.schedule(this::wakeUp, dormant_ms, TimeUnit.MILLISECONDS);
         };
     }
 
     /** Update the dormant time
+     *
+     *  <p>Accumulation time will be 1/4 of dormant time, up to 20 ms
+     *
      *  @param dormant_time How long throttle remains dormant after a trigger
      *  @param unit Units for the dormant period
      */
     public void setDormantTime(final long dormant_time, final TimeUnit unit)
     {
-        dormant_ms = unit.toMillis(dormant_time);
+        final long millis = unit.toMillis(dormant_time);
+        accumulate_ms = Math.min(millis/4, 20);
+        dormant_ms = millis;
     }
 
     /** Call to request an update.
@@ -113,7 +137,7 @@ public class UpdateThrottle
         else
         {
             // In idle period, react to trigger, but on timer thread
-            TIMER.execute(update_then_wake);
+            timer.execute(update_then_wake);
         }
     }
 

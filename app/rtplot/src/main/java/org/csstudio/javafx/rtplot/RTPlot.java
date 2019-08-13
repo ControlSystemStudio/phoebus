@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
@@ -28,6 +30,7 @@ import org.csstudio.javafx.rtplot.internal.TraceImpl;
 import org.csstudio.javafx.rtplot.internal.YAxisImpl;
 import org.csstudio.javafx.rtplot.internal.undo.ChangeAxisRanges;
 import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
+import org.phoebus.framework.jobs.NamedThreadFactory;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.ToolbarHelper;
@@ -58,6 +61,12 @@ import javafx.stage.Stage;
 @SuppressWarnings("nls")
 public class RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
 {
+    /** Timer for scheduling plot updates, for example with plot-related UpdateThrottle
+     *  <p>One per CPU core allows that many plots to run updateImageBuffer in parallel.
+     */
+    public static final ScheduledExecutorService UPDATE_TIMER =
+        Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), new NamedThreadFactory("RTPlotUpdateThrottle"));
+
     final protected Plot<XTYPE> plot;
     final protected ToolbarHandler<XTYPE> toolbar;
     private boolean handle_keys = false;
