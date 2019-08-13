@@ -19,7 +19,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.csstudio.javafx.rtplot.RTPlot;
+import org.csstudio.javafx.rtplot.Activator;
 import org.phoebus.ui.javafx.BufferUtil;
 import org.phoebus.ui.javafx.DoubleBuffer;
 import org.phoebus.ui.javafx.UpdateThrottle;
@@ -214,7 +214,7 @@ abstract class PlotCanvasBase extends ImageView
             }
             if (!pending_redraw.getAndSet(true))
                 Platform.runLater(redraw_runnable);
-        }, RTPlot.UPDATE_TIMER);
+        }, Activator.thread_pool);
 
         if (active)
         {
