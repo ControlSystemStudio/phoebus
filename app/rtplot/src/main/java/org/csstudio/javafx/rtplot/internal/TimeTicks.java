@@ -39,7 +39,7 @@ public class TimeTicks extends Ticks<Instant>
     protected static final int FILL_PERCENTAGE = 75;
 
     /** Supported time range */
-    final private static Duration min = Duration.ofMillis(10), max = Duration.ofDays(10*365);
+    final private static Duration min = Duration.ofMillis(10), max = Duration.ofDays(50*365);
 
     /** Description of a tick configuration */
     private static class TickConfig
@@ -201,7 +201,7 @@ public class TimeTicks extends Ticks<Instant>
         for (Instant value = start;  value.isBefore(end);  value = getNext(value))
         {
             if (value.compareTo(low) >= 0  &&  value.compareTo(high) <= 0)
-                major_ticks.add(new MajorTick<Instant>(value, format(value)));
+                major_ticks.add(new MajorTick<>(value, format(value)));
 
             final long ms = value.toEpochMilli();
             for (int i=1; i<config.minor_ticks; ++i)
@@ -209,7 +209,7 @@ public class TimeTicks extends Ticks<Instant>
                 final long min_ms = prev_ms + ((ms - prev_ms)*i)/config.minor_ticks;
                 final Instant min_val = Instant.ofEpochMilli(min_ms);
                 if (min_val.isAfter(low)  &&  min_val.isBefore(high))
-                    minor_ticks.add(new MinorTick<Instant>(min_val));
+                    minor_ticks.add(new MinorTick<>(min_val));
             }
             prev_ms = ms;
         }
@@ -220,8 +220,8 @@ public class TimeTicks extends Ticks<Instant>
             // add the low and high markers.
             // Use full format for the low marker.
             final ZonedDateTime local = ZonedDateTime.ofInstant(low, ZoneId.systemDefault());
-            major_ticks.add(0, new MajorTick<Instant>(low, config.start_formatter.format(local)));
-            major_ticks.add(new MajorTick<Instant>(high, format(high)));
+            major_ticks.add(0, new MajorTick<>(low, config.start_formatter.format(local)));
+            major_ticks.add(new MajorTick<>(high, format(high)));
         }
         this.major_ticks = major_ticks;
         this.minor_ticks = minor_ticks;
