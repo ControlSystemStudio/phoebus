@@ -13,7 +13,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 
 import org.phoebus.archive.reader.ArchiveReader;
@@ -67,15 +70,12 @@ public class ListIndexReader implements ArchiveReader
     }
 
     @Override
-    public List<String> getNamesByPattern(final String glob_pattern) throws Exception
+    public Collection<String> getNamesByPattern(final String glob_pattern) throws Exception
     {
         // Search all sub-archives, but only return each name once.
-        // TODO API should use Set or Collection to allow use of Set here
-        final List<String> results = new ArrayList<>();
+        final Set<String> results = new HashSet<>();
         for (ArchiveReader reader : archives)
-            for (String result : reader.getNamesByPattern(glob_pattern))
-                if (! results.contains(result))
-                    results.add(result);
+            results.addAll(reader.getNamesByPattern(glob_pattern));
         return results;
     }
 

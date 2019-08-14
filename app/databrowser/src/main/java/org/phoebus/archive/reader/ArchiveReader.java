@@ -9,7 +9,7 @@ package org.phoebus.archive.reader;
 
 import java.io.Closeable;
 import java.time.Instant;
-import java.util.List;
+import java.util.Collection;
 
 /** Interface to archive data retrieval.
  *
@@ -63,10 +63,10 @@ public interface ArchiveReader extends Closeable
      *  search for "*".
      *
      *  @param glob_pattern Pattern for channel name with '*' or '?'.
-     *  @return List of matching channel names. Might be empty.
+     *  @return Matching channel names. Might be empty.
      *  @throws Exception on wrong key or internal error.
      */
-    public List<String> getNamesByPattern(String glob_pattern)
+    public Collection<String> getNamesByPattern(String glob_pattern)
         throws Exception;
 
     /** Read original, raw samples from the archive
