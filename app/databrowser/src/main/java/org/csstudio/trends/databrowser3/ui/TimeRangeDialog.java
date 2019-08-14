@@ -30,9 +30,9 @@ public class TimeRangeDialog extends Dialog<TimeRelativeInterval>
         getDialogPane().setContent(times);
         getDialogPane().getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
 
-        // OK button captures 'Enter',
-        // that that means it's impossible to 'enter' a new value
-        // for the date inside the dialog.
+        // TimeRelativeIntervalPane works fine standalone,
+        // but when hosted in dialog 'enter' is not possible
+        // on the date fields because OK button captures 'Enter'.
         // --> Disable the 'default' behavior of OK button.
         final Button ok = (Button)getDialogPane().lookupButton(ButtonType.OK);
         ok.setDefaultButton(false);
