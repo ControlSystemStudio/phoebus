@@ -12,6 +12,7 @@ import org.phoebus.ui.time.TemporalAmountPane;
 import org.phoebus.ui.time.TimeRelativeIntervalPane;
 import org.phoebus.util.time.TimeRelativeInterval;
 
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 
@@ -28,6 +29,14 @@ public class TimeRangeDialog extends Dialog<TimeRelativeInterval>
         setTitle(Messages.TimeColumn);
         getDialogPane().setContent(times);
         getDialogPane().getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
+
+        // OK button captures 'Enter',
+        // that that means it's impossible to 'enter' a new value
+        // for the date inside the dialog.
+        // --> Disable the 'default' behavior of OK button.
+        final Button ok = (Button)getDialogPane().lookupButton(ButtonType.OK);
+        ok.setDefaultButton(false);
+
         setResultConverter(button ->
         {
             if (button == ButtonType.OK)
