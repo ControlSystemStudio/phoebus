@@ -46,10 +46,10 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser.ExtensionFilter;
-import jfxtras.scene.layout.HBox;
 
 /** Menu entry to open 'about'
  *  @author Kay Kasemir
