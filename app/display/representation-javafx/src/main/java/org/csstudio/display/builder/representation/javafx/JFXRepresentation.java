@@ -380,7 +380,6 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         // Fetch css relative to JFXRepresentation, not derived class
         final String css = JFXRepresentation.class.getResource("opibuilder.css").toExternalForm();
         Styles.set(scene, css);
-        Styles.setSceneStyle(scene);
     }
 
     /** Standard zoom levels */
