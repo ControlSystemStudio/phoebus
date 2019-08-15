@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,7 +28,6 @@ import org.phoebus.archive.reader.ValueIterator;
 @SuppressWarnings("nls")
 public class ArchiveFileReader implements ArchiveReader
 {
-    private final File index;
     private final ArchiveFileIndexReader indexReader;
 
     /** Construct an ArchiveFileReader.
@@ -37,14 +36,13 @@ public class ArchiveFileReader implements ArchiveReader
      */
     public ArchiveFileReader(final File index) throws IOException
     {
-        this.index = index;
         indexReader = new ArchiveFileIndexReader(index);
     }
 
     @Override
     public String getDescription()
     {
-        return "Data File";
+        return "Channel Archiver";
     }
 
     @Override
@@ -67,7 +65,7 @@ public class ArchiveFileReader implements ArchiveReader
             throws UnknownChannelException, Exception
     {
         final List<DataFileEntry> entries = indexReader.getEntries(name, start, end);
-        entries.forEach(System.out::println);
+        // entries.forEach(System.out::println);
         return new ArchiveFileSampleReader(start, end, entries);
     }
 

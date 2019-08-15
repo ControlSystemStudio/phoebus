@@ -270,8 +270,8 @@ public abstract class AxisPart<T extends Comparable<T>> extends PlotPart impleme
             // Can axis handle this range?
             if (! ticks.isSupportedRange(low, high))
             {
-                logger.log(Level.FINE, "Axis {0}: Bad value range {1} ... {2}",
-                                       new Object[] { getName(), low, high });
+                logger.log(Level.WARNING, "Axis {0}: Bad value range {1} ... {2}",
+                                          new Object[] { getName(), low, high });
                 return false;
             }
             range = new AxisRange<>(low, high);
