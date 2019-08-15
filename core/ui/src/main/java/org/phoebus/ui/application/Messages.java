@@ -43,7 +43,6 @@ public class Messages
     public static String Help;
     public static String HelpAbout;
     public static String HelpAboutAppFea;
-    public static String HelpAboutAppUnd;
     public static String HelpAboutHdr;
     public static String HelpAboutColName;
     public static String HelpAboutColValue;
@@ -51,8 +50,8 @@ public class Messages
     public static String HelpAboutJava;
     public static String HelpAboutJfx;
     public static String HelpAboutMenuPath;
+    public static String HelpAboutPrefs;
     public static String HelpAboutSysFea;
-    public static String HelpAboutSysUnd;
     public static String HelpAboutTitle;
     public static String HelpAboutUser;
     public static String HelpContentMenuPath;
