@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,10 +7,15 @@
  *******************************************************************************/
 package org.phoebus.ui.help;
 
+import static org.phoebus.ui.application.PhoebusApplication.logger;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 
+import org.phoebus.framework.preferences.PropertyPreferenceWriter;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.application.Messages;
@@ -23,9 +28,12 @@ import org.phoebus.ui.spi.MenuEntry;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -116,27 +124,7 @@ public class OpenAbout implements MenuEntry
         dialog.getDialogPane().setContent(info_table);
 
         // Info for expandable "Show Details" section
-        final StringBuilder details = new StringBuilder();
-        details.append(Messages.HelpAboutAppFea);
-        details.append(Messages.HelpAboutAppUnd);
-        ApplicationService.getApplications()
-                          .stream()
-                          .sorted((a, b) -> a.getDisplayName().compareTo(b.getDisplayName()))
-                          .forEach(app -> details.append(app.getDisplayName()).append("\n"));
-
-        details.append("\n");
-        details.append(Messages.HelpAboutSysFea);
-        details.append(Messages.HelpAboutSysUnd);
-        System.getProperties()
-              .stringPropertyNames()
-              .stream()
-              .sorted()
-              .forEach(prop ->  details.append(prop).append(" = ").append(System.getProperty(prop)).append("\n"));
-
-        // User can copy details out of read-only text area
-        final TextArea trace = new TextArea(details.toString());
-        trace.setEditable(false);
-        dialog.getDialogPane().setExpandableContent(trace);
+        dialog.getDialogPane().setExpandableContent(createDetailSection());
 
         dialog.setResizable(true);
         dialog.getDialogPane().setPrefWidth(800);
@@ -145,5 +133,52 @@ public class OpenAbout implements MenuEntry
         dialog.showAndWait();
 
         return null;
+    }
+
+    private Node createDetailSection()
+    {
+        // Tabs, each with a read-only text area
+        // so user can copy details out
+
+        // List applications
+        final StringBuilder apps_text = new StringBuilder();
+        ApplicationService.getApplications()
+                          .stream()
+                          .sorted((a, b) -> a.getDisplayName().compareTo(b.getDisplayName()))
+                          .forEach(app -> apps_text.append(app.getDisplayName()).append("\n"));
+
+        TextArea area = new TextArea(apps_text.toString());
+        area.setEditable(false);
+        final Tab apps = new Tab(Messages.HelpAboutAppFea, area);
+
+        // System properties
+        final StringBuilder props_text = new StringBuilder();
+        System.getProperties()
+              .stringPropertyNames()
+              .stream()
+              .sorted()
+              .forEach(prop ->  props_text.append(prop).append(" = ").append(System.getProperty(prop)).append("\n"));
+
+        area = new TextArea(props_text.toString());
+        area.setEditable(false);
+        final Tab props = new Tab(Messages.HelpAboutSysFea, area);
+
+        // Preference settings
+        final ByteArrayOutputStream prefs_buf = new ByteArrayOutputStream();
+        try
+        {
+            PropertyPreferenceWriter.save(prefs_buf);
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot list preferences", ex);
+        }
+
+        area = new TextArea(prefs_buf.toString());
+        area.setEditable(false);
+        final Tab prefs = new Tab(Messages.HelpAboutPrefs, area);
+
+        final TabPane tabs = new TabPane(apps, props, prefs);
+        return tabs;
     }
 }
