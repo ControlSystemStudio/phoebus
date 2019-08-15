@@ -11,27 +11,34 @@ import static org.phoebus.ui.application.PhoebusApplication.logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.preferences.PropertyPreferenceLoader;
 import org.phoebus.framework.preferences.PropertyPreferenceWriter;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.OpenFileDialog;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.ReadOnlyTextCell;
 import org.phoebus.ui.spi.MenuEntry;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
@@ -39,6 +46,10 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser.ExtensionFilter;
+import jfxtras.scene.layout.HBox;
 
 /** Menu entry to open 'about'
  *  @author Kay Kasemir
@@ -176,9 +187,45 @@ public class OpenAbout implements MenuEntry
 
         area = new TextArea(prefs_buf.toString());
         area.setEditable(false);
-        final Tab prefs = new Tab(Messages.HelpAboutPrefs, area);
+
+        final Button import_prefs = new Button("Import Preferences");
+        import_prefs.setOnAction(event -> import_preferences());
+        final HBox bottom_row = new HBox(import_prefs);
+        bottom_row.setAlignment(Pos.BASELINE_RIGHT);
+
+        VBox.setVgrow(area, Priority.ALWAYS);
+
+        final Tab prefs = new Tab(Messages.HelpAboutPrefs, new VBox(5, area, bottom_row));
 
         final TabPane tabs = new TabPane(apps, props, prefs);
         return tabs;
+    }
+
+    /** Prompt for settings.ini to import, then offer restart */
+    private void import_preferences()
+    {
+        final DockPane parent = DockPane.getActiveDockPane();
+
+        final ExtensionFilter[] ini = new ExtensionFilter[] { new ExtensionFilter("Preference settings.ini", List.of("*.ini")) };
+        final File file = new OpenFileDialog().promptForFile(parent.getScene().getWindow(), Messages.Open, null, ini);
+        if (file == null)
+            return;
+
+        JobManager.schedule("Load preferences", monitor ->
+        {
+            PropertyPreferenceLoader.load(new FileInputStream(file));
+            Platform.runLater(() ->
+            {
+                final Alert restart = new Alert(AlertType.CONFIRMATION);
+                restart.setHeaderText("Restart to activate loaded settings");
+                restart.setContentText("For performance reasons, preference settings are only loaded once on startup.\n" +
+                                       "Exit application so you can then start it again?");
+                restart.getDialogPane().setPrefSize(500, 300);
+                restart.setResizable(true);
+                DialogHelper.positionDialog(restart, parent, -400, -300);
+                if (restart.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK)
+                    System.exit(0);
+            });
+        });
     }
 }
