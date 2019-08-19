@@ -171,7 +171,7 @@ public class Preferences
         }
     }
 
-    private static List<ArchiveDataSource> parseArchives(final String setting)
+    public static List<ArchiveDataSource> parseArchives(final String setting)
     {
         final List<ArchiveDataSource> urls = new ArrayList<>();
         for (String fragment : setting.split("\\*"))
