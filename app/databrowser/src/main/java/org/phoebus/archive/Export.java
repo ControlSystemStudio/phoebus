@@ -17,6 +17,8 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.csstudio.trends.databrowser3.export.ExportJob;
+import org.csstudio.trends.databrowser3.export.MatlabFileExportJob;
+import org.csstudio.trends.databrowser3.export.MatlabScriptExportJob;
 import org.csstudio.trends.databrowser3.export.Source;
 import org.csstudio.trends.databrowser3.export.SpreadsheetExportJob;
 import org.csstudio.trends.databrowser3.export.ValueFormatter;
@@ -47,19 +49,27 @@ public class Export
         System.out.println();
         System.out.println("Export archived data into files");
         System.out.println();
-        System.out.println("Command-line options:");
-        System.out.println();
+        System.out.println("General command-line options:");
         System.out.println("-help                                    -  This text");
         System.out.println("-settings settings.xml                   -  Import settings from file, either exported XML or property file format");
         System.out.println("-archives                                -  Set archive URLs, separated by '*'");
+        System.out.println();
+        System.out.println("Archive Information options:");
         System.out.println("-list [pattern]                          -  List channel names, with optional pattern ('.', '*')");
+        System.out.println();
+        System.out.println("Data Export options:");
         System.out.println("-start '2019-01-02 08:00:00'             -  Start time");
         System.out.println("-end '2019-02-03 16:15:20'               -  End time (defaults to 'now')");
         System.out.println("-bin bin_count                           -  Export 'optimized' data for given bin count");
         System.out.println("-linear HH:MM:SS                         -  Export linearly extrapolated data for time intervals");
         System.out.println("-decimal precision                       -  Decimal format with given precision");
         System.out.println("-exponential precision                   -  Exponential format with given precision");
+        System.out.println("-nostate                                 -  Do not include status/severity in tab-separated file");
         System.out.println("-export /path/to/file channel <channels> -  Export data for one or more channels into file");
+
+        System.out.println();
+        System.out.println("File names ending in *.m or *.mat generate Matlab files.");
+        System.out.println("All other file name endings create tab-separated data files.");
     }
 
     public static void main(final String[] original_args) throws Exception
@@ -82,7 +92,6 @@ public class Export
         String start = "-1 week", end = "now";
         Style style = Style.Decimal;
         int precision = 3;
-        // TODO Command line options for all this
         boolean with_status = true;
 
         String export = null;
@@ -119,6 +128,11 @@ public class Export
                 }
                 else
                     list = "*";
+            }
+            else if (cmd.startsWith("-nos"))
+            {
+                with_status = false;
+                iter.remove();
             }
             else if (cmd.startsWith("-b"))
             {
@@ -277,8 +291,25 @@ public class Export
                 item.setArchiveDataSource(sources_array);
                 model.addItem(item);
             }
-            Consumer<Exception> error_handler = ex -> ex.printStackTrace();
-            final ExportJob job = new SpreadsheetExportJob(model, abs_range.getStart(), abs_range.getEnd(), source, optimize_parameter, formatter, export, error_handler);
+
+            final ExportJob job;
+            final Consumer<Exception> error_handler = ex -> ex.printStackTrace();
+            if (export.endsWith(".mat"))
+            {
+                System.out.println("# Creating binary MatLab data file");
+                job = new MatlabFileExportJob(model, abs_range.getStart(), abs_range.getEnd(), source, optimize_parameter, export, error_handler);
+            }
+            else if (export.endsWith(".m"))
+            {
+                System.out.println("# Creating MatLab file");
+                job = new MatlabScriptExportJob(model, abs_range.getStart(), abs_range.getEnd(), source, optimize_parameter, export, error_handler);
+            }
+            else
+            {
+                System.out.println("# Creating tab-separated file");
+                job = new SpreadsheetExportJob(model, abs_range.getStart(), abs_range.getEnd(), source, optimize_parameter, formatter, export, error_handler);
+            }
+
             final BasicJobMonitor monitor = new BasicJobMonitor()
             {
                 @Override
@@ -295,6 +326,7 @@ public class Export
                     System.out.println("# " + this);
                 }
             };
+            // Run job in this thread to allow Ctrl-C
             job.run(monitor);
             System.out.println("# Done.");
         }
