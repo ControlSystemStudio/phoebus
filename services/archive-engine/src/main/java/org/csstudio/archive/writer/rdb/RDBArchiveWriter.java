@@ -32,6 +32,7 @@ import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
+import org.epics.vtype.VByteArray;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VNumber;
@@ -40,6 +41,7 @@ import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.framework.rdb.RDBInfo;
 import org.phoebus.framework.rdb.RDBInfo.Dialect;
+import org.phoebus.pv.LongString;
 
 /** ArchiveWriter implementation for RDB
  *  @author Kay Kasemir
@@ -269,6 +271,12 @@ public class RDBArchiveWriter implements ArchiveWriter
                 batchDoubleSamples(channel, stamp, severity, status, number.doubleValue(), null);
             else
                 batchLongSample(channel, stamp, severity, status, number.longValue());
+        }
+        else if (sample instanceof VByteArray)
+        {   // Tread byte array as long string.
+            // Other number arrays handled below
+            final String text = LongString.fromArray((VByteArray)sample);
+            batchTextSamples(channel, stamp, severity, status, text);
         }
         else if (sample instanceof VNumberArray)
         {
