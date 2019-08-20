@@ -1,6 +1,7 @@
 package org.phoebus.applications.alarm.messages;
 
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
@@ -152,8 +153,8 @@ public class AlarmStateMessage {
         map.put("latch", Boolean.toString(isLatch()));
         map.put("message", getMessage());
         map.put("value", getValue());
-        map.put("time", formatter.format(getInstant()));
-        map.put("message_time", formatter.format(getMessage_time()));
+        map.put("time", formatter.withZone(ZoneId.of("UTC")).format(getInstant()));
+        map.put("message_time", formatter.withZone(ZoneId.of("UTC")).format(getMessage_time()));
         map.put("current_severity", getCurrent_severity());
         map.put("current_message", getCurrent_message());
         map.put("mode", getMode());

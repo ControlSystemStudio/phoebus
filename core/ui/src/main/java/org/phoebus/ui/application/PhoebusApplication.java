@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -115,10 +116,18 @@ public class PhoebusApplication extends Application {
     /** Menu item to save layout */
     private SaveLayoutMenuItem save_layout;
 
+    /** Menu item to delete layouts */
+    private DeleteLayoutsMenuItem delete_layouts;
+
     /** Menu to load past layouts */
     private final Menu load_layout = new Menu(Messages.LoadLayout, ImageCache.getImageView(ImageCache.class, "/icons/layouts.png"));
 
-    /** List of memento files in default directory. */
+    /** List of memento names
+     *
+     *  <p>This list contains the basic layout name,
+     *  without the ".memento" suffix and without the 'user'
+     *  location path.
+     */
     private final List<String> memento_files = new CopyOnWriteArrayList<>();
 
     /** Toolbar button for top resources */
@@ -350,6 +359,8 @@ public class PhoebusApplication extends Application {
                 final URI resource = ResourceParser.createResourceURI(parametersIterator.next());
                 launchResources.add(resource);
             }
+            else
+                logger.log(Level.WARNING, "Ignoring launch parameter '" + cmd + "'");
         }
 
         // May have been invoked from background thread,
@@ -435,6 +446,7 @@ public class PhoebusApplication extends Application {
         show_toolbar.setOnAction(event -> showToolbar(show_toolbar.isSelected()));
 
         save_layout = new SaveLayoutMenuItem(this, memento_files);
+        delete_layouts = new DeleteLayoutsMenuItem(this, memento_files);
 
         final Menu menu = new Menu(Messages.Window, null,
                 show_tabs,
@@ -442,6 +454,7 @@ public class PhoebusApplication extends Application {
                 new SeparatorMenuItem(),
                 save_layout,
                 load_layout,
+                delete_layouts,
                 new SeparatorMenuItem(),
                 /* Full Screen placeholder */
                 new FullScreenAction(stage));
@@ -482,22 +495,28 @@ public class PhoebusApplication extends Application {
             // For every non default memento file create a menu item for the load layout menu.
             if (filesArray != null)
             {
+                // Sort layout files alphabetically.
+                Arrays.sort(filesArray, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+
                 for (final File file : filesArray)
                 {
-                    final String filename = file.getName();
+                    String filename = file.getName();
+                    // Skip "memento", the default. Only list SOME_NAME.memento
                     if (file.isFile() && filename.endsWith(".memento"))
                     {
+                        // Remove ".memento"
+                        filename = filename.substring(0, filename.length() - 8);
+
                         // Build the list of memento files.
                         memento_files.add(filename);
-                        // Use just the file name w/o ".memento" for the menu entry
-                        final MenuItem menuItem = new MenuItem(filename.substring(0, filename.length() - 8));
+                        final MenuItem menuItem = new MenuItem(filename);
                         menuItem.setMnemonicParsing(false);
                         menuItem.setOnAction(event -> startLayoutReplacement(file));
                         // Add the item to the load layout menu.
                         menuItemList.add(menuItem);
 
                         // Repeat for the same menu in the toolbar. They can't share menu items.
-                        final MenuItem toolbarMenuItem = new MenuItem(filename.substring(0, filename.length() - 8));
+                        final MenuItem toolbarMenuItem = new MenuItem(filename);
                         toolbarMenuItem.setMnemonicParsing(false);
                         toolbarMenuItem.setOnAction(event -> startLayoutReplacement(file));
                         toolbarMenuItemList.add(toolbarMenuItem);
@@ -505,14 +524,12 @@ public class PhoebusApplication extends Application {
                 }
             }
 
-            // Sort the menu items alphabetically.
-            menuItemList.sort((a, b) -> a.getText().compareToIgnoreCase(b.getText()));
-            toolbarMenuItemList.sort((a, b) -> a.getText().compareToIgnoreCase(b.getText()));
-
             // Update the menu with the menu items on the UI thread.
-            Platform.runLater(()-> {
+            Platform.runLater(()->
+            {
                 load_layout.getItems().setAll(menuItemList);
                 layout_menu_button.getItems().setAll(toolbarMenuItemList);
+                delete_layouts.setDisable(memento_files.isEmpty());
             });
         });
     }

@@ -21,14 +21,19 @@ import org.epics.pva.PVASettings;
 import org.epics.pva.common.Network;
 import org.epics.pva.server.Guid;
 
-/** PVA Client
+/** PV Access Client
  *
- *  <p>Maintain PVs, coordinates search requests etc.
- *
- *  <p>Does not pool PVs by name. A caller requesting
- *  channels for the same name more than once will receive
- *  separate channels, with different internal channel IDs,
- *  which will result in separate channels on the PVA server.
+ *  <p>The {@link PVAClient} is the central client API.
+ *  Basic usage:
+ *  <pre>
+ *  PVAClient client = new PVAClient();
+ *  PVAChannel channel = client.getChannel("SomePVName");
+ *  channel.connect().get(5, TimeUnit.SECONDS);
+ *  PVAStructure value = channel.read("").get(5, TimeUnit.SECONDS);
+ *  System.out.println(channel.getName() + " = " + value);
+ *  channel.close();
+ *  client.close();
+ *  </pre>
  *
  *  @author Kay Kasemir
  */
@@ -52,6 +57,20 @@ public class PVAClient
 
     private final AtomicInteger request_ids = new AtomicInteger();
 
+    /** Create a new PVAClient
+     *
+     *  <p>The {@link PVAClient} maintain PVs and coordinates the necessary search requests.
+     *
+     *  <p>It does not pool PVs by name. A caller requesting
+     *  channels for the same name more than once will receive
+     *  separate channels, with different internal channel IDs,
+     *  which will result in separate channels on the PVA server.
+     *
+     *  <p>The PVAClient API thus provides full control over the number of channels.
+     *  A higher-level PV layer is suggested to perform channel pooling.
+     *
+     * @throws Exception on error
+     */
     public PVAClient() throws Exception
     {
         List<InetSocketAddress> search_addresses = Network.parseAddresses(PVASettings.EPICS_PVA_ADDR_LIST.split("\\s+"));
@@ -97,7 +116,7 @@ public class PVAClient
     *
     *  <p>Starts search.
     *
-    *  @param channel_name
+    *  @param channel_name PVA channel name
     *  @return {@link PVAChannel}
     */
     public PVAChannel getChannel(final String channel_name)
@@ -109,8 +128,8 @@ public class PVAClient
      *
      *  <p>Starts search.
      *
-     *  @param channel_name
-     *  @param listener {@link ClientChannelListener}
+     *  @param channel_name PVA channel name
+     *  @param listener {@link ClientChannelListener} that will be invoked with connection state updates
      *  @return {@link PVAChannel}
      */
     public PVAChannel getChannel(final String channel_name, final ClientChannelListener listener)

@@ -21,7 +21,7 @@ import org.epics.pva.data.Hexdump;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class EchoHandler implements CommandHandler<ClientTCPHandler>
+class EchoHandler implements CommandHandler<ClientTCPHandler>
 {
     @Override
     public byte getCommand()

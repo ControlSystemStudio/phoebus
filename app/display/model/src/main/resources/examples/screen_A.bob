@@ -22,7 +22,7 @@
     <text>$(actions)</text>
     <actions>
       <action type="open_display">
-        <file>control_action_buttons.bob</file>
+        <file>controls_action_buttons.bob</file>
         <target>replace</target>
         <description>Back To Action Buttons Screen</description>
       </action>

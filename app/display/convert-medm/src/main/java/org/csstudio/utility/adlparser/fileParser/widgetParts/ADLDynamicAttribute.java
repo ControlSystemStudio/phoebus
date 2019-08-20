@@ -24,11 +24,11 @@
  */
 package org.csstudio.utility.adlparser.fileParser.widgetParts;
 
-import org.csstudio.utility.adlparser.internationalization.Messages;
 import org.csstudio.utility.adlparser.fileParser.ADLResource;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.FileLine;
 import org.csstudio.utility.adlparser.fileParser.WrongADLFormatException;
+import org.csstudio.utility.adlparser.internationalization.Messages;
 
 /**
  * @author hrickens
@@ -36,6 +36,7 @@ import org.csstudio.utility.adlparser.fileParser.WrongADLFormatException;
  * @version $Revision$
  * @since 11.09.2007
  */
+@SuppressWarnings("nls")
 public class ADLDynamicAttribute extends WidgetPart{
     //TODO Strip out old code lines that refer to SDS implementations
 
@@ -107,7 +108,7 @@ public class ADLDynamicAttribute extends WidgetPart{
     @Override
     final void parseWidgetPart(final ADLWidget adlDynamicAttribute) throws WrongADLFormatException {
 
-        assert adlDynamicAttribute.isType("dynamic attribute") : Messages.ADLDynamicAttribute_AssertError_Begin+adlDynamicAttribute.getType()+Messages.ADLDynamicAttribute_AssertError_End; //$NON-NLS-1$
+        assert adlDynamicAttribute.isType("dynamic attribute") : Messages.ADLDynamicAttribute_AssertError_Begin+adlDynamicAttribute.getType()+Messages.ADLDynamicAttribute_AssertError_End;
         for (ADLWidget adlWidget : adlDynamicAttribute.getObjects()) {
             if(adlWidget.getType().equals("attr")){
                 for (FileLine fileLine : adlWidget.getBody()) {
@@ -123,26 +124,24 @@ public class ADLDynamicAttribute extends WidgetPart{
             if(parameter.getLine().trim().startsWith("//")){
                 continue;
             }
-            String head = parameter.getLine().replaceAll("\"", "").split("=")[0]; //$NON-NLS-1$
+            String head = parameter.getLine().replaceAll("\"", "").split("=")[0];
             String[] row = {parameter.getLine().replaceAll("\"", "").substring(head.length()+1)};
             head=head.trim().toLowerCase();
-            if(head.equals("clr")){ //$NON-NLS-1$
-                //TODO catch if this is string discrete/alarm/static
+            if(head.equals("clr")){
                 clrMode=FileLine.getTrimmedValue(row[0]);
-//                set_isColorDefined(true);
-            }else if(head.equals("vis")){ //$NON-NLS-1$
+            }else if(head.equals("vis")){
                 set_vis(FileLine.getTrimmedValue(row[0]));
-            }else if(head.equals("chan")){ //$NON-NLS-1$
+            }else if(head.equals("chan")){
                 set_chan(FileLine.getTrimmedValue(row[0]));
-            }else if(head.equals("chanb")){ //$NON-NLS-1$
+            }else if(head.equals("chanb")){
                 set_chanb(FileLine.getTrimmedValue(row[0]));
-            }else if(head.equals("chanc")){ //$NON-NLS-1$
+            }else if(head.equals("chanc")){
                 set_chanc(FileLine.getTrimmedValue(row[0]));
-            }else if(head.equals("chand")){ //$NON-NLS-1$
+            }else if(head.equals("chand")){
                 set_chand(FileLine.getTrimmedValue(row[0]));
-            }else if(head.equals("colorrule")){ //$NON-NLS-1$
+            }else if(head.equals("colorrule")){
                 _colorRule=FileLine.getTrimmedValue(row[0]);
-            }else if(head.equals("calc")){ //$NON-NLS-1$
+            }else if(head.equals("calc")){
                 set_calc(FileLine.getTrimmedValue(row[0]));
             }else {
                 throw new WrongADLFormatException(Messages.ADLDynamicAttribute_WrongADLFormatException_Parameter_Begin+parameter+Messages.ADLDynamicAttribute_WrongADLFormatException_Parameter_End);
@@ -179,7 +178,7 @@ public class ADLDynamicAttribute extends WidgetPart{
         return ret;
     }
 
-    protected String getClrMode() {
+    public String getClrMode() {
         return clrMode;
     }
 

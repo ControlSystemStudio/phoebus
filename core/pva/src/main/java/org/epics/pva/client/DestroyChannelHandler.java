@@ -19,7 +19,7 @@ import org.epics.pva.common.PVAHeader;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class DestroyChannelHandler implements CommandHandler<ClientTCPHandler>
+class DestroyChannelHandler implements CommandHandler<ClientTCPHandler>
 {
     @Override
     public byte getCommand()

@@ -7,286 +7,106 @@
     <name>Label</name>
     <class>TITLE</class>
     <text>Meter Widgets</text>
-    <x use_class="true">0</x>
-    <y use_class="true">0</y>
     <width>550</width>
     <height>31</height>
-    <font use_class="true">
+    <font>
       <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
       </font>
     </font>
-    <foreground_color use_class="true">
-      <color name="Text" red="0" green="0" blue="0">
-      </color>
-    </foreground_color>
-    <transparent use_class="true">true</transparent>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_1</name>
-    <text>Meters display numerical values graphically by means of a needle and a scale.</text>
-    <y>50</y>
-    <width>620</width>
+    <text>Meters display numerical values.
+By default, the meter reflects the range, units, alarm limits, and current alarm state of the process variable.</text>
+    <y>31</y>
+    <width>370</width>
+    <height>70</height>
+  </widget>
+  <widget type="meter" version="3.0.0">
+    <name>Meter</name>
+    <pv_name>loc://x(50)</pv_name>
+    <x>410</x>
+    <y>101</y>
+    <width>360</width>
+    <height>220</height>
+    <foreground_color>
+      <color red="255" green="0" blue="255">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color red="51" green="51" blue="51">
+      </color>
+    </background_color>
+    <font>
+      <font family="Liberation Serif" style="BOLD_ITALIC" size="24.0">
+      </font>
+    </font>
+    <format>3</format>
+    <precision>2</precision>
+    <limits_from_pv>false</limits_from_pv>
+    <needle_color>
+      <color red="255" green="204" blue="128">
+      </color>
+    </needle_color>
+    <knob_color>
+      <color red="0" green="0" blue="255">
+      </color>
+    </knob_color>
+  </widget>
+  <widget type="scrollbar" version="2.0.0">
+    <name>Scrollbar</name>
+    <pv_name>loc://x(50)</pv_name>
+    <x>420</x>
+    <y>340</y>
+    <width>350</width>
+    <height>30</height>
+    <limits_from_pv>false</limits_from_pv>
+  </widget>
+  <widget type="meter" version="3.0.0">
+    <name>Meter_1</name>
+    <pv_name>sim://ramp(-5, 5, 0.1, 0.1)</pv_name>
+    <x>10</x>
+    <y>101</y>
+    <width>380</width>
+    <height>210</height>
+    <minimum>-5.0</minimum>
+    <maximum>5.0</maximum>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <pv_name>sim://ramp(-5, 5, 0.1, 0.1)</pv_name>
+    <x>130</x>
+    <y>610</y>
+    <width>130</width>
+    <height>30</height>
+  </widget>
+  <widget type="meter" version="3.0.0">
+    <name>Meter_2</name>
+    <pv_name>sim://ramp(-5, 5, 0.1, 0.1)</pv_name>
+    <x>10</x>
+    <y>389</y>
+    <width>380</width>
+    <height>210</height>
+    <show_value>false</show_value>
+    <show_units>false</show_units>
+    <show_limits>false</show_limits>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <minimum>-5.0</minimum>
+    <maximum>5.0</maximum>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_2</name>
-    <text>Different Skins &amp; No Highlight</text>
-    <y>90</y>
-    <width>580</width>
-    <font>
-      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
-      </font>
-    </font>
-  </widget>
-  <widget type="meter" version="2.0.0">
-    <name>Meter</name>
-    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
-    <x>220</x>
-    <y>120</y>
-    <width>200</width>
-    <height>100</height>
-    <highligh_zones>false</highligh_zones>
-  </widget>
-  <widget type="meter" version="2.0.0">
-    <name>Meter_1</name>
-    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
-    <skin>2</skin>
-    <knob_position>2</knob_position>
-    <x>430</x>
-    <y>120</y>
-    <width>200</width>
-    <height>200</height>
-    <highligh_zones>false</highligh_zones>
-  </widget>
-  <widget type="meter" version="2.0.0">
-    <name>Meter_2</name>
-    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
-    <skin>0</skin>
-    <knob_position>3</knob_position>
-    <x>10</x>
-    <y>120</y>
-    <width>200</width>
-    <height>200</height>
-    <highligh_zones>false</highligh_zones>
-  </widget>
-  <widget type="meter" version="2.0.0">
-    <name>Meter_3</name>
-    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
-    <skin>3</skin>
-    <knob_position>3</knob_position>
-    <x>640</x>
-    <y>120</y>
-    <width>200</width>
-    <height>200</height>
-    <highligh_zones>false</highligh_zones>
-  </widget>
-  <widget type="meter" version="2.0.0">
-    <name>Meter_4</name>
-    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
-    <skin>4</skin>
-    <knob_position>5</knob_position>
-    <x>850</x>
-    <y>120</y>
-    <width>100</width>
-    <height>200</height>
-    <highligh_zones>false</highligh_zones>
+    <text>Many of these features can be disabled.</text>
+    <y>350</y>
+    <width>370</width>
+    <height>39</height>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_3</name>
-    <text>Different Knob Positions &amp; Value Display &amp; Scale Direction</text>
-    <y>350</y>
-    <width>580</width>
-    <font>
-      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
-      </font>
-    </font>
-  </widget>
-  <widget type="meter" version="2.0.0">
-    <name>Meter_5</name>
-    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
-    <knob_position>6</knob_position>
-    <x>10</x>
-    <y>380</y>
-    <width>200</width>
-    <height>100</height>
-    <lcd_visible>false</lcd_visible>
-    <scale_direction>1</scale_direction>
-  </widget>
-  <widget type="meter" version="2.0.0">
-    <name>Meter_6</name>
-    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
-    <skin>2</skin>
-    <knob_position>7</knob_position>
-    <x>220</x>
-    <y>380</y>
-    <width>200</width>
-    <height>200</height>
-    <lcd_font>2</lcd_font>
-    <scale_direction>1</scale_direction>
-  </widget>
-  <widget type="meter" version="2.0.0">
-    <name>Meter_8</name>
-    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
-    <skin>2</skin>
-    <knob_position>8</knob_position>
-    <x>430</x>
-    <y>380</y>
-    <width>200</width>
-    <height>200</height>
-    <lcd_font>4</lcd_font>
-    <scale_direction>1</scale_direction>
-  </widget>
-  <widget type="meter" version="2.0.0">
-    <name>Meter_9</name>
-    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
-    <skin>2</skin>
-    <knob_position>1</knob_position>
-    <x>640</x>
-    <y>380</y>
-    <width>200</width>
-    <height>200</height>
-    <lcd_font>4</lcd_font>
-    <scale_direction>1</scale_direction>
-  </widget>
-  <widget type="meter" version="2.0.0">
-    <name>Meter_10</name>
-    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
-    <skin>4</skin>
-    <knob_position>4</knob_position>
-    <x>850</x>
-    <y>380</y>
-    <width>100</width>
-    <height>200</height>
-    <lcd_design>8</lcd_design>
-    <scale_direction>1</scale_direction>
-  </widget>
-  <widget type="label" version="2.0.0">
-    <name>Label_4</name>
-    <text>Mean Value &amp; Tick Mark Ring &amp; Foreground Colour</text>
-    <y>610</y>
-    <width>580</width>
-    <font>
-      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
-      </font>
-    </font>
-  </widget>
-  <widget type="meter" version="2.0.0">
-    <name>Meter_11</name>
-    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
-    <x>220</x>
-    <y>640</y>
-    <width>200</width>
-    <height>100</height>
-    <title>Meter #2</title>
-    <average>true</average>
-    <average_samples>50</average_samples>
-    <tick_mark_ring_visible>true</tick_mark_ring_visible>
-  </widget>
-  <widget type="meter" version="2.0.0">
-    <name>Meter_12</name>
-    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
-    <skin>2</skin>
-    <knob_position>2</knob_position>
-    <x>430</x>
-    <y>640</y>
-    <width>200</width>
-    <height>200</height>
-    <foreground_color>
-      <color red="51" green="102" blue="51">
-      </color>
-    </foreground_color>
-    <title>Meter #3</title>
-    <average>true</average>
-    <average_samples>50</average_samples>
-    <tick_mark_ring_visible>true</tick_mark_ring_visible>
-  </widget>
-  <widget type="meter" version="2.0.0">
-    <name>Meter_13</name>
-    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
-    <skin>0</skin>
-    <knob_position>3</knob_position>
-    <x>10</x>
-    <y>640</y>
-    <width>200</width>
-    <height>200</height>
-    <foreground_color>
-      <color red="51" green="77" blue="179">
-      </color>
-    </foreground_color>
-    <title>Meter #1</title>
-    <average>true</average>
-    <average_samples>50</average_samples>
-    <tick_mark_ring_visible>true</tick_mark_ring_visible>
-  </widget>
-  <widget type="meter" version="2.0.0">
-    <name>Meter_14</name>
-    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
-    <skin>3</skin>
-    <knob_position>3</knob_position>
-    <x>640</x>
-    <y>640</y>
-    <width>200</width>
-    <height>200</height>
-    <foreground_color>
-      <color red="102" green="26" blue="51">
-      </color>
-    </foreground_color>
-    <title>Meter #4</title>
-    <average>true</average>
-    <average_samples>50</average_samples>
-    <scale_direction>1</scale_direction>
-    <tick_mark_ring_visible>true</tick_mark_ring_visible>
-  </widget>
-  <widget type="meter" version="2.0.0">
-    <name>Meter_15</name>
-    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
-    <skin>4</skin>
-    <knob_position>5</knob_position>
-    <x>850</x>
-    <y>640</y>
-    <width>100</width>
-    <height>200</height>
-    <foreground_color>
-      <color red="153" green="153" blue="0">
-      </color>
-    </foreground_color>
-    <title>Meter #5</title>
-    <value_visible>false</value_visible>
-    <average>true</average>
-    <average_samples>50</average_samples>
-    <tick_mark_ring_visible>true</tick_mark_ring_visible>
-  </widget>
-  <widget type="label" version="2.0.0">
-    <name>Label_5</name>
-    <text>Linear Meters</text>
-    <y>870</y>
-    <width>580</width>
-    <font>
-      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
-      </font>
-    </font>
-  </widget>
-  <widget type="linear-meter" version="2.0.0">
-    <name>Linear Meter</name>
-    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
-    <x>10</x>
-    <y>900</y>
-    <title>Linear Meter #1</title>
-  </widget>
-  <widget type="linear-meter" version="2.0.0">
-    <name>Linear Meter_1</name>
-    <pv_name>sim://ramp(-20,100,1,0.1)</pv_name>
-    <x>370</x>
-    <y>900</y>
-    <foreground_color>
-      <color red="26" green="51" blue="153">
-      </color>
-    </foreground_color>
-    <title>Linear Meter #2</title>
-    <lcd_design>28</lcd_design>
-    <bar_color>
-      <color red="179" green="77" blue="26">
-      </color>
-    </bar_color>
-    <flat_bar>true</flat_bar>
+    <text>The meter's colors and fonts can be misconfigured.</text>
+    <x>410</x>
+    <y>31</y>
+    <width>360</width>
+    <height>39</height>
   </widget>
 </display>

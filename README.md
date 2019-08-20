@@ -62,7 +62,7 @@ mvn exec:java
 To run the product jar
 ```
 cd phoebus-product/target
-java -jar product-0.0.1-SNAPSHOT.jar
+java -jar product-*-SNAPSHOT.jar
 ```
 
 

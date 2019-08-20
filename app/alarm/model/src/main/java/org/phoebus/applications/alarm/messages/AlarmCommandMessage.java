@@ -1,6 +1,7 @@
 package org.phoebus.applications.alarm.messages;
 
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
@@ -82,7 +83,7 @@ public class AlarmCommandMessage {
         map.put("user", getUser());
         map.put("host", getHost());
         map.put("command", getCommand());
-        map.put("message_time", formatter.format(getMessage_time()));
+        map.put("message_time", formatter.withZone(ZoneId.of("UTC")).format(getMessage_time()));
         return map;
     }
 

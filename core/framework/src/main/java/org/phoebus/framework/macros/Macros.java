@@ -80,8 +80,9 @@ public class Macros implements MacroValueProvider
      *  escaped:
      *  <pre> MSG = "This is a \"Message\""</pre>
      *
-     *  @param names_and_values
-     *  @throws Exception
+     *  @param names_and_values "M1=Value1, M2=Value2"
+     *  @return {@link Macros}
+     *  @throws Exception on error
      */
     public static Macros fromSimpleSpec(final String names_and_values) throws Exception
     {

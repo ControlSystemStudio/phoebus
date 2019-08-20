@@ -118,15 +118,15 @@ class DataHeader
 
         // compute amount of data in this data file entry: (bytes allocated) - (bytes free) - (bytes in header)
         final long buffDataSize = buff_size - buff_free - 152;
-        System.out.println(buffDataSize);
+        // System.out.println(buffDataSize);
 
         // Size of samples:
         // 12 bytes for status/severity/timestamp,
         // padding, value, padding
         final long dbr_size = 12 + dbrType.padding + dbrCount * dbrType.valueSize + dbrType.getValuePad(dbrCount);
         final long expected = dbr_size * numSamples;
-        System.out.println(dbr_size);
-        System.out.println(expected);
+        // System.out.println(dbr_size);
+        // System.out.println(expected);
 
         if (expected != buffDataSize)
             throw new Exception("Expected " + expected + " byte buffer, got " + buffDataSize);

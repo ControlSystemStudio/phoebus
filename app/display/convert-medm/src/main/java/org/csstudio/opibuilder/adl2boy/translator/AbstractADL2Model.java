@@ -17,6 +17,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.LineStyle;
+import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.properties.ScriptPV;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.rules.RuleInfo;
@@ -33,6 +34,7 @@ import org.phoebus.framework.macros.Macros;
  * @author John Hammonds, Argonne National Laboratory
  *
  */
+@SuppressWarnings("nls")
 public abstract class AbstractADL2Model<WM extends Widget>
 {
     WM widgetModel;
@@ -79,7 +81,8 @@ public abstract class AbstractADL2Model<WM extends Widget>
      * @param widgetModel
      */
     protected void setADLObjectProps(ADLAbstractWidget adlWidget, Widget widgetModel) {
-        widgetModel.propName().setValue(adlWidget.getName());
+        widgetModel.propName().setValue(adlWidget.getName() + " #" + adlWidget.getObjectNr());
+
         if (adlWidget.hasADLObject()) {
             ADLObject adlObj = adlWidget.getAdlObject();
             widgetModel.propX().setValue(adlObj.getX());
@@ -134,15 +137,17 @@ public abstract class AbstractADL2Model<WM extends Widget>
             dynAttr = TranslatorUtils.defaultDynamicAttribute;
             adlWidget.setAdlDynamicAttribute(dynAttr);
         }
-        if (!(dynAttr.get_vis().equals("static"))) {
-            if (dynAttr.get_chan() != null) {
-                if (dynAttr.get_vis().equals("if not zero")) {
-                    addSimpleVisibilityRule("pv0!=0", dynAttr.get_chan(),
+
+        if (! dynAttr.get_vis().equals("static"))
+        {
+            if (dynAttr.get_chan() != null)
+            {
+                if (dynAttr.get_vis().equals("if not zero"))
+                    addSimpleVisibilityRule("vis_if_not_zero", "pv0!=0", dynAttr.get_chan(),
                             widgetModel);
-                } else if (dynAttr.get_vis().equals("if zero")) {
-                    addSimpleVisibilityRule("pv0==0", dynAttr.get_chan(),
+                else if (dynAttr.get_vis().equals("if zero"))
+                    addSimpleVisibilityRule("vis_if_zero", "pv0==0", dynAttr.get_chan(),
                             widgetModel);
-                }
                 else if (dynAttr.get_vis().equals("calc"))
                 {
                     // Make widget visible, then add rule to make invisible
@@ -158,7 +163,7 @@ public abstract class AbstractADL2Model<WM extends Widget>
                             pvs.add(new ScriptPV(pv, true));
 
                     final String newExpr = translateExpression(dynAttr.get_calc());
-                    final RuleInfo rule = new RuleInfo("visible",
+                    final RuleInfo rule = new RuleInfo("vis_calc",
                             CommonWidgetProperties.propVisible.getName(),
                             false,
                             List.of(new RuleInfo.ExprInfoValue<>("!("+ newExpr + ")", visible)),
@@ -168,16 +173,44 @@ public abstract class AbstractADL2Model<WM extends Widget>
                 }
             }
         }
+
+        if (dynAttr.getClrMode().equals("alarm")  &&  dynAttr.get_chan() != null)
+        {
+            // Attach script that sets background color based on alarm severity
+            final String embedded_script =
+                "from org.csstudio.display.builder.runtime.script import PVUtil\n" +
+                "from org.csstudio.display.builder.model.persist import WidgetColorService\n" +
+                "sevr = PVUtil.getSeverity(pvs[0])\n" +
+                "if sevr==1:\n" +
+                "    name = 'MINOR'\n" +
+                "elif sevr==2:\n" +
+                "    name = 'MAJOR'\n" +
+                "elif sevr==3:\n" +
+                "    name = 'INVALID'\n" +
+                "elif sevr==4:\n" +
+                "    name = 'DISCONNECTED'\n" +
+                "else:\n" +
+                "    name = 'OK'\n" +
+                "color = WidgetColorService.getColor(name)\n" +
+                "widget.setPropertyValue('background_color', color)\n";
+            final ScriptInfo script = new ScriptInfo(ScriptInfo.EMBEDDED_PYTHON,
+                                                     embedded_script,
+                                                     true,
+                                                     List.of(new ScriptPV(dynAttr.get_chan())));
+            widgetModel.propScripts().setValue(List.of(script));
+        }
     }
 
     /** Create a simple visibility rule.  This places a simple logical
      * expression for one channel
+     * @param name Name of rule
      * @param booleanExpression
      * @param chan
      * @param widgetModel
      * @return
      */
-    private void addSimpleVisibilityRule(final String booleanExpression,
+    private void addSimpleVisibilityRule(final String name,
+                                         final String booleanExpression,
                                          final String chan, final Widget widgetModel)
     {
         // Make widget visible, then add rule to make invisible
@@ -187,7 +220,7 @@ public abstract class AbstractADL2Model<WM extends Widget>
         visible = visible.clone();
         visible.setValue(false);
 
-        final RuleInfo rule = new RuleInfo("visible",
+        final RuleInfo rule = new RuleInfo(name,
                 CommonWidgetProperties.propVisible.getName(),
                 false,
                 List.of(new RuleInfo.ExprInfoValue<>("!("+ booleanExpression + ")", visible)),
@@ -210,71 +243,28 @@ public abstract class AbstractADL2Model<WM extends Widget>
      *        B = pv1
      *        C = pv2
      *        D = PV3
-     * 3. Only basic desion maiking is hapenning
+     * 3. Only basic decision making is happening
      *    ()+-/*=<># were used.  No use of math
      *    functions like ABS, SIN, ...
      * 4. The characters = and # are replaced by
-     *    == and != respecively.
+     *    == and != respectively.
      * @param adlExpr
      * @return
      */
     private String translateExpression(String adlExpr) {
-        String opiExpr = adlExpr;
-        opiExpr = replaceChannel("A", "pv0", opiExpr);
-        opiExpr = replaceChannel("B", "pv1", opiExpr);
-        opiExpr = replaceChannel("C", "pv2", opiExpr);
-        opiExpr = replaceChannel("D", "pv3", opiExpr);
-        opiExpr = replaceString("=", "==", opiExpr);
-        opiExpr = replaceString("#", "!=", opiExpr);
+        String opiExpr = adlExpr.replace("A", "pv0")
+                                .replace("B", "pv1")
+                                .replace("C", "pv2")
+                                .replace("D", "pv3")
+                                .replace("=", "==")
+                                .replace("#", "!=");
 
-        // The above can result in "pv0====7".
-        // Patch that back into a plain "pv0==7"
+        // The above can result in "pv0====7" or "pv1 !== 8"
+        // when exiting "==" or "!=" gets replaced.
+        // Patch that back into a plain "==" resp. "!="
         opiExpr = opiExpr.replaceAll("==+", "==");
-        return opiExpr.toString();
-    }
 
-    /**
-     *
-     * @param adlChanName
-     * @param opiChanName
-     * @param opiExpr
-     * @return
-     */
-    private String replaceChannel(String adlChanName, String opiChanName,
-            String opiExpr) {
-        opiExpr = replaceString(adlChanName, opiChanName, opiExpr);
-        opiExpr = replaceString(adlChanName.toLowerCase(), opiChanName, opiExpr);
         return opiExpr;
-    }
-
-    private String replaceString(String inName, String outName, String expr) {
-        String retExpr = expr;
-        if (retExpr.contains(inName)){
-            StringBuffer tempExpr = new StringBuffer();
-            String[] parts = retExpr.split(inName);
-            tempExpr.append(parts[0]);
-            for (int occur = 0; occur<(parts.length-1); occur++){
-                if (!inName.equals("=")) {
-                    if (inName.equals("=")
-                            && (tempExpr.toString().endsWith(">") ||
-                                    tempExpr.toString().endsWith("<") ))
-
-                    {
-                        tempExpr.append("=");
-                        tempExpr.append(parts[occur + 1]);
-                    } else {
-                        tempExpr.append(outName);
-                        tempExpr.append(parts[occur + 1]);
-                    }
-                }
-                else {
-                    tempExpr.append(outName);
-                    tempExpr.append(parts[occur + 1]);
-                }
-            }
-            retExpr = tempExpr.toString();
-        }
-        return retExpr;
     }
 
     /**

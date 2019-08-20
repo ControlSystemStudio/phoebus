@@ -19,7 +19,9 @@ public class PVAString extends PVAData
 {
     public static final byte FIELD_DESC_TYPE = (byte)0b01100000;
 
-    /** @return Encoded size of string in bytes */
+    /** @param string Text
+     *  @return Encoded size of string in bytes
+     */
     public static int getEncodedSize(final String string)
     {
         final int len = string.length();

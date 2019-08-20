@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <display version="2.0.0">
   <name>Arcs</name>
-  <width>650</width>
-  <height>800</height>
+  <width>620</width>
+  <height>930</height>
   <widget type="label" version="2.0.0">
     <name>Label</name>
     <text>Arc Widget</text>
@@ -114,13 +114,13 @@ Size: 200</text>
     <text>Start: 0
 Size: 90</text>
     <x>181</x>
-    <y>491</y>
+    <y>531</y>
     <width>109</width>
     <height>69</height>
   </widget>
   <widget type="arc" version="2.0.0">
     <name>Arc_6</name>
-    <y>491</y>
+    <y>531</y>
     <width>151</width>
     <height>110</height>
     <transparent>true</transparent>
@@ -130,13 +130,13 @@ Size: 90</text>
     <text>Start: 45
 Size: 180</text>
     <x>181</x>
-    <y>630</y>
+    <y>670</y>
     <width>109</width>
     <height>69</height>
   </widget>
   <widget type="arc" version="2.0.0">
     <name>Arc_7</name>
-    <y>630</y>
+    <y>670</y>
     <width>151</width>
     <height>110</height>
     <start_angle>45.0</start_angle>
@@ -148,13 +148,13 @@ Size: 180</text>
     <text>Start: 270
 Size: -90</text>
     <x>181</x>
-    <y>780</y>
+    <y>820</y>
     <width>109</width>
     <height>69</height>
   </widget>
   <widget type="arc" version="2.0.0">
     <name>Arc_8</name>
-    <y>780</y>
+    <y>820</y>
     <width>151</width>
     <height>110</height>
     <start_angle>270.0</start_angle>
@@ -166,14 +166,14 @@ Size: -90</text>
     <text>Start: 325
 Size: 180</text>
     <x>501</x>
-    <y>630</y>
+    <y>670</y>
     <width>109</width>
     <height>69</height>
   </widget>
   <widget type="arc" version="2.0.0">
     <name>Arc_9</name>
     <x>320</x>
-    <y>630</y>
+    <y>670</y>
     <width>151</width>
     <height>110</height>
     <start_angle>325.0</start_angle>
@@ -183,7 +183,7 @@ Size: 180</text>
   <widget type="arc" version="2.0.0">
     <name>Arc_10</name>
     <x>320</x>
-    <y>780</y>
+    <y>820</y>
     <width>151</width>
     <height>110</height>
     <start_angle>270.0</start_angle>
@@ -195,7 +195,7 @@ Size: 180</text>
     <text>Start: 270
 Size: 200</text>
     <x>501</x>
-    <y>780</y>
+    <y>820</y>
     <width>109</width>
     <height>69</height>
   </widget>
@@ -204,8 +204,45 @@ Size: 200</text>
     <text>When not filled (i.e. transparent fill color),
 only the arc itself is drawn.</text>
     <x>320</x>
-    <y>491</y>
+    <y>460</y>
     <width>270</width>
-    <height>99</height>
+    <height>59</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_14</name>
+    <text>Start: 180
+Size: 360</text>
+    <x>511</x>
+    <y>31</y>
+    <width>109</width>
+    <height>69</height>
+  </widget>
+  <widget type="arc" version="2.0.0">
+    <name>Arc_11</name>
+    <x>330</x>
+    <y>31</y>
+    <width>151</width>
+    <height>110</height>
+    <start_angle>180.0</start_angle>
+    <total_angle>360.0</total_angle>
+  </widget>
+  <widget type="arc" version="2.0.0">
+    <name>Arc_12</name>
+    <x>320</x>
+    <y>520</y>
+    <width>151</width>
+    <height>110</height>
+    <start_angle>180.0</start_angle>
+    <total_angle>360.0</total_angle>
+    <transparent>true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_15</name>
+    <text>Start: 180
+Size: 360</text>
+    <x>501</x>
+    <y>531</y>
+    <width>109</width>
+    <height>69</height>
   </widget>
 </display>

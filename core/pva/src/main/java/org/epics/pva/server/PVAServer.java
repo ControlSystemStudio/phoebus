@@ -53,7 +53,9 @@ public class PVAServer
     /** Handlers for the TCP connections clients established to this server */
     private final KeySetView<ServerTCPHandler, Boolean> tcp_handlers = ConcurrentHashMap.newKeySet();
 
-    /** Create PVA Server */
+    /** Create PVA Server
+     *  @throws Exception on error
+     */
     public PVAServer() throws Exception
     {
         logger.log(Level.CONFIG, "PVA Server " + guid);
@@ -80,11 +82,8 @@ public class PVAServer
 
     /** Create a PV for an RPC service
      *
-     *  <p>Creates a thread-safe copy of the initial value.
-     *  To update the data, see {@link ServerPV#update(PVAStructure)}
-     *
      *  @param name PV Name
-     *  @param data Type definition and initial value
+     *  @param rpc {@link RPCService} that handles client invocations
      *  @return {@link ServerPV}
      */
     public ServerPV createPV(final String name, final RPCService rpc)

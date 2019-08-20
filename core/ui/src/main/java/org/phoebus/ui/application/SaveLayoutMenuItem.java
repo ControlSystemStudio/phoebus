@@ -91,24 +91,25 @@ class SaveLayoutMenuItem extends MenuItem
         dialog.getDialogPane().setMinSize(280, 160);
     }
 
-    /**
-     * Save the state of the phoebus application with the given filename.
-     * <p> If the file already exists, alert the user and prompt for file overwrite confirmation.
-     * @param phoebus Phoebus application
-     * @param filename Memento file
-     * @return <code>true</code> if saved, <code>false</code> when not overwriting existing file
+    /** Save the state of the phoebus application with the given filename.
+     *
+     *  <p> If the file already exists, alert the user and prompt for file overwrite confirmation.
+     *
+     *  @param phoebus Phoebus application
+     *  @param layout Memento name
+     *  @return <code>true</code> if saved, <code>false</code> when not overwriting existing file
      */
-    private boolean saveState(final String filename)
+    private boolean saveState(final String layout)
     {
-        final String memento_filename = filename + ".memento";
+        final String memento_filename = layout + ".memento";
         final File memento_file = new File(Locations.user(), memento_filename);
         // File.exists() is blocking in nature.
         // To combat this the phoebus application maintains a list of *.memento files that are in the default directory.
         // Check if the file name is in the list, and confirm a file overwrite with the user.
-        if (memento_files.contains(memento_filename))
+        if (memento_files.contains(layout))
         {
             final Alert fileExistsAlert = new Alert(AlertType.CONFIRMATION);
-            fileExistsAlert.setHeaderText(MessageFormat.format( Messages.FileExists, filename));
+            fileExistsAlert.setHeaderText(MessageFormat.format(Messages.FileExists, layout));
             positionDialog(fileExistsAlert);
             if (fileExistsAlert.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK)
                 return false;

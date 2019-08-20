@@ -11,7 +11,7 @@ import java.text.FieldPosition;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 import java.time.Instant;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -323,8 +323,7 @@ public class Decoders
 
         final PVAStructure section = struct.get("value");
         final int value = ((PVAInt)section.get("index")).get();
-
-        final PVAStringArray choices = struct.get("choices");
+        final PVAStringArray choices = section.get("choices");
 
         return VEnum.of(value, EnumDisplay.of(choices.get()), alarm, time);
     }
@@ -421,7 +420,7 @@ public class Decoders
 
     public static VType decodeStringArray(final PVAStructure struct, final PVAStringArray field)
     {
-        return VStringArray.of(List.of(field.get()), decodeAlarm(struct), decodeTime(struct));
+        return VStringArray.of(Arrays.asList(field.get()), decodeAlarm(struct), decodeTime(struct));
     }
 
     public static VType decodeNumber(final PVAStructure struct, final PVANumber field) throws Exception

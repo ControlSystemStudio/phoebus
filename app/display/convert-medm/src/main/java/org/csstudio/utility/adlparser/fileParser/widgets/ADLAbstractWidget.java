@@ -39,8 +39,14 @@ public abstract class ADLAbstractWidget {
 
     protected String name = new String();
 
-    public ADLAbstractWidget(final ADLWidget adlWidget){
+    private final int _objectNr;
 
+    public ADLAbstractWidget(final ADLWidget adlWidget){
+        _objectNr = adlWidget.getObjectNr();
+    }
+
+    public final int getObjectNr() {
+        return _objectNr;
     }
 
     public final String getName(){
