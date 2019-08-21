@@ -18,6 +18,7 @@ import org.csstudio.scan.client.ScanClient;
 import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.info.ScanServerInfo;
 import org.csstudio.scan.info.ScanState;
+import org.csstudio.scan.ui.ScanUIPreferences;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -135,6 +136,7 @@ public class ScansTable extends VBox
         VBox.setVgrow(scan_table, Priority.ALWAYS);
         getChildren().setAll(scan_table, status);
         createContextMenu();
+        showStatusbar(ScanUIPreferences.monitor_status);
     }
 
     private void createTable()
@@ -253,6 +255,9 @@ public class ScansTable extends VBox
         remove_completed.setOnAction(event ->
             JobManager.schedule(remove_completed.getText(), monitor -> scan_client.removeCompletedScans()));
 
+        final MenuItem toggle_status = new MenuItem("", ImageCache.getImageView(ImageCache.class, "/icons/info.png"));
+        toggle_status.setOnAction(event -> showStatusbar(! isStatusbarVisible()));
+
         final ContextMenu menu = new ContextMenu();
         scan_table.setOnContextMenuRequested(event ->
         {
@@ -310,6 +315,10 @@ public class ScansTable extends VBox
 
             if (any_completed)
                 menu.getItems().add(remove_completed);
+
+            toggle_status.setText(isStatusbarVisible() ? "Hide Status" : "Show Status");
+            menu.getItems().add(toggle_status);
+
             menu.show(scan_table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
     }
@@ -389,5 +398,19 @@ public class ScansTable extends VBox
         else
             text = "Scan Server " + server_info.getMemoryInfo();
         status.setText(text);
+    }
+
+    private void showStatusbar(final boolean show)
+    {
+        if (show)
+            getChildren().setAll(scan_table, status);
+        else
+            getChildren().setAll(scan_table);
+        ScanUIPreferences.setMonitorStatus(show);
+    }
+
+    private boolean isStatusbarVisible()
+    {
+        return getChildren().size() > 1;
     }
 }

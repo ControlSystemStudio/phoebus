@@ -153,7 +153,13 @@ public class ActionUtil
         catch (final Exception ex)
         {
             logger.log(Level.WARNING, "Error handling " + action, ex);
-            ScriptUtil.showErrorDialog(source_widget, "Cannot open " + action.getFile() + ".\n\nSee log for details.");
+
+            final String message;
+            if (action.getFile().endsWith(".opi"))
+                message = "Cannot open " + action.getFile() + " or .bob.\n\nSee log for details.";
+            else
+                message = "Cannot open " + action.getFile() + ".\n\nSee log for details.";
+            ScriptUtil.showErrorDialog(source_widget, message);
         }
     }
 
