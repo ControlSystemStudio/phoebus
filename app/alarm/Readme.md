@@ -25,9 +25,9 @@ kafka in `/opt/kafka`.
     cd examples
     
     # Use wget, 'curl -O', or web browser
-    wget http://mirrors.gigenet.com/apache/kafka/2.0.0/kafka_2.11-2.0.0.tgz
-    tar -vzxf kafka_2.11-2.0.0.tgz
-    ln -s kafka_2.11-2.0.0 kafka
+    wget http://ftp.wayne.edu/apache/kafka/2.3.0/kafka_2.12-2.3.0.tgz
+    tar -vzxf kafka_2.12-2.3.0.tgz
+    ln -s kafka_2.12-2.3.0 kafka
      
 Check `config/zookeeper.properties` and `config/server.properties`.
 By default these contain settings for keeping data in `/tmp/`, which works for initial tests,
@@ -108,7 +108,7 @@ Kafka Demo
 
 This is a Kafka message demonstration using a 'test' topic.
 It is not required for the alarm system setup
-but simply meant to learn about Kafka or test connectivity.
+but simply meant to learn about Kafka or to test connectivity.
 
     # Create new topic
     kafka/bin/kafka-topics.sh  --zookeeper localhost:2181 --create --replication-factor 1 --partitions 1 --topic test
@@ -186,10 +186,15 @@ You can track the log cleaner runs via
 Start Alarm Server
 ------------------
 
-Run the alarm server product.
-For "Accelerator" configuration on localhost, simply start it.
-Otherwise run `-help` to see options for importing or exporting configurations,
-using other configurations etc.
+Run the alarm server service.
+For the "Accelerator" configuration on localhost, simply start it.
+Otherwise run `-help` to see options for selecting another configuration.
+
+In the alarm server console you can view the configuration
+and for example list active alarms or disconnected PVs.
+To edit the configuration use either the Alarm Tree GUI,
+or the alarm server `-export` and `-import` command line options,
+which create respectively read an XML-based configuration file.
 
 
 User Interface
@@ -400,213 +405,15 @@ It can be avoided by for example adding sub-nodes.
 Issues
 ------
 
-The log cleaner often fails to compact the log.
-This is an example configuration, as printed by Kafka on startup:
-
-	INFO KafkaConfig values: 
-	advertised.host.name = null
-	advertised.listeners = null
-	advertised.port = null
-	alter.config.policy.class.name = null
-	alter.log.dirs.replication.quota.window.num = 11
-	alter.log.dirs.replication.quota.window.size.seconds = 1
-	authorizer.class.name = 
-	auto.create.topics.enable = false
-	auto.leader.rebalance.enable = true
-	background.threads = 10
-	broker.id = 0
-	broker.id.generation.enable = true
-	broker.rack = null
-	compression.type = producer
-	connections.max.idle.ms = 600000
-	controlled.shutdown.enable = true
-	controlled.shutdown.max.retries = 3
-	controlled.shutdown.retry.backoff.ms = 5000
-	controller.socket.timeout.ms = 30000
-	create.topic.policy.class.name = null
-	default.replication.factor = 1
-	delegation.token.expiry.check.interval.ms = 3600000
-	delegation.token.expiry.time.ms = 86400000
-	delegation.token.master.key = null
-	delegation.token.max.lifetime.ms = 604800000
-	delete.records.purgatory.purge.interval.requests = 1
-	delete.topic.enable = true
-	fetch.purgatory.purge.interval.requests = 1000
-	group.initial.rebalance.delay.ms = 0
-	group.max.session.timeout.ms = 300000
-	group.min.session.timeout.ms = 6000
-	host.name = 
-	inter.broker.listener.name = null
-	inter.broker.protocol.version = 1.1-IV0
-	leader.imbalance.check.interval.seconds = 300
-	leader.imbalance.per.broker.percentage = 10
-	listener.security.protocol.map = PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL
-	listeners = null
-	log.cleaner.backoff.ms = 15000
-	log.cleaner.dedupe.buffer.size = 134217728
-	log.cleaner.delete.retention.ms = 86400000
-	log.cleaner.enable = true
-	log.cleaner.io.buffer.load.factor = 0.9
-	log.cleaner.io.buffer.size = 524288
-	log.cleaner.io.max.bytes.per.second = 1.7976931348623157E308
-	log.cleaner.min.cleanable.ratio = 0.5
-	log.cleaner.min.compaction.lag.ms = 0
-	log.cleaner.threads = 1
-	log.cleanup.policy = [delete]
-	log.dir = /tmp/kafka-logs
-	log.dirs = /tmp/kafka-logs
-	log.flush.interval.messages = 9223372036854775807
-	log.flush.interval.ms = null
-	log.flush.offset.checkpoint.interval.ms = 60000
-	log.flush.scheduler.interval.ms = 9223372036854775807
-	log.flush.start.offset.checkpoint.interval.ms = 60000
-	log.index.interval.bytes = 4096
-	log.index.size.max.bytes = 10485760
-	log.message.format.version = 1.1-IV0
-	log.message.timestamp.difference.max.ms = 9223372036854775807
-	log.message.timestamp.type = CreateTime
-	log.preallocate = false
-	log.retention.bytes = -1
-	log.retention.check.interval.ms = 300000
-	log.retention.hours = 168
-	log.retention.minutes = null
-	log.retention.ms = null
-	log.roll.hours = 168
-	log.roll.jitter.hours = 0
-	log.roll.jitter.ms = null
-	log.roll.ms = null
-	log.segment.bytes = 1000000
-	log.segment.delete.delay.ms = 60000
-	max.connections.per.ip = 2147483647
-	max.connections.per.ip.overrides = 
-	max.incremental.fetch.session.cache.slots = 1000
-	message.max.bytes = 1000012
-	metric.reporters = []
-	metrics.num.samples = 2
-	metrics.recording.level = INFO
-	metrics.sample.window.ms = 30000
-	min.insync.replicas = 1
-	num.io.threads = 8
-	num.network.threads = 3
-	num.partitions = 1
-	num.recovery.threads.per.data.dir = 1
-	num.replica.alter.log.dirs.threads = null
-	num.replica.fetchers = 1
-	offset.metadata.max.bytes = 4096
-	offsets.commit.required.acks = -1
-	offsets.commit.timeout.ms = 5000
-	offsets.load.buffer.size = 5242880
-	offsets.retention.check.interval.ms = 600000
-	offsets.retention.minutes = 1440
-	offsets.topic.compression.codec = 0
-	offsets.topic.num.partitions = 50
-	offsets.topic.replication.factor = 1
-	offsets.topic.segment.bytes = 104857600
-	password.encoder.cipher.algorithm = AES/CBC/PKCS5Padding
-	password.encoder.iterations = 4096
-	password.encoder.key.length = 128
-	password.encoder.keyfactory.algorithm = null
-	password.encoder.old.secret = null
-	password.encoder.secret = null
-	port = 9092
-	principal.builder.class = null
-	producer.purgatory.purge.interval.requests = 1000
-	queued.max.request.bytes = -1
-	queued.max.requests = 500
-	quota.consumer.default = 9223372036854775807
-	quota.producer.default = 9223372036854775807
-	quota.window.num = 11
-	quota.window.size.seconds = 1
-	replica.fetch.backoff.ms = 1000
-	replica.fetch.max.bytes = 1048576
-	replica.fetch.min.bytes = 1
-	replica.fetch.response.max.bytes = 10485760
-	replica.fetch.wait.max.ms = 500
-	replica.high.watermark.checkpoint.interval.ms = 5000
-	replica.lag.time.max.ms = 10000
-	replica.socket.receive.buffer.bytes = 65536
-	replica.socket.timeout.ms = 30000
-	replication.quota.window.num = 11
-	replication.quota.window.size.seconds = 1
-	request.timeout.ms = 30000
-	reserved.broker.max.id = 1000
-	sasl.enabled.mechanisms = [GSSAPI]
-	sasl.jaas.config = null
-	sasl.kerberos.kinit.cmd = /usr/bin/kinit
-	sasl.kerberos.min.time.before.relogin = 60000
-	sasl.kerberos.principal.to.local.rules = [DEFAULT]
-	sasl.kerberos.service.name = null
-	sasl.kerberos.ticket.renew.jitter = 0.05
-	sasl.kerberos.ticket.renew.window.factor = 0.8
-	sasl.mechanism.inter.broker.protocol = GSSAPI
-	security.inter.broker.protocol = PLAINTEXT
-	socket.receive.buffer.bytes = 102400
-	socket.request.max.bytes = 104857600
-	socket.send.buffer.bytes = 102400
-	ssl.cipher.suites = []
-	ssl.client.auth = none
-	ssl.enabled.protocols = [TLSv1.2, TLSv1.1, TLSv1]
-	ssl.endpoint.identification.algorithm = null
-	ssl.key.password = null
-	ssl.keymanager.algorithm = SunX509
-	ssl.keystore.location = null
-	ssl.keystore.password = null
-	ssl.keystore.type = JKS
-	ssl.protocol = TLS
-	ssl.provider = null
-	ssl.secure.random.implementation = null
-	ssl.trustmanager.algorithm = PKIX
-	ssl.truststore.location = null
-	ssl.truststore.password = null
-	ssl.truststore.type = JKS
-	transaction.abort.timed.out.transaction.cleanup.interval.ms = 60000
-	transaction.max.timeout.ms = 900000
-	transaction.remove.expired.transaction.cleanup.interval.ms = 3600000
-	transaction.state.log.load.buffer.size = 5242880
-	transaction.state.log.min.isr = 1
-	transaction.state.log.num.partitions = 50
-	transaction.state.log.replication.factor = 1
-	transaction.state.log.segment.bytes = 104857600
-	transactional.id.expiration.ms = 604800000
-	unclean.leader.election.enable = false
-	zookeeper.connect = localhost:2181
-	zookeeper.connection.timeout.ms = 6000
-	zookeeper.max.in.flight.requests = 10
-	zookeeper.session.timeout.ms = 6000
-	zookeeper.set.acl = false
-	zookeeper.sync.time.ms = 2000
-
-
-The file `kafka/logs/log-cleaner.log` will often not show any log-cleaner action:
+In earlier versions of Kafka, the log cleaner sometimes failed to compact the log.
+The file `kafka/logs/log-cleaner.log` would not show any log-cleaner action.
+The workaround was to top the alarm server, alarm clients, kafka, then restart them.
+When functional, the file `kafka/logs/log-cleaner.log` shows periodic compaction like this:
  
-	[2018-06-01 14:54:19,322] INFO Starting the log cleaner (kafka.log.LogCleaner)
-	[2018-06-01 14:54:19,353] INFO [kafka-log-cleaner-thread-0]: Starting (kafka.log.LogCleaner)
-
-Workaround: Stop alarm server, alarm clients, kafka.
-Then start kafka, followed by the alarm server.
-Now `kafka/logs/log-cleaner.log` shows periodic compaction:
- 
-	[2018-06-01 15:00:53,759] INFO Shutting down the log cleaner. (kafka.log.LogCleaner)
-	[2018-06-01 15:00:53,759] INFO [kafka-log-cleaner-thread-0]: Shutting down (kafka.log.LogCleaner)
-	[2018-06-01 15:00:53,759] INFO [kafka-log-cleaner-thread-0]: Stopped (kafka.log.LogCleaner)
-	[2018-06-01 15:00:53,759] INFO [kafka-log-cleaner-thread-0]: Shutdown completed (kafka.log.LogCleaner)
 	[2018-06-01 15:01:01,652] INFO Starting the log cleaner (kafka.log.LogCleaner)
-	[2018-06-01 15:01:01,682] INFO [kafka-log-cleaner-thread-0]: Starting (kafka.log.LogCleaner)
 	[2018-06-01 15:01:16,697] INFO Cleaner 0: Beginning cleaning of log Accelerator-0. (kafka.log.LogCleaner)
-	[2018-06-01 15:01:16,697] INFO Cleaner 0: Building offset map for Accelerator-0... (kafka.log.LogCleaner)
-	[2018-06-01 15:01:16,715] INFO Cleaner 0: Building offset map for log Accelerator-0 for 1 segments in offset range [0, 414). (kafka.log.LogCleaner)
-	[2018-06-01 15:01:16,731] INFO Cleaner 0: Offset map for log Accelerator-0 complete. (kafka.log.LogCleaner)
-	[2018-06-01 15:01:16,736] INFO Cleaner 0: Cleaning log Accelerator-0 (cleaning prior to Fri Jun 01 15:00:00 EDT 2018, discarding tombstones prior to Wed Dec 31 19:00:00 EST 1969)... (kafka.log.LogCleaner)
-	[2018-06-01 15:01:16,739] INFO Cleaner 0: Cleaning segment 0 in log Accelerator-0 (largest timestamp Fri Jun 01 15:00:00 EDT 2018) into 0, retaining deletes. (kafka.log.LogCleaner)
-	[2018-06-01 15:01:16,809] INFO Cleaner 0: Swapping in cleaned segment 0 for segment(s) 0 in log Accelerator-0 (kafka.log.LogCleaner)
-	[2018-06-01 15:01:16,811] INFO [kafka-log-cleaner-thread-0]: 
-		Log cleaner thread 0 cleaned log Accelerator-0 (dirty section = [0, 0])
-		0.1 MB of log processed in 0.1 seconds (0.8 MB/sec).
-		Indexed 0.1 MB in 0.0 seconds (2.5 Mb/sec, 31.3% of total time)
-		Buffer utilization: 0.0%
-		Cleaned 0.1 MB in 0.1 seconds (1.1 Mb/sec, 68.8% of total time)
+    ...
 		Start size: 0.1 MB (414 messages)
 		End size: 0.1 MB (380 messages)
 		8.9% size reduction (8.2% fewer messages)
-	 (kafka.log.LogCleaner)
-
+	
