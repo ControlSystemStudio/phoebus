@@ -53,6 +53,9 @@ import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 
 /** Tree-based UI for alarm configuration
@@ -117,6 +120,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
         createContextMenu();
         addClickSupport();
+        addDragSupport();
     }
 
     private ToolBar createToolbar()
@@ -341,6 +345,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             TreeHelper.triggerTreeItemRefresh(view_item);
     }
 
+    /** Context menu, details depend on selected items */
     private void createContextMenu()
     {
         final ContextMenu menu = new ContextMenu();
@@ -395,6 +400,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         });
     }
 
+    /** Double-click on item opens configuration dialog */
     private void addClickSupport()
     {
         tree_view.setOnMouseClicked(event ->
@@ -409,11 +415,27 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             DialogHelper.positionDialog(dialog, tree_view, -250, -400);
             // Show dialog, not waiting for it to close with OK or Cancel
             dialog.show();
-
         });
     }
 
-
+    /** For leaf nodes, drag PV name */
+    private void addDragSupport()
+    {
+        tree_view.setOnDragDetected(event ->
+        {
+            final ObservableList<TreeItem<AlarmTreeItem<?>>> items = tree_view.getSelectionModel().getSelectedItems();
+            if (items.size() != 1)
+                return;
+            final AlarmTreeItem<?> item = items.get(0).getValue();
+            if (! (item instanceof AlarmClientLeaf))
+                return;
+            final Dragboard db = tree_view.startDragAndDrop(TransferMode.COPY);
+            final ClipboardContent content = new ClipboardContent();
+            content.putString(item.getName());
+            db.setContent(content);
+            event.consume();
+        });
+    }
 
 //    private long next_stats = 0;
 //    private final AtomicInteger update_count = new AtomicInteger();
