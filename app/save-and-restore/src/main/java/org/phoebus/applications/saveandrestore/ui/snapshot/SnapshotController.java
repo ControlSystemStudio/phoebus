@@ -27,26 +27,26 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import org.epics.gpclient.*;
-import org.epics.vtype.*;
+import org.epics.vtype.VType;
+import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.Utilities;
 import org.phoebus.applications.saveandrestore.ui.model.SnapshotEntry;
 import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.model.VNoData;
 import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
 import org.springframework.beans.factory.annotation.Autowired;
-import se.esss.ics.masar.model.*;
+import se.esss.ics.masar.model.ConfigPv;
+import se.esss.ics.masar.model.Node;
+import se.esss.ics.masar.model.NodeType;
+import se.esss.ics.masar.model.SnapshotItem;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
 
 public class SnapshotController {
 
@@ -80,9 +80,6 @@ public class SnapshotController {
     @FXML
     private ToggleButton hideShowEqualItemsButton;
 
-    @FXML
-    private javafx.scene.Node tabContent;
-
     private SnapshotTable snapshotTable;
 
     @Autowired
@@ -100,8 +97,6 @@ public class SnapshotController {
     private final BooleanProperty snapshotSaveableProperty = new SimpleBooleanProperty(false);
     private final ObjectProperty<VSnapshot> baseSnapshotProperty = new SimpleObjectProperty<>(null);
 
-    private SimpleStringProperty tabTitleProperty = new SimpleStringProperty();
-
     private boolean showLiveReadbacks = false;
     private boolean showStoredReadbacks = false;
     private boolean hideEqualItems;
@@ -110,21 +105,16 @@ public class SnapshotController {
 
     private static Executor UI_EXECUTOR = Platform::runLater;
 
-    private TabTitleChangedListener tabTitleChangedListener;
-
-    private SimpleBooleanProperty dirty = new SimpleBooleanProperty(false);
+    private SimpleBooleanProperty snapshotNodePropertiesDirty = new SimpleBooleanProperty(false);
 
     public static final Logger LOGGER = Logger.getLogger(SnapshotController.class.getName());
 
     /**
-     * The rate at which the snapshotTable is updated
+     * The time between updates of dynamic data in the table, in ms
      */
-    public static final long TABLE_UPDATE_RATE = 500;
+    public static final long TABLE_UPDATE_INTERVAL = 500;
 
-
-    public void setTabTitleChangedListener(TabTitleChangedListener tabTitleChangedListener){
-        this.tabTitleChangedListener = tabTitleChangedListener;
-    }
+    private SimpleObjectProperty<Node> nodeSimpleObjectProperty = new SimpleObjectProperty<>();
 
     @FXML
     public void initialize() {
@@ -134,14 +124,13 @@ public class SnapshotController {
         createdDate.textProperty().bind(createdDateTextProperty);
         snapshotName.textProperty().bindBidirectional(snapshotNameProperty);
 
-
         snapshotTable = new SnapshotTable(this);
-
         borderPane.setCenter(snapshotTable);
 
         saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() -> {
-            return snapshotSaveableProperty.not().get() || snapshotNameProperty.isEmpty().get() || snapshotCommentProperty.isEmpty().get();
-        }, snapshotSaveableProperty, snapshotNameProperty, snapshotCommentProperty));
+            boolean canSave = (snapshotNodePropertiesDirty.get() || snapshotSaveableProperty.get()) && (!snapshotNameProperty.isEmpty().get() && !snapshotCommentProperty.isEmpty().get());
+            return !canSave;
+        }, snapshotSaveableProperty, snapshotNameProperty, snapshotCommentProperty, snapshotNodePropertiesDirty));
 
         showLiveReadbackButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/icons/show_live_readback_column.png"))));
 
@@ -165,12 +154,14 @@ public class SnapshotController {
                     UI_EXECUTOR.execute(() -> snapshotTable.updateTable(new ArrayList(items.values())));
                 });
 
-        //Disable Restore button if there are no snapshot values
-//        restoreButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
-//                        snapshotTable.getItems() == null ||
-//                        snapshotTable.getItems().size() == 0 ||
-//                        snapshotTable.getItems().get(0).valueProperty().getValue().value.getClass().isAssignableFrom(VNoData.class),
-//                snapshotTable.getItems()));
+        snapshotNameProperty.addListener((observable, oldValue, newValue) -> {
+            snapshotNodePropertiesDirty.set(oldValue != null && !oldValue.equals(newValue));
+        });
+
+        snapshotCommentProperty.addListener((observable, oldValue, newValue) -> {
+            snapshotNodePropertiesDirty.set(oldValue != null && !oldValue.equals(newValue));
+        });
+
         restoreButton.disableProperty().bind(snapshotRestorableProperty.not());
     }
 
@@ -198,7 +189,7 @@ public class SnapshotController {
             Node snapshot = saveAndRestoreService.getNode(treeNode.getUniqueId());
             List<SnapshotItem> snapshotItems = saveAndRestoreService.getSnapshotItems(snapshot.getUniqueId());
             VSnapshot vSnapshot =
-                    new VSnapshot(snapshot, snapshotItemsToSnapshotEntries(snapshotItems), Instant.ofEpochMilli(snapshot.getCreated().getTime()));
+                    new VSnapshot(snapshot, snapshotItemsToSnapshotEntries(snapshotItems));
             List<TableEntry> tableEntries = addSnapshot(vSnapshot);
             snapshotTable.updateTable(tableEntries, snapshots, false, false);
         } catch (Exception e) {
@@ -206,13 +197,14 @@ public class SnapshotController {
         }
     }
 
-    public void loadSaveSet(String saveSetUniqueId){
-        this.config = saveAndRestoreService.getNode(saveSetUniqueId);
+    public void loadSaveSet(Node node){
+        this.config = saveAndRestoreService.getNode(node.getUniqueId());
 
         try {
             List<ConfigPv> configPvs = saveAndRestoreService.getConfigPvs(config.getUniqueId());
+            Node snapshot = Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build();
             VSnapshot vSnapshot =
-                    new VSnapshot(saveSetToSnapshotEntries(configPvs));
+                    new VSnapshot(snapshot, saveSetToSnapshotEntries(configPvs));
             List<TableEntry> tableEntries = setSnapshotInternal(vSnapshot);
             UI_EXECUTOR.execute(() -> {
                 snapshotTable.updateTable(tableEntries, snapshots, false, false);
@@ -224,31 +216,27 @@ public class SnapshotController {
 
     private void loadSnapshotInternal(Node snapshot) {
 
-        try {
-
-            List<SnapshotItem> snapshotItems = saveAndRestoreService.getSnapshotItems(snapshot.getUniqueId());
-
-            snapshotCommentProperty.set(snapshot.getProperty("comment"));
-            createdDateTextProperty.set(snapshot.getCreated().toString());
-            createdByTextProperty.set(snapshot.getUserName());
-            snapshotNameProperty.set(snapshot.getName());
-
-            VSnapshot vSnapshot =
-                    new VSnapshot(snapshot, snapshotItemsToSnapshotEntries(snapshotItems), Instant.ofEpochMilli(snapshot.getCreated().getTime()));
-            List<TableEntry> tableEntries = loadSnapshotInternal(vSnapshot);
             UI_EXECUTOR.execute(() -> {
-                snapshotTable.updateTable(tableEntries, snapshots, false, false);
-                if(tabTitleChangedListener != null){
-                    tabTitleChangedListener.tabTitleChanged(snapshot.getName());
+                try {
+                List<SnapshotItem> snapshotItems = saveAndRestoreService.getSnapshotItems(snapshot.getUniqueId());
+
+                snapshotCommentProperty.set(snapshot.getProperty("comment"));
+                createdDateTextProperty.set(snapshot.getCreated().toString());
+                createdByTextProperty.set(snapshot.getUserName());
+                snapshotNameProperty.set(snapshot.getName());
+
+                VSnapshot vSnapshot =
+                        new VSnapshot(snapshot, snapshotItemsToSnapshotEntries(snapshotItems));
+                List<TableEntry> tableEntries = loadSnapshotInternal(vSnapshot);
+
+                    snapshotTable.updateTable(tableEntries, snapshots, false, false);
+                    snapshotRestorableProperty.set(true);
+                    snapshotNodePropertiesDirty.set(false);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                snapshotRestorableProperty.setValue(true);
             });
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
-
 
     @FXML
     public void restore(ActionEvent event) {
@@ -269,10 +257,6 @@ public class SnapshotController {
                     if (e.selectedProperty().get() && !e.readOnlyProperty().get()) {
                         final PV pv = pvs.get(e.getConfigPv().getPvName());
 
-                        //restoredPVs.add(snapshotTableEntryPvProxy);
-                        //restorablePVs.add(pv);
-                        //snapshotTableEntryPvProxy.pv.addPVWriterListener(l);
-                        //Object val = Utilities.toRawValue(entry.getValue());
 
                         if (entry.getValue() != null) {
                             pv.pv.write(entry.getValue());
@@ -280,36 +264,12 @@ public class SnapshotController {
                     }
                 }
 
-                //if(countDownLatch.getCount() > 0) {
                 try {
                     countDownLatch.await();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                //}
 
-
-//            try {
-//                long time = System.currentTimeMillis();
-//                while (System.currentTimeMillis() - time < 30000) {
-//                    synchronized (restorablePVs) {
-//                        boolean done = true;
-//                        for(PV proxy : restorablePVs){
-//                            if(proxy.writeStatus == PVEvent.Type.WRITE_FAILED){
-//                                restorablePVs.wait(100);
-//                                done = false;
-//                                break;
-//                            }
-//                        }
-//                        if(done){
-//                           break;
-//                        }
-//                    }
-//                }
-//            } catch (InterruptedException e) {
-//                // ignore
-//            }
-//
                 List<String> messages = new ArrayList<>();
                 for (SnapshotEntry entry : entries) {
                     PV pv = pvs.get(entry.getPVName());
@@ -320,14 +280,6 @@ public class SnapshotController {
                     }
                 }
 
-//            if (restoredPVs.size() != restorablePVCount) {
-//                // not all PVs responded in time
-//                for (PV snapshotTableEntryPvProxy : restorablePVs.keySet()) {
-//                    if (restoredPVs.containsKey(snapshotTableEntryPvProxy)) {
-//                        messages.add(snapshotTableEntryPvProxy.pvName + ": Timeout");
-//                    }
-//                }
-//            }
                 if (messages.isEmpty()) {
                     LOGGER.log(Level.FINE, "Restored snapshot {0}", s.getSnapshot().get().getName());
                 } else {
@@ -338,16 +290,12 @@ public class SnapshotController {
                             "Not all PVs could be restored for {0}: {1}. The following errors occured:\n{2}",
                             new Object[] { s.getSnapshot().get().getName(), s.getSnapshot().get(), sb.toString() });
                     Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Restore Error");
+                    alert.setTitle(Messages.restoreErrorTitle);
                     alert.setContentText(sb.toString());
-                    alert.setHeaderText("Not all PVs were restored.");
+                    alert.setHeaderText(Messages.restoreErrorContent);
                     Optional<ButtonType> result = alert.showAndWait();
                 }
             } finally {
-//            for (PV proxy : restorablePVs) {
-//                proxy.restoreDone();
-//            }
-                //resume();
             }
         }).start();
 
@@ -355,7 +303,7 @@ public class SnapshotController {
 
     @FXML
     public void takeSnapshot(ActionEvent event) {
-        //suspend();
+
         UI_EXECUTOR.execute(() -> {
             snapshotNameProperty.set(null);
             snapshotCommentProperty.set(null);
@@ -389,42 +337,53 @@ public class SnapshotController {
                         delta, t.readOnlyProperty().get()));
             }
 
-            Node snapshot = Node.builder().name("<unnamed snapshot>").nodeType(NodeType.SNAPSHOT).build();
-            VSnapshot taken = new VSnapshot(snapshot, entries, Instant.now());
-            dirty.set(true);
+            Node snapshot = Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build();
+
+            VSnapshot taken = new VSnapshot(snapshot, entries);
             snapshots.clear();
             snapshots.add(taken);
             List<TableEntry> tableEntries = loadSnapshotInternal(taken);
             UI_EXECUTOR.execute(() -> {
                 snapshotTable.updateTable(tableEntries, snapshots, false, false);
-                if(tabTitleChangedListener != null){
-                    tabTitleChangedListener.tabTitleChanged("* " + snapshot.getName());
-                }
-                dirty.set(true);
+                snapshotSaveableProperty.setValue(true);
             });
         } catch (Exception e) {
             e.printStackTrace();
         }
         finally{
-            //resume();
+
         }
+    }
+
+    public SimpleObjectProperty<Node> getNodeSimpleObjectProperty(){
+        return nodeSimpleObjectProperty;
     }
 
     @FXML
     public void saveSnapshot(ActionEvent event) {
-        VSnapshot snapshot = snapshots.get(0);
-        List<SnapshotEntry> snapshotEntries = snapshot.getEntries();
-        List<SnapshotItem> snapshotItems = snapshotEntries
-                .stream()
-                .map(snapshotEntry -> SnapshotItem.builder().value(snapshotEntry.getValue()).configPv(snapshotEntry.getConfigPv()).readbackValue(snapshotEntry.getReadbackValue()).build())
-                .collect(Collectors.toList());
-        try {
-            Node savedSnapshot = saveAndRestoreService.saveSnapshot(config.getUniqueId(), snapshotItems, snapshotNameProperty.get(), snapshotCommentProperty.get());
-            dirty.set(false);
-            loadSnapshot(savedSnapshot);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if(snapshotSaveableProperty.get()){ // There is a new snapshot to save
+            VSnapshot snapshot = snapshots.get(0);
+            List<SnapshotEntry> snapshotEntries = snapshot.getEntries();
+            List<SnapshotItem> snapshotItems = snapshotEntries
+                    .stream()
+                    .map(snapshotEntry -> SnapshotItem.builder().value(snapshotEntry.getValue()).configPv(snapshotEntry.getConfigPv()).readbackValue(snapshotEntry.getReadbackValue()).build())
+                    .collect(Collectors.toList());
+            try {
+                Node savedSnapshot = saveAndRestoreService.saveSnapshot(config, snapshotItems, snapshotNameProperty.get(), snapshotCommentProperty.get());
+                loadSnapshot(savedSnapshot);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+        else{ // Only snapshot node properties (name and/or comment) have changed
+            try {
+                Node updatedNode = saveAndRestoreService.updateNode(snapshots.get(0).getSnapshot().get());
+                loadSnapshot(updatedNode);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 
     public List<VSnapshot> getAllSnapshots() {
@@ -436,19 +395,16 @@ public class SnapshotController {
     private List<TableEntry> loadSnapshotInternal(VSnapshot snapshotData){
         dispose(false);
         List<TableEntry> ret = setSnapshotInternal(snapshotData);
-        //pvsForDisposal.values().forEach(p -> p.dispose());
-        //pvsForDisposal.clear();
         return ret;
     }
 
     private List<TableEntry> setSnapshotInternal(VSnapshot snapshotData) {
-
+        nodeSimpleObjectProperty.set(snapshotData.getSnapshot().get());
         List<SnapshotEntry> entries = snapshotData.getEntries();
         synchronized (snapshots) {
             snapshots.add(snapshotData);
         }
         UI_EXECUTOR.execute(() -> snapshotRestorableProperty.set(snapshotData.getSnapshot().isPresent()));
-        //snapshotRestorableProperty.set(snapshotData.getSnapshot().isPresent());
         String name;
         TableEntry e;
         SnapshotEntry entry;
@@ -473,13 +429,7 @@ public class SnapshotController {
         }
         connectPVs();
         UI_EXECUTOR.execute(() -> snapshotSaveableProperty.set(snapshotData.isSaveable()));
-        //snapshotSaveableProperty.set(snapshotData.isSaveable());
-        //updateThresholds();
         UI_EXECUTOR.execute(() -> baseSnapshotProperty.set(snapshotData));
-        //baseSnapshotProperty.set(snapshotData);
-        //List<TableEntry> ret = filter(items.values(), filter);
-        //pvsForDisposal.values().forEach(p -> p.dispose());
-        //pvsForDisposal.clear();
         return new ArrayList<>(items.values());
     }
 
@@ -578,48 +528,20 @@ public class SnapshotController {
         }
     }
 
-    /**
-     * Resume live updates from pvs
-     */
-//    public void resume() {
-//        if (suspend.decrementAndGet() == 0) {
-//            pvs.values().forEach(e -> e.resume());
-//            //this.throttle.trigger();
-//        }
-//    }
-
-    /**
-     * Suspend all live updates from the PVs
-     */
-//    public void suspend() {
-//        suspend.incrementAndGet();
-//    }
-
     private void connectPVs() {
-        //suspend();
         try {
-
             items.values().forEach(e -> {
                 PV pv = pvs.get(e.getConfigPv().getPvName());
                 if (pv == null) {
-                    //pv = pvsForDisposal.remove(e.pvNameProperty().get());
                     if (pv != null) {
                         pvs.put(e.getConfigPv().getPvName(), pv);
                     }
                 }
                 if (pv == null) {
-                    String pvName = e.pvNameProperty().get();
-                    //pv = pvsForDisposal.remove(pvName);
-//                    if (pv != null) {
-//                        pvs.put(snapshotTableEntry, pv);
-//                    }
-//                    else{
-                        pvs.put(e.getConfigPv().getPvName(), new PV(e));
-                    //}
+                    pvs.put(e.getConfigPv().getPvName(), new PV(e));
                 }
             });
         } finally {
-            //resume();
         }
     }
 
@@ -636,7 +558,6 @@ public class SnapshotController {
         PVListener<VType, Object> listener;
         PVConfiguration pvConfiguration;
         TableEntry snapshotTableEntry;
-        Thread thread;
 
         PV(TableEntry snapshotTableEntry) {
             this.snapshotTableEntry = snapshotTableEntry;
@@ -644,7 +565,6 @@ public class SnapshotController {
             this.readbackPvName = snapshotTableEntry.readbackNameProperty().get();
 
             this.listener = (event, p) -> {
-                this.thread = Thread.currentThread();
                 if(event.getType().contains(PVEvent.Type.VALUE)){
                     this.pvValue = p.isConnected() ? p.getValue() : VDisconnectedData.INSTANCE;
                     this.snapshotTableEntry.setLiveValue(p.isConnected() ? p.getValue() : VDisconnectedData.INSTANCE);
@@ -669,7 +589,7 @@ public class SnapshotController {
 
             this.pv = pvConfiguration
                     .addListener(listener)
-                    .maxRate(Duration.ofMillis(TABLE_UPDATE_RATE))
+                    .maxRate(Duration.ofMillis(TABLE_UPDATE_INTERVAL))
                     .start();
 
             if (readbackPvName != null && !readbackPvName.isEmpty()) {
@@ -697,22 +617,6 @@ public class SnapshotController {
             return writeStatus;
         }
 
-        public void restoreDone(){
-            //pvConfiguration.addListener(listener);
-            writeStatus = PVEvent.Type.WRITE_FAILED;
-        }
-
-//        void resume() {
-//            if (reader != null) {
-//                this.pvValue = reader.getValue();
-//            }
-//            if(pv != null){
-//                this.pvValue = pv.getValue();
-//            }
-//            if (readbackReader != null) {
-//                readbackValue = readbackReader.getValue();
-//            }
-//        }
 
         void dispose() {
             if (reader != null && !reader.isClosed()) {
@@ -733,10 +637,10 @@ public class SnapshotController {
     }
 
     public boolean handleSnapshotTabClosed(){
-        if(dirty.get()){
+        if(snapshotNodePropertiesDirty.get() || snapshotSaveableProperty.get()){
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle("Close tab?");
-            alert.setContentText("Snapshot data is not saved. Do you wish to continue?");
+            alert.setTitle(Messages.promptCloseSnapshotTabTitle);
+            alert.setContentText(Messages.promptCloseSnapshotTabContent);
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get().equals(ButtonType.OK)) {
                 return true;
@@ -765,13 +669,8 @@ public class SnapshotController {
         synchronized (snapshots) {
             // synchronise, because this method can be called from the UI thread by Eclipse, when the editor is closing
             if (closePVs) {
-                //pvsForDisposal.values().forEach(e -> e.dispose());
-                //pvsForDisposal.clear();
                 pvs.values().forEach(e -> e.dispose());
                 pvs.clear();
-            } else {
-                //pvs.forEach((e, p) -> pvsForDisposal.put(e, p));
-                //pvs.clear();
             }
             items.clear();
             snapshots.clear();
@@ -785,9 +684,5 @@ public class SnapshotController {
      */
     public boolean isHideEqualItems() {
         return hideEqualItems;
-    }
-
-    public SimpleStringProperty getTabTitleProperty(){
-        return tabTitleProperty;
     }
 }

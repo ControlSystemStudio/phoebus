@@ -27,11 +27,10 @@ import se.esss.ics.masar.model.Node;
  *
  * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
  */
-public class VSnapshot extends VType implements Serializable {
+public class VSnapshot implements Serializable {
 
-    private static final long serialVersionUID = 2676226155070688049L;
+    private static final long serialVersionUID = 920021965024686224L;
 
-    private transient Instant snapshotTime;
     private final List<SnapshotEntry> entries;
     private Node snapshot;
     private boolean dirty;
@@ -41,24 +40,12 @@ public class VSnapshot extends VType implements Serializable {
      *
      * @param snapshot the descriptor
      * @param entries the PV entries
-     * @param snapshotTime the time when the snapshot was taken (this is not identical to the time when the snapshot was
-     *            stored)
+
      */
-    public VSnapshot(Node snapshot, List<SnapshotEntry> entries, Instant snapshotTime) {
+    public VSnapshot(Node snapshot, List<SnapshotEntry> entries) {
         this.entries = new ArrayList<>(entries);
-        this.snapshotTime = snapshotTime;
         this.snapshot = snapshot;
     }
-
-    /**
-     * Constructs a new data object.
-     *
-     * @param entries the PV entries
-     */
-    public VSnapshot(List<SnapshotEntry> entries) {
-        this.entries = new ArrayList<>(entries);
-    }
-
 
     public String getId(){
         return snapshot.getUniqueId();
@@ -172,45 +159,6 @@ public class VSnapshot extends VType implements Serializable {
         return Collections.unmodifiableList(Arrays.asList(names, selected, values));
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.diirt.vtype.Array#getSizes()
-     */
-    public ListInteger getSizes() {
-        return ArrayInteger.of(3, entries.size());
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.diirt.vtype.Time#getTimestamp()
-     */
-
-    public Instant getTimestamp() {
-        return snapshotTime;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.diirt.vtype.Time#getTimeUserTag()
-     */
-
-    public Integer getTimeUserTag() {
-        return (int) snapshotTime.getEpochSecond();
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.diirt.vtype.Time#isTimeValid()
-     */
-
-    public boolean isTimeValid() {
-        return true;
-    }
-
     /**
      * Returns true if this snapshot has been saved or false if only taken and not yet saved.
      *
@@ -228,7 +176,7 @@ public class VSnapshot extends VType implements Serializable {
      * @return true if this snapshot can be saved or false if already saved or has no data
      */
     public boolean isSaveable() {
-        return snapshotTime != null && (dirty || !isSaved());
+        return snapshot.getCreated() != null && (dirty || !isSaved());
     }
 
     /**
@@ -247,8 +195,8 @@ public class VSnapshot extends VType implements Serializable {
     public String toString() {
         if (isSaved()) {
             return Utilities.timestampToBigEndianString(Instant.ofEpochMilli(snapshot.getLastModified().getTime()), true);
-        } else if(snapshotTime != null){
-            return Utilities.timestampToBigEndianString(snapshotTime, true);
+        } else if(snapshot.getCreated() != null){
+            return Utilities.timestampToBigEndianString(Instant.ofEpochMilli(snapshot.getCreated().getTime()), true);
         }
         else{
             return "<unnamed snaphot>";
@@ -262,7 +210,7 @@ public class VSnapshot extends VType implements Serializable {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(VSnapshot.class, snapshot, entries, snapshotTime);
+        return Objects.hash(VSnapshot.class, snapshot, entries);
     }
 
     /*

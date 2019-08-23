@@ -17,8 +17,6 @@
  */
 package org.phoebus.applications.saveandrestore.ui.saveset;
 
-import javafx.beans.property.SimpleStringProperty;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
@@ -26,31 +24,24 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import org.phoebus.applications.saveandrestore.SpringFxmlLoader;
-import org.phoebus.applications.saveandrestore.data.NodeChangeListener;
+import org.phoebus.applications.saveandrestore.data.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.ui.javafx.ImageCache;
 import se.esss.ics.masar.model.Node;
 
-public class SaveSetTab extends Tab implements NodeChangeListener {
-
-    //private SimpleStringProperty tabTitleProperty = new SimpleStringProperty("<unnamed>");
+public class SaveSetTab extends Tab {
 
     private SaveSetController saveSetController;
-    private SaveAndRestoreService saveAndRestoreService;
 
-    public SaveSetTab(Node node, SaveAndRestoreService saveAndRestoreService){
-        this.saveAndRestoreService = saveAndRestoreService;
-        this.saveAndRestoreService.addNodeChangeListener(this);
+    public SaveSetTab(Node node){
         setId(node.getUniqueId());
 
         SpringFxmlLoader springFxmlLoader = new SpringFxmlLoader();
         try {
             setContent((javafx.scene.Node)springFxmlLoader.load("/org/phoebus/applications/saveandrestore/ui/saveset/fxml/SaveSetEditor.fxml"));
-
             saveSetController = springFxmlLoader.getLoader().getController();
             setGraphic(getTabGraphic());
-            //tabTitleProperty.bindBidirectional(saveSetController.getTabTitleProperty());
             saveSetController.loadSaveSet(node);
         } catch (Exception e) {
             // TODO Auto-generated catch block
@@ -61,15 +52,12 @@ public class SaveSetTab extends Tab implements NodeChangeListener {
             if(!saveSetController.handleSaveSetTabClosed()){
                 event.consume();
             }
-            else{
-                this.saveAndRestoreService.removeNodeChangeListener(this);
-            }
         });
     }
 
     private javafx.scene.Node getTabGraphic(){
         HBox container = new HBox();
-        Image icon = ImageCache.getImage(SnapshotTab.class, "/icons/small/Save-set@.png");
+        Image icon = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/saveset.png");
         ImageView imageView = new ImageView(icon);
         Label label = new Label("");
         label.textProperty().bindBidirectional(saveSetController.getTabTitleProperty());
@@ -77,10 +65,5 @@ public class SaveSetTab extends Tab implements NodeChangeListener {
         container.getChildren().addAll(imageView, label);
 
         return container;
-    }
-
-    @Override
-    public void nodeChanged(Node node){
-        //tabTitleProperty.set(node.getName());
     }
 }

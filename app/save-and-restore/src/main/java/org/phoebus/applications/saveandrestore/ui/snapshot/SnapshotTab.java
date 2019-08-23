@@ -17,12 +17,9 @@
  */
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
-import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.concurrent.Task;
 import javafx.geometry.Insets;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.image.Image;
@@ -30,16 +27,11 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.phoebus.applications.saveandrestore.SpringFxmlLoader;
-import org.phoebus.applications.saveandrestore.data.NodeChangeListener;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetTab;
 import org.phoebus.ui.javafx.ImageCache;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import se.esss.ics.masar.model.Node;
 
-import java.util.concurrent.Executor;
-
-public class SnapshotTab extends Tab implements TabTitleChangedListener, NodeChangeListener {
+public class SnapshotTab extends Tab {
 
     public SaveAndRestoreService saveAndRestoreService;
 
@@ -52,7 +44,7 @@ public class SnapshotTab extends Tab implements TabTitleChangedListener, NodeCha
     private Image regularImage;
     private Image goldenImage;
 
-    private static Executor UI_EXECUTOR = Platform::runLater;
+    private SimpleObjectProperty<Node> nodeSimpleObjectProperty;
 
     public SnapshotTab(se.esss.ics.masar.model.Node node, SaveAndRestoreService saveAndRestoreService){
 
@@ -66,8 +58,8 @@ public class SnapshotTab extends Tab implements TabTitleChangedListener, NodeCha
             VBox borderPane = (VBox)springFxmlLoader.load("/org/phoebus/applications/saveandrestore/ui/snapshot/fxml/SnapshotEditor.fxml");
             setContent(borderPane);
 
-            regularImage = ImageCache.getImage(SnapshotTab.class, "/icons/small/Snap-shot@.png");
-            goldenImage = ImageCache.getImage(SnapshotTab.class, "/icons/small/Snap-shot-golden@.png");
+            regularImage = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/snapshot.png");
+            goldenImage = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/snapshot-golden.png");
 
             HBox container = new HBox();
             ImageView imageView = new ImageView();
@@ -80,11 +72,14 @@ public class SnapshotTab extends Tab implements TabTitleChangedListener, NodeCha
             setGraphic(container);
 
             snapshotController = springFxmlLoader.getLoader().getController();
-            snapshotController.setTabTitleChangedListener(this);
+            nodeSimpleObjectProperty = snapshotController.getNodeSimpleObjectProperty();
 
             tabGraphicImageProperty.set(Boolean.parseBoolean(node.getProperty("golden")) ? goldenImage : regularImage);
 
-            saveAndRestoreService.addNodeChangeListener(this);
+            nodeSimpleObjectProperty.addListener((observable, oldValue, newValue) -> {
+                tabGraphicImageProperty.set(Boolean.parseBoolean(newValue.getProperty("golden")) ? goldenImage : regularImage);
+                tabTitleProperty.set(newValue.getName());
+            });
 
         } catch (Exception e) {
             // TODO Auto-generated catch block
@@ -95,53 +90,19 @@ public class SnapshotTab extends Tab implements TabTitleChangedListener, NodeCha
             if(!snapshotController.handleSnapshotTabClosed()){
                 event.consume();
             }
-            else{
-                saveAndRestoreService.removeNodeChangeListener(this);
-            }
         });
     }
 
     public void loadSnapshot(se.esss.ics.masar.model.Node node){
-        snapshotController.setTabTitleChangedListener(this);
-        Task task = new Task<Void>(){
-            @Override
-            public Void call() {
-                snapshotController.loadSnapshot(node);
-                return null;
-            }
-        };
-
-        new Thread(task).start();
+        snapshotController.loadSnapshot(node);
     }
 
     public void loadSaveSet(se.esss.ics.masar.model.Node node){
-        Task task = new Task<Void>(){
-            @Override
-            public Void call() {
-                tabTitleProperty.set("<unnamed snapshot>");
-                snapshotController.loadSaveSet(node.getUniqueId());
-                return null;
-            }
-        };
-
-        new Thread(task).start();
+        snapshotController.loadSaveSet(node);
     }
 
     public void addSnapshot(se.esss.ics.masar.model.Node node){
         snapshotController.addSnapshot(node);
     }
 
-    @Override
-    public void tabTitleChanged(String tabTitle){
-        tabTitleProperty.set(tabTitle);
-    }
-
-    @Override
-    public void nodeChanged(se.esss.ics.masar.model.Node node){
-
-        UI_EXECUTOR.execute(() -> {
-            tabGraphicImageProperty.set(Boolean.parseBoolean(node.getProperty("golden")) ? goldenImage : regularImage);
-            tabTitleProperty.set(node.getName());
-        });
-    }
 }

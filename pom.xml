@@ -44,8 +44,27 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.4</version>
+        <executions>
+          <execution>
+            <id>prepare-agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>report</id>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
-    <!-- Scene Builder is limited to searching for Controllers only within the same folder, thus forcing us to use src/main/java for fxml files instead 
+    <!-- Scene Builder is limited to searching for Controllers only within the same folder, thus forcing us to use src/main/java for fxml files instead
       of /src/main/resources -->
     <resources>
       <resource>
@@ -81,7 +100,7 @@
         <skipITTests>false</skipITTests>
       </properties>
     </profile>
-    <!-- The ui-tests profile when used will run all user interface tests, these are testfx test 
+    <!-- The ui-tests profile when used will run all user interface tests, these are testfx test
     where the java file names ending in "UI" -->
     <profile>
       <id>ui-tests</id>

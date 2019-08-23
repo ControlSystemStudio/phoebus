@@ -19,7 +19,8 @@
 package org.phoebus.applications.saveandrestore.service;
 
 import org.phoebus.applications.saveandrestore.data.DataProvider;
-import org.phoebus.applications.saveandrestore.data.NodeChangeListener;
+import org.phoebus.applications.saveandrestore.data.NodeAddedListener;
+import org.phoebus.applications.saveandrestore.data.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.model.VNoData;
 import org.slf4j.Logger;
@@ -46,7 +47,8 @@ public class SaveAndRestoreService {
     @Autowired
     private DataProvider dataProvider;
 
-    private List<NodeChangeListener> nodeChangeListeners = Collections.synchronizedList(new ArrayList());
+    private List<NodeChangedListener> nodeChangeListeners = Collections.synchronizedList(new ArrayList());
+    private List<NodeAddedListener> nodeAddedListeners = Collections.synchronizedList(new ArrayList());
 
     private static final Logger LOG = LoggerFactory.getLogger(SaveAndRestoreService.class.getName());
 
@@ -125,7 +127,9 @@ public class SaveAndRestoreService {
     public Node updateSaveSet(Node configToUpdate, List<ConfigPv> configPvList) throws Exception {
         Future<Node> future = executor.submit(() -> dataProvider.updateSaveSet(configToUpdate, configPvList));
 
-        return future.get();
+        Node updatedNode = future.get();
+        notifyNodeChangeListeners(updatedNode);
+        return updatedNode;
     }
 
 
@@ -136,19 +140,11 @@ public class SaveAndRestoreService {
     public List<SnapshotItem> getSnapshotItems(String uniqueNodeId) throws Exception {
 
         Future<List<SnapshotItem>> future = executor.submit(() -> dataProvider.getSnapshotItems(uniqueNodeId));
-
         return future.get();
     }
 
     public Node getParentNode(String uniqueNodeId) throws Exception {
         Future<Node> future = executor.submit(() -> dataProvider.getSaveSetForSnapshot(uniqueNodeId));
-
-        return future.get();
-    }
-
-    public Node takeSnapshot(String uniqueNodeId) throws Exception {
-        Future<Node> future = executor.submit(() -> dataProvider.takeSnapshot(uniqueNodeId));
-
         return future.get();
     }
 
@@ -159,18 +155,11 @@ public class SaveAndRestoreService {
         });
 
         Node updatedNode = future.get();
-
         notifyNodeChangeListeners(updatedNode);
-
         return updatedNode;
     }
 
-    public ConfigPv updateSingleConfigPv(String currentPvName, String newPvName, String currentReadbackPvName, String newReadbackPvName) throws Exception {
-        Future<ConfigPv> future = executor.submit(() -> dataProvider.updateSingleConfigPv(currentPvName, newPvName, currentReadbackPvName, newReadbackPvName));
-        return future.get();
-    }
-
-    public Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment) throws Exception {
+    public Node saveSnapshot(Node saveSetNode, List<SnapshotItem> snapshotItems, String snapshotName, String comment) throws Exception {
         // Some beautifying is needed to ensure successful serialization.
         List<SnapshotItem> beautifiedItems = snapshotItems.stream().map(snapshotItem -> {
             if (snapshotItem.getValue() instanceof VNoData || snapshotItem.getValue() instanceof VDisconnectedData) {
@@ -181,20 +170,34 @@ public class SaveAndRestoreService {
             }
             return snapshotItem;
         }).collect(Collectors.toList());
-        Future<Node> future = executor.submit(() -> dataProvider.saveSnapshot(configUniqueId, beautifiedItems, snapshotName, comment));
+        Future<Node> future = executor.submit(() -> dataProvider.saveSnapshot(saveSetNode.getUniqueId(), beautifiedItems, snapshotName, comment));
 
-        return future.get();
+        Node savedSnapshot = future.get();
+        notifyNodeAddedListeners(saveSetNode, savedSnapshot);
+        return savedSnapshot;
     }
 
-    public void addNodeChangeListener(NodeChangeListener nodeChangeListener){
+    public void addNodeChangeListener(NodeChangedListener nodeChangeListener){
         nodeChangeListeners.add(nodeChangeListener);
     }
 
-    public void removeNodeChangeListener(NodeChangeListener nodeChangeListener){
+    public void removeNodeChangeListener(NodeChangedListener nodeChangeListener){
         nodeChangeListeners.remove(nodeChangeListener);
     }
 
     private void notifyNodeChangeListeners(Node changedNode){
         nodeChangeListeners.stream().forEach(listener -> listener.nodeChanged(changedNode));
+    }
+
+    public void addNodeAddedListener(NodeAddedListener nodeAddedListener){
+        nodeAddedListeners.add(nodeAddedListener);
+    }
+
+    public void removeNodeAddedListener(NodeAddedListener nodeAddwedListener){
+        nodeAddedListeners.remove(nodeAddwedListener);
+    }
+
+    private void notifyNodeAddedListeners(Node parentNode, Node newNode){
+        nodeAddedListeners.stream().forEach(listener -> listener.nodeAdded(parentNode, newNode));
     }
 }

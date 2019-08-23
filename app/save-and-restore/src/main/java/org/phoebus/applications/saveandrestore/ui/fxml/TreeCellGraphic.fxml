@@ -15,7 +15,7 @@
 		<children>
 			<ImageView pickOnBounds="true" preserveRatio="true">
 				<image>
-					<Image url="/icons/small/Folder@.png" />
+					<Image url="/icons/save-and-restore/folder.png" />
 				</image>
 			</ImageView>
 			<Label fx:id="folderLabel" text="Label" />
@@ -26,7 +26,7 @@
 		<children>
 			<ImageView pickOnBounds="true" preserveRatio="true">
 				<image>
-					<Image url="/icons/small/Save-set@.png" />
+					<Image url="/icons/save-and-restore/saveset.png" />
 				</image>
             <HBox.margin>
                <Insets top="-1.0" />
@@ -44,7 +44,7 @@
 			<HBox>
 				<ImageView fx:id="snapshotIcon" pickOnBounds="true" preserveRatio="true">
 					<image>
-						<Image url="/icons/small/Snap-shot@.png" />
+						<Image url="/icons/save-and-restore/snapshot.png" />
 					</image>
                <HBox.margin>
                   <Insets top="3.0" />

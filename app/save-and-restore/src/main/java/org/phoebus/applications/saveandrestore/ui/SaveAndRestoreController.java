@@ -25,14 +25,14 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
+import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.data.DataProvider;
-import org.phoebus.applications.saveandrestore.data.NodeChangeListener;
+import org.phoebus.applications.saveandrestore.data.NodeAddedListener;
+import org.phoebus.applications.saveandrestore.data.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
@@ -42,6 +42,7 @@ import se.esss.ics.masar.model.Node;
 import se.esss.ics.masar.model.NodeType;
 
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -49,16 +50,18 @@ import java.util.ResourceBundle;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
-public class SaveAndRestoreController implements Initializable, NodeChangeListener {
+public class SaveAndRestoreController implements Initializable, NodeChangedListener, NodeAddedListener {
 
     private static Executor UI_EXECUTOR = Platform::runLater;
 
-    public static final Image folderIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/small/Folder@.png");
-    public static final Image saveSetIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/small/Save-set@.png");
+    public static final Image folderIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/folder.png");
+    public static final Image saveSetIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/saveset.png");
+    public static final Image editSaveSetIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/edit_saveset.png");
     public static final Image deleteIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/delete.png");
     public static final Image renameIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/rename_col.png");
-    public static final Image snapshotIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/small/Snap-shot@.png");
-    public static final Image snapshotGoldenIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/small/Snap-shot-golden@.png");
+    public static final Image snapshotIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot.png");
+    public static final Image snapshotGoldenIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-golden.png");
+    public static final Image compareSnapshotIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/compare.png");
 
     @FXML
     private TreeView<Node> treeView;
@@ -94,23 +97,27 @@ public class SaveAndRestoreController implements Initializable, NodeChangeListen
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+
+        reconnectButton.textProperty().setValue(Messages.buttonReconnect);
+        emptyTreeInstruction.textProperty().setValue(Messages.labelCreateFolderEmptyTree);
+
         folderContextMenu = new ContextMenu();
-        MenuItem newFolderMenuItem = new MenuItem("New Folder", new ImageView(folderIcon));
+        MenuItem newFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(folderIcon));
         newFolderMenuItem.setOnAction(ae -> {
             handleNewFolder(treeView.getSelectionModel().getSelectedItem());
         });
 
-        MenuItem renameFolderMenuItem = new MenuItem("Rename", new ImageView(renameIcon));
+        MenuItem renameFolderMenuItem = new MenuItem(Messages.contextMenuRename, new ImageView(renameIcon));
         renameFolderMenuItem.setOnAction(ae -> {
             handleRenameNode(treeView.getSelectionModel().getSelectedItem());
         });
 
-        MenuItem deleteFolderMenuItem = new MenuItem("Delete", new ImageView(deleteIcon));
+        MenuItem deleteFolderMenuItem = new MenuItem(Messages.contextMenuDelete, new ImageView(deleteIcon));
         deleteFolderMenuItem.setOnAction(ae -> {
             deleteFolder(treeView.getSelectionModel().getSelectedItem());
         });
 
-        MenuItem newSaveSetMenuItem = new MenuItem("New Save Set", new ImageView(saveSetIcon));
+        MenuItem newSaveSetMenuItem = new MenuItem(Messages.contextMenuNewSaveSet, new ImageView(saveSetIcon));
         newSaveSetMenuItem.setOnAction(ae -> {
             handleNewSaveSet(treeView.getSelectionModel().getSelectedItem());
         });
@@ -118,7 +125,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangeListen
         folderContextMenu.getItems().addAll(newFolderMenuItem, renameFolderMenuItem, deleteFolderMenuItem, newSaveSetMenuItem);
 
         rootFolderContextMenu = new ContextMenu();
-        MenuItem newRootFolderMenuItem = new MenuItem("New Folder", new ImageView(folderIcon));
+        MenuItem newRootFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(folderIcon));
         newRootFolderMenuItem.setOnAction(ae -> {
             handleNewFolder(treeView.getSelectionModel().getSelectedItem());
         });
@@ -126,22 +133,22 @@ public class SaveAndRestoreController implements Initializable, NodeChangeListen
 
         saveSetContextMenu = new ContextMenu();
 
-        MenuItem deleteSaveSetMenuItem = new MenuItem("Delete", new ImageView(deleteIcon));
+        MenuItem deleteSaveSetMenuItem = new MenuItem(Messages.contextMenuDelete, new ImageView(deleteIcon));
         deleteSaveSetMenuItem.setOnAction(ae -> {
             handleDeleteSaveSet(treeView.getSelectionModel().getSelectedItem());
         });
 
-        MenuItem renameSaveSetMenuItem = new MenuItem("Rename", new ImageView(renameIcon));
+        MenuItem renameSaveSetMenuItem = new MenuItem(Messages.contextMenuRename, new ImageView(renameIcon));
         renameSaveSetMenuItem.setOnAction(ae -> {
             handleRenameNode(treeView.getSelectionModel().getSelectedItem());
         });
 
-        MenuItem openSaveSetMenuItem = new MenuItem("Open", new ImageView(saveSetIcon));
+        MenuItem openSaveSetMenuItem = new MenuItem(Messages.contextMenuOpen, new ImageView(saveSetIcon));
         openSaveSetMenuItem.setOnAction(ae -> {
             handleOpenSaveSet(treeView.getSelectionModel().getSelectedItem());
         });
 
-        MenuItem editSaveSetMenuItem = new MenuItem("Edit");
+        MenuItem editSaveSetMenuItem = new MenuItem(Messages.contextMenuEdit, new ImageView(editSaveSetIcon));
         editSaveSetMenuItem.setOnAction(ae -> {
             nodeDoubleClicked(treeView.getSelectionModel().getSelectedItem());
         });
@@ -149,22 +156,22 @@ public class SaveAndRestoreController implements Initializable, NodeChangeListen
         saveSetContextMenu.getItems().addAll(openSaveSetMenuItem, editSaveSetMenuItem, renameSaveSetMenuItem, deleteSaveSetMenuItem);
 
         snapshotContextMenu = new ContextMenu();
-        MenuItem deleteSnapshotMenuItem = new MenuItem("Delete", new ImageView(deleteIcon));
+        MenuItem deleteSnapshotMenuItem = new MenuItem(Messages.contextMenuDelete, new ImageView(deleteIcon));
         deleteSnapshotMenuItem.setOnAction(ae -> {
             handleDeleteSnapshot(treeView.getSelectionModel().getSelectedItem());
         });
 
-        MenuItem renameSnapshotItem = new MenuItem("Rename", new ImageView(renameIcon));
+        MenuItem renameSnapshotItem = new MenuItem(Messages.contextMenuRename, new ImageView(renameIcon));
         renameSnapshotItem.setOnAction(ae -> {
             handleRenameNode(treeView.getSelectionModel().getSelectedItem());
         });
 
-        MenuItem compareSaveSetMenuItem = new MenuItem("Compare Snapshots");
+        MenuItem compareSaveSetMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, new ImageView(compareSnapshotIcon));
         compareSaveSetMenuItem.setOnAction(ae -> {
             handleCompareSnapshot(treeView.getSelectionModel().getSelectedItem());
         });
 
-        MenuItem tagAsGolden = new MenuItem("Tag as Golden", new ImageView(snapshotGoldenIcon));
+        MenuItem tagAsGolden = new MenuItem(Messages.contextMenuTagAsGolden, new ImageView(snapshotGoldenIcon));
         tagAsGolden.textProperty().bind(toggleGoldenMenuItemText);
         tagAsGolden.graphicProperty().bind(toggleGoldenImageViewProperty);
         tagAsGolden.setOnAction(ae -> {
@@ -178,12 +185,15 @@ public class SaveAndRestoreController implements Initializable, NodeChangeListen
 
         treeView.setOnMouseClicked(me -> {
             TreeItem<Node> item = treeView.getSelectionModel().getSelectedItem();
-            if (item != null && item.getValue().getNodeType().equals(NodeType.SNAPSHOT)) {
-                toggleGoldenMenuItemText.set(Boolean.parseBoolean(item.getValue().getProperty("golden")) ? "Remove Golden tag" : "Tag as Golden");
+            if(item == null){
+                return;
+            }
+            if (item.getValue().getNodeType().equals(NodeType.SNAPSHOT)) {
+                toggleGoldenMenuItemText.set(Boolean.parseBoolean(item.getValue().getProperty("golden")) ? Messages.contextMenuRemoveGoldenTag : Messages.contextMenuTagAsGolden);
                 toggleGoldenImageViewProperty.set(Boolean.parseBoolean(item.getValue().getProperty("golden")) ? snapshotImageView : snapshotGoldenImageView);
-                if (me.getClickCount() == 2) {
-                    nodeDoubleClicked(treeView.getSelectionModel().getSelectedItem());
-                }
+            }
+            if (me.getClickCount() == 2) {
+                nodeDoubleClicked(treeView.getSelectionModel().getSelectedItem());
             }
         });
 
@@ -193,7 +203,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangeListen
         jmasarServiceTitle.textProperty().bind(jmasarServiceTitleProperty);
 
         ContextMenu treeViewContextMenu = new ContextMenu();
-        MenuItem newTopLevelFolderMenuItem = new MenuItem("New Folder", new ImageView(folderIcon));
+        MenuItem newTopLevelFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(folderIcon));
         newTopLevelFolderMenuItem.setOnAction(ae -> {
             handleNewFolder(treeView.getRoot());
         });
@@ -207,15 +217,18 @@ public class SaveAndRestoreController implements Initializable, NodeChangeListen
         loadInitialTreeData();
 
         saveAndRestoreService.addNodeChangeListener(this);
+        saveAndRestoreService.addNodeAddedListener(this);
+
+
     }
 
     @FXML
     public void reconnect(){
         if(!loadInitialTreeData()){
             Alert alert = new Alert(AlertType.ERROR);
-            alert.setTitle("ERROR");
+            alert.setTitle(Messages.errorGeneric);
             alert.setHeaderText(null);
-            alert.setContentText("Unable to reconnect to JMasar service.");
+            alert.setContentText(Messages.jmasarServiceConnectionFailure);
             alert.showAndWait();
         }
     }
@@ -228,7 +241,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangeListen
     private boolean loadInitialTreeData() {
         Node rootNode = saveAndRestoreService.getRootNode();
         if(rootNode == null){
-            jmasarServiceTitleProperty.set("JMasar serivce @ " +  saveAndRestoreService.getServiceIdentifier() + " unavailable!");
+            jmasarServiceTitleProperty.set(MessageFormat.format(Messages.jmasarServiceUnavailable, saveAndRestoreService.getServiceIdentifier()));
             remoteServiceUnavailable.set(true);
             return false;
         }
@@ -272,8 +285,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangeListen
 
     private void handleDeleteSnapshot(TreeItem<Node> treeItem) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Delete snapshot?");
-        alert.setContentText("Deletion is irreversible. Do you wish to continue?");
+        alert.setTitle(Messages.promptDeleteSnapshotTitle);
+        alert.setContentText(Messages.promptDeleteSnapshotContent);
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get().equals(ButtonType.OK)) {
             TreeItem<Node> parent = treeItem.getParent();
@@ -310,10 +323,10 @@ public class SaveAndRestoreController implements Initializable, NodeChangeListen
     }
 
     private void handleDeleteSaveSet(TreeItem<Node> treeItem) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Delete save set?");
-        alert.setHeaderText("All snapshots for this save set will be deleted!");
-        alert.setContentText("Deletion is irreversible. Do you wish to continue?");
+        Alert alert = new Alert(AlertType.CONFIRMATION);
+        alert.setTitle(Messages.promptDeleteSaveSetTitle);
+        alert.setHeaderText(Messages.promptDeleteSaveSetHeader);
+        alert.setContentText(Messages.promptDeleteSaveSetContent);
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get().equals(ButtonType.OK)) {
             TreeItem<Node> parent = treeItem.getParent();
@@ -336,8 +349,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangeListen
     }
 
     private void handleOpenSaveSet(TreeItem<Node> treeItem) {
-        SnapshotTab tab = new SnapshotTab(treeView.getSelectionModel().getSelectedItem().getValue(), saveAndRestoreService);
-        tab.loadSaveSet(treeView.getSelectionModel().getSelectedItem().getValue());
+        SnapshotTab tab = new SnapshotTab(treeItem.getValue(), saveAndRestoreService);
+        tab.loadSaveSet(treeItem.getValue());
 
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
@@ -352,8 +365,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangeListen
                         .collect(Collectors.toList());
 
         TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("New Folder");
-        dialog.setContentText("Specify a folder name (case sensitive):");
+        dialog.setTitle(Messages.contextMenuNewFolder);
+        dialog.setContentText(Messages.promptNewFolder);
         dialog.setHeaderText(null);
         dialog.getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
 
@@ -386,17 +399,17 @@ public class SaveAndRestoreController implements Initializable, NodeChangeListen
 
     private void deleteFolder(TreeItem<Node> treeItem) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Delete folder?");
-        alert.setHeaderText("All folders, save sets and snapshots in this folder and sub-folders will be deleted!");
-        alert.setContentText("Deletion is irreversible. Do you wish to continue?");
+        alert.setTitle(Messages.promptDeleteFolderTitle);
+        alert.setHeaderText(Messages.promptDeleteFolderHeader);
+        alert.setContentText(Messages.promptDeleteFolderContent);
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get().equals(ButtonType.OK)) {
             TreeItem<Node> parent = treeItem.getParent();
             try {
                 if(!saveAndRestoreService.deleteNode(treeItem.getValue().getUniqueId())) {
                     alert = new Alert(AlertType.ERROR);
-                    alert.setTitle("Delete failed");
-                    alert.setHeaderText("Selected folder was not deleted on server");
+                    alert.setTitle(Messages.errorDeleteFolderTitle);
+                    alert.setHeaderText(Messages.errorDeleteFolderContent);
                     alert.showAndWait();
                 }
                 else {
@@ -411,7 +424,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangeListen
         }
     }
 
-
     private void nodeDoubleClicked(TreeItem<Node> node) {
 
         // Disallow opening a tab multiple times for the same save set.
@@ -425,7 +437,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangeListen
 
         switch (node.getValue().getNodeType()) {
             case CONFIGURATION:
-                tab = new SaveSetTab(node.getValue(), saveAndRestoreService);
+                tab = new SaveSetTab(node.getValue());
                 break;
             case SNAPSHOT:
                 tab = new SnapshotTab(treeView.getSelectionModel().getSelectedItem().getValue(), saveAndRestoreService);
@@ -450,8 +462,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangeListen
                         .collect(Collectors.toList());
 
         TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("New Save Set");
-        dialog.setContentText("Specify a save set name (case sensitive):");
+        dialog.setTitle(Messages.promptNewSaveSetTitle);
+        dialog.setContentText(Messages.promptNewSaveSetContent);
         dialog.setHeaderText(null);
         dialog.getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
 
@@ -502,8 +514,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangeListen
                         .collect(Collectors.toList());
 
         TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Rename node");
-        dialog.setContentText("Specify a new name (case sensitive):");
+        dialog.setTitle(Messages.promptRenameNodeTitle);
+        dialog.setContentText(Messages.promptRenameNodeContent);
         dialog.setHeaderText(null);
         dialog.getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
         dialog.getEditor().textProperty().setValue(node.getValue().getName());
@@ -523,7 +535,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangeListen
                 saveAndRestoreService.updateNode(node.getValue());
             } catch (Exception e) {
                 Alert alert = new Alert(AlertType.ERROR);
-                alert.setTitle("Action failed");
+                alert.setTitle(Messages.errorActionFailed);
                 alert.setHeaderText(e.getMessage());
                 alert.showAndWait();
             }
@@ -550,6 +562,17 @@ public class SaveAndRestoreController implements Initializable, NodeChangeListen
         nodeSubjectToUpdate.setValue(node);
     }
 
+    @Override
+    public void nodeAdded(Node parentNode, Node newNode){
+        // Find the parent to which the new node is to be added
+        TreeItem<Node> parentTreeItem = recursiveSearch(parentNode.getUniqueId(), treeView.getRoot());
+        if(parentTreeItem == null){
+            // TODO: log this
+            return;
+        }
+        parentTreeItem.getChildren().add(createNode(newNode));
+    }
+
     private TreeItem<Node> recursiveSearch(String nodeIdToLocate, TreeItem<Node> node){
         if (node.getValue().getUniqueId().equals(nodeIdToLocate))
             return node;
@@ -559,5 +582,10 @@ public class SaveAndRestoreController implements Initializable, NodeChangeListen
             result = recursiveSearch(nodeIdToLocate, childNodes.get(i));
         }
         return result;
+    }
+
+    public void cleanUp(){
+        saveAndRestoreService.removeNodeChangeListener(this);
+        saveAndRestoreService.removeNodeAddedListener(this);
     }
 }

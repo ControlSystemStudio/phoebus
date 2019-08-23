@@ -20,6 +20,7 @@
 package org.phoebus.applications.saveandrestore;
 
 import javafx.scene.Node;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
@@ -53,12 +54,19 @@ public class SaveAndRestoreApplication implements AppDescriptor {
 		appInstance.setAppDescriptor(this);
 
 		DockItem tab = null;
+
 		try {
 			tab = new DockItem(appInstance, (Node)springFxmlLoader.load("ui/fxml/SaveAndRestoreUI.fxml"));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
+		SaveAndRestoreController controller = springFxmlLoader.getLoader().getController();
+		tab.setOnClosed(e -> controller.cleanUp());
+
 		DockPane.getActiveDockPane().addTab(tab);
+
+		System.setProperty("com.cosylab.epics.caj.CAJContext.addr_list", "10.0.16.85");
 
 		return appInstance;
 	}

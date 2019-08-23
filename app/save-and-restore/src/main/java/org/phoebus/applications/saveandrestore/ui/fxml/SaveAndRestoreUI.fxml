@@ -23,7 +23,7 @@
 						</HBox.margin>
 					</Label>
 					<Region HBox.hgrow="ALWAYS" />
-					<Button fx:id="reconnectButton" onAction="#reconnect" text="Reconnect" visible="false">
+					<Button fx:id="reconnectButton" onAction="#reconnect" visible="false">
                   		<HBox.margin>
                      		<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                   		</HBox.margin>
@@ -34,7 +34,7 @@
 				<StackPane>
 					<TreeView fx:id="treeView" prefHeight="347.0" prefWidth="195.0" BorderPane.alignment="CENTER" VBox.vgrow="ALWAYS">
 					</TreeView>
-					<Label fx:id="emptyTreeInstruction" text="Right-click to create a top-level folder" visible="false"></Label>
+					<Label fx:id="emptyTreeInstruction"  visible="false"></Label>
 				</StackPane>
 			</center>
 		</BorderPane>

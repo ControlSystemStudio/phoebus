@@ -32,18 +32,20 @@ import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.util.Callback;
-import org.phoebus.applications.saveandrestore.data.NodeChangeListener;
+import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.data.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import se.esss.ics.masar.model.ConfigPv;
 import se.esss.ics.masar.model.Node;
 
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 
-public class SaveSetController implements NodeChangeListener {
+public class SaveSetController implements NodeChangedListener {
 
 
 	@FXML
@@ -148,7 +150,7 @@ public class SaveSetController implements NodeChangeListener {
 
 		ContextMenu pvNameContextMenu = new ContextMenu();
 
-		MenuItem deleteMenuItem = new MenuItem("Delete selected PV(s)");
+		MenuItem deleteMenuItem = new MenuItem(Messages.menuItemDeleteSelectedPVs);
 		deleteMenuItem.setOnAction(ae -> {
 			ObservableList<ConfigPv> selectedPvs = pvTable.getSelectionModel().getSelectedItems();
 			if(selectedPvs == null || selectedPvs.isEmpty()){
@@ -161,14 +163,14 @@ public class SaveSetController implements NodeChangeListener {
 		});
 		deleteMenuItem.disableProperty().bind(selectionEmpty);
 
-		MenuItem renamePvMenuItem = new MenuItem("Edit PV Name");
+		MenuItem renamePvMenuItem = new MenuItem(Messages.menuItemEditPVName);
 		renamePvMenuItem.setOnAction(ae -> {
 
 			ConfigPv configPv = pvTable.getSelectionModel().getSelectedItem();
 
 			Alert alert = new Alert(AlertType.CONFIRMATION);
-			alert.setTitle("Rename PV?");
-			alert.setContentText("NOTE: Renaming the \"" + configPv.getPvName() + "\" will affect all save sets and snapshots referring to this PV.\n\nDo you wish to continue?");
+			alert.setTitle(Messages.promptRenamePVTitle);
+			alert.setContentText(MessageFormat.format(Messages.promptRenamePVContent, configPv.getPvName()));
 			Optional<ButtonType> result = alert.showAndWait();
 			if (result.isPresent() && result.get().equals(ButtonType.OK)) {
 
@@ -363,8 +365,6 @@ public class SaveSetController implements NodeChangeListener {
 				dirty.set(true);
 			}
 		});
-
-
 	}
 
 	@FXML
@@ -382,7 +382,6 @@ public class SaveSetController implements NodeChangeListener {
 				errorAlert.showAndWait();
 			}
 		});
-
 	}
 
 	@FXML
