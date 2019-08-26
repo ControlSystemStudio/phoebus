@@ -49,6 +49,8 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import com.sun.jersey.client.urlconnection.HTTPSProperties;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
+import com.sun.jersey.multipart.FormDataMultiPart;
+import com.sun.jersey.multipart.file.FileDataBodyPart;
 import com.sun.jersey.multipart.impl.MultiPartWriter;
 
 public class OlogClient implements LogClient {
@@ -68,6 +70,7 @@ public class OlogClient implements LogClient {
 
         // optional
         private boolean withHTTPAuthentication = false;
+        private boolean withRawFilter;
 
         private ClientConfig clientConfig = null;
         private TrustManager[] trustManager = new TrustManager[] { new DummyX509TrustManager() };;
@@ -81,6 +84,7 @@ public class OlogClient implements LogClient {
         private ExecutorService executor = Executors.newSingleThreadExecutor();
 
         private OlogProperties properties = new OlogProperties();
+
 
         private OlogClientBuilder() {
             this.ologURI = URI.create(this.properties.getPreferenceValue("olog_url"));
@@ -223,8 +227,15 @@ public class OlogClient implements LogClient {
             }
             this.username = ifNullReturnPreferenceValue(this.username, "username", "username");
             this.password = ifNullReturnPreferenceValue(this.password, "password", "password");
-            return new OlogClient(this.ologURI, this.clientConfig, this.withHTTPAuthentication, this.username,
-                    this.password, this.executor);
+
+            this.withRawFilter = Boolean.valueOf(this.properties.getPreferenceValue("debug"));
+            return new OlogClient(this.ologURI,
+                    this.clientConfig,
+                    this.withHTTPAuthentication,
+                    this.username,
+                    this.password,
+                    this.executor,
+                    this.withRawFilter);
         }
 
         private String ifNullReturnPreferenceValue(String value, String key, String Default) {
@@ -238,14 +249,16 @@ public class OlogClient implements LogClient {
     }
 
     private OlogClient(URI ologURI, ClientConfig config, boolean withHTTPBasicAuthFilter, String username,
-            String password, ExecutorService executor) {
+            String password, ExecutorService executor, boolean withRawFilter) {
         this.executor = executor;
         config.getClasses().add(MultiPartWriter.class);
         Client client = Client.create(config);
         if (withHTTPBasicAuthFilter) {
             client.addFilter(new HTTPBasicAuthFilter(username, password));
         }
-        client.addFilter(new RawLoggingFilter(Logger.getLogger(OlogClient.class.getName())));
+        if (withRawFilter) {
+            client.addFilter(new RawLoggingFilter(Logger.getLogger(OlogClient.class.getName())));
+        }
         client.setFollowRedirects(true);
         service = client.resource(UriBuilder.fromUri(ologURI).build());
     }
@@ -414,25 +427,38 @@ public class OlogClient implements LogClient {
 
         @Override
         public Collection<LogEntry> call() {
-            XmlLogs xmlLogs = new XmlLogs();
+            Collection<LogEntry> returnLogs = new HashSet<LogEntry>();
             for (LogEntry log : logs) {
+                XmlLogs xmlLogs = new XmlLogs();
                 XmlLog xmlLog = new XmlLog(log);
                 xmlLog.setLevel("Info");
                 xmlLogs.getLogs().add(xmlLog);
+
+                ClientResponse clientResponse = service.path("logs")
+                        .accept(MediaType.APPLICATION_XML)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .post(ClientResponse.class, xmlLogs);
+
+                if (clientResponse.getStatus() < 300) {
+
+                    // XXX there is an assumption that the result without an error status will consist of a single created log entry
+                    XmlLog createdLog = clientResponse.getEntity(XmlLogs.class).getLogs().iterator().next();
+                    log.getAttachments().forEach(attachment -> {
+                        FormDataMultiPart form = new FormDataMultiPart();
+                        form.bodyPart(new FileDataBodyPart("file", attachment.getFile()));
+                        XmlAttachment createdAttachment = service.path("attachments").path(createdLog.getId().toString())
+                                .type(MediaType.MULTIPART_FORM_DATA).accept(MediaType.APPLICATION_XML)
+                                .post(XmlAttachment.class, form);
+                        createdLog.addXmlAttachment(createdAttachment);
+                    });
+                    returnLogs.add(new OlogLog(createdLog));
+
+                } else
+                    throw new UniformInterfaceException(clientResponse);
+                
             }
-            ClientResponse clientResponse = service.path("logs")
-                    .accept(MediaType.APPLICATION_XML)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .post(ClientResponse.class, xmlLogs);
-            if (clientResponse.getStatus() < 300) {
-                XmlLogs responseLogs = clientResponse.getEntity(XmlLogs.class);
-                Collection<LogEntry> returnLogs = new HashSet<LogEntry>();
-                for (XmlLog xmllog : responseLogs.getLogs()) {
-                    returnLogs.add(new OlogLog(xmllog));
-                }
-                return Collections.unmodifiableCollection(returnLogs);
-            } else
-                throw new UniformInterfaceException(clientResponse);
+
+            return Collections.unmodifiableCollection(returnLogs);
 
         }
     }
