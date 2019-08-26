@@ -70,6 +70,7 @@ public class OlogClient implements LogClient {
 
         // optional
         private boolean withHTTPAuthentication = false;
+        private boolean withRawFilter;
 
         private ClientConfig clientConfig = null;
         private TrustManager[] trustManager = new TrustManager[] { new DummyX509TrustManager() };;
@@ -83,6 +84,7 @@ public class OlogClient implements LogClient {
         private ExecutorService executor = Executors.newSingleThreadExecutor();
 
         private OlogProperties properties = new OlogProperties();
+
 
         private OlogClientBuilder() {
             this.ologURI = URI.create(this.properties.getPreferenceValue("olog_url"));
@@ -225,8 +227,15 @@ public class OlogClient implements LogClient {
             }
             this.username = ifNullReturnPreferenceValue(this.username, "username", "username");
             this.password = ifNullReturnPreferenceValue(this.password, "password", "password");
-            return new OlogClient(this.ologURI, this.clientConfig, this.withHTTPAuthentication, this.username,
-                    this.password, this.executor);
+
+            this.withRawFilter = Boolean.valueOf(this.properties.getPreferenceValue("debug"));
+            return new OlogClient(this.ologURI,
+                    this.clientConfig,
+                    this.withHTTPAuthentication,
+                    this.username,
+                    this.password,
+                    this.executor,
+                    this.withRawFilter);
         }
 
         private String ifNullReturnPreferenceValue(String value, String key, String Default) {
@@ -240,14 +249,16 @@ public class OlogClient implements LogClient {
     }
 
     private OlogClient(URI ologURI, ClientConfig config, boolean withHTTPBasicAuthFilter, String username,
-            String password, ExecutorService executor) {
+            String password, ExecutorService executor, boolean withRawFilter) {
         this.executor = executor;
         config.getClasses().add(MultiPartWriter.class);
         Client client = Client.create(config);
         if (withHTTPBasicAuthFilter) {
             client.addFilter(new HTTPBasicAuthFilter(username, password));
         }
-        client.addFilter(new RawLoggingFilter(Logger.getLogger(OlogClient.class.getName())));
+        if (withRawFilter) {
+            client.addFilter(new RawLoggingFilter(Logger.getLogger(OlogClient.class.getName())));
+        }
         client.setFollowRedirects(true);
         service = client.resource(UriBuilder.fromUri(ologURI).build());
     }
