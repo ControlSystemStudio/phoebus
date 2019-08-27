@@ -96,7 +96,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     private final Runnable clear_change_indicator = () ->
         Platform.runLater(() ->
         {
-            // System.out.println("CHANGES DONE for now");
+            logger.log(Level.INFO, "Alarm tree changes end");
             ongoing_change.set(null);
             setCursor(null);
         });
@@ -201,7 +201,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         final ScheduledFuture<?> previous = ongoing_change.getAndSet(UpdateThrottle.TIMER.schedule(clear_change_indicator, 1, TimeUnit.SECONDS));
         if (previous == null)
         {
-            // System.out.println("CHANGES START");
+            logger.log(Level.INFO, "Alarm tree changes start");
             setCursor(Cursor.WAIT);
         }
         else
