@@ -44,6 +44,7 @@ import org.phoebus.util.text.CompareNatural;
 
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -59,7 +60,11 @@ import javafx.scene.control.TreeView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.paint.Color;
 
 /** Tree-based UI for alarm configuration
  *
@@ -89,6 +94,9 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     /** Throttle [5Hz] used for updates of existing items */
     private final UpdateThrottle throttle = new UpdateThrottle(200, TimeUnit.MILLISECONDS, this::performUpdates);
 
+    /** Cursor change doesn't work on Mac, so add indicator to toolbar */
+    private final Label changing = new Label("Loading...");
+
     /** Is change indicator shown, and future been submitted to clear it? */
     private final AtomicReference<ScheduledFuture<?>> ongoing_change = new AtomicReference<>();
 
@@ -99,6 +107,8 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             logger.log(Level.INFO, "Alarm tree changes end");
             ongoing_change.set(null);
             setCursor(null);
+            final ObservableList<Node> items = getToolbar().getItems();
+            items.remove(changing);
         });
 
     // Javadoc for TreeItem shows example for overriding isLeaf() and getChildren()
@@ -118,6 +128,9 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     {
         if (model.isRunning())
             throw new IllegalStateException();
+
+        changing.setTextFill(Color.WHITE);
+        changing.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
 
         this.model = model;
 
@@ -203,6 +216,8 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         {
             logger.log(Level.INFO, "Alarm tree changes start");
             setCursor(Cursor.WAIT);
+            final ObservableList<Node> items = getToolbar().getItems();
+            items.add(1, changing);
         }
         else
             previous.cancel(false);
