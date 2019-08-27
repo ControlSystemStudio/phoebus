@@ -15,7 +15,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -42,6 +44,7 @@ import org.phoebus.util.text.CompareNatural;
 
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
@@ -86,6 +89,17 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     /** Throttle [5Hz] used for updates of existing items */
     private final UpdateThrottle throttle = new UpdateThrottle(200, TimeUnit.MILLISECONDS, this::performUpdates);
 
+    /** Is change indicator shown, and future been submitted to clear it? */
+    private final AtomicReference<ScheduledFuture<?>> ongoing_change = new AtomicReference<>();
+
+    /** Clear the change indicator */
+    private final Runnable clear_change_indicator = () ->
+        Platform.runLater(() ->
+        {
+            // System.out.println("CHANGES DONE for now");
+            ongoing_change.set(null);
+            setCursor(null);
+        });
 
     // Javadoc for TreeItem shows example for overriding isLeaf() and getChildren()
     // to dynamically create TreeItem as TreeView requests information.
@@ -176,6 +190,24 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         return view_item;
     }
 
+    /** Called when an item is added/removed to tell user
+     *  that there are changes to the tree structure,
+     *  may not make sense to interact with the tree right now.
+     *
+     *  <p>Resets on its own after 1 second without changes.
+     */
+    private void indicateChange()
+    {
+        final ScheduledFuture<?> previous = ongoing_change.getAndSet(UpdateThrottle.TIMER.schedule(clear_change_indicator, 1, TimeUnit.SECONDS));
+        if (previous == null)
+        {
+            // System.out.println("CHANGES START");
+            setCursor(Cursor.WAIT);
+        }
+        else
+            previous.cancel(false);
+    }
+
     // AlarmClientModelListener
     @Override
     public void serverStateChanged(final boolean alive)
@@ -220,6 +252,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         final CountDownLatch done = new CountDownLatch(1);
         Platform.runLater(() ->
         {
+            indicateChange();
             // Keep sorted by inserting at appropriate index
             final List<TreeItem<AlarmTreeItem<?>>> items = view_parent.getChildren();
             final int index = Collections.binarySearch(items, view_item,
@@ -262,6 +295,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         final CountDownLatch done = new CountDownLatch(1);
         Platform.runLater(() ->
         {
+            indicateChange();
             // Can only locate the parent view item on UI thread,
             // because item might just have been created by itemAdded() event
             // and won't be on the screen until UI thread runs.
