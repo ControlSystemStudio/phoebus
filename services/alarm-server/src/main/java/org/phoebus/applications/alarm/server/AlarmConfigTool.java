@@ -18,6 +18,7 @@ import org.phoebus.applications.alarm.client.AlarmConfigMonitor;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.xml.XmlModelReader;
 import org.phoebus.applications.alarm.model.xml.XmlModelWriter;
+import org.phoebus.util.time.SecondsParser;
 
 /**
  * Writes Alarm System model to XML.
@@ -60,12 +61,15 @@ public class AlarmConfigTool
         updateMonitor.waitForPauseInUpdates(30);
 
         System.out.printf("Received no more updates for %d seconds, I think I have a stable configuration\n", STABILIZATION_SECS);
+        System.out.println("Writing to file: " + filename);
 
-        //Write the model.
+        // Write the model.
+        final long start = System.currentTimeMillis();
         xmlWriter.write(client.getRoot());
         xmlWriter.close();
+        final long end = System.currentTimeMillis();
 
-        System.out.println("\nModel written to file: " + filename);
+        System.out.println("Write time: " + SecondsParser.formatSeconds((end - start)/1000.0));
         System.out.printf("%d updates were received while writing model to file.\n", updateMonitor.getCount());
 
         updateMonitor.dispose();
@@ -76,31 +80,35 @@ public class AlarmConfigTool
 	// Import an alarm system model from an xml file.
 	public void importModel(final String filename, final String server, final String config) throws InterruptedException, Exception
 	{
+	    System.out.println("Reading new configuration from " + filename);
+	    final long start = System.currentTimeMillis();
 		final File file = new File(filename);
 		final FileInputStream fileInputStream = new FileInputStream(file);
 
 		final XmlModelReader xmlModelReader = new XmlModelReader();
 		xmlModelReader.load(fileInputStream);
 
+        final AlarmClientNode new_root = xmlModelReader.getRoot();
+        // Check that the configs match.
+        if (!config.equals(new_root.getName()))
+        {
+            System.out.printf("Expecting configuration for \"%s\" but file %s contains settings for \"%s\".\n", config, filename, new_root.getName());
+            return;
+        }
+        final long got_xml = System.currentTimeMillis();
+
 		// Connect to the server.
 		final AlarmClient client = new AlarmClient(server, config);
         client.start();
         try
         {
-            System.out.println("Fetching server model. This could take some time ...");
+            System.out.println("Fetching existing alarm configuration for \"" + config + "\", then waiting for it to remain stable for " + STABILIZATION_SECS + " seconds...");
             final AlarmConfigMonitor updateMonitor = new AlarmConfigMonitor(STABILIZATION_SECS, client);
             updateMonitor.waitForPauseInUpdates(30);
             updateMonitor.dispose();
+            final long got_old_config = System.currentTimeMillis();
 
-            final AlarmClientNode new_root = xmlModelReader.getRoot();
-            // Check that the configs match.
-            if (!config.equals(new_root.getName()))
-            {
-            	System.out.printf("Expecting configuration for \"%s\" but file %s contains settings for \"%s\".\n", config, filename, new_root.getName());
-            	return;
-            }
-
-            System.out.println("Importing " + new_root.getName() + " ...");
+            System.out.println("Deleting existing " + new_root.getName() + " ...");
 
             // Get the server's root node for this config.
             final AlarmClientNode root = client.getRoot();
@@ -109,11 +117,21 @@ public class AlarmConfigTool
             final List<AlarmTreeItem<?>> root_children = root.getChildren();
             for (final AlarmTreeItem<?> child : root_children)
             	client.removeComponent(child);
+            final long deleted_old = System.currentTimeMillis();
+
+            System.out.println("Loading new " + new_root.getName() + " ...");
 
             // For every child of the new root, add them and their descendants to the old root.
             final List<AlarmTreeItem<?>> new_root_children = new_root.getChildren();
             for (final AlarmTreeItem<?> child : new_root_children)
 				addNodes(client, root, child);
+            final long loaded_new = System.currentTimeMillis();
+
+            System.out.println("Time to read XML                     : " + SecondsParser.formatSeconds((got_xml - start) / 1000.0));
+            System.out.println("Time to fetch existing configuration : " + SecondsParser.formatSeconds((got_old_config - got_xml) / 1000.0));
+            System.out.println("Time to delete existing configuration: " + SecondsParser.formatSeconds((deleted_old - got_old_config) / 1000.0));
+            System.out.println("Time to load new configuration       : " + SecondsParser.formatSeconds((loaded_new - deleted_old) / 1000.0));
+            System.out.println("Total                                : " + SecondsParser.formatSeconds((loaded_new - start) / 1000.0));
             System.out.println("Done.");
         }
         finally
