@@ -51,7 +51,7 @@ class ItemConfigDialog extends Dialog<Boolean>
     {
         // Allow multiple instances
         initModality(Modality.NONE);
-        setTitle("Configure " + item.getPathName());
+        setTitle("Configure " + item.getName());
 
         final GridPane layout = new GridPane();
         // layout.setGridLinesVisible(true); // Debug layout
@@ -59,6 +59,14 @@ class ItemConfigDialog extends Dialog<Boolean>
         layout.setVgap(5);
 
         int row = 0;
+
+        // Show item path, allow copying it out.
+        // Can't edit; that's done via rename or move actions.
+        layout.add(new Label("Path:"), 0, row);
+        final TextField path = new TextField(item.getPathName());
+        path.setEditable(false);
+        layout.add(path, 1, row++);
+
         if (item instanceof AlarmClientLeaf)
         {
             final AlarmClientLeaf leaf = (AlarmClientLeaf) item;
