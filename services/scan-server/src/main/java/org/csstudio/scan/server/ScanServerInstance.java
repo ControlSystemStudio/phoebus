@@ -124,8 +124,11 @@ public class ScanServerInstance
             else if (args[0].equals("scans"))
             {
                 System.out.println("Scans:");
-                for (ScanInfo scan : getScanServer().getScanInfos())
-                    System.out.println(scan);
+                // List latest last so that console will show the 'current' one,
+                // while older ones scroll up.
+                final List<ScanInfo> scans = getScanServer().getScanInfos();
+                for (int i=scans.size()-1; i>=0; --i)
+                    System.out.println(scans.get(i));
             }
             else if (args[0].equals("abort"))
                 getScanServer().abort(-1);
