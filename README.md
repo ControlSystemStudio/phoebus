@@ -9,10 +9,7 @@ http://phoebus-doc.readthedocs.io
 
 
 ## Requirements
- - [JDK11 or later, suggested is OpenJDK](http://jdk.java.net).
-   For the time being, Phoebus still builds with JDK 9 and 10,
-   but these must be Oracle JDKs which include JavaFX.
-   From OpenJDK11 on, we use OpenJFX.
+ - [JDK11 or later, suggested is OpenJDK](http://jdk.java.net/12).
  - [maven 2.x](https://maven.apache.org/) or [ant](http://ant.apache.org/)
 
 
@@ -100,7 +97,7 @@ Select the phoebus root directory, and check the option to "Seach for nested pro
 
 By default, all projects should be selected ('dependencies', 'core-framework', .., 'product').
 
-When using Java 11 or higher, the file `dependencies/phoebus-target/.classpath`
+The file `dependencies/phoebus-target/.classpath`
 needs to be edited to list all the `phoebus-target/target/lib/javafx*.jar` files.
 
 Invoke `Run As/Java Application` on the `Launcher` in the product.
