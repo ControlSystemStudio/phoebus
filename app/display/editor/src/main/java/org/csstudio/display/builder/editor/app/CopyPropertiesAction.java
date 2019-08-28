@@ -9,7 +9,6 @@ package org.csstudio.display.builder.editor.app;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -66,7 +65,7 @@ public class CopyPropertiesAction extends MenuItem
 
             @Override
             public String toString()
-            {
+            {   // ListView will call toString on item for text to show
                 return property.getDescription();
             }
         }
@@ -87,6 +86,7 @@ public class CopyPropertiesAction extends MenuItem
                 prop_list.getItems().add(new SelectableProperty(prop));
             }
 
+            // OK/Cancel dialog
             getDialogPane().setContent(prop_list);
             getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
             setResizable(true);
@@ -95,7 +95,7 @@ public class CopyPropertiesAction extends MenuItem
             setResultConverter(button ->
             {
                 if (button != ButtonType.OK)
-                    return Collections.emptyList();
+                    return null;
 
                 final List<WidgetProperty<?>> selected = new ArrayList<>();
                 for (SelectableProperty sel_prop : prop_list.getItems())
@@ -122,6 +122,9 @@ public class CopyPropertiesAction extends MenuItem
         final Optional<List<WidgetProperty<?>>> result = dialog.showAndWait();
         if (! result.isPresent())
             return;
+        final List<WidgetProperty<?>> properties = result.get();
+        if (properties.isEmpty())
+            return;
 
         // Place XML for selected properties on clipboard
         try
@@ -129,7 +132,7 @@ public class CopyPropertiesAction extends MenuItem
             final ByteArrayOutputStream buf = new ByteArrayOutputStream();
             final ModelWriter model_writer = new ModelWriter(buf);
             model_writer.getWriter().writeStartElement("properties");
-            for (WidgetProperty<?> prop : result.get())
+            for (WidgetProperty<?> prop : properties)
                 model_writer.writeProperty(prop);
             model_writer.getWriter().writeEndElement();
             model_writer.close();

@@ -138,6 +138,7 @@ public class DisplayEditorInstance implements AppInstance
         final ActionWapper cut = new ActionWapper(ActionDescription.CUT);
         final ActionWapper copy = new ActionWapper(ActionDescription.COPY);
         final MenuItem copy_properties = new CopyPropertiesAction(editor_gui.getDisplayEditor(), selection);
+        final MenuItem paste_properties = new PastePropertiesAction(editor_gui.getDisplayEditor(), selection);
         final MenuItem group = new CreateGroupAction(editor_gui.getDisplayEditor(), selection);
         final MenuItem morph = new MorphWidgetsMenu(editor_gui.getDisplayEditor());
         final MenuItem back = new ActionWapper(ActionDescription.TO_BACK);
@@ -197,6 +198,7 @@ public class DisplayEditorInstance implements AppInstance
                                copy,
                                new PasteWidgets(getEditorGUI()),
                                copy_properties,
+                               paste_properties,
                                new SeparatorMenuItem(),
                                group,
                                ungroup,
