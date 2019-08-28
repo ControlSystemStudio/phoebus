@@ -119,33 +119,36 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/spring-webmvc-5.0.9.RELEASE.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/hibernate-validator-6.0.12.Final.jar"/>
 	<!-- On Windows, need to add this:
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-base-12.0.1-win.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-base-12.0.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-12.0.1-win.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-12.0.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-12.0.1-win.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-12.0.1-win.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-12.0.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-media-12.0.1-win.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-media-12.0.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-12.0.1-win.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/javafx-web-12.0.1-win.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-base-12.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-base-12.0.2-win.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-12.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-12.0.2-win.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-12.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-12.0.2-win.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-12.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-12.0.2-win.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-media-12.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-media-12.0.2-win.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-12.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-12.0.2-win.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-12.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/javafx-web-12.0.2-win.jar"/>
 	-->
 	<!-- On Linux, need to add this:
-        <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-12.0.1.jar"/>
-        <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-12.0.1-linux.jar"/>
-        <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-12.0.1.jar"/>
-        <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-12.0.1-linux.jar"/>
-        <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-12.0.1.jar"/>
-        <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-12.0.1-linux.jar"/>
-        <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-12.0.1.jar"/>
-        <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-12.0.1-linux.jar"/>
-        <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-12.0.1.jar"/>
-        <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-12.0.1-linux.jar"/>
-        <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-12.0.1.jar"/>
-        <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-12.0.1-linux.jar"/>
-        <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-12.0.1.jar"/>
-        <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-12.0.1-linux.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-12.0.2.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-12.0.2-linux.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-12.0.2.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-12.0.2-linux.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-12.0.2.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-12.0.2-linux.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-12.0.2.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-12.0.2-linux.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-12.0.2.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-12.0.2-linux.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-12.0.2.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-12.0.2-linux.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-12.0.2.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-12.0.2-linux.jar"/>
 	-->
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
