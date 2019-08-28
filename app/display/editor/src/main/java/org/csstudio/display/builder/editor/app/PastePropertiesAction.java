@@ -9,9 +9,12 @@ package org.csstudio.display.builder.editor.app;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
+import java.util.Optional;
 
 import org.csstudio.display.builder.editor.DisplayEditor;
+import org.csstudio.display.builder.editor.undo.SetWidgetPropertyAction;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -34,7 +37,7 @@ public class PastePropertiesAction extends MenuItem
     {
         super("Paste Properties", ImageCache.getImageView(ImageCache.class, "/icons/paste.png"));
         if (selection.size() >= 1  &&  clipboardHasProperties())
-            setOnAction(event -> pasteProperties(selection));
+            setOnAction(event -> pasteProperties(editor, selection));
         else
             setDisable(true);
     }
@@ -47,18 +50,36 @@ public class PastePropertiesAction extends MenuItem
         return xml.contains("<display")  &&  xml.contains("<properties>");
     }
 
-    private void pasteProperties(final List<Widget> widgets)
+    private void pasteProperties(final DisplayEditor editor, final List<Widget> widgets)
     {
         try
         {
             final ByteArrayInputStream clipstream = new ByteArrayInputStream(Clipboard.getSystemClipboard().getString().getBytes());
             final ModelReader model_reader = new ModelReader(clipstream);
-            final Element properties = XMLUtil.getChildElement(model_reader.getRoot(), "properties");
-            if (properties == null)
+            final Element xml = XMLUtil.getChildElement(model_reader.getRoot(), "properties");
+            if (xml == null)
                 throw new Exception("Clipboard does not hold properties");
-            for (Widget widget : widgets)
-                widget.getConfigurator(model_reader.getVersion())
-                      .configureFromXML(model_reader, widget, properties);
+
+            for (final Element prop_xml : XMLUtil.getChildElements(xml))
+            {
+                final String prop_name = prop_xml.getNodeName();
+                for (Widget widget : widgets)
+                {
+                    // Skip unknown properties
+                    final Optional<WidgetProperty<Object>> prop = widget.checkProperty(prop_name);
+                    if (! prop.isPresent())
+                        continue;
+
+                    // Update property's value from XML
+                    final WidgetProperty<Object> property = prop.get();
+                    final Object orig_value = property.getValue();
+                    property.readFromXML(model_reader, prop_xml);
+                    final Object value = property.getValue();
+
+                    // Register with undo/redo
+                    editor.getUndoableActionManager().add(new SetWidgetPropertyAction<>(property, orig_value, value));
+                }
+            }
         }
         catch (Exception ex)
         {
