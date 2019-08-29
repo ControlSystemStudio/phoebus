@@ -113,7 +113,8 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
                         // Without Alt, a click within a group would select-click the group,
                         // consuming the event and preventing a any rubberband selection.
                         if (event.isAltDown()  &&
-                            (model_widget instanceof GroupWidget))
+                            (model_widget instanceof GroupWidget ||
+                             model_widget instanceof TabsWidget))
                         {
                             // System.out.println("Ignoring click in " + model_widget);
                             return;
