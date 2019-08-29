@@ -19,6 +19,8 @@ import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.InsetsWidgetProperty;
+import org.csstudio.display.builder.model.widgets.TabsWidget;
+import org.csstudio.display.builder.model.widgets.TabsWidget.TabItemProperty;
 
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
@@ -199,8 +201,21 @@ public class GeometryTools
                     final ChildrenProperty children = ChildrenProperty.getChildren(widget);
                     if (children != null)
                     {
+                        // Search 'children' of group
                         final WidgetSearch sub = new WidgetSearch(children.getValue(), region);
                         found.addAll(sub.compute());
+                    }
+                    else if (widget instanceof TabsWidget)
+                    {
+                        // Search visible tab
+                        final TabsWidget tabs_widget = (TabsWidget) widget;
+                        final List<TabItemProperty> tabs = tabs_widget.propTabs().getValue();
+                        final int active = tabs_widget.propActiveTab().getValue();
+                        if (active >= 0  &&  active < tabs.size())
+                        {
+                            final WidgetSearch sub = new WidgetSearch(tabs.get(active).children().getValue(), region);
+                            found.addAll(sub.compute());
+                        }
                     }
                 }
             }
