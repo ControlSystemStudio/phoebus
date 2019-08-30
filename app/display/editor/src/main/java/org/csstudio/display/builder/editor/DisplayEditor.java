@@ -383,7 +383,7 @@ public class DisplayEditor
         });
 
         new Rubberband(model_root, edit_tools, this::handleRubberbandSelection);
-        new PointsBinding(edit_tools, selection, undo);
+        new PointsBinding(edit_tools, selection_tracker::gridConstrain, selection, undo);
 
         // Attach D&Drop to the widget_parent which is zoomed,
         // so drop will have the zoomed coordinate system
