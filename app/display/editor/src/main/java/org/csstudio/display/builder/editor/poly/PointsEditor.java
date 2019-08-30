@@ -12,6 +12,7 @@ import static org.csstudio.display.builder.editor.Plugin.logger;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.editor.DisplayEditor;
+import org.csstudio.display.builder.editor.PointConstraint;
 import org.csstudio.display.builder.model.properties.Points;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -28,6 +29,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
+
 /** Editor for interactively adding/moving/removing points
  *
  *  <p>In "APPEND" mode, each mouse click adds another point.
@@ -48,18 +50,7 @@ public class PointsEditor
 {
     private static ImageCursor cursor_add, cursor_remove;
 
-    @FunctionalInterface
-    public interface Constrainer
-    {
-        /** Constrain a point to certain coordinates, for example on a grid
-         *  @param x Original X
-         *  @param y Original Y
-         *  @return Constrained coordinate
-         */
-        public Point2D constrain(double x, double y);
-    }
-
-    private Constrainer constrain;
+    private PointConstraint constrain;
     private Points points;
     private PointsEditorListener listener;
     private Group handle_group;
@@ -173,7 +164,7 @@ public class PointsEditor
      *  @param points Points to edit
      *  @param listener Listener to notify
      */
-    public PointsEditor(final Group root, final Constrainer constrain, final Points points, final PointsEditorListener listener)
+    public PointsEditor(final Group root, final PointConstraint constrain, final Points points, final PointsEditorListener listener)
     {
         init();
 

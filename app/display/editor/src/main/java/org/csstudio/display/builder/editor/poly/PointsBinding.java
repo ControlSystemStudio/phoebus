@@ -17,9 +17,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.csstudio.display.builder.editor.PointConstraint;
 import org.csstudio.display.builder.editor.WidgetSelectionHandler;
 import org.csstudio.display.builder.editor.WidgetSelectionListener;
-import org.csstudio.display.builder.editor.tracker.SelectedWidgetUITracker;
 import org.csstudio.display.builder.editor.undo.SetWidgetPointsAction;
 import org.csstudio.display.builder.editor.util.GeometryTools;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
@@ -40,7 +40,7 @@ public class PointsBinding implements WidgetSelectionListener, PointsEditorListe
 {
     private static boolean enable_scaling = true;
     private final Group parent;
-    private final SelectedWidgetUITracker selection_tracker;
+    private final PointConstraint constraint;
     private final WidgetSelectionHandler selection;
     private final UndoableActionManager undo;
     private Widget widget;
@@ -57,15 +57,15 @@ public class PointsBinding implements WidgetSelectionListener, PointsEditorListe
     }
 
     /** @param parent JFX {@link Group} where points editor is placed
-     *  @param selection_tracker Selection UI tracker (for grid constrain)
+     *  @param constraint Grid constraint
      *  @param selection Selection handler
      *  @param undo Undo manager
      */
-    public PointsBinding(final Group parent, final SelectedWidgetUITracker selection_tracker, final WidgetSelectionHandler selection,
+    public PointsBinding(final Group parent, final PointConstraint constraint, final WidgetSelectionHandler selection,
                          final UndoableActionManager undo)
     {
         this.parent = parent;
-        this.selection_tracker = selection_tracker;
+        this.constraint = constraint;
         this.selection = selection;
         this.undo = undo;
         selection.addListener(this);
@@ -107,7 +107,7 @@ public class PointsBinding implements WidgetSelectionListener, PointsEditorListe
             screen_points.setY(i, y0 + screen_points.getY(i));
         }
 
-        editor = new PointsEditor(parent, selection_tracker::gridConstrain, screen_points, this);
+        editor = new PointsEditor(parent, constraint, screen_points, this);
         widget.getProperty(propX).addUntypedPropertyListener(this);
         widget.getProperty(propY).addUntypedPropertyListener(this);
         widget.getProperty(propWidth).addUntypedPropertyListener(this);
