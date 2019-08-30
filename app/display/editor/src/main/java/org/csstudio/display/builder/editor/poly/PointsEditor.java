@@ -48,6 +48,18 @@ public class PointsEditor
 {
     private static ImageCursor cursor_add, cursor_remove;
 
+    @FunctionalInterface
+    public interface Constrainer
+    {
+        /** Constrain a point to certain coordinates, for example on a grid
+         *  @param x Original X
+         *  @param y Original Y
+         *  @return Constrained coordinate
+         */
+        public Point2D constrain(double x, double y);
+    }
+
+    private Constrainer constrain;
     private Points points;
     private PointsEditorListener listener;
     private Group handle_group;
@@ -125,9 +137,10 @@ public class PointsEditor
         }
         else if (event.getEventType() == MouseEvent.MOUSE_PRESSED)
         {
-            points.add(x, y);
-            line.setStartX(x);
-            line.setStartY(y);
+            final Point2D point = constrain.constrain(x, y);
+            points.add(point.getX(), point.getY());
+            line.setStartX(point.getX());
+            line.setStartY(point.getY());
             listener.pointsChanged(points);
         }
         else // Pass on w/o consuming
@@ -156,13 +169,15 @@ public class PointsEditor
 
     /** Create points editor
      *  @param root Parent group where editor can host its UI elements
+     *  @param constrain Point constrain
      *  @param points Points to edit
      *  @param listener Listener to notify
      */
-    public PointsEditor(final Group root, final Points points, final PointsEditorListener listener)
+    public PointsEditor(final Group root, final Constrainer constrain, final Points points, final PointsEditorListener listener)
     {
         init();
 
+        this.constrain = constrain;
         this.points = points;
         this.listener = listener;
         handle_group = new Group();
@@ -303,11 +318,12 @@ public class PointsEditor
             {
                 event.consume();
                 getScene().setCursor(Cursor.CLOSED_HAND);
-                final double x = event.getX() + x_offset;
-                final double y = event.getY() + y_offset;
-                points.set(index, x, y);
-                setX(x - SIZE/2);
-                setY(y - SIZE/2);
+
+                final Point2D point = constrain.constrain(event.getX() + x_offset, event.getY() + y_offset);
+
+                points.set(index, point.getX(), point.getY());
+                setX(point.getX() - SIZE/2);
+                setY(point.getY() - SIZE/2);
                 listener.pointsChanged(points);
             });
             setOnMouseReleased(event ->
