@@ -198,10 +198,10 @@ public class TimeParserTest {
 
         // As soon as the time span enters "weeks", it's handled
         // as a 'Period' which is only good down to days.
-        // So 1.5 weeks = 7 + 3.5 days is rounded down to 10 days, not 10.5
+        // So 1.5 weeks = 7 + 3.5 days is rounded to 11 days, not 10.5
         amount = TimeParser.parseTemporalAmount("1.5 weeks");
         System.out.println(TimeParser.format(amount));
-        assertEquals(Period.of(0,  0,  10), amount);
+        assertEquals(Period.of(0,  0,  11), amount);
 
         // 1.5 month = 1 month, 2 weeks=14days
         amount = TimeParser.parseTemporalAmount("1.5 months");

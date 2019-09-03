@@ -46,7 +46,7 @@ public class TimeParser {
     // Patterns need to be listed longest-first.
     // Otherwise "days" would match just the "d"
     static final Pattern timeQuantityUnitsPattern = Pattern.compile(
-            "\\s*([0-9]?\\.?[0-9]*)\\s*(millis|ms|seconds|second|secs|sec|s|minutes|minute|mins|min|hours|hour|h|days|day|d|weeks|week|w|months|month|mon|mo|years|year|y)\\s*",
+            "\\s*([0-9]*\\.?[0-9]*)\\s*(millis|ms|seconds|second|secs|sec|s|minutes|minute|mins|min|hours|hour|h|days|day|d|weeks|week|w|months|month|mon|mo|years|year|y)\\s*",
             Pattern.CASE_INSENSITIVE);
 
     /**
@@ -194,7 +194,7 @@ public class TimeParser {
                 timeQuantities.put(YEARS, full);
                 if (fraction > 0)
                 {
-                    final int next = (int) (fraction * 12);
+                    final int next = (int) (fraction * 12 + 0.5);
                     timeQuantities.compute(MONTHS, (u, prev) -> prev == null ? next : prev + next);
                 }
                 use_period = true;
@@ -204,7 +204,7 @@ public class TimeParser {
                 timeQuantities.compute(MONTHS, (u, prev) -> prev == null ? full : prev + full);
                 if (fraction > 0)
                 {
-                    final int next = (int) (fraction * 4*7);
+                    final int next = (int) (fraction * 4*7 + 0.5);
                     timeQuantities.compute(DAYS,  (u, prev) -> prev == null ? next : prev + next);
                 }
                 use_period = true;
@@ -214,7 +214,7 @@ public class TimeParser {
                 timeQuantities.compute(WEEKS, (u, prev) -> prev == null ? full : prev + full);
                 if (fraction > 0)
                 {
-                    final int next = (int) (fraction * 7);
+                    final int next = (int) (fraction * 7 + 0.5);
                     timeQuantities.compute(DAYS, (u, prev) -> prev == null ? next : prev + next);
                 }
                 use_period = true;
@@ -224,7 +224,7 @@ public class TimeParser {
                 timeQuantities.compute(MINUTES, (u, prev) -> prev == null ? full : prev + full);
                 if (fraction > 0)
                 {
-                    final int next = (int) (fraction * 60);
+                    final int next = (int) (fraction * 60 + 0.5);
                     timeQuantities.compute(SECONDS, (u, prev) -> prev == null ? next : prev + next);
                 }
             }
@@ -233,7 +233,7 @@ public class TimeParser {
                 timeQuantities.compute(HOURS, (u, prev) -> prev == null ? full : prev + full);
                 if (fraction > 0)
                 {
-                    final int next = (int) (fraction * 60);
+                    final int next = (int) (fraction * 60 + 0.5);
                     timeQuantities.compute(MINUTES, (u, prev) -> prev == null ? next : prev + next);
                 }
             }
@@ -242,7 +242,7 @@ public class TimeParser {
                 timeQuantities.compute(DAYS, (u, prev) -> prev == null ? full : prev + full);
                 if (fraction > 0)
                 {
-                    final int next = (int) (fraction * 24);
+                    final int next = (int) (fraction * 24 + 0.5);
                     timeQuantities.compute(HOURS, (u, prev) -> prev == null ? next : prev + next);
                 }
             }
@@ -251,7 +251,7 @@ public class TimeParser {
                 timeQuantities.compute(SECONDS, (u, prev) -> prev == null ? full : prev + full);
                 if (fraction > 0)
                 {
-                    final int next = (int) (fraction * 1000);
+                    final int next = (int) (fraction * 1000 + 0.5);
                     timeQuantities.compute(MILLIS, (u, prev) -> prev == null ? next : prev + next);
                 }
             }

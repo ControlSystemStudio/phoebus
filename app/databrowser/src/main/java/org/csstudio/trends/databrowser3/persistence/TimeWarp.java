@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,8 +10,6 @@ package org.csstudio.trends.databrowser3.persistence;
 import java.time.Duration;
 import java.time.Period;
 import java.time.temporal.TemporalAmount;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.phoebus.util.time.TimeParser;
 
@@ -86,76 +84,12 @@ public class TimeWarp
         return buf.toString().trim();
     }
 
-
-    private static final Pattern LEGACY_SECONDS = Pattern.compile("([0-9]+)\\.([0-9]+) sec.*");
-    // Actually allows "m", "min", "minuteshours", but also "mintisenu".. Fine.
-    private static final Pattern LEGACY_MINUTES = Pattern.compile("([0-9.]+) min[utes]*");
-    // Actually allows "h", "hour", "hours", but also "horsurrs".. Fine.
-    private static final Pattern LEGACY_HOURS = Pattern.compile("([0-9.]+) h[ours]*");
-    private static final Pattern LEGACY_DAYS = Pattern.compile("([0-9.]+) day(s)*");
-
     /** @param legacy_spec Legacy specification, e.g. "-3 days -3.124 seconds"
      *  @return Relative time span
      */
     public static TemporalAmount parseLegacy(final String legacy_spec)
     {
-        String spec = legacy_spec.replace("-", "");
-
-        long days = 0;
-        long minutes = 0;
-        long secs = 0, ms = 0;
-
-        Matcher legacy = LEGACY_DAYS.matcher(spec);
-        if (legacy.find())
-        {
-            // TimeParser can only handle full days, not floating point
-            // Truncate days, then use rest as minutes
-            double d = Double.parseDouble(legacy.group(1));
-            days += d;
-            minutes += (d - days)*24*60;
-            spec = spec.substring(0,legacy.start()) + " " + spec.substring(legacy.end());
-        }
-
-        legacy = LEGACY_HOURS.matcher(spec);
-        if (legacy.find())
-        {
-            // TimeParser can only handle full hours, not floating point
-            // Convert to minutes
-            final double hours = Double.parseDouble(legacy.group(1));
-            minutes += Math.round(hours * 60.0);
-            spec = spec.substring(0,legacy.start()) + " " + spec.substring(legacy.end());
-        }
-
-        legacy = LEGACY_MINUTES.matcher(spec);
-        if (legacy.find())
-        {
-            // TimeParser can only handle full minutes, not floating point
-            // Convert to seconds
-            final double min = Double.parseDouble(legacy.group(1));
-            secs += Math.round(min * 60.0);
-            // Replace "mm.mm m" with "mmmm secconds"
-            spec = spec.substring(0,legacy.start()) + " " + spec.substring(legacy.end());
-        }
-
-        legacy = LEGACY_SECONDS.matcher(spec);
-        if (legacy.find())
-        {
-            secs += Long.parseLong(legacy.group(1));
-            // Pad to nanosecs
-            final String padded = (legacy.group(2) + "000000000").substring(0, 9);
-            // .. but then only use the ms
-            ms += Long.parseLong(padded) / 1000000;
-            spec = spec.substring(0,legacy.start());
-        }
-
-        if (days > 0)
-            spec = days + " days ";
-        if (minutes > 0)
-            spec = spec + " " + minutes + " minutes";
-        if (secs > 0)
-            spec = spec + " " + secs + " seconds";
-        if (ms > 0)
-            spec = spec + " " + ms + " ms";
+        final String spec = legacy_spec.replace("-", "");
         return TimeParser.parseTemporalAmount(spec);
     }
 }
