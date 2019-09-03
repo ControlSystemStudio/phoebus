@@ -193,9 +193,10 @@ public class TimeParser {
             {
                 timeQuantities.put(YEARS, full);
                 if (fraction > 0)
-                    timeQuantities.compute(MONTHS, (u, prev) -> prev == null
-                                                                ? (int) (fraction * 12)
-                                                                : (int) (prev + fraction*12));
+                {
+                    final int next = (int) (fraction * 12);
+                    timeQuantities.compute(MONTHS, (u, prev) -> prev == null ? next : prev + next);
+                }
                 use_period = true;
             }
             else if (unit.startsWith("mo"))
