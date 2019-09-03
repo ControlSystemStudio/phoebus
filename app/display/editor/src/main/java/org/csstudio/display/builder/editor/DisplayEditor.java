@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -387,7 +387,7 @@ public class DisplayEditor
 
         // Attach D&Drop to the widget_parent which is zoomed,
         // so drop will have the zoomed coordinate system
-        WidgetTransfer.addDropSupport(widget_parent, group_handler, selection_tracker, this::addWidgets);
+        WidgetTransfer.addDropSupport(widget_parent, group_handler, selection_tracker, widgets -> addWidgets(widgets, false));
 
         model_root.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyPress);
     }
@@ -446,8 +446,10 @@ public class DisplayEditor
         selection.setSelection(Arrays.asList(widget));
     }
 
-    /** @param widgets Widgets to be added to existing model */
-    private void addWidgets(final List<Widget> widgets)
+    /** @param widgets Widgets to be added to existing model
+     *  @param correct_scroll_origin Correct widget locations by scroll pane origin?
+     */
+    private void addWidgets(final List<Widget> widgets, final boolean correct_scroll_origin)
     {
         // Dropped into a sub-group or the main display?
         ChildrenProperty target = group_handler.getActiveParentChildren();
@@ -456,8 +458,19 @@ public class DisplayEditor
         Widget container = target.getWidget();
         // Correct all dropped widget locations relative to container
         Point2D offset = GeometryTools.getContainerOffset(container);
-        // Also account for scroll pane
-        Point2D origin = JFXGeometryTools.getContentOrigin(model_root);
+
+        final Point2D origin;
+        if (correct_scroll_origin)
+        {
+            // Account for scroll pane and zoom
+            final double zoom = toolkit.getZoom();
+            final Point2D zoomed = JFXGeometryTools.getContentOrigin(model_root);
+            origin = new Point2D(zoomed.getX() / zoom,
+                                 zoomed.getY() / zoom);
+        }
+        else
+            origin = new Point2D(0, 0);
+
         int dx = (int) (offset.getX() - origin.getX());
         int dy = (int) (offset.getY() - origin.getY());
 
@@ -484,7 +497,6 @@ public class DisplayEditor
                 target = ChildrenProperty.getParentsChildren(container);
                 container = target.getWidget();
                 offset = GeometryTools.getContainerOffset(container);
-                origin = JFXGeometryTools.getContentOrigin(model_root);
                 dx = (int) (offset.getX() - origin.getX());
                 dy = (int) (offset.getY() - origin.getY());
             }
@@ -632,7 +644,7 @@ public class DisplayEditor
             final Rectangle2D bounds = GeometryTools.getBounds(widgets);
             // Potentially activate group at drop point
             group_handler.locateParent(x, y, bounds.getWidth(), bounds.getHeight());
-            addWidgets(widgets);
+            addWidgets(widgets, true);
         }
         catch (Exception ex)
         {
@@ -675,13 +687,6 @@ public class DisplayEditor
         }
     }
 
-    public void dispose()
-    {
-        if (model != null)
-            toolkit.disposeRepresentation(model);
-        model = null;
-    }
-
     /** @param level_spec Zoom level specification like "123 %"
      *  @return Zoom spec actually used
      */
@@ -693,5 +698,18 @@ public class DisplayEditor
         edit_tools.getTransforms().setAll(widget_parent.getTransforms());
 
         return level_spec;
+    }
+
+    /** @return Zoom level, 2.0 for '200 %' */
+    public double getZoom()
+    {
+        return toolkit.getZoom();
+    }
+
+    public void dispose()
+    {
+        if (model != null)
+            toolkit.disposeRepresentation(model);
+        model = null;
     }
 }
