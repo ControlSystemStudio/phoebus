@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModelProperty;
 
 /**
- * Superclass representing a node in a tree structure maintained by the jmasar service.
+ * Superclass representing a node in a tree structure maintained by the save-and-restore service.
  * @author georgweiss
  */
 @JsonIgnoreProperties(ignoreUnknown = true)

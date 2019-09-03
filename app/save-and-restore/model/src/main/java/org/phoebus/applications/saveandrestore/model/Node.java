@@ -42,7 +42,7 @@ import lombok.ToString;
 @ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
- * Class representing a node in a tree structure maintained by the jmasar service. Node types are
+ * Class representing a node in a tree structure maintained by the save-and-restore service. Node types are
  * defined in enum {@link NodeType}.
  * 
  * The builder pattern supported by Lombok can be used to instantiate objects. The nodeType of a

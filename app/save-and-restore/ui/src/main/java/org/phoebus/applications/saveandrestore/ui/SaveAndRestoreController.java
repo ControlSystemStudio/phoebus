@@ -289,18 +289,26 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             public void succeeded(){
                 TreeItem<Node> rootItem = getValue();
 
-                if(rootItem != null){
+                //if(rootItem != null){
                     remoteServiceUnavailable.set(false);
                     jmasarServiceTitleProperty.set(saveAndRestoreService.getServiceIdentifier());
 
                     treeView.setRoot(rootItem);
-
                     restoreTreeState();
+                    /*
                 }
                 else{
                     jmasarServiceTitleProperty.set(MessageFormat.format(Messages.jmasarServiceUnavailable, saveAndRestoreService.getServiceIdentifier()));
                     remoteServiceUnavailable.set(true);
                 }
+
+                     */
+            }
+
+            @Override
+            public void failed(){
+                jmasarServiceTitleProperty.set(MessageFormat.format(Messages.jmasarServiceUnavailable, saveAndRestoreService.getServiceIdentifier()));
+                remoteServiceUnavailable.set(true);
             }
         };
 
@@ -648,6 +656,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
 
     private void saveTreeState(){
+        if(treeView.getRoot() == null){
+            return;
+        }
         List<String> expandedNodes = new ArrayList<>();
         findExpandedNodes(expandedNodes, treeView.getRoot());
         if(expandedNodes.isEmpty()){
