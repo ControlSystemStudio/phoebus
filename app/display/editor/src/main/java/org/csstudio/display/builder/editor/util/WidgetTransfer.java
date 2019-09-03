@@ -142,9 +142,10 @@ public class WidgetTransfer {
             content.putString(xml);
             db.setContent(content);
 
-            final int width = widget.propWidth().getValue();
-            final int height = widget.propHeight().getValue();
-
+            // Create drag outline for widget, adjusted by zoom factor
+            final double zoom = editor.getZoom();
+            final int width = (int) (widget.propWidth().getValue() * zoom);
+            final int height = (int) (widget.propHeight().getValue() * zoom);
             db.setDragView(createDragImage(widget, image, width, height));
             event.consume();
         });

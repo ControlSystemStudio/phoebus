@@ -687,13 +687,6 @@ public class DisplayEditor
         }
     }
 
-    public void dispose()
-    {
-        if (model != null)
-            toolkit.disposeRepresentation(model);
-        model = null;
-    }
-
     /** @param level_spec Zoom level specification like "123 %"
      *  @return Zoom spec actually used
      */
@@ -705,5 +698,18 @@ public class DisplayEditor
         edit_tools.getTransforms().setAll(widget_parent.getTransforms());
 
         return level_spec;
+    }
+
+    /** @return Zoom level, 2.0 for '200 %' */
+    public double getZoom()
+    {
+        return toolkit.getZoom();
+    }
+
+    public void dispose()
+    {
+        if (model != null)
+            toolkit.disposeRepresentation(model);
+        model = null;
     }
 }
