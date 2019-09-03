@@ -10,7 +10,8 @@ package org.csstudio.display.builder.representation.javafx.sandbox;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -44,7 +45,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class Canvas2 extends Application
+public class Canvas2 extends ApplicationWrapper
 {
     final private Canvas[] canvas = new Canvas[]
     {
@@ -60,7 +61,7 @@ public class Canvas2 extends Application
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(Canvas2.class, args);
     }
 
     @Override

@@ -8,6 +8,7 @@
 package org.phoebus.applications.alarm.client;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,8 +27,6 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
 {
     private volatile String description;
 
-    private volatile long timestamp = 0;
-
     private final AtomicBoolean enabled = new AtomicBoolean(true);
     private final AtomicBoolean latching = new AtomicBoolean(true);
     private final AtomicBoolean annunciating = new AtomicBoolean(true);
@@ -44,22 +43,6 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
         state = new ClientState(SeverityLevel.OK, "", "", Instant.now(), SeverityLevel.OK, "");
     }
 
-    /** @param timestamp Timestamp for this update (epoch millisec)
-     *  @param state State
-     *  @return <code>true</code> if this changed the state
-     */
-    public boolean setState(final long timestamp, final ClientState state)
-    {
-        this.timestamp = timestamp;
-        return setState(state);
-    }
-
-    /** @return Timestamp of last state update (epoch millisec) */
-    public long getLastUpdateTimestamp()
-    {
-        return timestamp;
-    }
-
     /** When requesting a configuration update,
      *  a detached copy is used to send the request.
      *  @return {@link AlarmClientLeaf} with same configuration, but no parent
@@ -67,12 +50,17 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
     public AlarmClientLeaf createDetachedCopy()
     {
         final AlarmClientLeaf pv = new AlarmClientLeaf(null, getName());
+        pv.setDescription(getDescription());
         pv.setEnabled(isEnabled());
         pv.setLatching(isLatching());
         pv.setAnnunciating(isAnnunciating());
         pv.setDelay(getDelay());
         pv.setCount(getCount());
         pv.setFilter(getFilter());
+        pv.setGuidance(new ArrayList<>(getGuidance()));
+        pv.setDisplays(new ArrayList<>(getDisplays()));
+        pv.setCommands(new ArrayList<>(getCommands()));
+        pv.setActions(new ArrayList<>(getActions()));
         return pv;
     }
 

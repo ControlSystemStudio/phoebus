@@ -6,10 +6,20 @@ $(function()
         var name = $('input[name=name]').val();
         var commands = $('textarea').val();
         var queue = $('input[name=queue]').prop('checked');
+        var pre_post = $('input[name=pre_post]').prop('checked');
         var url = '/scan/' + encodeURIComponent(name);
+        var flags = false;
         if (! queue)
-            url += "?queue=false";
-        
+        {
+            url += flags ? '&' : '?';
+            url += "queue=false";
+            flags = true;
+        }
+        if (! pre_post)
+        {
+            url += flags ? '&' : '?';
+            url += "pre_post=false";
+        }   
         $.ajax(
         {
             type: 'POST',

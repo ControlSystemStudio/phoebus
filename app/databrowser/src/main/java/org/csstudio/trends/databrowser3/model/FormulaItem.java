@@ -249,14 +249,14 @@ public class FormulaItem extends ModelItem
                         for (int i = 0; i < values.length; i++)
                             variables[i].setValue(max[i]);
                         final double res_max = formula.eval();
-                        value = VStatistics.of(res_val, 0.0, res_min, res_max, 1, OK_FORMULA, Time.now());
+                        value = VStatistics.of(res_val, 0.0, res_min, res_max, 1, OK_FORMULA, Time.now(), display);
                     }
                     else
                     {   // No min/max.
                         if (Double.isNaN(res_val))
-                            value = VDouble.of(res_val, INVALID_FORMULA, Time.now(), display);
+                            value = VDouble.of(res_val, INVALID_FORMULA, Time.of(time), display);
                         else
-                            value = VDouble.of(res_val, OK_FORMULA, Time.now(), display);
+                            value = VDouble.of(res_val, OK_FORMULA, Time.of(time), display);
                     }
                     result.add(new PlotSample(Messages.Formula, value));
                 }

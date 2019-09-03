@@ -23,6 +23,7 @@ import org.csstudio.scan.data.ScanDataIterator;
 import org.csstudio.scan.data.ScanSample;
 import org.csstudio.scan.device.DeviceInfo;
 import org.csstudio.scan.info.ScanInfo;
+import org.csstudio.scan.info.ScanServerInfo;
 import org.csstudio.scan.server.config.ScanConfig;
 import org.csstudio.scan.server.httpd.ScanWebServer;
 import org.csstudio.scan.server.internal.ScanServerImpl;
@@ -40,7 +41,7 @@ public class ScanServerInstance
 
     private static final CountDownLatch done = new CountDownLatch(1);
 
-    public static final String VERSION = "4.5.0";
+    public static final String VERSION = "4.5.4";
 
     private static URL scan_config_file = ScanServerInstance.class.getResource("/examples/scan_config.xml");
 
@@ -86,12 +87,14 @@ public class ScanServerInstance
         System.out.println("-config scan_config.xml     - Scan config (REST port, jython paths, simulation settings");
         System.out.println("-settings settings.xml      - Import preferences (PV connectivity) from property format file");
         System.out.println("-logging logging.properties - Load log settings");
+        System.out.println("-noshell                    - Disable the command shell for running without a terminal");
         System.out.println();
     }
 
     private static final String COMMANDS =
         "Scan Server Commands:\n" +
         "help            -  Show commands\n" +
+        "server          -  Server info\n" +
         "scans           -  List scans\n" +
         "info ID         -  Show info about scan with given ID\n" +
         "commands ID     -  Dump scan's commands\n" +
@@ -101,6 +104,7 @@ public class ScanServerInstance
         "abort           -  Abort all scans\n" +
         "remove ID       -  Remove (completed) scan with given ID\n" +
         "removeCompleted -  Remove completed scans\n" +
+        "gc              -  Run GC\n" +
         "shutdown        -  Stop the scan server";
 
 
@@ -112,6 +116,11 @@ public class ScanServerInstance
         {
             if (args[0].startsWith("shut"))
                 stop();
+            else if (args[0].equals("server"))
+            {
+                final ScanServerInfo info = getScanServer().getInfo();
+                System.out.println(info);
+            }
             else if (args[0].equals("scans"))
             {
                 System.out.println("Scans:");
@@ -122,6 +131,8 @@ public class ScanServerInstance
                 getScanServer().abort(-1);
             else if (args[0].equals("removeCompleted"))
                 getScanServer().removeCompletedScans();
+            else if (args[0].equals("gc"))
+                Runtime.getRuntime().gc();
             else
                 return false;
         }
@@ -178,6 +189,7 @@ public class ScanServerInstance
         LogManager.getLogManager().readConfiguration(ScanServerInstance.class.getResourceAsStream("/scan_server_logging.properties"));
 
         // Handle arguments
+        boolean use_shell = true;
         final List<String> args = new ArrayList<>(List.of(original_args));
         final Iterator<String> iter = args.iterator();
         try
@@ -217,6 +229,10 @@ public class ScanServerInstance
                     iter.remove();
                     LogManager.getLogManager().readConfiguration(new FileInputStream(filename));
                 }
+                else if (cmd.equals("-noshell"))
+                {
+                    use_shell = false;
+                }
                 else
                     throw new Exception("Unknown option " + cmd);
             }
@@ -245,14 +261,20 @@ public class ScanServerInstance
         {
             httpd.start();
 
-            final CommandShell shell = new CommandShell(COMMANDS,
-                                                        ScanServerInstance::handleShellCommands);
-            shell.start();
+            final CommandShell shell;
+            if (use_shell)
+            {
+                shell = new CommandShell(COMMANDS, ScanServerInstance::handleShellCommands);
+                shell.start();
+            }
+            else
+                shell = null;
 
             // Main thread could do other things while web server is running...
             done.await();
 
-            shell.stop();
+            if (shell != null)
+                shell.stop();
         }
         catch (Exception ex)
         {

@@ -12,19 +12,25 @@ import static org.csstudio.display.builder.editor.Plugin.logger;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import org.csstudio.display.builder.editor.actions.ActionDescription;
+import org.csstudio.display.builder.editor.app.CreateGroupAction;
 import org.csstudio.display.builder.editor.app.DisplayEditorInstance;
+import org.csstudio.display.builder.editor.app.PasteWidgets;
+import org.csstudio.display.builder.editor.app.RemoveGroupAction;
 import org.csstudio.display.builder.editor.properties.PropertyPanel;
 import org.csstudio.display.builder.editor.tree.FindWidgetAction;
 import org.csstudio.display.builder.editor.tree.WidgetTree;
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.ModelLoader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
+import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -39,6 +45,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -105,6 +112,10 @@ public class EditorGUI
         if (editor.getSelectedWidgetUITracker().isInlineEditorActive())
             return;
 
+        // Same for widget tree's name editor
+        if (tree.isInlineEditorActive())
+            return;
+
         final KeyCode code = event.getCode();
         // System.out.println("Editor Key: " + code);
 
@@ -114,12 +125,16 @@ public class EditorGUI
                                         .contains(mouse_x, mouse_y);
 
         // Use Ctrl-C .. except on Mac, where it's Command-C ..
+        // Do NOT delete for DELETE and/or BACKSPACE.
+        // Those keys are often used when editing text,
+        // and it's easy to accidentally loose input focus
+        // and then delete a widget instead of a character.
         final boolean meta = event.isShortcutDown();
         if (meta  &&  code == KeyCode.Z)
             editor.getUndoableActionManager().undoLast();
         else if (meta  &&  code == KeyCode.Y)
             editor.getUndoableActionManager().redoLast();
-        else if (in_editor  &&  ((meta  &&  code == KeyCode.X) || code == KeyCode.DELETE || code == KeyCode.BACK_SPACE))
+        else if (in_editor  &&  meta  &&  code == KeyCode.X)
             editor.cutToClipboard();
         else if (in_editor  &&  meta  &&  code == KeyCode.C)
             editor.copyToClipboard();
@@ -302,15 +317,41 @@ public class EditorGUI
 
     private void hookWidgetTreeContextMenu(final Control node)
     {
-        final ContextMenu menu = new ContextMenu(
-            new ActionWapper(ActionDescription.COPY),
-            new ActionWapper(ActionDescription.DELETE),
-            new FindWidgetAction(node, editor),
-            new ActionWapper(ActionDescription.TO_BACK),
-            new ActionWapper(ActionDescription.MOVE_UP),
-            new ActionWapper(ActionDescription.MOVE_DOWN),
-            new ActionWapper(ActionDescription.TO_FRONT));
+        final ContextMenu menu = new ContextMenu(new MenuItem());
         node.setContextMenu(menu);
+        menu.setOnShowing(event ->
+        {
+            // Enable/disable menu entries based on selection
+            final List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
+            final MenuItem cut = new ActionWapper(ActionDescription.CUT);
+            final MenuItem copy = new ActionWapper(ActionDescription.COPY);
+            final MenuItem group = new CreateGroupAction(editor, widgets);
+            if (widgets.size() < 0)
+            {
+                cut.setDisable(true);
+                copy.setDisable(true);
+            }
+            final MenuItem ungroup;
+            if (widgets.size() == 1  &&  widgets.get(0) instanceof GroupWidget)
+                ungroup = new RemoveGroupAction(editor, (GroupWidget)widgets.get(0));
+            else
+            {
+                ungroup = new RemoveGroupAction(editor, null);
+                ungroup.setDisable(true);
+            }
+            menu.getItems().setAll(cut,
+                                   copy,
+                                   new PasteWidgets(this),
+                                   new FindWidgetAction(node, editor),
+                                   new SeparatorMenuItem(),
+                                   group,
+                                   ungroup,
+                                   new SeparatorMenuItem(),
+                                   new ActionWapper(ActionDescription.TO_BACK),
+                                   new ActionWapper(ActionDescription.MOVE_UP),
+                                   new ActionWapper(ActionDescription.MOVE_DOWN),
+                                   new ActionWapper(ActionDescription.TO_FRONT));
+        });
     }
 
     /** @return Currently edited file */
@@ -352,10 +393,12 @@ public class EditorGUI
         logger.log(Level.FINE, "Save as {0}", file);
         try
         (
-            final ModelWriter writer = new ModelWriter(new FileOutputStream(file));
+            final FileOutputStream fwriter = new FileOutputStream(file);
+            final ModelWriter writer = new ModelWriter(fwriter);
         )
         {
             writer.writeModel(editor.getModel());
+            fwriter.flush();
             this.file = file;
             editor.getUndoableActionManager().clear();
         }

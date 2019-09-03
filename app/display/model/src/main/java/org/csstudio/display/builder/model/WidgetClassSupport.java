@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,12 +13,15 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.persist.ModelReader;
+import org.csstudio.display.builder.model.widgets.TabsWidget;
+import org.csstudio.display.builder.model.widgets.TabsWidget.TabItemProperty;
 
 /** Widget 'class' support
  *
@@ -253,10 +256,22 @@ public class WidgetClassSupport
         for (WidgetProperty<?> prop : widget.getProperties())
             apply(class_settings, prop);
         // Apply to child widgets
-        final ChildrenProperty children = ChildrenProperty.getChildren(widget);
+        ChildrenProperty children = ChildrenProperty.getChildren(widget);
         if (children != null)
+        {
             for (Widget child : children.getValue())
                 apply(child);
+        }
+        else if (widget instanceof TabsWidget)
+        {   // Apply to child widgets in all tabs
+            final List<TabItemProperty> tabs = ((TabsWidget)widget).propTabs().getValue();
+            for (TabItemProperty tab : tabs)
+            {
+                children = tab.children();
+                for (Widget child : children.getValue())
+                    apply(child);
+            }
+        }
     }
 
     /** Apply class-based property values to a property

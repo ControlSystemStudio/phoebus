@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -24,6 +24,7 @@ import org.csstudio.display.builder.model.widgets.TableWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget;
 import org.csstudio.display.builder.model.widgets.plots.DataBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
+import org.csstudio.display.builder.model.widgets.plots.StripchartWidget;
 import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget;
 import org.csstudio.display.builder.runtime.WidgetRuntime;
 import org.csstudio.display.builder.runtime.spi.WidgetRuntimesService;
@@ -46,6 +47,7 @@ public class BaseWidgetRuntimes implements WidgetRuntimesService
             entry(NavigationTabsWidget.WIDGET_DESCRIPTOR.getType(),  () -> new NavigationTabsRuntime()),
             entry(ScaledSliderWidget.WIDGET_DESCRIPTOR.getType(),    () -> new SliderWidgetRuntime()),
             entry(ScrollBarWidget.WIDGET_DESCRIPTOR.getType(),       () -> new SliderWidgetRuntime()),
+            entry(StripchartWidget.WIDGET_DESCRIPTOR.getType(),      () -> new StripchartWidgetRuntime()),
             entry(TableWidget.WIDGET_DESCRIPTOR.getType(),           () -> new TableWidgetRuntime()),
             entry(TabsWidget.WIDGET_DESCRIPTOR.getType(),            () -> new TabsWidgetRuntime()),
             entry(DataBrowserWidget.WIDGET_DESCRIPTOR.getType(),     () -> new DataBrowserWidgetRuntime()),

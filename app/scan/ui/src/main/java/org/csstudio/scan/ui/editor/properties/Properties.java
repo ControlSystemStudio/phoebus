@@ -12,6 +12,8 @@ import static org.csstudio.scan.ScanSystem.logger;
 import java.util.Arrays;
 import java.util.logging.Level;
 
+import org.csstudio.scan.command.Comparison;
+import org.csstudio.scan.command.IfCommand;
 import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.ScanCommandProperty;
 import org.csstudio.scan.device.DeviceInfo;
@@ -183,8 +185,16 @@ public class Properties extends TitledPane
             final Class<? extends Enum<?>> enum_type = (Class<? extends Enum<?>>) property.getType();
             final ComboBox<String> editor = new ComboBox<>();
             for (Enum<?> ev : enum_type.getEnumConstants())
+            {
+                // Skip the 'increase'/'decrease' options for IfCommand
+                if (tree_item.getValue() instanceof IfCommand  &&
+                    enum_type == Comparison.class              &&
+                    ev.ordinal() >= Comparison.INCREASE_BY.ordinal())
+                    break;
                 editor.getItems().add(ev.toString());
+            }
             editor.setValue(command.getProperty(property).toString());
+            editor.valueProperty().addListener((p, o, value) -> updateProperty(tree_item, property, value));
             return editor;
         }
         logger.log(Level.WARNING, "Cannot edit property type " + property);

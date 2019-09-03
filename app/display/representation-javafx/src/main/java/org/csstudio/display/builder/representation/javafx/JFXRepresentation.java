@@ -77,6 +77,7 @@ import javafx.scene.shape.Line;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Transform;
 import javafx.stage.Window;
+import javafx.util.Duration;
 
 /** Represent model items in JavaFX toolkit
  *
@@ -361,6 +362,12 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         zoom_listener = listener;
     }
 
+    /** @return Top-level scroll pane */
+    final public ScrollPane getModelRoot()
+    {
+        return model_root;
+    }
+
     /** @return Parent node of model widgets */
     final public Parent getModelParent()
     {
@@ -436,8 +443,30 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         {   // Determine zoom to fit outline of display into available space
             final Bounds available = model_root.getLayoutBounds();
             final Bounds outline = widget_parent.getLayoutBounds();
-            final double zoom_x = outline.getWidth()  > 0 ? available.getWidth()  / outline.getWidth() : 1.0;
-            final double zoom_y = outline.getHeight() > 0 ? available.getHeight() / outline.getHeight() : 1.0;
+
+            // 'outline' will wrap the actual widgets when the display
+            // is larger than the available viewport.
+            // So it can be used to zoom 'out'.
+            // But when the viewport is much larger than the widget,
+            // the JavaFX outline grows to fill the viewport,
+            // so falling back to the self-declared model width and height
+            // to zoom 'in'.
+            // This requires displays to be created with
+            // correct width/height properties.
+            final double zoom_x, zoom_y;
+            if (outline.getWidth() > available.getWidth())
+                zoom_x = available.getWidth()  / outline.getWidth();
+            else if (model.propWidth().getValue() > 0)
+                zoom_x = available.getWidth()  / model.propWidth().getValue();
+            else
+                zoom_x = 1.0;
+
+            if (outline.getHeight() > available.getHeight())
+                zoom_y = available.getHeight() / outline.getHeight();
+            else if (model.propHeight().getValue() > 0)
+                zoom_y = available.getHeight() / model.propHeight().getValue();
+            else
+                zoom_y = 1.0;
 
             if (zoom == ZOOM_WIDTH)
                 zoom = zoom_x;
@@ -649,7 +678,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
             final Alert alert = new Alert(Alert.AlertType.INFORMATION);
             DialogHelper.positionDialog(alert, node, -100, -50);
             alert.setResizable(true);
-            alert.setTitle("Message");
+            alert.setTitle(Messages.ShowMessageDialogTitle);
             // "header text" allows for larger content than the "content text"
             alert.setContentText(null);
             alert.setHeaderText(message);
@@ -676,7 +705,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
             final Alert alert = new Alert(Alert.AlertType.WARNING);
             DialogHelper.positionDialog(alert, node, -100, -50);
             alert.setResizable(true);
-            alert.setTitle("Error");
+            alert.setTitle(Messages.ShowErrorDialogTitle);
             alert.setHeaderText(error);
             alert.showAndWait();
             done.countDown();
@@ -701,7 +730,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
             final Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             DialogHelper.positionDialog(alert, node, -100, -50);
             alert.setResizable(true);
-            alert.setTitle("Please Confirm");
+            alert.setTitle(Messages.ShowConfirmationDialogTitle);
             alert.setHeaderText(question);
             // Setting "Yes", "No" buttons
             alert.getButtonTypes().clear();
@@ -775,7 +804,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     {
         File file = (initial_value != null) ? new File(initial_value) : null;
         final Window window = null;
-        file = new SaveAsDialog().promptForFile(window, "Save As", file, FilenameSupport.file_extensions);
+        file = new SaveAsDialog().promptForFile(window, Messages.ShowSaveAsDialogTitle, file, FilenameSupport.file_extensions);
         return file == null ? null : file.toString();
     }
 
@@ -954,6 +983,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
             {
                 final Media sound = new Media(url);
                 final MediaPlayer player = new MediaPlayer(sound);
+                player.setStartTime(Duration.ZERO);
                 result.complete(new AudioFuture(player));
             }
             catch (Exception ex)
@@ -1018,7 +1048,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     public void shutdown()
     {
         if (! widget_parent.getChildren().isEmpty())
-            logger.log(Level.WARNING, "Display representation still contains items on shutdown", widget_parent.getChildren());
+            logger.log(Level.WARNING, "Display representation still contains items on shutdown: " + widget_parent.getChildren());
 
         widget_parent = null;
         model_root = null;

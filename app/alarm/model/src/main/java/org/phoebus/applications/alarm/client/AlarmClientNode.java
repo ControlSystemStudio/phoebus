@@ -18,8 +18,6 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
  */
 public class AlarmClientNode extends AlarmTreeItemWithState<BasicState>
 {
-    private volatile long timestamp = 0;
-
     /** Create alarm tree item (non-leaf)
      *  @param parent Parent item, <code>null</code> for root
      *  @param name Name of this item
@@ -28,21 +26,5 @@ public class AlarmClientNode extends AlarmTreeItemWithState<BasicState>
     {
         super(parent, name, new CopyOnWriteArrayList<>());
         state = new BasicState(SeverityLevel.OK);
-    }
-
-    /** @param timestamp Timestamp for this update (epoch millisec)
-     *  @param state State
-     *  @return <code>true</code> if this changed the state
-     */
-    public boolean setState(final long timestamp, final BasicState state)
-    {
-        this.timestamp = timestamp;
-        return setState(state);
-    }
-
-    /** @return Timestamp of last state update (epoch millisec) */
-    public long getLastUpdateTimestamp()
-    {
-        return timestamp;
     }
 }

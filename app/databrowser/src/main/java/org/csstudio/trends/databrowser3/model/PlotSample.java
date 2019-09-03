@@ -16,12 +16,12 @@ import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
-import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VStatistics;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.archive.vtype.VTypeHelper;
+import org.phoebus.pv.TimeHelper;
 
 /** Data Sample from control system ({@link VType})
  *  with interface for XYGraph ({@link ISample})

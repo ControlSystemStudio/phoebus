@@ -195,13 +195,16 @@ public class XmlModelReader
 
         final AlarmClientLeaf pv = new AlarmClientLeaf(parent, pv_node_name);
 
-        XMLUtil.getChildBoolean(node, TAG_ENABLED).ifPresent(pv::setEnabled);
-        XMLUtil.getChildBoolean(node, TAG_LATCHING).ifPresent(pv::setLatching);
-        XMLUtil.getChildBoolean(node, TAG_ANNUNCIATING).ifPresent(pv::setAnnunciating);
+        // New XML export always writes these three tags.
+        // Legacy XML file only wrote them if false, true, true,
+        // i.e. missing tags meant true, false, false.
+        pv.setEnabled(XMLUtil.getChildBoolean(node, TAG_ENABLED).orElse(true));
+        pv.setLatching(XMLUtil.getChildBoolean(node, TAG_LATCHING).orElse(false));
+        pv.setAnnunciating(XMLUtil.getChildBoolean(node, TAG_ANNUNCIATING).orElse(false));
+
         XMLUtil.getChildString(node, TAG_DESCRIPTION).ifPresent(pv::setDescription);
 
         final String delayStr = XMLUtil.getChildString(node, TAG_DELAY).orElse("");
-
         if (delayStr.equals(""))
             pv.setDelay(0);
         else

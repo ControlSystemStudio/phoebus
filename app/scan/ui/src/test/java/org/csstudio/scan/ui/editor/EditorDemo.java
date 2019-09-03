@@ -17,13 +17,13 @@ import org.csstudio.scan.command.LoopCommand;
 import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.SetCommand;
 import org.csstudio.scan.command.WaitCommand;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 @SuppressWarnings("nls")
-public class EditorDemo extends Application
+public class EditorDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage) throws Exception
@@ -59,6 +59,6 @@ public class EditorDemo extends Application
 
     public static void main(String[] args)
     {
-        launch(args);
+        launch(EditorDemo.class, args);
     }
 }

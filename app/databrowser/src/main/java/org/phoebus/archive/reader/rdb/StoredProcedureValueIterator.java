@@ -26,12 +26,12 @@ import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Time;
-import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VStatistics;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.framework.rdb.RDBInfo.Dialect;
+import org.phoebus.pv.TimeHelper;
 
 /** Value Iterator that provides 'optimized' data by calling
  *  a stored database procedure.
@@ -221,7 +221,7 @@ public class StoredProcedureValueIterator extends AbstractRDBValueIterator
                     final double min = result.getDouble(5);
                     final double max = result.getDouble(6);
                     final double stddev = 0.0; // not known
-                    value = VStatistics.of(val_or_avg, stddev, min, max, cnt, alarm, time);
+                    value = VStatistics.of(val_or_avg, stddev, min, max, cnt, alarm, time, display);
                 }
             }
             values.add(value);

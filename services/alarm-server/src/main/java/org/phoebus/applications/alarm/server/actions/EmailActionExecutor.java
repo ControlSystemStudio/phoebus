@@ -129,7 +129,7 @@ public class EmailActionExecutor
         final String[] path_elements = AlarmTreePath.splitPath(pv.getPathName());
         final String path = AlarmTreePath.makePath(path_elements, path_elements.length - 1);
 
-        buf.append(path).append(' ').append(pv.getName()).append("\n")
+        buf.append("PV: ").append(path).append(' ').append(pv.getName()).append("\n")
            .append("Description: ").append(pv.getDescription()).append("\n");
 
         AlarmState state = pv.getState();

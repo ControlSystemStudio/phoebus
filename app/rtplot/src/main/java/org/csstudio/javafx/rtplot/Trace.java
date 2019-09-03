@@ -78,6 +78,12 @@ public interface Trace<XTYPE extends Comparable<XTYPE>>
     /** @param width Width of line or marker used to draw this trace */
     public void setWidth(final int width);
 
+    /** @return Style of line used to draw this trace */
+    public LineStyle getLineStyle();
+
+    /** @param line_style Style of line used to draw this trace */
+    public void setLineStyle(final LineStyle line_style);
+
     /** @return How to draw points of this trace */
     public PointType getPointType();
 

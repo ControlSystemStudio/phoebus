@@ -9,7 +9,8 @@ package org.csstudio.display.builder.representation.javafx.sandbox;
 
 import java.io.FileInputStream;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.beans.value.ChangeListener;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -23,11 +24,11 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ImageViewSizeDemo extends Application
+public class ImageViewSizeDemo extends ApplicationWrapper
 {
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(ImageViewSizeDemo.class, args);
     }
 
     @Override
@@ -36,7 +37,7 @@ public class ImageViewSizeDemo extends Application
         final Image image;
         try
         {
-            image = new Image(new FileInputStream("icons/embedded_script.png"));
+            image = new Image(new FileInputStream("src/main/resources/icons/embedded_script.png"));
         }
         catch (Exception ex)
         {

@@ -20,7 +20,6 @@ import java.util.logging.Logger;
 
 import org.epics.util.array.ListNumber;
 import org.epics.vtype.Display;
-import org.epics.vtype.TableHack;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VEnumArray;
@@ -276,23 +275,23 @@ public class FormatOptionHandler
      */
     private static String formatTable(final VTable table)
     {
-        final int rows = TableHack.getRowCount(table),     // table.getRowCount(),
-                  cols = TableHack.getColumnCount(table);  // table.getColumnCount();
+        final int rows = table.getRowCount(),
+                  cols = table.getColumnCount();
         final String[][] cell = new String[rows+1][cols];
         final int[] width = new int[cols];
 
         // Determine string for headers and each table cell
         for (int c=0; c<cols; ++c)
         {
-            cell[0][c] = TableHack.getColumnName(table, c); // table.getColumnName(c);
+            cell[0][c] = table.getColumnName(c);
 
             // Table columns use ListNumber for ListDouble or an integer-typed ListNumber
             // Otherwise it's a List<?> for String, Instant, alarm, ...
-            final Object col = TableHack.getColumnData(table, c); // table.getColumnData(c);
+            final Object col = table.getColumnData(c);
             if (col instanceof ListNumber)
             {
                 final ListNumber list = (ListNumber) col;
-                if (/* table.getColumnType(c) */ TableHack.getColumnType(table, c).equals(Integer.TYPE))
+                if (table.getColumnType(c).equals(Integer.TYPE))
                     for (int r=0; r<list.size(); ++r)
                         cell[1+r][c] = Integer.toString(list.getInt(r));
                 else

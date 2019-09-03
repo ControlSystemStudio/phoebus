@@ -134,7 +134,7 @@ public class Formula implements Node
             this.variables = null;
         else
         {
-            this.variables = new ArrayList<VariableNode>();
+            this.variables = new ArrayList<>();
             for (VariableNode var : variables)
                 this.variables.add(var);
         }
@@ -151,7 +151,7 @@ public class Formula implements Node
         throws Exception
     {
         this.formula = formula;
-        this.variables = new ArrayList<VariableNode>();
+        this.variables = new ArrayList<>();
         this.determine_variables = determine_variables;
         tree = parse();
     }
@@ -211,10 +211,11 @@ public class Formula implements Node
         // Sub-formula in '( ... )' ?
         if (s.get() == '(')
             result = parseBracedExpression(s);
-        else if (s.get() == '\'')
-        {   // 'VariableName'
+        else if (s.get() == '\''  ||  s.get() == '`')
+        {   // 'VariableName' or `VariableName`
+            final char match = s.get();
             s.next();
-            while (!s.isDone()  &&   s.get() != '\'')
+            while (!s.isDone()  &&   s.get() != match)
             {
                 buf.append(s.get());
                 s.next();
@@ -327,7 +328,7 @@ public class Formula implements Node
      */
     private Node[] parseArgExpressions(final Scanner s) throws Exception
     {
-        Vector<Node> args = new Vector<Node>();
+        Vector<Node> args = new Vector<>();
         if (s.get() != '(')
             throw new Exception("Expected '(', found '" + s.get() + "'");
         s.next();

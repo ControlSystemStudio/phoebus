@@ -29,7 +29,12 @@ curl -XPUT http://${es_host}:${es_port}/_template/alarms_state_template -H 'Cont
             "type" : "boolean"
           },
           "message" : {
-            "type" : "text"
+            "type" : "text",
+            "fields": {
+              "keyword": { 
+                "type": "keyword"
+              }
+            }
           },
           "value" : {
             "type" : "text"
@@ -46,7 +51,12 @@ curl -XPUT http://${es_host}:${es_port}/_template/alarms_state_template -H 'Cont
             "type" : "keyword"
           },
           "current_message" : {
-            "type" : "text"
+            "type" : "text",
+            "fields": {
+              "keyword": { 
+                "type": "keyword"
+              }
+            }
           },
           "mode" : {
             "type" : "keyword"

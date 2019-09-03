@@ -15,15 +15,18 @@ then
   TOP="$TOP/target"
 fi
 
-V="0.0.1"
-
-# Use ant or maven jar?
-if [ -f ${TOP}/product-${V}.jar ]
+if [ -d "${TOP}/update" ]
 then
-  JAR="${TOP}/product-${V}.jar"
-else
-  JAR="${TOP}/product-${V}-SNAPSHOT.jar"
+  echo "Installing update..."
+  cd ${TOP}
+  rm -rf doc lib
+  mv update/* .
+  rmdir update
+  echo "Updated."
 fi
+
+
+JAR=`echo ${TOP}/product-*.jar`
 
 # To get one instance, use server mode
 OPT="-server 4918"

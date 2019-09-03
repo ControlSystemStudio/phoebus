@@ -3,12 +3,18 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.phoebus</groupId>
   <artifactId>parent</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>4.6.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>phoebus (parent)</name>
+  
+  <scm>
+    <developerConnection>scm:git:https://github.com/kshroff/phoebus</developerConnection>
+  </scm>
 
   <properties>
-    <maven.repo.local>${project.build.directory}/.m2</maven.repo.local>
+    <epics.version>7.0.3-SNAPSHOT</epics.version>
+    <vtype.version>1.0.1-SNAPSHOT</vtype.version>
+    <!--<maven.repo.local>${project.build.directory}/.m2</maven.repo.local>-->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <skipITTests>true</skipITTests>

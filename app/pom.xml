@@ -5,11 +5,11 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>parent</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>4.6.0-SNAPSHOT</version>
   </parent>
   <modules>
-    <module>greetings</module>
-    <module>logConfiguration</module>
+    <module>diag</module>
+    <module>log-configuration</module>
     <module>probe</module>
     <module>pvtable</module>
     <module>pvtree</module>

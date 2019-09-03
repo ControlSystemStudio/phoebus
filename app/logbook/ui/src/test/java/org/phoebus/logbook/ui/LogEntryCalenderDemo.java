@@ -15,6 +15,7 @@ import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookImpl;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.TagImpl;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
 
 import javafx.application.Application;
@@ -23,10 +24,10 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-public class LogEntryCalenderDemo extends Application {
+public class LogEntryCalenderDemo extends ApplicationWrapper {
 
     public static void main(String[] args) {
-        launch(args);
+        launch(LogEntryCalenderDemo.class, args);
     }
 
     @Override

@@ -7,7 +7,8 @@
  *******************************************************************************/
 package org.phoebus.ui.dialog;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -19,7 +20,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PopOverDemo extends Application
+public class PopOverDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage)
@@ -44,6 +45,6 @@ public class PopOverDemo extends Application
 
     public static void main(String[] args)
     {
-        launch(args);
+        launch(PopOverDemo.class, args);
     }
 }

@@ -9,39 +9,36 @@ package org.phoebus.applications.alarm;
 
 import org.phoebus.applications.alarm.talk.TalkClient;
 import org.phoebus.applications.alarm.ui.annunciator.AnnunciatorTable;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-/** 
+/**
  *  Demo of the AnnunciatorTable
  *  @author Evan Smith
  */
-public class AnnunciatorTableDemo extends Application
+@SuppressWarnings("nls")
+public class AnnunciatorTableDemo extends ApplicationWrapper
 {
     final TalkClient client = new TalkClient(AlarmSystem.server, AlarmSystem.config_name);
     final AnnunciatorTable table = new AnnunciatorTable(client);
-    
+
     @Override
     public void start(final Stage stage) throws Exception
     {
-        
+
         final Scene scene = new Scene(table, 1200, 300);
         stage.setScene(scene);
         stage.setTitle("Alarm Annunciator Table Demo");
         stage.show();
         client.start();
+        
+        stage.setOnCloseRequest(event -> table.shutdown());
     }
 
-    @Override
-    public void stop()
-    {
-        table.shutdown();
-    }
-    
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(AnnunciatorTableDemo.class, args);
     }
 }

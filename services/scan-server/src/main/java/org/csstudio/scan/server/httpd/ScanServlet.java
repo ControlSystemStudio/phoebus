@@ -73,6 +73,10 @@ public class ScanServlet extends HttpServlet
         final String queue_parm = request.getParameter("queue");
         final boolean queue = ! "false".equalsIgnoreCase(queue_parm);
 
+        // Execute pre/post commands unless "?pre_post=false"
+        final String pre_post_parm = request.getParameter("pre_post");
+        final boolean pre_post = ! "false".equalsIgnoreCase(pre_post_parm);
+
         // Read scan commands
         final String scan_commands = IOUtils.toString(request.getInputStream());
 
@@ -83,7 +87,7 @@ public class ScanServlet extends HttpServlet
         // Submit scan
         try
         {
-            final long scan_id = scan_server.submitScan(scan_name, scan_commands, queue);
+            final long scan_id = scan_server.submitScan(scan_name, scan_commands, queue, pre_post);
 
             // Return scan ID
             out.print("<id>");
@@ -131,35 +135,48 @@ public class ScanServlet extends HttpServlet
         final RequestPath path = new RequestPath(request);
         try
         {
-            if (path.size() != 2)
+            if (path.size() < 2)
                 throw new Exception("Missing scan ID and command");
             final long id = path.getLong(0);
             final String command = path.getString(1);
-            switch (command)
+
+            if ("move".equals(command))
             {
-            case "next":
-                scan_server.next(id);
-                break;
-            case "pause":
-                scan_server.pause(id);
-                break;
-            case "resume":
-                scan_server.resume(id);
-                break;
-            case "abort":
-                scan_server.abort(id);
-                break;
-            case "patch":
-                final Element xml = XMLUtil.openXMLDocument(request.getInputStream(), "patch");
-                final long address = XMLUtil.getChildLong(xml, "address").orElse(-1L);
-                final String property = XMLUtil.getChildString(xml, "property").orElse("");
-                final Object value = StringOrDouble.parse(XMLUtil.getChildString(xml, "value").orElse("0"));
-                if (property.isEmpty())
-                    throw new Exception("Missing <property> for patch");
-                scan_server.updateScanProperty(id, address, property, value);
-                break;
-            default:
-                throw new Exception("Unknown command '" + command + "'");
+                if (path.size() != 3)
+                    throw new Exception("Expecting steps, got " + request.getPathInfo());
+                final int steps = (int) path.getLong(2);
+                scan_server.move(id, steps);
+            }
+            else
+            {
+                if (path.size() != 2)
+                    throw new Exception("Expecting scan ID and command, got " + request.getPathInfo());
+                switch (command)
+                {
+                case "next":
+                    scan_server.next(id);
+                    break;
+                case "pause":
+                    scan_server.pause(id);
+                    break;
+                case "resume":
+                    scan_server.resume(id);
+                    break;
+                case "abort":
+                    scan_server.abort(id);
+                    break;
+                case "patch":
+                    final Element xml = XMLUtil.openXMLDocument(request.getInputStream(), "patch");
+                    final long address = XMLUtil.getChildLong(xml, "address").orElse(-1L);
+                    final String property = XMLUtil.getChildString(xml, "property").orElse("");
+                    final Object value = StringOrDouble.parse(XMLUtil.getChildString(xml, "value").orElse("0"));
+                    if (property.isEmpty())
+                        throw new Exception("Missing <property> for patch");
+                    scan_server.updateScanProperty(id, address, property, value);
+                    break;
+                default:
+                    throw new Exception("Unknown command '" + command + "'");
+                }
             }
         }
         catch (Exception ex)

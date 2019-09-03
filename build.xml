@@ -8,22 +8,22 @@
   <target name="clean" description="Remove all artifacts">
     <ant target="clean" dir="core/framework"/>
     <ant target="clean" dir="core/util"/>
-    <ant target="clean" dir="core/vtype"/>
     <ant target="clean" dir="core/email"/>
+    <ant target="clean" dir="core/formula"/>
+    <ant target="clean" dir="core/pva"/>
     <ant target="clean" dir="core/pv"/>
     <ant target="clean" dir="core/security"/>
     <ant target="clean" dir="core/ui"/>
     <ant target="clean" dir="core/logbook"/>
     <ant target="clean" dir="core/types"/>
-    <ant target="clean" dir="core/formula"/>
-    <ant target="clean" dir="app/greetings"/>
+    <ant target="clean" dir="app/diag"/>
     <ant target="clean" dir="app/email"/>
     <ant target="clean" dir="app/filebrowser"/>
     <ant target="clean" dir="app/probe"/>
     <ant target="clean" dir="app/logbook/inmemory"/>
     <ant target="clean" dir="app/logbook/utility"/>
     <ant target="clean" dir="app/logbook/ui"/>
-    <ant target="clean" dir="app/logConfiguration"/>
+    <ant target="clean" dir="app/log-configuration"/>
     <ant target="clean" dir="app/pvtree"/>
     <ant target="clean" dir="app/pvtable"/>
     <ant target="clean" dir="app/rtplot"/>
@@ -67,25 +67,25 @@
     -->
     <ant dir="core/framework"/>
     <ant dir="core/util"/>
-    <ant dir="core/vtype"/>
     <ant dir="core/email"/>
+    <ant dir="core/formula"/>
+    <ant dir="core/pva"/>
     <ant dir="core/pv"/>
     <ant dir="core/security"/>
     <ant dir="core/ui"/>
     <ant dir="core/logbook"/>
     <ant dir="core/types"/>
-    <ant dir="core/formula"/>
   </target>
 
   <target name="app" depends="core" description="Build app modules">
-    <ant dir="app/greetings"/>
+    <ant dir="app/diag"/>
     <ant dir="app/email"/>
     <ant dir="app/filebrowser"/>
     <ant dir="app/probe"/>
     <ant dir="app/logbook/inmemory"/>
     <ant dir="app/logbook/utility"/>
     <ant dir="app/logbook/ui"/>
-    <ant dir="app/logConfiguration"/>
+    <ant dir="app/log-configuration"/>
     <ant dir="app/pvtree"/>
     <ant dir="app/pvtable"/>
     <ant dir="app/rtplot"/>

@@ -149,26 +149,41 @@ public abstract class PropertyChangeHandler<T extends Object>
        // If a property listener changes the property,
        // that triggers a recursive listener invocation.
        // Not necessarily a problem, but likely better avoided.
+       // To really catch recursion, would have to track what properties
+       // have already been updated within one stack trace,
+       // which is expensive.
+       // Instead, simply atomically counting up/down for each call,
+       // which does warn about recursions, but will also warn
+       // about concurrent updates, which are not necessarily a problem.
+       // Setting the warning threshold to 10 so that it will catch
+       // "infinite" recursion after just 10 loops,
+       // while being somewhat immune to concurrent updates.
        final int recursion_level = recursions.incrementAndGet();
-       if (recursion_level > 1)
+       if (recursion_level > 10)
            logger.log(Level.WARNING,
-                      "Recursive update of property " + property.getWidget() + " " + property.getName() + ", " +
+                      "Recursive or concurrent update of property " + property.getWidget() + " " + property.getName() + ", " +
                       recursion_level + " deep", new Exception("Recursive update of " + property));
-       // Notify listeners
-       for (BaseWidgetPropertyListener listener : safe_copy)
+       try
        {
-           try
+           // Notify listeners
+           for (BaseWidgetPropertyListener listener : safe_copy)
            {
-               if (listener instanceof WidgetPropertyListener)
-                   ((WidgetPropertyListener<T>)listener).propertyChanged(property, old_value, new_value);
-               else
-                   ((UntypedWidgetPropertyListener)listener).propertyChanged(property, old_value, new_value);
-           }
-           catch (Throwable ex)
-           {   // Log error, then continue with next listener
-               logger.log(Level.WARNING, "Property update error for " +  property, ex);
+               try
+               {
+                   if (listener instanceof WidgetPropertyListener)
+                       ((WidgetPropertyListener<T>)listener).propertyChanged(property, old_value, new_value);
+                   else
+                       ((UntypedWidgetPropertyListener)listener).propertyChanged(property, old_value, new_value);
+               }
+               catch (Throwable ex)
+               {   // Log error, then continue with next listener
+                   logger.log(Level.WARNING, "Property update error for " +  property, ex);
+               }
            }
        }
-       recursions.decrementAndGet();
+       finally
+       {
+           recursions.decrementAndGet();
+       }
    }
 }

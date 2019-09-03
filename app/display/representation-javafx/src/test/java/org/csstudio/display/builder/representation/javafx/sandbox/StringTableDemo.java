@@ -11,7 +11,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -27,7 +28,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class StringTableDemo extends Application
+public class StringTableDemo extends ApplicationWrapper
 {
     private ObservableList<List<StringProperty>> data = FXCollections.observableArrayList();
     private TableView<List<StringProperty>> table = new TableView<>(data);
@@ -98,6 +99,6 @@ public class StringTableDemo extends Application
 
     public static void main(String[] args)
     {
-        launch(args);
+        launch(StringTableDemo.class, args);
     }
 }

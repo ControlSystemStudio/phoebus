@@ -10,9 +10,9 @@ package org.phoebus.archive.reader;
 import java.time.Instant;
 
 import org.epics.vtype.Alarm;
-import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
+import org.phoebus.pv.TimeHelper;
 
 
 /** Value iterator that produces demo samples 1 ... 10

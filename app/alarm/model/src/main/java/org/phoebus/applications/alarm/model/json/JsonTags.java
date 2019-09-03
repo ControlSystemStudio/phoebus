@@ -37,6 +37,7 @@ public interface JsonTags
     public static final String FILTER = "filter";
     public static final String GUIDANCE = "guidance";
     public static final String HOST = "host";
+    public static final String LATCH = "latch";
     public static final String LATCHING = "latching";
     public static final String MAINTENANCE = "maintenance";
     public static final String MESSAGE = "message";

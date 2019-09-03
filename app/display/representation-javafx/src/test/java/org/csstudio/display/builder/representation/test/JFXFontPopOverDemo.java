@@ -12,8 +12,8 @@ import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.FontWidgetProperty;
 import org.csstudio.display.builder.representation.javafx.WidgetFontPopOver;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
@@ -23,7 +23,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class JFXFontPopOverDemo extends Application
+public class JFXFontPopOverDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage)
@@ -50,6 +50,6 @@ public class JFXFontPopOverDemo extends Application
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(JFXFontPopOverDemo.class, args);
     }
 }

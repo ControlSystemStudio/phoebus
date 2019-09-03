@@ -1,0 +1,17 @@
+EPICS_PVA_DEBUG=100  softIocPVA -d demo.db 
+
+Hexdump [Monitor request] size = 15
+01 00 00 00  01 00 00 00  08 FD 01 00  80 00 00     .... .... .... ...
+==> Monitor INIT, server sends introspection info
+
+
+
+
+
+
+
+Message [0xd, v0x1] received from 10.158.80.148:47312 on 10.158.80.148:47312
+Hexdump [Monitor request] size = 9
+01 00 00 00  01 00 00 00  44                        .... .... D
+2019-05-06T14:08:50.403 TCP socket to 10.158.80.148:47312 is to be closed.
+2019-05-06T14:08:50.403 Transport to 10.158.80.148:47312 still has 1 channel(s) active and closing...

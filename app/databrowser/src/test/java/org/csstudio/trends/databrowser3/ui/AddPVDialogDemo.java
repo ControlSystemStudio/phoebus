@@ -9,15 +9,15 @@ package org.csstudio.trends.databrowser3.ui;
 
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.PVItem;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.stage.Stage;
 
 /** Demo of the {@link AddPVDialog}
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class AddPVDialogDemo extends Application
+public class AddPVDialogDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage) throws Exception
@@ -35,6 +35,6 @@ public class AddPVDialogDemo extends Application
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(AddPVDialogDemo.class, args);
     }
 }

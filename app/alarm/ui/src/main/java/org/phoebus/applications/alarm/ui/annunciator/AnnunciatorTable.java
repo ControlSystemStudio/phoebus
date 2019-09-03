@@ -30,6 +30,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
@@ -59,6 +60,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
     private final Tooltip muteTip         = new Tooltip("Mute the annunciator");
     private final Tooltip annunciateTip   = new Tooltip("Un-mute the annunciator");
     private final ToggleButton muteButton = new ToggleButton("", new ImageView(mute_icon));
+    private final ToggleButton testButton = new ToggleButton("Test");
     private final Button clearTableButton = new Button("Clear Messages");
 
     private final ToolBar toolbar;
@@ -201,9 +203,10 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         this.client = client;
         this.client.addListener(this);
 
-
         if (annunciator_retention_count < 1)
             logger.log(Level.SEVERE, "Annunciation Retention Count set below 1.");
+
+        table.setPlaceholder(new Label("No annunciations"));
 
         time.setCellValueFactory(cell -> cell.getValue().time_received);
         time.setCellFactory(c -> new TimeCell());
@@ -235,7 +238,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
 
         // Top button row
         muteButton.setTooltip(muteTip);
-        muteButton.setOnAction((event) ->
+        muteButton.setOnAction(event ->
         {
             // Mute is true when the annunciator should be muted.
             final boolean mute = muteButton.isSelected();
@@ -248,8 +251,12 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
             table.refresh();
         });
 
+        testButton.setTooltip(new Tooltip("Play test message"));
+        testButton.setOnAction(event ->
+            annunciatorController.annunciate(new AnnunciatorMessage(false, SeverityLevel.OK, Instant.now(), "Testing 1 2 3")) );
+
         clearTableButton.setTooltip(new Tooltip("Clear the messages in the table."));
-        clearTableButton.setOnAction((event) ->
+        clearTableButton.setOnAction(event ->
         {
             final Alert alert  = new Alert(AlertType.CONFIRMATION);
             alert.setTitle("Clear Annunciator Table");
@@ -260,7 +267,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
                 .ifPresent(response -> clearTable());
         });
 
-        toolbar = new ToolBar(ToolbarHelper.createSpring(), muteButton, clearTableButton);
+        toolbar = new ToolBar(ToolbarHelper.createSpring(), muteButton, testButton, clearTableButton);
 
         getChildren().setAll(toolbar, table);
 

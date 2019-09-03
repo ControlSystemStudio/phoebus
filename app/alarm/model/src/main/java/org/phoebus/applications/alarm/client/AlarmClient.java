@@ -25,7 +25,6 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.record.TimestampType;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
-import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
@@ -70,7 +69,7 @@ public class AlarmClient
         command_topic = config_name + AlarmSystem.COMMAND_TOPIC_SUFFIX;
 
         root = new AlarmClientNode(null, config_name);
-        final List<String> topics = List.of(config_topic, config_name + AlarmSystem.STATE_TOPIC_SUFFIX);
+        final List<String> topics = List.of(config_topic);
         consumer = KafkaHelper.connectConsumer(server, topics, topics);
         producer = KafkaHelper.connectProducer(server);
 
@@ -124,7 +123,7 @@ public class AlarmClient
         try
         {
             final String json = new String (JsonModelWriter.commandToBytes(cmd));
-            final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, root.getPathName(), json);
+            final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, AlarmSystem.COMMAND_PREFIX + root.getPathName(), json);
             producer.send(record);
         }
         catch (final Exception ex)
@@ -173,8 +172,16 @@ public class AlarmClient
         final ConsumerRecords<String, String> records = consumer.poll(POLL_PERIOD);
         for (final ConsumerRecord<String, String> record : records)
         {
+            final int sep = record.key().indexOf(':');
+            if (sep < 0)
+            {
+                logger.log(Level.WARNING, "Invalid key, expecting type:path, got " + record.key());
+                continue;
+            }
+
+            final String type = record.key().substring(0, sep+1);
+            final String path = record.key().substring(sep+1);
             final long timestamp = record.timestamp();
-            final String path = record.key();
             final String node_config = record.value();
 
             if (record.timestampType() != TimestampType.CREATE_TIME)
@@ -183,86 +190,72 @@ public class AlarmClient
             logger.log(Level.FINE, () ->
                 record.topic() + " @ " +
                 TimestampFormats.MILLI_FORMAT.format(Instant.ofEpochMilli(timestamp)) + " " +
-                path + " = " + node_config);
-
-            // Messages within a topic are ordered by time,
-            // but messages from the 'config' and 'state' topic can be mixed.
-            // Deleting an item and adding it back creates these messages:
-            //
-            // Config, Time  1: PV description="Original description"
-            // State , Time  2: PV state=MINOR
-            // Config, Time  5: PV null  (deleted)
-            // Config, Time 10: PV description="Added back in"
-            // State , Time 11: PV state=MINOR
-            //
-            // We could receive them like this, with State updates combined,
-            // i.e. no longer ordered by time:
-            //
-            // Config, Time  1: PV description="Original description"
-            // State , Time  2: PV state=MINOR
-            // State , Time 11: PV state=MINOR
-            // Config, Time  5: PV null  (deleted)
-            // Config, Time 10: PV description="Added back in"
-            //
-            // As a result, the PV would be deleted and then re-created
-            // with an OK state, missing the correct MINOR state.
-            //
-            // To guard against this, each PV node (leaf) tracks the timestamp
-            // of the last _state_ update.
-            // When receiving a deletion with an _older_ time stamp, we ignore it:
-            //
-            // Config, Time  1: PV description="Original description"
-            // State , Time  2: PV state=MINOR
-            // State , Time 11: PV state=MINOR
-            // Config, Time 10: PV description="Added back in"
+                type + path + " = " + node_config);
 
             try
             {
-                if (node_config == null)
-                {   // No config -> Delete node
-                    // Message may actually come from either config topic,
-                    // where some client originally requested the removal,
-                    // or the state topic, where running alarm server
-                    // replaced the last state update with an empty one.
-                    final AlarmTreeItem<?> node = deleteNode(timestamp, path);
-                    // If this was a known node, notify listeners
-                    if (node != null)
-                    {
-                        if (node instanceof AlarmTreeLeaf)
-                            logger.log(Level.FINE, () -> "Delete " + path);
-                        for (final AlarmClientListener listener : listeners)
-                            listener.itemRemoved(node);
-                    }
-                }
-                else
+                // Only update listeners if the node changed
+                AlarmTreeItem<?> changed_node = null;
+                final Object json = node_config == null ? null : JsonModelReader.parseJsonText(node_config);
+                if (type.equals(AlarmSystem.CONFIG_PREFIX))
                 {
-                    // Get node_config as JSON map to check for "pv" key
-                    final Object json = JsonModelReader.parseJsonText(node_config);
-                    AlarmTreeItem<?> node = findNode(path);
-                    // Only update listeners if this is a new node or the config changed
-                    if (node == null)
-                        node = findOrCreateNode(path, JsonModelReader.isLeafConfigOrState(json));
-                    final boolean need_update;
-                    if (JsonModelReader.isStateUpdate(json))
-                    {
-                        final boolean maint = JsonModelReader.isMaintenanceMode(json);
-                        if (maintenance_mode.getAndSet(maint) != maint)
+                    if (json == null)
+                    {   // No config -> Delete node
+                        final AlarmTreeItem<?> node = deleteNode(path);
+                        // If this was a known node, notify listeners
+                        if (node != null)
+                        {
+                            logger.log(Level.FINE, () -> "Delete " + path);
                             for (final AlarmClientListener listener : listeners)
-                                listener.serverModeChanged(maint);
-
-                        need_update = JsonModelReader.updateAlarmState(timestamp, node, json);
-                        last_state_update = System.currentTimeMillis();
+                                listener.itemRemoved(node);
+                        }
                     }
                     else
-                        need_update = JsonModelReader.updateAlarmItemConfig(node, json);
-                    // If there were changes, notify listeners
-                    if (need_update)
-                    {
-                        final AlarmTreeItem<?> changed_node = node;
-                        logger.log(Level.FINE, () -> "Update " + path + " to " + changed_node.getState());
-                        for (final AlarmClientListener listener : listeners)
-                            listener.itemUpdated(changed_node);
+                    {   // Configuration update
+                        if (JsonModelReader.isStateUpdate(json))
+                            logger.log(Level.WARNING, "Got config update with state content: " + record.key() + " " + node_config);
+                        else
+                        {
+                            AlarmTreeItem<?> node = findNode(path);
+                            // New node? Will need to send update. Otherwise update when there's a change
+                            if (node == null)
+                                changed_node = node = findOrCreateNode(path, JsonModelReader.isLeafConfigOrState(json));
+                            if (JsonModelReader.updateAlarmItemConfig(node, json))
+                                changed_node = node;
+                        }
                     }
+                }
+                else if (type.equals(AlarmSystem.STATE_PREFIX))
+                {   // State update
+                    if (json == null)
+                        logger.log(Level.WARNING, "Got state update with null content: " + record.key() + " " + node_config);
+                    else if (! JsonModelReader.isStateUpdate(json))
+                        logger.log(Level.WARNING, "Got state update with config content: " + record.key() + " " + node_config);
+                    else
+                    {
+                        final AlarmTreeItem<?> node = findNode(path);
+                        if (node == null)
+                            logger.log(Level.FINE, "Ignoring state for unknown item: " + record.key() + " " + node_config);
+                        else
+                        {
+                            final boolean maint = JsonModelReader.isMaintenanceMode(json);
+                            if (maintenance_mode.getAndSet(maint) != maint)
+                                for (final AlarmClientListener listener : listeners)
+                                    listener.serverModeChanged(maint);
+                            if (JsonModelReader.updateAlarmState(node, json))
+                                changed_node = node;
+                            last_state_update = System.currentTimeMillis();
+                        }
+                    }
+                }
+                // else: Neither config nor state update; ignore.
+
+                // If there were changes, notify listeners
+                if (changed_node != null)
+                {
+                    logger.log(Level.FINE, "Update " + path + " to " + changed_node.getState());
+                    for (final AlarmClientListener listener : listeners)
+                        listener.itemUpdated(changed_node);
                 }
             }
             catch (final Exception ex)
@@ -309,30 +302,15 @@ public class AlarmClient
      *  A new model that reads this node-to-delete information
      *  thus never knew the node.
      *
-     *  @param timestamp Timestamp of the deletion request
      *  @param path Path to node to delete
      *  @return Node that was removed, or <code>null</code> if model never knew that node
      *  @throws Exception on error
      */
-    private AlarmTreeItem<?> deleteNode(final long timestamp, final String path) throws Exception
+    private AlarmTreeItem<?> deleteNode(final String path) throws Exception
     {
         final AlarmTreeItem<?> node = findNode(path);
         if (node == null)
             return null;
-
-        final long last_update = node instanceof AlarmClientLeaf
-            ? ((AlarmClientLeaf) node).getLastUpdateTimestamp()
-            : ((AlarmClientNode) node).getLastUpdateTimestamp();
-        if (last_update > timestamp)
-        {
-            logger.log(Level.FINE,
-                       "Ignoring deletion of " + node.getPathName() + " at " +
-                       TimestampFormats.MILLI_FORMAT.format(Instant.ofEpochMilli(timestamp)) +
-                       ". Superseded by more recent state update at " +
-                       TimestampFormats.MILLI_FORMAT.format(Instant.ofEpochMilli(last_update))
-                      );
-            return null;
-        }
 
         // Node is known: Detach it
         node.detachFromParent();
@@ -445,7 +423,7 @@ public class AlarmClient
     public void sendItemConfigurationUpdate(final String path, final AlarmTreeItem<?> config) throws Exception
     {
         final String json = new String(JsonModelWriter.toJsonBytes(config));
-        final ProducerRecord<String, String> record = new ProducerRecord<>(config_topic, path, json);
+        final ProducerRecord<String, String> record = new ProducerRecord<>(config_topic, AlarmSystem.CONFIG_PREFIX + path, json);
         producer.send(record);
     }
 
@@ -469,10 +447,10 @@ public class AlarmClient
             // Create and send a message identifying who is deleting the node.
             // The id message must arrive before the tombstone.
             final String json = new String(JsonModelWriter.deleteMessageToBytes());
-            final ProducerRecord<String, String> id = new ProducerRecord<>(config_topic, item.getPathName(), json);
+            final ProducerRecord<String, String> id = new ProducerRecord<>(config_topic, AlarmSystem.CONFIG_PREFIX + item.getPathName(), json);
             producer.send(id);
 
-            final ProducerRecord<String, String> tombstone = new ProducerRecord<>(config_topic, item.getPathName(), null);
+            final ProducerRecord<String, String> tombstone = new ProducerRecord<>(config_topic, AlarmSystem.CONFIG_PREFIX + item.getPathName(), null);
             producer.send(tombstone);
         }
         catch (Exception ex)
@@ -490,7 +468,7 @@ public class AlarmClient
         {
             final String cmd = acknowledge ? "acknowledge" : "unacknowledge";
             final String json = new String (JsonModelWriter.commandToBytes(cmd));
-            final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, item.getPathName(), json);
+            final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, AlarmSystem.COMMAND_PREFIX + item.getPathName(), json);
             producer.send(record);
         }
         catch (final Exception ex)

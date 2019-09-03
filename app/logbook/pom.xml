@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>4.6.0-SNAPSHOT</version>
   </parent>
   <modules>
     <module>inmemory</module>

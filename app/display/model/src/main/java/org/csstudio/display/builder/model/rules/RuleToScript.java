@@ -256,7 +256,8 @@ public class RuleToScript
             script.append("colorCurrent = ")
                   .append("WidgetColor(").append(col.getRed()).append(", ")
                                          .append(col.getGreen()).append(", ")
-                                         .append(col.getBlue()).append(")\n");
+                                         .append(col.getBlue()).append(", ")
+                                         .append(col.getAlpha()).append(")\n");
 
             if (!rule.getPropAsExprFlag())
             {
@@ -272,7 +273,8 @@ public class RuleToScript
                             script.append("colorVal").append(idx).append(" = ")
                                   .append("WidgetColor(").append(col.getRed()).append(", ")
                                   .append(col.getGreen()).append(", ")
-                                  .append(col.getBlue()).append(")\n");
+                                  .append(col.getBlue()).append(", ")
+                                  .append(col.getAlpha()).append(")\n");
                         }
                     }
                     idx++;

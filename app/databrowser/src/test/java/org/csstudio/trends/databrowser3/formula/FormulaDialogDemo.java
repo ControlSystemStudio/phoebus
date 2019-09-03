@@ -12,15 +12,15 @@ import java.util.List;
 import org.csstudio.apputil.formula.ui.FormulaDialog;
 import org.csstudio.apputil.formula.ui.FormulaPane;
 import org.csstudio.apputil.formula.ui.InputItem;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.stage.Stage;
 
 /** Demo of the {@link FormulaPane}
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class FormulaDialogDemo extends Application
+public class FormulaDialogDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage) throws Exception
@@ -43,6 +43,6 @@ public class FormulaDialogDemo extends Application
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(FormulaDialogDemo.class, args);
     }
 }

@@ -64,7 +64,16 @@ public class AlarmInfoRow
         this.item = item;
 
         pv.set(item.getName());
-        description.set(item.getDescription());
+
+        // Remove the optional "*" (don't annunciate severity)
+        // and "!" modifiers (always annunciate, don't summarize as "N more messages")
+        // Also handle "*!".
+        String desc = item.getDescription();
+        if (desc.startsWith("*"))
+            desc = desc.substring(1);
+        if (desc.startsWith("!"))
+            desc = desc.substring(1);
+        description.set(desc);
 
         final ClientState state = item.getState();
         severity.set(state.severity);

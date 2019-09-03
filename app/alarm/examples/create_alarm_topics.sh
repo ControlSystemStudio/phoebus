@@ -9,7 +9,7 @@ fi
 config=$1
 
 # Create the compacted topics.
-for topic in "$1" "${1}State"
+for topic in "$1"
 do
     kafka/bin/kafka-topics.sh  --zookeeper localhost:2181 --create --replication-factor 1 --partitions 1 --topic $topic
     kafka/bin/kafka-configs.sh --zookeeper localhost:2181 --entity-type topics --alter --entity-name $topic \

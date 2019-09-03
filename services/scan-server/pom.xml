@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>services</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>4.6.0-SNAPSHOT</version>
   </parent>
   <artifactId>service-scan-server</artifactId>
   <dependencies>
@@ -20,7 +20,7 @@
       <version>1.3</version>
       <scope>test</scope>
     </dependency>
-    
+
     <dependency>
       <groupId>org.python</groupId>
       <artifactId>jython-standalone</artifactId>
@@ -41,41 +41,41 @@
       <artifactId>jetty-security</artifactId>
       <version>9.4.9.v20180320</version>
     </dependency>
-    
+
     <dependency>
       <groupId>org.apache.derby</groupId>
       <artifactId>derby</artifactId>
       <version>10.14.1.0</version>
     </dependency>
-    
+
     <dependency>
       <groupId>io.reactivex.rxjava2</groupId>
       <artifactId>rxjava</artifactId>
       <version>2.1.14</version>
     </dependency>
-    
+
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-framework</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>4.6.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-util</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>4.6.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-pv</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>4.6.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-scan-model</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>4.6.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
-  
+
   <build>
     <plugins>
       <plugin>
@@ -111,7 +111,7 @@
           </archive>
         </configuration>
       </plugin>
-      
+
       <!-- Above commands built the product.jar.
            Need to list all lib/* jars in the manifest classpath
            (this adds for example the caj and pvaccess.jar
@@ -137,9 +137,9 @@
                     </path>
                   </classpath>
                 </manifestclasspath>
-            
+
                 <!--
-                 <echo message="Manifest classpath: ${manifest-classpath}"/> 
+                 <echo message="Manifest classpath: ${manifest-classpath}"/>
                  -->
 
                 <jar update="true" destfile="${project.build.directory}/service-scan-server-${project.version}.jar">
@@ -157,5 +157,5 @@
       </plugin>
     </plugins>
   </build>
-  
+
 </project>

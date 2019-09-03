@@ -110,7 +110,11 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
                 AutomatedActionsHelper.update(automated_actions, alarm.severity);
 
                 // Whenever logic computes new state, maximize up parent tree
-                getParent().maximizeSeverity();
+                final AlarmServerNode parent = getParent();
+                if (parent != null)
+                    parent.maximizeSeverity();
+                else
+                    logger.log(Level.FINE, getPathName() + " ignores delayed change to " + current + ", " + alarm + " since no longer in alarm tree");
             }
 
             @Override
@@ -175,7 +179,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         {
             AutomatedActionsHelper.configure(automated_actions,
                                              this,
-                                             logic.getAlarmState().severity.isActive(),
+                                             logic.getAlarmState().severity,
                                              enable,
                                              getActions());
             return true;
@@ -272,7 +276,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         if (super.setActions(actions))
         {
             AutomatedActionsHelper.configure(automated_actions, this,
-                                             logic.getAlarmState().severity.isActive(),
+                                             logic.getAlarmState().severity,
                                              isEnabled(), actions);
             return true;
         }
@@ -337,6 +341,9 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     {
         try
         {
+            // Cancel delayed
+            logic.dispose();
+
             // Cancel ongoing actions, but don't set to null
             // because in case there's another start() it needs
             // to find & trigger the actions

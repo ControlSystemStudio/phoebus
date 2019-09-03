@@ -9,18 +9,18 @@ package org.csstudio.display.builder.representation.test;
 
 import org.csstudio.display.builder.model.properties.Points;
 import org.csstudio.display.builder.representation.javafx.PointsDialog;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.stage.Stage;
 
 /** Demo of {@link PointsDialog}
  *  @author Kay Kasemir
  */
-public class JFXPointsDialogDemo  extends Application
+public class JFXPointsDialogDemo extends ApplicationWrapper
 {
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(JFXPointsDialogDemo.class, args);
     }
 
     @Override

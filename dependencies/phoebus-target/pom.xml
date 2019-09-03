@@ -4,16 +4,16 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>dependencies</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>4.6.0-SNAPSHOT</version>
   </parent>
   <artifactId>phoebus-target</artifactId>
 
   <properties>
-    <spring.boot-version>2.0.4.RELEASE</spring.boot-version>
+    <spring.boot-version>2.0.5.RELEASE</spring.boot-version>
   </properties>
 
   <profiles>
-    <!-- Oracle JDBC is conditionally installed by install-jars --> 
+    <!-- Oracle JDBC is conditionally installed by install-jars -->
     <profile>
       <activation>
         <file>
@@ -35,7 +35,7 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>install-jars</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>4.6.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -60,46 +60,42 @@
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-controls</artifactId>
-      <version>11</version>
-      <type>pom</type>
+      <version>11.0.2</version>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-web</artifactId>
-      <version>11</version>
-      <type>pom</type>
+      <version>11.0.2</version>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-swing</artifactId>
-      <version>11</version>
-      <type>pom</type>
+      <version>11.0.2</version>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-fxml</artifactId>
-      <version>11</version>
-      <type>pom</type>
+      <version>11.0.2</version>
     </dependency>
 
     <!--  Includes
           jca-2.4.2.jar
           epics-util-1.0.0.jar
           epics-pvdata-6.1.2.jar
-          epics-pvaccess-5.1.2.jar    
+          epics-pvaccess-5.1.2.jar
           epics-ntypes-0.3.2.jar
      -->
     <dependency>
       <groupId>org.epics</groupId>
       <artifactId>epics-core</artifactId>
-      <version>7.0.2</version>
+      <version>${epics.version}</version>
       <type>pom</type>
     </dependency>
 
     <dependency>
       <groupId>org.epics</groupId>
       <artifactId>vtype</artifactId>
-      <version>1.0.0</version>
+      <version>${vtype.version}</version>
     </dependency>
 
     <dependency>

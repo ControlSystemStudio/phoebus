@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.csstudio.display.builder.editor.undo;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -22,38 +23,56 @@ import org.phoebus.ui.undo.UndoableAction;
 public class RemoveWidgetsAction extends UndoableAction
 {
     private final WidgetSelectionHandler selection;
-    private final ChildrenProperty[] containers;
-    private final Widget[] widgets;
+
+    private static class Info
+    {
+        final Widget widget;
+        final ChildrenProperty container;
+        final int index;
+
+        Info(final Widget widget)
+        {
+            this.widget = widget;
+            container = ChildrenProperty.getParentsChildren(widget);
+            index = container.getValue().indexOf(widget);
+        }
+    };
+
+    private final Info[] info;
 
     public RemoveWidgetsAction(final WidgetSelectionHandler selection, final List<Widget> widgets)
     {
         super(Messages.RemoveWidgets);
         this.selection = selection;
         final int N = widgets.size();
-        this.containers = new ChildrenProperty[N];
-        this.widgets = new Widget[N];
+        info = new Info[N];
         for (int i=0; i<N; ++i)
-        {
-            this.widgets[i] = widgets.get(i);
-            containers[i] = ChildrenProperty.getParentsChildren(this.widgets[i]);
-        }
+            info[i] = new Info(widgets.get(i));
+
+        // Sort by index.
+        // For removal, the order doesn't matter, but for addition, it does.
+        // When adding widgets, the one at the lowest index needs to be added first, then the next by index.
+        // Otherwise we'd try to add at an index that's not valid, yet, until the other widgets have been added.
+        Arrays.sort(info, (a, b) -> Integer.compare(a.index, b.index));
     }
 
     @Override
     public void run()
-    {   // Remove in 'reverse', so that undo() will then
-        // add them back in the matching order:
-        // Add the one removed last, ..
-        for (int i=widgets.length-1; i>=0; --i)
-            containers[i].removeChild(widgets[i]);
+    {
+        for (Info i : info)
+            i.container.removeChild(i.widget);
         selection.clear();
     }
 
     @Override
     public void undo()
     {
-        for (int i=0; i<widgets.length; ++i)
-            containers[i].addChild(widgets[i]);
-        selection.setSelection(Arrays.asList(widgets));
+        final List<Widget> sel = new ArrayList<>();
+        for (Info i : info)
+        {
+            i.container.addChild(i.index, i.widget);
+            sel.add(i.widget);
+        }
+        selection.setSelection(sel);
     }
 }

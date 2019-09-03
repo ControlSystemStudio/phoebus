@@ -20,12 +20,15 @@ import java.util.logging.Level;
 import org.csstudio.display.builder.editor.DisplayEditor;
 import org.csstudio.display.builder.editor.EditorUtil;
 import org.csstudio.display.builder.editor.actions.ActionDescription;
+import org.csstudio.display.builder.editor.app.CreateGroupAction;
+import org.csstudio.display.builder.editor.app.RemoveGroupAction;
 import org.csstudio.display.builder.model.ArrayWidgetProperty;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget.TabItemProperty;
 import org.phoebus.ui.javafx.TreeHelper;
@@ -178,36 +181,58 @@ public class WidgetTree
 
     private void handleKeyPress(final KeyEvent event)
     {
-        WidgetTree.handleWidgetOrderKeys(event, editor);
+        WidgetTree.handleGroupOrOrderKeys(event, editor);
     }
 
-    /** Handle Alt-[Up, Down, PgUp, PgDown] to move widgets in hierarchy
+    /** Handle keys to group or change widget hierarchy
      *
      *  @param event {@link KeyEvent}
      *  @param editor {@link DisplayEditor}
      *  @return <code>true</code> if key was handled
      */
-    public static boolean handleWidgetOrderKeys(final KeyEvent event, final DisplayEditor editor)
+    public static boolean handleGroupOrOrderKeys(final KeyEvent event, final DisplayEditor editor)
     {
-        if (event.isAltDown())
+        if (event.isShortcutDown())
         {
             switch (event.getCode())
             {
-            case PAGE_UP:
+            case G:
+            {
                 event.consume();
-                ActionDescription.TO_BACK.run(editor);
+                final List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
+                if (widgets.size() > 0)
+                    new CreateGroupAction(editor, widgets).run();
                 return true;
-            case UP:
+            }
+            case U:
+            {
                 event.consume();
-                ActionDescription.MOVE_UP.run(editor);
+                final List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
+                if (widgets.size() == 1  &&  widgets.get(0) instanceof GroupWidget)
+                    new RemoveGroupAction(editor, (GroupWidget)widgets.get(0)).run();
                 return true;
-            case DOWN:
+            }
+            default:
+                break;
+            }
+        }
+        else if (event.isAltDown())
+        {
+            switch (event.getCode())
+            {
+            case B:
                 event.consume();
-                ActionDescription.MOVE_DOWN.run(editor);
+                if (event.isShiftDown())
+                    ActionDescription.TO_BACK.run(editor);
+                else
+                    ActionDescription.MOVE_UP.run(editor);
                 return true;
-            case PAGE_DOWN:
+            case F:
                 event.consume();
-                ActionDescription.TO_FRONT.run(editor);
+                if (event.isShiftDown())
+                    ActionDescription.TO_FRONT.run(editor);
+                else
+                    ActionDescription.MOVE_DOWN.run(editor);
                 return true;
             default:
                 break;
@@ -471,5 +496,11 @@ public class WidgetTree
             for (Widget child : children.getValue())
                 removeWidgetListeners(child);
         }
+    }
+
+    /** @return Is the tree currently editing a widget name? */
+    public boolean isInlineEditorActive()
+    {
+        return tree_view.editingItemProperty().get() != null;
     }
 }

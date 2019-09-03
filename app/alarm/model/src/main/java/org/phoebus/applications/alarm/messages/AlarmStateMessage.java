@@ -62,13 +62,11 @@ public class AlarmStateMessage {
         this.severity = severity;
     }
 
-    public boolean isLatch()
-    {
+    public boolean isLatch() {
         return latch;
     }
 
-    public void setLatch(boolean latch)
-    {
+    public void setLatch(boolean latch) {
         this.latch = latch;
     }
 

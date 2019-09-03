@@ -14,11 +14,11 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 import org.csstudio.scan.command.Comparison;
+import org.csstudio.scan.device.VTypeHelper;
 import org.csstudio.scan.server.condition.DeviceCondition;
 import org.csstudio.scan.server.condition.NumericValueCondition;
 import org.csstudio.scan.server.condition.TextValueCondition;
 import org.csstudio.scan.server.device.Device;
-import org.csstudio.scan.server.device.VTypeHelper;
 import org.csstudio.scan.server.log.DataLog;
 import org.epics.vtype.VType;
 

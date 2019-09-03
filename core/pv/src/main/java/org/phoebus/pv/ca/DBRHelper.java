@@ -27,7 +27,6 @@ import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
 import org.epics.vtype.EnumDisplay;
 import org.epics.vtype.Time;
-import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VByte;
 import org.epics.vtype.VByteArray;
 import org.epics.vtype.VDouble;
@@ -43,6 +42,7 @@ import org.epics.vtype.VShortArray;
 import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
+import org.phoebus.pv.TimeHelper;
 
 import gov.aps.jca.dbr.CTRL;
 import gov.aps.jca.dbr.DBR;
@@ -237,7 +237,7 @@ public class DBRHelper
                 : EnumDisplay.of();
 
             if (is_array)
-                return VEnumArray.of(ArrayShort.of(need.getEnumValue()), enum_meta, convertAlarm(need), convertTime(need));
+                return VEnumArray.of(new ArrayInteger(ArrayShort.of(need.getEnumValue())), enum_meta, convertAlarm(need), convertTime(need));
             return VEnum.of(need.getEnumValue()[0], enum_meta, convertAlarm(need), convertTime(need));
         }
 

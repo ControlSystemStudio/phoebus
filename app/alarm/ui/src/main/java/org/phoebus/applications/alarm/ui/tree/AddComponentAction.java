@@ -12,6 +12,7 @@ import java.util.List;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -90,8 +91,24 @@ class AddComponentAction extends MenuItem
             // Initial focus on name
             Platform.runLater(() -> name.requestFocus());
 
-            // Selecting a type then also focuses on the name
-            type_pv.selectedProperty().addListener(p -> Platform.runLater(() -> name.requestFocus()));
+            type_pv.selectedProperty().addListener(p ->
+            {
+                updateAutocompletion();
+                // Selecting a type then also focuses on the name
+                Platform.runLater(() -> name.requestFocus());
+            });
+            // Initial setting
+            updateAutocompletion();
+        }
+
+        /** Add or remove PV name completion support based on type_pv */
+        private void updateAutocompletion()
+        {
+            // Always OK to detach
+            PVAutocompleteMenu.INSTANCE.detachField(name);
+            // If PV names are required, attach
+            if (type_pv.isSelected())
+                PVAutocompleteMenu.INSTANCE.attachField(name);
         }
 
         private void checkName(final String name)

@@ -43,7 +43,7 @@ public class AlarmLogTable implements AppInstance {
     }
     
 
-    public void setResource(URI resource) {
+    public void setPVResource(URI resource) {
         String query = resource.getQuery();
         // TODO URI parsing might be improved.
         String parsedQuery = Arrays.asList(query.split("&")).stream().filter(s->{
@@ -51,5 +51,17 @@ public class AlarmLogTable implements AppInstance {
         }).map(s->{return s.split("=")[1];}).collect(Collectors.joining(" "));
 
         controller.setSearchString(parsedQuery);
+        controller.setIsNodeTable(false);
+    }
+    
+    public void setNodeResource(URI resource) {
+        String query = resource.getQuery();
+        // TODO URI parsing might be improved.
+        String parsedQuery = Arrays.asList(query.split("&")).stream().filter(s->{
+            return s.startsWith("node");
+        }).map(s->{return s.split("=")[1];}).collect(Collectors.joining(" "));
+
+        controller.setSearchString(parsedQuery);
+        controller.setIsNodeTable(true);
     }
 }

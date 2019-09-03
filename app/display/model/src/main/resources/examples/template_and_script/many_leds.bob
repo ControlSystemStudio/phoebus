@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Many Instances</name>
+  <scripts>
+    <script file="EmbeddedPy">
+      <text><![CDATA[# This script is attached to a display
+# and triggered by a PV like 
+#     loc://initial_trigger$(DID)(1)
+# to execute once when the display is loaded.
+
+from org.csstudio.display.builder.runtime.script import ScriptUtil
+from org.csstudio.display.builder.model import WidgetFactory
+
+width = 20
+height = 20
+gap = 5
+
+display = widget.getDisplayModel()
+rows = 35
+for i in range(2000):
+    x = gap + (i / rows) * (width+gap)
+    y = 40 + (height+gap)*(i % rows)
+
+    w = WidgetFactory.getInstance().getWidgetDescriptor("led").createWidget();
+    w.setPropertyValue("x", x)
+    w.setPropertyValue("y", y)
+    w.setPropertyValue("width", width)
+    w.setPropertyValue("height", height)
+    w.setPropertyValue("pv_name", "sim://noise(-5,5,0.1)")
+
+    display.runtimeChildren().addChild(w)
+    
+]]></text>
+      <pv_name>loc://initial_trigger$(DID)(1)</pv_name>
+    </script>
+  </scripts>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Many LEDs</text>
+    <width>490</width>
+    <height>31</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+</display>

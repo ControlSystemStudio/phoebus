@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@ import static java.util.Map.entry;
 
 import java.util.Map;
 
+import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.builder.model.widgets.ArcWidget;
@@ -49,11 +50,13 @@ import org.csstudio.display.builder.model.widgets.Viewer3dWidget;
 import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.DataBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
+import org.csstudio.display.builder.model.widgets.plots.StripchartWidget;
 import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget;
 import org.csstudio.display.builder.representation.WidgetRepresentation;
 import org.csstudio.display.builder.representation.WidgetRepresentationFactory;
 import org.csstudio.display.builder.representation.javafx.widgets.plots.DataBrowserRepresentation;
 import org.csstudio.display.builder.representation.javafx.widgets.plots.ImageRepresentation;
+import org.csstudio.display.builder.representation.javafx.widgets.plots.StripchartRepresentation;
 import org.csstudio.display.builder.representation.javafx.widgets.plots.XYPlotRepresentation;
 import org.csstudio.display.builder.representation.spi.WidgetRepresentationsService;
 
@@ -62,10 +65,20 @@ import org.csstudio.display.builder.representation.spi.WidgetRepresentationsServ
  */
 public class BaseWidgetRepresentations implements WidgetRepresentationsService
 {
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({ "unchecked", "rawtypes", "nls" })
     @Override
     public <TWP, TW> Map<WidgetDescriptor, WidgetRepresentationFactory<TWP, TW>> getWidgetRepresentationFactories()
     {
+        final WidgetDescriptor unknown_widget = new WidgetDescriptor(WidgetRepresentationFactory.UNKNOWN, null, WidgetRepresentationFactory.UNKNOWN, null, "Unknown Widget")
+        {
+            @Override
+            public Widget createWidget()
+            {
+                // Cannot create instance
+                return null;
+            }
+        };
+
         return Map.ofEntries(
             entry(ActionButtonWidget.WIDGET_DESCRIPTOR,    () -> (WidgetRepresentation) new ActionButtonRepresentation()),
             entry(ArcWidget.WIDGET_DESCRIPTOR,             () -> (WidgetRepresentation) new ArcRepresentation()),
@@ -94,6 +107,7 @@ public class BaseWidgetRepresentations implements WidgetRepresentationsService
             entry(ScrollBarWidget.WIDGET_DESCRIPTOR,       () -> (WidgetRepresentation) new ScrollBarRepresentation()),
             entry(SlideButtonWidget.WIDGET_DESCRIPTOR,     () -> (WidgetRepresentation) new SlideButtonRepresentation()),
             entry(SpinnerWidget.WIDGET_DESCRIPTOR,         () -> (WidgetRepresentation) new SpinnerRepresentation()),
+            entry(StripchartWidget.WIDGET_DESCRIPTOR,      () -> (WidgetRepresentation) new StripchartRepresentation()),
             entry(SymbolWidget.WIDGET_DESCRIPTOR,          () -> (WidgetRepresentation) new SymbolRepresentation()),
             entry(TableWidget.WIDGET_DESCRIPTOR,           () -> (WidgetRepresentation) new TableRepresentation()),
             entry(TabsWidget.WIDGET_DESCRIPTOR,            () -> (WidgetRepresentation) new TabsRepresentation()),
@@ -104,6 +118,7 @@ public class BaseWidgetRepresentations implements WidgetRepresentationsService
             entry(ThermometerWidget.WIDGET_DESCRIPTOR,     () -> (WidgetRepresentation) new ThermometerRepresentation()),
             entry(Viewer3dWidget.WIDGET_DESCRIPTOR,        () -> (WidgetRepresentation) new Viewer3dRepresentation()),
             entry(WebBrowserWidget.WIDGET_DESCRIPTOR,      () -> (WidgetRepresentation) new WebBrowserRepresentation()),
-            entry(XYPlotWidget.WIDGET_DESCRIPTOR,          () -> (WidgetRepresentation) new XYPlotRepresentation()));
+            entry(XYPlotWidget.WIDGET_DESCRIPTOR,          () -> (WidgetRepresentation) new XYPlotRepresentation()),
+            entry(unknown_widget,                          () -> (WidgetRepresentation) new UnknownRepresentation()));
     }
 }

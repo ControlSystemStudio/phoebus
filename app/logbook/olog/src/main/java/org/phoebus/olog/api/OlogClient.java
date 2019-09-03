@@ -34,6 +34,7 @@ import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.Tag;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -73,7 +74,7 @@ public class OlogClient implements LogClient {
         private URI ologURI = null;
 
         // optional
-        private boolean withHTTPAuthentication = false;
+        private boolean withHTTPAuthentication = true;
 
         private ClientConfig clientConfig = null;
         private TrustManager[] trustManager = new TrustManager[] { new DummyX509TrustManager() };;
@@ -433,18 +434,27 @@ public class OlogClient implements LogClient {
 
     @Override
     public Collection<LogEntry> set(Collection<LogEntry> xmlLogs) {
-        ClientResponse clientResponse = service.path("logs").accept(MediaType.APPLICATION_XML)
-                .accept(MediaType.APPLICATION_JSON).post(ClientResponse.class, xmlLogs);
-        if (clientResponse.getStatus() < 300) {
-            // XmlLogs responseLogs = clientResponse.getEntity(XmlLogs.class);
-            Collection<LogEntry> returnLogs = new HashSet<LogEntry>();
-            // for (XmlLog xmllog : responseLogs.getLogs()) {
-            // returnLogs.add(xmllog);
-            // }
-            return Collections.unmodifiableCollection(returnLogs);
-        } else {
-            throw new UniformInterfaceException(clientResponse);
+        try {
+            String str = logEntryMapper.writeValueAsString(xmlLogs);
+            ClientResponse clientResponse = service.path("logs")
+                    .type(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_XML)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .post(ClientResponse.class, str);
+            if (clientResponse.getStatus() < 300) {
+                // XmlLogs responseLogs = clientResponse.getEntity(XmlLogs.class);
+                Collection<LogEntry> returnLogs = new HashSet<LogEntry>();
+                // for (XmlLog xmllog : responseLogs.getLogs()) {
+                // returnLogs.add(xmllog);
+                // }
+                return Collections.unmodifiableCollection(returnLogs);
+            } else {
+                throw new UniformInterfaceException(clientResponse);
+            }
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
         }
+        return null;
     }
 
     @Override

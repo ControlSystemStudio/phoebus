@@ -53,6 +53,11 @@ public class Messages
     public static String ImageOptions;
     public static String Legend_Hide;
     public static String Legend_Show;
+    public static String LineStyle_Solid;
+    public static String LineStyle_Dash;
+    public static String LineStyle_DashDot;
+    public static String LineStyle_DashDotDot;
+    public static String LineStyle_Dot;
     public static String NameUnitsFmt;
     public static String Pan;
     public static String Pan_TT;

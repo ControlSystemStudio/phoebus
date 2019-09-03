@@ -34,6 +34,11 @@ public class ChannelTreeApp implements AppResourceDescriptor {
     }
 
     @Override
+    public String getDisplayName() {
+        return DISPLAYNAME;
+    }
+
+    @Override
     public AppInstance create() {
         return new ChannelTree(this);
     }

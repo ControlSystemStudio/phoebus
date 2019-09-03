@@ -10,6 +10,7 @@ package org.csstudio.scan.server.device;
 import java.time.Duration;
 
 import org.csstudio.scan.device.DeviceInfo;
+import org.csstudio.scan.device.VTypeHelper;
 import org.csstudio.scan.server.config.ScanConfig;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;

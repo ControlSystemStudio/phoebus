@@ -53,9 +53,6 @@ public class RepresentationUpdateThrottle
     /** Pause between updates to prevent flooding the UI thread */
     private static final long update_delay = Preferences.update_delay;
 
-    /** Pause between updates of plots to prevent flooding the UI thread */
-    public static final long plot_update_delay = Preferences.plot_update_delay;
-
     /** Executor for UI thread */
     private final Executor gui_executor;
 

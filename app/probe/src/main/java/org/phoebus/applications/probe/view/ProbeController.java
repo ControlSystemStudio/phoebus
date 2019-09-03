@@ -29,6 +29,7 @@ import io.reactivex.disposables.Disposable;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
@@ -36,6 +37,9 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.paint.Color;
 
 @SuppressWarnings("nls")
@@ -123,7 +127,7 @@ public class ProbeController {
         });
         txtValue.setOnMouseClicked(event ->
         {
-            if (! pv.isReadonly())
+            if (pv != null && ! pv.isReadonly())
                 setEditing(true);
         });
         txtValue.focusedProperty().addListener((p, old, focus) ->
@@ -153,6 +157,38 @@ public class ProbeController {
             SelectionService.getInstance().setSelection("Probe", List.of(new ProcessVariable(txtPVName.getText().trim())));
             ContextMenuHelper.addSupportedEntries(txtPVName, menu);
             menu.show(txtPVName.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+        });
+        
+        txtPVName.setOnDragOver((EventHandler<? super DragEvent>) new EventHandler <DragEvent>() {
+            public void handle(DragEvent event) {
+                /* accept it only if it is  not dragged from the same node 
+                 * and if it has a string data */
+                if (event.getGestureSource() != txtPVName &&
+                        event.getDragboard().hasString()) {
+                    /* allow for both copying and moving, whatever user chooses */
+                    event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+                }
+                event.consume();
+            }
+        });
+        
+        txtPVName.setOnDragDropped(new EventHandler <DragEvent>() {
+            public void handle(DragEvent event) {
+                /* data dropped */
+                /* if there is a string data on dragboard, read it and use it */
+                Dragboard db = event.getDragboard();
+                boolean success = false;
+                if (db.hasString()) {
+                    setPVName(db.getString());
+                    success = true;
+                }
+                /* let the source know whether the string was successfully 
+                 * transferred and used */
+                event.setDropCompleted(success);
+                
+                event.consume();
+                txtPVName.requestFocus();
+            }
         });
     }
 

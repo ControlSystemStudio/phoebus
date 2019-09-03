@@ -23,8 +23,8 @@ import org.csstudio.javafx.rtplot.data.PlotDataProvider;
 import org.csstudio.javafx.rtplot.data.SimpleDataItem;
 import org.csstudio.javafx.rtplot.internal.MouseMode;
 import org.csstudio.javafx.rtplot.util.RGBFactory;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -32,7 +32,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ValuePlotDemo extends Application
+public class ValuePlotDemo extends ApplicationWrapper
 {
     final private static int MAX_SIZE = 10000;
     final private static boolean USE_LOG = false;
@@ -74,12 +74,12 @@ public class ValuePlotDemo extends Application
                     for (i=0; i<MAX_SIZE/2; ++i)
                     {
                         final double value = MAX_SIZE/2-i;
-                        data.add(new SimpleDataItem<Double>(Double.valueOf(i), value));
+                        data.add(new SimpleDataItem<>(Double.valueOf(i), value));
                     }
                     for (/* */; i<MAX_SIZE; ++i)
                     {
                         final double value = i-MAX_SIZE/2;
-                        data.add(new SimpleDataItem<Double>(Double.valueOf(i), value));
+                        data.add(new SimpleDataItem<>(Double.valueOf(i), value));
                     }
                 }
                 else
@@ -88,7 +88,7 @@ public class ValuePlotDemo extends Application
                     for (int i=0; i<MAX_SIZE; ++i)
                     {
                         final double value = amp*(Math.sin(2*Math.PI * i / (MAX_SIZE/3)) + Math.random()*0.1);
-                        data.add(new SimpleDataItem<Double>(Double.valueOf(i), value));
+                        data.add(new SimpleDataItem<>(Double.valueOf(i), value));
                     }
                 }
             }
@@ -131,7 +131,7 @@ public class ValuePlotDemo extends Application
 
         final RGBFactory colors = new RGBFactory();
         final DemoData data = new DemoData();
-        plot.addTrace("Fred", "socks", data, colors.next(), TraceType.AREA, 3, PointType.NONE, 0, 0);
+        plot.addTrace("Fred", "socks", data, colors.next(), TraceType.AREA, 3, LineStyle.SOLID, PointType.NONE, 0, 0);
 
         final AtomicBoolean run = new AtomicBoolean(true);
         // Update data at 50Hz
@@ -198,6 +198,6 @@ public class ValuePlotDemo extends Application
 
     public static void main(final String[] args)
     {
-        launch(args);
+        ApplicationWrapper.launch(ValuePlotDemo.class, args);
     }
 }

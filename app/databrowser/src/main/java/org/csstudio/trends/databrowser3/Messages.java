@@ -325,6 +325,8 @@ public class Messages
     public static String TitleTT;
     public static String TraceDisplayName;
     public static String TraceDisplayNameTT;
+    public static String TraceLineStyle;
+    public static String TraceLineStyleTT;
     public static String TraceLineWidth;
     public static String TraceLineWidthTT;
     public static String TracesTab;

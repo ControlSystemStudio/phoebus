@@ -11,11 +11,11 @@ import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
-import org.epics.vtype.TimeHelper;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VStatistics;
 import org.epics.vtype.VType;
 import org.phoebus.archive.vtype.TimestampHelper;
+import org.phoebus.pv.TimeHelper;
 
 import edu.stanford.slac.archiverappliance.PB.EPICSEvent.PayloadInfo;
 import edu.stanford.slac.archiverappliance.PB.EPICSEvent.PayloadType;
@@ -147,7 +147,7 @@ public class ApplianceOptimizedValueIterator extends ApplianceValueIterator {
                                       message.getNumberAt(2).doubleValue(),
                                       message.getNumberAt(3).doubleValue(),
                                       message.getNumberAt(4).intValue(),
-                                      alarm, time);
+                                      alarm, time, display);
             } else {
                 return VNumber.of(message.getNumberAt(0), alarm, time, display);
             }

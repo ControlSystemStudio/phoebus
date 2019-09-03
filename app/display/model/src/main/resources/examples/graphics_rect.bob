@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Rectangles</name>
+  <width>650</width>
+  <height>800</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Rectangles</text>
+    <width>181</width>
+    <height>31</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle</name>
+    <y>31</y>
+    <width>230</width>
+    <height>120</height>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle_1</name>
+    <x>310</x>
+    <y>31</y>
+    <width>230</width>
+    <height>120</height>
+    <corner_width>20</corner_width>
+    <corner_height>50</corner_height>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle_2</name>
+    <x>310</x>
+    <y>190</y>
+    <width>230</width>
+    <height>120</height>
+    <line_width>10</line_width>
+    <corner_width>20</corner_width>
+    <corner_height>50</corner_height>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle_3</name>
+    <y>190</y>
+    <width>230</width>
+    <height>120</height>
+    <line_width>10</line_width>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle_4</name>
+    <y>330</y>
+    <width>230</width>
+    <height>120</height>
+    <line_width>10</line_width>
+    <transparent>true</transparent>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle_5</name>
+    <x>310</x>
+    <y>330</y>
+    <width>230</width>
+    <height>120</height>
+    <line_width>10</line_width>
+    <transparent>true</transparent>
+    <corner_width>20</corner_width>
+    <corner_height>50</corner_height>
+  </widget>
+</display>

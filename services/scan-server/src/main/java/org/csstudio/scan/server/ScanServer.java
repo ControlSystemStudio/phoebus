@@ -55,10 +55,11 @@ public interface ScanServer
      *  @param scan_name Name of the scan
      *  @param commands_as_xml Commands to execute within the scan in XML format
      *  @param queue Queue the scan, or execute as soon as possible?
+     *  @param pre_post Perform the pre- and post-scans?
      *  @return ID that uniquely identifies the scan
      *  @throws Exception on error
      */
-    public long submitScan(String scan_name, String commands_as_xml, boolean queue) throws Exception;
+    public long submitScan(String scan_name, String commands_as_xml, boolean queue, boolean pre_post) throws Exception;
 
     /** Query server for scans
      *  @return Info for each scan on the server, most recently submitted scan first
@@ -108,17 +109,27 @@ public interface ScanServer
      */
     public void updateScanProperty(long id, long address, String property_id, Object value) throws Exception;
 
-    /** Ask server to force transition to next command
-    *
-    *  <p>Has no effect if the scan is not running.
-    *
-    *  @param id ID that uniquely identifies a scan
-    *            -1 to force 'next' on all running scans
-    *  @throws Exception on error
-    */
-   public void next(long id) throws Exception;
+    /** Ask server to move idle scan in list
+     *
+     *  <p>Has no effect if the scan is not idle or target slot in scan list cannot be used.
+     *
+     *  @param id ID that uniquely identifies a scan
+     *  @param steps How far to move the scan 'up' (earlier) for positive steps, otherwise 'down'.
+     *  @throws Exception on error
+     */
+    public void move(long id, int steps) throws Exception;
 
-   /** Ask server to pause a scan
+    /** Ask server to force transition to next command
+     *
+     *  <p>Has no effect if the scan is not running.
+     *
+     *  @param id ID that uniquely identifies a scan
+     *            -1 to force 'next' on all running scans
+     *  @throws Exception on error
+     */
+    public void next(long id) throws Exception;
+
+    /** Ask server to pause a scan
      *
      *  <p>Note that pausing has no effect if the scan is not running.
      *  It is specifically not possible to pause an idle scan, i.e.

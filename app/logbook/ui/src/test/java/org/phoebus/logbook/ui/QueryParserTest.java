@@ -1,6 +1,5 @@
 package org.phoebus.logbook.ui;
 
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 
 import java.net.URI;

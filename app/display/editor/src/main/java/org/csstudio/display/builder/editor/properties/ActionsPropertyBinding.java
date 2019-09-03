@@ -25,6 +25,7 @@ import javafx.scene.control.Button;
 /** Bidirectional binding between an actions property in model and Java FX Node in the property panel
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class ActionsPropertyBinding
        extends WidgetPropertyBinding<Button, ActionsWidgetProperty>
 {
@@ -38,6 +39,28 @@ public class ActionsPropertyBinding
     private EventHandler<ActionEvent> action_handler = event ->
     {
         final ActionsDialog dialog = new ActionsDialog(widget_property.getWidget(), widget_property.getValue(), jfx_node);
+
+        if (! other.isEmpty())
+        {   // Update dialog's header to include warning about affected widgets
+            final StringBuilder buf = new StringBuilder();
+            buf.append(dialog.getHeaderText()).append("\n\n");
+            buf.append("ATTENTION, this will update the actions of ").append(other.size() + 1).append(" widgets:\n");
+            buf.append(" - ").append(widget_property.getWidget());
+            int count = 1;
+            for (Widget w : other)
+            {
+                buf.append("\n - ").append(w);
+                if (++count > 4)
+                {
+                    final int left = other.size() + 1 - count;
+                    if (left > 0)
+                        buf.append(" ... ").append(left).append(" more ...");
+                    break;
+                }
+            }
+            dialog.setHeaderText(buf.toString());
+        }
+
         final Optional<ActionInfos> result = dialog.showAndWait();
         if (result.isPresent())
         {

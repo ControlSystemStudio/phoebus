@@ -92,6 +92,7 @@ public class ModelWriter implements Closeable
 
         // Write each widget of the display
         writeWidgets(model.runtimeChildren().getValue());
+        writer.flush();
     }
 
     /** Write widgets and their children

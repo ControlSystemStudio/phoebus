@@ -33,7 +33,9 @@ import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
+import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
+import org.phoebus.ui.javafx.PlatformInfo;
 import org.phoebus.ui.javafx.Tracker;
 import org.phoebus.ui.undo.CompoundUndoableAction;
 import org.phoebus.ui.undo.UndoableAction;
@@ -93,15 +95,15 @@ public class SelectedWidgetUITracker extends Tracker
      *  @param selection Selection handler
      *  @param undo 'Undo' manager
      */
-    public SelectedWidgetUITracker(final ToolkitRepresentation<Parent, Node> toolkit,
-                            final ParentHandler group_handler,
-                            final WidgetSelectionHandler selection,
-                            final UndoableActionManager undo)
+    public SelectedWidgetUITracker(final JFXRepresentation toolkit,
+                                   final ParentHandler group_handler,
+                                   final WidgetSelectionHandler selection,
+                                   final UndoableActionManager undo)
     {
         this.toolkit = toolkit;
         this.group_handler = group_handler;
         this.undo = undo;
-        this.snap_constraint = new TrackerSnapConstraint(this);
+        this.snap_constraint = new TrackerSnapConstraint(toolkit, this);
         this.grid_constraint = new TrackerGridConstraint();
 
         // Updates to the position can originate from any thread,
@@ -113,8 +115,8 @@ public class SelectedWidgetUITracker extends Tracker
         // Track currently selected widgets
         selection.addListener(this::setSelectedWidgets);
 
-        // Pass control-click down to underlying widgets
-        addEventFilter(MouseEvent.MOUSE_PRESSED, event ->
+        // Pass control-click (Mac: Command) down to underlying widgets
+        addEventFilter(MouseEvent.MOUSE_CLICKED, event ->
         {
             if (event.isShortcutDown())
                 passClickToWidgets(event);
@@ -123,7 +125,11 @@ public class SelectedWidgetUITracker extends Tracker
         // Allow 'dragging' selected widgets
         setOnDragDetected(event ->
         {
-            if (! event.isShortcutDown())
+            // .. when Control (Mac: Alt) is down.
+            // Otherwise mouse-down-and-move moves the tracker, doesn't start D&D
+            if (! (PlatformInfo.is_mac_os_x
+                   ? event.isAltDown()
+                   : event.isControlDown()))
                 return;
 
             logger.log(Level.FINE, "Starting to drag {0}", widgets);
@@ -404,12 +410,14 @@ public class SelectedWidgetUITracker extends Tracker
                 if (parent_children == null)
                     parent_children = widget.getDisplayModel().runtimeChildren();
 
+                final int orig_index;
                 if (orig_parent_children == parent_children)
                 {   // Slightly faster since parent stays the same
                     if (! widget.propX().isUsingWidgetClass())
                         widget.propX().setValue((int) (orig.getMinX() + dx));
                     if (! widget.propY().isUsingWidgetClass())
                         widget.propY().setValue((int) (orig.getMinY() + dy));
+                    orig_index = -1;
                 }
                 else
                 {   // Update to new parent
@@ -420,7 +428,7 @@ public class SelectedWidgetUITracker extends Tracker
                     }
 
                     final Point2D old_offset = GeometryTools.getDisplayOffset(widget);
-                    orig_parent_children.removeChild(widget);
+                    orig_index = orig_parent_children.removeChild(widget);
                     parent_children.addChild(widget);
                     final Point2D new_offset = GeometryTools.getDisplayOffset(widget);
 
@@ -441,6 +449,7 @@ public class SelectedWidgetUITracker extends Tracker
                 final UndoableAction step = new UpdateWidgetLocationAction(widget,
                                                                            orig_parent_children,
                                                                            parent_children,
+                                                                           orig_index,
                                                                            (int) orig.getMinX(),  (int) orig.getMinY(),
                                                                            (int) orig.getWidth(), (int) orig.getHeight());
                 if (compound == null)
@@ -515,6 +524,7 @@ public class SelectedWidgetUITracker extends Tracker
         if (widgets.size() <= 0)
         {
             setVisible(false);
+            group_handler.hide();
             return;
         }
 

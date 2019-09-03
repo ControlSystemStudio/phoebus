@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>4.6.0-SNAPSHOT</version>
   </parent>
   <dependencies>
     <dependency>
@@ -23,22 +23,22 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-framework</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>4.6.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-ui</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>4.6.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-types</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>4.6.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-logbook-ui</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>4.6.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
 </project>

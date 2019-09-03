@@ -1,8 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<!DOCTYPE html>
+<html>
 <head>
+<meta charset="UTF-8">
 <link rel="stylesheet" type="text/css" href="scan.css">
 <script type="text/javascript" src="jquery-1.8.3.js" ></script>
 <script type="text/javascript" src="index.js" ></script>
@@ -31,7 +30,9 @@
 <dd>POST</dd>
 <dt>URL</dt>
 <dd><a href="submit.html">/scan/{name-of-new-scan}</a> to queue or
-    <a href="submit.html">/scan/{name-of-new-scan}?queue=false</a> for immediate execution.
+    <a href="submit.html">/scan/{name-of-new-scan}?queue=false</a> for immediate execution.<br>
+    
+    <a href="submit.html">/scan/{name-of-new-scan}?pre_post=false</a> to suppress pre- and post-scan commands.
 </dd>
 <dt>Message Body</dt>
 <dd>XML-formatted scan</dd>
@@ -135,6 +136,22 @@ Returns default devices for scan ID -1: <a href="scan/-1/devices">/scan/-1/devic
 
 
 <h2>Put Scan into different States</h2>
+<p>Move an idle scan.
+A step of 1 moves the scan 'up', so it is executed later.
+A setp of -1 moves the scan 'down', so it is executed earlier.
+Only idle scans can be moved.
+</p>
+
+<dl>
+<dt>Method</dt>
+<dd>PUT</dd>
+<dt>URL</dt>
+<dd>/scan/{id}/move/steps</a></dd>
+<dt>Result</dt>
+<dd>HTTP OK or error</dd>
+</dl>
+
+
 <p>Pause a running scan.</p>
 <dl>
 <dt>Method</dt>
@@ -197,14 +214,21 @@ Returns default devices for scan ID -1: <a href="scan/-1/devices">/scan/-1/devic
 <dd>GET</dd>
 <dt>URL</dt>
 <dd><a href="/server/shutdown" id='shutdown'>/server/shutdown</a>
-
-
 </dd>
-
-
-
 <dt>Result</dt>
 <dd>HTTP OK</dd>
+</dl>
+
+
+<h2>Versions</h2>
+<!-- Version number is in ScanServerInstance -->
+
+<dl>
+<dt>4.5.4</dt> <dd>Add 'UNEQUALS' to comparisons</dd>
+<dt>4.5.3</dt> <dd>Add 'If' command</dd>
+<dt>4.5.2</dt> <dd>Support scan/ID/move/+-1</dd>
+<dt>4.5.1</dt> <dd>Submit 'pre_post=false' option</dd>
+<dt>4.5.0</dt> <dd>Import from RCP</dd>
 </dl>
 
 </body>

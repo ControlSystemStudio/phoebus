@@ -14,7 +14,7 @@ import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.TankWidget;
-import org.csstudio.display.builder.representation.RepresentationUpdateThrottle;
+import org.csstudio.display.builder.representation.Preferences;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.csstudio.javafx.rtplot.RTTank;
 import org.epics.vtype.Display;
@@ -37,7 +37,7 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
     public Pane createJFXNode() throws Exception
     {
         tank = new RTTank();
-        tank.setUpdateThrottle(RepresentationUpdateThrottle.plot_update_delay, TimeUnit.MILLISECONDS);
+        tank.setUpdateThrottle(Preferences.image_update_delay, TimeUnit.MILLISECONDS);
         return new Pane(tank);
     }
 

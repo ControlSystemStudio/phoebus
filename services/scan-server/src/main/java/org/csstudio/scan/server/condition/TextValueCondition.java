@@ -19,9 +19,9 @@ import java.time.Duration;
 import java.util.concurrent.TimeoutException;
 
 import org.csstudio.scan.command.Comparison;
+import org.csstudio.scan.device.VTypeHelper;
 import org.csstudio.scan.server.device.Device;
 import org.csstudio.scan.server.device.DeviceListener;
-import org.csstudio.scan.server.device.VTypeHelper;
 
 /** Condition that waits for a Device to reach a certain string value.
  *
@@ -73,6 +73,12 @@ public class TextValueCondition implements DeviceCondition, DeviceListener
         this.desired_value = desired_value;
     }
 
+    /** Fetch initial value with get-callback */
+    public void fetchInitialValue() throws Exception
+    {
+        device.read(NumericValueCondition.value_check_timeout);
+    }
+
     /** Wait for value of device to reach the desired value (within tolerance)
      *  @throws TimeoutException on timeout
      *  @throws Exception on interruption or device read error
@@ -84,7 +90,7 @@ public class TextValueCondition implements DeviceCondition, DeviceListener
 
         // Fetch initial value with get-callback
         // (will be obtained by device.read() in listener)
-        device.read(NumericValueCondition.value_check_timeout);
+        fetchInitialValue();
 
         device.addListener(this);
         try
@@ -123,6 +129,8 @@ public class TextValueCondition implements DeviceCondition, DeviceListener
         {
         case EQUALS:
             return desired_value.equals(value);
+        case UNEQUAL:
+            return ! desired_value.equals(value);
         case AT_LEAST:
             return value.compareTo(desired_value) >= 0;
         case ABOVE:

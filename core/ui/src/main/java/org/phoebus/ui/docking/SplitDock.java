@@ -122,6 +122,7 @@ public class SplitDock extends SplitPane
      */
     public void merge()
     {
+        logger.log(Level.INFO, "SplitDock merging empty sections " + this);
         // First recurse to merge child splits.
         // Use copy to avoid comodification
         for (Node child : new ArrayList<>(getItems()))

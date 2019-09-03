@@ -8,8 +8,8 @@
 package org.csstudio.display.builder.representation.javafx.sandbox;
 
 import org.csstudio.display.builder.model.ModelPlugin;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
@@ -34,14 +34,14 @@ import javafx.stage.Stage;
  * @author Amanda Carpenter
  */
 @SuppressWarnings("nls")
-public class WebBrowserDemo extends Application
+public class WebBrowserDemo extends ApplicationWrapper
 {
     private double width = 750;
     private double height = 500;
 
     public static void main(String [] args)
     {
-        launch(args);
+        launch(WebBrowserDemo.class, args);
     }
 
     @Override

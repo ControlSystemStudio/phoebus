@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.csstudio.javafx.rtplot.LineStyle;
 import org.csstudio.javafx.rtplot.PointType;
 import org.csstudio.javafx.rtplot.TraceType;
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
@@ -90,6 +91,7 @@ public class TracesTab extends Tab
     // Now keep only the trace & point types as plain list,
     // and UI creates a short-time observable list while running, which is then disposed as UI closes.
     private static final List<String> trace_types = List.of(TraceType.getDisplayNames());
+    private static final List<String> line_styles = List.of(LineStyle.getDisplayNames());
     private static final List<String> point_types = List.of(PointType.getDisplayNames());
 
     private final Model model;
@@ -585,6 +587,21 @@ public class TracesTab extends Tab
         });
         col.setEditable(true);
         PropertyPanel.addTooltip(col, Messages.TraceLineWidthTT);
+        trace_table.getColumns().add(col);
+
+        // Line Style Type Column ----------
+        col = new TableColumn<>(Messages.TraceLineStyle);
+        col.setCellValueFactory(cell ->
+            new SimpleStringProperty(cell.getValue().getLineStyle().toString()));
+        col.setCellFactory(cell -> new DirectChoiceBoxTableCell<>(FXCollections.observableArrayList(line_styles)));
+        col.setOnEditCommit(event ->
+        {
+            final int index = line_styles.indexOf(event.getNewValue());
+            final LineStyle style = LineStyle.values()[index];
+            new ChangeLineStyleCommand(undo, event.getRowValue(), style);
+        });
+        col.setEditable(true);
+        PropertyPanel.addTooltip(col, Messages.TraceLineStyleTT);
         trace_table.getColumns().add(col);
 
         // Point Type Column ----------

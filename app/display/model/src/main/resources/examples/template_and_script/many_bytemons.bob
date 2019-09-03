@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Many Instances</name>
+  <scripts>
+    <script file="EmbeddedPy">
+      <text><![CDATA[# This script is attached to a display
+# and triggered by a PV like 
+#     loc://initial_trigger$(DID)(1)
+# to execute once when the display is loaded.
+
+from org.csstudio.display.builder.runtime.script import ScriptUtil
+from org.csstudio.display.builder.model import WidgetFactory
+
+width = 100
+height = 25
+gap = 5
+
+display = widget.getDisplayModel()
+rows = 35
+for i in range(500):
+    x = gap + (i / rows) * (width+gap)
+    y = 40 + (height+gap)*(i % rows)
+
+    w = WidgetFactory.getInstance().getWidgetDescriptor("byte_monitor").createWidget();
+    w.setPropertyValue("x", x)
+    w.setPropertyValue("y", y)
+    w.setPropertyValue("width", width)
+    w.setPropertyValue("height", height)
+    w.setPropertyValue("pv_name", "sim://ramp(0, 15, 0.1)")
+    w.setPropertyValue("numBits", 4)
+
+    display.runtimeChildren().addChild(w)
+    
+]]></text>
+      <pv_name>loc://initial_trigger$(DID)(1)</pv_name>
+    </script>
+  </scripts>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Many Byte Monitors</text>
+    <width>490</width>
+    <height>31</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+</display>

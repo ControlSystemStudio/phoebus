@@ -25,7 +25,9 @@ import java.util.logging.Level;
 import org.csstudio.javafx.rtplot.Axis;
 import org.csstudio.javafx.rtplot.AxisRange;
 import org.csstudio.javafx.rtplot.Messages;
+import org.csstudio.javafx.rtplot.PointType;
 import org.csstudio.javafx.rtplot.Trace;
+import org.csstudio.javafx.rtplot.TraceType;
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
 import org.csstudio.javafx.rtplot.data.PlotDataProvider;
 import org.csstudio.javafx.rtplot.data.PlotDataSearch;
@@ -58,74 +60,69 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
     /** Submit background job for determining the position range
      *  @param yaxes YAxes that have traces
      *  @return Position range or <code>null</code>
+     *  @throws Exception on error
      */
-    private Future<AxisRange<XTYPE>> determinePositionRange(final List<YAxisImpl<XTYPE>> yaxes)
+    private AxisRange<XTYPE> determinePositionRange(final List<YAxisImpl<XTYPE>> yaxes) throws InterruptedException, Exception
     {
-        return thread_pool.submit(new Callable<AxisRange<XTYPE>>()
+        XTYPE start = null, end = null;
+        for (YAxisImpl<XTYPE> yaxis : yaxes)
         {
-            @Override
-            public AxisRange<XTYPE> call() throws Exception
+            for (Trace<XTYPE> trace : yaxis.getTraces())
             {
-                XTYPE start = null, end = null;
-                for (YAxisImpl<XTYPE> yaxis : yaxes)
+                if (trace.isVisible() == false ||
+                    (trace.getType() == TraceType.NONE  &&  trace.getPointType() == PointType.NONE))
+                    continue;
+                final PlotDataProvider<XTYPE> data = trace.getData();
+                if (! data.getLock().tryLock(10, TimeUnit.SECONDS))
+                    throw new TimeoutException("Cannot lock data for " + trace + ": " + data);
+                try
                 {
-                    for (Trace<XTYPE> trace : yaxis.getTraces())
+                    final int N = data.size();
+                    if (N <= 0)
+                        continue;
+                    // Try to only check the first and last position,
+                    // assuming all samples are ordered as common
+                    // for a time axis or position axis
+                    XTYPE pos = data.get(0).getPosition();
+                    // If first sample is Double (not Instant), AND NaN/inf, skip this trace
+                    if ((pos instanceof Double)  &&  !Double.isFinite((Double) pos))
+                        continue;
+                    if (start == null  ||  start.compareTo(pos) > 0)
+                        start = pos;
+                    if (end == null  ||  end.compareTo(pos) < 0)
+                        end = pos;
+                    // Last position
+                    pos = data.get(N-1).getPosition();
+                    if ((pos instanceof Double)  &&  !Double.isFinite((Double) pos))
+                        continue;
+                    if (start.compareTo(pos) > 0)
+                        start = pos;
+                    if (end.compareTo(pos) < 0)
+                        end = pos;
+                    // Need to check all values?
+                    if (Objects.equals(start, end))
                     {
-                        if (! trace.isVisible())
-                            continue;
-                        final PlotDataProvider<XTYPE> data = trace.getData();
-                        if (! data.getLock().tryLock(10, TimeUnit.SECONDS))
-                            throw new TimeoutException("Cannot lock data for " + trace + ": " + data);
-                        try
+                        for (int i=N-2; i>0; --i)
                         {
-                            final int N = data.size();
-                            if (N <= 0)
-                                continue;
-                            // Try to only check the first and last position,
-                            // assuming all samples are ordered as common
-                            // for a time axis or position axis
-                            XTYPE pos = data.get(0).getPosition();
-                            // If first sample is Double (not Instant), AND NaN/inf, skip this trace
-                            if ((pos instanceof Double)  &&  !Double.isFinite((Double) pos))
-                                continue;
-                            if (start == null  ||  start.compareTo(pos) > 0)
-                                start = pos;
-                            if (end == null  ||  end.compareTo(pos) < 0)
-                                end = pos;
-                            // Last position
-                            pos = data.get(N-1).getPosition();
+                            pos = data.get(i).getPosition();
                             if ((pos instanceof Double)  &&  !Double.isFinite((Double) pos))
                                 continue;
                             if (start.compareTo(pos) > 0)
                                 start = pos;
                             if (end.compareTo(pos) < 0)
                                 end = pos;
-                            // Need to check all values?
-                            if (Objects.equals(start, end))
-                            {
-                                for (int i=N-2; i>0; --i)
-                                {
-                                    pos = data.get(i).getPosition();
-                                    if ((pos instanceof Double)  &&  !Double.isFinite((Double) pos))
-                                        continue;
-                                    if (start.compareTo(pos) > 0)
-                                        start = pos;
-                                    if (end.compareTo(pos) < 0)
-                                        end = pos;
-                                }
-                            }
-                        }
-                        finally
-                        {
-                            data.getLock().unlock();
                         }
                     }
                 }
-                if (start == null  ||  end == null)
-                    return null;
-                return new AxisRange<>(start, end);
+                finally
+                {
+                    data.getLock().unlock();
+                }
             }
-        });
+        }
+        if (start == null  ||  end == null)
+            return null;
+        return new AxisRange<>(start, end);
     }
 
 
@@ -160,6 +157,9 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                         int stop = search.findSampleLessOrEqual(data, position_range.getHigh());
                         if (stop < 0)
                             stop = 0;
+                        if (logger.isLoggable(Level.FINE))
+                            logger.log(Level.FINE, "For " + data.size() + " samples, checking elements " + start + " .. " + stop +
+                                       " which are positioned within " + position_range.getLow() + " .. " + position_range.getHigh());
                         // If data is completely outside the position_range,
                         // we end up using just data[0]
                         // Check [start .. stop], including stop
@@ -205,7 +205,8 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                 // In parallel, determine range of all traces in this axis
                 final List<Future<ValueRange>> ranges = new ArrayList<>();
                 for (Trace<XTYPE> trace : axis.getTraces())
-                    if (trace.isVisible())
+                    if (trace.isVisible() &&
+                        (trace.getType() != TraceType.NONE  ||  trace.getPointType() != PointType.NONE))
                         ranges.add(determineValueRange(trace.getData(), position_range));
 
                 // Merge the trace ranges into overall axis range
@@ -363,7 +364,8 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
             for (YAxisImpl<XTYPE> axis : plot.getYAxes())
                 for (TraceImpl<XTYPE> trace : axis.getTraces())
                 {
-                    if (! trace.isVisible())
+                    if (trace.isVisible() == false ||
+                        (trace.getType() == TraceType.NONE  &&  trace.getPointType() == PointType.NONE))
                         continue;
                     final PlotDataProvider<XTYPE> data = trace.getData();
                     final PlotDataItem<XTYPE> sample;
@@ -476,13 +478,29 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
     /** Perform autoscale for all axes that are marked as such */
     public void autoscale()
     {
+        logger.log(Level.FINE, "Autoscale...");
         // In low-memory situation, the following can fail because threads for determining
         // range cannot be created.
         // Catch any error to keep autoscale problem from totally skipping a plot update.
         try
         {
-            // Determine range of each axes' traces in parallel
             final List<YAxisImpl<XTYPE>> all_y_axes = plot.getYAxes();
+
+            // The value range is only checked for samples within the current X range.
+            // So if X axis is auto-scaled, fetch its range first.
+            if (plot.getXAxis().isAutoscale())
+            {
+                final AxisRange<XTYPE> range = determinePositionRange(all_y_axes);
+                if (range != null)
+                {
+                    if (logger.isLoggable(Level.FINE))
+                        logger.log(Level.FINE, plot.getXAxis().getName() + " range " + range.getLow() + " .. " + range.getHigh());
+                    plot.getXAxis().setValueRange(range.getLow(), range.getHigh());
+                    plot.fireXAxisChange();
+                }
+            }
+
+            // Determine range of each axes' traces in parallel
             final List<YAxisImpl<XTYPE>> y_axes = new ArrayList<>();
             final List<Future<ValueRange>> ranges = new ArrayList<>();
             for (YAxisImpl<XTYPE> axis : all_y_axes)
@@ -491,10 +509,8 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                     y_axes.add(axis);
                     ranges.add(determineValueRange(axis, plot.getXAxis().getValueRange()));
                 }
-            // If X axis is auto-scale, schedule fetching its range
-            final Future<AxisRange<XTYPE>> pos_range = plot.getXAxis().isAutoscale()
-                ? determinePositionRange(all_y_axes)
-                : null;
+                else
+                    logger.log(Level.FINE, () -> axis.getName() + " skipped");
 
             final int N = y_axes.size();
             for (int i=0; i<N; ++i)
@@ -504,6 +520,8 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                 {
                     final ValueRange new_range = ranges.get(i).get();
                     double low = new_range.getLow(), high = new_range.getHigh();
+                    if (logger.isLoggable(Level.FINE))
+                        logger.log(Level.FINE, axis.getName() + " range " + low + " .. " + high);
                     if (low > high)
                         continue;
                     if (low == high)
@@ -556,14 +574,6 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                     logger.log(Level.WARNING, "Axis autorange error for " + axis, ex);
                 }
             }
-
-            if (pos_range == null)
-                return;
-            final AxisRange<XTYPE> range = pos_range.get();
-            if (range == null)
-                return;
-            plot.getXAxis().setValueRange(range.getLow(), range.getHigh());
-            plot.fireXAxisChange();
         }
         catch (Throwable ex)
         {

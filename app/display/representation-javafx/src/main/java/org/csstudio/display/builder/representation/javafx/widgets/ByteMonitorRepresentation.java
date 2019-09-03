@@ -24,6 +24,10 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Paint;
+import javafx.scene.paint.Stop;
 import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
@@ -67,8 +71,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
         square_led = model_widget.propSquare().getValue();
         horizontal = model_widget.propHorizontal().getValue();
         addLEDs(pane);
-        pane.setMinSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
-        pane.setMaxSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
+        pane.setManaged(false);
         return pane;
     }
 
@@ -77,18 +80,12 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
     {
         if (square_led)
             return null;
+        final int r;
         if (horizontal)
-            return new int[]
-            {
-                model_widget.propWidth().getValue()/numBits/2,
-                model_widget.propHeight().getValue()/2,
-            };
+            r = model_widget.propWidth().getValue() / numBits / 2;
         else
-            return new int[]
-            {
-                model_widget.propWidth().getValue()/2,
-                model_widget.propHeight().getValue()/numBits/2,
-            };
+            r = model_widget.propHeight().getValue() / numBits / 2;
+        return new int[] { r, r };
     }
 
     private void addLEDs(final Pane pane)
@@ -135,6 +132,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
                 label.getStyleClass().add("led_label");
                 label.setFont(text_font);
                 label.setTextFill(text_color);
+                label.setManaged(false);
             }
             else
                 label = null;
@@ -151,7 +149,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
                 if (label != null)
                 {
                     label.relocate(x, y);
-                    label.setPrefSize(led_w, led_h);
+                    label.resize(led_w, led_h);
                     label.setAlignment(Pos.CENTER);
                     if (horizontal)
                         label.setRotate(-90);
@@ -172,22 +170,25 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
                         label.getTransforms().setAll(new Rotate(-90.0));
                         // label.setBackground(new Background(new BackgroundFill(Color.BISQUE, CornerRadii.EMPTY, Insets.EMPTY)));
                         label.relocate(x, y+led_h);
-                        label.setPrefSize(led_h - 2*rad - gap, led_w);
+                        label.resize(led_h - 2*rad - gap, led_w);
                         label.setAlignment(Pos.CENTER_RIGHT);
                     }
                     else
                     {
                         label.relocate(x+2*rad+gap, y);
-                        label.setPrefSize(led_w-2*rad-gap, led_h);
+                        label.resize(led_w-2*rad-gap, led_h);
                     }
                 }
             }
             led.getStyleClass().add("led");
+            led.setManaged(false);
             if (save_colorVals != null && i < save_colorVals.length)
-                led.setFill(save_colorVals[i]);
+                led.setFill(toolkit.isEditMode() ? computeEditColors() : save_colorVals[i]);
 
             leds[i] = led;
             labels[i] = label;
+            if (label != null)
+                label.layout();
             x += dx;
             y += dy;
         }
@@ -361,6 +362,16 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
         toolkit.scheduleUpdate(this);
     }
 
+    private Paint computeEditColors()
+    {
+        final Color[] save_colors = colors;
+        return new LinearGradient(0, 0, 1, 1, true, CycleMethod.NO_CYCLE,
+                List.of(new Stop(0.0, save_colors[0]),
+                        new Stop(0.5, save_colors[0]),
+                        new Stop(0.5, save_colors[1]),
+                        new Stop(1.0, save_colors[1])));
+    }
+
     @Override
     public void updateChanges()
     {
@@ -369,7 +380,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
         {
             final int w = model_widget.propWidth().getValue();
             final int h = model_widget.propHeight().getValue();
-            jfx_node.setPrefSize(w, h);
+            jfx_node.resize(w, h);
             addLEDs(jfx_node, w, h, horizontal);
         }
         if (dirty_content.checkAndClear())
@@ -380,8 +391,15 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
                 return;
 
             final int N = Math.min(save_leds.length, save_values.length);
-            for (int i = 0; i < N; i++)
-                leds[i].setFill(save_values[i]);
+            if (toolkit.isEditMode())
+            {
+                final Paint edit_colors = computeEditColors();
+                for (int i = 0; i < N; i++)
+                    leds[i].setFill(edit_colors);
+            }
+            else
+                for (int i = 0; i < N; i++)
+                    leds[i].setFill(save_values[i]);
         }
     }
 }

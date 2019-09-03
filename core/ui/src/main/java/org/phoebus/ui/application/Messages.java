@@ -53,6 +53,7 @@ public class Messages
     public static String HelpAboutTitle;
     public static String HelpAboutUser;
     public static String HelpContentMenuPath;
+    public static String HelpJavaHome;
     public static String HelpPage;
     public static String HomeTT;
     public static String ImagePng;

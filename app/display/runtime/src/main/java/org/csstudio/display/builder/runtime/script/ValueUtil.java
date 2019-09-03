@@ -20,7 +20,6 @@ import org.epics.util.array.ListDouble;
 import org.epics.util.array.ListNumber;
 import org.epics.util.array.UnsafeUnwrapper;
 import org.epics.util.array.UnsafeUnwrapper.Array;
-import org.epics.vtype.TableHack;
 import org.epics.vtype.Time;
 import org.epics.vtype.VByteArray;
 import org.epics.vtype.VDoubleArray;
@@ -109,10 +108,10 @@ public class ValueUtil
         if (value instanceof VTable)
         {
             final VTable table = (VTable) value;
-            final int num = TableHack.getColumnCount(table);    // table.getColumnCount();
+            final int num = table.getColumnCount();
             final String[] headers = new String[num];
             for (int i=0; i<num; ++i)
-                headers[i] = TableHack.getColumnName(table, i); // table.getColumnName(i);
+                headers[i] = table.getColumnName(i);
             return headers;
         }
         return new String[0];
@@ -232,15 +231,15 @@ public class ValueUtil
         if (value instanceof VTable)
         {
             final VTable table = (VTable) value;
-            final int rows = TableHack.getRowCount(table);    // table.getRowCount();
-            final int cols = TableHack.getColumnCount(table); // table.getColumnCount();
+            final int rows = table.getRowCount();
+            final int cols = table.getColumnCount();
             // Extract 2D string matrix for data
             for (int r=0; r<rows; ++r)
             {
                 final List<Object> row = new ArrayList<>(cols);
                 for (int c=0; c<cols; ++c)
                 {
-                    final Object col_data = TableHack.getColumnData(table,  c); // table.getColumnData(c);
+                    final Object col_data = table.getColumnData(c);
                     if (col_data instanceof List)
                         row.add( Objects.toString(((List)col_data).get(r)) );
                     else if (col_data instanceof ListDouble)
@@ -303,9 +302,9 @@ public class ValueUtil
         {
             final VTable table = (VTable) value;
             final Pattern p = Pattern.compile(name + "(/.*)?");
-            for (int c = 0; c < TableHack.getColumnCount(table) /* table.getColumnCount() */; ++c)
+            for (int c = 0; c < table.getColumnCount(); ++c)
             {
-                final String colName = TableHack.getColumnName(table, c); // table.getColumnName(c);
+                final String colName = table.getColumnName(c);
                 final Matcher m = p.matcher(colName);
                 m.find();
                 final int st = m.start();
@@ -318,12 +317,12 @@ public class ValueUtil
                     do
                     {
                         final List<Object> row = new ArrayList<>();
-                        for (int r = 0; r < TableHack.getRowCount(table)/* table.getRowCount() */; ++r)
-                            row.add(getColumnCell(TableHack.getColumnData(table, c)/* table.getColumnData(c) */, r));
+                        for (int r = 0; r < table.getRowCount(); ++r)
+                            row.add(getColumnCell(table.getColumnData(c), r));
                         data.add(row);
                     }
-                    while (++c < TableHack.getColumnCount(table) /* table.getColumnCount() */ &&
-                           TableHack.getColumnName(table, c).startsWith(prefix)     /* table.getColumnName(c) */);
+                    while (++c < table.getColumnCount() &&
+                           table.getColumnName(c).startsWith(prefix));
                     return data;
                 }
             }
@@ -345,10 +344,10 @@ public class ValueUtil
         if (value instanceof VTable)
         {
             final VTable table = (VTable) value;
-            if (column >= TableHack.getColumnCount(table) /* table.getColumnCount() */ ||
-                row >=    TableHack.getRowCount(table)    /* table.getRowCount() */)
+            if (column >= table.getColumnCount()  ||
+                row >=    table.getRowCount())
                 return null;
-            final Object col_data = TableHack.getColumnData(table, column); // table.getColumnData(column);
+            final Object col_data = table.getColumnData(column);
             return getColumnCell(col_data, row);
         }
         else
@@ -399,12 +398,12 @@ public class ValueUtil
         {
             final VTable table = (VTable) value;
             final List<Object> result = new ArrayList<>();
-            for (int c = 0; c < TableHack.getColumnCount(table)/* table.getColumnCount() */; ++c)
+            for (int c = 0; c < table.getColumnCount(); ++c)
             {
-                if (isMatchColName(TableHack.getColumnName(table, c)/* table.getColumnName(c) */, name))
+                if (isMatchColName(table.getColumnName(c), name))
                 {
-                    for (int r = 0; r < TableHack.getRowCount(table)/* table.getRowCount() */; ++r)
-                        result.add(getColumnCell(TableHack.getColumnData(table, c)/*table.getColumnData(c)*/, r));
+                    for (int r = 0; r < table.getRowCount(); ++r)
+                        result.add(getColumnCell(table.getColumnData(c), r));
                     return result;
                 }
             }
@@ -427,12 +426,12 @@ public class ValueUtil
         if (value instanceof VTable)
         {
             final VTable table = (VTable) value;
-            if (index > TableHack.getRowCount(table)/*table.getRowCount()*/)
+            if (index > table.getRowCount())
                 return null;
-            for (int i = 0; i < TableHack.getColumnCount(table)/*table.getColumnCount()*/; ++i)
+            for (int i = 0; i < table.getColumnCount(); ++i)
             {
-                if (isMatchColName(TableHack.getColumnName(table, i)/*table.getColumnName(i)*/, name))
-                    return getColumnCell(TableHack.getColumnData(table, i)/*table.getColumnData(i)*/, index);
+                if (isMatchColName(table.getColumnName(i), name))
+                    return getColumnCell(table.getColumnData(i), index);
             }
         }
         return Objects.toString(value);

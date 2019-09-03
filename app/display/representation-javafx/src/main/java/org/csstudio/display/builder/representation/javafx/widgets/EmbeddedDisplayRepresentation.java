@@ -31,13 +31,12 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Stop;
 import javafx.scene.transform.Scale;
 
 /** Creates JavaFX item for model widget
@@ -55,7 +54,15 @@ import javafx.scene.transform.Scale;
 public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<ScrollPane, EmbeddedDisplayWidget>
 {
     private static final Background TRANSPARENT_BACKGROUND = new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY));
-    private static final Border EDIT_BORDER = new Border(new BorderStroke(new Color(0.45, 0.44, 0.43, 0.7), BorderStrokeStyle.DOTTED, CornerRadii.EMPTY, BorderWidths.DEFAULT));
+    private static final Background EDIT_TRANSPARENT_BACKGROUND = new Background(new BackgroundFill(
+            new LinearGradient(
+                0, 0, 10, 10, false, CycleMethod.REPEAT,
+                new Stop(0.0, new Color(0.53, 0.52, 0.51, 0.15)),
+                new Stop(0.5, new Color(0.53, 0.52, 0.51, 0.15)),
+                new Stop(0.5, Color.TRANSPARENT),
+                new Stop(1.0, Color.TRANSPARENT)
+            ), CornerRadii.EMPTY, Insets.EMPTY
+        ));
 
     private final DirtyFlag dirty_sizes = new DirtyFlag();
     private final DirtyFlag dirty_background = new DirtyFlag();
@@ -63,7 +70,8 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
     private final UntypedWidgetPropertyListener fileChangedListener = this::fileChanged;
     private final UntypedWidgetPropertyListener sizesChangedListener = this::sizesChanged;
 
-    private volatile double zoom_factor = 1.0;
+    private volatile double zoom_factor_x = 1.0;
+    private volatile double zoom_factor_y = 1.0;
 
     /** Inner pane that holds child widgets
      *
@@ -72,7 +80,6 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
      */
     private volatile Pane inner;
     private volatile Background inner_background = Background.EMPTY;
-    private volatile Border inner_border = Border.EMPTY;
 
     private Scale zoom;
     private ScrollPane scroll;
@@ -106,6 +113,10 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
         inner.getTransforms().add(zoom = new Scale());
 
         scroll = new ScrollPane(inner);
+        //  By default it seems that the minimum size is set to 36x36.
+        //  This will make the border (if visible) not smaller that this minimum size
+        //  even if the widget is actually smaller.
+        scroll.setMinSize(1, 1);
         //  Removing 1px border around the ScrollPane's content. See https://stackoverflow.com/a/29376445
         scroll.getStyleClass().addAll("embedded_display", "edge-to-edge");
         // Panning tends to 'jerk' the content when clicked
@@ -168,17 +179,22 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
             {
                 final double zoom_x = content_width  > 0 ? (double) widget_width  / content_width : 1.0;
                 final double zoom_y = content_height > 0 ? (double) widget_height / content_height : 1.0;
-                zoom_factor = Math.min(zoom_x, zoom_y);
+                zoom_factor_x = zoom_factor_y = Math.min(zoom_x, zoom_y);
             }
             else if (resize == Resize.SizeToContent)
             {
-                zoom_factor = 1.0;
+                zoom_factor_x = zoom_factor_y = 1.0;
                 resizing = true;
                 if (content_width > 0)
                     model_widget.propWidth().setValue(content_width);
                 if (content_height > 0)
                     model_widget.propHeight().setValue(content_height);
                 resizing = false;
+            }
+            else if (resize == Resize.StretchContent)
+            {
+                zoom_factor_x = content_width  > 0 ? (double) widget_width  / content_width : 1.0;
+                zoom_factor_y = content_height > 0 ? (double) widget_height / content_height : 1.0;
             }
         }
 
@@ -286,13 +302,20 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
     private void backgroundChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
         final DisplayModel content_model = active_content_model.get();
+        // TODO Haven't found perfect way to set the 'background' color
+        // of the embedded content.
+        // Setting the 'inner' background will sometimes leave a gray section in the right and or bottom edge
+        // of the embedded content if the container is (much) larger than the content
+        // The scroll pane background can only be set via style,
+        // and then shines through on the outside of the scrollbars
+        // scroll.setStyle("-fx-control-inner-background: " + JFXUtil.webRGB(content_model.propBackgroundColor().getValue()) +
+        //                  "; -fx-background: " + JFXUtil.webRGB(content_model.propBackgroundColor().getValue()));
         if (model_widget.propTransparent().getValue())
         {
-            inner_background = TRANSPARENT_BACKGROUND;
-
-            // Reinstall the frame in edit mode. Scroll is unusable, so make it with inner
             if (toolkit.isEditMode())
-                inner_border = EDIT_BORDER;
+                inner_background = EDIT_TRANSPARENT_BACKGROUND;
+            else
+                inner_background = TRANSPARENT_BACKGROUND;
         }
         else
         {
@@ -300,16 +323,6 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
                 inner_background = Background.EMPTY;
             else
                 inner_background = new Background(new BackgroundFill(JFXUtil.convert(content_model.propBackgroundColor().getValue()), CornerRadii.EMPTY, Insets.EMPTY));
-
-            // TODO Haven't found perfect way to set the 'background' color
-            // of the embedded content.
-            // Setting the 'inner' background will sometimes leave a gray section in the right and or bottom edge
-            // of the embedded content if the container is (much) larger than the content
-            // The scroll pane background can only be set via style,
-            // and then shines through on the outside of the scrollbars
-            // scroll.setStyle("-fx-control-inner-background: " + JFXUtil.webRGB(content_model.propBackgroundColor().getValue()) +
-            //                  "; -fx-background: " + JFXUtil.webRGB(content_model.propBackgroundColor().getValue()));
-            inner_border = Border.EMPTY;
         }
 
         dirty_background.mark();
@@ -337,10 +350,10 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
                 scroll.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
                 scroll.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
             }
-            else if (resize == Resize.ResizeContent)
+            else if (resize == Resize.ResizeContent  ||  resize == Resize.StretchContent )
             {
-                zoom.setX(zoom_factor);
-                zoom.setY(zoom_factor);
+                zoom.setX(zoom_factor_x);
+                zoom.setY(zoom_factor_y);
                 scroll.setHbarPolicy(ScrollBarPolicy.NEVER);
                 scroll.setVbarPolicy(ScrollBarPolicy.NEVER);
             }
@@ -353,10 +366,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
             }
         }
         if (dirty_background.checkAndClear())
-        {
             inner.setBackground(inner_background);
-            inner.setBorder(inner_border);
-        }
     }
 
     @Override

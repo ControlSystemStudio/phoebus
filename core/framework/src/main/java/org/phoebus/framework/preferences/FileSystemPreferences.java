@@ -32,6 +32,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
@@ -597,11 +599,8 @@ class FileSystemPreferences extends AbstractPreferences {
                         FileOutputStream fos = new FileOutputStream(tmpFile);
                         FilePreferencesXmlSupport.exportMap(fos, prefsCache);
                         fos.close();
-                        if (!tmpFile.renameTo(prefsFile))
-                            throw new BackingStoreException("Can't rename " + tmpFile + " to " + prefsFile);
+                        Files.move(tmpFile.toPath(), prefsFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                     } catch (Exception e) {
-                        if (e instanceof BackingStoreException)
-                            throw (BackingStoreException) e;
                         throw new BackingStoreException(e);
                     }
                     return null;

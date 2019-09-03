@@ -13,13 +13,14 @@ import java.time.Instant;
 
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
-import org.epics.vtype.TimeHelper;
+import org.epics.vtype.Display;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VStatistics;
 import org.epics.vtype.VType;
 import org.phoebus.archive.vtype.StatisticsAccumulator;
 import org.phoebus.archive.vtype.TimestampHelper;
 import org.phoebus.archive.vtype.VTypeHelper;
+import org.phoebus.pv.TimeHelper;
 import org.phoebus.util.time.TimeDuration;
 
 /** {@link ValueIterator} that performs linear interpolation
@@ -188,7 +189,7 @@ public class LinearValueIterator implements ValueIterator
             }
             else
                 return VStatistics.of(interpol, accumulator.getStdDev(), accumulator.getMin(), accumulator.getMax(),
-                                      accumulator.getNSamples(), Alarm.none(), TimeHelper.fromInstant(end_of_bin));
+                                      accumulator.getNSamples(), Alarm.none(), TimeHelper.fromInstant(end_of_bin), Display.none());
         }
 
         // Have nothing in this bin

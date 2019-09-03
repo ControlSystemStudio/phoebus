@@ -89,7 +89,7 @@ public class TextEntryWidget extends WritablePVWidget
                 final TextEntryWidget text_widget = (TextEntryWidget)widget;
                 TextUpdateWidget.readLegacyFormat(xml, text_widget.format, text_widget.precision, text_widget.propPVName());
 
-                final Optional<String> text = XMLUtil.getChildString(xml, "multiline_input");
+                Optional<String> text = XMLUtil.getChildString(xml, "multiline_input");
                 if (text.isPresent()  &&  Boolean.parseBoolean(text.get()))
                     text_widget.propMultiLine().setValue(true);
 
@@ -107,6 +107,25 @@ public class TextEntryWidget extends WritablePVWidget
                     if (transparent)
                         text_widget.propBackgroundColor().setValue(new WidgetColor(0, 0, 0, 0));
                 });
+
+                // Legacy text entry sometimes would with "text" property and no pv_name,
+                // used as a Label
+                text = XMLUtil.getChildString(xml, "text");
+                if (text.isPresent()  &&  text.get().length() > 0  &&
+                    ((MacroizedWidgetProperty<String>) text_widget.propPVName()).getSpecification().isEmpty())
+                {
+                    logger.log(Level.WARNING, "Replacing TextEntry " + text_widget + " with 'text' but no 'pv_name' with a Label");
+
+                    // Replace the widget type with "label"
+                    final String type = xml.getAttribute("typeId");
+                    // Might be NativeText or TextInput
+                    if (type != null  &&  type.contains("Text"))
+                    {
+                        xml.setAttribute("typeId", "org.csstudio.opibuilder.widgets.Label");
+                        // XMLUtil.dump(xml);
+                        throw new ParseAgainException();
+                    }
+                }
 
                 BorderSupport.handleLegacyBorder(widget, xml);
             }

@@ -70,11 +70,16 @@ public class EmbeddedDisplayWidget extends VisibleWidget
         /** No resize, add scroll bars if content too large for container */
         None(Messages.Resize_None),
 
-        /** Size *.opi to fit the container */
+        /** Scale embedded *.opi or *.bob content to fit the container */
         ResizeContent(Messages.Resize_Content),
 
-        /** Size the container to fit the linked *.opi */
-        SizeToContent(Messages.Resize_Container);
+        /** Size the container to fit the embedded *.opi or *.bob content */
+        SizeToContent(Messages.Resize_Container),
+
+        /** Stretch the embedded content to fit the container,
+         *  separately scaling the horizontal and vertical size
+         */
+        StretchContent(Messages.Resize_Stretch);
 
         private final String label;
 
@@ -91,14 +96,14 @@ public class EmbeddedDisplayWidget extends VisibleWidget
     }
 
     static final WidgetPropertyDescriptor<Resize> propResize =
-        new WidgetPropertyDescriptor<Resize>(
+        new WidgetPropertyDescriptor<>(
             WidgetPropertyCategory.DISPLAY, "resize", Messages.WidgetProperties_ResizeBehavior)
     {
         @Override
         public EnumWidgetProperty<Resize> createProperty(final Widget widget,
                                                          final Resize default_value)
         {
-            return new EnumWidgetProperty<Resize>(this, widget, default_value);
+            return new EnumWidgetProperty<>(this, widget, default_value);
         }
     };
 
@@ -107,12 +112,12 @@ public class EmbeddedDisplayWidget extends VisibleWidget
             WidgetPropertyCategory.DISPLAY, "group_name", Messages.EmbeddedDisplayWidget_GroupName);
 
     static final WidgetPropertyDescriptor<DisplayModel> runtimeModel =
-        new WidgetPropertyDescriptor<DisplayModel>(WidgetPropertyCategory.RUNTIME, "embedded_model", "Embedded Model")
+        new WidgetPropertyDescriptor<>(WidgetPropertyCategory.RUNTIME, "embedded_model", "Embedded Model")
         {
             @Override
             public WidgetProperty<DisplayModel> createProperty(final Widget widget, DisplayModel default_value)
             {
-                return new RuntimeWidgetProperty<DisplayModel>(runtimeModel, widget, default_value)
+                return new RuntimeWidgetProperty<>(runtimeModel, widget, default_value)
                 {
                     @Override
                     public void setValueFromObject(final Object value)

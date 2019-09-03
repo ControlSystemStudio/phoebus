@@ -28,6 +28,7 @@ import org.csstudio.display.builder.representation.ToolkitRepresentation;
 import org.csstudio.display.builder.runtime.script.ScriptUtil;
 import org.phoebus.framework.jobs.CommandExecutor;
 import org.phoebus.framework.macros.MacroHandler;
+import org.phoebus.framework.macros.MacroValueProvider;
 import org.phoebus.framework.macros.Macros;
 
 /** Action Helper
@@ -162,14 +163,22 @@ public class ActionUtil
      */
     public static void handleClose(final DisplayModel model)
     {
-        // Called on UI thread
-        // Stop runtime in background thread
-        RuntimeUtil.getExecutor().submit(() ->  RuntimeUtil.stopRuntime(model) );
+        // Called on UI thread.
+        // Runtime needs to stop first.
+        // If stopped later, it would not find any widgets,
+        // and thus not completely stop PVs.
+        // Could stop runtime in background thread,
+        // but would have to wait for that before then disposing toolkit on UI thread.
+        // Finally, caller wants to be sure that we're done.
+        // -> Work is sequential anyway, do all in this thread
+        RuntimeUtil.stopRuntime(model);
 
-        // .. while UI thread removes the representation
+        // After runtime stopped and is no longer accessing the model,
+        // dispose representation.
         final ToolkitRepresentation<Object, Object> toolkit = ToolkitRepresentation.getToolkit(model);
         toolkit.disposeRepresentation(model);
 
+        // Finally, dispose model
         model.dispose();
     }
 
@@ -180,22 +189,32 @@ public class ActionUtil
     private static void writePV(final Widget source_widget, final WritePVActionInfo action)
     {
         final WidgetRuntime<Widget> runtime = RuntimeUtil.getRuntime(source_widget);
+        // System.out.println(action.getDescription() + ": Set " + action.getPV() + " = " + action.getValue());
+        final MacroValueProvider macros = source_widget.getMacrosOrProperties();
+        String pv_name = action.getPV(), value = action.getValue();
         try
         {
-            runtime.writePV(action.getPV(), action.getValue());
+            pv_name = MacroHandler.replace(macros, pv_name);
+        }
+        catch (Exception ignore)
+        {
+            // NOP
+        }
+        try
+        {
+            value = MacroHandler.replace(macros, value);
+        }
+        catch (Exception ignore)
+        {
+            // NOP
+        }
+        try
+        {
+            runtime.writePV(pv_name,value);
         }
         catch (final Exception ex)
         {
-            String pv_name = action.getPV();
-            try
-            {
-                pv_name = MacroHandler.replace(source_widget.getMacrosOrProperties(), pv_name);
-            }
-            catch (Exception ignore)
-            {
-                // NOP
-            }
-            final String message = "Cannot write " + pv_name + " = " + action.getValue();
+            final String message = "Cannot write " + pv_name + " = " + value;
             logger.log(Level.WARNING, message, ex);
             ScriptUtil.showErrorDialog(source_widget, message + ".\n\nSee log for details.");
         }

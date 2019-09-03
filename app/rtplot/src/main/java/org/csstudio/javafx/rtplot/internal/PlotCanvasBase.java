@@ -66,7 +66,7 @@ abstract class PlotCanvasBase extends ImageView
      *  Smaller regions are likely the result of an accidental
      *  click-with-jerk, which would result into a huge zoom step.
      */
-    protected static final int ZOOM_PIXEL_THRESHOLD = 20;
+    protected static final int ZOOM_PIXEL_THRESHOLD = 5;
 
     /** Strokes used for mouse feedback */
     protected static final BasicStroke MOUSE_FEEDBACK_BACK = new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER),

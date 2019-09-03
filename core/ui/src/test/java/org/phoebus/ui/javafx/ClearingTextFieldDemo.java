@@ -7,7 +7,6 @@
  *******************************************************************************/
 package org.phoebus.ui.javafx;
 
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
@@ -18,11 +17,11 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ClearingTextFieldDemo extends Application
+public class ClearingTextFieldDemo extends ApplicationWrapper
 {
     public static void main(String[] args)
     {
-        launch(args);
+        launch(ClearingTextFieldDemo.class, args);
     }
 
     @Override

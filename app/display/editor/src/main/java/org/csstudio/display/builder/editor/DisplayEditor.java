@@ -198,7 +198,7 @@ public class DisplayEditor
         zoom_levels.getItems().addAll(JFXRepresentation.ZOOM_LEVELS);
         zoom_levels.setEditable(true);
         zoom_levels.setValue(JFXRepresentation.DEFAULT_ZOOM_LEVEL);
-        zoom_levels.setTooltip(new Tooltip("Select Zoom Level"));
+        zoom_levels.setTooltip(new Tooltip(Messages.SelectZoomLevel));
         zoom_levels.setPrefWidth(100.0);
         // For Ctrl-Wheel zoom gesture
         zoomListener zl = new zoomListener(zoom_levels);
@@ -218,7 +218,7 @@ public class DisplayEditor
             createMenuItem(ActionDescription.MOVE_UP),
             createMenuItem(ActionDescription.MOVE_DOWN),
             createMenuItem(ActionDescription.TO_FRONT));
-        order.setTooltip(new Tooltip("Order"));
+        order.setTooltip(new Tooltip(Messages.Order));
 
         final MenuButton align = new MenuButton(null, null,
             createMenuItem(ActionDescription.ALIGN_LEFT),
@@ -227,17 +227,17 @@ public class DisplayEditor
             createMenuItem(ActionDescription.ALIGN_TOP),
             createMenuItem(ActionDescription.ALIGN_MIDDLE),
             createMenuItem(ActionDescription.ALIGN_BOTTOM));
-        align.setTooltip(new Tooltip("Align"));
+        align.setTooltip(new Tooltip(Messages.Align));
 
         final MenuButton size = new MenuButton(null, null,
             createMenuItem(ActionDescription.MATCH_WIDTH),
             createMenuItem(ActionDescription.MATCH_HEIGHT));
-        align.setTooltip(new Tooltip("Size"));
+        size.setTooltip(new Tooltip(Messages.Size));
 
         final MenuButton dist = new MenuButton(null, null,
             createMenuItem(ActionDescription.DIST_HORIZ),
             createMenuItem(ActionDescription.DIST_VERT));
-        align.setTooltip(new Tooltip("Distribute"));
+        dist.setTooltip(new Tooltip(Messages.Distribute));
 
         // Use the first item as the icon for the drop-down...
         try
@@ -394,7 +394,7 @@ public class DisplayEditor
 
     private void handleKeyPress(final KeyEvent event)
     {
-        WidgetTree.handleWidgetOrderKeys(event, this);
+        WidgetTree.handleGroupOrOrderKeys(event, this);
     }
 
     private void handleRubberbandSelection(final Rectangle2D region, final boolean update_existing)

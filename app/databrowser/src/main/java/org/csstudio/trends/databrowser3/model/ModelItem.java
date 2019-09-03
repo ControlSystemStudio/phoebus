@@ -13,6 +13,7 @@ import java.util.Optional;
 
 import javax.xml.stream.XMLStreamWriter;
 
+import org.csstudio.javafx.rtplot.LineStyle;
 import org.csstudio.javafx.rtplot.PointType;
 import org.csstudio.javafx.rtplot.TraceType;
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
@@ -61,6 +62,9 @@ abstract public class ModelItem
     /** Line width [pixel] */
     private volatile int line_width = Preferences.line_width;
 
+    /** Line style */
+    private volatile LineStyle line_style = LineStyle.SOLID;
+
     /** How to display the points of the trace */
     private volatile PointType point_type = PointType.NONE;
 
@@ -95,7 +99,7 @@ abstract public class ModelItem
     void setModel(final Model model)
     {
         final Optional<Model> new_model = Optional.ofNullable(model);
-        if (this.model.equals(new_model))
+        if (model != null  &&  this.model.equals(new_model))
             throw new RuntimeException("Item re-assigned to same model: " + name);
         this.model = new_model;
     }
@@ -251,6 +255,21 @@ abstract public class ModelItem
         fireItemLookChanged();
     }
 
+    /** @return Line Style */
+    public LineStyle getLineStyle()
+    {
+        return line_style;
+    }
+
+    /** @param line_style Line Style */
+    public void setLineStyle(final LineStyle line_style)
+    {
+        if (this.line_style == line_style)
+            return;
+        this.line_style = line_style;
+        fireItemLookChanged();
+    }
+
     /** @return {@link PointType} for displaying the trace */
     public PointType getPointType()
     {
@@ -379,6 +398,10 @@ abstract public class ModelItem
         writer.writeCharacters(Integer.toString(getLineWidth()));
         writer.writeEndElement();
 
+        writer.writeStartElement(XMLPersistence.TAG_LINE_STYLE);
+        writer.writeCharacters(getLineStyle().name());
+        writer.writeEndElement();
+
         writer.writeStartElement(XMLPersistence.TAG_POINT_TYPE);
         writer.writeCharacters(getPointType().name());
         writer.writeEndElement();
@@ -408,6 +431,14 @@ abstract public class ModelItem
             model.addAxis();
         axis = model.getAxis(axis_index);
         line_width = XMLUtil.getChildInteger(node, XMLPersistence.TAG_LINEWIDTH).orElse(line_width);
+        try
+        {
+            line_style = LineStyle.valueOf(XMLUtil.getChildString(node, XMLPersistence.TAG_LINE_STYLE).orElse(LineStyle.SOLID.name()));
+        }
+        catch (Throwable ex)
+        {
+            line_style = LineStyle.SOLID;
+        }
         point_size = XMLUtil.getChildInteger(node, XMLPersistence.TAG_POINT_SIZE).orElse(point_size);
 
         XMLPersistence.loadColorFromDocument(node).ifPresent(col -> color = col);
