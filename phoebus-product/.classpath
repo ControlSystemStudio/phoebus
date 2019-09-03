@@ -44,6 +44,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/app-greetings"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-perfmon"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-pace"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/app-save-and-restore"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/app-save-and-restore-model"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/app-save-and-restore-ui"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

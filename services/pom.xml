@@ -13,5 +13,6 @@
     <module>scan-server</module>
     <module>alarm-logger</module>
     <module>alarm-config-logger</module>
+    <module>save-and-restore</module>
   </modules>
 </project>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration packages="biz.paluch.logging.gelf.log4j2">
+    <Appenders>
+        <Gelf name="gelf" 
+        	host="${sys:GRAYLOG_HOST}" 
+        	port="${sys:GRAYLOG_PORT}" 
+        	version="1.0" 
+        	extractStackTrace="true"
+            filterStackTrace="true"
+            maximumMessageSize="8192"
+            additionalFieldTypes="application=String">
+            <Field name="timestamp" pattern="%d{yyyy-MM-dd HH:mm:ss.SSS}" />
+            <Field name="level" pattern="%level" />
+            <Field name="simpleClassName" pattern="%C{1}" />
+            <Field name="className" pattern="%C" />
+            <Field name="server" pattern="%host" />
+            <Field name="server.fqdn" pattern="%host{fqdn}" />
+             <Field name="application" literal="jmasar" />
+        </Gelf>
+        <Socket name="gelf" protocol="udp" host="${sys:GRAYLOG_HOST}" port="${sys:GRAYLOG_PORT}">
+        	<GelfLayout host="%host{fqdn}" compressionType="none"/>
+    	</Socket>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="INFO">
+            <AppenderRef ref="gelf" />
+            <AppenderRef ref="Console" />
+        </Root>
+    </Loggers>
+</Configuration>

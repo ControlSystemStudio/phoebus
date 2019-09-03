@@ -100,7 +100,7 @@
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>app-save-and-restore</artifactId>
+      <artifactId>app-save-and-restore-ui</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     
