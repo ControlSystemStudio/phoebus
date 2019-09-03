@@ -41,10 +41,12 @@ public class TimeParser {
     static final Pattern durationTimeQunatityUnitsPattern = Pattern
             .compile("\\s*(\\d*)\\s*(ms|milli|sec|secs|min|mins|hour|hours|day|days)\\s*", Pattern.CASE_INSENSITIVE);
 
+    // SPACE*  (NUMBER?) SPACE*  (UNIT),
+    // with NUMBER being positive floating point
     // Patterns need to be listed longest-first.
     // Otherwise "days" would match just the "d"
     static final Pattern timeQuantityUnitsPattern = Pattern.compile(
-            "\\s*(\\d*)\\s*(millis|ms|seconds|second|secs|sec|s|minutes|minute|mins|min|hours|hour|h|days|day|d|weeks|week|w|months|month|mon|mo|years|year|y)\\s*",
+            "\\s*([0-9]?\\.?[0-9]*)\\s*(millis|ms|seconds|second|secs|sec|s|minutes|minute|mins|min|hours|hour|h|days|day|d|weeks|week|w|months|month|mon|mo|years|year|y)\\s*",
             Pattern.CASE_INSENSITIVE);
 
     /**
@@ -105,7 +107,7 @@ public class TimeParser {
         int quantity = 0;
         String unit = "";
         Matcher timeQunatityUnitsMatcher = durationTimeQunatityUnitsPattern.matcher(string);
-        Map<ChronoUnit, Integer> timeQuantities = new HashMap<ChronoUnit, Integer>();
+        Map<ChronoUnit, Integer> timeQuantities = new HashMap<>();
         while (timeQunatityUnitsMatcher.find()) {
             quantity = "".equals(timeQunatityUnitsMatcher.group(1)) ? 1
                     : Integer.valueOf(timeQunatityUnitsMatcher.group(1));
@@ -170,44 +172,92 @@ public class TimeParser {
     {
         if (NOW.equalsIgnoreCase(string))
             return Duration.ZERO;
-        int quantity = 0;
-        String unit = "";
-        Matcher timeQuantityUnitsMatcher = timeQuantityUnitsPattern.matcher(string);
-        Map<ChronoUnit, Integer> timeQuantities = new HashMap<ChronoUnit, Integer>();
+        final Matcher timeQuantityUnitsMatcher = timeQuantityUnitsPattern.matcher(string);
+        final Map<ChronoUnit, Integer> timeQuantities = new HashMap<>();
 
         boolean use_period = false;
         while (timeQuantityUnitsMatcher.find())
         {
-            quantity = "".equals(timeQuantityUnitsMatcher.group(1))
-                    ? 1
-                    : Integer.valueOf(timeQuantityUnitsMatcher.group(1));
-            unit = timeQuantityUnitsMatcher.group(2).toLowerCase();
+            final double quantity = "".equals(timeQuantityUnitsMatcher.group(1))
+                    ? 1.0
+                    : Double.valueOf(timeQuantityUnitsMatcher.group(1));
+            final int full = (int) quantity;
+            final double fraction = quantity - full;
+            final String unit = timeQuantityUnitsMatcher.group(2).toLowerCase();
+            // Collect the YEARS, .., DAYS, .., MINUTES, .. as used by Period or Duration.
+            // Problem 1: Need to eventually pick either Period or Duration.
+            //            -> We go up to Period when WEEKS or larger are involved.
+            // Problem 2: They only take full amounts.
+            //            -> We place fractional amounts in the next finer unit.
             if (unit.startsWith("y"))
             {
-                timeQuantities.put(YEARS, quantity);
+                timeQuantities.put(YEARS, full);
+                if (fraction > 0)
+                {
+                    final int next = (int) (fraction * 12);
+                    timeQuantities.compute(MONTHS, (u, prev) -> prev == null ? next : prev + next);
+                }
                 use_period = true;
             }
             else if (unit.startsWith("mo"))
             {
-                timeQuantities.put(MONTHS, quantity);
+                timeQuantities.compute(MONTHS, (u, prev) -> prev == null ? full : prev + full);
+                if (fraction > 0)
+                {
+                    final int next = (int) (fraction * 4*7);
+                    timeQuantities.compute(DAYS,  (u, prev) -> prev == null ? next : prev + next);
+                }
                 use_period = true;
             }
             else if (unit.startsWith("w"))
             {
-                timeQuantities.put(WEEKS, quantity);
+                timeQuantities.compute(WEEKS, (u, prev) -> prev == null ? full : prev + full);
+                if (fraction > 0)
+                {
+                    final int next = (int) (fraction * 7);
+                    timeQuantities.compute(DAYS, (u, prev) -> prev == null ? next : prev + next);
+                }
                 use_period = true;
             }
             else if (unit.startsWith("mi"))
-                timeQuantities.put(MINUTES, quantity);
+            {
+                timeQuantities.compute(MINUTES, (u, prev) -> prev == null ? full : prev + full);
+                if (fraction > 0)
+                {
+                    final int next = (int) (fraction * 60);
+                    timeQuantities.compute(SECONDS, (u, prev) -> prev == null ? next : prev + next);
+                }
+            }
             else if (unit.startsWith("h"))
-                timeQuantities.put(HOURS, quantity);
+            {
+                timeQuantities.compute(HOURS, (u, prev) -> prev == null ? full : prev + full);
+                if (fraction > 0)
+                {
+                    final int next = (int) (fraction * 60);
+                    timeQuantities.compute(MINUTES, (u, prev) -> prev == null ? next : prev + next);
+                }
+            }
             else if (unit.startsWith("d"))
-                timeQuantities.put(DAYS, quantity);
+            {
+                timeQuantities.compute(DAYS, (u, prev) -> prev == null ? full : prev + full);
+                if (fraction > 0)
+                {
+                    final int next = (int) (fraction * 24);
+                    timeQuantities.compute(HOURS, (u, prev) -> prev == null ? next : prev + next);
+                }
+            }
             else if (unit.startsWith("s"))
-                timeQuantities.put(SECONDS, quantity);
+            {
+                timeQuantities.compute(SECONDS, (u, prev) -> prev == null ? full : prev + full);
+                if (fraction > 0)
+                {
+                    final int next = (int) (fraction * 1000);
+                    timeQuantities.compute(MILLIS, (u, prev) -> prev == null ? next : prev + next);
+                }
+            }
             else if (unit.startsWith("mi")  ||
                      unit.equals("ms"))
-                timeQuantities.put(MILLIS, quantity);
+                timeQuantities.compute(MILLIS, (u, prev) -> prev == null ? full : prev + full);
         }
 
         if (use_period)
