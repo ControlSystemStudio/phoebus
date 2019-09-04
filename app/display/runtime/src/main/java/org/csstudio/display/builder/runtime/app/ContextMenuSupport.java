@@ -8,8 +8,10 @@
 package org.csstudio.display.builder.runtime.app;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
+import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.ActionInfo;
@@ -170,8 +172,24 @@ class ContextMenuSupport
         items.add(new PrintAction(model_parent));
 
         items.add(new SaveSnapshotAction(model_parent));
-        items.add(new SendEmailAction(model_parent, "Display Screenshot", "See attached display", () ->  Screenshot.imageFromNode(model_parent)));
-        items.add(new SendLogbookAction(model_parent, "Display Screenshot", "See attached display", () ->  Screenshot.imageFromNode(model_parent)));
+
+        String display_info;
+        try
+        {
+            final DisplayModel model = widget.getDisplayModel();
+            final String name = model.getDisplayName();
+            final String input =  model.getUserData(DisplayModel.USER_DATA_INPUT_FILE);
+            if (Objects.equals(name, input))
+                display_info = "Display '" + name + "'";
+            else
+                display_info = "Display '" + name + "' (" + input + ")";
+        }
+        catch (Exception ex)
+        {
+            display_info = "See attached display";
+        }
+        items.add(new SendEmailAction(model_parent, "Display Screenshot", display_info, () ->  Screenshot.imageFromNode(model_parent)));
+        items.add(new SendLogbookAction(model_parent, "Display Screenshot", display_info, () ->  Screenshot.imageFromNode(model_parent)));
         items.add(new SeparatorMenuItem());
 
         items.add(new DisplayToolbarAction(instance));

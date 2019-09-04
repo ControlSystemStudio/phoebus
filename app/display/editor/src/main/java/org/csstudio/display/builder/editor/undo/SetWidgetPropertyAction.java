@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -25,9 +25,15 @@ public class SetWidgetPropertyAction<T extends Object> extends UndoableAction
     public SetWidgetPropertyAction(final WidgetProperty<T> widget_property,
                                    final T value)
     {
+        this(widget_property, widget_property.getValue(), value);
+    }
+
+    public SetWidgetPropertyAction(final WidgetProperty<T> widget_property,
+                                   final T orig_value, final T value)
+    {
         super(MessageFormat.format(Messages.SetPropertyFmt, widget_property.getDescription()));
         this.widget_property = widget_property;
-        this.orig_value = widget_property.getValue();
+        this.orig_value = orig_value;
         this.value = value;
     }
 

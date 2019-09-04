@@ -16,6 +16,7 @@
 package org.csstudio.scan.server.command;
 
 import java.time.Duration;
+import java.time.Instant;
 
 import org.csstudio.scan.command.Comparison;
 import org.csstudio.scan.command.WaitCommand;
@@ -30,6 +31,7 @@ import org.csstudio.scan.server.condition.TextValueCondition;
 import org.csstudio.scan.server.device.Device;
 import org.csstudio.scan.server.device.SimulatedDevice;
 import org.csstudio.scan.server.internal.JythonSupport;
+import org.phoebus.util.time.SecondsParser;
 import org.phoebus.util.time.TimeDuration;
 
 /** {@link ScanCommandImpl} that delays the scan until a device reaches a certain value
@@ -40,6 +42,7 @@ public class WaitCommandImpl extends ScanCommandImpl<WaitCommand>
 {
     /** Currently 'await'-ed condition or null when nobody's waiting*/
     private volatile DeviceCondition condition = null;
+    private volatile Instant started = null;
 
     /** {@inheritDoc} */
     public WaitCommandImpl(final WaitCommand command, final JythonSupport jython) throws Exception
@@ -127,11 +130,13 @@ public class WaitCommandImpl extends ScanCommandImpl<WaitCommand>
             condition = new TextValueCondition(device, Comparison.EQUALS, desired.toString(), timeout);
         try
         {
+            started = Instant.now();
             condition.await();
         }
         finally
         {
             condition = null;
+            started = null;
         }
         context.workPerformed(1);
     }
@@ -143,5 +148,19 @@ public class WaitCommandImpl extends ScanCommandImpl<WaitCommand>
         final DeviceCondition safe_copy = condition;
         if (safe_copy != null)
             safe_copy.complete();
+    }
+
+    @Override
+    public String toString()
+    {
+        String info = super.toString();
+        final Instant start = started;
+        if (start != null)
+        {
+            final Instant now = Instant.now();
+            final Duration duration = Duration.between(start, now);
+            info += ". Elapsed: " + SecondsParser.formatSeconds(duration.getSeconds() + duration.getNano()*1e-9);
+        }
+        return info;
     }
 }

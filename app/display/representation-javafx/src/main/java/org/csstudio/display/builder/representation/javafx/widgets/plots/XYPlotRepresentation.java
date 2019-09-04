@@ -29,6 +29,7 @@ import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget.MarkerPrope
 import org.csstudio.display.builder.representation.Preferences;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.csstudio.display.builder.representation.javafx.widgets.RegionBaseRepresentation;
+import org.csstudio.javafx.rtplot.Activator;
 import org.csstudio.javafx.rtplot.Axis;
 import org.csstudio.javafx.rtplot.AxisRange;
 import org.csstudio.javafx.rtplot.LineStyle;
@@ -145,11 +146,11 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
                 updateModelAxis(model_widget.propYAxes().getElement(index), y_axis);
         }
 
-        public void changedLogarithmic(final YAxis<?> y_axis)
+        public void changedLogarithmic(final Axis<?> y_axis)
         {
             final int index = plot.getYAxes().indexOf(y_axis);
             if (index >= 0  &&  index < model_widget.propYAxes().size())
-                model_widget.propYAxes().getElement(index).logscale().setValue(y_axis.isLogarithmic());
+                model_widget.propYAxes().getElement(index).logscale().setValue(((YAxis<?>)y_axis).isLogarithmic());
         };
 
         /** Invoked when auto scale is enabled or disabled by user interaction */
@@ -207,7 +208,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
                                                     value_listener = this::valueChanged;
         private final Trace<Double> trace;
         // Throttle this trace's x, y, error value changes
-        private final UpdateThrottle throttle = new UpdateThrottle(Preferences.plot_update_delay, TimeUnit.MILLISECONDS, this::computeTrace);
+        private final UpdateThrottle throttle = new UpdateThrottle(Preferences.plot_update_delay, TimeUnit.MILLISECONDS, this::computeTrace,  Activator.thread_pool);
 
         TraceHandler(final TraceWidgetProperty model_trace)
         {

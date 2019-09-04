@@ -21,7 +21,7 @@ import org.epics.pva.data.Hexdump;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class EchoHandler implements CommandHandler<ClientTCPHandler>
+class EchoHandler implements CommandHandler<ClientTCPHandler>
 {
     @Override
     public byte getCommand()
@@ -47,7 +47,7 @@ public class EchoHandler implements CommandHandler<ClientTCPHandler>
             }
         }
         else
-            logger.log(Level.FINE, "Received ECHO");
+            logger.log(Level.FINE, "Received ECHO (no content)");
         tcp.markAlive();
     }
 }

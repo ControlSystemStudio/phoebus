@@ -18,15 +18,15 @@ public interface ClientChannelListener
      *  <p>Will be called as soon as possible, i.e. within
      *  the thread that handles the network communication.
      *
-     *  <p>Client code may invoke {@link PVAChannel#read()}
-     *  or {@link PVAChannel#subscribe()} to initiate
+     *  <p>Client code may invoke {@link PVAChannel#read(String)}
+     *  or {@link PVAChannel#subscribe(String, MonitorListener)} to initiate
      *  reading data or to start a subscription, but
      *  client code <b>must not</b> block,
-     *  i.e. awaiting the result of {@link PVAChannel#read()}
+     *  i.e. awaiting the result of a `read`
      *  is not permitted within this call.
      *
-     *  @param channel
-     *  @param state
+     *  @param channel Channel which changed state
+     *  @param state   Current state of that channel
      */
     public void channelStateChanged(PVAChannel channel, ClientChannelState state);
 }

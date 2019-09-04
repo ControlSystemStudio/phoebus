@@ -65,7 +65,7 @@ public class LogTicks extends LinearTicks
         // Try major tick distance between __exponents__
         double exp_dist = (high_exp - low_exp) / num_that_fits;
 
-        if (exp_dist <= 0.0)
+        if (exp_dist < 1.0)
         {
             // All values have the same exponent, can't create a useful log scale.
             // Pick a format that shows significant detail for mantissa.
@@ -85,7 +85,7 @@ public class LogTicks extends LinearTicks
             for (int i=0; i<=4; ++i)
             {
                 double value = low + (high - low) * i / 4;
-                major_ticks.add(new MajorTick<Double>(value, format(value)));
+                major_ticks.add(new MajorTick<>(value, format(value)));
             }
         }
         else
@@ -93,6 +93,7 @@ public class LogTicks extends LinearTicks
             // System.out.println("\nExp dist: " + exp_dist + " for range "+ num_fmt.format(low) + " .. " + num_fmt.format(high));
             // Round up to a 'nice' step size
             exp_dist = selectNiceStep(exp_dist);
+            // System.out.println("-> Nice Exp dist: " + exp_dist);
 
             int minor_count;
             if (exp_dist < 1.0)
@@ -126,7 +127,7 @@ public class LogTicks extends LinearTicks
             while (value <= high*major_factor)
             {
                 if (value >= low  &&  value <= high)
-                    major_ticks.add(new MajorTick<Double>(value, format(value)));
+                    major_ticks.add(new MajorTick<>(value, format(value)));
 
                 if (minor_count > 0)
                 {   // Fill major tick marks with minor ticks
@@ -140,7 +141,7 @@ public class LogTicks extends LinearTicks
                         final double min_val = prev + i * minor_step;
                         if (min_val <= low || min_val >= high)
                             continue;
-                        minor_ticks.add(new MinorTick<Double>(min_val));
+                        minor_ticks.add(new MinorTick<>(min_val));
                     }
                 }
                 prev = value;
@@ -157,8 +158,8 @@ public class LogTicks extends LinearTicks
         {   // If the best-laid plans of mice and men fail
             // and we end up with just one or no tick,
             // add the low and high markers
-            major_ticks.add(0, new MajorTick<Double>(low, format(low)));
-            major_ticks.add(new MajorTick<Double>(high, format(high)));
+            major_ticks.add(0, new MajorTick<>(low, format(low)));
+            major_ticks.add(new MajorTick<>(high, format(high)));
         }
         this.major_ticks = major_ticks;
         this.minor_ticks = minor_ticks;

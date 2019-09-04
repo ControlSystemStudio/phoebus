@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -142,12 +142,12 @@ public class WidgetTransfer {
             content.putString(xml);
             db.setContent(content);
 
-            final int width = widget.propWidth().getValue();
-            final int height = widget.propHeight().getValue();
-
-            db.setDragView(createDragImage(widget, image, width, height), width / 2.0, - height / 2.0);
+            // Create drag outline for widget, adjusted by zoom factor
+            final double zoom = editor.getZoom();
+            final int width = (int) (widget.propWidth().getValue() * zoom);
+            final int height = (int) (widget.propHeight().getValue() * zoom);
+            db.setDragView(createDragImage(widget, image, width, height));
             event.consume();
-
         });
 
         source.setOnDragDone(event -> {

@@ -13,5 +13,6 @@
     <module>representation-javafx</module>
     <module>runtime</module>
     <module>editor</module>
+    <module>convert-medm</module>
   </modules>
 </project>

@@ -21,14 +21,19 @@ public class PVAStringArray extends PVAData implements PVAArray
 {
     private volatile String[] value = new String[0];
 
-    /** Construct variable-size string array */
+    /** Construct variable-size string array
+     *  @param name Data item name
+     *  @param value Initial value
+     */
     public PVAStringArray(final String name, final String[] value)
     {
         super(name);
         this.value = value;
     }
 
-    /** Construct variable-size string array */
+    /** Construct variable-size string array
+     *  @param name Data item name
+     */
     public PVAStringArray(final String name)
     {
         this(name, new String[0]);

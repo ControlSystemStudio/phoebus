@@ -8,6 +8,11 @@ if 'PHOEBUS' in dir(ScriptUtil):
 
     type = PVUtil.getString(pvs[0])
 
-    if BaseWidgetRepresentations().getWidgetRepresentationFactories().get(type) is None:
-        # print("Disable " + type)
+    supported = False
+    for t in BaseWidgetRepresentations().getWidgetRepresentationFactories():
+        if t.getType() == type:
+            supported = True
+            break;
+    if not supported:
+        print("Disable " + type)
         widget.setPropertyValue("visible", False)

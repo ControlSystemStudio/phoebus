@@ -46,6 +46,7 @@ public class AlarmLoggingService {
         System.out.println("Command-line arguments:");
         System.out.println();
         System.out.println("-help                                    - This text");
+        System.out.println("-noshell                                 - Disable the command shell for running without a terminal");
         System.out.println("-topics   Accelerator                    - Alarm topics to be logged, they can be defined as a comma separated list");
         System.out.println("-es_host  localhost                      - elastic server host");
         System.out.println("-es_port  9200                           - elastic server port");
@@ -81,6 +82,9 @@ public class AlarmLoggingService {
         // load the default properties
         final Properties properties = PropertiesHelper.getProperties();
 
+        // Use interactive shell by default 
+        boolean use_shell = true;
+
         // Handle arguments
         final List<String> args = new ArrayList<>(List.of(original_args));
         final Iterator<String> iter = args.iterator();
@@ -92,6 +96,9 @@ public class AlarmLoggingService {
                     help();
                     close();
                     return;
+                } else if (cmd.equals("-noshell")) {
+                    use_shell = false;
+                    iter.remove();
                 } else if (cmd.equals("-properties")) {
                     if (!iter.hasNext())
                         throw new Exception("Missing -properties properties file");
@@ -178,7 +185,7 @@ public class AlarmLoggingService {
             {
                 Scheduler.execute(new AlarmMessageLogger(topic));
                 Scheduler.execute(new AlarmCmdLogger(topic));
-            } 
+            }
             catch (Exception ex)
             {
                 logger.log(Level.SEVERE, "Creation of alarm logging service for '" + topic + "' failed", ex);
@@ -186,10 +193,17 @@ public class AlarmLoggingService {
         });
 
         // Wait in command shell until closed
-        final CommandShell shell = new CommandShell(COMMANDS, AlarmLoggingService::handleShellCommands);
-        shell.start();
-        done.await();
-        shell.stop();
+        if(use_shell)
+        {
+            final CommandShell shell = new CommandShell(COMMANDS, AlarmLoggingService::handleShellCommands);
+            shell.start();
+            done.await();
+            shell.stop();
+        }
+        else
+        {
+            Thread.currentThread().join();
+        }
 
         close();
         System.exit(0);

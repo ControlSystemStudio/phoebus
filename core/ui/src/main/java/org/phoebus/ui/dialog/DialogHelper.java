@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,6 +22,7 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.control.Dialog;
 import javafx.stage.Screen;
+import javafx.stage.Stage;
 
 /** Helper for dialogs
  *  @author Kay Kasemir
@@ -34,6 +35,14 @@ public class DialogHelper
     private DialogHelper()
     {
     }
+
+    /** @param dialog Dialog that should be on top of other windows */
+    public static void forceToFront(final Dialog<?> dialog)
+    {
+        final Stage stage  = (Stage)  dialog.getDialogPane().getScene().getWindow();
+        stage.toFront();
+    }
+
 
     /** Position dialog relative to another widget
      *
@@ -62,13 +71,13 @@ public class DialogHelper
                 }
                 final double nodeX = pos.getMinX();
                 final double nodeY = pos.getMinY();
-                
+
                 double newX = nodeX + pos.getWidth()/2 + x_offset;
                 double newY = nodeY + pos.getHeight()/2 + y_offset;
-                
+
                 final double dw = dialog.getWidth();
                 final double dh = dialog.getHeight();
-                
+
                 List<Screen> scr = Screen.getScreensForRectangle(nodeX, nodeY, pos.getWidth(), pos.getHeight());
                 if (scr == null || scr.size() == 0)
                 {
@@ -77,15 +86,18 @@ public class DialogHelper
                 }
                 // Take the first available screen
                 Rectangle2D sb = scr.get(0).getVisualBounds();
-                
+
                 newX = newX < sb.getMinX() ? sb.getMinX() : newX;
                 newX = newX + dw > sb.getMaxX() ? sb.getMaxX() - dw : newX;
 
                 newY = newY < sb.getMinY() ? sb.getMinY() : newY;
                 newY = newY + dh > sb.getMaxY() ? sb.getMaxY() - dh : newY;
-                        
+
                 dialog.setX(newX);
                 dialog.setY(newY);
+
+                // Force to front
+                forceToFront(dialog);
             }
         });
     }

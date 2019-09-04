@@ -5,25 +5,20 @@
  */
 package org.phoebus.olog.api;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.phoebus.logbook.LogEntry;
+
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlAttribute;
+import java.util.Date;
+import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
-
-import org.phoebus.logbook.Attachment;
-import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.Logbook;
-import org.phoebus.logbook.Property;
-import org.phoebus.logbook.Tag;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * Log object that can be represented as XML/JSON in payload data.
@@ -32,8 +27,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
  */
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlRootElement(name = "log")
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class XmlLog implements LogEntry {
+public class XmlLog {
 
     private Long id;
     private int version;
@@ -43,16 +37,14 @@ public class XmlLog implements LogEntry {
     private String md5Entry;
     private String md5Recent;
     private Long tableId;
-    @JsonDeserialize(using = UnixTimestampDeserializer.class)
-    private Instant createdDate;
-    @JsonDeserialize(using = UnixTimestampDeserializer.class)
-    private Instant modifiedDate;
+    private Date createdDate;
+    private Date modifiedDate;
+//    private String subject;
     private String description;
-
-    private Collection<Tag> tags;
-    private Collection<Logbook> logbooks;
-    private Collection<Attachment> attachments;
-    private Collection<Property> properties;
+    private Collection<XmlProperty> properties = new ArrayList<XmlProperty>();
+    private Collection<XmlLogbook> logbooks = new ArrayList<XmlLogbook>();
+    private Collection<XmlTag> tags = new ArrayList<XmlTag>();
+    private XmlAttachments attachments = new XmlAttachments();
 
     /** Creates a new instance of XmlLog */
     public XmlLog() {
@@ -61,8 +53,7 @@ public class XmlLog implements LogEntry {
     /**
      * Creates a new instance of XmlLog.
      *
-     * @param logId
-     *            log id
+     * @param logId log id
      */
     public XmlLog(Long logId) {
         this.id = logId;
@@ -71,26 +62,52 @@ public class XmlLog implements LogEntry {
     /**
      * Creates a new instance of XmlLog.
      *
-     * @param subject
-     *            log subject
-     * @param owner
-     *            log owner
+     * @param subject log subject
      */
-    public XmlLog(String owner) {
+//    public XmlLog(String subject) {
+//        this.subject = subject;
+//    }
+
+    /**
+     * Creates a new instance of XmlLog.
+     *
+     * @param subject log subject
+     * @param owner log owner
+     */
+    public XmlLog(/*String subject, */String owner) {
+//        this.subject = subject;
         this.owner = owner;
     }
 
     /**
      * Creates a new instance of XmlLog.
      *
-     * @param logId
-     *            log id
-     * @param owner
-     *            log owner
+     * @param logId log id
+     * @param owner log owner
      */
     public XmlLog(Long logId, String owner) {
         this.id = logId;
         this.owner = owner;
+    }
+
+    public XmlLog(LogEntry log) {
+        id = log.getId();
+        version = log.getVersion();
+        
+        owner = log.getOwner();
+        source = "";
+        level = log.getLevel();
+        md5Entry = "";
+        md5Recent = "";
+        createdDate = Date.from(log.getCreatedDate());
+        modifiedDate = Date.from(log.getModifiedDate());
+        description = log.getTitle() + System.lineSeparator() +log.getDescription();
+
+        tags = log.getTags().stream().map(t -> {return new XmlTag(t);}).collect(Collectors.toList());
+        logbooks = log.getLogbooks().stream().map(l -> {return new XmlLogbook(l);}).collect(Collectors.toList());
+        attachments = new XmlAttachments();
+        attachments.setAttachments(log.getAttachments().stream().map(a -> {return new XmlAttachment(a);}).collect(Collectors.toList()));
+        properties  = log.getProperties().stream().map(p -> {return new XmlProperty(p);}).collect(Collectors.toList());
     }
 
     /**
@@ -129,12 +146,6 @@ public class XmlLog implements LogEntry {
      */
     public void setVersion(int version) {
         this.version = version;
-    }
-
-    @Override
-    public String getTitle() {
-        // Not supported
-        return null;
     }
 
     /**
@@ -180,8 +191,8 @@ public class XmlLog implements LogEntry {
      *
      * @return createdDate
      */
-    @XmlElement
-    public Instant getCreatedDate() {
+    @XmlAttribute
+    public Date getCreatedDate() {
         return createdDate;
     }
 
@@ -190,7 +201,7 @@ public class XmlLog implements LogEntry {
      *
      * @param createdDate
      */
-    public void setCreatedDate(Instant createdDate) {
+    public void setCreatedDate(Date createdDate) {
         this.createdDate = createdDate;
     }
 
@@ -199,8 +210,8 @@ public class XmlLog implements LogEntry {
      *
      * @return modifiedDate
      */
-    @XmlElement
-    public Instant getModifiedDate() {
+    @XmlAttribute
+    public Date getModifiedDate() {
         return modifiedDate;
     }
 
@@ -209,7 +220,7 @@ public class XmlLog implements LogEntry {
      *
      * @param modifiedDate
      */
-    public void setModifiedDate(Instant modifiedDate) {
+    public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
     }
 
@@ -226,12 +237,30 @@ public class XmlLog implements LogEntry {
     /**
      * Setter for log source IP.
      *
-     * @param source
-     *            IP
+     * @param source IP
      */
     public void setSource(String source) {
         this.source = source;
     }
+
+    /**
+     * Getter for log subject.
+     *
+     * @return subject
+     */
+//    @XmlElement(name = "subject")
+//    public String getSubject() {
+//        return subject;
+//    }
+
+    /**
+     * Setter for log subject.
+     *
+     * @param subject the value to set
+     */
+//    public void setSubject(String subject) {
+//        this.subject = subject;
+//    }
 
     /**
      * Getter for log description.
@@ -246,8 +275,7 @@ public class XmlLog implements LogEntry {
     /**
      * Setter for log description.
      *
-     * @param description
-     *            the value to set
+     * @param description the value to set
      */
     public void setDescription(String description) {
         this.description = description;
@@ -265,13 +293,12 @@ public class XmlLog implements LogEntry {
     /**
      * Setter for MD5 entry.
      *
-     * @param description
-     *            the value to set
+     * @param description the value to set
      */
     public void setMD5Entry(String md5entry) {
         this.md5Entry = md5entry;
     }
-
+    
     /**
      * Getter for Table id.
      *
@@ -284,40 +311,50 @@ public class XmlLog implements LogEntry {
     /**
      * Setter for Table id.
      *
-     * @param Table
-     *            id to set
+     * @param Table id to set
      */
     public void setTableId(Long tableId) {
         this.tableId = tableId;
     }
-
-    @Override
+    
+    /**
+     * Getter for log's XmlProperties.
+     *
+     * @return properties XmlProperties
+     */
     @XmlElementWrapper(name = "properties")
-    @XmlElement(type = XmlProperty.class, name = "property", nillable = true)
-    public Collection<Property> getProperties() {
-        return properties == null ? new ArrayList<Property>() : properties;
-    }
-
-    @Override
-    public Property getProperty(String propertyName) {
-        return null;
+    @XmlElement(name = "property")
+    public Collection<XmlProperty> getXmlProperties() {
+        return properties;
     }
 
     /**
      * Setter for log's XmlProperties.
-     * 
-     * @param properties
-     *            XmlProperties
+     *
+     * @param properties XmlProperties
      */
-    public void setXmlProperties(Collection<Property> properties) {
+    public void setXmlProperties(Collection<XmlProperty> properties) {
         this.properties = properties;
     }
 
-    @Override
+    /**
+     * Adds an XmlProperty to the log.
+     *
+     * @param property single XmlProperty
+     */
+    public void addXmlProperty(XmlProperty property) {
+        this.properties.add(property);
+    }
+
+    /**
+     * Getter for log's XmlLogbooks.
+     *
+     * @return XmlLogbooks
+     */
     @XmlElementWrapper(name = "logbooks")
-    @XmlElement(type = XmlLogbook.class, name = "logbook")
-    public Collection<Logbook> getLogbooks() {
-        return logbooks == null ? new ArrayList<Logbook>() : logbooks;
+    @XmlElement(name = "logbook")
+    public Collection<XmlLogbook> getXmlLogbooks() {
+        return logbooks;
     }
 
     /**
@@ -325,8 +362,17 @@ public class XmlLog implements LogEntry {
      *
      * @param logbooks XmlLogbooks
      */
-    public void setLogbooks(Collection<Logbook> logbooks) {
+    public void setXmlLogbooks(Collection<XmlLogbook> logbooks) {
         this.logbooks = logbooks;
+    }
+
+    /**
+     * Adds an XmlLogbook to the log.
+     *
+     * @param logbook single XmlLogbook
+     */
+    public void addXmlLogbook(XmlLogbook logbook) {
+        this.logbooks.add(logbook);
     }
 
     /**
@@ -335,19 +381,27 @@ public class XmlLog implements LogEntry {
      * @return XmlTags for this log
      */
     @XmlElementWrapper(name = "tags")
-    @XmlElement(type = XmlTag.class, name = "tag")
-    public Collection<Tag> getTags() {
-        return tags == null ? new ArrayList<Tag>() : tags;
+    @XmlElement(name = "tag")
+    public Collection<XmlTag> getXmlTags() {
+        return tags;
     }
 
     /**
      * Setter for the log's XmlTags.
      *
-     * @param tags
-     *            XmlTags
+     * @param tags XmlTags
      */
-    public void setTags(Collection<Tag> tags) {
+    public void setXmlTags(Collection<XmlTag> tags) {
         this.tags = tags;
+    }
+
+    /**
+     * Adds an XmlTag to the collection.
+     *
+     * @param tag
+     */
+    public void addXmlTag(XmlTag tag) {
+        this.tags.add(tag);
     }
 
     /**
@@ -357,29 +411,44 @@ public class XmlLog implements LogEntry {
      */
     @XmlElement(name = "attachments")
     public XmlAttachments getXmlAttachments() {
-        XmlAttachments attachments = new XmlAttachments();
-        attachments.setAttachments(attachments.getAttachments());
         return attachments;
-    }
-
-    @Override
-    public Collection<Attachment> getAttachments() {
-        return attachments == null ? new ArrayList<Attachment>() : attachments;
     }
 
     /**
      * Setter for the log's XmlAttachments.
      *
-     * @param attachments
-     *            XmlAttachments
+     * @param attachments XmlAttachments
      */
-    public void setXmlAttachments(Collection<Attachment> attachments) {
+    public void setXmlAttachments(XmlAttachments attachments) {
         this.attachments = attachments;
     }
 
-    @Override
-    public Tag getTag(String tagName) {
-        return null;
+    /**
+     * Adds an XmlAttachment to the collection.
+     *
+     * @param attachment
+     */
+    public void addXmlAttachment(XmlAttachment attachment) {
+        this.attachments.addXmlAttachment(attachment);
     }
 
+    /**
+     * Creates a compact string representation for the log.
+     *
+     * @param data XmlLog to create the string representation for
+     * @return string representation
+     */
+    public static String toLog(XmlLog data) {
+        XmlLogbooks xl = new XmlLogbooks();
+        xl.setLogbooks(data.logbooks);
+        
+        XmlTags xt = new XmlTags();
+        xt.setTags(data.tags);
+        
+        return data.getId() + "-v." + data.getVersion() + " : " + /*data.getSubject() +*/ "(" + data.getOwner() + "):["
+                + XmlLogbooks.toLog(xl)
+                + XmlTags.toLog(xt)
+                + XmlAttachments.toLog(data.attachments)
+                + "]\n";
+    }
 }

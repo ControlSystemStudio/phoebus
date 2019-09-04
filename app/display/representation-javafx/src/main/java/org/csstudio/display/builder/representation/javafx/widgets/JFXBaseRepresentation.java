@@ -21,6 +21,7 @@ import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
+import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget.TabItemProperty;
 import org.csstudio.display.builder.representation.WidgetRepresentation;
@@ -104,8 +105,20 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
             {   // Any visible item can be 'clicked' to allow editor to 'select' it
                 final EventHandler<MouseEvent> detect_click = event ->
                 {
+                    // Clicking with the primary (left) button selects the widget ..
                     if (event.isPrimaryButtonDown())
                     {
+                        // .. but ignore the group widget when Alt key is held.
+                        // This allows 'rubberbanding' within a group while Alt is held.
+                        // Without Alt, a click within a group would select-click the group,
+                        // consuming the event and preventing a any rubberband selection.
+                        if (event.isAltDown()  &&
+                            (model_widget instanceof GroupWidget ||
+                             model_widget instanceof TabsWidget))
+                        {
+                            // System.out.println("Ignoring click in " + model_widget);
+                            return;
+                        }
                         event.consume();
                         toolkit.fireClick(model_widget, event.isShortcutDown());
                     }

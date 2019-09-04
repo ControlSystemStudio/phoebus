@@ -10,11 +10,13 @@ package org.csstudio.display.builder.representation.javafx.widgets;
 import java.io.File;
 
 import org.csstudio.display.builder.model.DirtyFlag;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.FileSelectorWidget;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.Styles;
 
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
@@ -40,6 +42,9 @@ public class FileSelectorRepresentation extends JFXBaseRepresentation<Button, Fi
     private final DirtyFlag dirty_size = new DirtyFlag();
     private final WidgetPropertyListener<Integer> sizeChangedListener = this::sizeChanged;
 
+    private final DirtyFlag dirty_config = new DirtyFlag();
+    private final UntypedWidgetPropertyListener configChangedListener = this::configChanged;
+
     @Override
     protected Button createJFXNode() throws Exception
     {
@@ -60,6 +65,7 @@ public class FileSelectorRepresentation extends JFXBaseRepresentation<Button, Fi
         super.registerListeners();
         model_widget.propWidth().addPropertyListener(sizeChangedListener);
         model_widget.propHeight().addPropertyListener(sizeChangedListener);
+        model_widget.propEnabled().addUntypedPropertyListener(configChangedListener);
     }
 
     @Override
@@ -67,12 +73,19 @@ public class FileSelectorRepresentation extends JFXBaseRepresentation<Button, Fi
     {
         model_widget.propWidth().removePropertyListener(sizeChangedListener);
         model_widget.propHeight().removePropertyListener(sizeChangedListener);
+        model_widget.propEnabled().removePropertyListener(configChangedListener);
         super.unregisterListeners();
     }
 
     private void sizeChanged(final WidgetProperty<Integer> property, final Integer old_value, final Integer new_value)
     {
         dirty_size.mark();
+        toolkit.scheduleUpdate(this);
+    }
+
+    private void configChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
+    {
+        dirty_config.mark();
         toolkit.scheduleUpdate(this);
     }
 
@@ -83,6 +96,13 @@ public class FileSelectorRepresentation extends JFXBaseRepresentation<Button, Fi
         if (dirty_size.checkAndClear())
             jfx_node.setPrefSize(model_widget.propWidth().getValue(),
                                  model_widget.propHeight().getValue());
+        if (dirty_config.checkAndClear())
+        {
+            if (toolkit.isEditMode())
+                Styles.update(jfx_node, Styles.NOT_ENABLED, ! model_widget.propEnabled().getValue());
+            else
+                jfx_node.setDisable(! model_widget.propEnabled().getValue());
+        }
     }
 
     private void selectFile()

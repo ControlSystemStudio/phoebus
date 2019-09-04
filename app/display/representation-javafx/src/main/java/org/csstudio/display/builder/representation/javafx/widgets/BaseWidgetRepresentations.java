@@ -19,6 +19,7 @@ import org.csstudio.display.builder.model.widgets.ArrayWidget;
 import org.csstudio.display.builder.model.widgets.BoolButtonWidget;
 import org.csstudio.display.builder.model.widgets.ByteMonitorWidget;
 import org.csstudio.display.builder.model.widgets.CheckBoxWidget;
+import org.csstudio.display.builder.model.widgets.ChoiceButtonWidget;
 import org.csstudio.display.builder.model.widgets.ComboWidget;
 import org.csstudio.display.builder.model.widgets.EllipseWidget;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
@@ -26,6 +27,7 @@ import org.csstudio.display.builder.model.widgets.FileSelectorWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.LEDWidget;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
+import org.csstudio.display.builder.model.widgets.MeterWidget;
 import org.csstudio.display.builder.model.widgets.MultiStateLEDWidget;
 import org.csstudio.display.builder.model.widgets.NavigationTabsWidget;
 import org.csstudio.display.builder.model.widgets.PictureWidget;
@@ -86,6 +88,7 @@ public class BaseWidgetRepresentations implements WidgetRepresentationsService
             entry(BoolButtonWidget.WIDGET_DESCRIPTOR,      () -> (WidgetRepresentation) new BoolButtonRepresentation()),
             entry(ByteMonitorWidget.WIDGET_DESCRIPTOR,     () -> (WidgetRepresentation) new ByteMonitorRepresentation()),
             entry(CheckBoxWidget.WIDGET_DESCRIPTOR,        () -> (WidgetRepresentation) new CheckBoxRepresentation()),
+            entry(ChoiceButtonWidget.WIDGET_DESCRIPTOR,    () -> (WidgetRepresentation) new ChoiceButtonRepresentation()),
             entry(ComboWidget.WIDGET_DESCRIPTOR,           () -> (WidgetRepresentation) new ComboRepresentation()),
             entry(DataBrowserWidget.WIDGET_DESCRIPTOR,     () -> (WidgetRepresentation) new DataBrowserRepresentation()),
             entry(EmbeddedDisplayWidget.WIDGET_DESCRIPTOR, () -> (WidgetRepresentation) new EmbeddedDisplayRepresentation()),
@@ -95,6 +98,7 @@ public class BaseWidgetRepresentations implements WidgetRepresentationsService
             entry(ImageWidget.WIDGET_DESCRIPTOR,           () -> (WidgetRepresentation) new ImageRepresentation()),
             entry(LabelWidget.WIDGET_DESCRIPTOR,           () -> (WidgetRepresentation) new LabelRepresentation()),
             entry(LEDWidget.WIDGET_DESCRIPTOR,             () -> (WidgetRepresentation) new LEDRepresentation()),
+            entry(MeterWidget.WIDGET_DESCRIPTOR,           () -> (WidgetRepresentation) new MeterRepresentation()),
             entry(MultiStateLEDWidget.WIDGET_DESCRIPTOR,   () -> (WidgetRepresentation) new MultiStateLEDRepresentation()),
             entry(NavigationTabsWidget.WIDGET_DESCRIPTOR,  () -> (WidgetRepresentation) new NavigationTabsRepresentation()),
             entry(PictureWidget.WIDGET_DESCRIPTOR,         () -> (WidgetRepresentation) new PictureRepresentation()),

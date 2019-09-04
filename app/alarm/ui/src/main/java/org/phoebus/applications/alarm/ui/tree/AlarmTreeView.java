@@ -15,7 +15,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -42,6 +44,8 @@ import org.phoebus.util.text.CompareNatural;
 
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
@@ -53,7 +57,14 @@ import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.paint.Color;
 
 /** Tree-based UI for alarm configuration
  *
@@ -83,6 +94,22 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     /** Throttle [5Hz] used for updates of existing items */
     private final UpdateThrottle throttle = new UpdateThrottle(200, TimeUnit.MILLISECONDS, this::performUpdates);
 
+    /** Cursor change doesn't work on Mac, so add indicator to toolbar */
+    private final Label changing = new Label("Loading...");
+
+    /** Is change indicator shown, and future been submitted to clear it? */
+    private final AtomicReference<ScheduledFuture<?>> ongoing_change = new AtomicReference<>();
+
+    /** Clear the change indicator */
+    private final Runnable clear_change_indicator = () ->
+        Platform.runLater(() ->
+        {
+            logger.log(Level.INFO, "Alarm tree changes end");
+            ongoing_change.set(null);
+            setCursor(null);
+            final ObservableList<Node> items = getToolbar().getItems();
+            items.remove(changing);
+        });
 
     // Javadoc for TreeItem shows example for overriding isLeaf() and getChildren()
     // to dynamically create TreeItem as TreeView requests information.
@@ -102,6 +129,9 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         if (model.isRunning())
             throw new IllegalStateException();
 
+        changing.setTextFill(Color.WHITE);
+        changing.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
+
         this.model = model;
 
         tree_view.setShowRoot(false);
@@ -117,6 +147,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
         createContextMenu();
         addClickSupport();
+        addDragSupport();
     }
 
     private ToolBar createToolbar()
@@ -172,6 +203,26 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         return view_item;
     }
 
+    /** Called when an item is added/removed to tell user
+     *  that there are changes to the tree structure,
+     *  may not make sense to interact with the tree right now.
+     *
+     *  <p>Resets on its own after 1 second without changes.
+     */
+    private void indicateChange()
+    {
+        final ScheduledFuture<?> previous = ongoing_change.getAndSet(UpdateThrottle.TIMER.schedule(clear_change_indicator, 1, TimeUnit.SECONDS));
+        if (previous == null)
+        {
+            logger.log(Level.INFO, "Alarm tree changes start");
+            setCursor(Cursor.WAIT);
+            final ObservableList<Node> items = getToolbar().getItems();
+            items.add(1, changing);
+        }
+        else
+            previous.cancel(false);
+    }
+
     // AlarmClientModelListener
     @Override
     public void serverStateChanged(final boolean alive)
@@ -216,6 +267,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         final CountDownLatch done = new CountDownLatch(1);
         Platform.runLater(() ->
         {
+            indicateChange();
             // Keep sorted by inserting at appropriate index
             final List<TreeItem<AlarmTreeItem<?>>> items = view_parent.getChildren();
             final int index = Collections.binarySearch(items, view_item,
@@ -258,6 +310,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         final CountDownLatch done = new CountDownLatch(1);
         Platform.runLater(() ->
         {
+            indicateChange();
             // Can only locate the parent view item on UI thread,
             // because item might just have been created by itemAdded() event
             // and won't be on the screen until UI thread runs.
@@ -341,6 +394,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             TreeHelper.triggerTreeItemRefresh(view_item);
     }
 
+    /** Context menu, details depend on selected items */
     private void createContextMenu()
     {
         final ContextMenu menu = new ContextMenu();
@@ -395,6 +449,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         });
     }
 
+    /** Double-click on item opens configuration dialog */
     private void addClickSupport()
     {
         tree_view.setOnMouseClicked(event ->
@@ -409,11 +464,27 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             DialogHelper.positionDialog(dialog, tree_view, -250, -400);
             // Show dialog, not waiting for it to close with OK or Cancel
             dialog.show();
-
         });
     }
 
-
+    /** For leaf nodes, drag PV name */
+    private void addDragSupport()
+    {
+        tree_view.setOnDragDetected(event ->
+        {
+            final ObservableList<TreeItem<AlarmTreeItem<?>>> items = tree_view.getSelectionModel().getSelectedItems();
+            if (items.size() != 1)
+                return;
+            final AlarmTreeItem<?> item = items.get(0).getValue();
+            if (! (item instanceof AlarmClientLeaf))
+                return;
+            final Dragboard db = tree_view.startDragAndDrop(TransferMode.COPY);
+            final ClipboardContent content = new ClipboardContent();
+            content.putString(item.getName());
+            db.setContent(content);
+            event.consume();
+        });
+    }
 
 //    private long next_stats = 0;
 //    private final AtomicInteger update_count = new AtomicInteger();

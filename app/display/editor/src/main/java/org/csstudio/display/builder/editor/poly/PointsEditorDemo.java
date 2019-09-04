@@ -11,6 +11,7 @@ import org.csstudio.display.builder.editor.EditorUtil;
 import org.csstudio.display.builder.model.properties.Points;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
+import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.paint.Color;
@@ -52,7 +53,8 @@ public class PointsEditorDemo extends ApplicationWrapper
         stage.show();
         EditorUtil.setSceneStyle(scene);
 
-        editor = new PointsEditor(root, points, new PointsEditorListener()
+
+        editor = new PointsEditor(root, (x, y) -> new Point2D(x, y), points, new PointsEditorListener()
         {
             @Override
             public void pointsChanged(final Points points)

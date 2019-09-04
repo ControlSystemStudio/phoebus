@@ -22,7 +22,14 @@ Build
 Both Ant and Maven are supported:
 
     ant clean core-pva
-    mvn clean install
+    mvn clean install javadoc:javadoc
+    
+
+API Documentation
+-----------------
+
+Both Ant and Maven generate javadoc in target.
+... is in pva/target/site/apidocs/index.html
 
 Configuration
 -------------

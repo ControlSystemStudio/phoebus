@@ -255,12 +255,12 @@ class ClientTCPHandler extends TCPHandler
             // configure it
             send_buffer.order(buffer.order());
 
-            logger.log(Level.FINE, "Received set-byte-order for " + send_buffer.order());
+            logger.log(Level.FINE, () -> "Server Version " + server_version + " sent set-byte-order to " + send_buffer.order());
             // Payload indicates if the server will send messages in that same order,
             // or might change order for each message.
             // We always adapt based on the flags of each received message,
             // so ignore.
-            // sendBuffer byte order is locked at this time, though.
+            // send_buffer byte order is locked at this time, though.
         }
         else
             super.handleControlMessage(command, buffer);
@@ -270,8 +270,7 @@ class ClientTCPHandler extends TCPHandler
     protected void handleApplicationMessage(final byte command, final ByteBuffer buffer) throws Exception
     {
         if (! handlers.handleCommand(command, this, buffer))
-            logger.log(Level.WARNING, "Cannot handle reply for application command " + command);
-
+            super.handleApplicationMessage(command, buffer);
     }
 
     void handleValidationRequest(final int server_receive_buffer_size,

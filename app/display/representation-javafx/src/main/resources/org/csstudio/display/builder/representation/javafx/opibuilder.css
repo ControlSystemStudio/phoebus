@@ -222,15 +222,6 @@
     -fx-color: derive(-fx-base,-11.11%);
 }
 
-/* Clicking the "Custom Colors..." link
- * in the color picker can hang the application on Linux.
- * https://github.com/kasemir/org.csstudio.display.builder/issues/339
- */
-.color-picker .color-palette .hyperlink, .color-picker .color-palette .separator
-{
-    visibility: hidden;
-}
-
 /*
  * ToggleSwitch
  */

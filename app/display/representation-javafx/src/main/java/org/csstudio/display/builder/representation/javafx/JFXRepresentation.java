@@ -115,6 +115,9 @@ import javafx.util.Duration;
 @SuppressWarnings("nls")
 public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
 {
+    /** ID of the model_root */
+    public static final String MODEL_ROOT_ID = "model_root";
+
     /** Adjustment for scroll body size to prevent scroll bars from being displayed */
     // XXX Would be good to understand this value instead of 2-by-trial-and-error
     private static final int SCROLLBAR_ADJUST = 2;
@@ -204,6 +207,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         }
 
         model_root = new ScrollPane(scroll_body);
+        model_root.setId(MODEL_ROOT_ID);
 
         final InvalidationListener resized = prop -> handleViewportChanges();
         model_root.widthProperty().addListener(resized);
@@ -380,7 +384,6 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         // Fetch css relative to JFXRepresentation, not derived class
         final String css = JFXRepresentation.class.getResource("opibuilder.css").toExternalForm();
         Styles.set(scene, css);
-        Styles.setSceneStyle(scene);
     }
 
     /** Standard zoom levels */

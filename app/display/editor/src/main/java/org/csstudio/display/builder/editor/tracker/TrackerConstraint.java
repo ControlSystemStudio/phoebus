@@ -7,12 +7,12 @@
  *******************************************************************************/
 package org.csstudio.display.builder.editor.tracker;
 
-import javafx.geometry.Point2D;
+import org.csstudio.display.builder.editor.PointConstraint;
 
 /** Constraint on the movement of the Tracker
  *  @author Kay Kasemir
  */
-abstract public class TrackerConstraint
+abstract public class TrackerConstraint implements PointConstraint
 {
     private boolean enabled = false;
 
@@ -27,17 +27,4 @@ abstract public class TrackerConstraint
     {
         return enabled;
     }
-
-    /** Constrain the movement of the tracker
-     *
-     *  <p>Called with an x/y coordinate, implementation
-     *  may return a modified coordinate to restrict the valid
-     *  coordinate space.
-     *
-     *  @param x Requested X position
-     *  @param y Requested Y position
-     *
-     *  @return Constrained coordinate
-     */
-    abstract public Point2D constrain(double x, double y);
 }

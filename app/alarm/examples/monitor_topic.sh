@@ -2,7 +2,7 @@
 
 if [ $# -ne 1 ]
 then
-    echo "Usage: monitor_topic.sh Accelerator (or AcceleratorState, AcceleratorCommand, AcceleratorTalk)"
+    echo "Usage: monitor_topic.sh Accelerator (or AcceleratorCommand, AcceleratorTalk)"
     exit 1
 fi
 

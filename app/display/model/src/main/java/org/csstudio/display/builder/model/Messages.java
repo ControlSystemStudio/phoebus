@@ -277,12 +277,14 @@ public class Messages
     public static String WidgetProperties_ShowHiHi;
     public static String WidgetProperties_ShowIndex;
     public static String WidgetProperties_ShowLED;
+    public static String WidgetProperties_ShowLimits;
     public static String WidgetProperties_ShowLow;
     public static String WidgetProperties_ShowLoLo;
     public static String WidgetProperties_ShowMinorTicks;
     public static String WidgetProperties_ShowOK;
     public static String WidgetProperties_ShowScale;
     public static String WidgetProperties_ShowUnits;
+    public static String WidgetProperties_ShowValue;
     public static String WidgetProperties_Skin;
     public static String WidgetProperties_Square;
     public static String WidgetProperties_StartFromZero;

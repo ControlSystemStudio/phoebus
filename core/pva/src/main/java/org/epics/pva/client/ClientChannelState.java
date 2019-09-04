@@ -30,7 +30,8 @@ public enum ClientChannelState
     /** Channel closing was confirmed by server, cannot be used again */
     CLOSED;
 
-    /** @return <code>true</code> if state is searching, connected, ..,
+    /** @param state State to check
+     *  @return <code>true</code> if state is searching, connected, ..,
      *          <code>false</code> if CLOSING or CLOSED and thus done.
      */
     public static boolean isActive(final ClientChannelState state)

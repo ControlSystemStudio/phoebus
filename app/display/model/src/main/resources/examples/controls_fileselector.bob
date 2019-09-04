@@ -109,14 +109,21 @@ offering an alternate way to select an existing file.</text>
   <widget type="fileselector" version="2.0.0">
     <name>File Selector_4</name>
     <pv_name>loc://path("")</pv_name>
-    <filespace>1</filespace>
     <x>251</x>
     <y>281</y>
+    <rules>
+      <rule name="Enable" prop_id="enabled" out_exp="false">
+        <exp bool_exp="pv0&gt;0">
+          <value>true</value>
+        </exp>
+        <pv_name>loc://enable(1)</pv_name>
+      </rule>
+    </rules>
+    <enabled>false</enabled>
   </widget>
   <widget type="fileselector" version="2.0.0">
     <name>File Selector_5</name>
     <pv_name>loc://path("")</pv_name>
-    <filespace>1</filespace>
     <component>1</component>
     <x>252</x>
     <y>322</y>
@@ -124,7 +131,6 @@ offering an alternate way to select an existing file.</text>
   <widget type="fileselector" version="2.0.0">
     <name>File Selector_6</name>
     <pv_name>loc://path("")</pv_name>
-    <filespace>1</filespace>
     <component>2</component>
     <x>251</x>
     <y>358</y>
@@ -132,7 +138,6 @@ offering an alternate way to select an existing file.</text>
   <widget type="fileselector" version="2.0.0">
     <name>File Selector_7</name>
     <pv_name>loc://path("")</pv_name>
-    <filespace>1</filespace>
     <component>3</component>
     <x>250</x>
     <y>396</y>
@@ -205,5 +210,13 @@ if name:
     <y>521</y>
     <width>110</width>
     <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="checkbox" version="2.0.0">
+    <name>Check Box</name>
+    <pv_name>loc://enable(1)</pv_name>
+    <label>Enable</label>
+    <x>320</x>
+    <y>280</y>
+    <height>30</height>
   </widget>
 </display>

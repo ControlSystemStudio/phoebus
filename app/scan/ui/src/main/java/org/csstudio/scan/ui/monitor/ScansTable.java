@@ -18,6 +18,7 @@ import org.csstudio.scan.client.ScanClient;
 import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.info.ScanServerInfo;
 import org.csstudio.scan.info.ScanState;
+import org.csstudio.scan.ui.ScanUIPreferences;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -29,6 +30,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ContextMenu;
@@ -41,7 +43,10 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -135,6 +140,7 @@ public class ScansTable extends VBox
         VBox.setVgrow(scan_table, Priority.ALWAYS);
         getChildren().setAll(scan_table, status);
         createContextMenu();
+        showStatusbar(ScanUIPreferences.monitor_status);
     }
 
     private void createTable()
@@ -253,6 +259,9 @@ public class ScansTable extends VBox
         remove_completed.setOnAction(event ->
             JobManager.schedule(remove_completed.getText(), monitor -> scan_client.removeCompletedScans()));
 
+        final MenuItem toggle_status = new MenuItem("", ImageCache.getImageView(ImageCache.class, "/icons/info.png"));
+        toggle_status.setOnAction(event -> showStatusbar(! isStatusbarVisible()));
+
         final ContextMenu menu = new ContextMenu();
         scan_table.setOnContextMenuRequested(event ->
         {
@@ -310,23 +319,51 @@ public class ScansTable extends VBox
 
             if (any_completed)
                 menu.getItems().add(remove_completed);
+
+            toggle_status.setText(isStatusbarVisible() ? "Hide Status" : "Show Status");
+            menu.getItems().add(toggle_status);
+
             menu.show(scan_table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
     }
 
     private void showServerInfo(final JobMonitor monitor)
     {
-        final StringBuilder buf = new StringBuilder();
+        Node content;
         try
         {
+            final GridPane grid = new GridPane();
+            content = grid;
+
+            int row = 0;
             final ScanServerInfo info = scan_client.getServerInfo();
-            buf.append("Version: ").append(info.getVersion()).append("\n");
-            buf.append("Started: ").append(TimestampFormats.SECONDS_FORMAT.format(info.getStartTime())).append("\n");
-            buf.append("Configuration: ").append(info.getScanConfig()).append("\n");
-            buf.append("Script Paths: ").append(info.getScriptPaths()).append("\n");
+            grid.add(new Label("Version: "), 0, row);
+            TextField text = new TextField(info.getVersion());
+            text.setEditable(false);
+            GridPane.setHgrow(text, Priority.ALWAYS);
+            grid.add(text, 1, row);
+
+            grid.add(new Label("Started: "), 0, ++row);
+            text = new TextField(TimestampFormats.SECONDS_FORMAT.format(info.getStartTime()));
+            text.setEditable(false);
+            GridPane.setHgrow(text, Priority.ALWAYS);
+            grid.add(text, 1, row);
+
+            grid.add(new Label("Configuration: "), 0, ++row);
+            text = new TextField(info.getScanConfig());
+            text.setEditable(false);
+            GridPane.setHgrow(text, Priority.ALWAYS);
+            grid.add(text, 1, row);
+
+            grid.add(new Label("Script Paths: "), 0, ++row);
+            text = new TextField(info.getScriptPaths().stream().collect(Collectors.joining(", ")));
+            text.setEditable(false);
+            GridPane.setHgrow(text, Priority.ALWAYS);
+            grid.add(text, 1, row);
         }
         catch (Exception ex)
         {
+            final StringBuilder buf = new StringBuilder();
             final ByteArrayOutputStream tmp = new ByteArrayOutputStream();
             final PrintWriter out = new PrintWriter(tmp);
             out.println("Cannot get scan server information,");
@@ -336,13 +373,16 @@ public class ScansTable extends VBox
             out.flush();
             out.close();
             buf.append(tmp.toString());
+            content = new TextArea(buf.toString());
         }
 
+        final Node the_content = content;
         Platform.runLater(() ->
         {
             final Alert dlg = new Alert(AlertType.INFORMATION);
+            dlg.setTitle("Scan Server Info");
             dlg.setHeaderText("");
-            dlg.setContentText(buf.toString());
+            dlg.getDialogPane().setContent(the_content);
             dlg.setResizable(true);
             dlg.getDialogPane().setPrefWidth(800);
 
@@ -389,5 +429,19 @@ public class ScansTable extends VBox
         else
             text = "Scan Server " + server_info.getMemoryInfo();
         status.setText(text);
+    }
+
+    private void showStatusbar(final boolean show)
+    {
+        if (show)
+            getChildren().setAll(scan_table, status);
+        else
+            getChildren().setAll(scan_table);
+        ScanUIPreferences.setMonitorStatus(show);
+    }
+
+    private boolean isStatusbarVisible()
+    {
+        return getChildren().size() > 1;
     }
 }

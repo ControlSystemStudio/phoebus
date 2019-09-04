@@ -1,6 +1,7 @@
 package org.phoebus.applications.alarm.messages;
 
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
@@ -205,7 +206,7 @@ public class AlarmConfigMessage {
         map.put("enabled", Boolean.toString(isEnabled()));
         map.put("latching", Boolean.toString(isLatching()));
         map.put("config_msg", toString());
-        map.put("message_time", formatter.format(getMessage_time()));
+        map.put("message_time", formatter.withZone(ZoneId.of("UTC")).format(getMessage_time()));
         return map;
     }
 

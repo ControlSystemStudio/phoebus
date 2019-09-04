@@ -32,7 +32,7 @@ public class LogTicksTest extends TicksTestBase
         System.out.println("Ticks for " + start + " .. " + end + ":");
         String text = ticks2text(ticks);
         System.out.println(text);
-        assertThat(text, equalTo("'1E0' 2E0 3E0 4E0 5E0 6E0 7E0 8E0 9E0 '1E1' 1E1 2E1 3E1 4E1 5E1 6E1 7E1 8E1 9E1 '1E2' 1E2 2E2 3E2 4E2 5E2 6E2 7E2 8E2 9E2 '1E3' 1E3 2E3 3E3 4E3 5E3 6E3 7E3 8E3 9E3 '1E4' "));
+        assertThat(text, equalTo("'1E0' '3E3' '5E3' '8E3' '1E4' "));
 
         // Wider log scale with majors at 1E0, 1E2, 1E4, ..
         start = 1.0;  end = 1e8;

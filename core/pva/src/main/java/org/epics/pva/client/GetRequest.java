@@ -73,13 +73,15 @@ class GetRequest extends CompletableFuture<PVAStructure> implements RequestEncod
             // Guess, assumes empty FieldRequest (6)
             final int size_offset = buffer.position() + PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE;
             PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_GET, 4+4+1+6);
+            final int payload_start = buffer.position();
             buffer.putInt(channel.sid);
             buffer.putInt(request_id);
             buffer.put(PVAHeader.CMD_SUB_INIT);
 
             final FieldRequest field_request = new FieldRequest(request);
-            final int request_size = field_request.encodeType(buffer);
-            buffer.putInt(size_offset, 4+4+1+request_size);
+            field_request.encodeType(buffer);
+            field_request.encode(buffer);
+            buffer.putInt(size_offset, buffer.position() - payload_start);
 
             init = false;
         }
