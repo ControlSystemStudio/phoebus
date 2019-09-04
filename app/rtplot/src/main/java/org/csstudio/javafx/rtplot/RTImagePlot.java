@@ -9,6 +9,7 @@ package org.csstudio.javafx.rtplot;
 
 import java.awt.Rectangle;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
@@ -375,7 +376,7 @@ public class RTImagePlot extends BorderPane
     /** @param color Background color */
     public void setBackground(final javafx.scene.paint.Color color)
     {
-        plot.setBackground(GraphicsUtils.convert(color));
+        plot.setBackground(GraphicsUtils.convert(Objects.requireNonNull(color), (int) (255*color.getOpacity())));
     }
 
     /** @param color_mapping Function that returns color for value 0.0 .. 1.0 */

@@ -23,8 +23,8 @@ import org.csstudio.javafx.rtplot.data.PlotDataProvider;
 import org.csstudio.javafx.rtplot.data.SimpleDataItem;
 import org.csstudio.javafx.rtplot.internal.MouseMode;
 import org.csstudio.javafx.rtplot.util.RGBFactory;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -32,7 +32,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ValuePlotDemo extends Application
+public class ValuePlotDemo extends ApplicationWrapper
 {
     final private static int MAX_SIZE = 10000;
     final private static boolean USE_LOG = false;
@@ -198,6 +198,6 @@ public class ValuePlotDemo extends Application
 
     public static void main(final String[] args)
     {
-        launch(args);
+        ApplicationWrapper.launch(ValuePlotDemo.class, args);
     }
 }

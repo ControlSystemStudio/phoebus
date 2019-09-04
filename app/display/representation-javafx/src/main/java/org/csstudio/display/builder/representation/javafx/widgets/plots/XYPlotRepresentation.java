@@ -29,6 +29,7 @@ import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget.MarkerPrope
 import org.csstudio.display.builder.representation.Preferences;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.csstudio.display.builder.representation.javafx.widgets.RegionBaseRepresentation;
+import org.csstudio.javafx.rtplot.Activator;
 import org.csstudio.javafx.rtplot.Axis;
 import org.csstudio.javafx.rtplot.AxisRange;
 import org.csstudio.javafx.rtplot.LineStyle;
@@ -88,6 +89,28 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
 
     private volatile boolean changing_marker = false;
 
+    static TraceType map(final PlotWidgetTraceType value)
+    {
+        // AREA* types create just a line if the input data is
+        // a plain array, but will also handle VStatistics
+        switch (value)
+        {
+        case NONE:          return TraceType.NONE;
+        case STEP:          return TraceType.AREA;
+        case ERRORBAR:      return TraceType.ERROR_BARS;
+        case LINE_ERRORBAR: return TraceType.LINES_ERROR_BARS;
+        case BARS:          return TraceType.BARS;
+        case LINE:
+        default:            return TraceType.AREA_DIRECT;
+        }
+    }
+
+    static PointType map(final PlotWidgetPointType value)
+    {   // For now the ordinals match,
+        // only different types to keep the Model separate from the Representation
+        return PointType.values()[value.ordinal()];
+    }
+
     private final RTPlotListener<Double> plot_listener = new RTPlotListener<>()
     {
         @Override
@@ -123,11 +146,11 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
                 updateModelAxis(model_widget.propYAxes().getElement(index), y_axis);
         }
 
-        public void changedLogarithmic(final YAxis<?> y_axis)
+        public void changedLogarithmic(final Axis<?> y_axis)
         {
             final int index = plot.getYAxes().indexOf(y_axis);
             if (index >= 0  &&  index < model_widget.propYAxes().size())
-                model_widget.propYAxes().getElement(index).logscale().setValue(y_axis.isLogarithmic());
+                model_widget.propYAxes().getElement(index).logscale().setValue(((YAxis<?>)y_axis).isLogarithmic());
         };
 
         /** Invoked when auto scale is enabled or disabled by user interaction */
@@ -185,7 +208,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
                                                     value_listener = this::valueChanged;
         private final Trace<Double> trace;
         // Throttle this trace's x, y, error value changes
-        private final UpdateThrottle throttle = new UpdateThrottle(Preferences.plot_update_delay, TimeUnit.MILLISECONDS, this::computeTrace);
+        private final UpdateThrottle throttle = new UpdateThrottle(Preferences.plot_update_delay, TimeUnit.MILLISECONDS, this::computeTrace,  Activator.thread_pool);
 
         TraceHandler(final TraceWidgetProperty model_trace)
         {
@@ -214,28 +237,6 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
             model_trace.traceYValue().addUntypedPropertyListener(value_listener);
             model_trace.traceErrorValue().addUntypedPropertyListener(value_listener);
             model_trace.traceVisible().addUntypedPropertyListener(trace_listener);
-        }
-
-        private TraceType map(final PlotWidgetTraceType value)
-        {
-            // AREA* types create just a line if the input data is
-            // a plain array, but will also handle VStatistics
-            switch (value)
-            {
-            case NONE:          return TraceType.NONE;
-            case STEP:          return TraceType.AREA;
-            case ERRORBAR:      return TraceType.ERROR_BARS;
-            case LINE_ERRORBAR: return TraceType.LINES_ERROR_BARS;
-            case BARS:          return TraceType.BARS;
-            case LINE:
-            default:            return TraceType.AREA_DIRECT;
-            }
-        }
-
-        private PointType map(final PlotWidgetPointType value)
-        {   // For now the ordinals match,
-            // only different types to keep the Model separate from the Representation
-            return PointType.values()[value.ordinal()];
         }
 
         private void traceChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)

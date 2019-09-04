@@ -1,0 +1,11 @@
+#!/bin/sh
+
+JAR=`echo target/core-pva*.jar`
+if [ -r "$JAR" ]
+then
+    # Echo use jar file
+    java -jar $JAR "$@"
+else
+    # Use build output
+    java -cp target/classes org.epics.pva.client.PVAClientMain "$@"
+fi

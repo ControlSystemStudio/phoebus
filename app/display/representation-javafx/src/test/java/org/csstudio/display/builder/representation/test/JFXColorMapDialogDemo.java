@@ -9,18 +9,18 @@ package org.csstudio.display.builder.representation.test;
 
 import org.csstudio.display.builder.model.properties.PredefinedColorMaps;
 import org.csstudio.display.builder.representation.javafx.ColorMapDialog;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.stage.Stage;
 
 /** Demo of {@link ColorMapDialog}
  *  @author Kay Kasemir
  */
-public class JFXColorMapDialogDemo  extends Application
+public class JFXColorMapDialogDemo extends ApplicationWrapper
 {
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(JFXColorMapDialogDemo.class, args);
     }
 
     @Override

@@ -11,8 +11,10 @@ import org.phoebus.logbook.LogService;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
 /**
- * A headless context menu entry for creating log entries from adaptable selections.
- * TODO this temporary headless action needs to removed once the create log entry dialog is complete. 
+ * A headless context menu entry for creating log entries from adaptable
+ * selections. TODO this temporary headless action needs to removed once the
+ * create log entry dialog is complete.
+ * 
  * @author Kunal Shroff
  *
  */
@@ -33,16 +35,12 @@ public class contextMenuLogging implements ContextMenuEntry {
 
         List<LogEntry> adaptedSelections = new ArrayList<LogEntry>();
         selection.getSelections().stream().forEach(s -> {
-            AdapterService.getInstance().getAdaptersforAdaptable(s.getClass()).ifPresent(a -> {
-                a.forEach(af -> {
-                    af.getAdapter(s, LogEntry.class).ifPresent(adapted -> {
-                        adaptedSelections.add((LogEntry) adapted);
-                    });
-                });
+            AdapterService.adapt(s, LogEntry.class).ifPresent(adapted -> {
+                adaptedSelections.add((LogEntry) adapted);
             });
         });
         // TODO open the create log entry dialog
-        //LogService.getInstance().createLogEntry(adaptedSelections, null);
+        // LogService.getInstance().createLogEntry(adaptedSelections, null);
         return null;
     }
 

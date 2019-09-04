@@ -67,6 +67,7 @@ public class Engine
         System.out.println("-replace_engine               Import: Replace existing engine config, or stop?");
         System.out.println("-steal_channels               Import: Reassign channels that belong to other engine?");
         System.out.println("-settings settings.xml        Import preferences (PV connectivity) from property format file");
+        System.out.println("-noshell                      Disable the command shell for running without a terminal");
         System.out.println("-logging logging.properties   Load log settings");
         System.out.println();
     }
@@ -132,7 +133,7 @@ public class Engine
 
         int port = 4812;
         boolean skip_last = false;
-        boolean list = false, delete = false, replace_engine = false, steal_channels = false;
+        boolean list = false, delete = false, replace_engine = false, steal_channels = false, use_shell = true;
         File import_file = null, export_file = null;
 
         // Handle arguments
@@ -194,6 +195,10 @@ public class Engine
                     iter.remove();
                     logger.info("Loading settings from " + filename);
                     PropertyPreferenceLoader.load(new FileInputStream(filename));
+                }
+                else if (cmd.equals("-noshell"))
+                {
+                    use_shell = false;
                 }
                 else if (cmd.equals("-logging"))
                 {
@@ -328,8 +333,14 @@ public class Engine
             return;
         }
 
-        final CommandShell shell = new CommandShell(COMMANDS, Engine::handleShellCommands);
-        shell.start();
+        final CommandShell shell;
+        if (use_shell)
+        {
+            shell = new CommandShell(COMMANDS, Engine::handleShellCommands);
+            shell.start();
+        }
+        else
+            shell = null;
         boolean run = true;
         while (run)
         {
@@ -373,7 +384,8 @@ public class Engine
             httpd.shutdown();
         }
 
-        shell.stop();
+        if (shell != null)
+            shell.stop();
         logger.info("Done.");
         System.exit(0);
     }

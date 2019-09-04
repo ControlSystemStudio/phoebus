@@ -16,8 +16,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.csstudio.javafx.rtplot.util.RGBFactory;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -28,7 +28,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class TimePlotDemo extends Application
+public class TimePlotDemo extends ApplicationWrapper
 {
     final private static int MAX_SIZE = 10000;
 
@@ -142,6 +142,6 @@ public class TimePlotDemo extends Application
     }
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(TimePlotDemo.class, args);
     }
 }

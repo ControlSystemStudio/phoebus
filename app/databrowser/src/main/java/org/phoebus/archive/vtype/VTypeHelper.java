@@ -54,6 +54,9 @@ public class VTypeHelper
             if (data.size() > 0)
                 return data.getDouble(0);
         }
+        // Display string PVs at 0
+        if (value instanceof VString)
+            return 0.0;
         return Double.NaN;
     }
 

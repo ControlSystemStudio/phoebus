@@ -9,8 +9,8 @@ package org.phoebus.applications.alarm;
 
 import org.phoebus.applications.alarm.talk.TalkClient;
 import org.phoebus.applications.alarm.ui.annunciator.AnnunciatorTable;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -19,7 +19,7 @@ import javafx.stage.Stage;
  *  @author Evan Smith
  */
 @SuppressWarnings("nls")
-public class AnnunciatorTableDemo extends Application
+public class AnnunciatorTableDemo extends ApplicationWrapper
 {
     final TalkClient client = new TalkClient(AlarmSystem.server, AlarmSystem.config_name);
     final AnnunciatorTable table = new AnnunciatorTable(client);
@@ -33,16 +33,12 @@ public class AnnunciatorTableDemo extends Application
         stage.setTitle("Alarm Annunciator Table Demo");
         stage.show();
         client.start();
-    }
-
-    @Override
-    public void stop()
-    {
-        table.shutdown();
+        
+        stage.setOnCloseRequest(event -> table.shutdown());
     }
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(AnnunciatorTableDemo.class, args);
     }
 }

@@ -7,7 +7,8 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.sandbox;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -28,13 +29,13 @@ import javafx.stage.Stage;
  *
  *  @author Kay Kasemir
  */
-public class ImageScaling extends Application
+public class ImageScaling extends ApplicationWrapper
 {
     private static final int HEIGHT = 25, WIDTH = 155;
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(ImageScaling.class, args);
     }
 
     @Override

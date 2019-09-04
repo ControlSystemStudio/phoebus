@@ -16,9 +16,9 @@ import java.util.logging.LogManager;
 
 import org.csstudio.display.builder.editor.actions.ActionDescription;
 import org.csstudio.display.builder.model.ModelPlugin;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 import org.phoebus.ui.javafx.ImageCache;
 
-import javafx.application.Application;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -29,7 +29,7 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 @SuppressWarnings("nls")
-public class EditorDemo extends Application
+public class EditorDemo extends ApplicationWrapper
 {
     private static String display_file = "../model/src/main/resources/examples/01_main.bob";
     private EditorGUI editor;
@@ -101,6 +101,6 @@ public class EditorDemo extends Application
 
         LogManager.getLogManager().readConfiguration(new FileInputStream("../../../phoebus-product/src/main/resources/logging.properties"));
 
-        launch(args);
+        launch(EditorDemo.class, args);
     }
 }

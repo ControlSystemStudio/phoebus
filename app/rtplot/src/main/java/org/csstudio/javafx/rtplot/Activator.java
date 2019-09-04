@@ -10,8 +10,6 @@ package org.csstudio.javafx.rtplot;
 import java.awt.Color;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import org.phoebus.framework.jobs.NamedThreadFactory;
@@ -31,17 +29,14 @@ public class Activator
     public static final Color shady_future;
 
     /** Thread pool for scrolling, throttling updates
-     *  <p>No upper limit for threads.
-     *  Removes all threads after 10 seconds
+     * 
+     *  <p>One per CPU core allows that many plots to run updateImageBuffer in parallel.
      */
-    public static final ScheduledExecutorService thread_pool;
+    public static final ScheduledExecutorService thread_pool
+        =  Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), new NamedThreadFactory("RTPlot"));
 
     static
     {
-        // After 10 seconds, delete all idle threads
-        thread_pool = Executors.newScheduledThreadPool(0, new NamedThreadFactory("RTPlot"));
-        ((ThreadPoolExecutor)thread_pool).setKeepAliveTime(10, TimeUnit.SECONDS);
-
         final PreferencesReader prefs = new PreferencesReader(Activator.class, "/rt_plot_preferences.properties");
         final String[] rgba = prefs.get("shady_future").split("\\s*,\\s*");
         shady_future = new Color(Integer.parseInt(rgba[0]),Integer.parseInt(rgba[1]), Integer.parseInt(rgba[2]), Integer.parseInt(rgba[3]));

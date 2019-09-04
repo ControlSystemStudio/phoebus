@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,6 +18,7 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
+import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
@@ -75,7 +76,7 @@ public class PlotWidgetProperties
     };
 
     public static final WidgetPropertyDescriptor<Boolean> propGrid =
-        CommonWidgetProperties.newBooleanPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "show_grid", Messages.PlotWidget_ShowGrid);
+        CommonWidgetProperties.newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "show_grid", Messages.PlotWidget_ShowGrid);
 
     public static final WidgetPropertyDescriptor<WidgetColor> propGridColor =
         CommonWidgetProperties.newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "grid_color", Messages.PlotWidget_GridColor);
@@ -136,15 +137,15 @@ public class PlotWidgetProperties
     // Elements of the 'trace' structure
     private static final WidgetPropertyDescriptor<String> traceX =
         CommonWidgetProperties.newPVNamePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "x_pv", Messages.PlotWidget_XPV);
-    private static final WidgetPropertyDescriptor<String> traceY =
+    public static final WidgetPropertyDescriptor<String> traceY =
         CommonWidgetProperties.newPVNamePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "y_pv", Messages.PlotWidget_YPV);
     private static final WidgetPropertyDescriptor<String> traceErr =
         CommonWidgetProperties.newPVNamePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "err_pv", Messages.PlotWidget_ErrorPV);
-    private static final WidgetPropertyDescriptor<Integer> traceYAxis =
+    public static final WidgetPropertyDescriptor<Integer> traceYAxis =
         CommonWidgetProperties.newIntegerPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "axis", Messages.PlotWidget_YAxis);
-    private static final WidgetPropertyDescriptor<WidgetColor> traceColor =
+    public static final WidgetPropertyDescriptor<WidgetColor> traceColor =
         CommonWidgetProperties.newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "color", Messages.PlotWidget_Color);
-    private static final WidgetPropertyDescriptor<PlotWidgetTraceType> traceType =
+    public static final WidgetPropertyDescriptor<PlotWidgetTraceType> traceType =
         new WidgetPropertyDescriptor<>(
             WidgetPropertyCategory.BEHAVIOR, "trace_type", Messages.PlotWidget_TraceType)
         {
@@ -155,7 +156,7 @@ public class PlotWidgetProperties
                 return new EnumWidgetProperty<>(this, widget, default_value);
             }
         };
-    private static final WidgetPropertyDescriptor<PlotWidgetPointType> tracePointType =
+    public static final WidgetPropertyDescriptor<PlotWidgetPointType> tracePointType =
         new WidgetPropertyDescriptor<>(
             WidgetPropertyCategory.BEHAVIOR, "point_type", Messages.PlotWidget_PointType)
         {
@@ -166,7 +167,7 @@ public class PlotWidgetProperties
                 return new EnumWidgetProperty<>(this, widget, default_value);
             }
         };
-    private static final WidgetPropertyDescriptor<Integer> tracePointSize =
+    public static final WidgetPropertyDescriptor<Integer> tracePointSize =
         CommonWidgetProperties.newIntegerPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "point_size", Messages.PlotWidget_PointSize,
                                                             0, Integer.MAX_VALUE);
     private static final WidgetPropertyDescriptor<VType> traceXValue =
@@ -175,7 +176,7 @@ public class PlotWidgetProperties
         CommonWidgetProperties.newRuntimeValue("y_value", Messages.PlotWidget_Y);
     private static final WidgetPropertyDescriptor<VType> traceErrValue =
             CommonWidgetProperties.newRuntimeValue("err_value", "Error");
-    private final static StructuredWidgetProperty.Descriptor propTrace =
+    public final static StructuredWidgetProperty.Descriptor propTrace =
         new Descriptor(WidgetPropertyCategory.BEHAVIOR, "trace", Messages.PlotWidget_Trace);
 
     /** 'trace' structure */
@@ -190,8 +191,7 @@ public class PlotWidgetProperties
                                 traceErr.createProperty(widget, ""),
                                 traceYAxis.createProperty(widget, 0),
                                 traceType.createProperty(widget, PlotWidgetTraceType.LINE),
-                                // TODO Pick a default trace color based on index
-                                traceColor.createProperty(widget, new WidgetColor(0, 0, 255)),
+                                traceColor.createProperty(widget, NamedWidgetColors.getPaletteColor(index)),
                                 CommonWidgetProperties.propLineWidth.createProperty(widget, 1),
                                 tracePointType.createProperty(widget, PlotWidgetPointType.NONE),
                                 tracePointSize.createProperty(widget, 10),

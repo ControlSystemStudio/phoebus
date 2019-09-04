@@ -70,7 +70,8 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
     private final UntypedWidgetPropertyListener fileChangedListener = this::fileChanged;
     private final UntypedWidgetPropertyListener sizesChangedListener = this::sizesChanged;
 
-    private volatile double zoom_factor = 1.0;
+    private volatile double zoom_factor_x = 1.0;
+    private volatile double zoom_factor_y = 1.0;
 
     /** Inner pane that holds child widgets
      *
@@ -112,6 +113,10 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
         inner.getTransforms().add(zoom = new Scale());
 
         scroll = new ScrollPane(inner);
+        //  By default it seems that the minimum size is set to 36x36.
+        //  This will make the border (if visible) not smaller that this minimum size
+        //  even if the widget is actually smaller.
+        scroll.setMinSize(1, 1);
         //  Removing 1px border around the ScrollPane's content. See https://stackoverflow.com/a/29376445
         scroll.getStyleClass().addAll("embedded_display", "edge-to-edge");
         // Panning tends to 'jerk' the content when clicked
@@ -174,17 +179,22 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
             {
                 final double zoom_x = content_width  > 0 ? (double) widget_width  / content_width : 1.0;
                 final double zoom_y = content_height > 0 ? (double) widget_height / content_height : 1.0;
-                zoom_factor = Math.min(zoom_x, zoom_y);
+                zoom_factor_x = zoom_factor_y = Math.min(zoom_x, zoom_y);
             }
             else if (resize == Resize.SizeToContent)
             {
-                zoom_factor = 1.0;
+                zoom_factor_x = zoom_factor_y = 1.0;
                 resizing = true;
                 if (content_width > 0)
                     model_widget.propWidth().setValue(content_width);
                 if (content_height > 0)
                     model_widget.propHeight().setValue(content_height);
                 resizing = false;
+            }
+            else if (resize == Resize.StretchContent)
+            {
+                zoom_factor_x = content_width  > 0 ? (double) widget_width  / content_width : 1.0;
+                zoom_factor_y = content_height > 0 ? (double) widget_height / content_height : 1.0;
             }
         }
 
@@ -340,10 +350,10 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
                 scroll.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
                 scroll.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
             }
-            else if (resize == Resize.ResizeContent)
+            else if (resize == Resize.ResizeContent  ||  resize == Resize.StretchContent )
             {
-                zoom.setX(zoom_factor);
-                zoom.setY(zoom_factor);
+                zoom.setX(zoom_factor_x);
+                zoom.setY(zoom_factor_y);
                 scroll.setHbarPolicy(ScrollBarPolicy.NEVER);
                 scroll.setVbarPolicy(ScrollBarPolicy.NEVER);
             }

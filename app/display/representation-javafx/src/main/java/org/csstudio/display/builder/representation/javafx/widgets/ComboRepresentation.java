@@ -18,6 +18,7 @@ import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.ComboWidget;
+import org.csstudio.display.builder.representation.javafx.Cursors;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VType;
@@ -26,6 +27,7 @@ import org.phoebus.ui.javafx.Styles;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
+import javafx.scene.Cursor;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListCell;
 import javafx.scene.input.MouseEvent;
@@ -265,8 +267,12 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
         {
             final boolean enabled = model_widget.propEnabled().getValue()  &&
                                     model_widget.runtimePropPVWritable().getValue();
-            jfx_node.setDisable(! enabled);
+            // When truly disabled, the widget no longer reacts to context menu,
+            // and the cursor will be ignored
+            //  jfx_node.setDisable(! enabled);
+            // So keep enabled, but indicate that trying to operate the widget is futile
             Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
+            jfx_node.setCursor(enabled ? Cursor.DEFAULT : Cursors.NO_WRITE);
         }
     }
 }

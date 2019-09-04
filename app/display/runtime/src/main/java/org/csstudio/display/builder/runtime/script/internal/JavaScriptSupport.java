@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -40,6 +40,9 @@ class JavaScriptSupport extends BaseScriptSupport
     public JavaScriptSupport(final ScriptSupport support) throws Exception
     {
         this.support = support;
+        // We always create the JS engine, even when not used, so disable
+        // 'Warning: Nashorn engine is planned to be removed from a future JDK release':
+        System.setProperty("nashorn.args", "--no-deprecation-warning");
         engine = Objects.requireNonNull(new ScriptEngineManager().getEngineByName("nashorn"));
         bindings = engine.createBindings();
     }
@@ -53,6 +56,8 @@ class JavaScriptSupport extends BaseScriptSupport
     */
     public Script compile(final String name, final InputStream stream) throws Exception
     {
+        // End users who actually _use_ JS do need a warning that it might undergo changes
+        logger.log(Level.WARNING, "JavaScript support based on 'nashorn' is deprecated (" + name + ")");
         final CompiledScript code = ((Compilable) engine).compile(new InputStreamReader(stream));
         return new JavaScript(this, name, code);
     }

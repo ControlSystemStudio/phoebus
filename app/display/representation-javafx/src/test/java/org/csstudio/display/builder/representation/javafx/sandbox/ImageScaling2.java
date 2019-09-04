@@ -11,7 +11,8 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -24,14 +25,14 @@ import javafx.stage.Stage;
  *
  *  @author Kay Kasemir
  */
-public class ImageScaling2 extends Application
+public class ImageScaling2 extends ApplicationWrapper
 {
     private static final int WIDTH = 800, HEIGHT = 600;
     private static final int IMAGE_WIDTH = 155, IMAGE_HEIGHT = 25;
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(ImageScaling2.class, args);
     }
 
     @Override

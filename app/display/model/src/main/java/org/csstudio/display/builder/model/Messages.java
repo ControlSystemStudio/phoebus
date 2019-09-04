@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -92,6 +92,7 @@ public class Messages
     public static String Resize_Container;
     public static String Resize_Content;
     public static String Resize_None;
+    public static String Resize_Stretch;
     public static String Right;
     public static String Rotation_0;
     public static String Rotation_180;
@@ -101,6 +102,10 @@ public class Messages
     public static String ScrollBar_BarLength;
     public static String SlideButton_Label;
     public static String Spinner_ButtonsOnLeft;
+    public static String Stripchart_Description;
+    public static String Stripchart_LabelFont;
+    public static String Stripchart_Name;
+    public static String Stripchart_TimeRange;
     public static String Style;
     public static String Style_Group;
     public static String Style_Line;
@@ -272,12 +277,14 @@ public class Messages
     public static String WidgetProperties_ShowHiHi;
     public static String WidgetProperties_ShowIndex;
     public static String WidgetProperties_ShowLED;
+    public static String WidgetProperties_ShowLimits;
     public static String WidgetProperties_ShowLow;
     public static String WidgetProperties_ShowLoLo;
     public static String WidgetProperties_ShowMinorTicks;
     public static String WidgetProperties_ShowOK;
     public static String WidgetProperties_ShowScale;
     public static String WidgetProperties_ShowUnits;
+    public static String WidgetProperties_ShowValue;
     public static String WidgetProperties_Skin;
     public static String WidgetProperties_Square;
     public static String WidgetProperties_StartFromZero;

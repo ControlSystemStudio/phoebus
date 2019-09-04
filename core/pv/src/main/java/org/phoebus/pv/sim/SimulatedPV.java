@@ -47,15 +47,9 @@ abstract public class SimulatedPV extends PV
      */
     protected void start(final double update_seconds)
     {
-        final long milli = Math.round(Math.max(update_seconds, 0.1) * 1000);
+        // Limit rate to 100 Hz
+        final long milli = Math.round(Math.max(update_seconds, 0.01) * 1000);
         task = executor.scheduleAtFixedRate(this::update, milli, milli, TimeUnit.MILLISECONDS);
-    }
-
-    /** Prohibit write access */
-    @Override
-    public void write(final Object new_value) throws Exception
-    {
-        throw new Exception("Cannot write data of type" + new_value.getClass().getName());
     }
 
     /** Called by periodic timer */

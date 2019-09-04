@@ -596,7 +596,7 @@ then press &lt;SPACE&gt; to activate button.</text>
     </font>
   </widget>
   <widget type="action_button" version="3.0.0">
-    <name>Action Button_4</name>
+    <name>XY</name>
     <actions>
       <action type="open_display">
         <file>plots_xy.bob</file>
@@ -611,12 +611,12 @@ then press &lt;SPACE&gt; to activate button.</text>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="action_button" version="3.0.0">
-    <name>Action Button_5</name>
+    <name>Strip</name>
     <actions>
       <action type="open_display">
-        <file>plots_image.bob</file>
+        <file>plots_strip.bob</file>
         <target>replace</target>
-        <description>Image</description>
+        <description>Strip Chart</description>
       </action>
     </actions>
     <x>610</x>
@@ -626,7 +626,7 @@ then press &lt;SPACE&gt; to activate button.</text>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="action_button" version="3.0.0">
-    <name>Action Button_21</name>
+    <name>DB</name>
     <actions>
       <action type="open_display">
         <file>plots_databrowser.bob</file>
@@ -636,6 +636,21 @@ then press &lt;SPACE&gt; to activate button.</text>
     </actions>
     <x>610</x>
     <y>200</y>
+    <width>120</width>
+    <height>26</height>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Image</name>
+    <actions>
+      <action type="open_display">
+        <file>plots_image.bob</file>
+        <target>replace</target>
+        <description>Image</description>
+      </action>
+    </actions>
+    <x>610</x>
+    <y>240</y>
     <width>120</width>
     <height>26</height>
     <tooltip>$(actions)</tooltip>

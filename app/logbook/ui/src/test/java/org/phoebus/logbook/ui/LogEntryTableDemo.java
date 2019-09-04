@@ -16,6 +16,7 @@ import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookImpl;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.TagImpl;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -24,10 +25,10 @@ import javafx.scene.Scene;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-public class LogEntryTableDemo extends Application {
+public class LogEntryTableDemo extends ApplicationWrapper {
 
     public static void main(String[] args) {
-        launch(args);
+        launch(LogEntryTableDemo.class, args);
     }
 
     @Override

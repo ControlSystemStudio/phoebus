@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>core</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>4.6.0-SNAPSHOT</version>
   </parent>
   <artifactId>core-ui</artifactId>
   <dependencies>
@@ -27,33 +27,38 @@
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-web</artifactId>
-      <version>11.0.2</version>
+      <version>${openjfx.version}</version>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-swing</artifactId>
-      <version>11.0.2</version>
+      <version>${openjfx.version}</version>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-fxml</artifactId>
-      <version>11.0.2</version>
+      <version>${openjfx.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-framework</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>4.6.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-security</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>4.6.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>core-util</artifactId>
+      <version>4.6.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-pv</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>4.6.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
 </project>

@@ -19,8 +19,8 @@ import org.csstudio.javafx.rtplot.internal.MouseMode;
 import org.csstudio.javafx.rtplot.internal.Plot;
 import org.csstudio.javafx.rtplot.internal.TraceImpl;
 import org.csstudio.javafx.rtplot.internal.YAxisImpl;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -30,7 +30,7 @@ import javafx.stage.Stage;
 /** @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class BasicPlotDemo extends Application
+public class BasicPlotDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage) throws Exception
@@ -134,8 +134,8 @@ public class BasicPlotDemo extends Application
         });
     }
 
-    public static void main(final String[] args)
+    public static void main(String[] args)
     {
-        launch(args);
+        launch(BasicPlotDemo.class, args);
     }
 }

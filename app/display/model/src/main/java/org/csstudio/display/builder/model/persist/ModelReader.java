@@ -99,6 +99,12 @@ public class ModelReader
         version = readVersion(root);
     }
 
+    /** @return XML root element for custom access */
+    public Element getRoot()
+    {
+        return root;
+    }
+
     /** @return Version of the file that's being read.
      *          See {@link DisplayModel#VERSION} for supported versions.
      */

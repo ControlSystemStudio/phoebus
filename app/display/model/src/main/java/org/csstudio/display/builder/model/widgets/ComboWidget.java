@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -111,7 +111,7 @@ public class ComboWidget extends WritablePVWidget
     }
 
     /** 'item' property: element for list of 'items' property */
-    private static final WidgetPropertyDescriptor<String> propItem =
+    public static final WidgetPropertyDescriptor<String> propItem =
             CommonWidgetProperties.newStringPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "item", Messages.ComboWidget_Item);
 
     /** 'items' property: list of items (string properties) for combo box */

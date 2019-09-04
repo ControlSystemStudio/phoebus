@@ -1,11 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
 package org.csstudio.display.builder.editor.app;
+
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFile;
 
 import java.io.File;
 import java.net.URI;
@@ -22,6 +24,7 @@ import org.csstudio.display.builder.editor.actions.ActionDescription;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.ModelPlugin;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.WidgetClassSupport;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.persist.WidgetClassesService;
@@ -53,8 +56,6 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Control;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
-
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFile;
 
 /** Display Editor Instance
  *  @author Kay Kasemir
@@ -136,6 +137,8 @@ public class DisplayEditorInstance implements AppInstance
         final List<Widget> selection = editor_gui.getDisplayEditor().getWidgetSelectionHandler().getSelection();
         final ActionWapper cut = new ActionWapper(ActionDescription.CUT);
         final ActionWapper copy = new ActionWapper(ActionDescription.COPY);
+        final MenuItem copy_properties = new CopyPropertiesAction(editor_gui.getDisplayEditor(), selection);
+        final MenuItem paste_properties = new PastePropertiesAction(editor_gui.getDisplayEditor(), selection);
         final MenuItem group = new CreateGroupAction(editor_gui.getDisplayEditor(), selection);
         final MenuItem morph = new MorphWidgetsMenu(editor_gui.getDisplayEditor());
         final MenuItem back = new ActionWapper(ActionDescription.TO_BACK);
@@ -194,6 +197,8 @@ public class DisplayEditorInstance implements AppInstance
         menu.getItems().setAll(cut,
                                copy,
                                new PasteWidgets(getEditorGUI()),
+                               copy_properties,
+                               paste_properties,
                                new SeparatorMenuItem(),
                                group,
                                ungroup,
@@ -312,7 +317,19 @@ public class DisplayEditorInstance implements AppInstance
         final URI orig_input = dock_item.getInput();
         final File file = Objects.requireNonNull(ResourceParser.getFile(orig_input));
 
-        final File proper = ModelResourceUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
+        final DisplayModel model = editor_gui.getDisplayEditor().getModel();
+
+        // Check if it's a class file (*.bcf)
+        File proper;
+        if(model.isClassModel())
+        {
+            proper = ModelResourceUtil.enforceFileExtension(file, WidgetClassSupport.FILE_EXTENSION);
+        }
+        else
+        {
+            proper = ModelResourceUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
+        }
+
         if (file.equals(proper))
         {
             // Check if file has been changed outside of this editor

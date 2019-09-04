@@ -12,6 +12,8 @@
         </fileset>
         <pathelement path="../framework/${build}/core-framework-${version}.jar"/>
         <pathelement path="../util/${build}/core-util-${version}.jar"/>
+        <pathelement path="../formula/${build}/core-formula-${version}.jar"/>
+        <pathelement path="../pva/${build}/core-pva-${version}.jar"/>
         <pathelement path="../vtype/${build}/core-vtype-${version}.jar"/>
       </classpath>
     </javac>

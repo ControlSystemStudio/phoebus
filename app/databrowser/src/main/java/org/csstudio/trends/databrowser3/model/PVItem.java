@@ -90,7 +90,7 @@ public class PVItem extends ModelItem
      *  @param period Scan period in seconds, &le;0 to 'monitor'
      *  @throws Exception on error
      */
-    public PVItem(final String name, final double period) throws Exception
+    public PVItem(final String name, final double period)
     {
         super(name);
         this.period = period;
@@ -325,7 +325,11 @@ public class PVItem extends ModelItem
     public void stop()
     {
         if (pv == null)
-            throw new RuntimeException("Not running " + getName());
+        {   // Warn. Throwing exception would prevent closing when there was an error during start
+            logger.log(Level.WARNING, "Data Browser PV closed while not running: " + getName());
+            return;
+        }
+
         pv_flow.dispose();
         if (scanner != null)
         {

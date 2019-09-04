@@ -3,6 +3,7 @@ package org.phoebus.product;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -131,6 +132,23 @@ public class Launcher
                     }
                     return;
                 }
+                else if (cmd.equals("-main"))
+                {
+                    iter.remove();
+                    if (! iter.hasNext())
+                        throw new Exception("Missing -main name");
+                    final String main = iter.next();
+                    iter.remove();
+                    
+                    // Locate Main class and its main()
+                    final Class<?> main_class = Class.forName(main);
+                    final Method main_method = main_class.getDeclaredMethod("main", String[].class);
+                    // Collect remaining arguments
+                    final List<String> new_args = new ArrayList<>();
+                    iter.forEachRemaining(new_args::add);
+                    main_method.invoke(null, new Object[] { new_args.toArray(new String[new_args.size()]) });
+                    return;
+                }
             }
         }
         catch (Exception ex)
@@ -183,6 +201,7 @@ public class Launcher
         System.out.println("-server port                            -  Create instance server on given TCP port");
         System.out.println("-app probe                              -  Launch an application with input arguments");
         System.out.println("-resource  /tmp/example.plt             -  Open an application configuration file with the default application");
+        System.out.println("-main org.package.Main                  -  Run alternate application Main");
         System.out.println();
         System.out.println("In 'server' mode, first instance opens UI.");
         System.out.println("Additional calls to open resources are then forwarded to the initial instance.");

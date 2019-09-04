@@ -7,7 +7,8 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.sandbox;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.beans.InvalidationListener;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -49,7 +50,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings({ "nls", "unused" })
-public class ZoomPan extends Application
+public class ZoomPan extends ApplicationWrapper
 {
     private static boolean zoom_in = false;
 
@@ -117,6 +118,6 @@ public class ZoomPan extends Application
 
     public static void main(String[] args)
     {
-        launch(args);
+        launch(ZoomPan.class, args);
     }
 }

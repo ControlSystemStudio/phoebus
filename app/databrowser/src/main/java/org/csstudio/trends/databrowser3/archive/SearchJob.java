@@ -73,9 +73,10 @@ public class SearchJob implements JobRunnable
                 if (monitor.isCanceled())
                     break;
                 monitor.updateTaskName(archive.getName());
-                final List<String> names = reader.getNamesByPattern(pattern);
-                for (String name : names)
-                    channels.add(new ChannelInfo(name, archive));
+                reader.getNamesByPattern(pattern)
+                      .stream()
+                      .map(name -> new ChannelInfo(name, archive))
+                      .forEach(info -> channels.add(info));
                 monitor.worked(1);
             }
             catch (final Exception ex)

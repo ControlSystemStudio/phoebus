@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.csstudio.display.builder.editor.PointConstraint;
 import org.csstudio.display.builder.editor.WidgetSelectionHandler;
 import org.csstudio.display.builder.editor.WidgetSelectionListener;
 import org.csstudio.display.builder.editor.undo.SetWidgetPointsAction;
@@ -39,6 +40,7 @@ public class PointsBinding implements WidgetSelectionListener, PointsEditorListe
 {
     private static boolean enable_scaling = true;
     private final Group parent;
+    private final PointConstraint constraint;
     private final WidgetSelectionHandler selection;
     private final UndoableActionManager undo;
     private Widget widget;
@@ -55,13 +57,15 @@ public class PointsBinding implements WidgetSelectionListener, PointsEditorListe
     }
 
     /** @param parent JFX {@link Group} where points editor is placed
+     *  @param constraint Grid constraint
      *  @param selection Selection handler
      *  @param undo Undo manager
      */
-    public PointsBinding(final Group parent, final WidgetSelectionHandler selection,
+    public PointsBinding(final Group parent, final PointConstraint constraint, final WidgetSelectionHandler selection,
                          final UndoableActionManager undo)
     {
         this.parent = parent;
+        this.constraint = constraint;
         this.selection = selection;
         this.undo = undo;
         selection.addListener(this);
@@ -103,7 +107,7 @@ public class PointsBinding implements WidgetSelectionListener, PointsEditorListe
             screen_points.setY(i, y0 + screen_points.getY(i));
         }
 
-        editor = new PointsEditor(parent, screen_points, this);
+        editor = new PointsEditor(parent, constraint, screen_points, this);
         widget.getProperty(propX).addUntypedPropertyListener(this);
         widget.getProperty(propY).addUntypedPropertyListener(this);
         widget.getProperty(propWidth).addUntypedPropertyListener(this);

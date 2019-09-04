@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.csstudio.javafx.rtplot.Activator;
 import org.phoebus.ui.javafx.BufferUtil;
 import org.phoebus.ui.javafx.DoubleBuffer;
 import org.phoebus.ui.javafx.UpdateThrottle;
@@ -66,7 +67,7 @@ abstract class PlotCanvasBase extends ImageView
      *  Smaller regions are likely the result of an accidental
      *  click-with-jerk, which would result into a huge zoom step.
      */
-    protected static final int ZOOM_PIXEL_THRESHOLD = 20;
+    protected static final int ZOOM_PIXEL_THRESHOLD = 5;
 
     /** Strokes used for mouse feedback */
     protected static final BasicStroke MOUSE_FEEDBACK_BACK = new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER),
@@ -118,7 +119,7 @@ abstract class PlotCanvasBase extends ImageView
         }
     };
 
-    /** (Double) buffer used to combined the plot with mouse feedback overlays */
+    /** (Double) buffer used to combine the plot with mouse feedback overlays */
     private final DoubleBuffer buffers = new DoubleBuffer();
 
     /** Has a call to redraw_runnable already been queued?
@@ -165,7 +166,7 @@ abstract class PlotCanvasBase extends ImageView
                 if (now > next_rate_update)
                 {
                     final long diff = update_counter - last_counter;
-                    update_rate = (update_rate * 9.0 + diff) / 10.0;
+                    update_rate = (update_rate * 5.0 + diff) / 6.0;
                     last_counter = update_counter;
                     next_rate_update = now + 1000;
                 }
@@ -213,7 +214,7 @@ abstract class PlotCanvasBase extends ImageView
             }
             if (!pending_redraw.getAndSet(true))
                 Platform.runLater(redraw_runnable);
-        });
+        }, Activator.thread_pool);
 
         if (active)
         {

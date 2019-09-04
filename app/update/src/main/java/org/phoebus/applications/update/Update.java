@@ -125,13 +125,14 @@ public class Update
             return;
         if (! update_zip.canRead())
             throw new Exception("Cannot read " + update_zip);
-        if (! install_location.canWrite())
-            throw new Exception("Cannot write " + install_location);
 
-        monitor.updateTaskName("Delete " + install_location);
-        monitor.worked(10);
-        logger.info("Deleting " + install_location);
-        FileHelper.delete(install_location);
+        if (install_location.exists())
+        {
+            monitor.updateTaskName("Delete " + install_location);
+            monitor.worked(10);
+            logger.info("Deleting " + install_location);
+            FileHelper.delete(install_location);
+        }
 
         // Un-zip new distribution
         final SubJobMonitor sub = new SubJobMonitor(monitor, 80);

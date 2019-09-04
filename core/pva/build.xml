@@ -1,0 +1,44 @@
+<project default="core-pva">
+    <import file="../../dependencies/ant_settings.xml"/>
+
+    <target name="javadoc">
+    	<javadoc sourcepath="src/main/java"
+    		     destdir="target/site/apidocs"
+    		     author="no">
+    	</javadoc>
+    </target>
+	
+    <target name="core-pva" depends="javadoc">
+        <mkdir dir="${classes}"/>
+        <javac destdir="${classes}" debug="${debug}">
+            <src path="${src}"/>
+        </javac>
+        <jar destfile="${build}/core-pva-${version}.jar">
+            <fileset dir="${classes}"/>
+            <fileset dir="${resources}"/>
+            <manifest>
+            <attribute name="Main-Class"
+                       value="org.epics.pva.client.PVAClientMain"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="spamdemo" depends="core-pva,pipeline">
+        <javac destdir="${classes}" debug="${debug}">
+            <src path="${test}/"/>
+            <include name="**/SpamDemo.java"/>
+        </javac>
+        
+        <java classname="org.epics.pva.client.SpamDemo">
+            <arg value="${pipeline}"/>
+            <classpath>
+                <pathelement path="${classes}"/>
+                <pathelement path="${resources}"/>
+            </classpath>
+        </java>
+    </target>
+    
+    <target name="pipeline" unless="pipeline">
+        <input addProperty="pipeline" message="Pipeline size:"/>
+    </target>
+</project>

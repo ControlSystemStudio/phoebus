@@ -206,14 +206,8 @@ public class ChannelTableController extends ChannelFinderController {
                 try {
                     ObservableList<Channel> old = tableView.getSelectionModel().getSelectedItems();
 
-                    // Find the adapter factories for Channel.class
-                    List<AdapterFactory> matchingAdapterFactory = AdapterService.getInstance()
-                            .getAdaptersforAdaptable(Channel.class).get().stream().filter(a -> {
-                                return a.getAdapterList().contains(entry.getSupportedTypes().get(0));
-                            }).collect(Collectors.toList());
-
                     List<Object> pvs = SelectionService.getInstance().getSelection().getSelections().stream().map(s -> {
-                        return matchingAdapterFactory.get(0).getAdapter(s, (Class)entry.getSupportedTypes().get(0)).get();
+                        return AdapterService.adapt(s, (Class)entry.getSupportedTypes().get(0)).get();
                     }).collect(Collectors.toList());
                     // set the selection 
                     SelectionService.getInstance().setSelection(tableView, pvs);

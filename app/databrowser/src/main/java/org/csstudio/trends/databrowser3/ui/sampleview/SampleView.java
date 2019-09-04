@@ -39,6 +39,7 @@ import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 /** Panel for inspecting samples of a trace
@@ -97,6 +98,7 @@ public class SampleView extends VBox
         top_row.setPadding(new Insets(5));
         sample_count.setPadding(new Insets(5));
         sample_table.setPadding(new Insets(0, 5, 5, 5));
+        VBox.setVgrow(sample_table, Priority.ALWAYS);
         getChildren().setAll(top_row, sample_count, sample_table);
 
         // TODO Add 'export' to sample view? CSV in a format usable by import

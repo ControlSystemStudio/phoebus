@@ -328,8 +328,15 @@ public class DockPane extends TabPane
     /** Called when number of tabs changed */
     private void handleTabChanges()
     {
+        logger.log(Level.INFO, "DockPane handling tab changes");
+        // Schedule merge no later UI tick.
+        // That way an ongoing scene graph change that might move
+        // (i.e. remove item and then add it elsewhere)
+        // can complete before we merge,
+        // instead of remove, merge, .. add fails because scene graph
+        // change in unforeseen ways
         if (getTabs().isEmpty())
-            mergeEmptyAnonymousSplit();
+            Platform.runLater(this::mergeEmptyAnonymousSplit);
         else
             // Update tabs on next UI tick so that findTabHeader() can succeed
             // in case this is in a newly created SplitDock
@@ -412,11 +419,12 @@ public class DockPane extends TabPane
             header.setPrefHeight(do_hide  ?  0  :  -1);
 
         // If header for single tab is not shown,
+        // and this is the only tab in the window,
         // put its label into the window tile
         if (! (scene.getWindow() instanceof Stage))
             throw new IllegalStateException("Expect Stage, got " + scene.getWindow());
         final Stage stage = ((Stage) scene.getWindow());
-        if (do_hide)
+        if (do_hide  &&  DockStage.getPaneOrSplit(stage) == this)
         {   // Bind to get actual header, which for DockItemWithInput may contain 'dirty' marker,
             // and keep updating as it changes
             final Tab tab = getTabs().get(0);
@@ -480,6 +488,7 @@ public class DockPane extends TabPane
             logger.log(Level.SEVERE, "Empty drop, " + event);
         else
         {
+            logger.log(Level.INFO, "Somebody dropped " + item + " into " + this);
             final TabPane old_parent = item.getTabPane();
 
             // Unexpected, but would still "work" at this time
@@ -494,17 +503,27 @@ public class DockPane extends TabPane
                 for (String css : old_scene.getStylesheets())
                     Styles.set(scene, css);
 
-            // Move item to new tab
-            old_parent.getTabs().remove(item);
-
-            // When adding the tab to its new parent (this dock) right away,
-            // the tab would sometimes not properly render until the pane is resized.
-            // Moving to the next UI tick helps
+            // Move tab. In principle,
+            // (1) first remove from old parent,
+            // (2) then add to new parent.
+            // But modifying tabs triggers tab listener, which registers SplitPane.merge()
+            // in Platform.runLater(). The merge could re-arrange tab panes,
+            // we when we later want to add the tab, we'll face a different scene graph.
+            // Issue the tab addition (2) with runlater right now so it'll happen before any
+            // split pane cleanup.
             Platform.runLater(() ->
             {
+                // When adding the tab to its new parent (this dock) right away,
+                // the tab would sometimes not properly render until the pane is resized.
+                // Moving to the next UI tick helps
+                logger.log(Level.INFO, "Adding " + item + " to " + this);
                 addTab(item);
                 Platform.runLater(this::autoHideTabs);
             });
+
+            // With tab addition already in the UI thread queue, remove item from old tab
+            logger.log(Level.INFO, "Removing " + item + " from " + old_parent);
+            old_parent.getTabs().remove(item);
         }
         event.setDropCompleted(true);
         event.consume();

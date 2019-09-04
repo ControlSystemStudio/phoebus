@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.StringTokenizer;
 
 import org.csstudio.display.builder.model.properties.NamedWidgetColor;
+import org.csstudio.display.builder.model.properties.WidgetColor;
 
 /** Provider of {@link NamedWidgetColor}
  *
@@ -23,6 +24,48 @@ import org.csstudio.display.builder.model.properties.NamedWidgetColor;
 @SuppressWarnings("nls")
 public class NamedWidgetColors extends ConfigFileParser
 {
+    /** Palette of colors which are visually distinct from their neighbor
+     *  http://phrogz.net/tmp/24colors.html
+     */
+    public static final WidgetColor[] PALETTE = new WidgetColor[]
+    {
+        new WidgetColor(0, 0, 255),
+        new WidgetColor(255, 0, 0),
+        new WidgetColor(0, 255, 0),
+        new WidgetColor(170, 0, 255),
+        new WidgetColor(255, 255, 0),
+        new WidgetColor(0, 234, 255),
+        new WidgetColor(255, 127, 0),
+        new WidgetColor(191, 255, 0),
+        new WidgetColor(0, 149, 255),
+        new WidgetColor(255, 0, 170),
+        new WidgetColor(255, 212, 0),
+        new WidgetColor(237, 185, 185),
+        new WidgetColor(185, 215, 237),
+        new WidgetColor(231, 233, 185),
+        new WidgetColor(220, 185, 237),
+        new WidgetColor(185, 237, 224),
+        new WidgetColor(143, 35, 35),
+        new WidgetColor(35, 98, 143),
+        new WidgetColor(143, 106, 35),
+        new WidgetColor(107, 35, 143),
+        new WidgetColor(79, 143, 35),
+        new WidgetColor(0, 0, 0),
+        new WidgetColor(115, 115, 115),
+        new WidgetColor(204, 204, 204)
+    };
+
+    /** Get a palette color,
+     *  re-using colors when asking for more than palette holds
+     *
+     *  @param index Palette index
+     *  @return {@link WidgetColor}
+     */
+    public static WidgetColor getPaletteColor(final int index)
+    {
+        return PALETTE[index % PALETTE.length];
+    }
+
     /** Name of predefined color */
     public static final String ALARM_OK = "OK",
                                ALARM_MINOR = "MINOR",
@@ -37,6 +80,10 @@ public class NamedWidgetColors extends ConfigFileParser
                                WRITE_BACKGROUND = "Write_Background",
                                BUTTON_BACKGROUND = "Button_Background",
                                GRID = "Grid";
+
+    // Any color with alpha=0 is transparent.
+    // Using 'white' as canonical transparent color
+    public static final NamedWidgetColor TRANSPARENT = new NamedWidgetColor("Transparent", 255, 255, 255, 0);
 
     private static final NamedWidgetColor DEFAULT_ALARM_OK = new NamedWidgetColor(ALARM_OK, 0, 255, 0);
     private static final NamedWidgetColor DEFAULT_ALARM_MINOR = new NamedWidgetColor(ALARM_MINOR, 255, 128, 0);
@@ -61,6 +108,7 @@ public class NamedWidgetColors extends ConfigFileParser
 
     private void defineDefaultColors()
     {
+        define(TRANSPARENT);
         define(DEFAULT_ALARM_OK);
         define(DEFAULT_ALARM_MINOR);
         define(DEFAULT_ALARM_MAJOR);

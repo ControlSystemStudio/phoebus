@@ -7,7 +7,6 @@
  *******************************************************************************/
 package org.phoebus.ui.vtype;
 
-import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
@@ -30,6 +29,7 @@ import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VTable;
 import org.epics.vtype.VType;
+import org.phoebus.pv.LongString;
 
 /** Utility for formatting data as string.
  *  @author Kay Kasemir
@@ -48,9 +48,6 @@ public class FormatOptionHandler
 
     /** Cached formats for EXPONENTIAL by precision */
     private final static ConcurrentHashMap<Integer, NumberFormat> exponential_formats = new ConcurrentHashMap<>();
-
-    /** [85, 84, 70, 45, 56] */
-    private static final Charset UTF8 = Charset.forName("UTF-8");
 
     /** Return the actual number of fraction digits.
      *
@@ -108,7 +105,7 @@ public class FormatOptionHandler
         {
             final VNumberArray array = (VNumberArray) value;
             if (option == FormatOption.STRING)
-                return getLongString(array);
+                return LongString.fromArray(array);
             final ListNumber data = array.getData();
             if (data.size() <= 0)
                 return "[]";
@@ -361,27 +358,6 @@ public class FormatOptionHandler
         for (int p=text.length(); p<width; ++p)
             buf.append(' ');
         return buf.toString();
-    }
-
-    /** @param value Array of numbers
-     *  @return String based on character for each array element
-     */
-    private static String getLongString(final VNumberArray value)
-    {
-        final ListNumber data = value.getData();
-        final byte[] bytes = new byte[data.size()];
-        // Copy bytes until end or '\0'
-        int len = 0;
-        while (len<bytes.length)
-        {
-            final byte b = data.getByte(len);
-            if (b == 0)
-                break;
-            else
-                bytes[len++] = b;
-        }
-        // Use actual 'len', not data.size()
-        return new String(bytes, 0, len, UTF8);
     }
 
     /** Parse a string, presumably as formatted by this class,

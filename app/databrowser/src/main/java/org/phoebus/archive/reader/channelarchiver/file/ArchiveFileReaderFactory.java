@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -29,6 +29,15 @@ public class ArchiveFileReaderFactory implements ArchiveReaderFactory
     @Override
     public ArchiveReader createReader(final String url) throws Exception
     {
-        return new ArchiveFileReader(new File(url.substring(PREFIX.length())));
+        final File index = new File(url.substring(PREFIX.length()));
+        return createReader(index);
+    }
+
+    static ArchiveReader createReader(final File index) throws Exception
+    {
+        if (index.getName().endsWith(".xml"))
+            return new ListIndexReader(index);
+        else
+            return new ArchiveFileReader(index);
     }
 }

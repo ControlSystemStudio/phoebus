@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.widgets;
 
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
+
 import java.util.List;
 
 import org.csstudio.display.builder.model.Messages;
@@ -63,7 +65,7 @@ public class FileSelectorWidget extends PVWidget
     };
 
     private volatile WidgetProperty<FileComponent> component;
-
+    private volatile WidgetProperty<Boolean> enabled;
 
     public FileSelectorWidget()
     {
@@ -77,11 +79,18 @@ public class FileSelectorWidget extends PVWidget
     {
         super.defineProperties(properties);
         properties.add(component = propFilecomponent.createProperty(this, FileComponent.FULL));
+        properties.add(enabled = propEnabled.createProperty(this, true));
     }
 
     /** @return 'component' property */
     public WidgetProperty<FileComponent> propComponent()
     {
         return component;
+    }
+
+    /** @return 'enabled' property */
+    public WidgetProperty<Boolean> propEnabled()
+    {
+        return enabled;
     }
 }

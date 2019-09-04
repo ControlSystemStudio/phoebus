@@ -11,8 +11,8 @@ import java.util.List;
 
 import org.csstudio.apputil.formula.ui.FormulaPane;
 import org.csstudio.apputil.formula.ui.InputItem;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
@@ -23,7 +23,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class FormulaPaneDemo extends Application
+public class FormulaPaneDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage) throws Exception
@@ -52,6 +52,6 @@ public class FormulaPaneDemo extends Application
 
     public static void main(final String[] args)
     {
-        launch(args);
+        launch(FormulaPaneDemo.class, args);
     }
 }

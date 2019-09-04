@@ -7,7 +7,8 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.sandbox;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
@@ -30,11 +31,11 @@ import javafx.stage.Stage;
  * 
  * @author Amanda Carpenter
  */
-public class SliderGlitchDemo extends Application
+public class SliderGlitchDemo extends ApplicationWrapper
 {
     public static void main(String [] args)
     {
-        launch(args);
+        launch(SliderGlitchDemo.class, args);
     }
 
     double startDragX = 0, startDragY = 0;

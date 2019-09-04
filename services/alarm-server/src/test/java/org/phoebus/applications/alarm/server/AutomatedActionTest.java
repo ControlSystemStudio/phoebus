@@ -18,7 +18,10 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.logging.Handler;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -57,11 +60,19 @@ public class AutomatedActionTest
             "java.util.logging.SimpleFormatter.format=%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS %4$s [%3$s] %5$s%6$s%n\n";
         final ByteArrayInputStream stream = new ByteArrayInputStream(config.getBytes());
         LogManager.getLogManager().readConfiguration(stream);
+
+        // Raise log level
+        final Logger root = Logger.getLogger("");
+        root.setLevel(Level.ALL);
+        for (Handler handler : root.getHandlers())
+            handler.setLevel(Level.ALL);
     }
 
     @Test
     public void testBasicAutomatedAction() throws Exception
     {
+        System.out.println("testBasicAutomatedAction");
+
         final TitleDetailDelay email = new TitleDetailDelay("Send Email", "mailto:fred@mail.com", (int)(DELAY_MS/1000));
         final AlarmClientNode test_item = new AlarmClientNode(null, "test");
         test_item.setActions(List.of(email));
@@ -112,6 +123,8 @@ public class AutomatedActionTest
     @Test
     public void testWasInAlarm() throws Exception
     {
+        System.out.println("testWasInAlarm");
+
         final TitleDetailDelay email = new TitleDetailDelay("Send Email", "mailto:fred@mail.com", (int)(DELAY_MS/1000));
         final AlarmClientNode test_item = new AlarmClientNode(null, "test");
         test_item.setActions(List.of(email));
@@ -137,6 +150,8 @@ public class AutomatedActionTest
     @Test
     public void testMinorMajor() throws Exception
     {
+        System.out.println("testMinorMajor");
+
         final TitleDetailDelay email = new TitleDetailDelay("Send Email", "mailto:fred@mail.com", (int)(DELAY_MS/1000));
         final AlarmClientNode test_item = new AlarmClientNode(null, "test");
         test_item.setActions(List.of(email));
@@ -163,6 +178,8 @@ public class AutomatedActionTest
     @Test
     public void testAutomatedActionReset() throws Exception
     {
+        System.out.println("testAutomatedActionReset");
+
         final TitleDetailDelay email = new TitleDetailDelay("Send Email", "mailto:fred@mail.com", (int)(DELAY_MS/1000));
         final AlarmClientNode test_item = new AlarmClientNode(null, "test");
         test_item.setActions(List.of(email));
@@ -190,6 +207,8 @@ public class AutomatedActionTest
     @Test
     public void testAutomatedActionClear() throws Exception
     {
+        System.out.println("testAutomatedActionClear");
+
         final TitleDetailDelay email = new TitleDetailDelay("Send Email", "mailto:fred@mail.com", (int)(DELAY_MS/1000));
         final AlarmClientNode test_item = new AlarmClientNode(null, "test");
         test_item.setActions(List.of(email));
@@ -217,6 +236,7 @@ public class AutomatedActionTest
     public void testAutomatedEmailFollowup() throws Exception
     {
         System.out.println("testAutomatedEmailFollowup");
+
         if (! AlarmSystem.automated_action_followup.contains("mailto:"))
         {
             System.out.println("Skipping test of automated email follow up");
@@ -241,7 +261,7 @@ public class AutomatedActionTest
         System.out.println("Expect 'OK' email right away");
         start = System.currentTimeMillis();
         auto_action.handleSeverityUpdate(SeverityLevel.MAJOR_ACK);
-        assertThat(action_performed.poll(DELAY_MS, TimeUnit.MILLISECONDS), equalTo("Send Email"));
+        assertThat(action_performed.poll(2*DELAY_MS, TimeUnit.MILLISECONDS), equalTo("Send Email"));
         passed = System.currentTimeMillis() - start;
         checkActionDelay(passed, 0);
 

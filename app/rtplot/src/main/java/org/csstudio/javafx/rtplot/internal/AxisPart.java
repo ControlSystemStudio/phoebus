@@ -46,9 +46,9 @@ public abstract class AxisPart<T extends Comparable<T>> extends PlotPart impleme
      *  but 2 with AA results in fuzz,
      *  while 3 creates sharp 3 pixel line.
      */
-    protected static final int TICK_WIDTH = 3;
+    public static final int TICK_WIDTH = 3;
 
-    static final BasicStroke TICK_STROKE = new BasicStroke(TICK_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
+    public static final BasicStroke TICK_STROKE = new BasicStroke(TICK_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
 
     protected static final int MINOR_TICK_LENGTH = 5;
 
@@ -270,8 +270,8 @@ public abstract class AxisPart<T extends Comparable<T>> extends PlotPart impleme
             // Can axis handle this range?
             if (! ticks.isSupportedRange(low, high))
             {
-                logger.log(Level.FINE, "Axis {0}: Bad value range {1} ... {2}",
-                                       new Object[] { getName(), low, high });
+                logger.log(Level.WARNING, "Axis {0}: Bad value range {1} ... {2}",
+                                          new Object[] { getName(), low, high });
                 return false;
             }
             range = new AxisRange<>(low, high);

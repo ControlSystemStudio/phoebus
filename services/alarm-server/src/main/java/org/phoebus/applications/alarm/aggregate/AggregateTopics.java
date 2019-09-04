@@ -145,7 +145,6 @@ public class AggregateTopics
     private List<String> createTopicList()
     {
         List<String> list = List.of(config,
-                                    config + AlarmSystem.STATE_TOPIC_SUFFIX,
                                     config + AlarmSystem.COMMAND_TOPIC_SUFFIX,
                                     config + AlarmSystem.TALK_TOPIC_SUFFIX);
         return list;

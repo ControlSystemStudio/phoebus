@@ -7,14 +7,15 @@
  ******************************************************************************/
 package org.phoebus.ui.dialog;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.stage.Stage;
 
 /** Demo of the error dialog
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ExceptionDetailsErrorDialogDemo  extends Application
+public class ExceptionDetailsErrorDialogDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage)
@@ -24,6 +25,6 @@ public class ExceptionDetailsErrorDialogDemo  extends Application
 
     public static void main(String[] args)
     {
-        launch(args);
+        launch(ExceptionDetailsErrorDialogDemo.class, args);
     }
 }

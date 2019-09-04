@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,27 +7,49 @@
  *******************************************************************************/
 package org.phoebus.ui.help;
 
+import static org.phoebus.ui.application.PhoebusApplication.logger;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.preferences.PropertyPreferenceLoader;
+import org.phoebus.framework.preferences.PropertyPreferenceWriter;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.OpenFileDialog;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.ReadOnlyTextCell;
 import org.phoebus.ui.spi.MenuEntry;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 /** Menu entry to open 'about'
  *  @author Kay Kasemir
@@ -35,6 +57,23 @@ import javafx.scene.image.Image;
 @SuppressWarnings("nls")
 public class OpenAbout implements MenuEntry
 {
+    private static class OpenFileBrowserCell extends TableCell<List<String>, String>
+    {
+        @Override
+        protected void updateItem(final String item, boolean empty)
+        {
+            super.updateItem(item, empty);
+            if (empty || getIndex() > 2)
+                setGraphic(null);
+            else
+            {
+                final Button button = new Button("...");
+                button.setOnAction(event ->  ApplicationService.createInstance("file_browser", new File(item).toURI()));
+                setGraphic(button);
+            }
+        }
+    }
+
     @Override
     public String getName()
     {
@@ -64,8 +103,10 @@ public class OpenAbout implements MenuEntry
 
         // Table with Name, Value columns
         final ObservableList<List<String>> infos = FXCollections.observableArrayList();
-        infos.add(Arrays.asList(Messages.HelpAboutInst, Locations.install().toString()));
+        // Start with most user-specific to most generic: User location, install, JDK, ...
+        // Note that OpenFileBrowserCell will only activate for first 3 entries.
         infos.add(Arrays.asList(Messages.HelpAboutUser, Locations.user().toString()));
+        infos.add(Arrays.asList(Messages.HelpAboutInst, Locations.install().toString()));
         infos.add(Arrays.asList(Messages.HelpJavaHome, System.getProperty("java.home")));
         infos.add(Arrays.asList(Messages.HelpAboutJava, System.getProperty("java.specification.vendor") + " " + System.getProperty("java.runtime.version")));
         infos.add(Arrays.asList(Messages.HelpAboutJfx, System.getProperty("javafx.runtime.version")));
@@ -84,30 +125,17 @@ public class OpenAbout implements MenuEntry
         value_col.setCellFactory(col -> new ReadOnlyTextCell<>());
         info_table.getColumns().add(value_col);
 
+        final TableColumn<List<String>, String> link_col = new TableColumn<>();
+        link_col.setMinWidth(50);
+        link_col.setMaxWidth(50);
+        link_col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().get(1)));
+        link_col.setCellFactory(col ->  new OpenFileBrowserCell());
+        info_table.getColumns().add(link_col);
+
         dialog.getDialogPane().setContent(info_table);
 
         // Info for expandable "Show Details" section
-        final StringBuilder details = new StringBuilder();
-        details.append(Messages.HelpAboutAppFea);
-        details.append(Messages.HelpAboutAppUnd);
-        ApplicationService.getApplications()
-                          .stream()
-                          .sorted((a, b) -> a.getDisplayName().compareTo(b.getDisplayName()))
-                          .forEach(app -> details.append(app.getDisplayName()).append("\n"));
-
-        details.append("\n");
-        details.append(Messages.HelpAboutSysFea);
-        details.append(Messages.HelpAboutSysUnd);
-        System.getProperties()
-              .stringPropertyNames()
-              .stream()
-              .sorted()
-              .forEach(prop ->  details.append(prop).append(" = ").append(System.getProperty(prop)).append("\n"));
-
-        // User can copy details out of read-only text area
-        final TextArea trace = new TextArea(details.toString());
-        trace.setEditable(false);
-        dialog.getDialogPane().setExpandableContent(trace);
+        dialog.getDialogPane().setExpandableContent(createDetailSection());
 
         dialog.setResizable(true);
         dialog.getDialogPane().setPrefWidth(800);
@@ -116,5 +144,88 @@ public class OpenAbout implements MenuEntry
         dialog.showAndWait();
 
         return null;
+    }
+
+    private Node createDetailSection()
+    {
+        // Tabs, each with a read-only text area
+        // so user can copy details out
+
+        // List applications
+        final StringBuilder apps_text = new StringBuilder();
+        ApplicationService.getApplications()
+                          .stream()
+                          .sorted((a, b) -> a.getDisplayName().compareTo(b.getDisplayName()))
+                          .forEach(app -> apps_text.append(app.getDisplayName()).append("\n"));
+
+        TextArea area = new TextArea(apps_text.toString());
+        area.setEditable(false);
+        final Tab apps = new Tab(Messages.HelpAboutAppFea, area);
+
+        // System properties
+        final StringBuilder props_text = new StringBuilder();
+        System.getProperties()
+              .stringPropertyNames()
+              .stream()
+              .sorted()
+              .forEach(prop ->  props_text.append(prop).append(" = ").append(System.getProperty(prop)).append("\n"));
+
+        area = new TextArea(props_text.toString());
+        area.setEditable(false);
+        final Tab props = new Tab(Messages.HelpAboutSysFea, area);
+
+        // Preference settings
+        final ByteArrayOutputStream prefs_buf = new ByteArrayOutputStream();
+        try
+        {
+            PropertyPreferenceWriter.save(prefs_buf);
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot list preferences", ex);
+        }
+
+        area = new TextArea(prefs_buf.toString());
+        area.setEditable(false);
+
+        final Button import_prefs = new Button("Import Preferences");
+        import_prefs.setOnAction(event -> import_preferences());
+        final HBox bottom_row = new HBox(import_prefs);
+        bottom_row.setAlignment(Pos.BASELINE_RIGHT);
+
+        VBox.setVgrow(area, Priority.ALWAYS);
+
+        final Tab prefs = new Tab(Messages.HelpAboutPrefs, new VBox(5, area, bottom_row));
+
+        final TabPane tabs = new TabPane(apps, props, prefs);
+        return tabs;
+    }
+
+    /** Prompt for settings.ini to import, then offer restart */
+    private void import_preferences()
+    {
+        final DockPane parent = DockPane.getActiveDockPane();
+
+        final ExtensionFilter[] ini = new ExtensionFilter[] { new ExtensionFilter("Preference settings.ini", List.of("*.ini")) };
+        final File file = new OpenFileDialog().promptForFile(parent.getScene().getWindow(), Messages.Open, null, ini);
+        if (file == null)
+            return;
+
+        JobManager.schedule("Load preferences", monitor ->
+        {
+            PropertyPreferenceLoader.load(new FileInputStream(file));
+            Platform.runLater(() ->
+            {
+                final Alert restart = new Alert(AlertType.CONFIRMATION);
+                restart.setHeaderText("Restart to activate loaded settings");
+                restart.setContentText("For performance reasons, preference settings are only loaded once on startup.\n" +
+                                       "Exit application so you can then start it again?");
+                restart.getDialogPane().setPrefSize(500, 300);
+                restart.setResizable(true);
+                DialogHelper.positionDialog(restart, parent, -400, -300);
+                if (restart.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK)
+                    System.exit(0);
+            });
+        });
     }
 }

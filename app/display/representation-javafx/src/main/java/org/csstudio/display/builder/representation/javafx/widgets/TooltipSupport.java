@@ -18,6 +18,7 @@ import org.csstudio.display.builder.model.MacroizedWidgetProperty;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.StringWidgetProperty;
+import org.csstudio.display.builder.representation.Preferences;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.Time;
@@ -114,6 +115,8 @@ public class TooltipSupport
             try
             {
                 expanded = MacroHandler.replace(macros, spec);
+                if (expanded.length() > Preferences.tooltip_length)
+                    expanded = expanded.substring(0, Preferences.tooltip_length) + "...";
                 tooltip.setText(expanded);
             }
             catch (Exception ex)

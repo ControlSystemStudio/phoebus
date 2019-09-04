@@ -49,7 +49,7 @@
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label</name>
-    <text>X=$(X)</text>
+    <text>$(X)</text>
     <y>91</y>
     <width>180</width>
     <horizontal_alignment>1</horizontal_alignment>

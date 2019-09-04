@@ -4,16 +4,18 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-public class ListSelectionDemo extends Application {
+public class ListSelectionDemo extends ApplicationWrapper {
 
     public static void main(String[] args) {
-        launch(args);
+        launch(ListSelectionDemo.class, args);
     }
 
     @Override

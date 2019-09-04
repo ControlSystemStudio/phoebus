@@ -17,6 +17,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 import org.phoebus.ui.application.Messages;
+import org.phoebus.ui.javafx.Styles;
 
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -86,6 +87,7 @@ public class DockStage
         final Scene scene = new Scene(layout, 800, 600);
         stage.setScene(scene);
         stage.setTitle(Messages.FixedTitle);
+        Styles.setSceneStyle(scene);
         try
         {
             stage.getIcons().add(new Image(DockStage.class.getResourceAsStream("/icons/logo.png")));
