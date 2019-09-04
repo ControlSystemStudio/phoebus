@@ -15,10 +15,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
+
+import org.phoebus.framework.jobs.CommandExecutor;
 
 /** Wrap process that executes external command
  *
@@ -76,7 +77,7 @@ public class ProcessWrapper
         this.on_output = on_output;
         this.on_error = on_error;
         this.on_exit = on_exit;
-        final List<String> cmd_parts = splitCmd(cmd);
+        final List<String> cmd_parts = CommandExecutor.splitCmd(cmd);
 
         if (cmd_parts.size() > 0)
         {
@@ -91,48 +92,6 @@ public class ProcessWrapper
         process_builder = new ProcessBuilder(cmd_parts).directory(directory);
     }
 
-    /** Split command into items, honoring double quotes
-     *  (no 'escape', no single quotes)
-     *  @param cmd "cmd arg1 \"another arg\""
-     *  @return [ "cmd", "arg1", "another arg" ]
-     */
-    public static List<String> splitCmd(final String cmd)
-    {
-        final List<String> items = new ArrayList<>();
-        final int len = cmd.length();
-        int i = 0;
-        final StringBuilder line = new StringBuilder();
-        while (i < len)
-        {
-            char c = cmd.charAt(i);
-            if (c == ' '  ||  c == '\t')
-            {
-                items.add(line.toString());
-                line.delete(0, line.length());
-                do
-                    ++i;
-                while (i < len  &&
-                       (cmd.charAt(i) == ' '  ||  cmd.charAt(i) == '\t'));
-            }
-            else if (c == '"')
-            {
-                ++i;
-                while (i < len  &&  cmd.charAt(i) != '"')
-                    line.append(cmd.charAt(i++));
-                if (i < len  &&  cmd.charAt(i) == '"')
-                    ++i;
-            }
-            else
-            {
-                line.append(c);
-                ++i;
-            }
-        }
-        if (line.length() > 0)
-            items.add(line.toString());
-        return items;
-    }
-
     /** Start the process  */
     public void start() throws Exception
     {
@@ -143,7 +102,6 @@ public class ProcessWrapper
             cmd = cmd.substring(sep+1);
 
         process = process_builder.start();
-
 
         // Send stdout and error output to handlers
         final Thread stdout = new StreamReaderThread(process.getInputStream(), on_output);
@@ -179,7 +137,7 @@ public class ProcessWrapper
         }
         catch (IOException ex)
         {
-            logger.log(Level.WARNING, "Cannot write to terminal", ex);
+            logger.log(Level.WARNING, "Cannot write to console process", ex);
         }
     }
 
