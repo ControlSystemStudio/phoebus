@@ -13,7 +13,7 @@ import org.phoebus.ui.spi.MenuEntry;
 
 import javafx.scene.image.Image;
 
-/** Terminal UI: Text area and input section
+/** Menu entry to open console app
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")

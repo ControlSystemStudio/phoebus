@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.phoebus.applications.console;
 
+import java.io.File;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
@@ -32,7 +33,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
-/** Terminal UI: Text area and input section
+/** Console UI: Text area and input section
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -47,6 +48,8 @@ public class Console
     private static final int font_size;
     private static final String prompt;
     private static final String prompt_info;
+    static final String shell;
+    static final File directory;
 
     /** Preferences */
     static
@@ -58,6 +61,8 @@ public class Console
         font_size = prefs.getInt("font_size");
         prompt = prefs.get("prompt");
         prompt_info = prefs.get("prompt_info");
+        shell = PreferencesReader.replaceProperties(prefs.get("shell"));
+        directory = new File(PreferencesReader.replaceProperties(prefs.get("directory")));
     }
 
     public enum LineType

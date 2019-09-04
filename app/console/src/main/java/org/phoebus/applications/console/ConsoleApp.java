@@ -12,7 +12,7 @@ import java.net.URL;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 
-/** Terminal UI: Text area and input section
+/** Console App Descriptor
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")

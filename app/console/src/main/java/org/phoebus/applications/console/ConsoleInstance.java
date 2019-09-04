@@ -7,8 +7,6 @@
  *******************************************************************************/
 package org.phoebus.applications.console;
 
-import java.io.File;
-
 import org.phoebus.applications.console.Console.LineType;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
@@ -16,11 +14,11 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
-/** Terminal UI: Text area and input section
+/** Console app instance
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ConsoleInstance implements AppInstance
+class ConsoleInstance implements AppInstance
 {
     private ConsoleApp app;
 
@@ -35,12 +33,10 @@ public class ConsoleInstance implements AppInstance
             final DockItem dock_item = new DockItem(this, console.getNode());
             DockPane.getActiveDockPane().addTab(dock_item);
 
-            final String cmd = "/usr/bin/python -i";
-
-            final ProcessWrapper process = new ProcessWrapper(cmd, new File("."),
-                    output -> console.addLine(output, LineType.OUTPUT),
-                    error  -> console.addLine(error, LineType.ERROR),
-                    ()     -> console.disable());
+            final ProcessWrapper process = new ProcessWrapper(Console.shell, Console.directory,
+                output -> console.addLine(output, LineType.OUTPUT),
+                error  -> console.addLine(error, LineType.ERROR),
+                ()     -> console.disable());
 
             console.setOnInput(process::sendInput);
 
