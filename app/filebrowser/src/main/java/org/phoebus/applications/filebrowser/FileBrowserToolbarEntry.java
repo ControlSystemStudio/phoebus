@@ -20,9 +20,9 @@ public class FileBrowserToolbarEntry implements ToolbarEntry {
         return ImageCache.getImage(FileBrowserApp.class, "/icons/filebrowser.png");
     }
 
-
     @Override
-    public void call() throws Exception {
+    public Void call() throws Exception {
         ApplicationService.createInstance(FileBrowserApp.Name);
+        return null;
     }
 }
