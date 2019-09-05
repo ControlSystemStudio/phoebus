@@ -24,6 +24,7 @@ import org.csstudio.opibuilder.converter.model.EdmWidget;
  *  <p>Base class handles common properties like X, Y, Width, Height.
  *
  *  @author Kay Kasemir
+ *  @author Matevz, Xihui Chen et al - Original logic in Opi_.. converter
  *
  *  @param <W> Display Manager {@link Widget} type
  */

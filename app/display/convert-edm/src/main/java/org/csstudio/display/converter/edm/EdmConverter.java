@@ -10,7 +10,6 @@ package org.csstudio.display.converter.edm;
 import static org.csstudio.display.converter.edm.Converter.logger;
 
 import java.lang.reflect.Constructor;
-import java.util.Collection;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
@@ -49,25 +48,14 @@ public class EdmConverter
             model.propGridStepY().setValue(edm.getGridSize());
         }
 
-        convertWidgets(model, edm.getWidgets());
+        for (EdmEntity edm_widget : edm.getWidgets())
+            convertWidget(model, edm_widget);
     }
 
     /** @return {@link DisplayModel} */
     public DisplayModel getDisplayModel()
     {
         return model;
-    }
-
-
-
-    /** Convert several widgets
-     *  @param parent Parent widget (display, group, ...)
-     *  @param widgets Widgets to convert under that parent
-     */
-    private void convertWidgets(final Widget parent, final Collection<EdmEntity> widgets)
-    {
-        for (EdmEntity widget : widgets)
-            convertWidget(parent, widget);
     }
 
     /** Convert one widget
@@ -78,11 +66,10 @@ public class EdmConverter
     {
         // Given an EDM Widget type like "activeXTextClass",
         // locate the matching "Convert_activeXTextClass"
-        final String wc_name = ConverterBase.class.getPackageName() + ".Convert_" + edm.getType();
-
-        Class<?> clazz;
+        final Class<?> clazz;
         try
         {
+            final String wc_name = ConverterBase.class.getPackageName() + ".Convert_" + edm.getType();
             clazz = Class.forName(wc_name);
         }
         catch (ClassNotFoundException ex)
@@ -91,7 +78,6 @@ public class EdmConverter
             return;
         }
 
-        // Simply constructing the converter will perform the conversion
         try
         {
             for (Constructor<?> c : clazz.getConstructors())
@@ -102,6 +88,7 @@ public class EdmConverter
                     parms[1] == Widget.class       &&
                     EdmWidget.class.isAssignableFrom(parms[2]))
                 {
+                    // Simply constructing the converter will perform the conversion
                     c.newInstance(this, parent, edm);
                     return;
                 }

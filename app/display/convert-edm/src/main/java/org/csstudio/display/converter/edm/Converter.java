@@ -15,7 +15,6 @@ import java.util.logging.Logger;
 
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.opibuilder.converter.model.EdmDisplay;
-import org.csstudio.opibuilder.converter.model.EdmModel;
 import org.csstudio.opibuilder.converter.parser.EdmDisplayParser;
 
 /** EDM Converter
@@ -34,13 +33,9 @@ public class Converter
     public Converter(final File input, final File output) throws Exception
     {
         logger.log(Level.INFO, "Convert " + input + " -> " + output);
-
-        // TODO Preference
-        EdmModel.reloadEdmColorFile("colors.list", getClass().getResourceAsStream("/colors.list"));
-
         final EdmDisplayParser parser = new EdmDisplayParser(input.getPath(), new FileInputStream(input));
-        final EdmDisplay display = new EdmDisplay(parser.getRoot());
-        final EdmConverter converter = new EdmConverter(input.getName(), display);
+        final EdmDisplay edm = new EdmDisplay(parser.getRoot());
+        final EdmConverter converter = new EdmConverter(input.getName(), edm);
         final ModelWriter writer = new ModelWriter(new FileOutputStream(output));
         writer.writeModel(converter.getDisplayModel());
         writer.close();
