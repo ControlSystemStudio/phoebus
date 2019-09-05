@@ -83,61 +83,6 @@ public class VSnapshot implements Serializable {
         return null;
     }
 
-//    /**
-//     * Constructs and returns the threshold for the given pv name. If the threshold cannot be created (pv name not
-//     * defined in this snapshot or the delta for the pv is unknown), null is returned.
-//     *
-//     * @param pvName the name of the pv for which the threshold is requested
-//     * @return the threshold for this pv
-//     */
-//    @SuppressWarnings("rawtypes")
-//    public Threshold getThreshold(String pvName) {
-//        String delta = getDelta(pvName);
-//        if (delta == null || delta.isEmpty()) {
-//            return null;
-//        }
-//        return new Threshold<>(delta);
-//    }
-
-//    /**
-//     * Set the value of the PV in this snapshot or adds an additional PV, if the PV does not exist yet. When a PV is
-//     * added or set this snapshot is marked as dirty, which means that it becomes saveable.
-//     *
-//     * @param name the name of the pv to add
-//     * @param selected the selected flag
-//     * @param value the pv value
-//     * @return true if the PV was added (PV already exists), or false of the PV was set
-//     */
-//    public boolean addOrSetPV(String name, boolean selected, VType value) {
-//        for (SnapshotEntry e : entries) {
-//            if (e.getPVName().equals(name)) {
-//                e.set(value, selected);
-//                dirty = true;
-//                return false;
-//            }
-//        }
-//        entries.add(new SnapshotEntry(name, value, selected));
-//        dirty = true;
-//        return true;
-//    }
-
-    /**
-     * Removes the pv from this snapshot.
-     *
-     * @param name the name of the pv to add
-     * @return true if the PV was removed, or false if the PV could not be found
-     */
-    public boolean removePV(String name) {
-        for (int i = entries.size() - 1; i > -1; i--) {
-            if (entries.get(i).getPVName().equals(name)) {
-                entries.remove(i);
-                dirty = true;
-                return true;
-            }
-        }
-        return false;
-    }
-
     /*
      * (non-Javadoc)
      *

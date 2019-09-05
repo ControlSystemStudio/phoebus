@@ -45,23 +45,4 @@ public class VNoData extends VType implements Serializable {
         return TO_STRING;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.diirt.vtype.Alarm#getAlarmSeverity()
-     */
-
-    public AlarmSeverity getAlarmSeverity() {
-        return AlarmSeverity.NONE;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.diirt.vtype.Alarm#getAlarmName()
-     */
-
-    public String getAlarmName() {
-        return TO_STRING;
-    }
 }
