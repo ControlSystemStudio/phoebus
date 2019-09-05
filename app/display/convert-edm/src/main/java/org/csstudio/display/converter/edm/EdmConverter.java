@@ -15,11 +15,7 @@ import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.WidgetProperty;
-import org.csstudio.display.builder.model.properties.NamedWidgetColor;
-import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.converter.edm.widgets.ConverterBase;
-import org.csstudio.opibuilder.converter.model.EdmColor;
 import org.csstudio.opibuilder.converter.model.EdmDisplay;
 import org.csstudio.opibuilder.converter.model.EdmEntity;
 import org.csstudio.opibuilder.converter.model.EdmWidget;
@@ -32,16 +28,16 @@ public class EdmConverter
 {
     private final DisplayModel model = new DisplayModel();
 
-    public EdmConverter(final EdmDisplay edm)
+    public EdmConverter(final String name, final EdmDisplay edm)
     {
+        model.propName().setValue(name);
         model.propX().setValue(edm.getX());
         model.propY().setValue(edm.getY());
         model.propWidth().setValue(edm.getW());
         model.propHeight().setValue(edm.getH());
 
         // TODO Global edm.getFont()?
-
-        convertColor(edm.getBgColor(), model.propBackgroundColor());
+        ConverterBase.convertColor(edm.getBgColor(), model.propBackgroundColor());
 
         if (edm.getTitle() != null)
             model.propName().setValue(edm.getTitle());
@@ -62,26 +58,7 @@ public class EdmConverter
         return model;
     }
 
-    /** @param edm EDM Color
-     *  @param prop Display builder color property to set from EDM color
-     */
-    private void convertColor(final EdmColor edm,
-                              final WidgetProperty<WidgetColor> prop)
-    {
-        // TODO See OpiColor
-        if (edm.isDynamic() || edm.isBlinking())
-            throw new IllegalStateException("Can only handle static colors");
 
-        // EDM uses 16 bit color values
-        final int red   = edm.getRed()   >> 8,
-                  green = edm.getGreen() >> 8,
-                  blue  = edm.getBlue()  >> 8;
-        final String name = edm.getName();
-        if (name != null  &&  !name.isBlank())
-            prop.setValue(new NamedWidgetColor(name, red, green, blue));
-        else
-            prop.setValue(new WidgetColor(red, green, blue));
-    }
 
     /** Convert several widgets
      *  @param parent Parent widget (display, group, ...)

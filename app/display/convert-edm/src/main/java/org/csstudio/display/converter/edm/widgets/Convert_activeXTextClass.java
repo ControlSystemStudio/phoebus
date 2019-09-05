@@ -9,10 +9,15 @@ package org.csstudio.display.converter.edm.widgets;
 
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.HorizontalAlignment;
+import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
 import org.csstudio.display.converter.edm.EdmConverter;
 import org.csstudio.opibuilder.converter.model.Edm_activeXTextClass;
 
+/** Convert an EDM widget into Display Builder counterpart
+ *  @author Kay Kasemir
+ *  @author Matevz, Xihui Chen et al - Original logic in Opi_.. converter
+ */
 @SuppressWarnings("nls")
 public class Convert_activeXTextClass extends ConverterBase<LabelWidget>
 {
@@ -21,10 +26,13 @@ public class Convert_activeXTextClass extends ConverterBase<LabelWidget>
         super(converter, parent, t);
 
         widget.propText().setValue(t.getValue().get());
-
         widget.propAutoSize().setValue(t.getAttribute("autoSize").isExistInEDL() && t.isAutoSize());
-        widget.propTransparent().setValue(t.getAttribute("useDisplayBg").isExistInEDL() && t.isUseDisplayBg());
 
+        widget.propTransparent().setValue(t.getAttribute("useDisplayBg").isExistInEDL() && t.isUseDisplayBg());
+        convertColor(t.getBgColor(), widget.propBackgroundColor());
+        convertColor(t.getFgColor(), widget.propForegroundColor());
+
+        widget.propVerticalAlignment().setValue(VerticalAlignment.MIDDLE);
         if (t.getFontAlign().equals("right"))
             widget.propHorizontalAlignment().setValue(HorizontalAlignment.RIGHT);
         else if (t.getFontAlign().equals("center"))

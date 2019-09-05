@@ -13,7 +13,6 @@ import static org.junit.Assert.assertThat;
 import java.io.ByteArrayOutputStream;
 
 import org.csstudio.display.builder.model.persist.ModelWriter;
-import org.csstudio.display.converter.edm.EdmConverter;
 import org.csstudio.opibuilder.converter.model.EdmDisplay;
 import org.csstudio.opibuilder.converter.model.EdmModel;
 import org.csstudio.opibuilder.converter.parser.EdmDisplayParser;
@@ -45,7 +44,7 @@ public class EdmConverterTest extends TestHelper
         EdmModel.reloadEdmColorFile("colors.list", getClass().getResourceAsStream("/colors.list"));
         final EdmDisplay display = new EdmDisplay(parser.getRoot());
 
-        final EdmConverter converter = new EdmConverter(display);
+        final EdmConverter converter = new EdmConverter("Maintenance_12hr.edl", display);
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         final ModelWriter writer = new ModelWriter(buf);
         writer.writeModel(converter.getDisplayModel());

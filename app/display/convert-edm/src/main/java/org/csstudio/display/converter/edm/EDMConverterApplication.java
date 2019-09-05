@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.converter.medm;
+package org.csstudio.display.converter.edm;
 
 import java.io.File;
 import java.net.URI;
@@ -22,15 +22,15 @@ import org.phoebus.ui.docking.DockPane;
 
 import javafx.stage.Stage;
 
-/** Phoebus application for MEDM converter
+/** Phoebus application for EDM converter
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class MEDMConverterApplication implements AppResourceDescriptor
+public class EDMConverterApplication implements AppResourceDescriptor
 {
-    private static final List<String> FILE_EXTENSIONS = List.of("adl");
-    public static final String NAME = "convert_medm";
-    public static final String DISPLAY_NAME = "MEDM Converter";
+    private static final List<String> FILE_EXTENSIONS = List.of("edl");
+    public static final String NAME = "convert_edm";
+    public static final String DISPLAY_NAME = "EDM Converter";
 
     @Override
     public String getName()
@@ -70,7 +70,7 @@ public class MEDMConverterApplication implements AppResourceDescriptor
         {
             // Convert file
             final File input = ModelResourceUtil.getFile(resource);
-            final File output = new File(input.getAbsolutePath().replace(".adl", ".bob"));
+            final File output = new File(input.getAbsolutePath().replace(".edl", ".bob"));
             new Converter(input, output);
 
             // On success, open in display editor, runtime, other editor

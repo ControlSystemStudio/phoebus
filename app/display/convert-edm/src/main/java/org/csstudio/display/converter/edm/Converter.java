@@ -7,12 +7,44 @@
  *******************************************************************************/
 package org.csstudio.display.converter.edm;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.csstudio.display.builder.model.persist.ModelWriter;
+import org.csstudio.opibuilder.converter.model.EdmDisplay;
+import org.csstudio.opibuilder.converter.model.EdmModel;
+import org.csstudio.opibuilder.converter.parser.EdmDisplayParser;
+
+/** EDM Converter
+ *
+ *  <p>Can be called as 'Main',
+ *  also used by converter app.
+ *
+ *  @author Kay Kasemir
+ */
+@SuppressWarnings("nls")
 public class Converter
 {
     /** Logger for all the Display Builder generating code */
     public static final Logger logger = Logger.getLogger(Converter.class.getPackageName());
+
+    public Converter(final File input, final File output) throws Exception
+    {
+        logger.log(Level.INFO, "Convert " + input + " -> " + output);
+
+        // TODO Preference
+        EdmModel.reloadEdmColorFile("colors.list", getClass().getResourceAsStream("/colors.list"));
+
+        final EdmDisplayParser parser = new EdmDisplayParser(input.getPath(), new FileInputStream(input));
+        final EdmDisplay display = new EdmDisplay(parser.getRoot());
+        final EdmConverter converter = new EdmConverter(input.getName(), display);
+        final ModelWriter writer = new ModelWriter(new FileOutputStream(output));
+        writer.writeModel(converter.getDisplayModel());
+        writer.close();
+    }
 
     public static void main(String[] args)
     {
