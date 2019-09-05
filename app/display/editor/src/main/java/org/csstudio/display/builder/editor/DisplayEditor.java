@@ -16,8 +16,10 @@ import java.util.ListIterator;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
+import java.util.prefs.Preferences;
 
 import org.csstudio.display.builder.editor.actions.ActionDescription;
+import org.csstudio.display.builder.editor.app.DisplayEditorInstance;
 import org.csstudio.display.builder.editor.palette.Palette;
 import org.csstudio.display.builder.editor.poly.PointsBinding;
 import org.csstudio.display.builder.editor.tracker.SelectedWidgetUITracker;
@@ -43,6 +45,7 @@ import org.csstudio.display.builder.model.widgets.TabsWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget.TabItemProperty;
 import org.csstudio.display.builder.representation.ToolkitListener;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.undo.UndoButtons;
 import org.phoebus.ui.undo.UndoableActionManager;
@@ -142,6 +145,16 @@ public class DisplayEditor
     private Palette palette;
     private Pane widget_parent;
     private final Group edit_tools = new Group();
+    private ToggleButton grid;
+    private ToggleButton snap;
+    private ToggleButton coords;
+
+    public static final String
+            SNAP_GRID = "snap_grid",
+            SNAP_WIDGETS = "snap_widgets",
+            SHOW_COORDS = "show_coords";
+
+    private static final Preferences prefs = PhoebusPreferenceService.userNodeForClass(DisplayEditorInstance.class);
 
     /** @param toolkit JFX Toolkit
      *  @param stack_size Number of undo/redo entries
@@ -186,6 +199,10 @@ public class DisplayEditor
 
         final BorderPane root = new BorderPane(model_and_palette);
         root.setTop(toolbar);
+
+        setGrid(prefs.getBoolean(SNAP_GRID, true));
+        setSnap(prefs.getBoolean(SNAP_WIDGETS, true));
+        setCoords(prefs.getBoolean(SHOW_COORDS, true));
 
         return root;
     }
@@ -254,9 +271,9 @@ public class DisplayEditor
 
 
         return new ToolBar(
-            createToggleButton(ActionDescription.ENABLE_GRID),
-            createToggleButton(ActionDescription.ENABLE_SNAP),
-            createToggleButton(ActionDescription.ENABLE_COORDS),
+            grid = createToggleButton(ActionDescription.ENABLE_GRID),
+            snap = createToggleButton(ActionDescription.ENABLE_SNAP),
+            coords = createToggleButton(ActionDescription.ENABLE_COORDS),
             new Separator(),
             order,
             align,
@@ -704,6 +721,51 @@ public class DisplayEditor
     public double getZoom()
     {
         return toolkit.getZoom();
+    }
+
+    /** @param snap Snap Grid on/off */
+    public void setGrid(final boolean snap)
+    {
+        grid.setSelected(snap);
+        selection_tracker.enableGrid(snap);
+        // Update pref about last snap state
+        saveGrid(snap);
+    }
+
+    /** @param snap Snap Grid on/off */
+    public static void saveGrid(final boolean snap)
+    {
+        prefs.putBoolean(SNAP_GRID, snap);
+    }
+
+    /** @param snap Snap Widgets on/off */
+    public void setSnap(final boolean snap)
+    {
+        this.snap.setSelected(snap);
+        selection_tracker.enableSnap(snap);
+        // Update pref about last snap state
+        saveSnap(snap);
+    }
+
+    /** @param snap Snap Widgets on/off */
+    public static void saveSnap(final boolean snap)
+    {
+        prefs.putBoolean(SNAP_WIDGETS, snap);
+    }
+
+    /** @param show Show Coordinates on/off */
+    public void setCoords(final boolean show)
+    {
+        coords.setSelected(show);
+        getSelectedWidgetUITracker().setShowLocationAndSize(show);
+        // Update pref about last show state
+        saveCoords(show);
+    }
+    
+    /** @param show Show Coordinates on/off */
+    public static void saveCoords(final boolean show)
+    {
+        prefs.putBoolean(SHOW_COORDS, show);
     }
 
     public void dispose()
