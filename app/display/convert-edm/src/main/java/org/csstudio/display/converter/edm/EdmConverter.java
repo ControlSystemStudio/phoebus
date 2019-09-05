@@ -92,7 +92,9 @@ public class EdmConverter
         final Class<?> clazz;
         try
         {
-            final String wc_name = ConverterBase.class.getPackageName() + ".Convert_" + edm.getType();
+            final String wc_name = ConverterBase.class.getPackageName() +
+                                   ".Convert_" +
+                                   edm.getType().replace(':', '_');
             clazz = Class.forName(wc_name);
         }
         catch (ClassNotFoundException ex)

@@ -7,12 +7,17 @@
  *******************************************************************************/
 package org.csstudio.display.converter.edm.widgets;
 
+import static org.csstudio.display.converter.edm.Converter.logger;
+
+import java.util.logging.Level;
+
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.NamedWidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.converter.edm.EdmConverter;
+import org.csstudio.opibuilder.converter.StringSplitter;
 import org.csstudio.opibuilder.converter.model.EdmColor;
 import org.csstudio.opibuilder.converter.model.EdmWidget;
 
@@ -74,5 +79,77 @@ public abstract class ConverterBase<W extends Widget>
             prop.setValue(new NamedWidgetColor(name, red, green, blue));
         else
             prop.setValue(new WidgetColor(red, green, blue));
+    }
+
+    /**
+     * If pvName is a LOC or CALC EDM PV, attempt to convert it to a syntax
+     * understood by CSS.
+     *
+     * If conversion fails or it is a regular PV, return the unchanged PV name.
+     * @param pvName PV name to convert
+     * @return converted PV name
+     */
+    public static String convertPVName(String pvName)
+    {
+        if (pvName.startsWith("LOC"))
+            pvName = parseLocPV(pvName);
+        else if (pvName.startsWith("CALC"))
+            logger.log(Level.WARNING, "Not converting " + pvName);
+        return pvName;
+    }
+
+    /**
+     * Convert an EDM local PV into a CSS local PV.
+     * @param pvName local EDM PV name
+     * @return local CSS PV name
+     */
+    private static String parseLocPV(String pvName)
+    {
+        if (pvName.startsWith("LOC\\"))
+        {
+            try
+            {
+                String newName = pvName.replace("$(!W)", "$(DID)");
+                newName = newName.replaceAll("\\x24\\x28\\x21[A-Z]{1}\\x29", "\\$(DID)");
+                String[] parts = StringSplitter.splitIgnoreInQuotes(newName, '=', true);
+                StringBuilder sb = new StringBuilder("loc://");
+                sb.append(parts[0].substring(5));
+                if (parts.length > 1)
+                {
+                    String type = "";
+                    String initValue = parts[1];
+                    if (parts[1].startsWith("d:"))
+                    {
+                        type = "<VDouble>";
+                        initValue = parts[1].substring(2);
+                    }
+                    else if (parts[1].startsWith("i:"))
+                    {
+//                        type = "<VDouble>";
+                        initValue = parts[1].substring(2);
+                    }
+                    else if (parts[1].startsWith("s:"))
+                    {
+//                          type = "<VString>";
+                        initValue = "\""+parts[1].substring(2)+"\"";
+                    }
+                    else if (parts[1].startsWith("e:"))
+                    {   // Enumerated pv
+                        // cannot be
+                        // converted.
+                        // TODO loc://xxx<VEnum> is now supported
+                        return pvName;
+                    }
+                    //doesn't append type yet to support utility pv.
+                    sb.append("(").append(initValue).append(")");
+                }
+                return sb.toString();
+            }
+            catch (Exception e)
+            {
+                // Ignore
+            }
+        }
+        return pvName;
     }
 }
