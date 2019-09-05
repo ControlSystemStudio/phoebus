@@ -37,6 +37,8 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -47,6 +49,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.SplitPane.Divider;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -151,6 +154,11 @@ public class EditorGUI
     private VBox properties_box;
 
     private SplitPane center_split;
+    
+    private final ChangeListener<Number> divider_listener = (ObservableValue<? extends Number> observableValue, Number oldDividerPosition, Number newDividerPosition) -> 
+    {
+        saveDividerPreferences();
+    };
 
     private volatile Consumer<DisplayModel> model_listener = null;
 
@@ -197,21 +205,31 @@ public class EditorGUI
     {
         if (show == isWidgetTreeShown())
             return;
+        
+        double tdiv = prefs.getDouble(DisplayEditorInstance.TREE_DIVIDER, 0.2);
+        double pdiv = prefs.getDouble(DisplayEditorInstance.PROP_DIVIDER, 0.8);
+        
         if (show)
         {
             center_split.getItems().add(0,  tree_box);
             if (arePropertiesShown())
-                Platform.runLater(() -> setDividerPositions(0.2, 0.8));
+                Platform.runLater(() -> setDividerPositions(tdiv, pdiv));
             else
-                Platform.runLater(() -> setDividerPositions(0.2));
+                Platform.runLater(() -> setDividerPositions(tdiv));
         }
         else
         {
             center_split.getItems().remove(tree_box);
             if (arePropertiesShown())
-                Platform.runLater(() -> setDividerPositions(0.8));
+                Platform.runLater(() -> setDividerPositions(pdiv));
         }
-
+        
+        for (Divider div : center_split.getDividers())
+        {
+            div.positionProperty().removeListener(divider_listener);
+            div.positionProperty().addListener(divider_listener);
+        }
+        
         // Update pref about last tree state
         prefs.putBoolean(SHOW_TREE, show);
     }
@@ -230,15 +248,24 @@ public class EditorGUI
 
         if (show)
         {
+            double tdiv = prefs.getDouble(DisplayEditorInstance.TREE_DIVIDER, 0.2);
+            double pdiv = prefs.getDouble(DisplayEditorInstance.PROP_DIVIDER, 0.8);
+
             center_split.getItems().add(properties_box);
             if (isWidgetTreeShown())
-                Platform.runLater(() -> setDividerPositions(0.2, 0.8));
+                Platform.runLater(() -> setDividerPositions(tdiv, pdiv));
             else
-                Platform.runLater(() -> setDividerPositions(0.8));
+                Platform.runLater(() -> setDividerPositions(pdiv));
         }
         else
             center_split.getItems().remove(properties_box);
 
+        for (Divider div : center_split.getDividers())
+        {
+            div.positionProperty().removeListener(divider_listener);
+            div.positionProperty().addListener(divider_listener);
+        }
+        
         // Update pref about last prop state
         prefs.putBoolean(SHOW_PROPS, show);
     }
@@ -255,6 +282,42 @@ public class EditorGUI
         center_split.setDividerPositions(positions);
     }
 
+    /** @param snap Snap Grid on/off */
+    public void snapGrid(final boolean snap)
+    {
+        editor.setGrid(snap);
+    }
+
+    /** @param snap Snap Widgets on/off */
+    public void snapWidgets(final boolean snap)
+    {
+        editor.setSnap(snap);
+    }
+
+    /** @param show Show Coordinates on/off */
+    public void showCoords(final boolean show)
+    {
+        editor.setCoords(show);
+    }
+    
+    /** @return Snap Grid on/off */
+    public boolean getSnapGrid()
+    {
+        return editor.getSelectedWidgetUITracker().getEnableGrid();
+    }
+    
+    /** @return Snap Widgets on/off */
+    public boolean getSnapWidgets()
+    {
+        return editor.getSelectedWidgetUITracker().getEnableSnap();
+    }
+    
+    /** @return Show Coordinates on/off */
+    public boolean getShowCoords()
+    {
+        return editor.getSelectedWidgetUITracker().getShowLocationAndSize();
+    }
+    
     private Parent createElements()
     {
         editor = new DisplayEditor(toolkit, 50);
@@ -283,7 +346,16 @@ public class EditorGUI
         properties_box = new VBox(header, property_panel);
 
         center_split = new SplitPane(tree_box, editor_scene, properties_box);
-        center_split.setDividerPositions(0.2, 0.8);
+        
+        double ldiv = prefs.getDouble(DisplayEditorInstance.TREE_DIVIDER, 0.2);
+        double rdiv = prefs.getDouble(DisplayEditorInstance.PROP_DIVIDER, 0.8);
+        
+        center_split.setDividerPositions(ldiv, rdiv);
+
+        for (Divider div : center_split.getDividers())
+        {
+            div.positionProperty().addListener(divider_listener);
+        }
 
         if (! prefs.getBoolean(SHOW_TREE, true))
             showWidgetTree(false);
@@ -420,6 +492,21 @@ public class EditorGUI
             if (listener != null)
                 listener.accept(model);
         });
+    }
+
+    private void saveDividerPreferences()
+    {
+        final double[] dividers = getDividerPositions();
+        if (dividers.length == 1)
+            if (arePropertiesShown())
+                prefs.putDouble(DisplayEditorInstance.PROP_DIVIDER, dividers[0]);
+            else
+                prefs.putDouble(DisplayEditorInstance.TREE_DIVIDER, dividers[0]);
+        else if (dividers.length > 1)
+        {
+            prefs.putDouble(DisplayEditorInstance.TREE_DIVIDER, dividers[0]);
+            prefs.putDouble(DisplayEditorInstance.PROP_DIVIDER, dividers[1]);
+        }
     }
 
     public void dispose()

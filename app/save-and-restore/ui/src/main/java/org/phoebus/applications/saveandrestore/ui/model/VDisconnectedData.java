@@ -44,28 +44,7 @@ public final class VDisconnectedData extends VType{
         return TO_STRING;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.diirt.vtype.Alarm#getAlarmSeverity()
-     */
-    public AlarmSeverity getSeverity() {
-        return AlarmSeverity.UNDEFINED;
-    }
-
-    public AlarmStatus getStatus() {return AlarmStatus.UNDEFINED;}
-
-
 
     public String getName(){ return "";}
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.diirt.vtype.Alarm#getAlarmName()
-     */
-
-    public String getAlarmName() {
-        return DISCONNECTED;
-    }
 }

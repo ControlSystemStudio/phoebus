@@ -38,27 +38,6 @@ public class SnapshotEntry implements Serializable {
                     snapshotItem.getConfigPv().isReadOnly());
         }
 
-        /**
-         * Constructs a new entry with the given name and value. The entry is selected and writable. Other parameters are
-         * null or equivalent.
-         *
-         * @param name the name of the PV
-         * @param value the PV value
-         */
-//        public SnapshotEntry(String name, VType value) {
-//            this(name, value, true);
-//        }
-
-        /**
-         * Constructs a new entry from the given parameters. The entry is writable. Other parameters are null or equivalent.
-         *
-         * @param configPv the {@link ConfigPv} of the PV
-         * @param value the PV value
-         * @param selected true if selected, false if not
-         */
-//        public SnapshotEntry(ConfigPv configPv, VType value, boolean selected) {
-//            this(configPv, value, selected, null, null, null, false);
-//        }
 
         /**
          * Constructs a new entry from pieces.

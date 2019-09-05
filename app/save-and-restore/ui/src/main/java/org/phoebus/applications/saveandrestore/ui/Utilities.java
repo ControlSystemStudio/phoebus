@@ -185,38 +185,6 @@ public final class Utilities {
             }
 
             return VNumberArray.of(list, alarm, time, Display.none());
-        } else if (type instanceof VEnumArray) {
-            String[] elements = data.split("\\,");
-            if (((VEnumArray) type).getIndexes().size() != elements.length) {
-                throw new IllegalArgumentException("The number of array elements is different from the original.");
-            }
-            int[] array = new int[elements.length];
-            List<String> labels = ((VEnumArray) type).getData();
-            for (int i = 0; i < elements.length; i++) {
-                array[i] = labels.indexOf(elements[i].trim());
-            }
-            return VEnumArray.of(CollectionNumbers.toListInt(array), EnumDisplay.of(labels), alarm, time);
-        } else if (type instanceof VStringArray) {
-            String[] elements = data.split("\\,");
-            if (((VStringArray) type).getData().size() != elements.length) {
-                throw new IllegalArgumentException("The number of array elements is different from the original.");
-            }
-            for (int i = 0; i < elements.length; i++) {
-                elements[i] = elements[i].trim();
-            }
-            List<String> list = Arrays.asList(elements);
-            return VStringArray.of(list, alarm, time);
-        } else if (type instanceof VBooleanArray) {
-            String[] elements = data.split("\\,");
-            if (((VBooleanArray) type).getData().size() != elements.length) {
-                throw new IllegalArgumentException("The number of array elements is different from the original.");
-            }
-            boolean[] array = new boolean[elements.length];
-            for (int i = 0; i < elements.length; i++) {
-                array[i] = Boolean.parseBoolean(elements[i].trim());
-            }
-            ListBoolean list = new ArrayBoolean(array);
-            return VBooleanArray.of(list, alarm, time);
         } else if (type instanceof VDouble) {
             return VDouble.of(Double.parseDouble(data), alarm, time, Display.none());
         } else if (type instanceof VFloat) {
@@ -507,57 +475,6 @@ public final class Utilities {
                 }
             }
             if (size == 0) {
-                sb.append(']');
-            } else if (size < list.size()) {
-                sb.setCharAt(sb.length() - 1, '.');
-                sb.append("..]");
-            } else {
-                sb.setCharAt(sb.length() - 2, ']');
-            }
-            return sb.toString().trim();
-        } else if (type instanceof VEnumArray) {
-            List<String> list = ((VEnumArray) type).getData();
-            int size = Math.min(arrayLimit, list.size());
-            final StringBuilder sb = new StringBuilder(size * 15 + 2);
-            sb.append('[');
-            for (int i = 0; i < size; i++) {
-                sb.append(list.get(i)).append(COMMA).append(' ');
-            }
-            if (size == 0) {
-                sb.append(']');
-            } else if (size < list.size()) {
-                sb.setCharAt(sb.length() - 1, '.');
-                sb.append("..]");
-            } else {
-                sb.setCharAt(sb.length() - 2, ']');
-            }
-            return sb.toString().trim();
-        } else if (type instanceof VStringArray) {
-            List<String> list = ((VStringArray) type).getData();
-            int size = Math.min(arrayLimit, list.size());
-            final StringBuilder sb = new StringBuilder(size * 20 + 2);
-            sb.append('[');
-            for (int i = 0; i < size; i++) {
-                sb.append(list.get(i)).append(COMMA).append(' ');
-            }
-            if (size == 0) {
-                sb.append(']');
-            } else if (size < list.size()) {
-                sb.setCharAt(sb.length() - 1, '.');
-                sb.append("..]");
-            } else {
-                sb.setCharAt(sb.length() - 2, ']');
-            }
-            return sb.toString().trim();
-        } else if (type instanceof VBooleanArray) {
-            ListBoolean list = ((VBooleanArray) type).getData();
-            int size = Math.min(arrayLimit, list.size());
-            final StringBuilder sb = new StringBuilder(size * 7 + 2);
-            sb.append('[');
-            for (int i = 0; i < size; i++) {
-                sb.append(list.getBoolean(i)).append(COMMA).append(' ');
-            }
-            if (list.size() == 0) {
                 sb.append(']');
             } else if (size < list.size()) {
                 sb.setCharAt(sb.length() - 1, '.');
@@ -1051,23 +968,6 @@ public final class Utilities {
                 }
                 return true;
             }
-        } else if (v1 instanceof VStringArray && v2 instanceof VStringArray) {
-            List<String> b = ((VStringArray) v1).getData();
-            List<String> c = ((VStringArray) v2).getData();
-            return b.equals(c);
-        } else if (v1 instanceof VEnumArray && v2 instanceof VEnumArray) {
-            ListNumber b = ((VEnumArray) v1).getIndexes();
-            ListNumber c = ((VEnumArray) v2).getIndexes();
-            int size = b.size();
-            if (size != c.size()) {
-                return false;
-            }
-            for (int i = 0; i < size; i++) {
-                if (Integer.compare(b.getInt(i), c.getInt(i)) != 0) {
-                    return false;
-                }
-            }
-            return true;
         }
         // no support for MultiScalars (VMultiDouble, VMultiInt, VMultiString, VMultiEnum), VStatistics, VTable and
         // VImage)
@@ -1165,25 +1065,6 @@ public final class Utilities {
                 }
                 return true;
             }
-        } else if (v1 instanceof VStringArray && v2 instanceof VStringArray) {
-            List<String> b = ((VStringArray) v1).getData();
-            List<String> c = ((VStringArray) v2).getData();
-            return b.equals(c);
-        } else if (v1 instanceof VEnumArray && v2 instanceof VEnumArray) {
-            ListNumber b = ((VEnumArray) v1).getIndexes();
-            ListNumber c = ((VEnumArray) v2).getIndexes();
-            int size = b.size();
-            if (size != c.size()) {
-                return false;
-            }
-            for (int i = 0; i < size; i++) {
-                if (Integer.compare(b.getInt(i), c.getInt(i)) != 0) {
-                    return false;
-                }
-            }
-            List<String> l1 = ((VEnumArray) v1).getDisplay().getChoices();
-            List<String> l2 = ((VEnumArray) v2).getDisplay().getChoices();
-            return l1.equals(l2);
         }
         // no support for MultiScalars (VMultiDouble, VMultiInt, VMultiString, VMultiEnum), VStatistics, VTable and
         // VImage)

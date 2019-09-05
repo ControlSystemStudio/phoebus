@@ -119,65 +119,7 @@ public abstract class ValueFormat extends Format {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    /**
-     * Parses the string given the object as a reference.
-     * <p>
-     * This function will parse the string based on the object provided as a
-     * reference (e.g. if reference is a VDouble, it will parse the string as a double).
-     * The data in the reference will also be used for the actual parsing (e.g.
-     * if reference is Enum, the labels will be used to match the string).
-     *
-     * @param source the text to parse
-     * @param reference the vtype object to reference
-     * @return the parsed representation
-     */
-    public Object parseObject(String source, VType reference) {
-        if (reference instanceof VDouble) {
-            return parseDouble(source);
-        }
-        if (reference instanceof VFloat) {
-            return parseFloat(source);
-        }
-        if (reference instanceof VInt) {
-            return parseInt(source);
-        }
-        if (reference instanceof VShort) {
-            return parseShort(source);
-        }
-        if (reference instanceof VByte) {
-            return parseByte(source);
-        }
-        if (reference instanceof VString) {
-            return parseString(source);
-        }
-        if (reference instanceof VEnum) {
-            return parseEnum(source, ((VEnum)reference).getDisplay().getChoices());
-        }
-        if (reference instanceof VDoubleArray) {
-            return parseDoubleArray(source);
-        }
-        if (reference instanceof VFloatArray) {
-            return parseFloatArray(source);
-        }
-        if (reference instanceof VIntArray) {
-            return parseIntArray(source);
-        }
-        if (reference instanceof VShortArray) {
-            return parseShortArray(source);
-        }
-        if (reference instanceof VByteArray) {
-            return parseByteArray(source);
-        }
-        if (reference instanceof VStringArray) {
-            return parseStringArray(source);
-        }
-        if (reference instanceof VEnumArray) {
-            return parseEnumArray(source, ((VEnumArray) reference).getData());
-        }
-
-        throw new IllegalArgumentException("Type " + ValueUtil.typeOf(reference) + " is not supported");
-    }
-
+    
     /**
      * Parses the string and returns a double representation.
      * <p>

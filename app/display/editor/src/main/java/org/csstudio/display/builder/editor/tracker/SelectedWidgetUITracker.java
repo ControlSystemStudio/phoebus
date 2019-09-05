@@ -506,10 +506,22 @@ public class SelectedWidgetUITracker extends Tracker
         grid_constraint.setEnabled(enable);
     }
 
+    /** @return Enable grid */
+    public boolean getEnableGrid()
+    {
+        return grid_constraint.isEnabled();
+    }
+
     /** @param enable Enable snap? */
     public void enableSnap(final boolean enable)
     {
         snap_constraint.setEnabled(enable);
+    }
+
+    /** @return Enable snap */
+    public boolean getEnableSnap()
+    {
+        return snap_constraint.isEnabled();
     }
 
     /** Activate the tracker
