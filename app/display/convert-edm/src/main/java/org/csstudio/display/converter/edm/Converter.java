@@ -7,24 +7,15 @@
  *******************************************************************************/
 package org.csstudio.display.converter.edm;
 
-import java.util.logging.Handler;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.junit.BeforeClass;
-
-/** Test setup
- *  @author Kay Kasemir
- */
-@SuppressWarnings("nls")
-public class TestHelper
+public class Converter
 {
-    @BeforeClass
-    public static void configureLogging()
+    /** Logger for all the Display Builder generating code */
+    public static final Logger logger = Logger.getLogger(Converter.class.getPackageName());
+
+    public static void main(String[] args)
     {
-        final Logger logger = Logger.getLogger("");
-        logger.setLevel(Level.CONFIG);
-        for (Handler handler : logger.getHandlers())
-            handler.setLevel(logger.getLevel());
+        // TODO Convert files passed on the command line
     }
 }
