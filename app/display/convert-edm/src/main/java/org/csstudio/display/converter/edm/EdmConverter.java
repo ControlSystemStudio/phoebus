@@ -27,6 +27,8 @@ public class EdmConverter
 {
     private final DisplayModel model = new DisplayModel();
 
+    private int offset_x = 0, offset_y = 0;
+
     public EdmConverter(final String name, final EdmDisplay edm)
     {
         model.propName().setValue(name);
@@ -58,11 +60,32 @@ public class EdmConverter
         return model;
     }
 
+    /** @param x X offset and
+     *  @param y Y offset of widgets within currently handled container
+     */
+    public void addPositionOffset(final int x, final int y)
+    {
+        offset_x += x;
+        offset_y += y;
+    }
+
+    /** @return X offset of widgets within currently handled container */
+    public int getOffsetX()
+    {
+        return offset_x;
+    }
+
+    /** @return Y offset of widgets within currently handled container */
+    public int getOffsetY()
+    {
+        return offset_y;
+    }
+
     /** Convert one widget
      *  @param parent Parent
      *  @param edm EDM widget to convert
      */
-    private void convertWidget(final Widget parent, final EdmEntity edm)
+    public void convertWidget(final Widget parent, final EdmEntity edm)
     {
         // Given an EDM Widget type like "activeXTextClass",
         // locate the matching "Convert_activeXTextClass"

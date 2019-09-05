@@ -38,9 +38,9 @@ public abstract class ConverterBase<W extends Widget>
         widget = createWidget();
         widget.propName().setValue(t.getType());
 
-        // TODO Correct offset of parent widget?
-        widget.propX().setValue(t.getX());
-        widget.propY().setValue(t.getY());
+        // Correct offset of parent widget
+        widget.propX().setValue(t.getX() - converter.getOffsetX());
+        widget.propY().setValue(t.getY() - converter.getOffsetY());
         widget.propWidth().setValue(t.getW());
         widget.propHeight().setValue(t.getH());
 
