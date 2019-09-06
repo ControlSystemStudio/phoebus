@@ -19,6 +19,12 @@ import java.util.logging.Level;
 import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
 
 /** 'X' or 'horizontal' axis for numbers.
+ *
+ *  <p>'visible' controls whether the labels and tick marks are shown.
+ *  Allows having no labels and ticks, yet still show a grid and axis name.
+ *
+ *  <p>To fully hide axis, set visible and grid to false, and with empty name.
+ *
  *  @see TimeAxis
  *  @author Kay Kasemir
  */
@@ -39,22 +45,24 @@ public class HorizontalNumericAxis extends NumericAxis
     {
         logger.log(Level.FINE,  "XAxis layout");
 
-        if (! isVisible())
-            return 0;
-
         gc.setFont(label_font);
-        final int label_size = gc.getFontMetrics().getHeight();
+        final int label_size = getName().isEmpty() ?  0 : gc.getFontMetrics().getHeight();
         gc.setFont(scale_font);
         final int scale_size = gc.getFontMetrics().getHeight();
+
         // Need room for ticks, tick labels, and axis label
-        return TICK_LENGTH + label_size + scale_size;
+        if (isVisible())
+            return TICK_LENGTH + label_size + scale_size;
+        else
+            return label_size;
     }
 
     /** {@inheritDoc} */
     @Override
     public void paint(final Graphics2D gc, final Rectangle plot_bounds)
     {
-        if (! isVisible())
+        final boolean visible = isVisible();
+        if (! visible  &&  !show_grid  && getName().isEmpty())
             return;
 
         final Rectangle region = getBounds();
@@ -77,8 +85,11 @@ public class HorizontalNumericAxis extends NumericAxis
         for (MajorTick<Double> tick : ticks.getMajorTicks())
         {
             final int x = getScreenCoord(tick.getValue());
-            gc.setStroke(TICK_STROKE);
-            gc.drawLine(x, region.y, x, region.y + TICK_LENGTH - 1);
+            if (visible)
+            {
+                gc.setStroke(TICK_STROKE);
+                gc.drawLine(x, region.y, x, region.y + TICK_LENGTH - 1);
+            }
 
             // Grid line
             if (show_grid)
@@ -91,16 +102,17 @@ public class HorizontalNumericAxis extends NumericAxis
             gc.setStroke(old_width);
 
             // Tick Label
-            avoid = drawTickLabel(gc, x, tick.getLabel(), false, avoid);
+            if (visible)
+                avoid = drawTickLabel(gc, x, tick.getLabel(), false, avoid);
         }
 
         // Minor tick marks
-        for (MinorTick<Double> tick : ticks.getMinorTicks())
-        {
-            final int x = getScreenCoord(tick.getValue());
-            gc.drawLine(x, region.y, x, region.y + TICK_LENGTH - 1);
-        }
-
+        if (visible)
+            for (MinorTick<Double> tick : ticks.getMinorTicks())
+            {
+                final int x = getScreenCoord(tick.getValue());
+                gc.drawLine(x, region.y, x, region.y + TICK_LENGTH - 1);
+            }
 
         // Label: centered at bottom of region
         gc.setFont(label_font);
