@@ -68,7 +68,7 @@ public class ConverterPreferences
         for (FontMapping mapping : font_mappings)
             if (mapping.pattern.matcher(edm_font_name).matches())
             {
-                logger.log(Level.CONFIG, "Mapping EDM font '" + edm_font_name + "' to '" + mapping.font_name + "'");
+                logger.log(Level.FINE, "Mapping EDM font '" + edm_font_name + "' to '" + mapping.font_name + "'");
                 return mapping.font_name;
             }
         return edm_font_name;

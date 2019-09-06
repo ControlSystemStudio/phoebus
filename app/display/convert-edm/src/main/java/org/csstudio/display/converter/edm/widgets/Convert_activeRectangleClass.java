@@ -14,7 +14,7 @@ import org.csstudio.opibuilder.converter.model.Edm_activeRectangleClass;
 
 /** Convert an EDM widget into Display Builder counterpart
  *  @author Kay Kasemir
- *  @author Matevz, Xihui Chen et al - Original logic in Opi_.. converter
+ *  @author Matevz, Lei Hu, Xihui Chen et al - Original logic in Opi_.. converter
  */
 public class Convert_activeRectangleClass extends ConverterBase<RectangleWidget>
 {

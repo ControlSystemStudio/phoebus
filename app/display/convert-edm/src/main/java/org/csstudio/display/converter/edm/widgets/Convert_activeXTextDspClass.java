@@ -19,7 +19,7 @@ import org.phoebus.ui.vtype.FormatOption;
 
 /** Convert an EDM widget into Display Builder counterpart
  *  @author Kay Kasemir
- *  @author Matevz, Xihui Chen et al - Original logic in Opi_.. converter
+ *  @author Matevz, Lei Hu, Xihui Chen et al - Original logic in Opi_.. converter
  */
 @SuppressWarnings("nls")
 public class Convert_activeXTextDspClass extends ConverterBase<TextEntryWidget>
