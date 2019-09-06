@@ -27,5 +27,6 @@
     <module>perfmon</module>
     <module>pace</module>
     <module>save-and-restore</module>
-   </modules>
+    <module>console</module>
+  </modules>
 </project>
