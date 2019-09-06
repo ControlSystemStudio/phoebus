@@ -179,7 +179,7 @@ To run the Phoebus application:
 
     # Build the Javadoc, i.e. html files to be included in the manual
     ( cd phoebus/app/display/editor; ant -f javadoc.xml clean all )
-    
+
     # Building the manual will locate and include
     # all ../phoebus/**/doc/index.rst and ../phoebus/**/doc/html
 	( cd phoebus-doc; make clean html )
@@ -200,11 +200,11 @@ To run the Phoebus application:
     URL='https://controlssoftware.sns.ornl.gov/css_phoebus/nightly/phoebus-$(arch).zip'
     ( cd phoebus;
       app/update/mk_update_settings.sh $URL > phoebus-product/settings.ini
-    ) 
-    
+    )
+
     # Build product & bundle for distribution, including the documentation
     ( cd phoebus; ant clean dist )
-   
+
     # The files phoebus/phoebus-product/target/*.zip and
     # services/*/target/*.zip can now be distributed,
     # unzipped, launched
@@ -222,10 +222,10 @@ To build for a different platform, create the `dependencies` in one of these way
 
     # Either create the build platform for Linux..
 	( cd phoebus; mvn clean verify  -Djavafx.platform=linux  -f dependencies/pom.xml )
-	
+
 	# or Mac OS X ..
 	( cd phoebus; mvn clean verify  -Djavafx.platform=mac    -f dependencies/pom.xml )
-	
+
 	# or Windows:
 	( cd phoebus; mvn clean verify  -Djavafx.platform=win    -f dependencies/pom.xml )
 

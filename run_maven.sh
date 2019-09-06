@@ -4,7 +4,7 @@
 mvn clean verify  -f dependencies/pom.xml
 # All but first run can use -o for offline
 #
-mvn -DskipTests clean install 
+mvn -DskipTests clean install
 (cd phoebus-product/target; java -jar product-*-SNAPSHOT.jar  --add-modules=ALL-SYSTEM )
 
 # Or:
