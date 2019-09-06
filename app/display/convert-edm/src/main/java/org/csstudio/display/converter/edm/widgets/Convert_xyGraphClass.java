@@ -9,11 +9,16 @@ package org.csstudio.display.converter.edm.widgets;
 
 import static org.csstudio.display.converter.edm.Converter.logger;
 
+import java.util.Map.Entry;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.TraceWidgetProperty;
 import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget;
 import org.csstudio.display.converter.edm.EdmConverter;
+import org.csstudio.opibuilder.converter.model.EdmColor;
+import org.csstudio.opibuilder.converter.model.EdmInt;
+import org.csstudio.opibuilder.converter.model.EdmString;
 import org.csstudio.opibuilder.converter.model.Edm_xyGraphClass;
 
 /** Convert an EDM widget into Display Builder counterpart
@@ -29,6 +34,7 @@ public class Convert_xyGraphClass extends ConverterBase<XYPlotWidget>
 
         widget.propToolbar().setValue(false);
         widget.propTitle().setValue(r.getGraphTitle());
+        widget.propLegend().setValue(false);
 
         convertColor(r.getBgColor(), widget.propBackground());
         convertColor(r.getFgColor(), widget.propForeground());
@@ -98,9 +104,37 @@ public class Convert_xyGraphClass extends ConverterBase<XYPlotWidget>
             convertFont(r.getFont(), widget.propYAxes().getElement(1).scaleFont());
         }
 
-
-
+        // Traces
         logger.log(Level.WARNING, "Traces: " + r.getNumTraces());
+        while (widget.propTraces().size() < r.getNumTraces())
+            widget.propTraces().addElement();
+
+        // EDM keeps separate sparse maps with stringified index as key for each trace property...
+        if (r.getYPv().isExistInEDL())
+            for (Entry<String, EdmString> entry : r.getYPv().getEdmAttributesMap().entrySet())
+            {
+                final int i = Integer.parseInt(entry.getKey());
+                final TraceWidgetProperty trace = widget.propTraces().getElement(i);
+                trace.traceYPV().setValue(entry.getValue().get());
+                trace.traceName().setValue("");
+            }
+
+        if (r.getPlotColor().isExistInEDL())
+            for (Entry<String, EdmColor> entry : r.getPlotColor().getEdmAttributesMap().entrySet())
+            {
+                final int i = Integer.parseInt(entry.getKey());
+                final TraceWidgetProperty trace = widget.propTraces().getElement(i);
+                convertColor(entry.getValue(), trace.traceColor());
+            }
+
+        if(r.getLineThickness().isExistInEDL())
+            for (Entry<String, EdmInt> entry : r.getLineThickness().getEdmAttributesMap().entrySet())
+            {
+                final int i = Integer.parseInt(entry.getKey());
+                final TraceWidgetProperty trace = widget.propTraces().getElement(i);
+                trace.traceWidth().setValue(entry.getValue().get());
+            }
+
     }
 
     @Override
