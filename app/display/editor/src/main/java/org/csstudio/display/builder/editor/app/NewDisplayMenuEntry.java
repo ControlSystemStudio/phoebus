@@ -14,6 +14,7 @@ import java.nio.file.StandardCopyOption;
 
 import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.editor.Preferences;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.ApplicationService;
@@ -58,7 +59,15 @@ public class NewDisplayMenuEntry implements MenuEntry
         JobManager.schedule(Messages.NewDisplay, monitor ->
         {
             // Create file with example content
-            final InputStream content = ModelResourceUtil.openResourceStream("examples:/initial.bob");
+            InputStream content;
+            try
+            {
+                content = ModelResourceUtil.openResourceStream(Preferences.new_display_template);
+            }
+            catch (Exception e)
+            {
+                content = ModelResourceUtil.openResourceStream("examples:/initial.bob");
+            }
             Files.copy(content, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
             // Open editor on UI thread
