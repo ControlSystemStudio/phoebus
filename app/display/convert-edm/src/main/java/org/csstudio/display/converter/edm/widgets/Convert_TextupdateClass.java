@@ -12,7 +12,7 @@ import org.csstudio.display.builder.model.properties.HorizontalAlignment;
 import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
 import org.csstudio.display.converter.edm.EdmConverter;
-import org.csstudio.opibuilder.converter.model.Edm_activeXTextDspClass_noedit;
+import org.csstudio.opibuilder.converter.model.Edm_TextupdateClass;
 import org.phoebus.ui.vtype.FormatOption;
 
 /** Convert an EDM widget into Display Builder counterpart
@@ -20,23 +20,18 @@ import org.phoebus.ui.vtype.FormatOption;
  *  @author Matevz, Lei Hu, Xihui Chen et al - Original logic in Opi_.. converter
  */
 @SuppressWarnings("nls")
-public class Convert_activeXTextDspClass_noedit extends ConverterBase<TextUpdateWidget>
+public class Convert_TextupdateClass extends ConverterBase<TextUpdateWidget>
 {
-    public Convert_activeXTextDspClass_noedit(final EdmConverter converter, final Widget parent, final Edm_activeXTextDspClass_noedit r)
+    public Convert_TextupdateClass(final EdmConverter converter, final Widget parent, final Edm_TextupdateClass r)
     {
         super(converter, parent, r);
 
         convertColor(r.getBgColor(), widget.propBackgroundColor());
         convertColor(r.getFgColor(), widget.propForegroundColor());
         convertFont(r.getFont(), widget.propFont());
-        widget.propTransparent().setValue(r.isTransparent());
+        widget.propTransparent().setValue(!r.isFill());
 
-        if (r.getAttribute("controlPv").isExistInEDL())
-            widget.propPVName().setValue(convertPVName(r.getControlPv()));
-
-        if (! r.isLimitsFromDb()  && r.getAttribute("precision").isExistInEDL())
-            widget.propPrecision().setValue(r.getPrecision());
-        widget.propShowUnits().setValue(r.isShowUnits());
+        widget.propPVName().setValue(convertPVName(r.getControlPv()));
 
         if ("right".equals(r.getFontAlign()))
             widget.propHorizontalAlignment().setValue(HorizontalAlignment.RIGHT);
@@ -44,17 +39,21 @@ public class Convert_activeXTextDspClass_noedit extends ConverterBase<TextUpdate
             widget.propHorizontalAlignment().setValue(HorizontalAlignment.CENTER);
         widget.propVerticalAlignment().setValue(VerticalAlignment.MIDDLE);
 
-        if (r.getFormat() != null)
+        if (r.getDisplayMode() != null)
         {
-            if (r.getFormat().equals("exponential"))
-                widget.propFormat().setValue(FormatOption.EXPONENTIAL);
-            else if (r.getFormat().equals("decimal"))
+            // Non-default EDM mode disables units and uses fixed precision
+            widget.propPrecision().setValue(r.getPrecision());
+            widget.propShowUnits().setValue(false);
+            if (r.getDisplayMode().equals("decimal"))
                 widget.propFormat().setValue(FormatOption.DECIMAL);
-            else if (r.getFormat().equals("hex"))
+            else if (r.getDisplayMode().equals("hex"))
                 widget.propFormat().setValue(FormatOption.HEX);
-            else if (r.getFormat().equals("string"))
-                widget.propFormat().setValue(FormatOption.STRING);
+            else if (r.getDisplayMode().equals("engineer"))
+                widget.propFormat().setValue(FormatOption.ENGINEERING);
+            else if (r.getDisplayMode().equals("exp"))
+                widget.propFormat().setValue(FormatOption.EXPONENTIAL);
         }
+
     }
 
     @Override
