@@ -16,9 +16,13 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.NamedWidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.csstudio.display.builder.model.properties.WidgetFontStyle;
+import org.csstudio.display.converter.edm.ConverterPreferences;
 import org.csstudio.display.converter.edm.EdmConverter;
 import org.csstudio.opibuilder.converter.StringSplitter;
 import org.csstudio.opibuilder.converter.model.EdmColor;
+import org.csstudio.opibuilder.converter.model.EdmFont;
 import org.csstudio.opibuilder.converter.model.EdmWidget;
 
 /** Base for each converter
@@ -79,6 +83,28 @@ public abstract class ConverterBase<W extends Widget>
             prop.setValue(new NamedWidgetColor(name, red, green, blue));
         else
             prop.setValue(new WidgetColor(red, green, blue));
+    }
+
+    /** @param edm EDM font
+     *  @param prop Display builder font property to set from EDM font
+     */
+    public static void convertFont(final EdmFont edm,
+                                   final WidgetProperty<WidgetFont> prop)
+    {
+        final String family = ConverterPreferences.mapFont(edm.getName());
+
+        final WidgetFontStyle style;
+        if (edm.isBold() && edm.isItalic())
+            style = WidgetFontStyle.BOLD_ITALIC;
+        else if (edm.isBold())
+            style = WidgetFontStyle.BOLD;
+        else if (edm.isItalic())
+            style = WidgetFontStyle.ITALIC;
+        else
+            style = WidgetFontStyle.REGULAR;
+
+        final double size = edm.getSize();
+        prop.setValue(new WidgetFont(family, style, size));
     }
 
     /**

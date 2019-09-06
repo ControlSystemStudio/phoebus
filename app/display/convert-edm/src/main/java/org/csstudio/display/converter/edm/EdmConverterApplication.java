@@ -18,7 +18,6 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.opibuilder.converter.model.EdmModel;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.ui.application.ApplicationLauncherService;
@@ -34,19 +33,11 @@ import javafx.stage.Window;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class EDMConverterApplication implements AppResourceDescriptor
+public class EdmConverterApplication implements AppResourceDescriptor
 {
     private static final List<String> FILE_EXTENSIONS = List.of("edl");
     public static final String NAME = "convert_edm";
     public static final String DISPLAY_NAME = "EDM Converter";
-
-    private static String colors_list;
-
-    static
-    {
-        final PreferencesReader prefs = new PreferencesReader(EDMConverterApplication.class, "/edm_converter_preferences.properties");
-        colors_list = prefs.get("colors_list");
-    }
 
     @Override
     public String getName()
@@ -85,16 +76,16 @@ public class EDMConverterApplication implements AppResourceDescriptor
         final Window window = DockPane.getActiveDockPane().getScene().getWindow();
 
         // Get colors.list location from preferences
-        if (colors_list.isBlank())
+        if (ConverterPreferences.colors_list.isBlank())
         {
             // Prompt if not set
             final File selected = new OpenFileDialog().promptForFile(window, "Select EDM colors.list", null, null);
             if (selected == null)
                 return null;
 
-            colors_list = selected.getAbsolutePath();
-            final Preferences prefs = Preferences.userNodeForPackage(EDMConverterApplication.class);
-            prefs.put("colors_list", colors_list);
+            ConverterPreferences.colors_list = selected.getAbsolutePath();
+            final Preferences prefs = Preferences.userNodeForPackage(EdmConverterApplication.class);
+            prefs.put("colors_list", ConverterPreferences.colors_list);
         }
 
         // Perform actual conversion in background thread
@@ -102,7 +93,7 @@ public class EDMConverterApplication implements AppResourceDescriptor
         {
             try
             {
-                EdmModel.reloadEdmColorFile(colors_list, new FileInputStream(colors_list));
+                EdmModel.reloadEdmColorFile(ConverterPreferences.colors_list, new FileInputStream(ConverterPreferences.colors_list));
 
                 // Convert file
                 final File input = ModelResourceUtil.getFile(resource);

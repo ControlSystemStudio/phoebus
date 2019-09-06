@@ -25,12 +25,13 @@ public class Convert_activeXTextClass extends ConverterBase<LabelWidget>
     {
         super(converter, parent, t);
 
-        widget.propText().setValue(t.getValue().get());
-        widget.propAutoSize().setValue(t.getAttribute("autoSize").isExistInEDL() && t.isAutoSize());
-
-        widget.propTransparent().setValue(t.getAttribute("useDisplayBg").isExistInEDL() && t.isUseDisplayBg());
         convertColor(t.getBgColor(), widget.propBackgroundColor());
         convertColor(t.getFgColor(), widget.propForegroundColor());
+        convertFont(t.getFont(), widget.propFont());
+        widget.propTransparent().setValue(t.getAttribute("useDisplayBg").isExistInEDL() && t.isUseDisplayBg());
+
+        widget.propText().setValue(t.getValue().get());
+        widget.propAutoSize().setValue(t.getAttribute("autoSize").isExistInEDL() && t.isAutoSize());
 
         widget.propVerticalAlignment().setValue(VerticalAlignment.MIDDLE);
         if (t.getFontAlign().equals("right"))

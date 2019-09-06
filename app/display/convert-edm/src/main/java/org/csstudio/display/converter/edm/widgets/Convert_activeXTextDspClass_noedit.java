@@ -26,6 +26,11 @@ public class Convert_activeXTextDspClass_noedit extends ConverterBase<TextUpdate
     {
         super(converter, parent, r);
 
+        convertColor(r.getBgColor(), widget.propBackgroundColor());
+        convertColor(r.getFgColor(), widget.propForegroundColor());
+        convertFont(r.getFont(), widget.propFont());
+        widget.propTransparent().setValue(r.isTransparent());
+
         if (r.getAttribute("controlPv").isExistInEDL())
             widget.propPVName().setValue(convertPVName(r.getControlPv()));
 
@@ -50,10 +55,6 @@ public class Convert_activeXTextDspClass_noedit extends ConverterBase<TextUpdate
             else if (r.getFormat().equals("string"))
                 widget.propFormat().setValue(FormatOption.STRING);
         }
-
-        // TODO Font, fg, bg color
-
-        widget.propTransparent().setValue(r.isTransparent());
     }
 
     @Override

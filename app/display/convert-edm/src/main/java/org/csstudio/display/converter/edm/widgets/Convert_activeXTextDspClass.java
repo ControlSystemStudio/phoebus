@@ -28,11 +28,15 @@ public class Convert_activeXTextDspClass extends ConverterBase<TextEntryWidget>
     {
         super(converter, parent, r);
 
+        convertColor(r.getBgColor(), widget.propBackgroundColor());
+        convertColor(r.getFgColor(), widget.propForegroundColor());
+        convertFont(r.getFont(), widget.propFont());
+
         widget.propEnabled().setValue(r.isEditable());
 
         if (r.isEditable())
         {
-            // TODO
+            // TODO Remove TextEntryWidget, replace with FileSelector
             if (r.isDate())
                 logger.log(Level.WARNING, "Not handling 'Date' text input");
             else if (r.isFile())
@@ -45,7 +49,6 @@ public class Convert_activeXTextDspClass extends ConverterBase<TextEntryWidget>
         if (! r.isLimitsFromDb()  && r.getAttribute("precision").isExistInEDL())
             widget.propPrecision().setValue(r.getPrecision());
         widget.propShowUnits().setValue(r.isShowUnits());
-
         if (r.getFormat() != null)
         {
             if (r.getFormat().equals("exponential"))
@@ -57,8 +60,6 @@ public class Convert_activeXTextDspClass extends ConverterBase<TextEntryWidget>
             else if (r.getFormat().equals("string"))
                 widget.propFormat().setValue(FormatOption.STRING);
         }
-
-        // TODO Font, fg, bg color
     }
 
     @Override
