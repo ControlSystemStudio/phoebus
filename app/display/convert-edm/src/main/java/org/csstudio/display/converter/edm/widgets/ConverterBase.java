@@ -12,12 +12,14 @@ import static org.csstudio.display.converter.edm.Converter.logger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.NamedWidgetColor;
 import org.csstudio.display.builder.model.properties.ScriptPV;
 import org.csstudio.display.builder.model.properties.WidgetColor;
@@ -28,6 +30,7 @@ import org.csstudio.display.builder.model.rules.RuleInfo.ExpressionInfo;
 import org.csstudio.display.converter.edm.ConverterPreferences;
 import org.csstudio.display.converter.edm.EdmConverter;
 import org.csstudio.opibuilder.converter.StringSplitter;
+import org.csstudio.opibuilder.converter.model.EdmAttribute;
 import org.csstudio.opibuilder.converter.model.EdmColor;
 import org.csstudio.opibuilder.converter.model.EdmFont;
 import org.csstudio.opibuilder.converter.model.EdmModel;
@@ -61,8 +64,30 @@ public abstract class ConverterBase<W extends Widget>
         widget.propWidth().setValue(t.getW());
         widget.propHeight().setValue(t.getH());
 
-        // TODO See OpiWidget for visPv
+        // Does widget support visibility, and there's a 'visPv'?
+        final Optional<WidgetProperty<Boolean>> visibility = widget.checkProperty(CommonWidgetProperties.propVisible);
+        final EdmAttribute visPvAttr = t.getAttribute("visPv");
+        if (visibility.isPresent()  &&  visPvAttr != null  &&  visPvAttr.isExistInEDL())
+        {
+            final WidgetProperty<Boolean> vis_prop = visibility.get();
+            final List<RuleInfo> rules = new ArrayList<>(widget.propRules().getValue());
+            final List<ScriptPV> pvs = List.of(new ScriptPV(convertPVName(t.getVisPv())));
 
+            // If pv0 >= min  && < max:  show (unless inverted)
+            final List<ExpressionInfo<?>> exprs = new ArrayList<>();
+            final String expression = "pv0>=" + t.getVisMin() + " && pv0<" + t.getVisMax();
+            WidgetProperty<Boolean> val = vis_prop.clone();
+            val.setValue(!t.isVisInvert());
+            exprs.add(new RuleInfo.ExprInfoValue<>(expression, val));
+
+            // Else: Hide (unless inverted)
+            val = vis_prop.clone();
+            val.setValue(t.isVisInvert());
+            exprs.add(new RuleInfo.ExprInfoValue<>("true", val));
+
+            rules.add(new RuleInfo(vis_prop.getName(), vis_prop.getName(), false, exprs, pvs));
+            widget.propRules().setValue(rules);
+        }
 
         final ChildrenProperty parent_children = ChildrenProperty.getChildren(parent);
         if (parent_children == null)
