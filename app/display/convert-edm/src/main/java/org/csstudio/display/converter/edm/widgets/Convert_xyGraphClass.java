@@ -7,10 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.converter.edm.widgets;
 
-import static org.csstudio.display.converter.edm.Converter.logger;
-
 import java.util.Map.Entry;
-import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.LineStyle;
@@ -107,7 +104,6 @@ public class Convert_xyGraphClass extends ConverterBase<XYPlotWidget>
         }
 
         // Traces
-        logger.log(Level.WARNING, "Traces: " + r.getNumTraces());
         while (widget.propTraces().size() < r.getNumTraces())
             widget.propTraces().addElement();
 
