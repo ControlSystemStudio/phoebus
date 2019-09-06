@@ -64,6 +64,7 @@ public abstract class ActionDescription
         public void run(final DisplayEditor editor, final boolean selected)
         {
             editor.getSelectedWidgetUITracker().enableGrid(selected);
+            DisplayEditor.saveGrid(selected);
         }
     };
 
@@ -75,6 +76,7 @@ public abstract class ActionDescription
         public void run(final DisplayEditor editor, final boolean selected)
         {
             editor.getSelectedWidgetUITracker().enableSnap(selected);
+            DisplayEditor.saveSnap(selected);
         }
     };
 
@@ -85,7 +87,11 @@ public abstract class ActionDescription
         @Override
         public void run(final DisplayEditor editor, final boolean selected)
         {
-            editor.getSelectedWidgetUITracker().showLocationAndSize(selected);
+            if (editor.getModel() != null)
+                editor.getSelectedWidgetUITracker().showLocationAndSize(selected);
+            else
+                editor.getSelectedWidgetUITracker().setShowLocationAndSize(selected);
+            DisplayEditor.saveCoords(selected);
         }
     };
 

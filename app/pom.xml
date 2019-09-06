@@ -26,6 +26,7 @@
     <module>3dViewer</module>
     <module>perfmon</module>
     <module>pace</module>
+    <module>save-and-restore</module>
     <module>console</module>
   </modules>
 </project>
