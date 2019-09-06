@@ -34,9 +34,9 @@ public class Convert_activeXTextClass extends ConverterBase<LabelWidget>
         widget.propAutoSize().setValue(t.getAttribute("autoSize").isExistInEDL() && t.isAutoSize());
 
         widget.propVerticalAlignment().setValue(VerticalAlignment.MIDDLE);
-        if (t.getFontAlign().equals("right"))
+        if ("right".equals(t.getFontAlign()))
             widget.propHorizontalAlignment().setValue(HorizontalAlignment.RIGHT);
-        else if (t.getFontAlign().equals("center"))
+        else if ("center".equals(t.getFontAlign()))
             widget.propHorizontalAlignment().setValue(HorizontalAlignment.CENTER);
 
         // TODO See Opi_activeXTextClass for alarm rules
