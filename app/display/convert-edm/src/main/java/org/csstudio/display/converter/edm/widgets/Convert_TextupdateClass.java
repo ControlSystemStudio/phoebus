@@ -26,6 +26,17 @@ public class Convert_TextupdateClass extends ConverterBase<TextUpdateWidget>
     {
         super(converter, parent, r);
 
+        // Display Builder widget has no border.
+        // Alarm border is shown around the widget proper.
+        final int lw = r.getLineWidth();
+        if (lw > 0)
+        {
+            widget.propX().setValue(widget.propX().getValue()+lw);
+            widget.propY().setValue(widget.propY().getValue()+lw);
+            widget.propWidth().setValue(widget.propWidth().getValue()-2*lw);
+            widget.propHeight().setValue(widget.propHeight().getValue()-2*lw);
+        }
+
         convertColor(r.getBgColor(), widget.propBackgroundColor());
         convertColor(r.getFgColor(), widget.propForegroundColor());
         convertFont(r.getFont(), widget.propFont());
