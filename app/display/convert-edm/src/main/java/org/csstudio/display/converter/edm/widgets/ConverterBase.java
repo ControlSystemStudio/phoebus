@@ -9,20 +9,28 @@ package org.csstudio.display.converter.edm.widgets;
 
 import static org.csstudio.display.converter.edm.Converter.logger;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.NamedWidgetColor;
+import org.csstudio.display.builder.model.properties.ScriptPV;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.csstudio.display.builder.model.properties.WidgetFontStyle;
+import org.csstudio.display.builder.model.rules.RuleInfo;
+import org.csstudio.display.builder.model.rules.RuleInfo.ExpressionInfo;
 import org.csstudio.display.converter.edm.ConverterPreferences;
 import org.csstudio.display.converter.edm.EdmConverter;
 import org.csstudio.opibuilder.converter.StringSplitter;
 import org.csstudio.opibuilder.converter.model.EdmColor;
 import org.csstudio.opibuilder.converter.model.EdmFont;
+import org.csstudio.opibuilder.converter.model.EdmModel;
 import org.csstudio.opibuilder.converter.model.EdmWidget;
 
 /** Base for each converter
@@ -68,21 +76,90 @@ public abstract class ConverterBase<W extends Widget>
      *  @param prop Display builder color property to set from EDM color
      */
     public static void convertColor(final EdmColor edm,
+            final WidgetProperty<WidgetColor> prop)
+    {
+        convertColor(edm,  null, prop);
+    }
+
+    /** @param edm EDM Color
+     *  @param color_pv Color PV for dynamic color or <code>null</code>
+     *  @param prop Display builder color property to set from EDM color
+     */
+    public static void convertColor(final EdmColor edm,
+                                    final String color_pv,
                                     final WidgetProperty<WidgetColor> prop)
     {
-        // TODO See OpiColor
-        if (edm.isDynamic() || edm.isBlinking())
-            throw new IllegalStateException("Can only handle static colors");
+        if (edm.isDynamic() && color_pv != null)
+        {
+            final Widget widget = prop.getWidget();
+            final List<RuleInfo> rules = new ArrayList<>(widget.propRules().getValue());
+            final List<ScriptPV> pvs = List.of(new ScriptPV(convertPVName(color_pv)));
+            final List<ExpressionInfo<?>> exprs = new ArrayList<>();
 
+            for (Entry<String, String> entry : edm.getRuleMap().entrySet())
+            {
+                final String expression = convertColorRuleExpression(entry.getKey());
+                final EdmColor edm_color = EdmModel.getColorsList().getColor(entry.getValue());
+                if (edm_color == null)
+                {
+                    logger.log(Level.WARNING, "Dynamic color uses unknown color " + entry.getValue());
+                    return;
+                }
+                final WidgetColor color = convertStaticColor(edm_color);
+                final WidgetProperty<WidgetColor> prop_col = prop.clone();
+                prop_col.setValue(color);
+                exprs.add(new RuleInfo.ExprInfoValue<>(expression, prop_col));
+            }
+
+            final String name = edm.getName() == null ? "color" : edm.getName();
+            rules.add(new RuleInfo(name, prop.getName(), false, exprs, pvs));
+            widget.propRules().setValue(rules);
+
+            return;
+        }
+        if (edm.isBlinking())
+        {
+            logger.log(Level.WARNING, "Can only handle static colors");
+            return;
+        }
+
+        prop.setValue(convertStaticColor(edm));
+    }
+
+    /** Find a '=' that is neither preceded by '<', '>', '=' nor followed by '=' */
+    private static final Pattern expand_equal = Pattern.compile("(?<![<>=])=(?!=)");
+
+    /** @param expression EDM color rule expression like ">=5 && <10"
+     *  @return Display Builder rule expression like "pv0>=5 && pv0<10"
+     */
+    static String convertColorRuleExpression(String expression)
+    {
+        if (expression.equals("default"))
+            return "true";
+
+        // Expand all single '=' into 'pv0=='
+        expression = expand_equal.matcher(expression).replaceAll("pv0==");
+
+        // Add variable to '>', '<' which includes '>=', '<='
+        expression = expression.replace(">", "pv0>");
+        expression = expression.replace("<", "pv0<");
+
+        return expression;
+    }
+
+    /** @param edm Static EDM color
+     *  @return {@link WidgetColor}
+     */
+    private static WidgetColor convertStaticColor(final EdmColor edm)
+    {
         // EDM uses 16 bit color values
         final int red   = edm.getRed()   >> 8,
                   green = edm.getGreen() >> 8,
                   blue  = edm.getBlue()  >> 8;
         final String name = edm.getName();
         if (name != null  &&  !name.isBlank())
-            prop.setValue(new NamedWidgetColor(name, red, green, blue));
-        else
-            prop.setValue(new WidgetColor(red, green, blue));
+            return new NamedWidgetColor(name, red, green, blue);
+        return new WidgetColor(red, green, blue);
     }
 
     /** @param edm EDM font

@@ -16,24 +16,26 @@ import org.csstudio.opibuilder.converter.model.Edm_activeRectangleClass;
  *  @author Kay Kasemir
  *  @author Matevz, Lei Hu, Xihui Chen et al - Original logic in Opi_.. converter
  */
+@SuppressWarnings("nls")
 public class Convert_activeRectangleClass extends ConverterBase<RectangleWidget>
 {
     public Convert_activeRectangleClass(final EdmConverter converter, final Widget parent, final Edm_activeRectangleClass r)
     {
         super(converter, parent, r);
 
-        convertColor(r.getLineColor(), widget.propLineColor());
-        widget.propLineWidth().setValue(r.getLineWidth());
-
         // No 'dash' support
         //if (r.getLineStyle().isExistInEDL()  &&
         //    r.getLineStyle().get() == EdmLineStyle.DASH)
+        convertColor(r.getLineColor(), r.getAlarmPv(), widget.propLineColor());
 
+        if (r.getAttribute("lineWidth").isExistInEDL())
+            widget.propLineWidth().setValue(r.getLineWidth());
+        else
+            widget.propLineWidth().setValue(1);
         widget.propTransparent().setValue(! r.isFill());
-        convertColor(r.getFillColor(), widget.propBackgroundColor());
+        convertColor(r.getFillColor(), r.getAlarmPv(), widget.propBackgroundColor());
 
         widget.propVisible().setValue(!r.isInvisible());
-
 
         // TODO See Opi_activeRectangleClass for alarm rules
     }
