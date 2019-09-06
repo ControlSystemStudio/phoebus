@@ -13,6 +13,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.properties.LineStyle;
 import org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.TraceWidgetProperty;
 import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget;
 import org.csstudio.display.converter.edm.EdmConverter;
@@ -33,8 +34,9 @@ public class Convert_xyGraphClass extends ConverterBase<XYPlotWidget>
         super(converter, parent, r);
 
         widget.propToolbar().setValue(false);
-        widget.propTitle().setValue(r.getGraphTitle());
         widget.propLegend().setValue(false);
+        if (r.getGraphTitle() != null)
+            widget.propTitle().setValue(r.getGraphTitle());
 
         convertColor(r.getBgColor(), widget.propBackground());
         convertColor(r.getFgColor(), widget.propForeground());
@@ -135,6 +137,14 @@ public class Convert_xyGraphClass extends ConverterBase<XYPlotWidget>
                 trace.traceWidth().setValue(entry.getValue().get());
             }
 
+        if (r.getLineStyle().isExistInEDL())
+            for (Entry<String, EdmString> entry : r.getLineStyle().getEdmAttributesMap().entrySet())
+            {
+                final int i = Integer.parseInt(entry.getKey());
+                final TraceWidgetProperty trace = widget.propTraces().getElement(i);
+                if (entry.getValue().get().equals("dash"))
+                    trace.traceLineStyle().setValue(LineStyle.DASH);
+            }
     }
 
     @Override
