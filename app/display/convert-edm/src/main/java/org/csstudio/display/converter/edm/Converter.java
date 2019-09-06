@@ -35,7 +35,11 @@ public class Converter
         logger.log(Level.INFO, "Convert " + input + " -> " + output);
         final EdmDisplayParser parser = new EdmDisplayParser(input.getPath(), new FileInputStream(input));
         final EdmDisplay edm = new EdmDisplay(parser.getRoot());
-        final EdmConverter converter = new EdmConverter(input.getName().replace(".edl", ""), edm);
+
+        final String title = input.getName()
+                                  .replace(".edl", "")
+                                  .replace('_', ' ');
+        final EdmConverter converter = new EdmConverter(title, edm);
         final ModelWriter writer = new ModelWriter(new FileOutputStream(output));
         writer.writeModel(converter.getDisplayModel());
         writer.close();

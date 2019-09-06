@@ -11,9 +11,11 @@ import java.util.Map.Entry;
 
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.LineStyle;
+import org.csstudio.display.builder.model.widgets.plots.PlotWidgetPointType;
 import org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.TraceWidgetProperty;
 import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget;
 import org.csstudio.display.converter.edm.EdmConverter;
+import org.csstudio.opibuilder.converter.model.EdmBoolean;
 import org.csstudio.opibuilder.converter.model.EdmColor;
 import org.csstudio.opibuilder.converter.model.EdmInt;
 import org.csstudio.opibuilder.converter.model.EdmString;
@@ -141,6 +143,37 @@ public class Convert_xyGraphClass extends ConverterBase<XYPlotWidget>
                 if (entry.getValue().get().equals("dash"))
                     trace.traceLineStyle().setValue(LineStyle.DASH);
             }
+
+        if(r.getPlotSymbolType().isExistInEDL())
+            for (Entry<String, EdmString> entry : r.getPlotSymbolType().getEdmAttributesMap().entrySet())
+            {
+                final int i = Integer.parseInt(entry.getKey());
+                final TraceWidgetProperty trace = widget.propTraces().getElement(i);
+                if (entry.getValue().get().equals("circle"))
+                    trace.tracePointType().setValue(PlotWidgetPointType.CIRCLES);
+                else if (entry.getValue().get().equals("square"))
+                    trace.tracePointType().setValue(PlotWidgetPointType.SQUARES);
+                else if (entry.getValue().get().equals("diamond"))
+                    trace.tracePointType().setValue(PlotWidgetPointType.DIAMONDS);
+                else
+                    continue;
+                trace.tracePointSize().setValue(6);
+            }
+
+        boolean show_second = false;
+        if (r.getUseY2Axis().isExistInEDL())
+            for (Entry<String, EdmBoolean> entry : r.getUseY2Axis().getEdmAttributesMap().entrySet())
+            {
+                final int i = Integer.parseInt(entry.getKey());
+                final TraceWidgetProperty trace = widget.propTraces().getElement(i);
+                if (entry.getValue().is())
+                {
+                    trace.traceYAxis().setValue(1);
+                    show_second = true;
+                }
+            }
+
+        widget.propYAxes().getElement(1).visible().setValue(show_second);
     }
 
     @Override
