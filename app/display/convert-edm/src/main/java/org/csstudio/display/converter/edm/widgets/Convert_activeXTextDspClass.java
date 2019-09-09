@@ -46,6 +46,11 @@ public class Convert_activeXTextDspClass extends ConverterBase<TextEntryWidget>
 
         if (r.getAttribute("controlPv").isExistInEDL())
             widget.propPVName().setValue(convertPVName(r.getControlPv()));
+        else
+        {
+            logger.log(Level.WARNING, "Hiding activeXTextDsp (Text Entry) without PV");
+            widget.propVisible().setValue(false);
+        }
 
         if (! r.isLimitsFromDb()  && r.getAttribute("precision").isExistInEDL())
             widget.propPrecision().setValue(r.getPrecision());

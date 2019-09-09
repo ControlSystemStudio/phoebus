@@ -7,6 +7,10 @@
  *******************************************************************************/
 package org.csstudio.display.converter.edm.widgets;
 
+import static org.csstudio.display.converter.edm.Converter.logger;
+
+import java.util.logging.Level;
+
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.HorizontalAlignment;
 import org.csstudio.display.builder.model.properties.VerticalAlignment;
@@ -34,6 +38,11 @@ public class Convert_activeXTextDspClass_noedit extends ConverterBase<TextUpdate
 
         if (r.getAttribute("controlPv").isExistInEDL())
             widget.propPVName().setValue(convertPVName(r.getControlPv()));
+        else
+        {
+            logger.log(Level.WARNING, "Hiding Convert_activeXTextDspClass_noedit (Text Update) without PV");
+            widget.propVisible().setValue(false);
+        }
 
         if (! r.isLimitsFromDb()  && r.getAttribute("precision").isExistInEDL())
             widget.propPrecision().setValue(r.getPrecision());
