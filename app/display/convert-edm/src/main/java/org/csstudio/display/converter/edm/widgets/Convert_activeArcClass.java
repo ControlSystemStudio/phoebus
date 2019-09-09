@@ -8,25 +8,25 @@
 package org.csstudio.display.converter.edm.widgets;
 
 import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.widgets.RectangleWidget;
+import org.csstudio.display.builder.model.widgets.ArcWidget;
 import org.csstudio.display.converter.edm.EdmConverter;
 import org.csstudio.opibuilder.converter.model.EdmWidget;
-import org.csstudio.opibuilder.converter.model.Edm_activeRectangleClass;
+import org.csstudio.opibuilder.converter.model.Edm_activeArcClass;
 
 /** Convert an EDM widget into Display Builder counterpart
  *  @author Kay Kasemir
  *  @author Matevz, Lei Hu, Xihui Chen et al - Original logic in Opi_.. converter
  */
 @SuppressWarnings("nls")
-public class Convert_activeRectangleClass extends ConverterBase<RectangleWidget>
+public class Convert_activeArcClass extends ConverterBase<ArcWidget>
 {
-    public Convert_activeRectangleClass(final EdmConverter converter, final Widget parent, final Edm_activeRectangleClass r)
+    public Convert_activeArcClass(final EdmConverter converter, final Widget parent, final Edm_activeArcClass r)
     {
         super(converter, parent, r);
 
         // EDM applies linewidth inside and outside of widget
         int linewidth;
-        if (r.getAttribute("lineWidth").isExistInEDL())
+        if (r.getLineWidth() != 0)
             linewidth = r.getLineWidth();
         else
             linewidth = 1;
@@ -37,22 +37,22 @@ public class Convert_activeRectangleClass extends ConverterBase<RectangleWidget>
         widget.propWidth().setValue(r.getW()+linewidth);
         widget.propHeight().setValue(r.getH()+linewidth);
 
-        // No 'dash' support
-        //if (r.getLineStyle().isExistInEDL()  &&
-        //    r.getLineStyle().get() == EdmLineStyle.DASH)
         convertColor(r.getLineColor(), r.getAlarmPv(), widget.propLineColor());
-
-        widget.propTransparent().setValue(! r.isFill());
         convertColor(r.getFillColor(), r.getAlarmPv(), widget.propBackgroundColor());
+        widget.propTransparent().setValue(! r.isFill());
 
-        widget.propVisible().setValue(!r.isInvisible());
+        widget.propArcStart().setValue(r.getStartAngle());
+        if (r.getAttribute("totalAngle").isExistInEDL())
+            widget.propArcSize().setValue(r.getTotalAngle());
+        else
+            widget.propArcSize().setValue(180.0);
 
-        // TODO See Opi_activeRectangleClass for alarm rules
+        // TODO See Opi_activeArcClass for alarm rules
     }
 
     @Override
-    protected RectangleWidget createWidget(final EdmWidget edm)
+    protected ArcWidget createWidget(final EdmWidget edm)
     {
-        return new RectangleWidget();
+        return new ArcWidget();
     }
 }
