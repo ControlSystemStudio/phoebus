@@ -21,6 +21,7 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.NamedWidgetColor;
+import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.properties.ScriptPV;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
@@ -179,6 +180,27 @@ public abstract class ConverterBase<W extends Widget>
         expression = expression.replace("<", "pv0<");
 
         return expression;
+    }
+
+    /** Make color alarm-sensitive
+     *  @param alarm_pv Alarm PV where severity is obtained
+     *  @param prop Property to set to the named OK, MINOR, ... color
+     */
+    public static void createAlarmColor(final String alarm_pv, final WidgetProperty<WidgetColor> prop)
+    {
+        final String alarm_script =
+            "from org.csstudio.display.builder.runtime.script import PVUtil\n" +
+            "from org.csstudio.display.builder.model.persist import WidgetColorService\n" +
+            "sevr = PVUtil.getSeverity(pvs[0])\n" +
+            "cn = ( 'OK', 'MINOR', 'MAYOR', 'INVALID', 'DISCONNECTED' )[sevr]\n" +
+            "c = WidgetColorService.getColor(cn)\n" +
+            "widget.setPropertyValue('" + prop.getName() + "', c)";
+
+        final String pv = convertPVName(alarm_pv);
+        final Widget widget = prop.getWidget();
+        final List<ScriptInfo> scripts = new ArrayList<>(widget.propScripts().getValue());
+        scripts.add(new ScriptInfo(ScriptInfo.EMBEDDED_PYTHON, alarm_script, true, List.of(new ScriptPV(pv))));
+        widget.propScripts().setValue(scripts);
     }
 
     /** @param edm Static EDM color

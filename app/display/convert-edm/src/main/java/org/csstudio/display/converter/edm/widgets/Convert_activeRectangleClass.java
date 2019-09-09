@@ -40,14 +40,19 @@ public class Convert_activeRectangleClass extends ConverterBase<RectangleWidget>
         // No 'dash' support
         //if (r.getLineStyle().isExistInEDL()  &&
         //    r.getLineStyle().get() == EdmLineStyle.DASH)
-        convertColor(r.getLineColor(), r.getAlarmPv(), widget.propLineColor());
 
         widget.propTransparent().setValue(! r.isFill());
-        convertColor(r.getFillColor(), r.getAlarmPv(), widget.propBackgroundColor());
 
         widget.propVisible().setValue(!r.isInvisible());
 
-        // TODO See Opi_activeRectangleClass for alarm rules
+        if (r.isLineAlarm())
+            createAlarmColor(r.getAlarmPv(), widget.propLineColor());
+        else
+            convertColor(r.getLineColor(), r.getAlarmPv(), widget.propLineColor());
+        if (r.isFillAlarm())
+            createAlarmColor(r.getAlarmPv(), widget.propBackgroundColor());
+        else
+            convertColor(r.getFillColor(), r.getAlarmPv(), widget.propBackgroundColor());
     }
 
     @Override

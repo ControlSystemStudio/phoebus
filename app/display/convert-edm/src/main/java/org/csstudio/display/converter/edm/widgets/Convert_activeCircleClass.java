@@ -27,18 +27,24 @@ public class Convert_activeCircleClass extends ConverterBase<EllipseWidget>
         // No 'dash' support
         //if (r.getLineStyle().isExistInEDL()  &&
         //    r.getLineStyle().get() == EdmLineStyle.DASH)
-        convertColor(r.getLineColor(), r.getAlarmPv(), widget.propLineColor());
 
         if (r.getAttribute("lineWidth").isExistInEDL())
             widget.propLineWidth().setValue(r.getLineWidth());
         else
             widget.propLineWidth().setValue(1);
         widget.propTransparent().setValue(! r.isFill());
-        convertColor(r.getFillColor(), r.getAlarmPv(), widget.propBackgroundColor());
+
+        if (r.isLineAlarm())
+            createAlarmColor(r.getAlarmPv(), widget.propLineColor());
+        else
+            convertColor(r.getLineColor(), r.getAlarmPv(), widget.propLineColor());
+
+        if (r.isFillAlarm())
+            createAlarmColor(r.getAlarmPv(), widget.propBackgroundColor());
+        else
+            convertColor(r.getFillColor(), r.getAlarmPv(), widget.propBackgroundColor());
 
         widget.propVisible().setValue(!r.isInvisible());
-
-        // TODO See Opi_activeCircleClass for alarm rules
     }
 
     @Override
