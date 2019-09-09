@@ -365,7 +365,8 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     {
         foreground = JFXUtil.convert(model_widget.propForegroundColor().getValue());
         if (model_widget.propTransparent().getValue())
-            background = "-fx-background: transparent; -fx-color: transparent; -fx-focus-color: rgba(3,158,211,0.1);";
+            // Set most colors to transparent, including the 'arrow' used by MenuButton
+            background = "-fx-background: transparent; -fx-color: transparent; -fx-focus-color: rgba(3,158,211,0.1); -fx-mark-color: transparent; -fx-background-color: transparent;";
         else
             background = JFXUtil.shadedStyle(model_widget.propBackgroundColor().getValue());
     }
