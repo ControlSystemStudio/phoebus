@@ -37,6 +37,7 @@ public class Convert_activeGroupClass extends ConverterBase<GroupWidget>
         {
             for (EdmWidget c : g.getWidgets())
                 converter.convertWidget(widget, c);
+            converter.correctWidgetOrder(widget);
         }
         finally
         {

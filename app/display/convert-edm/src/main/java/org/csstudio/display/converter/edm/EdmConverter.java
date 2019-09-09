@@ -10,10 +10,14 @@ package org.csstudio.display.converter.edm;
 import static org.csstudio.display.converter.edm.Converter.logger;
 
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 
+import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.converter.edm.widgets.ConverterBase;
 import org.csstudio.opibuilder.converter.model.EdmDisplay;
 import org.csstudio.opibuilder.converter.model.EdmEntity;
@@ -52,6 +56,7 @@ public class EdmConverter
 
         for (EdmEntity edm_widget : edm.getWidgets())
             convertWidget(model, edm_widget);
+        correctWidgetOrder(model);
     }
 
     /** @return {@link DisplayModel} */
@@ -125,4 +130,32 @@ public class EdmConverter
             logger.log(Level.WARNING, "Cannot convert " + edm.getType(), ex);
         }
     }
+
+    /** Correct widget order
+     *
+     *  <p>Called after all widgets have been added to a parent
+     *  @param parent
+     */
+    public void correctWidgetOrder(final Widget parent)
+    {
+        final ChildrenProperty children = ChildrenProperty.getChildren(parent);
+        final List<Widget> copy = new ArrayList<>(children.getValue());
+        for (Widget widget : copy)
+        {
+            // Move transparent buttons to front.
+            // In EDM, transparent buttons may be placed behind text etc.
+            // In display builder, normal widget order would
+            // then have text block mouse events from button.
+            if (widget instanceof ActionButtonWidget)
+            {
+                final ActionButtonWidget b = (ActionButtonWidget) widget;
+                if (b.propTransparent().getValue())
+                {
+                    children.removeChild(widget);
+                    children.addChild(widget);
+                }
+            }
+        }
+    }
+
 }
