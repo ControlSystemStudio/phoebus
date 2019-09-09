@@ -26,7 +26,7 @@ public class Edm_activeButtonClass extends EdmWidget {
     @EdmAttributeAn @EdmOptionalAn private String buttonType;
     @EdmAttributeAn @EdmOptionalAn private int controlBitsPos;
 
-
+    @EdmAttributeAn @EdmOptionalAn private String labelType;
 
 
     public Edm_activeButtonClass(EdmEntity genericEntity) throws EdmException {
@@ -66,6 +66,11 @@ public class Edm_activeButtonClass extends EdmWidget {
     }
     public final String getOffLabel() {
         return offLabel;
+    }
+
+    public boolean useLabelsFromPV()
+    {
+        return ! "literal".equals(labelType);
     }
 
 
