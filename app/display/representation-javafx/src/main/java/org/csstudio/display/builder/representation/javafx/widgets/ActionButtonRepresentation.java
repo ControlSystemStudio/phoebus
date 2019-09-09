@@ -40,6 +40,9 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
@@ -178,6 +181,10 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
             result = button;
         }
         result.setStyle(background);
+
+        // In edit mode, show dashed border for transparent/invisible widget
+        if (toolkit.isEditMode()  &&  model_widget.propTransparent().getValue())
+            result.setBorder(new Border(new BorderStroke(Color.BLACK, GroupRepresentation.EDIT_NONE_DASHED, CornerRadii.EMPTY, GroupRepresentation.EDIT_NONE_BORDER)));
         result.getStyleClass().add("action_button");
         result.setMnemonicParsing(false);
 
