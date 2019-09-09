@@ -12,6 +12,7 @@ import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.Points;
 import org.csstudio.display.builder.model.widgets.PolygonWidget;
 import org.csstudio.display.builder.model.widgets.PolylineWidget;
+import org.csstudio.display.builder.model.widgets.PolylineWidget.Arrows;
 import org.csstudio.display.converter.edm.EdmConverter;
 import org.csstudio.opibuilder.converter.model.EdmWidget;
 import org.csstudio.opibuilder.converter.model.Edm_activeLineClass;
@@ -28,30 +29,32 @@ public class Convert_activeLineClass extends ConverterBase<Widget>
         super(converter, parent, r);
 
         final Points points = new Points();
-        final int dx = converter.getOffsetX() + widget.propX().getValue();
-        final int dy = converter.getOffsetY() + widget.propY().getValue();
-        final int[] x = r.getXPoints().get();
-        final int[] y = r.getYPoints().get();
+        final int dx = converter.getOffsetX() + widget.propX().getValue(),
+                  dy = converter.getOffsetY() + widget.propY().getValue();
+        final int[] x = r.getXPoints().get(), y = r.getYPoints().get();
         final int N = Math.min(x.length,  y.length);
         for (int i=0; i<N; ++i)
             points.add(x[i]-dx, y[i]-dy);
         if (r.isClosePolygon()  &&  !r.isFill())
             points.add(x[0], y[0]);
         widget.setPropertyValue(CommonWidgetProperties.propPoints, points);
+        widget.setPropertyValue(CommonWidgetProperties.propLineWidth, r.getLineWidth());
+        convertColor(r.getLineColor(), r.getAlarmPv(), widget.getProperty(CommonWidgetProperties.propLineColor));
 
-        if (widget instanceof PolylineWidget)
+        if (widget instanceof PolygonWidget)
         {
-            final PolylineWidget line = (PolylineWidget) widget;
-            convertColor(r.getLineColor(), r.getAlarmPv(), line.propLineColor());
-
-            line.propLineWidth().setValue(r.getLineWidth());
+            final PolygonWidget pg = (PolygonWidget) widget;
+            convertColor(r.getFillColor(), r.getAlarmPv(), pg.propBackgroundColor());
         }
         else
         {
-            final PolygonWidget gon = (PolygonWidget) widget;
-            convertColor(r.getLineColor(), gon.propLineColor());
-            convertColor(r.getFillColor(), r.getAlarmPv(), gon.propBackgroundColor());
-            gon.propLineWidth().setValue(r.getLineWidth());
+            final PolylineWidget pl = (PolylineWidget) widget;
+            if ("from".equals(r.getArrows()))
+                pl.propArrows().setValue(Arrows.FROM);
+            else if ("to".equals(r.getArrows()))
+                pl.propArrows().setValue(Arrows.TO);
+            else if ("both".equals(r.getArrows()))
+                pl.propArrows().setValue(Arrows.BOTH);
         }
 
         // TODO See Opi_activeLineClass for alarm rules
