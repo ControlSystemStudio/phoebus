@@ -24,6 +24,7 @@ import org.csstudio.display.converter.edm.EdmConverter;
 import org.csstudio.opibuilder.converter.StringSplitter;
 import org.csstudio.opibuilder.converter.model.EdmBoolean;
 import org.csstudio.opibuilder.converter.model.EdmString;
+import org.csstudio.opibuilder.converter.model.EdmWidget;
 import org.csstudio.opibuilder.converter.model.Edm_relatedDisplayClass;
 import org.phoebus.framework.macros.Macros;
 
@@ -93,7 +94,7 @@ public class Convert_relatedDisplayClass extends ConverterBase<ActionButtonWidge
     }
 
     @Override
-    protected ActionButtonWidget createWidget()
+    protected ActionButtonWidget createWidget(final EdmWidget edm)
     {
         return new ActionButtonWidget();
     }

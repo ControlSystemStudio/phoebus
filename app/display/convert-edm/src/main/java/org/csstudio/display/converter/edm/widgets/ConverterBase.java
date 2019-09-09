@@ -55,7 +55,7 @@ public abstract class ConverterBase<W extends Widget>
 
     public ConverterBase(final EdmConverter converter, final Widget parent, final EdmWidget t)
     {
-        widget = createWidget();
+        widget = createWidget(t);
         widget.propName().setValue(t.getType());
 
         // Correct offset of parent widget
@@ -95,7 +95,16 @@ public abstract class ConverterBase<W extends Widget>
         parent_children.addChild(widget);
     }
 
-    protected abstract W createWidget();
+    /** Create Display Builder widget
+     *
+     *  <p>In most cases, the called converter knows which widget
+     *  to create, but in special cases it can check the EDM widget
+     *  configuration to decide how to map.
+     *
+     *  @param edm EDM widget
+     *  @return Display Builder widget
+     */
+    protected abstract W createWidget(EdmWidget edm);
 
     /** @param edm EDM Color
      *  @param prop Display builder color property to set from EDM color

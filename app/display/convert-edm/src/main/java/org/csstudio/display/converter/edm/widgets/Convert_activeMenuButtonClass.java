@@ -10,6 +10,7 @@ package org.csstudio.display.converter.edm.widgets;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.widgets.ComboWidget;
 import org.csstudio.display.converter.edm.EdmConverter;
+import org.csstudio.opibuilder.converter.model.EdmWidget;
 import org.csstudio.opibuilder.converter.model.Edm_activeMenuButtonClass;
 
 /** Convert an EDM widget into Display Builder counterpart
@@ -37,7 +38,7 @@ public class Convert_activeMenuButtonClass extends ConverterBase<ComboWidget>
     }
 
     @Override
-    protected ComboWidget createWidget()
+    protected ComboWidget createWidget(final EdmWidget edm)
     {
         return new ComboWidget();
     }

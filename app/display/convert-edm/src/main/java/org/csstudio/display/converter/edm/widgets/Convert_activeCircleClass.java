@@ -10,6 +10,7 @@ package org.csstudio.display.converter.edm.widgets;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.widgets.EllipseWidget;
 import org.csstudio.display.converter.edm.EdmConverter;
+import org.csstudio.opibuilder.converter.model.EdmWidget;
 import org.csstudio.opibuilder.converter.model.Edm_activeCircleClass;
 
 /** Convert an EDM widget into Display Builder counterpart
@@ -41,7 +42,7 @@ public class Convert_activeCircleClass extends ConverterBase<EllipseWidget>
     }
 
     @Override
-    protected EllipseWidget createWidget()
+    protected EllipseWidget createWidget(final EdmWidget edm)
     {
         return new EllipseWidget();
     }

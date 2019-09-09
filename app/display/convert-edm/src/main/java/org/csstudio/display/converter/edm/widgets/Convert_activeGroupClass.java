@@ -46,7 +46,7 @@ public class Convert_activeGroupClass extends ConverterBase<GroupWidget>
     }
 
     @Override
-    protected GroupWidget createWidget()
+    protected GroupWidget createWidget(final EdmWidget edm)
     {
         return new GroupWidget();
     }

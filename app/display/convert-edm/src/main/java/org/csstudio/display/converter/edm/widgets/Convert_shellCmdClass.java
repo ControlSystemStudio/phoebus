@@ -18,6 +18,7 @@ import org.csstudio.display.builder.model.properties.ExecuteCommandActionInfo;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.converter.edm.EdmConverter;
 import org.csstudio.opibuilder.converter.model.EdmString;
+import org.csstudio.opibuilder.converter.model.EdmWidget;
 import org.csstudio.opibuilder.converter.model.Edm_shellCmdClass;
 
 /** Convert an EDM widget into Display Builder counterpart
@@ -63,7 +64,7 @@ public class Convert_shellCmdClass extends ConverterBase<ActionButtonWidget>
     }
 
     @Override
-    protected ActionButtonWidget createWidget()
+    protected ActionButtonWidget createWidget(final EdmWidget edm)
     {
         return new ActionButtonWidget();
     }

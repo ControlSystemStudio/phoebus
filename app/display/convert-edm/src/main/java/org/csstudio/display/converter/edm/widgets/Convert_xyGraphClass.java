@@ -19,6 +19,7 @@ import org.csstudio.opibuilder.converter.model.EdmBoolean;
 import org.csstudio.opibuilder.converter.model.EdmColor;
 import org.csstudio.opibuilder.converter.model.EdmInt;
 import org.csstudio.opibuilder.converter.model.EdmString;
+import org.csstudio.opibuilder.converter.model.EdmWidget;
 import org.csstudio.opibuilder.converter.model.Edm_xyGraphClass;
 
 /** Convert an EDM widget into Display Builder counterpart
@@ -177,7 +178,7 @@ public class Convert_xyGraphClass extends ConverterBase<XYPlotWidget>
     }
 
     @Override
-    protected XYPlotWidget createWidget()
+    protected XYPlotWidget createWidget(final EdmWidget edm)
     {
         return new XYPlotWidget();
     }

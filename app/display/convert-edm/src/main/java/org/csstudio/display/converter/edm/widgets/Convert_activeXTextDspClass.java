@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.widgets.TextEntryWidget;
 import org.csstudio.display.converter.edm.EdmConverter;
+import org.csstudio.opibuilder.converter.model.EdmWidget;
 import org.csstudio.opibuilder.converter.model.Edm_activeXTextDspClass;
 import org.phoebus.ui.vtype.FormatOption;
 
@@ -63,7 +64,7 @@ public class Convert_activeXTextDspClass extends ConverterBase<TextEntryWidget>
     }
 
     @Override
-    protected TextEntryWidget createWidget()
+    protected TextEntryWidget createWidget(final EdmWidget edm)
     {
         return new TextEntryWidget();
     }

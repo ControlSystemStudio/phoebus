@@ -12,6 +12,7 @@ import org.csstudio.display.builder.model.properties.HorizontalAlignment;
 import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
 import org.csstudio.display.converter.edm.EdmConverter;
+import org.csstudio.opibuilder.converter.model.EdmWidget;
 import org.csstudio.opibuilder.converter.model.Edm_activeXTextClass;
 
 /** Convert an EDM widget into Display Builder counterpart
@@ -44,7 +45,7 @@ public class Convert_activeXTextClass extends ConverterBase<LabelWidget>
     }
 
     @Override
-    protected LabelWidget createWidget()
+    protected LabelWidget createWidget(final EdmWidget edm)
     {
         return new LabelWidget();
     }

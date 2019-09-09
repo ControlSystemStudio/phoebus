@@ -12,6 +12,7 @@ import org.csstudio.display.builder.model.properties.HorizontalAlignment;
 import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
 import org.csstudio.display.converter.edm.EdmConverter;
+import org.csstudio.opibuilder.converter.model.EdmWidget;
 import org.csstudio.opibuilder.converter.model.Edm_activeXTextDspClass_noedit;
 import org.phoebus.ui.vtype.FormatOption;
 
@@ -58,7 +59,7 @@ public class Convert_activeXTextDspClass_noedit extends ConverterBase<TextUpdate
     }
 
     @Override
-    protected TextUpdateWidget createWidget()
+    protected TextUpdateWidget createWidget(final EdmWidget edm)
     {
         return new TextUpdateWidget();
     }

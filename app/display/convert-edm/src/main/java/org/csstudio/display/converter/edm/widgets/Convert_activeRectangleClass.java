@@ -10,6 +10,7 @@ package org.csstudio.display.converter.edm.widgets;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.widgets.RectangleWidget;
 import org.csstudio.display.converter.edm.EdmConverter;
+import org.csstudio.opibuilder.converter.model.EdmWidget;
 import org.csstudio.opibuilder.converter.model.Edm_activeRectangleClass;
 
 /** Convert an EDM widget into Display Builder counterpart
@@ -41,7 +42,7 @@ public class Convert_activeRectangleClass extends ConverterBase<RectangleWidget>
     }
 
     @Override
-    protected RectangleWidget createWidget()
+    protected RectangleWidget createWidget(final EdmWidget edm)
     {
         return new RectangleWidget();
     }

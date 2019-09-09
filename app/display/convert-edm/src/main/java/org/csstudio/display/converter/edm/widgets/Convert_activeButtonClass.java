@@ -10,6 +10,7 @@ package org.csstudio.display.converter.edm.widgets;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.widgets.BoolButtonWidget;
 import org.csstudio.display.converter.edm.EdmConverter;
+import org.csstudio.opibuilder.converter.model.EdmWidget;
 import org.csstudio.opibuilder.converter.model.Edm_activeButtonClass;
 
 /** Convert an EDM widget into Display Builder counterpart
@@ -51,7 +52,7 @@ public class Convert_activeButtonClass extends ConverterBase<BoolButtonWidget>
     }
 
     @Override
-    protected BoolButtonWidget createWidget()
+    protected BoolButtonWidget createWidget(final EdmWidget edm)
     {
         return new BoolButtonWidget();
     }
