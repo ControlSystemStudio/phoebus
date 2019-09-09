@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.csstudio.display.builder.model.ChildrenProperty;
@@ -248,13 +249,49 @@ public abstract class ConverterBase<W extends Widget>
      * @param pvName PV name to convert
      * @return converted PV name
      */
-    public static String convertPVName(String pvName)
+    public static String convertPVName(final String pvName)
     {
         if (pvName.startsWith("LOC"))
-            pvName = parseLocPV(pvName);
+            return parseLocPV(pvName);
         else if (pvName.startsWith("CALC"))
-            logger.log(Level.WARNING, "Not converting " + pvName);
+            return convertCalcPV(pvName);
         return pvName;
+    }
+
+    /** @param pvName "CALC\{A+2}(SomePVName)"
+     *  @return "=`SomePVName`+2"
+     */
+    private static String convertCalcPV(final String pvName)
+    {
+        // Remove "CALC\" and other escape backslashes
+        String cvt = pvName.replace("CALC\\", "")
+                           .replace("\\", "");
+
+        // "{expression}(PVA, PVB, ...)"
+        final Pattern pattern = Pattern.compile("\\{(.*)\\}\\((.*)\\)");
+        final Matcher matcher = pattern.matcher(cvt);
+        if (!matcher.matches())
+        {
+            logger.log(Level.WARNING, "Cannot handle '" + pvName + "', expected CALC\\{expression_with_A_B_C}(pva, pvb, pvc, ..)");
+            return pvName;
+        }
+        // Extract expression
+        cvt = "=" + matcher.group(1);
+
+        // Get PVs
+        final List<String> pvs = new ArrayList<>();
+        for (String pv : matcher.group(2).split(","))
+            pvs.add(pv.strip());
+
+        // Replace PVs in expression
+        int i=0;
+        for (String pv : pvs)
+        {
+            final String variable = String.valueOf((char) ('A' + i));
+            cvt = cvt.replace(variable, "`" + pv + "`");
+            ++i;
+        }
+        return cvt;
     }
 
     /**
