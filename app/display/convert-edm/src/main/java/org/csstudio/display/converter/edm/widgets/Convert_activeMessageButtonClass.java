@@ -75,7 +75,9 @@ public class Convert_activeMessageButtonClass extends ConverterBase<Widget>
             convertColor(mb.getOnColor(), b.propBackgroundColor());
             convertColor(mb.getFgColor(), b.propForegroundColor());
             convertFont(mb.getFont(), b.propFont());
-            b.propActions().setValue(new ActionInfos(List.of(new WritePVActionInfo(mb.getOnLabel(), convertPVName(mb.getControlPv()), mb.getPressValue()))));
+            // Show the 'off' label in the idle state.
+            // When pressed, EDM would briefly show the 'on' label; we don't.
+            b.propActions().setValue(new ActionInfos(List.of(new WritePVActionInfo(mb.getOffLabel(), convertPVName(mb.getControlPv()), mb.getPressValue()))));
 
             if (mb.getPassword() != null)
             {
