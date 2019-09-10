@@ -78,23 +78,27 @@ public class Convert_activeMessageButtonClass extends ConverterBase<Widget>
             convertFont(mb.getFont(), b.propFont());
             // Show the 'off' label in the idle state.
             // When pressed, EDM would briefly show the 'on' label; we don't.
-            final String pv = convertPVName(mb.getControlPv());
-            b.propActions().setValue(new ActionInfos(List.of(new WritePVActionInfo(mb.getOffLabel(), pv, mb.getPressValue()))));
+            if (mb.getControlPv() == null)
+                logger.log(Level.WARNING, "Message button without PV");
+            else
+            {
+                final String pv = convertPVName(mb.getControlPv());
+                b.propActions().setValue(new ActionInfos(List.of(new WritePVActionInfo(mb.getOffLabel(), pv, mb.getPressValue()))));
+                // If there is a release value, warn that it's ignored.
+                // OK to not write a release value that matches the press value,
+                // since we wrote it on press.
+                if (mb.getReleaseValue() != null  &&
+                        !mb.getReleaseValue().isEmpty()  &&
+                        !mb.getReleaseValue().equals(mb.getPressValue()))
+                    logger.log(Level.WARNING, "Cannot convert EDM message 'push' button for release message '" + mb.getReleaseValue() +
+                            "', will only write the 'press' message " + pv + " = '" + mb.getPressValue() + "'");
+            }
 
             if (mb.getPassword() != null)
             {
                 b.propConfirmDialog().setValue(true);
                 b.propPassword().setValue(mb.getPassword());
             }
-
-            // If there is a release value, warn that it's ignored.
-            // OK to not write a release value that matches the press value,
-            // since we wrote it on press.
-            if (mb.getReleaseValue() != null  &&
-                !mb.getReleaseValue().isEmpty()  &&
-                !mb.getReleaseValue().equals(mb.getPressValue()))
-                 logger.log(Level.WARNING, "Cannot convert EDM message 'push' button for release message '" + mb.getReleaseValue() +
-                            "', will only write the 'press' message " + pv + " = '" + mb.getPressValue() + "'");
         }
     }
 
