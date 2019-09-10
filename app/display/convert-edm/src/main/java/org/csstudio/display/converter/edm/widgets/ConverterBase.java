@@ -225,6 +225,17 @@ public abstract class ConverterBase<W extends Widget>
     public static void convertFont(final EdmFont edm,
                                    final WidgetProperty<WidgetFont> prop)
     {
+        convertFont(edm, 1000, prop);
+    }
+
+    /** @param edm EDM font
+     *  @param height_limit Height limit
+     *  @param prop Display builder font property to set from EDM font
+     */
+    public static void convertFont(final EdmFont edm,
+                                   final int height_limit,
+                                   final WidgetProperty<WidgetFont> prop)
+    {
         final String family = ConverterPreferences.mapFont(edm.getName());
 
         final WidgetFontStyle style;
@@ -237,7 +248,7 @@ public abstract class ConverterBase<W extends Widget>
         else
             style = WidgetFontStyle.REGULAR;
 
-        final double size = edm.getSize();
+        final double size = Math.min(edm.getSize(), height_limit);
         prop.setValue(new WidgetFont(family, style, size));
     }
 
