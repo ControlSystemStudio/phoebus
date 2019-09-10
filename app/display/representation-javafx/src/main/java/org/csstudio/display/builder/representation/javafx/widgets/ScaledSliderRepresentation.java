@@ -467,10 +467,10 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
                 slider.setShowTickLabels(false);
                 slider.setShowTickMarks(false);
             }
-            // TODO This triggers a 'slider move'
             active = true;
             try
             {
+                // This triggers a 'slider move'
                 slider.setMin(min);
                 slider.setMax(max);
             }
