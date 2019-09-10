@@ -55,6 +55,7 @@ public class Convert_activeLineClass extends ConverterBase<Widget>
                 pl.propArrows().setValue(Arrows.TO);
             else if ("both".equals(r.getArrows()))
                 pl.propArrows().setValue(Arrows.BOTH);
+            pl.propArrowLength().setValue(15);
         }
 
         // TODO See Opi_activeLineClass for alarm rules
