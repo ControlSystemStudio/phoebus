@@ -24,13 +24,10 @@ public class Convert_activeRectangleClass extends ConverterBase<RectangleWidget>
     {
         super(converter, parent, r);
 
-        // EDM applies linewidth inside and outside of widget
-        int linewidth;
-        if (r.getAttribute("lineWidth").isExistInEDL())
-            linewidth = r.getLineWidth();
-        else
-            linewidth = 1;
+        // '0' means smallest possible line == 1
+        final int linewidth = Math.max(1,  r.getLineWidth());
 
+        // EDM applies linewidth inside and outside of widget
         widget.propLineWidth().setValue(linewidth);
         widget.propX().setValue(r.getX() - converter.getOffsetX() - linewidth/2);
         widget.propY().setValue(r.getY() - converter.getOffsetY() - linewidth/2);
