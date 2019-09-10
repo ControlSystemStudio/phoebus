@@ -16,6 +16,7 @@ import java.util.logging.Logger;
  * @author Xihui Chen
  *
  */
+@SuppressWarnings("nls")
 public class EdmPointsList extends EdmAttribute {
 
     private static Logger log = Logger.getLogger("org.csstudio.opibuilder.converter.parser.EdmPointsList");

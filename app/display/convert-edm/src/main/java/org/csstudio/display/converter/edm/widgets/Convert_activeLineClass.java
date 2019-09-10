@@ -7,6 +7,10 @@
  *******************************************************************************/
 package org.csstudio.display.converter.edm.widgets;
 
+import static org.csstudio.display.converter.edm.Converter.logger;
+
+import java.util.logging.Level;
+
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.Points;
@@ -33,18 +37,25 @@ public class Convert_activeLineClass extends ConverterBase<Widget>
                   dy = converter.getOffsetY() + widget.propY().getValue();
         final int[] x = r.getXPoints().get(), y = r.getYPoints().get();
         final int N = Math.min(x.length,  y.length);
-        for (int i=0; i<N; ++i)
-            points.add(x[i]-dx, y[i]-dy);
-        if (r.isClosePolygon()  &&  !r.isFill())
-            points.add(x[0], y[0]);
-        widget.setPropertyValue(CommonWidgetProperties.propPoints, points);
+        if (N <= 0)
+            logger.log(Level.WARNING, "EDM line without points");
+        else
+        {
+            for (int i=0; i<N; ++i)
+                points.add(x[i]-dx, y[i]-dy);
+            if (r.isClosePolygon()  &&  !r.isFill())
+                points.add(x[0], y[0]);
+            widget.setPropertyValue(CommonWidgetProperties.propPoints, points);
+        }
         widget.setPropertyValue(CommonWidgetProperties.propLineWidth, r.getLineWidth());
-        convertColor(r.getLineColor(), r.getAlarmPv(), widget.getProperty(CommonWidgetProperties.propLineColor));
 
         if (widget instanceof PolygonWidget)
         {
             final PolygonWidget pg = (PolygonWidget) widget;
-            convertColor(r.getFillColor(), r.getAlarmPv(), pg.propBackgroundColor());
+            if (r.isFillAlarm())
+                createAlarmColor(r.getAlarmPv(), pg.propBackgroundColor());
+            else
+                convertColor(r.getFillColor(), r.getAlarmPv(), pg.propBackgroundColor());
         }
         else
         {
@@ -58,7 +69,10 @@ public class Convert_activeLineClass extends ConverterBase<Widget>
             pl.propArrowLength().setValue(15);
         }
 
-        // TODO See Opi_activeLineClass for alarm rules
+        if (r.isLineAlarm())
+            createAlarmColor(r.getAlarmPv(), widget.getProperty(CommonWidgetProperties.propLineColor));
+        else
+            convertColor(r.getLineColor(), r.getAlarmPv(), widget.getProperty(CommonWidgetProperties.propLineColor));
     }
 
     @Override
