@@ -47,7 +47,11 @@ public class EdmPointsList extends EdmAttribute {
         try {
             val = new ArrayList<>(getValueCount());
             for(int i=0; i<getValueCount(); i++){
-                val.add(Integer.parseInt(getValue(i).split("\\s")[1]));
+                final String text = getValue(i).split("\\s")[1];
+                if (text.contains("."))
+                    val.add((int) Double.parseDouble(text));
+                else
+                    val.add(Integer.parseInt(text));
             }
             setInitialized(true);
             log.config("Parsed " + this.getClass().getName() +
