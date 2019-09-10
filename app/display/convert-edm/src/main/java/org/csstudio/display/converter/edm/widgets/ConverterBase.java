@@ -58,7 +58,7 @@ public abstract class ConverterBase<W extends Widget>
     public ConverterBase(final EdmConverter converter, final Widget parent, final EdmWidget t)
     {
         widget = createWidget(t);
-        widget.propName().setValue(t.getType());
+        widget.propName().setValue("EDM " + t.getType());
 
         // Correct offset of parent widget
         widget.propX().setValue(t.getX() - converter.getOffsetX());
