@@ -42,11 +42,11 @@ public class Convert_activeRectangleClass extends ConverterBase<RectangleWidget>
 
         widget.propVisible().setValue(!r.isInvisible());
 
-        if (r.isLineAlarm())
+        if (r.isLineAlarm() && r.getAlarmPv() != null)
             createAlarmColor(r.getAlarmPv(), widget.propLineColor());
         else
             convertColor(r.getLineColor(), r.getAlarmPv(), widget.propLineColor());
-        if (r.isFillAlarm())
+        if (r.isFillAlarm() && r.getAlarmPv() != null)
             createAlarmColor(r.getAlarmPv(), widget.propBackgroundColor());
         else
             convertColor(r.getFillColor(), r.getAlarmPv(), widget.propBackgroundColor());
