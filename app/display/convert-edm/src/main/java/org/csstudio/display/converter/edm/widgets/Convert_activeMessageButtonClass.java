@@ -44,7 +44,8 @@ public class Convert_activeMessageButtonClass extends ConverterBase<Widget>
         {
             // Create bool button that writes 0/1
             final BoolButtonWidget b = (BoolButtonWidget) widget;
-            b.propPVName().setValue(convertPVName(mb.getControlPv()));
+            final String pv = convertPVName(mb.getControlPv());
+            b.propPVName().setValue(pv);
             b.propShowLED().setValue(false);
             b.propOnLabel().setValue(mb.getOnLabel());
             b.propOffLabel().setValue(mb.getOffLabel());
@@ -66,7 +67,7 @@ public class Convert_activeMessageButtonClass extends ConverterBase<Widget>
                    "0".equals(mb.getReleaseValue())))
                 logger.log(Level.WARNING, "Cannot convert EDM message 'toggle' button for values '" +
                            mb.getPressValue() + "', '" + mb.getReleaseValue() +
-                           "', will write 1, 0");
+                           "', will write " + pv + " = 1, 0");
         }
         else
         {
@@ -77,7 +78,8 @@ public class Convert_activeMessageButtonClass extends ConverterBase<Widget>
             convertFont(mb.getFont(), b.propFont());
             // Show the 'off' label in the idle state.
             // When pressed, EDM would briefly show the 'on' label; we don't.
-            b.propActions().setValue(new ActionInfos(List.of(new WritePVActionInfo(mb.getOffLabel(), convertPVName(mb.getControlPv()), mb.getPressValue()))));
+            final String pv = convertPVName(mb.getControlPv());
+            b.propActions().setValue(new ActionInfos(List.of(new WritePVActionInfo(mb.getOffLabel(), pv, mb.getPressValue()))));
 
             if (mb.getPassword() != null)
             {
@@ -92,7 +94,7 @@ public class Convert_activeMessageButtonClass extends ConverterBase<Widget>
                 !mb.getReleaseValue().isEmpty()  &&
                 !mb.getReleaseValue().equals(mb.getPressValue()))
                  logger.log(Level.WARNING, "Cannot convert EDM message 'push' button for release message '" + mb.getReleaseValue() +
-                            "', will only write the 'press' message '" + mb.getPressValue() + "'");
+                            "', will only write the 'press' message " + pv + " = '" + mb.getPressValue() + "'");
         }
     }
 
