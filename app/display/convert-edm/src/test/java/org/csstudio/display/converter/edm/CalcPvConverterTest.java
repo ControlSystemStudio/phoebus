@@ -27,5 +27,11 @@ public class CalcPvConverterTest extends TestHelper
 
         formula = ConverterBase.convertPVName("CALC\\\\\\{(A-32)*0.556\\}(CF_CU:Chlr_TT4012:T)");
         assertThat(formula, equalTo("=(`CF_CU:Chlr_TT4012:T`-32)*0.556"));
+
+        formula = ConverterBase.convertPVName("CALC\\{A+B+C=0?0:1}(HEBA, HUBA, CUBA)");
+        assertThat(formula, equalTo("=`HEBA`+`HUBA`+`CUBA`==0?0:1"));
+
+        formula = ConverterBase.convertPVName("CALC\\{A+B+C+D+E+F+G+H+I+J+K+L=0?0:1}(SCL_Diag:PS_LW01:Off,SCL_Diag:PS_LW02:Off,SCL_Diag:PS_LW03:Off,SCL_Diag:PS_LW04:Off,SCL_Diag:PS_LW12:Off,SCL_Diag:PS_LW13:Off,SCL_Diag:PS_LW14:Off,SCL_Diag:PS_LW15:Off,SCL_Diag:PS_LW32:Off,LDmp_Diag:PS_LW01:Off,LDmp_Diag:PS_LW02:Off,LDmp_Diag:PS_LW03:Off)");
+        assertThat(formula, equalTo("=`SCL_Diag:PS_LW01:Off`+`SCL_Diag:PS_LW02:Off`+`SCL_Diag:PS_LW03:Off`+`SCL_Diag:PS_LW04:Off`+`SCL_Diag:PS_LW12:Off`+`SCL_Diag:PS_LW13:Off`+`SCL_Diag:PS_LW14:Off`+`SCL_Diag:PS_LW15:Off`+`SCL_Diag:PS_LW32:Off`+`LDmp_Diag:PS_LW01:Off`+`LDmp_Diag:PS_LW02:Off`+`LDmp_Diag:PS_LW03:Off`==0?0:1"));
     }
 }

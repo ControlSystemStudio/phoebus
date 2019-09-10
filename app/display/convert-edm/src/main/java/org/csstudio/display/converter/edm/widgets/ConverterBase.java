@@ -155,7 +155,8 @@ public abstract class ConverterBase<W extends Widget>
         }
         if (edm.isBlinking())
         {
-            logger.log(Level.WARNING, "Can only handle static colors");
+            logger.log(Level.WARNING, "Blinking color ignored, using as static colors");
+            prop.setValue(convertStaticColor(edm));
             return;
         }
 
@@ -286,8 +287,21 @@ public abstract class ConverterBase<W extends Widget>
             logger.log(Level.WARNING, "Cannot handle '" + pvName + "', expected CALC\\{expression_with_A_B_C}(pva, pvb, pvc, ..)");
             return pvName;
         }
+
         // Extract expression
-        cvt = "=" + matcher.group(1);
+        cvt = matcher.group(1);
+
+        // Expand single '=' inside the expression into '=='
+        cvt = expand_equal.matcher(cvt).replaceAll("==");
+
+        // Add initial '=' for formula
+        cvt = "=" + cvt;
+
+        // If we replace variable A with PV ABC,
+        // then variable B with DEF, we would end up with ADEFC.
+        // ==> Mask variables as `A`, `B`, ..
+        for (char v='A'; v<='L'; ++v)
+            cvt = cvt.replace(String.valueOf(v), "`" + v + "`");
 
         // Get PVs
         final List<String> pvs = new ArrayList<>();
@@ -298,7 +312,7 @@ public abstract class ConverterBase<W extends Widget>
         int i=0;
         for (String pv : pvs)
         {
-            final String variable = String.valueOf((char) ('A' + i));
+            final String variable = "`" + String.valueOf((char) ('A' + i)) + "`";
             cvt = cvt.replace(variable, "`" + pv + "`");
             ++i;
         }
