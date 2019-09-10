@@ -467,8 +467,17 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
                 slider.setShowTickLabels(false);
                 slider.setShowTickMarks(false);
             }
-            slider.setMin(min);
-            slider.setMax(max);
+            // TODO This triggers a 'slider move'
+            active = true;
+            try
+            {
+                slider.setMin(min);
+                slider.setMax(max);
+            }
+            finally
+            {
+                active = false;
+            }
 
             slider.setMajorTickUnit(tick_unit);
             slider.setBlockIncrement(increment);
