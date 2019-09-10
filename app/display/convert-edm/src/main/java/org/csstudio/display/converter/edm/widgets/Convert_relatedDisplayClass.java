@@ -21,7 +21,6 @@ import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
 import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo.Target;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.converter.edm.EdmConverter;
-import org.csstudio.opibuilder.converter.StringSplitter;
 import org.csstudio.opibuilder.converter.model.EdmBoolean;
 import org.csstudio.opibuilder.converter.model.EdmString;
 import org.csstudio.opibuilder.converter.model.EdmWidget;
@@ -55,29 +54,18 @@ public class Convert_relatedDisplayClass extends ConverterBase<ActionButtonWidge
             final String is = Integer.toString(i);
             final EdmString menuLabel = t.getMenuLabel().getEdmAttributesMap().get(is);
             final String description = menuLabel != null ? menuLabel.get() : "";
+            final String path = convertDisplayPath(t.getDisplayFileName().getEdmAttributesMap().get(is).get());
 
-            String path = t.getDisplayFileName().getEdmAttributesMap().get(is).get();
-            if (path.endsWith(".edl"))
-                path = path.replace(".edl", ".bob");
-            else
-                path = path + ".bob";
-
-            final Macros macros = new Macros();
+            Macros macros = new Macros();
             final EdmString symbols = t.getSymbols().getEdmAttributesMap().get(is);
             if (symbols != null)
                 try
                 {
-                    for (String s : StringSplitter.splitIgnoreInQuotes(symbols.get(), ',', true))
-                    {
-                        final String[] rs = StringSplitter.splitIgnoreInQuotes(s, '=', true);
-                        if (rs.length == 2)
-                            // EDM treats '' as an empty string.
-                            macros.add(rs[0], rs[1].equals("''") ? "" : rs[1]);
-                    }
+                    macros = Macros.fromSimpleSpec(symbols.get());
                 }
                 catch (Exception ex)
                 {
-                    logger.log(Level.WARNING, "Error in macro " + symbols.get(), ex);
+                    logger.log(Level.WARNING, "Error in macros for related display " + path + " '" + symbols.get() + "'", ex);
                 }
 
             final EdmBoolean closeDisplay = t.getCloseDisplay().getEdmAttributesMap().get(is);

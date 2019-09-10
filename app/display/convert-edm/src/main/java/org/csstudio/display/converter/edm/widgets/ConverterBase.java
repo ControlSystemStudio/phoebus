@@ -348,4 +348,14 @@ public abstract class ConverterBase<W extends Widget>
         }
         return pvName;
     }
+
+    /** @param edl_path EDL file, may end in .edl
+     *  @return File that ends in .bob
+     */
+    public static String convertDisplayPath(final String edl_path)
+    {
+        if (edl_path.endsWith(".edl"))
+            return edl_path.replace(".edl", ".bob");
+        return edl_path + ".bob";
+    }
 }
