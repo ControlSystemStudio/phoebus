@@ -120,6 +120,9 @@ public class Converter
 
     public static void main(final String[] args)
     {
+        System.setProperty("java.util.logging.ConsoleHandler.formatter", "java.util.logging.SimpleFormatter");
+        System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS %4$s %5$s%6$s%n");
+
         final List<String> files = new ArrayList<>(List.of(args));
         ConverterPreferences.colors_list = "colors.list";
         File output_dir = null;
