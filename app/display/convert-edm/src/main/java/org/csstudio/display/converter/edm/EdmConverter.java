@@ -11,8 +11,12 @@ import static org.csstudio.display.converter.edm.Converter.logger;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.DisplayModel;
@@ -32,6 +36,8 @@ public class EdmConverter
     private final DisplayModel model = new DisplayModel();
 
     private int offset_x = 0, offset_y = 0;
+
+    private final Set<String> linked_displays = new HashSet<>();
 
     public EdmConverter(final String name, final EdmDisplay edm)
     {
@@ -63,6 +69,12 @@ public class EdmConverter
     public DisplayModel getDisplayModel()
     {
         return model;
+    }
+
+    /** @return Displays that were linked from this display */
+    public Collection<String> getLinkedDisplays()
+    {
+        return linked_displays.stream().sorted().collect(Collectors.toList());
     }
 
     /** @param x X offset and
@@ -158,4 +170,9 @@ public class EdmConverter
         }
     }
 
+    /** @param linked_display Register a display that was linked from the currently converted file */
+    public void addLinkedDisplay(final String linked_display)
+    {
+        linked_displays.add(linked_display);
+    }
 }

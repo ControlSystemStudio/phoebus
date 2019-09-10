@@ -58,6 +58,7 @@ public class Convert_activePipClass extends ConverterBase<Widget>
                     final TabProperty tab = w.propTabs().getElement(i);
 
                     final String path = convertDisplayPath(display.get());
+                    converter.addLinkedDisplay(path);
                     tab.file().setValue(path);
 
                     final EdmString edm_macros = symbols == null ? null : symbols.get(si);

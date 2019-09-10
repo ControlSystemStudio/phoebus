@@ -55,6 +55,7 @@ public class Convert_relatedDisplayClass extends ConverterBase<ActionButtonWidge
             final EdmString menuLabel = t.getMenuLabel().getEdmAttributesMap().get(is);
             final String description = menuLabel != null ? menuLabel.get() : "";
             final String path = convertDisplayPath(t.getDisplayFileName().getEdmAttributesMap().get(is).get());
+            converter.addLinkedDisplay(path);
 
             Macros macros = new Macros();
             final EdmString symbols = t.getSymbols().getEdmAttributesMap().get(is);
