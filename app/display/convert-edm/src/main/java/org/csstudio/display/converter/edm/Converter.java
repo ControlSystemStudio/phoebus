@@ -100,6 +100,15 @@ public class Converter
                         // Check next search path entry
                     }
                 }
+                else
+                {
+                    final File check_file = new File(check);
+                    if (check_file.canRead())
+                    {
+                        infile = check_file;
+                        break;
+                    }
+                }
             }
         }
 
