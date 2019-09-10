@@ -194,7 +194,7 @@ public abstract class ConverterBase<W extends Widget>
             "from org.csstudio.display.builder.runtime.script import PVUtil\n" +
             "from org.csstudio.display.builder.model.persist import WidgetColorService\n" +
             "sevr = PVUtil.getSeverity(pvs[0])\n" +
-            "cn = ( 'OK', 'MINOR', 'MAYOR', 'INVALID', 'DISCONNECTED' )[sevr]\n" +
+            "cn = ( 'OK', 'MINOR', 'MAJOR', 'INVALID', 'DISCONNECTED' )[sevr]\n" +
             "c = WidgetColorService.getColor(cn)\n" +
             "widget.setPropertyValue('" + prop.getName() + "', c)";
 
