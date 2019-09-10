@@ -549,7 +549,7 @@ public class ModelResourceUtil
      *  @return {@link InputStream}
      *  @throws Exception on error
      */
-    protected static InputStream openURL(final String resource_name, final int timeout_ms) throws Exception
+    public static InputStream openURL(final String resource_name, final int timeout_ms) throws Exception
     {
         if (resource_name.startsWith("https"))
             trustAnybody();

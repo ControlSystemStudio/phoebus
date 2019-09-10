@@ -7,9 +7,12 @@
  *******************************************************************************/
 package org.csstudio.display.converter.edm;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -17,9 +20,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.csstudio.display.builder.model.persist.ModelWriter;
+import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.opibuilder.converter.model.EdmDisplay;
 import org.csstudio.opibuilder.converter.model.EdmModel;
 import org.csstudio.opibuilder.converter.parser.EdmDisplayParser;
+import org.phoebus.framework.util.IOUtils;
 import org.phoebus.framework.workbench.FileHelper;
 
 /** EDM Converter
@@ -61,14 +66,45 @@ public class Converter
         return linked_displays;
     }
 
-    /** @param infile Input file (*.opi, older *.bob)
+    /** Convert one file or directory
+     *  @param infile Input file (*.opi, older *.bob)
+     *  @param paths Search paths, may be empty
      *  @param force Overwrite existing file?
      *  @param output_dir Folder where to create output.bob, <code>null</code> to use folder of input file
      *  @throws Exception on error
      */
-    private static void convert(final String input, final boolean force, final File output_dir) throws Exception
+    private static void convert(final String input, final List<String> paths, final boolean force, final File output_dir) throws Exception
     {
-        final File infile = new File(input);
+        File infile = null;
+        if (paths.isEmpty())
+            infile = new File(input);
+        else
+        {
+            for (String path : paths)
+            {
+                final String check = path + (path.endsWith("/") ? input : "/" + input);
+                logger.log(Level.FINE, "Checkint " + check);
+                if (check.startsWith("http"))
+                {
+                    try
+                    {
+                        final InputStream stream = ModelResourceUtil.openURL(check);
+                        infile = new File(System.getProperty("java.io.tmpdir"), input);
+                        logger.log(Level.INFO, "Downloading " + check + " into " + infile);
+                        // infile.deleteOnExit();
+                        IOUtils.copy(stream, new FileOutputStream(infile));
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Check next search path entry
+                    }
+                }
+            }
+        }
+
+        if (infile == null)
+            throw new Exception("Cannot locate " + input);
         if (! infile.canRead())
             throw new Exception("Cannot read " + infile);
 
@@ -76,7 +112,7 @@ public class Converter
         {
             logger.log(Level.INFO, "Converting all files in directory " + infile);
             for (File file : infile.listFiles())
-                convert(file.getAbsolutePath(), force, output_dir);
+                convert(file.getAbsolutePath(), paths, force, output_dir);
             return;
         }
 
@@ -118,11 +154,12 @@ public class Converter
         }
     }
 
-    public static void main(final String[] args)
+    public static void main(final String[] args) throws Exception
     {
         System.setProperty("java.util.logging.ConsoleHandler.formatter", "java.util.logging.SimpleFormatter");
         System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS %4$s %5$s%6$s%n");
 
+        final List<String> paths = new ArrayList<>();
         final List<String> files = new ArrayList<>(List.of(args));
         ConverterPreferences.colors_list = "colors.list";
         File output_dir = null;
@@ -140,12 +177,20 @@ public class Converter
                 System.out.println("Files to convert may be individual files, or folder names,");
                 System.out.println("in which case the complete folder is converted.");
                 System.out.println();
+                System.out.println("By default, file names are taken 'as is'.");
+                System.out.println("When an optional paths.list file is provided,");
+                System.out.println("that file can contain a search path, listing");
+                System.out.println("one path per line in the file.");
+                System.out.println("*.edl files will be resolved by checking along");
+                System.out.println("that search path.");
+                System.out.println();
                 System.out.println("Output files are created where the input file was found,");
                 System.out.println("unless a designated output folder is specified.");
                 System.out.println();
                 System.out.println("Options:");
                 System.out.println("-help                        - Help");
                 System.out.println("-colors /path/to/colors.list - EDM colors.list file to use");
+                System.out.println("-paths /path/to/paths.list   - File that lists paths");
                 System.out.println("-output /path/to/folder      - Folder into which converted files are written");
                 System.out.println("-force                       - Overwrite existing files instead of stopping");
                 return;
@@ -160,6 +205,21 @@ public class Converter
                 ConverterPreferences.colors_list = files.get(1);
                 files.remove(0);
                 files.remove(0);
+            }
+            else if (files.get(0).startsWith("-p"))
+            {
+                if (files.size() < 2)
+                {
+                    System.err.println("Missing file name for -paths /path/to/paths.list");
+                    return;
+                }
+                final File paths_file = new File(files.get(1));
+                files.remove(0);
+                files.remove(0);
+                final BufferedReader reader = new BufferedReader(new FileReader(paths_file));
+                String line;
+                while ((line = reader.readLine()) != null)
+                    paths.add(line);
             }
             else if (files.get(0).startsWith("-o"))
             {
@@ -193,7 +253,7 @@ public class Converter
         {
             try
             {
-                convert(file, force, output_dir);
+                convert(file, paths, force, output_dir);
             }
             catch (Exception ex)
             {
