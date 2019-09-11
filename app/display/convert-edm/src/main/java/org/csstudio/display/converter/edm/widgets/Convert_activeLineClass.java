@@ -31,7 +31,6 @@ public class Convert_activeLineClass extends ConverterBase<Widget>
     public Convert_activeLineClass(final EdmConverter converter, final Widget parent, final Edm_activeLineClass r)
     {
         super(converter, parent, r);
-
         final Points points = new Points();
         final int dx = converter.getOffsetX() + widget.propX().getValue(),
                   dy = converter.getOffsetY() + widget.propY().getValue();
@@ -44,7 +43,7 @@ public class Convert_activeLineClass extends ConverterBase<Widget>
             for (int i=0; i<N; ++i)
                 points.add(x[i]-dx, y[i]-dy);
             if (r.isClosePolygon()  &&  !r.isFill())
-                points.add(x[0], y[0]);
+                points.add(points.getX(0), points.getY(0));
             widget.setPropertyValue(CommonWidgetProperties.propPoints, points);
         }
         widget.setPropertyValue(CommonWidgetProperties.propLineWidth, r.getLineWidth());
