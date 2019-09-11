@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.properties.ActionInfo;
+import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.converter.edm.widgets.ConverterBase;
 import org.csstudio.opibuilder.converter.model.EdmDisplay;
@@ -62,7 +64,7 @@ public class EdmConverter
 
         for (EdmEntity edm_widget : edm.getWidgets())
             convertWidget(model, edm_widget);
-        correctWidgetOrder(model);
+        correctChildWidgets(model);
     }
 
     /** @return {@link DisplayModel} */
@@ -143,21 +145,79 @@ public class EdmConverter
         }
     }
 
-    /** Correct widget order
+
+    /** Correct widget issues
      *
      *  <p>Called after all widgets have been added to a parent
      *  @param parent
      */
-    public void correctWidgetOrder(final Widget parent)
+    public void correctChildWidgets(final Widget parent)
     {
         final ChildrenProperty children = ChildrenProperty.getChildren(parent);
+        mergeButtons(children);
+        raiseTransparentButtons(children);
+    }
+
+    /** Merge action buttons that are overlapping into one button.
+     *  EDM supports 'invisible' buttons which react to left or
+     *  right mouse button to occupy the same space.
+     *  In display builder, only the left button triggers an action.
+     *  The right button opens the context menu.
+     *  So merge actions from all overlapping buttons into one.
+     *
+     *  @param children Child widgets to correct
+     */
+    private void mergeButtons(final ChildrenProperty children)
+    {
+        // Start with the topmost button, i.e. end of list,
+        // and look for buttons that occupy roughly the same space
+        final List<Widget> copy = new ArrayList<>(children.getValue());
+        for (int i=copy.size()-1;  i>=0;  --i)
+        {
+            final Widget widget = copy.get(i);
+            if (widget instanceof ActionButtonWidget)
+            {
+                for (int o=i-1;  o>=0;  --o)
+                {
+                    final Widget other = copy.get(o);
+                    if (other instanceof ActionButtonWidget  &&
+                        widgetsOverlap(widget, other, 5))
+                    {
+                        logger.log(Level.WARNING, "Merging actions from overlapping " + widget + " and " + other + " into one:");
+                        logger.log(Level.WARNING, widget.propActions().getValue().toString());
+                        logger.log(Level.WARNING, other.propActions().getValue().toString());
+
+                        final List<ActionInfo> actions = new ArrayList<>(widget.propActions().getValue().getActions());
+                        actions.addAll(other.propActions().getValue().getActions());
+                        widget.propActions().setValue(new ActionInfos(actions));
+
+                        children.removeChild(other);
+                        --i;
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean widgetsOverlap(final Widget widget, final Widget other, final int pixels)
+    {
+        return Math.abs(widget.propX().getValue()      - other.propX().getValue())      <= pixels  &&
+               Math.abs(widget.propY().getValue()      - other.propY().getValue())      <= pixels  &&
+               Math.abs(widget.propWidth().getValue()  - other.propWidth().getValue())  <= pixels  &&
+               Math.abs(widget.propHeight().getValue() - other.propHeight().getValue()) <= pixels;
+    }
+
+    /** Move transparent buttons to front.
+     *  In EDM, transparent buttons may be placed behind text etc.
+     *  In display builder, normal widget order would
+     *  then have text block mouse events from button.
+     *  @param children Child widgets to correct
+     */
+    private void raiseTransparentButtons(final ChildrenProperty children)
+    {
         final List<Widget> copy = new ArrayList<>(children.getValue());
         for (Widget widget : copy)
         {
-            // Move transparent buttons to front.
-            // In EDM, transparent buttons may be placed behind text etc.
-            // In display builder, normal widget order would
-            // then have text block mouse events from button.
             if (widget instanceof ActionButtonWidget)
             {
                 final ActionButtonWidget b = (ActionButtonWidget) widget;
