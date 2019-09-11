@@ -9,6 +9,7 @@ package org.csstudio.display.converter.edm;
 
 import static org.csstudio.display.converter.edm.Converter.logger;
 
+import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -169,42 +170,57 @@ public class EdmConverter
      */
     private void mergeButtons(final ChildrenProperty children)
     {
-        // Start with the topmost button, i.e. end of list,
-        // and look for buttons that occupy roughly the same space
+        // Start with the topmost button, i.e. end of list
         final List<Widget> copy = new ArrayList<>(children.getValue());
         for (int i=copy.size()-1;  i>=0;  --i)
         {
             final Widget widget = copy.get(i);
-            if (widget instanceof ActionButtonWidget)
+            if (! (widget instanceof ActionButtonWidget))
+                continue;
+            // Look for buttons below that occupy roughly the same space
+            for (int o=i-1;  o>=0;  --o)
             {
-                for (int o=i-1;  o>=0;  --o)
-                {
-                    final Widget other = copy.get(o);
-                    if (other instanceof ActionButtonWidget  &&
-                        widgetsOverlap(widget, other, 5))
-                    {
-                        logger.log(Level.WARNING, "Merging actions from overlapping " + widget + " and " + other + " into one:");
-                        logger.log(Level.WARNING, widget.propActions().getValue().toString());
-                        logger.log(Level.WARNING, other.propActions().getValue().toString());
+                final Widget other = copy.get(o);
+                if (! (other instanceof ActionButtonWidget  &&  doWidgetsOverlap(widget, other)))
+                    continue;
 
-                        final List<ActionInfo> actions = new ArrayList<>(widget.propActions().getValue().getActions());
-                        actions.addAll(other.propActions().getValue().getActions());
-                        widget.propActions().setValue(new ActionInfos(actions));
+                logger.log(Level.WARNING, "Merging actions from overlapping " + widget + " and " + other + " into one:");
+                logger.log(Level.WARNING, "1) " + widget.propActions().getValue());
+                logger.log(Level.WARNING, "2) " + other.propActions().getValue());
+                final List<ActionInfo> actions = new ArrayList<>(widget.propActions().getValue().getActions());
+                actions.addAll(other.propActions().getValue().getActions());
+                widget.propActions().setValue(new ActionInfos(actions));
 
-                        children.removeChild(other);
-                        --i;
-                    }
-                }
+                children.removeChild(other);
+                copy.remove(o);
+                --i;
             }
         }
     }
 
-    private boolean widgetsOverlap(final Widget widget, final Widget other, final int pixels)
+    /** @param widget
+     *  @param other
+     *  @return Do the widgets overlap by a considerable amount?
+     */
+    private boolean doWidgetsOverlap(final Widget widget, final Widget other)
     {
-        return Math.abs(widget.propX().getValue()      - other.propX().getValue())      <= pixels  &&
-               Math.abs(widget.propY().getValue()      - other.propY().getValue())      <= pixels  &&
-               Math.abs(widget.propWidth().getValue()  - other.propWidth().getValue())  <= pixels  &&
-               Math.abs(widget.propHeight().getValue() - other.propHeight().getValue()) <= pixels;
+        final Rectangle2D w = new Rectangle2D.Double(widget.propX().getValue(),
+                                                     widget.propY().getValue(),
+                                                     widget.propWidth().getValue(),
+                                                     widget.propHeight().getValue());
+        final Rectangle2D o = new Rectangle2D.Double(other.propX().getValue(),
+                                                     other.propY().getValue(),
+                                                     other.propWidth().getValue(),
+                                                     other.propHeight().getValue());
+        final Rectangle2D common = w.createIntersection(o);
+        if (common.getWidth() <= 0  ||  common.getHeight() <= 0)
+            return false;
+
+        final int overlap = (int) (common.getWidth() * common.getHeight());
+        final int avg_area = (int) (w.getWidth() * w.getHeight() +
+                                    o.getWidth() * o.getHeight()) / 2;
+        // Overlap by at least a 5th??
+        return overlap > avg_area / 5;
     }
 
     /** Move transparent buttons to front.
