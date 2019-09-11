@@ -70,11 +70,14 @@ public class Converter
      *  @param infile Input file (*.opi, older *.bob)
      *  @param paths Search paths, may be empty
      *  @param force Overwrite existing file?
+     *  @param depth 1: Just this file  2: Also referenced files  3: .. another level down
      *  @param output_dir Folder where to create output.bob, <code>null</code> to use folder of input file
      *  @throws Exception on error
      */
-    private static void convert(final String input, final List<String> paths, final boolean force, final File output_dir) throws Exception
+    private static void convert(final String input, final List<String> paths, final boolean force, final int depth, final File output_dir) throws Exception
     {
+        if (depth <= 0)
+            return;
         File infile = null;
         if (paths.isEmpty())
             infile = new File(input);
@@ -121,7 +124,7 @@ public class Converter
         {
             logger.log(Level.INFO, "Converting all files in directory " + infile);
             for (File file : infile.listFiles())
-                convert(file.getAbsolutePath(), paths, force, output_dir);
+                convert(file.getAbsolutePath(), paths, force, depth, output_dir);
             return;
         }
 
@@ -159,7 +162,20 @@ public class Converter
                     throw new Exception("Output file " + outfile + " exists");
             }
 
-            new Converter(infile, outfile);
+            final Converter converter = new Converter(infile, outfile);
+            final int next = depth - 1;
+            if (next > 0)
+                for (String linked : converter.getLinkedDisplays())
+                {
+                    try
+                    {
+                        convert(linked.replace(".bob", ".edl"), paths, force, next, output_dir);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.log(Level.WARNING, "Cannot convert linked display '" + linked + "'", ex);
+                    }
+                }
         }
     }
 
@@ -173,6 +189,7 @@ public class Converter
         ConverterPreferences.colors_list = "colors.list";
         File output_dir = null;
         boolean force = false;
+        int depth = 1;
         if (files.isEmpty())
             files.add("-h");
         while (files.size() > 0  &&  files.get(0).startsWith("-"))
@@ -196,12 +213,19 @@ public class Converter
                 System.out.println("Output files are created where the input file was found,");
                 System.out.println("unless a designated output folder is specified.");
                 System.out.println();
+                System.out.println("The -depth option is best used WITHOUT force,");
+                System.out.println("so it will skip files that have already been converted.");
+                System.out.println();
+                System.out.println("When both -depth and -force are set, the converter");
+                System.out.println("will run forever when two displays call each other.");
+                System.out.println();
                 System.out.println("Options:");
                 System.out.println("-help                        - Help");
                 System.out.println("-colors /path/to/colors.list - EDM colors.list file to use");
                 System.out.println("-paths /path/to/paths.list   - File that lists paths");
                 System.out.println("-output /path/to/folder      - Folder into which converted files are written");
                 System.out.println("-force                       - Overwrite existing files instead of stopping");
+                System.out.println("-depth count                 - Convert just the listed files (1), or also referenced files (2), or more levels down");
                 return;
             }
             else if (files.get(0).startsWith("-c"))
@@ -246,6 +270,17 @@ public class Converter
                 force = true;
                 files.remove(0);
             }
+            else if (files.get(0).startsWith("-d"))
+            {
+                if (files.size() < 2)
+                {
+                    System.err.println("Missing count -depth count");
+                    return;
+                }
+                depth = Integer.parseInt(files.get(1));
+                files.remove(0);
+                files.remove(0);
+            }
         }
 
         try
@@ -262,7 +297,7 @@ public class Converter
         {
             try
             {
-                convert(file, paths, force, output_dir);
+                convert(file, paths, force, depth, output_dir);
             }
             catch (Exception ex)
             {
