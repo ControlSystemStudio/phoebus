@@ -46,7 +46,8 @@ public class Convert_activeLineClass extends ConverterBase<Widget>
                 points.add(points.getX(0), points.getY(0));
             widget.setPropertyValue(CommonWidgetProperties.propPoints, points);
         }
-        widget.setPropertyValue(CommonWidgetProperties.propLineWidth, r.getLineWidth());
+
+        widget.setPropertyValue(CommonWidgetProperties.propLineWidth, Math.max(1, r.getLineWidth()));
 
         if (widget instanceof PolygonWidget)
         {
