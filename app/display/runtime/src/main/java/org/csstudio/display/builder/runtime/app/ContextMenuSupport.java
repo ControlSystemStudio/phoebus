@@ -26,6 +26,7 @@ import org.csstudio.display.builder.runtime.Messages;
 import org.csstudio.display.builder.runtime.RuntimeAction;
 import org.csstudio.display.builder.runtime.RuntimeUtil;
 import org.csstudio.display.builder.runtime.WidgetRuntime;
+import org.csstudio.display.builder.runtime.pv.RuntimePV;
 import org.phoebus.applications.email.actions.SendEmailAction;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
@@ -130,17 +131,25 @@ class ContextMenuSupport
         items.add(new SeparatorMenuItem());
 
         // Add PV-based contributions
+        String pv_name = "";
+        // Does widget have a PV name?
         final Optional<WidgetProperty<String>> name_prop = widget.checkProperty(CommonWidgetProperties.propPVName);
         if (name_prop.isPresent())
-        {
-            final String pv_name = name_prop.get().getValue();
-            if (!pv_name.isEmpty())
+            pv_name = name_prop.get().getValue();
+        else
+        {   // See if there are runtime PVs, pick the first one
+            for (RuntimePV pv : runtime.getPVs())
             {
-                // Set the 'selection' to the PV of this widget
-                SelectionService.getInstance().setSelection(DisplayRuntimeApplication.NAME, List.of(new ProcessVariable(pv_name)));
-                // Add PV-based menu entries
-                ContextMenuHelper.addSupportedEntries(node, menu);
+                pv_name = pv.getName();
+                break;
             }
+        }
+        if (!pv_name.isEmpty())
+        {
+            // Set the 'selection' to the PV of this widget
+            SelectionService.getInstance().setSelection(DisplayRuntimeApplication.NAME, List.of(new ProcessVariable(pv_name)));
+            // Add PV-based menu entries
+            ContextMenuHelper.addSupportedEntries(node, menu);
             items.add(new SeparatorMenuItem());
         }
 
