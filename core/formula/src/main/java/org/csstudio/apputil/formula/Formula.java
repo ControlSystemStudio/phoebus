@@ -517,11 +517,17 @@ public class Formula implements Node
             if (s.get() == '&')
             {
                 s.next();
+                // Allow '&' as well as '&&'
+                if (s.get() == '&')
+                    s.next();
                 n = new AndNode(n, parseCompare(s));
             }
             else if (s.get() == '|')
             {
                 s.next();
+                // Allow '|' as well as '||'
+                if (s.get() == '|')
+                    s.next();
                 n = new OrNode(n, parseCompare(s));
             }
             else if (s.get() == '?')
