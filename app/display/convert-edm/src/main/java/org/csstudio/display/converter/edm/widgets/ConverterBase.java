@@ -379,7 +379,6 @@ public abstract class ConverterBase<W extends Widget>
      */
     public static String convertDisplayPath(final String edl_path)
     {
-        // TODO Check for *.bob. If not found, optionally auto-convert from *.edl
         if (edl_path.endsWith(".edl"))
             return edl_path.replace(".edl", ".bob");
         return edl_path + ".bob";
