@@ -228,9 +228,12 @@ public class Converter
         // Copy other file types, which could be *.gif etc.
         if (! input.endsWith(".adl"))
         {
-            logger.log(Level.INFO, "Copying file " + input + " into " + output_dir);
-            FileHelper.copy(new File(input), output_dir);
-            return;
+            if (output_dir != null)
+            {
+                logger.log(Level.INFO, "Copying file " + input + " into " + output_dir);
+                FileHelper.copy(new File(input), output_dir);
+                return;
+            }
         }
         else
         {

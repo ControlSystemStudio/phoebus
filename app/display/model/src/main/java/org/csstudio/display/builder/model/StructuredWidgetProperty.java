@@ -23,6 +23,10 @@ import org.w3c.dom.Element;
 
 /** Structured widget property, contains several basic widget properties.
  *
+ *  <p>Persisted based on the name of each structure element
+ *  to allow for adding (or removing) structure elements
+ *  when creating a new version of a widget.
+ *
  *  <p>The individual elements can be set unless they are read-only.
  *  The structure will be read-only if all its elements are read-only.
  *

@@ -83,7 +83,6 @@ public class MEDMConverterApplication implements AppResourceDescriptor
         {
             ExceptionDetailsErrorDialog.openError(DISPLAY_NAME, "Failed to open " + resource, ex);
         }
-        // TODO Auto-generated method stub
         return null;
     }
 }

@@ -23,6 +23,7 @@ import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VEnum;
+import org.epics.vtype.VInt;
 import org.epics.vtype.VLong;
 import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
@@ -212,6 +213,15 @@ public class ValueHelper
                 throw new Exception("Expected one number, got " + items);
         }
 
+        if (type == VInt.class)
+        {
+            if (items.size() == 1)
+                return VInt.of((long) getInitialDoubles(items)[0], Alarm.none(), Time.now(), Display.none());
+            else
+                throw new Exception("Expected one number, got " + items);
+        }
+
+
         if (type == VString.class)
         {
             if (items == null  ||  items.size() == 1)
@@ -339,6 +349,20 @@ public class ValueHelper
             try
             {
                 return VLong.of((long) Double.parseDouble(Objects.toString(new_value)), Alarm.none(), Time.now(), Display.none());
+            }
+            catch (NumberFormatException ex)
+            {
+                throw new Exception("Cannot parse number from '" + new_value + "'");
+            }
+        }
+
+        if (type == VInt.class)
+        {
+            if (new_value instanceof Number)
+                return VInt.of(((Number)new_value).intValue(), Alarm.none(), Time.now(), Display.none());
+            try
+            {
+                return VInt.of((int) Double.parseDouble(Objects.toString(new_value)), Alarm.none(), Time.now(), Display.none());
             }
             catch (NumberFormatException ex)
             {
