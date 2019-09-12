@@ -37,13 +37,14 @@ public class Convert_activeSymbolClass extends ConverterBase<EmbeddedDisplayWidg
 
         if (g.getFile() != null)
             widget.propFile().setValue(convertDisplayPath(g.getFile()));
-        widget.propResize().setValue(Resize.ResizeContent);
+        widget.propResize().setValue(Resize.StretchContent);
         widget.propGroupName().setValue(Convert_activeGroupClass.GROUP_NAME + "0");
 
         if (g.getNumPvs() == 1  &&  !g.isTruthTable())
         {
             // Set symbol (group_name) from PV and list of min <= value < max ranges
             final String pv = convertPVName(g.getControlPvs().getEdmAttributesMap().get("0").get());
+            widget.propTooltip().setValue(pv);
             final Map<String, EdmDouble> minMap = g.getMinValues().getEdmAttributesMap();
             final Map<String, EdmDouble> maxMap = g.getMaxValues().getEdmAttributesMap();
             final StringBuilder script = new StringBuilder();
