@@ -429,7 +429,7 @@ public class EdmDisplayParser extends EdmParser{
      * @param stream Stream for that file
      * @throws EdmException if a parsing error occurs.
      */
-    public EdmDisplayParser(final String fileName, final InputStream stream) throws EdmException {
+    public EdmDisplayParser(final String fileName, final InputStream stream) throws Exception {
         super(fileName, stream);
 
         edmData = parseDisplayProperties(edmData);

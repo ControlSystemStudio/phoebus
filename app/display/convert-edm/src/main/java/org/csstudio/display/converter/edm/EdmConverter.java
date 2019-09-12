@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -37,6 +38,8 @@ import org.csstudio.opibuilder.converter.model.EdmWidget;
 public class EdmConverter
 {
     private final DisplayModel model = new DisplayModel();
+
+    private final AtomicInteger next_group = new AtomicInteger();
 
     private int offset_x = 0, offset_y = 0;
 
@@ -72,6 +75,12 @@ public class EdmConverter
     public DisplayModel getDisplayModel()
     {
         return model;
+    }
+
+    /** @return Number of next group */
+    public int nextGroup()
+    {
+        return next_group.getAndIncrement();
     }
 
     /** @return Displays that were linked from this display */

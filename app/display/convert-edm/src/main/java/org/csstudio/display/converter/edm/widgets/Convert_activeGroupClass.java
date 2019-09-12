@@ -18,11 +18,18 @@ import org.csstudio.opibuilder.converter.model.Edm_activeGroupClass;
  *  @author Kay Kasemir
  *  @author Matevz, Lei Hu, Xihui Chen et al - Original logic in Opi_.. converter
  */
+@SuppressWarnings("nls")
 public class Convert_activeGroupClass extends ConverterBase<GroupWidget>
 {
+    static final String GROUP_NAME = "EDM Group ";
+
     public Convert_activeGroupClass(final EdmConverter converter, final Widget parent, final Edm_activeGroupClass g)
     {
         super(converter, parent, g);
+
+        // Group name numbers groups within a file,
+        // in case this file is used by the symbol widget
+        widget.propName().setValue(GROUP_NAME + converter.nextGroup());
 
         widget.propStyle().setValue(Style.NONE);
         widget.propTransparent().setValue(true);
