@@ -67,6 +67,12 @@ public class Converter
 
     }
 
+    /** @return Displays that were included by this display */
+    public Collection<String> getIncludedDisplays()
+    {
+        return included_displays;
+    }
+
     /** @return Displays that were linked from this display */
     public Collection<String> getLinkedDisplays()
     {
@@ -172,6 +178,17 @@ public class Converter
             final Converter converter = new Converter(infile, outfile);
             final int next = depth - 1;
             if (next > 0)
+                for (String included : converter.getLinkedDisplays())
+                {
+                    try
+                    {
+                        convert(included.replace(".bob", ".edl"), paths, force, next, output_dir);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.log(Level.WARNING, "Cannot convert included display '" + included + "'", ex);
+                    }
+                }
                 for (String linked : converter.getLinkedDisplays())
                 {
                     try
