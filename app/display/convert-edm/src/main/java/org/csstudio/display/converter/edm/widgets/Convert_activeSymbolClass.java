@@ -36,7 +36,10 @@ public class Convert_activeSymbolClass extends ConverterBase<EmbeddedDisplayWidg
         super(converter, parent, g);
 
         if (g.getFile() != null)
+        {
             widget.propFile().setValue(convertDisplayPath(g.getFile()));
+            converter.addIncludedDisplay(widget.propFile().getValue());
+        }
         widget.propResize().setValue(Resize.StretchContent);
         widget.propGroupName().setValue(Convert_activeGroupClass.GROUP_NAME + "0");
 

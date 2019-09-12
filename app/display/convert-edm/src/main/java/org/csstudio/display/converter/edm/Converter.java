@@ -39,6 +39,7 @@ public class Converter
 {
     /** Logger for all the Display Builder generating code */
     public static final Logger logger = Logger.getLogger(Converter.class.getPackageName());
+    private Collection<String> included_displays;
     private Collection<String> linked_displays;
 
     public Converter(final File input, final File output) throws Exception
@@ -54,6 +55,12 @@ public class Converter
         final ModelWriter writer = new ModelWriter(new FileOutputStream(output));
         writer.writeModel(converter.getDisplayModel());
         writer.close();
+
+        // List referenced files
+        included_displays = converter.getIncludedDisplays();
+        for (String included : included_displays)
+            logger.log(Level.INFO, "Included display: " + included);
+
         linked_displays = converter.getLinkedDisplays();
         for (String linked : linked_displays)
             logger.log(Level.INFO, "Linked display: " + linked);
