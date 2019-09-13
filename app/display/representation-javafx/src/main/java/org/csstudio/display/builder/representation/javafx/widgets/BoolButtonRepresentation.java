@@ -193,6 +193,10 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         value_label = state_labels[on_state];
         value_image = state_images[on_state];
 
+        // When LED is off, use the on/off colors for the background
+        if (model_widget.propShowLED().getValue() == false)
+            background = JFXUtil.shadedStyle(on_state == 0 ? model_widget.propOffColor().getValue() : model_widget.propOnColor().getValue());
+
         dirty_value.mark();
         toolkit.scheduleUpdate(this);
     }
@@ -323,10 +327,18 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
             final ImageView image = value_image;
             if (image == null)
             {
-                jfx_node.setGraphic(led);
-                // Put highlight in top-left corner, about 0.2 wide,
-                // relative to actual size of LED
-                led.setFill(toolkit.isEditMode() ? computeEditColors() : value_color);
+                if (model_widget.propShowLED().getValue())
+                {
+                    jfx_node.setGraphic(led);
+                    // Put highlight in top-left corner, about 0.2 wide,
+                    // relative to actual size of LED
+                    led.setFill(toolkit.isEditMode() ? computeEditColors() : value_color);
+                }
+                else
+                {
+                    jfx_node.setGraphic(null);
+                    jfx_node.setStyle(background);
+                }
             }
             else
                 jfx_node.setGraphic(image);

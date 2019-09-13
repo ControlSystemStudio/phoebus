@@ -111,6 +111,12 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         return PointType.values()[value.ordinal()];
     }
 
+    static LineStyle map(final org.csstudio.display.builder.model.properties.LineStyle value)
+    {   // For now the ordinals match,
+        // only different types to keep the Model separate from the Representation
+        return LineStyle.values()[value.ordinal()];
+    }
+
     private final RTPlotListener<Double> plot_listener = new RTPlotListener<>()
     {
         @Override
@@ -218,7 +224,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
                                   JFXUtil.convert(model_trace.traceColor().getValue()),
                                   map(model_trace.traceType().getValue()),
                                   model_trace.traceWidth().getValue(),
-                                  LineStyle.SOLID,
+                                  map(model_trace.traceLineStyle().getValue()),
                                   map(model_trace.tracePointType().getValue()),
                                   model_trace.tracePointSize().getValue(),
                                   model_trace.traceYAxis().getValue());
@@ -231,6 +237,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
             model_trace.traceType().addUntypedPropertyListener(trace_listener);
             model_trace.traceColor().addUntypedPropertyListener(trace_listener);
             model_trace.traceWidth().addUntypedPropertyListener(trace_listener);
+            model_trace.traceLineStyle().addUntypedPropertyListener(trace_listener);
             model_trace.tracePointType().addUntypedPropertyListener(trace_listener);
             model_trace.tracePointSize().addUntypedPropertyListener(trace_listener);
             model_trace.traceXValue().addUntypedPropertyListener(value_listener);
@@ -245,6 +252,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
             trace.setType(map(model_trace.traceType().getValue()));
             trace.setColor(JFXUtil.convert(model_trace.traceColor().getValue()));
             trace.setWidth(model_trace.traceWidth().getValue());
+            trace.setLineStyle(map(model_trace.traceLineStyle().getValue()));
             trace.setPointType(map(model_trace.tracePointType().getValue()));
             trace.setPointSize(model_trace.tracePointSize().getValue());
             trace.setVisible(model_trace.traceVisible().getValue());
@@ -372,7 +380,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
             model_trace.traceType().removePropertyListener(trace_listener);
             model_trace.traceColor().removePropertyListener(trace_listener);
             model_trace.traceWidth().removePropertyListener(trace_listener);
-
+            model_trace.traceLineStyle().removePropertyListener(trace_listener);
             model_trace.tracePointType().removePropertyListener(trace_listener);
             model_trace.tracePointSize().removePropertyListener(trace_listener);
             model_trace.traceXValue().removePropertyListener(value_listener);

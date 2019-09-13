@@ -61,7 +61,8 @@ public class AlarmLogTableApp implements AppResourceDescriptor {
             client = new RestHighLevelClient(
                     RestClient.builder(new HttpHost(prefs.get("es_host"), Integer.valueOf(prefs.get("es_port")))));
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Failed to properly create the elastic rest client to: " + prefs.get("es_host")
+                    + ":" + prefs.get("es_port"), e);
         }
 
     }

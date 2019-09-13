@@ -15,6 +15,7 @@ import java.util.Map;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VEnum;
+import org.epics.vtype.VInt;
 import org.epics.vtype.VLong;
 import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
@@ -120,6 +121,8 @@ public class LocalPVFactory implements PVFactory
             return VEnum.class;
         if (lower.contains("long"))
             return VLong.class;
+        if (lower.contains("int"))
+            return VInt.class;
         if (lower.contains("table"))
             return VTable.class;
         throw new Exception("Local PV cannot handle type '" + type + "'");
