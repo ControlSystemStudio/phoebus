@@ -143,6 +143,8 @@ public class EditorGUI
             editor.copyToClipboard();
         else if (in_editor  &&  meta  &&  code == KeyCode.V)
             pasteFromClipboard();
+        else if (in_editor  &&  meta  &&  code == KeyCode.D)
+        	editor.duplicateWidgets();
         else // Pass on, don't consume
             return;
         event.consume();

@@ -669,6 +669,48 @@ public class DisplayEditor
         }
     }
 
+    /** Copy currently selected widgets to clipboard
+     *  @return Widgets that were duplicated or <code>null</code>
+     */
+    public List<Widget> duplicateWidgets()
+    {
+        if (selection_tracker.isInlineEditorActive())
+            return null;
+
+        List<Widget> widgets = selection.getSelection();
+        if (widgets.isEmpty())
+            return null;
+
+        final String xml;
+        try
+        {
+        	//Export to XML
+            xml = ModelWriter.getXML(widgets);
+            //Import back from XML
+            final DisplayModel model = ModelReader.parseXML(xml);
+            widgets = model.getChildren();
+            logger.log(Level.FINE, "Duplicated {0} widgets", widgets.size());
+
+            for (Widget widget : widgets)
+            {
+                widget.propX().setValue(widget.propX().getValue() + 20);
+                widget.propY().setValue(widget.propY().getValue() + 20);
+            }
+            final Rectangle2D bounds = GeometryTools.getBounds(widgets);
+            // Potentially activate group at duplicate point
+            group_handler.locateParent(bounds.getMinX(), bounds.getMinY(), bounds.getWidth(), bounds.getHeight());
+            addWidgets(widgets, false);
+            
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot duplicate widgets", ex);
+            return null;
+        }
+
+        return widgets;
+    }
+
     /** @param pattern (Partial) name of widgets to select */
     public void selectWidgetsByName(final String pattern)
     {
