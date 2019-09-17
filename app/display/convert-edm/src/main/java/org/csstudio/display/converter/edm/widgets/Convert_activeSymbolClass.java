@@ -40,44 +40,73 @@ public class Convert_activeSymbolClass extends ConverterBase<EmbeddedDisplayWidg
             widget.propFile().setValue(convertDisplayPath(g.getFile()));
             converter.addIncludedDisplay(widget.propFile().getValue());
         }
+        else
+        {
+            logger.log(Level.WARNING, "EDM Symbol without file");
+            return;
+        }
         widget.propResize().setValue(Resize.StretchContent);
         widget.propGroupName().setValue(Convert_activeGroupClass.GROUP_NAME + "0");
 
+        final StringBuilder script = new StringBuilder();
+        final List<ScriptPV> pvs = new ArrayList<>();
         if (g.getNumPvs() == 1  &&  !g.isTruthTable())
         {
-            // Set symbol (group_name) from PV and list of min <= value < max ranges
+            // Value directly read from PV
             final String pv = convertPVName(g.getControlPvs().getEdmAttributesMap().get("0").get());
+            pvs.add(new ScriptPV(pv));
             widget.propTooltip().setValue(pv);
-            final Map<String, EdmDouble> minMap = g.getMinValues().getEdmAttributesMap();
-            final Map<String, EdmDouble> maxMap = g.getMaxValues().getEdmAttributesMap();
-            final StringBuilder script = new StringBuilder();
             script.append("# pvs[0] = ").append(pv).append("\n");
             script.append("from org.csstudio.display.builder.runtime.script import PVUtil\n");
-            script.append("pv0 = PVUtil.getDouble(pvs[0])\n");
-            for (int i=0; i<g.getNumStates(); ++i)
+            script.append("val = PVUtil.getDouble(pvs[0])\n");
+        }
+        else if (g.isTruthTable() && g.getNumPvs() >= 1)
+        {
+            // Each PV sets a bit in a value
+            for (int i=0; i<g.getNumPvs(); ++i)
             {
-                final String si = Integer.toString(i);
-                double min = 0.0, max = 0.0;
-                if (minMap.get(si) != null)
-                    min = minMap.get(si).get();
-                if (maxMap.get(si) != null)
-                    max = maxMap.get(si).get();
-                // if or elif?
-                if (i > 0)
-                    script.append("el");
-                script.append("if ").append(min).append(" <= pv0 < ").append(max).append(":\n");
-                script.append("    widget.setPropertyValue('group_name', '").append(Convert_activeGroupClass.GROUP_NAME).append(i).append("')\n");
+                final String pv = convertPVName(g.getControlPvs().getEdmAttributesMap().get(Integer.toString(i)).get());
+                pvs.add(new ScriptPV(pv));
+                script.append("# pvs[").append(i).append("] = ").append(pv).append("\n");
             }
-            script.append("else:\n");
-            script.append("    widget.setPropertyValue('group_name', '").append(Convert_activeGroupClass.GROUP_NAME).append("0')\n");
-
-            final List<ScriptInfo> scripts = new ArrayList<>(widget.propScripts().getValue());
-            scripts.add(new ScriptInfo(ScriptInfo.EMBEDDED_PYTHON, script.toString(), true, List.of(new ScriptPV(pv))));
-            widget.propScripts().setValue(scripts);
+            script.append("from org.csstudio.display.builder.runtime.script import PVUtil\n");
+            script.append("val = 0\n");
+            for (int i=0; i<pvs.size(); ++i)
+            {
+                script.append("if PVUtil.getInt(pvs[").append(i).append("]) != 0:\n");
+                script.append("    val += ").append(1<<i).append("\n");
+            }
         }
         else
-            logger.log(Level.WARNING, "Symbol " + g.getFile() + " can only handle plain PV, not binary truth table");
+        {
+            logger.log(Level.WARNING, "Symbol " + g.getFile() + " can only handle plain PV or binary truth table");
+            return;
+        }
 
+        // Set symbol (group_name) from list of min <= val < max ranges
+        final Map<String, EdmDouble> minMap = g.getMinValues().getEdmAttributesMap();
+        final Map<String, EdmDouble> maxMap = g.getMaxValues().getEdmAttributesMap();
+        for (int i=0; i<g.getNumStates(); ++i)
+        {
+            final String si = Integer.toString(i);
+            double min = 0.0, max = 0.0;
+            if (minMap.get(si) != null)
+                min = minMap.get(si).get();
+            if (maxMap.get(si) != null)
+                max = maxMap.get(si).get();
+            // if or elif?
+            if (i > 0)
+                script.append("el");
+            script.append("if ").append(min).append(" <= val < ").append(max).append(":\n");
+            script.append("    widget.setPropertyValue('group_name', '").append(Convert_activeGroupClass.GROUP_NAME).append(i).append("')\n");
+        }
+        script.append("else:\n");
+        script.append("    widget.setPropertyValue('group_name', '").append(Convert_activeGroupClass.GROUP_NAME).append("0')\n");
+
+        // Attach that script to widget
+        final List<ScriptInfo> scripts = new ArrayList<>(widget.propScripts().getValue());
+        scripts.add(new ScriptInfo(ScriptInfo.EMBEDDED_PYTHON, script.toString(), true, pvs));
+        widget.propScripts().setValue(scripts);
     }
 
     @Override
