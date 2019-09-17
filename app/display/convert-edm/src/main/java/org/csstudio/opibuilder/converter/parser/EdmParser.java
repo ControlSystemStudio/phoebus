@@ -67,9 +67,14 @@ public class EdmParser {
         DataInputStream in = new DataInputStream(stream);
         BufferedReader br = new BufferedReader(new InputStreamReader(in));
 
+        // Skip initial comments
         String line = br.readLine();
+        while (line != null  &&  line.startsWith("#"))
+            line = br.readLine();
         if (line == null)
             throw new Exception("Empty EDM file");
+
+        // Check version
         log.config("EDM File version " + line);
         if (! line.startsWith("4"))
             throw new Exception("Can only handle EDM version 4 files, got " + line + ". Use 'edm -convert' to update version, then parse again");
