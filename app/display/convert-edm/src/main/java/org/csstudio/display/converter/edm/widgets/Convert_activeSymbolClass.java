@@ -21,6 +21,7 @@ import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget.Resize;
 import org.csstudio.display.converter.edm.EdmConverter;
 import org.csstudio.opibuilder.converter.model.EdmDouble;
+import org.csstudio.opibuilder.converter.model.EdmInt;
 import org.csstudio.opibuilder.converter.model.EdmWidget;
 import org.csstudio.opibuilder.converter.model.Edm_activeSymbolClass;
 
@@ -79,8 +80,40 @@ public class Convert_activeSymbolClass extends ConverterBase<EmbeddedDisplayWidg
         }
         else
         {
-            logger.log(Level.WARNING, "Symbol " + g.getFile() + " can only handle plain PV or binary truth table");
-            return;
+            // Value of each PV is masked and shifted
+            for (int i=0; i<g.getNumPvs(); ++i)
+            {
+                final String pv = convertPVName(g.getControlPvs().getEdmAttributesMap().get(Integer.toString(i)).get());
+                pvs.add(new ScriptPV(pv));
+                script.append("# pvs[").append(i).append("] = ").append(pv).append("\n");
+            }
+            script.append("from org.csstudio.display.builder.runtime.script import PVUtil\n");
+            script.append("val = 0\n");
+
+            final Map<String, EdmInt> andMap = g.getAndMask().getEdmAttributesMap();
+            final Map<String, EdmInt> xorMap = g.getXorMask().getEdmAttributesMap();
+            final Map<String, EdmInt> shiftMap = g.getShiftCount().getEdmAttributesMap();
+            for (int i=0; i<pvs.size(); ++i)
+            {
+                final String si = Integer.toString(i);
+                int and=0, xor=0, shift=0;
+                if (andMap.containsKey(si))
+                    and = andMap.get(si).get();
+                if (xorMap.containsKey(si))
+                    xor = xorMap.get(si).get();
+                if (shiftMap.containsKey(si))
+                    shift = shiftMap.get(si).get();
+
+                script.append("val += ( PVUtil.getInt(pvs[").append(i).append("])");
+                if (and > 0)
+                    script.append(" & ").append(and);
+                if (xor > 0)
+                    script.append(" ^ ").append(xor);
+                script.append(")");
+                if (shift > 0)
+                    script.append(" << ").append(shift);
+                script.append("\n");
+            }
         }
 
         // Set symbol (group_name) from list of min <= val < max ranges
