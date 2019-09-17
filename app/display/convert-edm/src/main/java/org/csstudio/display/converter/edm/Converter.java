@@ -7,11 +7,9 @@
  *******************************************************************************/
 package org.csstudio.display.converter.edm;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -208,7 +206,6 @@ public class Converter
         System.setProperty("java.util.logging.ConsoleHandler.formatter", "java.util.logging.SimpleFormatter");
         System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS %4$s %5$s%6$s%n");
 
-        final List<String> paths = new ArrayList<>();
         final List<String> files = new ArrayList<>(List.of(args));
         ConverterPreferences.colors_list = "colors.list";
         File output_dir = null;
@@ -270,13 +267,10 @@ public class Converter
                     System.err.println("Missing file name for -paths /path/to/paths.list");
                     return;
                 }
-                final File paths_file = new File(files.get(1));
+                final String paths_file = files.get(1);
                 files.remove(0);
                 files.remove(0);
-                final BufferedReader reader = new BufferedReader(new FileReader(paths_file));
-                String line;
-                while ((line = reader.readLine()) != null)
-                    paths.add(line);
+                ConverterPreferences.parseEdmPaths(paths_file);
             }
             else if (files.get(0).startsWith("-o"))
             {
@@ -321,7 +315,7 @@ public class Converter
         {
             try
             {
-                convert(file, paths, force, depth, output_dir);
+                convert(file, ConverterPreferences.paths, force, depth, output_dir);
             }
             catch (Exception ex)
             {

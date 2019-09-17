@@ -9,6 +9,9 @@ package org.csstudio.display.converter.edm;
 
 import static org.csstudio.display.converter.edm.Converter.logger;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -23,6 +26,10 @@ import org.phoebus.framework.preferences.PreferencesReader;
 public class ConverterPreferences
 {
     public static String colors_list;
+
+    public static final List<String> paths = new ArrayList<>();
+
+    public static final File auto_converter_dir;
 
     private static class FontMapping
     {
@@ -49,6 +56,47 @@ public class ConverterPreferences
         catch (Exception ex)
         {
             logger.log(Level.WARNING, "Cannot parse font_mappings", ex);
+        }
+
+        final String edm_paths_config = prefs.get("edm_paths_config").trim();
+        if (! edm_paths_config.isEmpty())
+            try
+            {
+                parseEdmPaths(edm_paths_config);
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Cannot parse paths from " + edm_paths_config, ex);
+            }
+
+        final String dir = PreferencesReader.replaceProperties(prefs.get("auto_converter_dir"));
+        if (dir.isBlank())
+            auto_converter_dir = null;
+        else
+        {
+            final File folder = new File(dir);
+            if (folder.exists() && folder.isDirectory())
+                auto_converter_dir = folder;
+            else
+            {
+                auto_converter_dir = null;
+                logger.log(Level.WARNING, "EDM auto_converter_dir " + dir + " does not exist");
+            }
+        }
+    }
+
+    public static void parseEdmPaths(final String edm_paths_config) throws Exception
+    {
+        paths.clear();
+        try
+        (
+            final BufferedReader reader = new BufferedReader(new FileReader(edm_paths_config));
+        )
+        {
+            String line;
+            while ((line = reader.readLine()) != null)
+                if (! line.startsWith("#"))
+                    paths.add(line);
         }
     }
 

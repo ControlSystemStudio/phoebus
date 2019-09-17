@@ -12,7 +12,6 @@ import java.io.FileInputStream;
 import java.net.URI;
 import java.net.URL;
 import java.util.List;
-import java.util.prefs.Preferences;
 
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
@@ -22,7 +21,6 @@ import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
-import org.phoebus.ui.dialog.OpenFileDialog;
 import org.phoebus.ui.docking.DockPane;
 
 import javafx.application.Platform;
@@ -75,17 +73,13 @@ public class EdmConverterApplication implements AppResourceDescriptor
     {
         final Window window = DockPane.getActiveDockPane().getScene().getWindow();
 
-        // Get colors.list location from preferences
+        // Check colors.list
         if (ConverterPreferences.colors_list.isBlank())
         {
-            // Prompt if not set
-            final File selected = new OpenFileDialog().promptForFile(window, "Select EDM colors.list", null, null);
-            if (selected == null)
-                return null;
-
-            ConverterPreferences.colors_list = selected.getAbsolutePath();
-            final Preferences prefs = Preferences.userNodeForPackage(EdmConverterApplication.class);
-            prefs.put("colors_list", ConverterPreferences.colors_list);
+            ExceptionDetailsErrorDialog.openError("EDM Converter",
+                "EDM colors.list is not defined.\nConfigure it in the converter settings.",
+                new Exception("Need colors.list"));
+            return null;
         }
 
         // Perform actual conversion in background thread
