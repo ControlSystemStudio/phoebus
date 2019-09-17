@@ -57,11 +57,11 @@ public class Converter
         // List referenced files
         included_displays = converter.getIncludedDisplays();
         for (String included : included_displays)
-            logger.log(Level.INFO, "Included display: " + included);
+            logger.log(Level.FINE, "Included display: " + included);
 
         linked_displays = converter.getLinkedDisplays();
         for (String linked : linked_displays)
-            logger.log(Level.INFO, "Linked display: " + linked);
+            logger.log(Level.FINE, "Linked display: " + linked);
 
     }
 
