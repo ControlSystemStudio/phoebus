@@ -62,7 +62,7 @@ public class ModelLoader
             {
                 logger.log(Level.WARNING, "Auto-converter failed to create " + display_file, conversion_error);
             }
-            throw new Exception("Cannot load '" + display_file + "' (parent: '" + parent_display + "'", ex);
+            throw new Exception("Cannot load '" + display_file + "' (parent: '" + parent_display + "')", ex);
         }
     }
 
