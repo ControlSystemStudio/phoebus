@@ -36,8 +36,8 @@ public class EdmEntity extends Object {
      * @param type EdmEntity type.
      */
     public EdmEntity(String type) {
-        attributeMap = new HashMap<String, EdmAttribute>();
-        subEntities = new Vector<EdmEntity>();
+        attributeMap = new HashMap<>();
+        subEntities = new Vector<>();
         this.type = type;
     }
 
@@ -58,8 +58,8 @@ public class EdmEntity extends Object {
             "Trying to initialize from an already specialized entity.", null);
         }
 
-        attributeMap = new HashMap<String, EdmAttribute>();
-        subEntities = new Vector<EdmEntity>();
+        attributeMap = new HashMap<>();
+        subEntities = new Vector<>();
         this.type = genericEntity.type;
 
         for (String key : genericEntity.getAttributeIdSet())
@@ -189,11 +189,12 @@ public class EdmEntity extends Object {
      * @throws EdmException
      */
     public void addAttribute(String id, EdmAttribute a) throws EdmException {
+        // Warn, then replace with new value
         if (attributeMap.containsKey(id))
-            throw new EdmException(EdmException.ATTRIBUTE_ALREADY_EXISTS,
-                    "Attribute " + id + " already exists.", null);
-        else
-            attributeMap.put(id, a);
+            log.log(Level.WARNING, "EDM trribute set more than once",
+                    new EdmException(EdmException.ATTRIBUTE_ALREADY_EXISTS,
+                            "Attribute " + id + " already exists.", null));
+        attributeMap.put(id, a);
     }
 
     /**
@@ -271,7 +272,7 @@ public class EdmEntity extends Object {
 
 //        boolean robust = Boolean.parseBoolean(System.getProperty("edm2xml.robustParsing"));
 
-        Vector<EdmEntity> w = new Vector<EdmEntity>();
+        Vector<EdmEntity> w = new Vector<>();
 
         log.config("Parsing specific widgets.");
 
