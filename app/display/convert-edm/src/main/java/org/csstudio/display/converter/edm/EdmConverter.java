@@ -199,12 +199,15 @@ public class EdmConverter
             final Widget widget = copy.get(i);
             if (! (widget instanceof ActionButtonWidget))
                 continue;
+            final ActionButtonWidget bw = (ActionButtonWidget) widget;
+
             // Look for buttons below that occupy roughly the same space
             for (int o=i-1;  o>=0;  --o)
             {
                 final Widget other = copy.get(o);
                 if (! (other instanceof ActionButtonWidget  &&  doWidgetsOverlap(widget, other)))
                     continue;
+                final ActionButtonWidget ob = (ActionButtonWidget) other;
 
                 logger.log(Level.WARNING, "Merging actions from overlapping " + widget + " and " + other + " into one:");
                 logger.log(Level.WARNING, "1) " + widget.propActions().getValue());
@@ -213,8 +216,21 @@ public class EdmConverter
                 actions.addAll(other.propActions().getValue().getActions());
                 widget.propActions().setValue(new ActionInfos(actions));
 
+                // When merging buttons, as soon as one button is visible.
+                // the remaining (merged) button must be visible
+                if (! ob.propTransparent().getValue())
+                {
+                    bw.propTransparent().setValue(false);
+                    bw.propText().setValue(ob.propText().getValue());
+                    bw.propForegroundColor().setValue(ob.propForegroundColor().getValue());
+                    bw.propBackgroundColor().setValue(ob.propBackgroundColor().getValue());
+                    bw.propFont().setValue(ob.propFont().getValue());
+                }
+
+                // Remove 'other' both from original children (by value) and our working copy (by index)
                 children.removeChild(other);
                 copy.remove(o);
+                // Correct index since we removed a widget
                 --i;
             }
         }
