@@ -136,18 +136,6 @@ public class JMasarJerseyClient implements JMasarClient{
         return response.getEntity(Node.class);
     }
 
-    @Override
-    public Node takeSnapshot(String uniqueNodeId) {
-        WebResource webResource = client.resource(jmasarServiceUrl + "/config/" + uniqueNodeId + "/snapshot");
-
-        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).put(ClientResponse.class);
-        if (response.getStatus() != 200) {
-            throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
-        }
-
-        return response.getEntity(Node.class);
-    }
-
     private <T> T getCall(String relativeUrl, Class<T> clazz) {
 
         ClientResponse response = getCall(relativeUrl);

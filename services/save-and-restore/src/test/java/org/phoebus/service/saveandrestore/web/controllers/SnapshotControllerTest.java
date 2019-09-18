@@ -92,24 +92,6 @@ public class SnapshotControllerTest {
 	}
 	
 	@Test
-	public void testTakeSnapshot() throws Exception{
-		
-		Mockito.reset(services);
-		
-		when(services.takeSnapshot("a")).thenReturn(snapshot);
-		
-		MockHttpServletRequestBuilder request = put("/config/a/snapshot");
-
-		MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
-				.andReturn();
-		
-		objectMapper.readValue(result.getResponse().getContentAsString(),
-				Node.class);
-		
-	}
-	
-	
-	@Test
 	public void testGetSnapshot() throws Exception{
 		
 		Mockito.reset(services);

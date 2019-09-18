@@ -21,7 +21,6 @@ package org.phoebus.applications.saveandrestore.model.json;
 import java.io.IOException;
 
 import org.epics.vtype.VType;
-import org.epics.vtype.json.VTypeToJson;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;

@@ -41,22 +41,6 @@ public class SnapshotController extends BaseController {
 	private IServices services;
 
 	/**
-	 * Creates a new snapshot for the specified configuration, and saves it in a "preliminary" state.
-	 * Snapshots in a preliminary state are not visible when listing snapshots, see {@link ConfigurationController#getSnapshots(String)}.
-	 *
-	 * A {@link HttpStatus#BAD_REQUEST} is returned if the specified configuration id does not exist.
-	 * 
-	 * 
-	 * @param uniqueNodeId The configuration id.
-	 * @return A {@link Node} object representing the snapshot.
-	 */
-	@ApiOperation(value = "Take a snapshot, i.e. save preliminary.")
-	@PutMapping("/config/{uniqueNodeId}/snapshot")
-	public Node takeSnapshot(@PathVariable String uniqueNodeId) {
-		return services.takeSnapshot(uniqueNodeId);
-	}
-
-	/**
 	 * Retrieves a snapshot {@link Node}.
 	 * 
 	 * A {@link HttpStatus#NOT_FOUND} is returned if the specified snapshot does not exist or if
