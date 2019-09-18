@@ -1,0 +1,611 @@
+4 0 0
+
+max=0x10000
+columns=5
+
+alias trace0 red-21
+alias trace1 blue-26
+alias trace2 cyan-33
+alias trace3 yellow-4
+alias trace4 orange-41
+alias trace5 purple-46
+alias trace6 green-3
+alias trace7 grey-12
+alias trace8 black
+alias trace9 white
+
+static 0 "Disconn/Invalid"  { 65535 65535 65535 }    #0 white
+static 107 "Top Shadow"       { 60652 60652 60652 }    #
+static 1 "grey-1"           { 60652 60652 60652 }    #
+static 2 "grey-2"           { 56026 56026 56026 }    #
+static 3 "GLOBAL canvas"    { 51400 51400 51400 }    #
+static 4 "grey-4"           { 48059 48059 48059 }    #
+static 5 "Wid-alt/Anno-sec" { 44718 44718 44718 }    #5
+static 6 "GLOBAL title"     { 40606 40606 40606 }    #
+static 108 "x2"               { 37265 37265 37265 }    #
+static 9 "GLOBAL help"      { 30840 30840 30840 }    #
+static 10 "Wid-bg/Anno-pri"  { 26985 26985 26985 }    #10
+static 109 "Bottom Shadow"    { 23130 23130 23130 }    #
+static 110 "grey-6"           { 17990 17990 17990 }    #
+static 111 "x4"               { 11565 11565 11565 }    #
+static 112 "black"            {     0     0     0 }    #
+static 15 "Monitor: NORMAL"  {     0 65535     0 }    #15 green
+static 113 "green-1"          {     0 57568     0 }    #
+static 17 "Monitor: alt"     {     0 49344     0 }    #
+static 114 "green-3"          {     0 41120     0 }    #
+static 115 "green-4"          {     0 32896     0 }    #
+static 20 "Monitor: MAJOR"   { 65535     0     0 }    #20 red
+static 116 "red-1"            { 57568     0     0 }    #
+static 22 "Mon: MAJOR/unack" { 49344     0     0 }    #
+static 117 "red-3"            { 41120     0     0 }    #
+static 118 "red-4"            { 32896     0     0 }    #
+static 25 "Controller"       {     0     0 65535 }    #25 blue
+static 119 "blue-1"           {     0     0 57568 }    #
+static 120 "blue-2"           {     0     0 49344 }    #
+static 121 "blue-3"           {     0     0 41120 }    #
+static 122 "blue-4"           {     0     0 32896 }    #
+static 30 "Controller/alt"   {     0 65535 65535 }    #30 cyan
+static 31 "cyan-31"          {     0 57568 57568 }    #
+static 32 "cyan-32"          {     0 49344 49344 }    #
+static 33 "cyan-33"          {     0 41120 41120 }    #
+static 34 "cyan-34"          {     0 32896 32896 }    #
+static 35 "Monitor: MINOR"   { 65535 65535     0 }    #35 yellow
+static 123 "yellow-1"         { 57568 57568     0 }    #
+static 37 "Mon: MINOR/unack" { 49344 49344     0 }    #
+static 124 "yellow-3"        { 41120 41120     0 }     #
+static 125 "yellow-4"        { 32896 32896     0 }     #
+static 40 "Shell/reldsp-alt" { 65535 45232 24672 }    #40 orange
+static 41 "orange-41"        { 57568 39578 21588 }    #
+static 42 "orange-42"        { 49344 33924 18504 }    #
+static 43 "brown-43"         { 41120 28270 15420 }    #
+static 44 "Related display"  { 32896 22616 12336 }    # brown
+static 45 "Exit/Quit/Kill"   { 65535     0 65535 }    #45 purple
+static 46 "purple-46"        { 49344     0 49344 }    #
+static 47 "purple-47"        { 32896     0 32896 }    #
+static 48 "wid-fg-neu"       { 11565 11565 11565 }    #
+static 49 "wid-bg-neu"       { 56026 56026 56026 }    #
+static 50 "LINAC canvas"     { 52736 56320 52480 }    #50
+static 51 "LINAC title"      { 47360 50688 47104 }    #
+static 52 "LINAC help"       { 42496 45568 42240 }    #
+static 53 "VAC title"        { 57600 63488 45312 }    #
+static 54 "VAC help"         { 51712 57088 40704 }    #
+static 55 "FE canvas"        { 62708 56026 43176 }    #55
+static 56 "FE title"         { 47031 42148 32382 }    #
+static 57 "FE help"          { 31354 28013 21588 }    #
+static 58 "COOL title"       { 46336 63744 55040 }    #
+static 59 "COOL help"        { 41472 57344 49408 }    #
+static 60 "RING canvas"      { 49664 55808 55552 }    #60
+static 61 "RING title"       { 44544 50176 49920 }    #
+static 62 "RING help"        { 39936 45056 44800 }    #
+static 63 "CRYO title"       { 45056 55808 63744 }    #
+static 64 "CRYO help"        { 40448 50176 57344 }    #
+static 65 "TARGET canvas"    { 52480 51712 56576 }    #65
+static 66 "TARGET title"     { 47104 46336 50688 }    #
+static 67 "TARGET help"      { 42240 41472 45568 }    #
+static 68 "RF title"         { 56832 50176 64256 }    #
+static 69 "RF help"          { 50944 45045 57600 }    #
+static 70 "CF canvas"        { 56576 51712 56576 }    #70
+static 71 "CF title"         { 50688 46336 50688 }    #
+static 72 "CF help"          { 45568 41472 45568 }    #
+static 73 "UNSS title"       { 64256 60176 60416 }    #
+static 74 "UNSS help"        { 57600 45056 54272 }    #
+static 75 "UNMS canvas"      { 65535 38550 43176 }    #75
+static 76 "UNMS title"       { 49344 29041 32382 }    #
+static 77 "UNMS help"        { 32896 19275 21588 }    #
+static 126 "red"              { 65535     0     0 }    #
+static 127 "red-2"            { 49344     0     0 }    #
+static 128 "green"            {     0 65535     0 }    #80
+static 129 "green-2"          {     0 49344     0 }    #
+static 130 "blue"             {     0     0 65535 }    #
+static 131 "yellow"           { 65535 65535     0 }    #
+static 132 "yellow-2"         { 49344 49344     0 }    #
+static 133 "white"            { 65535 65535 65535 }    #85
+static 134 "grey-3"           { 40606 40606 40606 }    #
+static 135 "grey-5"           { 26985 26985 26985 }    #
+static 7 "grey-7"           { 37265 37265 37265 }    #
+static 8 "grey-8"           { 34181 34181 34181 }    #
+static 11 "grey-11"          { 23130 23130 23130 }    #
+static 12 "grey-12"          { 17990 17990 17990 }    #
+static 13 "grey-13"          { 11565 11565 11565 }    #
+static 14 "black-14"         {     0     0     0 }    #
+static 16 "green-16"         {     0 57568     0 }    #
+static 18 "green-18"         {     0 41120     0 }    #
+static 19 "green-19"         {     0 32896     0 }    #
+static 21 "red-21"           { 57568     0     0 }    #
+static 23 "red-23"           { 41120     0     0 }    #
+static 24 "red-24"           { 32896     0     0 }    #
+static 26 "blue-26"          {     0     0 57568 }    #
+static 27 "blue-27"          {     0     0 49344 }    #
+static 28 "blue-28"          {     0     0 41120 }    #
+static 29 "blue-29"          {     0     0 32896 }    #
+static 36 "yellow-36"        { 57568 57568     0 }    #
+static 38 "yellow-38"        { 41120 41120     0 }    #
+static 39 "yellow-39"        { 32896 32896     0 }    #
+static 78 "brt-orange"       { 65278 36494     0 }    #
+static 79 "blinking orange"  { 65278 36494 0  56026 56026 56026 } #
+static 136 "blinking red"    {  65535 0 0     0 0 0 } #
+static 140 "blinking green"  {  0 65535 0     0 0 0 } #
+static 142 "blinking purple"  {  49344     0 49344     0 0 0 } #
+static 160 "blinking blue"    {  0 0 65535     0 0 0 } #
+static 164 "blinking yellow"  { 65535 65535 0  56026 56026 56026 } #
+
+
+alarm  { 
+  disconnected : "Disconn/Invalid"
+  invalid      : "Disconn/Invalid"
+  minor        : "Monitor: MINOR"
+  major        : "Monitor: MAJOR"
+  noalarm      : "Monitor: NORMAL"
+ }
+
+rule 80 "Alarm" {
+ >=-0.5 && <0.5	 : "Monitor: NORMAL"
+ >=0.5  && <1.5	 : "Monitor: MINOR"
+ >=1.5  && <=2.5 : "Monitor: MAJOR"
+ >2.5 		 :"purple-47"
+ }
+
+# Next 2 for EPS
+rule 81 "EPS-Red" {
+ >=-0.5 && <0.5	 : "red-4"
+ >=0.5  && <=1.5 : "Monitor: MAJOR"
+}
+rule 82 "EPS-Green" {
+ >=-0.5 && <0.5	 : "green-4"
+ >=0.5  && <=1.5 : "Monitor: NORMAL"
+}
+
+# Next 2 for G3 Status
+rule 83 "Red-Green" {
+ >=-0.5 && <0.5	 : "Monitor: MAJOR"
+ >=0.5  && <=1.5 : "Monitor: NORMAL"
+}
+rule 84 "Green-Red" {
+ >=-0.5 && <0.5	 : "Monitor: NORMAL"
+ >=0.5  && <=1.5 : "Monitor: MAJOR"
+}
+
+# Next 2 for Clickable/ON
+rule 85 "FE-ON 1-bit" { 
+ >=-0.5 && <0.5	 : "FE title"
+ >=0.5  && <=1.5 : "Monitor: NORMAL"
+}
+rule 86 "FE-ON-Not 1-bit" {
+ >=-0.5 && <0.5	 : "Monitor: NORMAL"
+ >=0.5  && <=1.5 : "FE title"
+}
+
+# Next for Match
+rule 87 "FE-X-X-ON" {
+ >=-0.5 && <0.5  : "FE title"  #OFF
+ >=0.5  && <1.5  : "Monitor: MINOR"  #FWD
+ >=1.5  && <2.5  : "Monitor: MINOR"  #REV
+ >=2.5  && <=3.5 : "Monitor: NORMAL"   #ON
+}
+
+# Next 4 for Clickable/OPEN
+rule 88 "FE-Vlv" {
+ >=-0.5 && <0.5	 : "Monitor: MINOR"  # transition = 00
+ >=0.5  && <1.5	 : "FE title"  		# closed     = 01
+ >=1.5  && <2.5	 : "Monitor: NORMAL"   # open       = 10
+ >=2.5  && <=3.5 : "Monitor: MAJOR"     # fault      = 11
+}
+rule 89 "FE-Vlv-R" {
+ >=-0.5 && <0.5	 : "Monitor: MINOR"  # transition = 00
+ >=0.5  && <1.5	 : "Monitor: NORMAL"   # open       = 01
+ >=1.5  && <2.5	 : "FE title"  		# closed     = 10
+ >=2.5  && <=3.5 : "Monitor: MAJOR"     # fault      = 11
+}
+rule 90 "SNS-Vlv-1" {
+ >=-0.5 && <0.5	 : "Monitor: MINOR"  # transition = 00
+ >=0.5  && <1.5	 : "Wid-alt/Anno-sec"   # closed     = 01
+ >=1.5  && <2.5	 : "Monitor: NORMAL"   # open       = 10
+ >=2.5  && <=3.5 : "Monitor: MAJOR"     # fault      = 11
+}
+rule 91 "SNS-Vlv-2" {
+ >=-0.5 && <0.5	 : "Wid-alt/Anno-sec"    # transition = 00
+ >=0.5  && <1.5	 : "Monitor: MAJOR"     # closed     = 01
+ >=1.5  && <2.5	 : "Monitor: NORMAL"   # open       = 10
+ >=2.5  && <=3.5 : "Monitor: MINOR"  # fault      = 11
+}
+
+# Next 2 for G3 Diags
+rule 92 "Gray-Green" {
+ >=-0.5 && <0.5	 : "Wid-alt/Anno-sec"
+ >=0.5  && <=1.5 : "Monitor: NORMAL"
+}
+rule 93 "Gray-Red-Green" {
+ >=-0.5 && <0.5	 : "Wid-alt/Anno-sec"
+ >=0.5  && <1.5	 : "Monitor: MAJOR"
+ >=1.5  && <=2.5 : "Monitor: NORMAL"
+}
+rule 94 "Seq-3 (RYG)" {
+ >=-0.5 && <0.5	 : "Monitor: MAJOR"
+ >=0.5  && <1.5	 : "Monitor: MINOR"
+ >=1.5  && <=2.5 : "Monitor: NORMAL"
+}
+rule 95 "Seq-4 (RYGB)" {
+ >=-0.5 && <0.5	 : "Monitor: MAJOR"
+ >=0.5  && <1.5	 : "Monitor: MINOR"
+ >=1.5  && <2.5	 : "Monitor: NORMAL"
+ >=2.5  && <=3.5 : "Controller"
+}
+rule 96 "Seq-5 (ROYGB)" {
+ >=-0.5 && <0.5	 : "Monitor: MAJOR"
+ >=0.5  && <1.5  : "Shell/reldsp-alt"
+ >=1.5  && <2.5	 : "Monitor: MINOR"
+ >=2.5  && <3.5	 : "Monitor: NORMAL"
+ >=3.5  && <=4.5 : "Controller"
+}
+rule 97 "Seq-6 (ROYGBV)" {
+ >=-0.5 && <0.5	 : "Monitor: MAJOR"
+ >=0.5  && <1.5  : "Shell/reldsp-alt"
+ >=1.5  && <2.5	 : "Monitor: MINOR"
+ >=2.5  && <3.5	 : "Monitor: NORMAL"
+ >=3.5  && <4.5  : "Controller"
+ >=4.5  && <=5.5 : "Exit/Quit/Kill"
+}
+
+# Next 3 for FE EPS Lights
+rule 98 "Lights-0" {
+ >=-0.5 && <0.5	 : "Monitor: NORMAL"
+ >=0.5  && <1.5  : "green-4"
+ >=1.5  && <=2.5 : "green-4"
+}
+rule 99 "Lights-1" {
+ >=-0.5 && <0.5	 : "brown-43"
+ >=0.5  && <1.5  : "Shell/reldsp-alt"
+ >=1.5  && <=2.5 : "brown-43"
+}
+rule 100 "Lights-2" {
+ >=-0.5 && <0.5	 : "red-3"
+ >=0.5  && <1.5  : "red-3"
+ >=1.5  && <=2.5 : "Monitor: MAJOR"
+}
+
+# Next 6 for Pseudo-LEDS (1=True and 0=True)
+rule 101 "Green-LED" {
+ >=-0.5 && <0.5	 : "Wid-alt/Anno-sec"
+ >=0.5  && <=1.5 : "Monitor: NORMAL"
+}
+rule 102 "Yellow-LED" {
+ >=-0.5 && <0.5	 : "Wid-alt/Anno-sec"
+ >=0.5  && <=1.5 : "Monitor: MINOR"
+}
+rule 103 "Red-LED" {
+ >=-0.5 && <0.5	 : "Wid-alt/Anno-sec"
+ >=0.5  && <=1.5 : "Monitor: MAJOR"
+}
+rule 104 "Not-Green-LED" {
+ >=-0.5 && <0.5	 : "Monitor: NORMAL"
+ >=0.5  && <=1.5 : "Wid-alt/Anno-sec"
+}
+rule 105 "Not-Yellow-LED" {
+ >=-0.5 && <0.5	 : "Monitor: MINOR"
+ >=0.5  && <=1.5 : "Wid-alt/Anno-sec"
+}
+rule 106 "Not-Red-LED" {
+ >=-0.5 && <0.5	 : "Monitor: MAJOR"
+ >=0.5  && <=1.5 : "Wid-alt/Anno-sec"
+}
+
+rule 137 "blinking red rule" {
+  >=-0.5 && <0.5     : "Wid-alt/Anno-sec"
+  >=0.5  && <=1.5    : "blinking red"
+}
+
+rule 138 "yellow-green" {
+  >=-0.5 && <0.5    : "Monitor: MINOR"
+  >=0.5  && <1.5    : "Monitor: NORMAL"
+}
+
+
+rule 139 "green-blinking red" {
+  >=-0.5 && <0.5     : "Monitor: NORMAL"
+  >=0.5  && <=1.5    : "blinking red"
+}
+
+rule 141 "blinking green rule" {
+  >=-0.5 && <0.5     : "Wid-alt/Anno-sec"
+  >=0.5  && <=1.5    : "blinking green"
+}
+
+rule 143 "blinking purple rule" {
+  >=-0.5 && <0.5     : "UNMS canvas"
+  >=0.5  && <=1.5    : "blinking purple"
+}
+
+rule 144 "red-green-yellow" {
+ >=-0.5 && <0.5	 : "Monitor: MAJOR"
+ >=0.5  && <=1.5 : "Monitor: NORMAL"
+ >=1.5  && <2.5	 : "Monitor: MINOR"
+}
+
+rule 145 "op-sts" {
+ >=-0.5 && <0.5	 : "Wid-alt/Anno-sec" # uncommissioned = 0
+ >=0.5  && <1.5	 : "Monitor: MAJOR"   # broken         = 1
+ >=1.5  && <2.5	 : "Monitor: NORMAL"  # operational    = 2
+ >=2.5  && <=3.5 : "UNSS help"   # maintenance    = 3
+ >=3.5  && <=4.5 : "cyan-31"      # operations but off = 4
+}
+
+rule 146 "RingRF Fault" {
+ >=-0.5 && <0.5	 : "Monitor: MAJOR"
+ >=0.5  && <=1.5 : "Monitor: NORMAL"
+}
+
+rule 147 "fil-sts" {
+ >=-0.5 && <0.5        : "black"            # fil off        = 0
+ >=0.5  && <1.5        : "brt-orange"       # fil. on        = 1
+ >=1.5  && <2.5        : "blinking orange"  # on too long    = 2
+ >=2.5  && <3.5        : "orange-42"	    # black heat     = 3
+}
+
+# Next 6 for PSC screen buttons and fault indicators
+rule 148 "Fault-FG" {
+ =1	 : "yellow"
+ default : "black"
+}
+rule 149 "Fault-BG" {
+ =1	 : "Monitor: MAJOR"
+ default : "Monitor: NORMAL"
+}
+rule 150 "Normal-if-0" {
+ =0	 : "Monitor: NORMAL"
+ default : "Wid-alt/Anno-sec"
+}
+rule 151 "Normal-if-1" {
+ =1	 : "Monitor: NORMAL"
+ default : "Wid-alt/Anno-sec"
+}
+rule 152 "Normal-if-2" {
+ =2	 : "Monitor: NORMAL"
+ default : "Wid-alt/Anno-sec"
+}
+rule 153 "Normal-if-3" {
+ =3	 : "Monitor: NORMAL"
+ default : "Wid-alt/Anno-sec"
+}
+
+# Next 6 for Ring RF 
+rule 154 "RingRF Remote" {
+ >=-0.5 && <0.5	 : "Monitor: MAJOR"
+ >=0.5  && <=1.5 : "Monitor: NORMAL"
+}
+rule 155 "RingRF Status" {
+ >=-0.5 && <0.5	 : "Monitor: MINOR"
+ >=0.5  && <=1.5 : "Monitor: NORMAL"
+}
+rule 156 "RingRF On" {
+ >=-0.5 && <0.5	 : "Wid-alt/Anno-sec"
+ >=0.5  && <=1.5 : "Monitor: NORMAL"
+}
+rule 157 "RingRF Off" {
+ >=-0.5 && <0.5	 : "Wid-alt/Anno-sec"
+ >=0.5  && <=1.5 : "Monitor: MAJOR"
+}
+rule 158 "RingRF STBY" {
+ >=-0.5 && <0.5	 : "Wid-alt/Anno-sec"
+ >=0.5  && <=1.5 : "Monitor: MINOR"
+}
+rule 159 "RingRF Fault NOT" {
+ >=-0.5 && <0.5	 : "Monitor: NORMAL"
+ >=0.5  && <=1.5 : "Monitor: MAJOR"
+}
+
+rule 161 "blinking blue rule" {
+  >=-0.5 && <0.5     : "Wid-alt/Anno-sec"
+  >=0.5  && <=1.5    : "blinking blue"
+}
+
+rule 162 "green-yellow" {
+  >=-0.5 && <0.5    : "Monitor: NORMAL"
+  >=0.5  && <1.5    : "Monitor: MINOR"
+}
+
+rule 163 "summaryPV" {
+  >=-0.5 && <0.5     : "Disconn/Invalid"
+  >=0.5  && <1.5     : "Monitor: MINOR"
+  >=1.5  && <2.5     : "Monitor: MAJOR"
+  >=2.5  && <3.5     : "Monitor: NORMAL"
+}
+
+rule 165 "grey-black" {
+  >=-0.5 && <0.5    : "grey-1"
+  >=0.5  && <1.5    : "black"
+}
+
+# Soft-IOC-Based Alarm Handler teeny square status
+rule 166 "SIBAH" {
+ >=-0.5 && <0.5	 : "Monitor: NORMAL"
+ >=0.5  && <1.5	 : "Monitor: MINOR"
+ >=1.5  && <=2.5 : "Monitor: MAJOR"
+ >=2.5 && <3.5	 : "Disconn/Invalid"
+ >=3.5  && <4.5	 : "grey-3"  # Mask in Ack status
+ >=4.5  && <=5.5 : "grey-12" # Mask in Disable status
+ >5.5 		 : "Monitor: MAJOR"
+}
+
+rule 167 "ac-sts" {
+ >=-0.5 && <0.5	 : "Monitor: NORMAL"  # operational    = 0
+ >=0.5  && <1.5	 : "UNSS help"   # maintenance         = 1
+ >=1.5  && <2.5	 : "Monitor: MAJOR"   # test           = 2
+ >=2.5  && <=3.5 : "Wid-alt/Anno-sec" # reboot         = 3
+}
+
+rule 168 "TGT_Alarm" {
+ >=0.5 && <1.5	 : "Monitor: NORMAL"
+ >=1.5 && <2.5	 : "Monitor: MINOR"
+ >=2.5 && <=3.5  : "Monitor: MAJOR"
+}
+
+menumap { 
+ "black"
+ "white"
+ "Disconn/Invalid"
+ "Wid-bg/Anno-pri"
+ "Wid-alt/Anno-sec"
+ "Monitor: MAJOR"
+ "Mon: MAJOR/unack"
+ "Monitor: MINOR"
+ "Mon: MINOR/unack"
+ "Monitor: NORMAL"
+ "Monitor: alt"
+ "Controller"
+ "Controller/alt"
+ "Related display"
+ "Shell/reldsp-alt"
+ "Exit/Quit/Kill"
+ "Top Shadow"
+ "Bottom Shadow"
+ "GLOBAL canvas"
+ "GLOBAL title"
+ "GLOBAL help"
+ "FE canvas"
+ "FE title"
+ "FE help"
+ "LINAC canvas"
+ "LINAC title"
+ "LINAC help"
+ "RING canvas"
+ "RING title"
+ "RING help"
+ "TARGET canvas"
+ "TARGET title"
+ "TARGET help"
+ "CF canvas"
+ "CF title"
+ "CF help"
+ "UNMS canvas"
+ "UNMS title"
+ "UNMS help"
+ "VAC title"
+ "VAC help"
+ "COOL title"
+ "COOL help"
+ "CRYO title"
+ "CRYO help"
+ "RF title"
+ "RF help"
+ "UNSS title"
+ "UNSS help"
+ "wid-fg-neu"
+ "wid-bg-neu"
+ "grey-1"
+ "grey-2"
+ "grey-3"
+ "grey-4"
+ "grey-5"
+ "grey-6"
+ "grey-7"
+ "grey-8"
+ "grey-11"
+ "grey-12"
+ "grey-13"
+ "red"
+ "red-1"
+ "red-2"
+ "red-3"
+ "red-4"
+ "red-21"
+ "red-23"
+ "red-24"
+ "green"
+ "green-1"
+ "green-2"
+ "green-3"
+ "green-4"
+ "green-16"
+ "green-18"
+ "green-19"
+ "blue"
+ "blue-1"
+ "blue-2"
+ "blue-3"
+ "blue-4"
+ "blue-26"
+ "blue-27"
+ "blue-28"
+ "blue-29"
+ "yellow"
+ "yellow-1"
+ "yellow-2"
+ "yellow-3"
+ "yellow-4"
+ "yellow-36"
+ "yellow-38"
+ "yellow-39"
+ "black-14"
+ "brt-orange"
+ "blinking orange"
+ "cyan-31"
+ "cyan-32"
+ "cyan-33"
+ "cyan-34"
+ "orange-41"
+ "orange-42"
+ "brown-43"
+ "purple-46"
+ "purple-47"
+ "Alarm"
+ "EPS-Red"
+ "EPS-Green"
+ "Red-Green"
+ "Green-Red"
+ "FE-ON 1-bit"
+ "FE-ON-Not 1-bit"
+ "FE-X-X-ON" 
+ "FE-Vlv" 
+ "FE-Vlv-R" 
+ "SNS-Vlv-1"
+ "SNS-Vlv-2"
+ "Gray-Green"
+ "Gray-Red-Green"
+ "Seq-3 (RYG)"
+ "Seq-4 (RYGB)"
+ "Seq-5 (ROYGB)" 
+ "Seq-6 (ROYGBV)"
+ "Lights-0"
+ "Lights-1" 
+ "Lights-2"
+ "Green-LED"
+ "Yellow-LED" 
+ "Red-LED" 
+ "Not-Green-LED" 
+ "Not-Yellow-LED"
+ "Not-Red-LED"
+ "blinking red"
+ "blinking red rule"
+ "yellow-green"
+ "green-blinking red"
+ "blinking green"
+ "blinking green rule"
+ "summaryPV"
+ "red-green-yellow"
+ "op-sts"
+ "RingRF Fault"
+ "fil-sts"
+ "Fault-FG"
+ "Fault-BG"
+ "Normal-if-0"
+ "Normal-if-1"
+ "Normal-if-2"
+ "Normal-if-3"
+ "RingRF Remote"
+ "RingRF Status"
+ "RingRF On"
+ "RingRF Off"
+ "RingRF STBY"
+ "RingRF Fault NOT"
+ "blinking blue"
+ "blinking blue rule"
+ "green-yellow"
+ "blinking yellow"
+ "blinking purple"
+ "blinking purple rule"
+ "grey-black"
+ "SIBAH"
+ "ac-sts"
+ "TGT_Alarm"
+}
+

@@ -40,8 +40,8 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
 {
     private static final Insets TITLE_PADDING = new Insets(1, 3, 1, 3);
     private static final int BORDER_WIDTH = 1;
-    private static final BorderWidths EDIT_NONE_BORDER = new BorderWidths(0.5, 0.5, 0.5, 0.5, false, false, false, false);
-    private static final BorderStrokeStyle EDIT_NONE_DASHED = new BorderStrokeStyle(
+    static final BorderWidths EDIT_NONE_BORDER = new BorderWidths(0.5, 0.5, 0.5, 0.5, false, false, false, false);
+    static final BorderStrokeStyle EDIT_NONE_DASHED = new BorderStrokeStyle(
         StrokeType.INSIDE,
         StrokeLineJoin.MITER,
         StrokeLineCap.BUTT,
