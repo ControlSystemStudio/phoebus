@@ -87,7 +87,7 @@ public abstract class ConverterBase<W extends Widget>
             val.setValue(t.isVisInvert());
             exprs.add(new RuleInfo.ExprInfoValue<>("true", val));
 
-            rules.add(new RuleInfo(vis_prop.getName(), vis_prop.getName(), false, exprs, pvs));
+            rules.add(new RuleInfo("EDM visibility", vis_prop.getName(), false, exprs, pvs));
             widget.propRules().setValue(rules);
         }
 
@@ -147,7 +147,7 @@ public abstract class ConverterBase<W extends Widget>
                 exprs.add(new RuleInfo.ExprInfoValue<>(expression, prop_col));
             }
 
-            final String name = edm.getName() == null ? "color" : edm.getName();
+            final String name = "EDM " + (edm.getName() == null ? "color" : edm.getName());
             rules.add(new RuleInfo(name, prop.getName(), false, exprs, pvs));
             widget.propRules().setValue(rules);
 

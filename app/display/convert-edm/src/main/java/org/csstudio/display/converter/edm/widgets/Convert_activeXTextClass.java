@@ -26,8 +26,8 @@ public class Convert_activeXTextClass extends ConverterBase<LabelWidget>
     {
         super(converter, parent, t);
 
-        convertColor(t.getBgColor(), widget.propBackgroundColor());
-        convertColor(t.getFgColor(), widget.propForegroundColor());
+        convertColor(t.getBgColor(), t.getAlarmPv(), widget.propBackgroundColor());
+        convertColor(t.getFgColor(), t.getAlarmPv(), widget.propForegroundColor());
 
         convertFont(t.getFont(), widget.propFont());
         widget.propTransparent().setValue(t.getAttribute("useDisplayBg").isExistInEDL() && t.isUseDisplayBg());
