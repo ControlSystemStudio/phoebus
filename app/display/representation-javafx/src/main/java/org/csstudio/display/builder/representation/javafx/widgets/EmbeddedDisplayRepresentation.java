@@ -19,11 +19,12 @@ import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
-import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget.Resize;
 import org.csstudio.display.builder.representation.EmbeddedDisplayRepresentationUtil.DisplayAndGroup;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.jobs.JobMonitor;
 
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
@@ -213,7 +214,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
             logger.log(Level.FINE, "Skipped: {0}", skipped);
 
         // Load embedded display in background thread
-        ModelThreadPool.getExecutor().execute(this::updatePendingDisplay);
+        JobManager.schedule("Embedded Display", this::updatePendingDisplay);
     }
 
     /** Update to the next pending display
@@ -232,7 +233,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
      *  As thread C finally continues, it finds pending_display_and_group empty.
      *  --> Showing A, then C, skipping B.
      */
-    private synchronized void updatePendingDisplay()
+    private synchronized void updatePendingDisplay(final JobMonitor monitor)
     {
         final DisplayAndGroup handle = pending_display_and_group.getAndSet(null);
         if (handle == null)
@@ -246,6 +247,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
             return;
         }
 
+        monitor.beginTask("Load " + handle);
         try
         {   // Load new model (potentially slow)
             final DisplayModel new_model = loadDisplayModel(model_widget, handle);
