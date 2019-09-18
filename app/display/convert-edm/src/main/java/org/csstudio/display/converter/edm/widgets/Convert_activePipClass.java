@@ -93,9 +93,9 @@ public class Convert_activePipClass extends ConverterBase<Widget>
         {
             // Single display file, either from 'file' or list of displays with only first entry & macros
             final EmbeddedDisplayWidget w = (EmbeddedDisplayWidget) widget;
-            String path = pip.getFile();
-            if (path == null)
-                path = pip.getDisplayFileName().getEdmAttributesMap().get("0").get();
+            String path = pip.getDisplayFileName().getValueCount() == 1
+                        ? pip.getDisplayFileName().getEdmAttributesMap().get("0").get()
+                        : pip.getFile();
             path = convertDisplayPath(path);
             w.propFile().setValue(path);
 
