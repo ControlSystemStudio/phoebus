@@ -64,8 +64,6 @@ public class Convert_activeXTextClass extends ConverterBase<LabelWidget>
         int next = 0;
         while ((next = text.indexOf('\n', next) + 1) > 0)
             ++count;
-
-        System.out.println("LINE COUNT: " + count + " for '" + text + "'");
         return count;
     }
 
