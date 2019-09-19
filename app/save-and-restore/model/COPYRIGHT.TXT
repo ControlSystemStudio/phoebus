@@ -1,0 +1,4 @@
+NOTE: The following copyright applies to source code files in package
+org.phoebus.applications.saveandrestore.model.json
+
+Copyright (C) 2014 Brookhaven National Laboratory

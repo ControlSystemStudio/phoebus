@@ -50,8 +50,6 @@ public interface DataProvider {
 
 	public String getServiceVersion();
 
-	public Node takeSnapshot(String uniqueNodeId);
-
 	public List<SnapshotItem> getSnapshotItems(String snapshotUniqueId);
 
 	public Node getParentNode(String uniqueNodeId);

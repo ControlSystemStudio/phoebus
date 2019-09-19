@@ -22,19 +22,16 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.phoebus.service.saveandrestore.persistence.config.PersistenceConfiguration;
 import org.phoebus.service.saveandrestore.services.IServices;
+import org.phoebus.service.saveandrestore.services.config.ServicesConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import org.phoebus.service.saveandrestore.epics.config.EpicsConfiguration;
-import org.phoebus.service.saveandrestore.persistence.config.PersistenceConfiguration;
-import org.phoebus.service.saveandrestore.services.config.ServicesConfiguration;
-
 @RunWith(SpringRunner.class)
 @ContextHierarchy({ @ContextConfiguration(classes = {
-		EpicsConfiguration.class,
 		PersistenceConfiguration.class, 
 		ServicesConfiguration.class, 
 		WebConfiguration.class})})

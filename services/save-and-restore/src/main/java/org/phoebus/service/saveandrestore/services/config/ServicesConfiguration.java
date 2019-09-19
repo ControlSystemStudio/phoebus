@@ -17,8 +17,6 @@
  */
 package org.phoebus.service.saveandrestore.services.config;
 
-import org.phoebus.service.saveandrestore.epics.IEpicsService;
-import org.phoebus.service.saveandrestore.epics.impl.EpicsService;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.NodeJdbcDAO;
 import org.springframework.context.annotation.Bean;
@@ -32,9 +30,5 @@ public class ServicesConfiguration {
 	public NodeDAO configDAO() {
 		return new NodeJdbcDAO();
 	}
-	
-	@Bean
-	public IEpicsService epicsService() {
-		return new EpicsService();
-	}
+
 }

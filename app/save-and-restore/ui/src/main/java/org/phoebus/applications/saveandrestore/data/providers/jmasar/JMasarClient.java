@@ -32,8 +32,6 @@ public interface JMasarClient {
 
     public Node updateNode(Node nodeToUpdate);
 
-    public Node takeSnapshot(String uniqueNodeId);
-
     public void deleteNode(String uniqueNodeId);
 
     private String getCurrentUsersName(){

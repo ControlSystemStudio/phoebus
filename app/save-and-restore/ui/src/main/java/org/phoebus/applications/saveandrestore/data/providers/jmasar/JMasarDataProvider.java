@@ -105,12 +105,6 @@ public class JMasarDataProvider implements DataProvider {
 	}
 
 	@Override
-	public Node takeSnapshot(String uniqueNodeId){
-		return jmasarClient.takeSnapshot(uniqueNodeId);
-	}
-
-
-	@Override
 	public List<SnapshotItem> getSnapshotItems(String snapshotUniqueId){
 		return jmasarClient.getSnapshotItems(snapshotUniqueId);
 	}
