@@ -10,7 +10,6 @@ package org.csstudio.display.converter.edm;
 import static org.csstudio.display.converter.edm.Converter.logger;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.concurrent.ConcurrentHashMap;
@@ -61,6 +60,9 @@ public class EdmAutoConverter implements DisplayAutoConverter
 
     private DisplayModel doConvert(final String parent_display, final String display_file) throws Exception
     {
+        // Assert that the target directory exists
+        ConverterPreferences.auto_converter_dir.mkdirs();
+
         // Check if we already have an auto-converted *.bob file, so use that instead of re-creating it
         final File already_converted = new File(ConverterPreferences.auto_converter_dir, display_file);
         if (already_converted.canRead())
@@ -113,7 +115,11 @@ public class EdmAutoConverter implements DisplayAutoConverter
         // Determine output file name in auto_converter_dir
         final File output = new File(ConverterPreferences.auto_converter_dir, new File(display_file).getName());
 
-        EdmModel.reloadEdmColorFile(ConverterPreferences.colors_list, new FileInputStream(ConverterPreferences.colors_list));
+        // Load colors
+        EdmModel.reloadEdmColorFile(ConverterPreferences.colors_list,
+                                    ModelResourceUtil.openResourceStream(ConverterPreferences.colors_list));
+
+        // Convert EDM input
         new Converter(input, output);
 
         // Return DisplayModel of the converted file

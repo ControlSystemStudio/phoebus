@@ -11,12 +11,14 @@ import static org.csstudio.display.converter.edm.Converter.logger;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.prefs.Preferences;
 import java.util.regex.Pattern;
 
+import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.phoebus.framework.preferences.PreferencesReader;
 
 /** Phoebus application for EDM converter
@@ -29,7 +31,7 @@ public class ConverterPreferences
 
     public static final List<String> paths = new ArrayList<>();
 
-    public static final File auto_converter_dir;
+    public static volatile File auto_converter_dir;
 
     private static class FontMapping
     {
@@ -90,7 +92,7 @@ public class ConverterPreferences
         paths.clear();
         try
         (
-            final BufferedReader reader = new BufferedReader(new FileReader(edm_paths_config));
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(ModelResourceUtil.openResourceStream(edm_paths_config)));
         )
         {
             String line;
@@ -120,5 +122,21 @@ public class ConverterPreferences
                 return mapping.font_name;
             }
         return edm_font_name;
+    }
+
+    public static void setAutoConverterDir(final String path)
+    {
+        auto_converter_dir = new File(path);
+
+        final Preferences prefs = Preferences.userNodeForPackage(ConverterPreferences.class);
+        prefs.put("auto_converter_dir",  path);
+        try
+        {
+            prefs.flush();
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot update auto_converter_dir", ex);
+        }
     }
 }
