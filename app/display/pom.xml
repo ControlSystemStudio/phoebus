@@ -14,5 +14,6 @@
     <module>runtime</module>
     <module>editor</module>
     <module>convert-medm</module>
+    <module>convert-edm</module>
   </modules>
 </project>
