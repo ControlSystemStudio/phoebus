@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -30,7 +31,13 @@ import org.csstudio.opibuilder.converter.model.EdmDisplay;
 import org.csstudio.opibuilder.converter.model.EdmEntity;
 import org.csstudio.opibuilder.converter.model.EdmWidget;
 
-/** Convert {@link EdmDisplay} to {@link DisplayModel}
+/** Convert one {@link EdmDisplay} to {@link DisplayModel}
+ *
+ *  <p>Tracks the referenced displays for caller to potentially
+ *  convert them as well, both 'included' displays from embedded
+ *  screens or symbols, and 'linked' displays from buttons that
+ *  open related displays.
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -38,8 +45,11 @@ public class EdmConverter
 {
     private final DisplayModel model = new DisplayModel();
 
+    private final AtomicInteger next_group = new AtomicInteger();
+
     private int offset_x = 0, offset_y = 0;
 
+    private final Set<String> included_displays = new HashSet<>();
     private final Set<String> linked_displays = new HashSet<>();
 
     public EdmConverter(final String name, final EdmDisplay edm)
@@ -74,7 +84,19 @@ public class EdmConverter
         return model;
     }
 
-    /** @return Displays that were linked from this display */
+    /** @return Number of next group */
+    public int nextGroup()
+    {
+        return next_group.getAndIncrement();
+    }
+
+    /** @return Displays that were included by this display (embedded, symbol) */
+    public Collection<String> getIncludedDisplays()
+    {
+        return included_displays.stream().sorted().collect(Collectors.toList());
+    }
+
+    /** @return Displays that were linked from this display (related display) */
     public Collection<String> getLinkedDisplays()
     {
         return linked_displays.stream().sorted().collect(Collectors.toList());
@@ -177,12 +199,15 @@ public class EdmConverter
             final Widget widget = copy.get(i);
             if (! (widget instanceof ActionButtonWidget))
                 continue;
+            final ActionButtonWidget bw = (ActionButtonWidget) widget;
+
             // Look for buttons below that occupy roughly the same space
             for (int o=i-1;  o>=0;  --o)
             {
                 final Widget other = copy.get(o);
                 if (! (other instanceof ActionButtonWidget  &&  doWidgetsOverlap(widget, other)))
                     continue;
+                final ActionButtonWidget ob = (ActionButtonWidget) other;
 
                 logger.log(Level.WARNING, "Merging actions from overlapping " + widget + " and " + other + " into one:");
                 logger.log(Level.WARNING, "1) " + widget.propActions().getValue());
@@ -191,8 +216,21 @@ public class EdmConverter
                 actions.addAll(other.propActions().getValue().getActions());
                 widget.propActions().setValue(new ActionInfos(actions));
 
+                // When merging buttons, as soon as one button is visible.
+                // the remaining (merged) button must be visible
+                if (! ob.propTransparent().getValue())
+                {
+                    bw.propTransparent().setValue(false);
+                    bw.propText().setValue(ob.propText().getValue());
+                    bw.propForegroundColor().setValue(ob.propForegroundColor().getValue());
+                    bw.propBackgroundColor().setValue(ob.propBackgroundColor().getValue());
+                    bw.propFont().setValue(ob.propFont().getValue());
+                }
+
+                // Remove 'other' both from original children (by value) and our working copy (by index)
                 children.removeChild(other);
                 copy.remove(o);
+                // Correct index since we removed a widget
                 --i;
             }
         }
@@ -244,6 +282,12 @@ public class EdmConverter
                 }
             }
         }
+    }
+
+    /** @param included_display Register a display that's included by the currently converted file */
+    public void addIncludedDisplay(final String included_display)
+    {
+        included_displays.add(included_display);
     }
 
     /** @param linked_display Register a display that was linked from the currently converted file */

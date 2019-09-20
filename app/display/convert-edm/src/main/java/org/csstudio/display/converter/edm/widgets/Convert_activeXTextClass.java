@@ -26,13 +26,16 @@ public class Convert_activeXTextClass extends ConverterBase<LabelWidget>
     {
         super(converter, parent, t);
 
-        convertColor(t.getBgColor(), widget.propBackgroundColor());
-        convertColor(t.getFgColor(), widget.propForegroundColor());
-
-        convertFont(t.getFont(), widget.propFont());
         widget.propTransparent().setValue(t.getAttribute("useDisplayBg").isExistInEDL() && t.isUseDisplayBg());
 
-        widget.propText().setValue(t.getValue().get());
+        // EDM uses '\r' as line delimiter
+        widget.propText().setValue(t.getValue().get().replace('\r', '\n'));
+
+        // Remove 2 pixels from height for each line, then find font that 'fits'
+        final int lines = textLineCount(widget.propText().getValue());
+        final int font_lim = (widget.propHeight().getValue()-2*lines) / lines;
+        convertFont(t.getFont(), font_lim, widget.propFont());
+
         widget.propAutoSize().setValue(t.getAttribute("autoSize").isExistInEDL() && t.isAutoSize());
 
         widget.propVerticalAlignment().setValue(VerticalAlignment.MIDDLE);
@@ -41,7 +44,27 @@ public class Convert_activeXTextClass extends ConverterBase<LabelWidget>
         else if ("center".equals(t.getFontAlign()))
             widget.propHorizontalAlignment().setValue(HorizontalAlignment.CENTER);
 
-        // TODO See Opi_activeXTextClass for alarm rules
+        // Alarm-sensitive color? Else use (optionally dynamic) color
+        if (t.isBgAlarm())
+            createAlarmColor(t.getAlarmPv(), widget.propBackgroundColor());
+        else
+            convertColor(t.getBgColor(), t.getAlarmPv(), widget.propBackgroundColor());
+        if (t.isFgAlarm())
+            createAlarmColor(t.getAlarmPv(), widget.propForegroundColor());
+        else
+            convertColor(t.getFgColor(), t.getAlarmPv(), widget.propForegroundColor());
+    }
+
+    /** @param text Text with potential newlines
+     *  @return Number of lines in text, at least 1
+     */
+    public static int textLineCount(final String text)
+    {
+        int count = 1;
+        int next = 0;
+        while ((next = text.indexOf('\n', next) + 1) > 0)
+            ++count;
+        return count;
     }
 
     @Override

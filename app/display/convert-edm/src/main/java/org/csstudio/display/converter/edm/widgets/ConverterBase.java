@@ -87,7 +87,7 @@ public abstract class ConverterBase<W extends Widget>
             val.setValue(t.isVisInvert());
             exprs.add(new RuleInfo.ExprInfoValue<>("true", val));
 
-            rules.add(new RuleInfo(vis_prop.getName(), vis_prop.getName(), false, exprs, pvs));
+            rules.add(new RuleInfo("EDM visibility", vis_prop.getName(), false, exprs, pvs));
             widget.propRules().setValue(rules);
         }
 
@@ -147,7 +147,7 @@ public abstract class ConverterBase<W extends Widget>
                 exprs.add(new RuleInfo.ExprInfoValue<>(expression, prop_col));
             }
 
-            final String name = edm.getName() == null ? "color" : edm.getName();
+            final String name = "EDM " + (edm.getName() == null ? "color" : edm.getName());
             rules.add(new RuleInfo(name, prop.getName(), false, exprs, pvs));
             widget.propRules().setValue(rules);
 
@@ -191,12 +191,12 @@ public abstract class ConverterBase<W extends Widget>
     public static void createAlarmColor(final String alarm_pv, final WidgetProperty<WidgetColor> prop)
     {
         final String alarm_script =
+            "# EDM Alarm-sensitive color\n" +
             "from org.csstudio.display.builder.runtime.script import PVUtil\n" +
             "from org.csstudio.display.builder.model.persist import WidgetColorService\n" +
             "sevr = PVUtil.getSeverity(pvs[0])\n" +
             "cn = ( 'OK', 'MINOR', 'MAJOR', 'INVALID', 'DISCONNECTED' )[sevr]\n" +
-            "c = WidgetColorService.getColor(cn)\n" +
-            "widget.setPropertyValue('" + prop.getName() + "', c)";
+            "widget.setPropertyValue('" + prop.getName() + "', WidgetColorService.getColor(cn))";
 
         final String pv = convertPVName(alarm_pv);
         final Widget widget = prop.getWidget();
@@ -229,6 +229,12 @@ public abstract class ConverterBase<W extends Widget>
         convertFont(edm, 1000, prop);
     }
 
+    /** Liberation font sizes.
+     *  Must be ordered from large to small
+     */
+    private static final double[] FONT_SIZES = new double[]
+    { 72, 60, 48, 36, 32, 28, 24, 20, 18, 16, 14, 12, 11, 10, 9, 8 };
+
     /** @param edm EDM font
      *  @param height_limit Height limit
      *  @param prop Display builder font property to set from EDM font
@@ -249,8 +255,16 @@ public abstract class ConverterBase<W extends Widget>
         else
             style = WidgetFontStyle.REGULAR;
 
-        final double size = Math.min(edm.getSize(), height_limit);
-        prop.setValue(new WidgetFont(family, style, size));
+        // Locate the smallest suitable font size, starting at the largest
+        final double max_size = Math.min(edm.getSize(), height_limit);
+        for (double size : FONT_SIZES)
+            if (size <= max_size)
+            {
+                prop.setValue(new WidgetFont(family, style, size));
+                return;
+            }
+        // Nothing found, use as given, hope for the best
+        prop.setValue(new WidgetFont(family, style, max_size));
     }
 
     /**

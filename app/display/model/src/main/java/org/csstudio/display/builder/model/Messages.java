@@ -26,8 +26,12 @@ public class Messages
     public static String Arrows_To;
     public static String Arrows_Both;
     public static String AutoSize;
+    public static String BoolWidget_Mode;
     public static String BoolWidget_OffLabel;
     public static String BoolWidget_OnLabel;
+    public static String BoolWidget_Push;
+    public static String BoolWidget_PushInverted;
+    public static String BoolWidget_Toggle;
     public static String ByteMonitor_BitReverse;
     public static String ByteMonitor_NumBits;
     public static String ByteMonitor_StartBit;

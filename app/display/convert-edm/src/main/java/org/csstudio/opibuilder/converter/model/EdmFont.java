@@ -7,10 +7,10 @@
  ******************************************************************************/
 package org.csstudio.opibuilder.converter.model;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import java.util.logging.Logger;
 
 /**
  * Specific class representing EdmFont property.
@@ -66,7 +66,12 @@ public class EdmFont extends EdmAttribute {
             sizeStr = m.group(4);
         }
         catch (Exception e) {
-            throw new EdmException(EdmException.FONT_FORMAT_ERROR, fontString + "is an invalid font format.", e);
+            nameStr = "helvetica";
+            weightStr = "bold";
+            styleStr = "i";
+            sizeStr = "18.0";
+            Logger.getLogger(getClass().getName()).log(Level.WARNING, "Cannot parse font",
+                            new EdmException(EdmException.FONT_FORMAT_ERROR, fontString + "is an invalid font format.", e));
         }
 
         name = nameStr;

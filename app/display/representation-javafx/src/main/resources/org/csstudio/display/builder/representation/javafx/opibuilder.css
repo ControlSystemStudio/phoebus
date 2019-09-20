@@ -81,6 +81,14 @@
     -fx-text-fill: black;
 }
 
+/** Used by MenuButton (Action Button Widget)
+ *  to hide the 'down' arrow when button is too narrow
+ */
+.hide_arrow > .arrow-button,  .hide_arrow > .arrow-button > .arrow
+{
+    -fx-padding: 0;
+}
+
 
 /** Allow more room for text in combo box */
 .combo-box > .list-cell

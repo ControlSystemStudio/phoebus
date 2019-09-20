@@ -9,7 +9,6 @@ package org.csstudio.opibuilder.converter.parser;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.logging.Logger;
@@ -41,7 +40,7 @@ public class EdmParser {
      * @param stream Stream for that file
      * @throws EdmException if error occurs when reading file.
      */
-    public EdmParser(String fileName, final InputStream stream) throws EdmException {
+    public EdmParser(String fileName, final InputStream stream) throws Exception {
         this.fileName = fileName;
 
         this.edmData = readFile(stream);
@@ -60,41 +59,44 @@ public class EdmParser {
      * @return Contents of file in a string.
      * @throws EdmException if error occurs when reading file.
      */
-    private StringBuilder readFile(final InputStream stream) throws EdmException {
+    private StringBuilder readFile(final InputStream stream) throws Exception {
 
         log.config("Parsing file: " + fileName);
 
         StringBuilder sb = new StringBuilder();
-        try {
-            DataInputStream in = new DataInputStream(stream);
-            BufferedReader br = new BufferedReader(new InputStreamReader(in));
+        DataInputStream in = new DataInputStream(stream);
+        BufferedReader br = new BufferedReader(new InputStreamReader(in));
 
-            String line;
-            while ( (line = br.readLine()) != null ) {
+        // Skip initial comments
+        String line = br.readLine();
+        while (line != null  &&  line.startsWith("#"))
+            line = br.readLine();
+        if (line == null)
+            throw new Exception("Empty EDM file");
 
-                if (!line.contains("#"))
-                    sb.append(line + "\r");
-                else {
-                    if (!line.trim().startsWith("#")) {
-                        String[] pieces = StringSplitter.splitIgnoreInQuotes(line, '#', false);
-                        if (pieces.length > 0)
-                            sb.append(pieces[0].trim() + "\r");
-                    }
+        // Check version
+        log.config("EDM File version " + line);
+        if (! line.startsWith("4"))
+            throw new Exception("Can only handle EDM version 4 files, got " + line + ". Use 'edm -convert' to update version, then parse again");
+
+        while ( (line = br.readLine()) != null ) {
+
+            if (!line.contains("#"))
+                sb.append(line + "\r");
+            else {
+                if (!line.trim().startsWith("#")) {
+                    String[] pieces = StringSplitter.splitIgnoreInQuotes(line, '#', false);
+                    if (pieces.length > 0)
+                        sb.append(pieces[0].trim() + "\r");
+                }
 
 //                    String appStr = line.substring(0, line.indexOf("#"));
 //                    if (appStr.trim().length() != 0)
 //                        sb.append(appStr + "\r");
-                }
             }
+        }
 
-            in.close();
-        }
-        catch (Exception e) {
-            if (e instanceof FileNotFoundException)
-                throw new EdmException(EdmException.FILE_NOT_FOUND, fileName, e);
-            else
-                e.printStackTrace();
-        }
+        in.close();
 
         return sb;
     }

@@ -279,5 +279,17 @@ public class FormulaUnitTest
         assertEquals("SomePV", vars[0].getName());
         vars[0].setValue(1);
         assertEquals(4.0, f.eval(), epsilon);
+
+        // Example from SNS EDM screen conversion
+        // Uses '&&', not '&' for 'and'
+        f = new Formula("`HEBT_Diag:LES10:EmitHighVolts_RB`==0&&`HEBT_Diag:LES10:MOV_02_axis01_Limit_Retract`==1?0:1", true);
+        vars = f.getVariables();
+        assertEquals(2, vars.length);
+        assertEquals("HEBT_Diag:LES10:EmitHighVolts_RB", vars[0].getName());
+        assertEquals("HEBT_Diag:LES10:MOV_02_axis01_Limit_Retract", vars[1].getName());
+        assertEquals(1.0, f.eval(), epsilon);
+        vars[0].setValue(0);
+        vars[1].setValue(1);
+        assertEquals(0.0, f.eval(), epsilon);
     }
 }
