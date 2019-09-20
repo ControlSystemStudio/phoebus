@@ -61,3 +61,56 @@ For bulk conversions, you can use this command line invocation::
     -output /path/to/folder   - Folder into which converted files are written
     <files>                   - One or more files to convert
 
+
+
+Converting EDM ``*.edl`` Displays
+---------------------------------
+
+To use the EDM converter, add the following to your settings::
+
+    org.csstudio.display.converter.edm/edm_paths_config=/path/to/edm_paths.txt
+    org.csstudio.display.converter.edm/colors_list=/path/to/edm/colors.list
+
+For details, see full description of :ref:`preference_settings`.
+
+Each time you now try to open a ``*.edl`` file,
+the converter will create a ``*.bob`` file and then open it.
+
+For bulk conversions, you can use this command line invocation,
+which can convert a list of files, including complete directories::
+
+    Usage: -main org.csstudio.display.converter.edm.Converter [options] <files>");
+
+    Converts EDM *.edl files to Display Builder *.bob format.
+
+    Options:");
+    -help                        - Help
+    -colors /path/to/colors.list - EDM colors.list file to use
+    -paths /path/to/paths.list   - File that lists paths
+    -output /path/to/folder      - Folder into which converted files are written
+    -force                       - Overwrite existing files instead of stopping
+    -depth count                 - Convert just the listed files (1), or also referenced files (2), or more levels down
+    
+The batch converter can also recursively convert referenced files like
+embedded displays or related displays.
+Refer to the complete ``-help`` output for details.
+
+
+Auto-Converter
+--------------
+
+The converter can automatically look for ``*.edl`` files.
+To enable, define an auto-converter folder via this setting::
+
+    org.csstudio.display.converter.edm/auto_converter_dir=/path/to/AUTOCONVERT
+
+With the auto-converter folder defined, each time the display builder
+needs to open a file ``*.bob`` that does not exist, it will try to
+auto-convert it by locating a ``*.edl`` file of the same base name
+along the ``edm_paths_config``. If an EDM file is found, it is converted.
+In case the EDM file is found via an http link, it is first downloaded.
+On success, the resulting ``*.bob`` file is opened.
+When that display then refers to other EDM files,
+the same process is repeated.
+Converted files are stored in the ``auto_converter_dir``,
+they are thus only fetched and converted once.
