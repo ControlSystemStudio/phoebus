@@ -116,6 +116,8 @@ public class PVPool
      */
     public static PV getPV(final String name) throws Exception
     {
+        if (name.isBlank())
+            throw new Exception("Empty PV name");
         final String[] prefix_base = analyzeName(name);
         final PVFactory factory = factories.get(prefix_base[0]);
         if (factory == null)

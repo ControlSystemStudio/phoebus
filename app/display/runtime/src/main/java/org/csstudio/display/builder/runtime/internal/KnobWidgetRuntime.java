@@ -26,12 +26,10 @@ public class KnobWidgetRuntime extends WidgetRuntime<KnobWidget> {
     private final List<PVNameToValueBinding> bindings = new ArrayList<>();
 
     @Override
-    public void start ( ) throws Exception {
-
+    public void start()
+    {
         super.start();
-
         bindings.add(new PVNameToValueBinding(this, widget.propReadbackPVName(), widget.propReadbackPVValue()));
-
     }
 
     @Override

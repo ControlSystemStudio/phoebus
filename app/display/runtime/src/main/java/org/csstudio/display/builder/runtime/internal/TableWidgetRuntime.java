@@ -61,7 +61,7 @@ public class TableWidgetRuntime extends WidgetRuntime<TableWidget>
     }
 
     @Override
-    public void start() throws Exception
+    public void start()
     {
         super.start();
 

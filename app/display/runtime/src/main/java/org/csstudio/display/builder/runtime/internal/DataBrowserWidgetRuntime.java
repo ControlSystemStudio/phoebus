@@ -69,14 +69,22 @@ public class DataBrowserWidgetRuntime  extends WidgetRuntime<DataBrowserWidget>
     }
 
     @Override
-    public void start() throws Exception
+    public void start()
     {
         super.start();
 
+        // Write selection (VTable) to PV?
         final String pv_name = widget.propSelectionValuePVName().getValue();
-        if (pv_name.length() > 0)
+        if (!pv_name.isBlank())
         {
-            selection_pv = PVPool.getPV(pv_name);
+            try
+            {
+                selection_pv = PVPool.getPV(pv_name);
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, widget + " cannot create selection PV '" + pv_name + "'");
+            }
             listener = (p, o, value) ->
             {
                 try

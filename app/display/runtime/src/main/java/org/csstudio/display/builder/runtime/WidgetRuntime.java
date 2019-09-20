@@ -194,9 +194,11 @@ public class WidgetRuntime<MW extends Widget>
     }
 
     /** Start: Connect to PVs, start scripts
-     *  @throws Exception on error
+     *
+     *  <p>Errors will be logged, but the start will "succeed"
+     *  and in the end count down `started`.
      */
-    public void start() throws Exception
+    public void start()
     {
         // Update "value" property from primary PV, if defined
         final Optional<WidgetProperty<String>> name = widget.checkProperty(propPVName);
@@ -215,10 +217,17 @@ public class WidgetRuntime<MW extends Widget>
                 if (action instanceof WritePVActionInfo)
                 {
                     final String pv_name = ((WritePVActionInfo) action).getPV();
-                    final String expanded = MacroHandler.replace(widget.getMacrosOrProperties(), pv_name);
-                    final RuntimePV pv = PVFactory.getPV(expanded);
-                    action_pvs.add(pv);
-                    addPV(pv, true);
+                    try
+                    {
+                        final String expanded = MacroHandler.replace(widget.getMacrosOrProperties(), pv_name);
+                        final RuntimePV pv = PVFactory.getPV(expanded);
+                        action_pvs.add(pv);
+                        addPV(pv, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.log(Level.WARNING, widget + " cannot start action to write PV '" + pv_name + "'", ex);
+                    }
                 }
             }
             if (action_pvs.size() > 0)

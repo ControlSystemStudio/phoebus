@@ -220,7 +220,7 @@ public class ActionUtil
         }
         catch (final Exception ex)
         {
-            final String message = "Cannot write " + pv_name + " = " + value;
+            final String message = "Cannot write '" + pv_name + "' = " + value;
             logger.log(Level.WARNING, message, ex);
             ScriptUtil.showErrorDialog(source_widget, message + ".\n\nSee log for details.");
         }
