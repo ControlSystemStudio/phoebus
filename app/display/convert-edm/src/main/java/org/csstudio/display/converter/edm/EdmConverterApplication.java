@@ -92,7 +92,7 @@ public class EdmConverterApplication implements AppResourceDescriptor
                 // Convert file
                 final File input = ModelResourceUtil.getFile(resource);
                 final File output = new File(input.getAbsolutePath().replace(".edl", ".bob"));
-                new Converter(input, output);
+                new Converter(input, output, null);
 
                 // On success, open in display editor, runtime, other editor
                 Platform.runLater(() ->

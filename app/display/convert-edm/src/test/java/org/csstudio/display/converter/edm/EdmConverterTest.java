@@ -44,7 +44,7 @@ public class EdmConverterTest extends TestHelper
         EdmModel.reloadEdmColorFile("colors.list", getClass().getResourceAsStream("/colors.list"));
         final EdmDisplay display = new EdmDisplay(parser.getRoot());
 
-        final EdmConverter converter = new EdmConverter("Maintenance_12hr.edl", display);
+        final EdmConverter converter = new EdmConverter("Maintenance_12hr.edl", display, null);
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         final ModelWriter writer = new ModelWriter(buf);
         writer.writeModel(converter.getDisplayModel());

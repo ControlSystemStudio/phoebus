@@ -14,6 +14,8 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
@@ -79,38 +81,43 @@ public class EdmAutoConverter implements DisplayAutoConverter
         else
             edl_file = edl_file.substring(0, sep) + ".edl";
 
-        File input = null;
-        for (String path : ConverterPreferences.paths)
+        final Function<String, File> file_locator = name ->
         {
-            String check = path + (path.endsWith("/") ? edl_file : "/" + edl_file);
-            logger.log(Level.FINE, "Check " + check);
-            if (check.startsWith("http"))
+
+            for (String path : ConverterPreferences.paths)
             {
-                try
+                String check = path + (path.endsWith("/") ? name : "/" + name);
+                logger.log(Level.FINE, "Check " + check);
+                if (check.startsWith("http"))
                 {
-                    final InputStream stream = ModelResourceUtil.openURL(check);
-                    input = new File(ConverterPreferences.auto_converter_dir, edl_file);
-                    logger.log(Level.INFO, "Downloading " + check + " into " + input);
-                    IOUtils.copy(stream, new FileOutputStream(input));
-                    break;
+                    try
+                    {
+                        final InputStream stream = ModelResourceUtil.openURL(check);
+                        final File input = new File(ConverterPreferences.auto_converter_dir, name);
+                        logger.log(Level.INFO, "Downloading " + check + " into " + input);
+                        IOUtils.copy(stream, new FileOutputStream(input));
+                        return input;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Check next search path entry
+                    }
                 }
-                catch (Exception ex)
+                else
                 {
-                    // Check next search path entry
+                    final File check_file = new File(check);
+                    if (check_file.canRead())
+                        return check_file;
                 }
             }
-            else
-            {
-                final File check_file = new File(check);
-                if (check_file.canRead())
-                {
-                    input = check_file;
-                    break;
-                }
-            }
-        }
+            return null;
+        };
+
+        File input = file_locator.apply(edl_file);
         if (input == null)
             return null;
+
+        final Consumer<String> asset_downloader = name ->  file_locator.apply(name);
 
         // Determine output file name in auto_converter_dir
         final File output = new File(ConverterPreferences.auto_converter_dir, new File(display_file).getName());
@@ -120,7 +127,7 @@ public class EdmAutoConverter implements DisplayAutoConverter
                                     ModelResourceUtil.openResourceStream(ConverterPreferences.colors_list));
 
         // Convert EDM input
-        new Converter(input, output);
+        new Converter(input, output, asset_downloader);
 
         // Return DisplayModel of the converted file
         return ModelLoader.loadModel(output.getPath());

@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,7 +41,7 @@ public class Converter
     private Collection<String> included_displays;
     private Collection<String> linked_displays;
 
-    public Converter(final File input, final File output) throws Exception
+    public Converter(final File input, final File output, final Consumer<String> asset_downloader) throws Exception
     {
         logger.log(Level.INFO, "Convert " + input + " -> " + output);
         final EdmDisplayParser parser = new EdmDisplayParser(input.getPath(), new FileInputStream(input));
@@ -49,7 +50,7 @@ public class Converter
         final String title = input.getName()
                                   .replace(".edl", "")
                                   .replace('_', ' ');
-        final EdmConverter converter = new EdmConverter(title, edm);
+        final EdmConverter converter = new EdmConverter(title, edm, asset_downloader);
         final ModelWriter writer = new ModelWriter(new FileOutputStream(output));
         writer.writeModel(converter.getDisplayModel());
         writer.close();
@@ -173,7 +174,7 @@ public class Converter
                     throw new Exception("Output file " + outfile + " exists");
             }
 
-            final Converter converter = new Converter(infile, outfile);
+            final Converter converter = new Converter(infile, outfile, null);
             final int next = depth - 1;
             if (next > 0)
                 for (String included : converter.getLinkedDisplays())

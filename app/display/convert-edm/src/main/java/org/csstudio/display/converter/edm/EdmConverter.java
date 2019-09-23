@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -43,6 +44,8 @@ import org.csstudio.opibuilder.converter.model.EdmWidget;
 @SuppressWarnings("nls")
 public class EdmConverter
 {
+    private final Consumer<String> asset_downloader;
+
     private final DisplayModel model = new DisplayModel();
 
     private final AtomicInteger next_group = new AtomicInteger();
@@ -52,8 +55,10 @@ public class EdmConverter
     private final Set<String> included_displays = new HashSet<>();
     private final Set<String> linked_displays = new HashSet<>();
 
-    public EdmConverter(final String name, final EdmDisplay edm)
+
+    public EdmConverter(final String name, final EdmDisplay edm, final Consumer<String> asset_downloader)
     {
+        this.asset_downloader = asset_downloader;
         model.propName().setValue(name);
         model.propX().setValue(edm.getX());
         model.propY().setValue(edm.getY());
@@ -88,6 +93,15 @@ public class EdmConverter
     public int nextGroup()
     {
         return next_group.getAndIncrement();
+    }
+
+    /** @param asset Asset of a widget, for example PNG file for Image widget
+     *  @throws Exception
+     */
+    public void downloadAsset(final String asset) throws Exception
+    {
+        if (asset_downloader != null)
+            asset_downloader.accept(asset);
     }
 
     /** @return Displays that were included by this display (embedded, symbol) */
