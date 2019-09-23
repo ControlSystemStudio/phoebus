@@ -173,7 +173,7 @@ public class ImageWidgetRuntime extends WidgetRuntime<ImageWidget>
     }
 
     @Override
-    public void start() throws Exception
+    public void start()
     {
         super.start();
 
