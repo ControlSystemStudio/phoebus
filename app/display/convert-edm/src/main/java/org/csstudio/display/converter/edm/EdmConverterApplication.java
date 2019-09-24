@@ -7,10 +7,13 @@
  *******************************************************************************/
 package org.csstudio.display.converter.edm;
 
+import static org.csstudio.display.converter.edm.Converter.logger;
+
 import java.io.File;
 import java.net.URI;
 import java.net.URL;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
@@ -86,11 +89,11 @@ public class EdmConverterApplication implements AppResourceDescriptor
         {
             try
             {
-                EdmModel.reloadEdmColorFile(ConverterPreferences.colors_list, ModelResourceUtil.openResourceStream(ConverterPreferences.colors_list));
-
                 // Convert file
                 final File input = ModelResourceUtil.getFile(resource);
                 final File output = new File(input.getAbsolutePath().replace(".edl", ".bob"));
+                logger.log(Level.INFO, "Converting " + input + " to " + output);
+                EdmModel.reloadEdmColorFile(ConverterPreferences.colors_list, ModelResourceUtil.openResourceStream(ConverterPreferences.colors_list));
                 new EdmConverter(input, null).write(output);
 
                 // On success, open in display editor, runtime, other editor
@@ -99,7 +102,7 @@ public class EdmConverterApplication implements AppResourceDescriptor
             }
             catch (Exception ex)
             {
-                ExceptionDetailsErrorDialog.openError(DISPLAY_NAME, "Failed to open " + resource, ex);
+                ExceptionDetailsErrorDialog.openError(DISPLAY_NAME, "Failed to convert " + resource, ex);
             }
         });
         return null;

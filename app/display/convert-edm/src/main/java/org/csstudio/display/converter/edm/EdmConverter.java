@@ -260,9 +260,9 @@ public class EdmConverter
                     continue;
                 final ActionButtonWidget ob = (ActionButtonWidget) other;
 
-                logger.log(Level.WARNING, "Merging actions from overlapping " + widget + " and " + other + " into one:");
-                logger.log(Level.WARNING, "1) " + widget.propActions().getValue());
-                logger.log(Level.WARNING, "2) " + other.propActions().getValue());
+                logger.log(Level.INFO, "Merging actions from overlapping " + widget + " and " + other + " into one:");
+                logger.log(Level.INFO, "1) " + widget.propActions().getValue());
+                logger.log(Level.INFO, "2) " + other.propActions().getValue());
                 final List<ActionInfo> actions = new ArrayList<>(widget.propActions().getValue().getActions());
                 actions.addAll(other.propActions().getValue().getActions());
                 widget.propActions().setValue(new ActionInfos(actions));
