@@ -45,6 +45,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -57,18 +58,28 @@ import javafx.stage.FileChooser.ExtensionFilter;
 @SuppressWarnings("nls")
 public class OpenAbout implements MenuEntry
 {
-    private static class OpenFileBrowserCell extends TableCell<List<String>, String>
+    /** Non-<code>null</code> while the 'about' dialog is shown */
+    private Alert dialog;
+
+    private class OpenFileBrowserCell extends TableCell<List<String>, String>
     {
         @Override
         protected void updateItem(final String item, boolean empty)
         {
             super.updateItem(item, empty);
-            if (empty || getIndex() > 2)
+            if (empty || getIndex() > 3)
                 setGraphic(null);
             else
             {
                 final Button button = new Button("...");
-                button.setOnAction(event ->  ApplicationService.createInstance("file_browser", new File(item).toURI()));
+                button.setTooltip(new Tooltip(Messages.HelpAboutOpenLocation));
+                button.setOnAction(event ->
+                {
+                    // Open file browser, then close the 'about' dialog
+                    ApplicationService.createInstance("file_browser", new File(item).toURI());
+                    if (dialog != null)
+                        dialog.close();
+                });
                 setGraphic(button);
             }
         }
@@ -95,18 +106,17 @@ public class OpenAbout implements MenuEntry
     @Override
     public Void call()
     {
-        // Useful, but ugly
-        // TODO Add version information
-        final Alert dialog = new Alert(AlertType.INFORMATION);
+        dialog = new Alert(AlertType.INFORMATION);
         dialog.setTitle(Messages.HelpAboutTitle);
         dialog.setHeaderText(Messages.HelpAboutHdr);
 
         // Table with Name, Value columns
         final ObservableList<List<String>> infos = FXCollections.observableArrayList();
         // Start with most user-specific to most generic: User location, install, JDK, ...
-        // Note that OpenFileBrowserCell will only activate for first 3 entries.
+        // Note that OpenFileBrowserCell is hard-coded to add a "..." button for the first few rows.
         infos.add(Arrays.asList(Messages.HelpAboutUser, Locations.user().toString()));
         infos.add(Arrays.asList(Messages.HelpAboutInst, Locations.install().toString()));
+        infos.add(Arrays.asList(Messages.HelpAboutUserDir, System.getProperty("user.dir")));
         infos.add(Arrays.asList(Messages.HelpJavaHome, System.getProperty("java.home")));
         infos.add(Arrays.asList(Messages.HelpAboutJava, System.getProperty("java.specification.vendor") + " " + System.getProperty("java.runtime.version")));
         infos.add(Arrays.asList(Messages.HelpAboutJfx, System.getProperty("javafx.runtime.version")));
@@ -114,7 +124,7 @@ public class OpenAbout implements MenuEntry
         // Display in TableView
         final TableView<List<String>> info_table = new TableView<>(infos);
         info_table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        info_table.setPrefHeight(230.0);
+        info_table.setPrefHeight(260.0);
 
         final TableColumn<List<String>, String> name_col = new TableColumn<>(Messages.HelpAboutColName);
         name_col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().get(0)));
@@ -142,6 +152,8 @@ public class OpenAbout implements MenuEntry
         DialogHelper.positionDialog(dialog, DockPane.getActiveDockPane(), -400, -300);
 
         dialog.showAndWait();
+        // Indicate that dialog is closed; allow GC
+        dialog = null;
 
         return null;
     }
