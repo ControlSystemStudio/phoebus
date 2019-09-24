@@ -181,6 +181,17 @@ public class EdmConverter
      */
     public void convertWidget(final Widget parent, final EdmEntity edm)
     {
+        if (edm instanceof EdmWidget)
+        {
+            final EdmWidget w = (EdmWidget) edm;
+            if (w.getX() + w.getW() <= 0  ||
+                w.getY() + w.getH() <= 0)
+            {
+                logger.log(Level.WARNING, "Skipping off-screen widget " + edm.getType());
+                return;
+            }
+        }
+
         // Given an EDM Widget type like "activeXTextClass",
         // locate the matching "Convert_activeXTextClass"
         final Class<?> clazz;
