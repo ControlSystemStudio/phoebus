@@ -398,9 +398,10 @@ public abstract class ConverterBase<W extends Widget>
         {
             final char c = edl_path.charAt(i);
             if (! (Character.isAlphabetic(c) ||
+                   Character.isDigit(c)      ||
                    "\\/$()_-.".indexOf(c) >= 0))
             {
-                logger.log(Level.WARNING, "Invalid path '" + edl_path + "'");
+                logger.log(Level.WARNING, "Invalid path '" + edl_path + "' element '" + c + "'");
                 return null;
             }
         }

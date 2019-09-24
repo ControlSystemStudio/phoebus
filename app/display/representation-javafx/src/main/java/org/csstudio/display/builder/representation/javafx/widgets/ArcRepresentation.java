@@ -16,7 +16,6 @@ import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Arc;
 import javafx.scene.shape.ArcType;
-import javafx.scene.shape.StrokeType;
 
 /** Creates JavaFX item for model widget
  *  @author Kay Kasemir
@@ -53,11 +52,11 @@ public class ArcRepresentation extends JFXBaseRepresentation<Arc, ArcWidget>
         model_widget.propY().addUntypedPropertyListener(positionChangedListener);
         model_widget.propWidth().addUntypedPropertyListener(positionChangedListener);
         model_widget.propHeight().addUntypedPropertyListener(positionChangedListener);
+        model_widget.propLineWidth().addUntypedPropertyListener(positionChangedListener);
 
         model_widget.propBackgroundColor().addUntypedPropertyListener(lookChangedListener);
         model_widget.propTransparent().addUntypedPropertyListener(lookChangedListener);
         model_widget.propLineColor().addUntypedPropertyListener(lookChangedListener);
-        model_widget.propLineWidth().addUntypedPropertyListener(lookChangedListener);
         model_widget.propArcSize().addUntypedPropertyListener(lookChangedListener);
         model_widget.propArcStart().addUntypedPropertyListener(lookChangedListener);
     }
@@ -72,10 +71,11 @@ public class ArcRepresentation extends JFXBaseRepresentation<Arc, ArcWidget>
         model_widget.propY().removePropertyListener(positionChangedListener);
         model_widget.propWidth().removePropertyListener(positionChangedListener);
         model_widget.propHeight().removePropertyListener(positionChangedListener);
+        model_widget.propLineWidth().removePropertyListener(positionChangedListener);
+
         model_widget.propBackgroundColor().removePropertyListener(lookChangedListener);
         model_widget.propTransparent().removePropertyListener(lookChangedListener);
         model_widget.propLineColor().removePropertyListener(lookChangedListener);
-        model_widget.propLineWidth().removePropertyListener(lookChangedListener);
         model_widget.propArcSize().removePropertyListener(lookChangedListener);
         model_widget.propArcStart().removePropertyListener(lookChangedListener);
     }
@@ -118,14 +118,22 @@ public class ArcRepresentation extends JFXBaseRepresentation<Arc, ArcWidget>
             if (model_widget.propVisible().getValue())
             {
                 jfx_node.setVisible(true);
+                // Would like to keep the arc inside its bounds.
+                // StrokeType.INSIDE does that, but it also
+                // adds an angle to the start and end of the stroke.
+                // StrokeType.CENTERED, the default, gives nice
+                // square ends, but means we need to adjust the size
+                // of the arc by half the line width.
                 final int x = model_widget.propX().getValue();
                 final int y = model_widget.propY().getValue();
                 final int w = model_widget.propWidth().getValue();
                 final int h = model_widget.propHeight().getValue();
+                final int lw = model_widget.propLineWidth().getValue();
                 jfx_node.setCenterX(x + w/2);
                 jfx_node.setCenterY(y + h/2);
-                jfx_node.setRadiusX(w/2);
-                jfx_node.setRadiusY(h/2);
+                jfx_node.setRadiusX((w-lw)/2);
+                jfx_node.setRadiusY((h-lw)/2);
+                jfx_node.setStrokeWidth(lw);
             }
             else
                 jfx_node.setVisible(false);
@@ -134,8 +142,6 @@ public class ArcRepresentation extends JFXBaseRepresentation<Arc, ArcWidget>
         {
             jfx_node.setFill(background);
             jfx_node.setStroke(line_color);
-            jfx_node.setStrokeWidth(model_widget.propLineWidth().getValue());
-            jfx_node.setStrokeType(StrokeType.INSIDE);
             jfx_node.setStartAngle(arc_start);
             jfx_node.setLength(arc_size);
             jfx_node.setType(arc_type);
