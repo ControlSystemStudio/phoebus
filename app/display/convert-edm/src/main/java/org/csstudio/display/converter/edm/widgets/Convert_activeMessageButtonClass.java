@@ -87,7 +87,10 @@ public class Convert_activeMessageButtonClass extends ConverterBase<Widget>
             else
             {
                 final String pv = convertPVName(mb.getControlPv());
-                b.propActions().setValue(new ActionInfos(List.of(new WritePVActionInfo(mb.getOffLabel(), pv, mb.getPressValue()))));
+                String desc = mb.getOffLabel();
+                if (desc == null)
+                    desc = "Write";
+                b.propActions().setValue(new ActionInfos(List.of(new WritePVActionInfo(desc, pv, mb.getPressValue()))));
                 // If there is a release value, warn that it's ignored.
                 // OK to not write a release value that matches the press value,
                 // since we wrote it on press.
