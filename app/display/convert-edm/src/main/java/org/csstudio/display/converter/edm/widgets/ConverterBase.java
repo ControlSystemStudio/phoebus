@@ -398,7 +398,7 @@ public abstract class ConverterBase<W extends Widget>
         {
             final char c = edl_path.charAt(i);
             if (! (Character.isAlphabetic(c) ||
-                   "\\/$()-.".indexOf(c) >= 0))
+                   "\\/$()_-.".indexOf(c) >= 0))
             {
                 logger.log(Level.WARNING, "Invalid path '" + edl_path + "'");
                 return null;
