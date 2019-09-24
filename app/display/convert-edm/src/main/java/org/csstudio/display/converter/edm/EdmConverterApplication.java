@@ -8,7 +8,6 @@
 package org.csstudio.display.converter.edm;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.net.URI;
 import java.net.URL;
 import java.util.List;
@@ -87,12 +86,12 @@ public class EdmConverterApplication implements AppResourceDescriptor
         {
             try
             {
-                EdmModel.reloadEdmColorFile(ConverterPreferences.colors_list, new FileInputStream(ConverterPreferences.colors_list));
+                EdmModel.reloadEdmColorFile(ConverterPreferences.colors_list, ModelResourceUtil.openResourceStream(ConverterPreferences.colors_list));
 
                 // Convert file
                 final File input = ModelResourceUtil.getFile(resource);
                 final File output = new File(input.getAbsolutePath().replace(".edl", ".bob"));
-                new Converter(input, output, null);
+                new EdmConverter(input, null).write(output);
 
                 // On success, open in display editor, runtime, other editor
                 Platform.runLater(() ->
