@@ -13,6 +13,7 @@ import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
+import org.csstudio.display.builder.model.properties.HorizontalAlignment;
 import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.TextEntryWidget;
 import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
@@ -66,6 +67,15 @@ public class Convert_activeXTextDspClass extends ConverterBase<PVWidget>
                 widget.getProperty(CommonWidgetProperties.propFormat).setValue(FormatOption.HEX);
             else if (r.getFormat().equals("string"))
                 widget.getProperty(CommonWidgetProperties.propFormat).setValue(FormatOption.STRING);
+        }
+
+        if (widget instanceof TextUpdateWidget)
+        {
+            final TextUpdateWidget tu = (TextUpdateWidget) widget;
+            if ("center".equals(r.getFontAlign()))
+                tu.propHorizontalAlignment().setValue(HorizontalAlignment.CENTER);
+            else if ("right".equals(r.getFontAlign()))
+                tu.propHorizontalAlignment().setValue(HorizontalAlignment.RIGHT);
         }
     }
 
