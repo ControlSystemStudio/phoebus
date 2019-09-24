@@ -79,9 +79,17 @@ public class RefCountMap<K, E>
      */
     public ReferencedEntry<E> createOrGet(final K key, final Supplier<E> creator)
     {
-        final ReferencedEntry<E> ref_entry = map.computeIfAbsent(key, k -> new ReferencedEntry<E>(creator.get()));
-        ref_entry.addRef();
-        return ref_entry;
+        try
+        {
+            final ReferencedEntry<E> ref_entry = map.computeIfAbsent(key, k -> new ReferencedEntry<>(creator.get()));
+            ref_entry.addRef();
+            return ref_entry;
+        }
+        catch (Throwable ex)
+        {
+            // Show PV name to help debug e.g. 'Recursive update'
+            throw new RuntimeException("Error for PV " + key, ex);
+        }
     }
 
     /** Release an item from the map
