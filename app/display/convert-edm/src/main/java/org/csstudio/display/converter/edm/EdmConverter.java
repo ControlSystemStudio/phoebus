@@ -187,7 +187,8 @@ public class EdmConverter
             if (w.getX() + w.getW() <= 0  ||
                 w.getY() + w.getH() <= 0)
             {
-                logger.log(Level.WARNING, "Skipping off-screen widget " + edm.getType());
+                logger.log(Level.WARNING, "Skipping off-screen widget " + edm.getType() +
+                           " @ " + w.getX() + "," + w.getY() + " sized " + w.getW() + " x " + w.getH());
                 return;
             }
         }
