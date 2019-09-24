@@ -332,17 +332,21 @@ public class ModelResourceUtil
         }
 
         // Can display be opened as file?
-        File file = new File(URLdecode(resource_name));
+        File file = new File(URLdecode(combined));
         if (file.exists())
         {
-            logger.log(Level.FINE, "Found file {0}", file);
+            logger.log(Level.FINE, "Found file {0} relative to parent display", file);
             return file.getAbsolutePath();
         }
 
-        file = new File(URLdecode(combined));
+        // Try the resource name as is.
+        // Resolves relative links based on the current working directory,
+        // which is inferior to resolving relative to a known parent display,
+        // but nevertheless supported as a fallback.
+        file = new File(URLdecode(resource_name));
         if (file.exists())
         {
-            logger.log(Level.FINE, "Found file {0}", file);
+            logger.log(Level.FINE, "Found file {0} relative to current working directory", file);
             return file.getAbsolutePath();
         }
 

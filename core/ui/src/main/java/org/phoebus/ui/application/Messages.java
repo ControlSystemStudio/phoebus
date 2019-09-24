@@ -50,10 +50,12 @@ public class Messages
     public static String HelpAboutJava;
     public static String HelpAboutJfx;
     public static String HelpAboutMenuPath;
+    public static String HelpAboutOpenLocation;
     public static String HelpAboutPrefs;
     public static String HelpAboutSysFea;
     public static String HelpAboutTitle;
     public static String HelpAboutUser;
+    public static String HelpAboutUserDir;
     public static String HelpContentMenuPath;
     public static String HelpJavaHome;
     public static String HelpPage;
