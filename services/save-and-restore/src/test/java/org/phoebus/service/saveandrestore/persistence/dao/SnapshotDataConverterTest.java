@@ -24,11 +24,11 @@ import org.epics.util.number.UInteger;
 import org.epics.util.number.ULong;
 import org.epics.util.number.UShort;
 import org.epics.vtype.*;
+import org.epics.vtype.json.VTypeToJson;
 import org.junit.Before;
 import org.junit.Test;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.applications.saveandrestore.model.json.VTypeToJson;
 import org.phoebus.service.saveandrestore.epics.exception.PVConversionException;
 import org.phoebus.service.saveandrestore.model.internal.SnapshotPv;
 
@@ -564,7 +564,7 @@ public class SnapshotDataConverterTest {
 	public void jsonTest() throws Exception {
 		VLongArray vIntArray = VLongArray.of(new ArrayLong(CollectionNumbers.toListLong(-1, 2, 3)), alarm, time,
 				display);
-		String json1 = VTypeToJson.toJson(vIntArray).toString();
+		String json1 = org.epics.vtype.json.VTypeToJson.toJson(vIntArray).toString();
 
 		VULongArray vULongArray = VULongArray.of(new ArrayULong(CollectionNumbers.toListULong(1, 2, 3)), alarm, time,
 				display);

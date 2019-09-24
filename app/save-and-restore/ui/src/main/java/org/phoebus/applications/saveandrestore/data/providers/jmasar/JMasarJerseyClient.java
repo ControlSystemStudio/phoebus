@@ -189,31 +189,4 @@ public class JMasarJerseyClient implements JMasarClient{
 
         return response.getEntity(Node.class);
     }
-
-    @Override
-    public String getJMasarServiceVersion(){
-        WebResource webResource = client.resource(jmasarServiceUrl + "/version");
-
-        ClientResponse response = webResource.get(ClientResponse.class);
-        if (response.getStatus() != 200) {
-            throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
-        }
-
-        return response.getEntity(String.class);
-    }
-
-    @Override
-    public ConfigPv updateSingleConfigPv(String currentPvName, String newPvName, String currentReadbackPvName, String newReadbackPvName){
-        WebResource webResource = client.resource(jmasarServiceUrl + "/configpv/" + currentPvName)
-                .queryParam("newPvName", newPvName)
-                .queryParam("readbackPvName", currentReadbackPvName)
-                .queryParam("newReadbackPvName", newReadbackPvName);
-
-        ClientResponse response = webResource.post(ClientResponse.class);
-        if (response.getStatus() != 200) {
-            throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
-        }
-
-        return response.getEntity(ConfigPv.class);
-    }
 }

@@ -72,7 +72,7 @@ public class SaveAndRestoreService {
         try {
             return future.get();
         } catch (Exception ie) {
-            ie.printStackTrace();
+            LOG.error("Unable to retrieve node " + uniqueNodeId + ", cause: " + ie.getMessage());
         }
 
         return null;
@@ -84,7 +84,7 @@ public class SaveAndRestoreService {
         try {
             return future.get();
         } catch (Exception ie) {
-            ie.printStackTrace();
+            LOG.error("Unable to retrieve child nodes of node " + node.getId() + ", cause: " + ie.getMessage());
         }
 
         return null;

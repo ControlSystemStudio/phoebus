@@ -29,6 +29,7 @@ import org.epics.vtype.VType;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import org.epics.vtype.json.VTypeToJson;
 
 /**
  * Custom JSON deserializer for VTypes.

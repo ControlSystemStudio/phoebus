@@ -90,18 +90,8 @@ public class JMasarDataProvider implements DataProvider {
     }
 	
 	@Override
-	public Node saveSaveSet(String parentsUniqueId, Node config) {
-		return jmasarClient.createNewNode(parentsUniqueId, config);
-	}
-	
-	@Override
 	public Node updateSaveSet(Node configToUpdate, List<ConfigPv> confgPvList) {
 		return jmasarClient.updateConfiguration(configToUpdate, confgPvList);
-	}
-
-	@Override
-	public String getServiceVersion() {
-		return jmasarClient.getJMasarServiceVersion();
 	}
 
 	@Override
@@ -109,15 +99,6 @@ public class JMasarDataProvider implements DataProvider {
 		return jmasarClient.getSnapshotItems(snapshotUniqueId);
 	}
 
-	@Override
-	public Node getParentNode(String uniqueNodeId){
-		return jmasarClient.getParentNode(uniqueNodeId);
-	}
-
-	@Override
-	public ConfigPv updateSingleConfigPv(String currentPvName, String newPvName, String currentReadbackPvName, String newReadbackPvName){
-		return jmasarClient.updateSingleConfigPv(currentPvName, newPvName, currentReadbackPvName, newReadbackPvName);
-	}
 
 	@Override
 	public Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment){
