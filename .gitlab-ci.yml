@@ -1,11 +1,2 @@
-stages:
-  - build
-
-build:
-  stage: build
-  image: registry.esss.lu.se/ics-docker/maven:openjdk-11
-  tags:
-    - docker
-  script:
-    - mvn --batch-mode -DaltReleaseDeploymentRepository=${RELEASE_REPOSITORY} -DaltSnapshotDeploymentRepository=${SNAPSHOT_REPOSITORY} clean install org.apache.maven.plugins:maven-deploy-plugin:2.8.2:deploy
-    - mvn --batch-mode sonar:sonar
+---
+include: 'https://gitlab.esss.lu.se/ics-software/phoebus-build/raw/master/phoebus.gitlab-ci.yml'
