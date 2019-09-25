@@ -9,27 +9,16 @@ package org.csstudio.display.converter.edm;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.csstudio.display.builder.model.persist.ModelWriter;
-import org.csstudio.display.builder.model.util.ModelResourceUtil;
-import org.csstudio.opibuilder.converter.model.EdmDisplay;
 import org.csstudio.opibuilder.converter.model.EdmModel;
-import org.csstudio.opibuilder.converter.parser.EdmDisplayParser;
-import org.phoebus.framework.util.IOUtils;
 import org.phoebus.framework.workbench.FileHelper;
 
-/** EDM Converter
- *
- *  <p>Can be called as 'Main',
- *  also used by converter app.
- *
+/** EDM Converter 'Main' for command-line invocation
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -37,45 +26,6 @@ public class Converter
 {
     /** Logger for all the Display Builder generating code */
     public static final Logger logger = Logger.getLogger(Converter.class.getPackageName());
-    private Collection<String> included_displays;
-    private Collection<String> linked_displays;
-
-    public Converter(final File input, final File output) throws Exception
-    {
-        logger.log(Level.INFO, "Convert " + input + " -> " + output);
-        final EdmDisplayParser parser = new EdmDisplayParser(input.getPath(), new FileInputStream(input));
-        final EdmDisplay edm = new EdmDisplay(parser.getRoot());
-
-        final String title = input.getName()
-                                  .replace(".edl", "")
-                                  .replace('_', ' ');
-        final EdmConverter converter = new EdmConverter(title, edm);
-        final ModelWriter writer = new ModelWriter(new FileOutputStream(output));
-        writer.writeModel(converter.getDisplayModel());
-        writer.close();
-
-        // List referenced files
-        included_displays = converter.getIncludedDisplays();
-        for (String included : included_displays)
-            logger.log(Level.FINE, "Included display: " + included);
-
-        linked_displays = converter.getLinkedDisplays();
-        for (String linked : linked_displays)
-            logger.log(Level.FINE, "Linked display: " + linked);
-
-    }
-
-    /** @return Displays that were included by this display */
-    public Collection<String> getIncludedDisplays()
-    {
-        return included_displays;
-    }
-
-    /** @return Displays that were linked from this display */
-    public Collection<String> getLinkedDisplays()
-    {
-        return linked_displays;
-    }
 
     /** Convert one file or directory
      *  @param infile Input file (*.opi, older *.bob)
@@ -89,55 +39,33 @@ public class Converter
     {
         if (depth <= 0)
             return;
-        File infile = null;
-        if (paths.isEmpty())
-            infile = new File(input);
-        else
+
+        // Is input a folder?
+        final File check_input = new File(input);
+        if (check_input.isDirectory())
         {
-            for (String path : paths)
-            {
-                final String check = path + (path.endsWith("/") ? input : "/" + input);
-                logger.log(Level.FINE, "Checkint " + check);
-                if (check.startsWith("http"))
-                {
-                    try
-                    {
-                        final InputStream stream = ModelResourceUtil.openURL(check);
-                        infile = new File(System.getProperty("java.io.tmpdir"), input);
-                        logger.log(Level.INFO, "Downloading " + check + " into " + infile);
-                        // infile.deleteOnExit();
-                        IOUtils.copy(stream, new FileOutputStream(infile));
-                        break;
-                    }
-                    catch (Exception ex)
-                    {
-                        // Check next search path entry
-                    }
-                }
-                else
-                {
-                    final File check_file = new File(check);
-                    if (check_file.canRead())
-                    {
-                        infile = check_file;
-                        break;
-                    }
-                }
-            }
+            logger.log(Level.INFO, "Converting all files in directory " + check_input);
+            final File[] files = check_input.listFiles();
+            Arrays.sort(files, (a, b) -> a.getPath().compareTo(b.getPath()));
+            for (File file : files)
+                convert(file.getAbsolutePath(), paths, force, depth, output_dir);
+            return;
+        }
+
+        // Is input referring to exiting file?
+        File infile = null;
+        if (check_input.canRead())
+            infile = check_input;
+        else if (! paths.isEmpty())
+        {
+            final AssetLocator locator = new AssetLocator();
+            infile = locator.locate(input);
         }
 
         if (infile == null)
             throw new Exception("Cannot locate " + input);
         if (! infile.canRead())
             throw new Exception("Cannot read " + infile);
-
-        if (infile.isDirectory())
-        {
-            logger.log(Level.INFO, "Converting all files in directory " + infile);
-            for (File file : infile.listFiles())
-                convert(file.getAbsolutePath(), paths, force, depth, output_dir);
-            return;
-        }
 
         // Convert *.edl file
         // Copy other file types, which could be *.gif etc.
@@ -173,7 +101,9 @@ public class Converter
                     throw new Exception("Output file " + outfile + " exists");
             }
 
-            final Converter converter = new Converter(infile, outfile);
+            logger.log(Level.INFO, "Convert " + infile + " -> " + outfile);
+            final EdmConverter converter = new EdmConverter(infile, null);
+            converter.write(outfile);
             final int next = depth - 1;
             if (next > 0)
                 for (String included : converter.getLinkedDisplays())
@@ -208,7 +138,6 @@ public class Converter
 
         final List<String> files = new ArrayList<>(List.of(args));
         ConverterPreferences.colors_list = "colors.list";
-        File output_dir = null;
         boolean force = false;
         int depth = 1;
         if (files.isEmpty())
@@ -279,7 +208,7 @@ public class Converter
                     System.err.println("Missing folder for -output /path/to/folder");
                     return;
                 }
-                output_dir = new File(files.get(1));
+                ConverterPreferences.setAutoConverterDir(files.get(1));
                 files.remove(0);
                 files.remove(0);
             }
@@ -303,6 +232,7 @@ public class Converter
 
         try
         {
+            logger.log(Level.INFO, "Reading " + ConverterPreferences.colors_list);
             EdmModel.reloadEdmColorFile(ConverterPreferences.colors_list, new FileInputStream(ConverterPreferences.colors_list));
         }
         catch (Exception ex)
@@ -315,7 +245,7 @@ public class Converter
         {
             try
             {
-                convert(file, ConverterPreferences.paths, force, depth, output_dir);
+                convert(file, ConverterPreferences.paths, force, depth, ConverterPreferences.auto_converter_dir);
             }
             catch (Exception ex)
             {

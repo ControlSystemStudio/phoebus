@@ -7,6 +7,10 @@
  *******************************************************************************/
 package org.csstudio.display.converter.edm.widgets;
 
+import static org.csstudio.display.converter.edm.Converter.logger;
+
+import java.util.logging.Level;
+
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.widgets.PictureWidget;
 import org.csstudio.display.converter.edm.EdmConverter;
@@ -18,14 +22,26 @@ import org.csstudio.opibuilder.converter.model.Edm_cfcf6c8a_dbeb_11d2_8a97_00104
  *  @author Matevz, Lei Hu, Xihui Chen et al - Original logic in Opi_.. converter
  */
 // cf... is the EDM class name for its gif widget
+@SuppressWarnings("nls")
 public class Convert_cfcf6c8a_dbeb_11d2_8a97_00104b8742df extends ConverterBase<PictureWidget>
 {
     public Convert_cfcf6c8a_dbeb_11d2_8a97_00104b8742df(final EdmConverter converter, final Widget parent, final Edm_cfcf6c8a_dbeb_11d2_8a97_00104b8742df r)
     {
         super(converter, parent, r);
 
-        if (r.getFile() != null)
-            widget.propFile().setValue(r.getFile());
+        final String file = r.getFile();
+        if (file != null)
+        {
+            widget.propFile().setValue(file);
+            try
+            {
+                converter.downloadAsset(file);
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "GIF image cannot get " + file, ex);
+            }
+        }
     }
 
     @Override

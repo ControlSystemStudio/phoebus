@@ -10,6 +10,9 @@ package org.csstudio.display.converter.edm;
 import static org.csstudio.display.converter.edm.Converter.logger;
 
 import java.awt.geom.Rectangle2D;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,6 +26,7 @@ import java.util.stream.Collectors;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
@@ -30,6 +34,7 @@ import org.csstudio.display.converter.edm.widgets.ConverterBase;
 import org.csstudio.opibuilder.converter.model.EdmDisplay;
 import org.csstudio.opibuilder.converter.model.EdmEntity;
 import org.csstudio.opibuilder.converter.model.EdmWidget;
+import org.csstudio.opibuilder.converter.parser.EdmDisplayParser;
 
 /** Convert one {@link EdmDisplay} to {@link DisplayModel}
  *
@@ -43,6 +48,8 @@ import org.csstudio.opibuilder.converter.model.EdmWidget;
 @SuppressWarnings("nls")
 public class EdmConverter
 {
+    private final AssetLocator asset_locator;
+
     private final DisplayModel model = new DisplayModel();
 
     private final AtomicInteger next_group = new AtomicInteger();
@@ -52,15 +59,35 @@ public class EdmConverter
     private final Set<String> included_displays = new HashSet<>();
     private final Set<String> linked_displays = new HashSet<>();
 
-    public EdmConverter(final String name, final EdmDisplay edm)
+    /** Parse EDL input and convert into {@link DisplayModel}
+     *
+     *  <p>Optional {@link AssetLocator} allows for example image
+     *  widgets to locate their images, automatically downloading
+     *  it from a http:/.. search path.
+     *
+     *  @param input EDL input file
+     *  @param asset_locator Optional {@link AssetLocator} or <code>null</code>
+     *  @throws Exception on error
+     */
+    public EdmConverter(final File input, final AssetLocator asset_locator) throws Exception
     {
+        this.asset_locator = asset_locator;
+
+        logger.log(Level.FINE, "Parsing EDM " + input);
+        // Parse EDM file
+        final EdmDisplayParser parser = new EdmDisplayParser(input.getPath(), new FileInputStream(input));
+        final EdmDisplay edm = new EdmDisplay(parser.getRoot());
+
+        // Create Display Model
+        final String name = input.getName()
+                                  .replace(".edl", "")
+                                  .replace('_', ' ');
         model.propName().setValue(name);
         model.propX().setValue(edm.getX());
         model.propY().setValue(edm.getY());
         model.propWidth().setValue(edm.getW());
         model.propHeight().setValue(edm.getH());
 
-        // TODO Global edm.getFont()?
         ConverterBase.convertColor(edm.getBgColor(), model.propBackgroundColor());
 
         if (edm.getTitle() != null)
@@ -73,6 +100,7 @@ public class EdmConverter
             model.propGridStepY().setValue(edm.getGridSize());
         }
 
+        // Convert all widgets
         for (EdmEntity edm_widget : edm.getWidgets())
             convertWidget(model, edm_widget);
         correctChildWidgets(model);
@@ -84,10 +112,34 @@ public class EdmConverter
         return model;
     }
 
+    /** @param output File to write with Display Builder model
+     *  @throws Exception on error
+     */
+    public void write(final File output) throws Exception
+    {
+        logger.log(Level.FINE, "Writing " + output);
+        final ModelWriter writer = new ModelWriter(new FileOutputStream(output));
+        writer.writeModel(model);
+        writer.close();
+    }
+
     /** @return Number of next group */
     public int nextGroup()
     {
         return next_group.getAndIncrement();
+    }
+
+    /** Request download of asset.
+     *
+     *  <p>NOP when this converter doesn't have an {@link AssetLocator}.
+     *
+     *  @param asset Asset of a widget, for example PNG file for Image widget
+     *  @throws Exception
+     */
+    public void downloadAsset(final String asset) throws Exception
+    {
+        if (asset_locator != null)
+            asset_locator.locate(asset);
     }
 
     /** @return Displays that were included by this display (embedded, symbol) */
@@ -129,6 +181,18 @@ public class EdmConverter
      */
     public void convertWidget(final Widget parent, final EdmEntity edm)
     {
+        if (edm instanceof EdmWidget)
+        {
+            final EdmWidget w = (EdmWidget) edm;
+            if (w.getX() + w.getW() <= 0  ||
+                w.getY() + w.getH() <= 0)
+            {
+                logger.log(Level.WARNING, "Skipping off-screen widget " + edm.getType() +
+                           " @ " + w.getX() + "," + w.getY() + " sized " + w.getW() + " x " + w.getH());
+                return;
+            }
+        }
+
         // Given an EDM Widget type like "activeXTextClass",
         // locate the matching "Convert_activeXTextClass"
         final Class<?> clazz;
@@ -167,7 +231,6 @@ public class EdmConverter
             logger.log(Level.WARNING, "Cannot convert " + edm.getType(), ex);
         }
     }
-
 
     /** Correct widget issues
      *
@@ -209,9 +272,9 @@ public class EdmConverter
                     continue;
                 final ActionButtonWidget ob = (ActionButtonWidget) other;
 
-                logger.log(Level.WARNING, "Merging actions from overlapping " + widget + " and " + other + " into one:");
-                logger.log(Level.WARNING, "1) " + widget.propActions().getValue());
-                logger.log(Level.WARNING, "2) " + other.propActions().getValue());
+                logger.log(Level.INFO, "Merging actions from overlapping " + widget + " and " + other + " into one:");
+                logger.log(Level.INFO, "1) " + widget.propActions().getValue());
+                logger.log(Level.INFO, "2) " + other.propActions().getValue());
                 final List<ActionInfo> actions = new ArrayList<>(widget.propActions().getValue().getActions());
                 actions.addAll(other.propActions().getValue().getActions());
                 widget.propActions().setValue(new ActionInfos(actions));

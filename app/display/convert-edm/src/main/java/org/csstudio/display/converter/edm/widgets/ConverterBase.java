@@ -389,10 +389,24 @@ public abstract class ConverterBase<W extends Widget>
     }
 
     /** @param edl_path EDL file, may end in .edl
-     *  @return File that ends in .bob
+     *  @return File that ends in .bob, or <code>null</code> for invalid path
      */
     public static String convertDisplayPath(final String edl_path)
     {
+        // Check for 'ASCII' EDL paths to avoid e.g. "Ctrl-X"
+        for (int i=0; i<edl_path.length(); ++i)
+        {
+            final char c = edl_path.charAt(i);
+            if (! (Character.isAlphabetic(c) ||
+                   Character.isDigit(c)      ||
+                   "\\/$()_-.".indexOf(c) >= 0))
+            {
+                logger.log(Level.WARNING, "Invalid path '" + edl_path + "' element '" + c + "'");
+                return null;
+            }
+        }
+
+        // Assert file extension
         if (edl_path.endsWith(".edl"))
             return edl_path.replace(".edl", ".bob");
         return edl_path + ".bob";
