@@ -284,6 +284,9 @@ public abstract class ConverterBase<W extends Widget>
         return pvName;
     }
 
+    private static final Pattern calc_expression_vars_pattern = Pattern.compile("\\{(.*)\\}\\((.*)\\)");
+    private static final Pattern calc_number_pattern = Pattern.compile("[-+]?[0-9.]+\\.?[eE]?[-+]?[0-9]*");
+
     /** @param pvName "CALC\{A+2}(SomePVName)"
      *  @return "=`SomePVName`+2"
      */
@@ -294,8 +297,7 @@ public abstract class ConverterBase<W extends Widget>
                            .replace("\\", "");
 
         // "{expression}(PVA, PVB, ...)"
-        final Pattern pattern = Pattern.compile("\\{(.*)\\}\\((.*)\\)");
-        final Matcher matcher = pattern.matcher(cvt);
+        Matcher matcher = calc_expression_vars_pattern.matcher(cvt);
         if (!matcher.matches())
         {
             logger.log(Level.WARNING, "Cannot handle '" + pvName + "', expected CALC\\{expression_with_A_B_C}(pva, pvb, pvc, ..)");
@@ -322,12 +324,20 @@ public abstract class ConverterBase<W extends Widget>
         for (String pv : matcher.group(2).split(","))
             pvs.add(pv.strip());
 
-        // Replace PVs in expression
+        // Replace PVs `A`, `B`, ... in expression.
+        // In the wild, we find what should be
+        //   CALC\\{A/32}(SomePVName)
+        // expressed as
+        //   CALC\\{A/B}(SomePVName, 32)
+        // ==> Replace PV `number` with just the number
         int i=0;
         for (String pv : pvs)
         {
             final String variable = "`" + String.valueOf((char) ('A' + i)) + "`";
-            cvt = cvt.replace(variable, "`" + pv + "`");
+            if (calc_number_pattern.matcher(pv).matches())
+                cvt = cvt.replace(variable, pv);
+            else
+                cvt = cvt.replace(variable, "`" + pv + "`");
             ++i;
         }
         return cvt;
