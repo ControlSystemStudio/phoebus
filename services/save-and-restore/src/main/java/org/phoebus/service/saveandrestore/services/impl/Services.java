@@ -17,9 +17,10 @@
  */
 package org.phoebus.service.saveandrestore.services.impl;
 
-import java.util.List;
-
-import org.phoebus.service.saveandrestore.epics.IEpicsService;
+import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.services.IServices;
 import org.phoebus.service.saveandrestore.services.exception.NodeNotFoundException;
@@ -29,49 +30,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import java.util.List;
 
 public class Services implements IServices {
 
 	@Autowired
 	private NodeDAO nodeDAO;
 
-	@Autowired
-	private IEpicsService epicsService;
-
 	private Logger logger = LoggerFactory.getLogger(Services.class);
 
 	@Override
 	public Node getParentNode(String uniqueNodeId) {
 		return nodeDAO.getParentNode(uniqueNodeId);
-	}
-
-	@Override
-	@Transactional
-	public Node takeSnapshot(String configUniqueId) {
-
-		Node config = nodeDAO.getNode(configUniqueId);
-
-		if (config == null) {
-			String message = String.format("Snapshot with id=%s not found", configUniqueId);
-			logger.error(message);
-			throw new IllegalArgumentException(message);
-		}
-
-		logger.info("Reading PVs for configuration id={}", config.getId());
-
-		List<ConfigPv> configPvs = nodeDAO.getConfigPvs(configUniqueId);
-
-		long start = System.currentTimeMillis();
-		List<SnapshotItem> snapshotItems = epicsService.readPvs(configPvs);
-
-		Node snapshot = nodeDAO.savePreliminarySnapshot(config.getUniqueId(), snapshotItems);
-		logger.info("Took new preliminary snapshot: {}, time elapsed: {} ms", snapshot,
-				(System.currentTimeMillis() - start));
-		return snapshot;
 	}
 
 	@Override

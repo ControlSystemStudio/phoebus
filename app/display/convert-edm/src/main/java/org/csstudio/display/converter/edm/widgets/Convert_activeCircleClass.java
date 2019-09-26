@@ -39,7 +39,7 @@ public class Convert_activeCircleClass extends ConverterBase<EllipseWidget>
         else
             convertColor(r.getLineColor(), r.getAlarmPv(), widget.propLineColor());
 
-        if (r.isFillAlarm())
+        if (r.isFillAlarm()  &&  r.getAlarmPv() != null)
             createAlarmColor(r.getAlarmPv(), widget.propBackgroundColor());
         else
             convertColor(r.getFillColor(), r.getAlarmPv(), widget.propBackgroundColor());

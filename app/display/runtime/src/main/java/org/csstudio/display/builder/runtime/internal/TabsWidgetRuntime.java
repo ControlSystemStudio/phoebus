@@ -21,7 +21,7 @@ import org.csstudio.display.builder.runtime.WidgetRuntime;
 public class TabsWidgetRuntime extends WidgetRuntime<TabsWidget>
 {
     @Override
-    public void start() throws Exception
+    public void start()
     {
         super.start();
         for (TabItemProperty tab : widget.propTabs().getValue())

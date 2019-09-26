@@ -20,7 +20,7 @@ import org.csstudio.display.builder.runtime.WidgetRuntime;
 public class GroupWidgetRuntime extends WidgetRuntime<GroupWidget>
 {
     @Override
-    public void start() throws Exception
+    public void start()
     {
         super.start();
         RuntimeUtil.startChildRuntimes(widget.runtimeChildren());

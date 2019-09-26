@@ -41,22 +41,12 @@ public interface DataProvider {
 	public List<ConfigPv> getConfigPvs(String uniqueNodeId);
 
 	public Node getSaveSetForSnapshot(String uniqueNodeId);
-	
-	public Node saveSaveSet(String parentsUniqueId, Node config);
-	
+
 	public Node updateSaveSet(Node configToUpdate, List<ConfigPv> configPvList);
 	
 	public String getServiceUrl();
 
-	public String getServiceVersion();
-
-	public Node takeSnapshot(String uniqueNodeId);
-
 	public List<SnapshotItem> getSnapshotItems(String snapshotUniqueId);
-
-	public Node getParentNode(String uniqueNodeId);
-
-	public ConfigPv updateSingleConfigPv(String currentPvName, String newPvName, String currentReadbackPvName, String newReadbackPvName);
 
 	public Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment);
 	

@@ -14,6 +14,7 @@ package org.csstudio.opibuilder.converter.model;
 public class Edm_activeSliderClass extends EdmWidget {
 
     @EdmAttributeAn @EdmOptionalAn private String controlPv;
+    @EdmAttributeAn @EdmOptionalAn private String indicatorPv;
     @EdmAttributeAn @EdmOptionalAn private EdmColor controlColor;
     @EdmAttributeAn @EdmOptionalAn private boolean controlAlarm;
     @EdmAttributeAn @EdmOptionalAn private EdmColor indicatorColor;
@@ -38,14 +39,13 @@ public class Edm_activeSliderClass extends EdmWidget {
         return limitsFromDb;
     }
 
-    /**
-     * @return the lineAlarm
-     */
     public final String getControlPv() {
         return controlPv;
     }
 
-
+    public final String getIndicatorPv() {
+        return indicatorPv;
+    }
 
     public EdmColor getControlColor() {
         return controlColor;

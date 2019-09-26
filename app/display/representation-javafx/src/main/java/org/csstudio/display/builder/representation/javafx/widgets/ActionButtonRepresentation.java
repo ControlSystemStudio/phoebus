@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -30,8 +30,10 @@ import org.csstudio.display.builder.representation.javafx.Messages;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.MacroValueProvider;
 import org.phoebus.ui.javafx.Styles;
+import org.phoebus.ui.javafx.TextUtils;
 
 import javafx.application.Platform;
+import javafx.geometry.Dimension2D;
 import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
@@ -387,6 +389,15 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
             base.setTextFill(foreground);
             base.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
 
+            // If widget is not wide enough to show the label, hide menu button 'arrow'.
+            if (base instanceof MenuButton)
+            {
+                // Assume that desired gap and arrow occupy similar space as "__VV_".
+                // Check if the text exceeds the width.
+                final Dimension2D size = TextUtils.computeTextSize(base.getFont(), button_text + "__VV_");
+                final boolean hide = size.getWidth() >= model_widget.propWidth().getValue();
+                Styles.update(base, "hide_arrow", hide);
+            }
 
             final RotationStep rotation = model_widget.propRotationStep().getValue();
             final int width = model_widget.propWidth().getValue(),

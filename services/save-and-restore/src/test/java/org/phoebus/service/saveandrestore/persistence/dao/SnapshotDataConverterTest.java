@@ -18,78 +18,25 @@
 
 package org.phoebus.service.saveandrestore.persistence.dao;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.io.ByteArrayInputStream;
-import java.time.Instant;
-
-import javax.json.Json;
-
-import org.epics.util.array.ArrayByte;
-import org.epics.util.array.ArrayDouble;
-import org.epics.util.array.ArrayFloat;
-import org.epics.util.array.ArrayInteger;
-import org.epics.util.array.ArrayLong;
-import org.epics.util.array.ArrayShort;
-import org.epics.util.array.ArrayUByte;
-import org.epics.util.array.ArrayUInteger;
-import org.epics.util.array.ArrayULong;
-import org.epics.util.array.ArrayUShort;
-import org.epics.util.array.CollectionNumbers;
-import org.epics.util.array.ListByte;
-import org.epics.util.array.ListDouble;
-import org.epics.util.array.ListFloat;
-import org.epics.util.array.ListInteger;
-import org.epics.util.array.ListLong;
-import org.epics.util.array.ListShort;
-import org.epics.util.array.ListUByte;
-import org.epics.util.array.ListUInteger;
-import org.epics.util.array.ListULong;
-import org.epics.util.array.ListUShort;
+import org.epics.util.array.*;
 import org.epics.util.number.UByte;
 import org.epics.util.number.UInteger;
 import org.epics.util.number.ULong;
 import org.epics.util.number.UShort;
-import org.epics.vtype.Alarm;
-import org.epics.vtype.AlarmSeverity;
-import org.epics.vtype.AlarmStatus;
-import org.epics.vtype.Display;
-import org.epics.vtype.EnumDisplay;
-import org.epics.vtype.Time;
-import org.epics.vtype.VByte;
-import org.epics.vtype.VByteArray;
-import org.epics.vtype.VDouble;
-import org.epics.vtype.VDoubleArray;
-import org.epics.vtype.VEnum;
-import org.epics.vtype.VFloat;
-import org.epics.vtype.VFloatArray;
-import org.epics.vtype.VInt;
-import org.epics.vtype.VIntArray;
-import org.epics.vtype.VLong;
-import org.epics.vtype.VLongArray;
-import org.epics.vtype.VNumberArray;
-import org.epics.vtype.VShort;
-import org.epics.vtype.VShortArray;
-import org.epics.vtype.VString;
-import org.epics.vtype.VUByte;
-import org.epics.vtype.VUByteArray;
-import org.epics.vtype.VUInt;
-import org.epics.vtype.VUIntArray;
-import org.epics.vtype.VULong;
-import org.epics.vtype.VULongArray;
-import org.epics.vtype.VUShort;
-import org.epics.vtype.VUShortArray;
+import org.epics.vtype.*;
 import org.epics.vtype.json.VTypeToJson;
 import org.junit.Before;
 import org.junit.Test;
-
-import org.phoebus.service.saveandrestore.epics.exception.PVConversionException;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.service.saveandrestore.epics.exception.PVConversionException;
 import org.phoebus.service.saveandrestore.model.internal.SnapshotPv;
+
+import javax.json.Json;
+import java.io.ByteArrayInputStream;
+import java.time.Instant;
+
+import static org.junit.Assert.*;
 
 /**
  * @author georgweiss Created 28 Nov 2018
@@ -617,7 +564,7 @@ public class SnapshotDataConverterTest {
 	public void jsonTest() throws Exception {
 		VLongArray vIntArray = VLongArray.of(new ArrayLong(CollectionNumbers.toListLong(-1, 2, 3)), alarm, time,
 				display);
-		String json1 = VTypeToJson.toJson(vIntArray).toString();
+		String json1 = org.epics.vtype.json.VTypeToJson.toJson(vIntArray).toString();
 
 		VULongArray vULongArray = VULongArray.of(new ArrayULong(CollectionNumbers.toListULong(1, 2, 3)), alarm, time,
 				display);

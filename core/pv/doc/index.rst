@@ -20,14 +20,18 @@ Examples::
     ca://SomePVName
     SomeMotor.RBV
 
-
+Channel Access settings are configured via :ref:`preference_settings`, most important::
+    
+    # Channel Access address list
+    org.phoebus.pv.ca/addr_list=...
+    
 
 PV Access
 ---------
 Process variables that are to be accessed over the PV Access protocol must be identified by a formatted string that
 contains the process variable's name.
 
-As PV Access is not the default protocol, process variables accessed over it must have the protocol specified with 'pva://'.
+As PV Access is not the default protocol, process variables accessed over it must have the protocol spectrue;ified with 'pva://'.
 
 The PV Access format is as follows::
 
@@ -35,6 +39,15 @@ The PV Access format is as follows::
     pva://SomePVName/subfield/subelement
 
 As shown, when accessing structures, the path to a nested structure element can be provided.
+
+PV Access is configured via the following environment variables or Java properties::
+
+    # Address list. When empty, local subnet is used
+    export EPICS_PVA_ADDR_LIST = "127.0.0.1  10.1.10.255"
+
+    # Add local broadcast addresses to addr list? (Value YES, NO)
+    export EPICS_PVA_AUTO_ADDR_LIST = YES
+
 
 Simulated
 ---------

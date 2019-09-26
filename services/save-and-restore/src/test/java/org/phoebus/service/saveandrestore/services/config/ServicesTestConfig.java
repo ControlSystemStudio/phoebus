@@ -18,23 +18,16 @@
 
 package org.phoebus.service.saveandrestore.services.config;
 
-import static org.mockito.Mockito.mock;
-
-import org.phoebus.service.saveandrestore.epics.IEpicsService;
+import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.services.IServices;
+import org.phoebus.service.saveandrestore.services.impl.Services;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
-import org.phoebus.service.saveandrestore.services.impl.Services;
+import static org.mockito.Mockito.mock;
 
 @Configuration
 public class ServicesTestConfig {
-	
-	@Bean
-	public IEpicsService epicsService() {
-		return mock(IEpicsService.class);
-	}
 	
 	@Bean
 	public NodeDAO nodeDAO() {

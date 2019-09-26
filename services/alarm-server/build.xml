@@ -31,11 +31,12 @@
         <include name="dependencies/**/javax.mail*.jar"/>
       	
       	<include name="core/**/core-framework-*.jar"/>
+      	<include name="core/**/core-formula-*.jar"/>
       	<include name="core/**/core-pv-*.jar"/>
+      	<include name="core/**/core-pva-*.jar"/>
       	<include name="core/**/core-util-*.jar"/>
       	<include name="core/**/core-vtype-*.jar"/>
         <include name="core/**/core-email*.jar"/>
-        <include name="core/**/core-formula*.jar"/>
 
       	<include name="app/**/app-alarm-model*.jar"/>
       </fileset>

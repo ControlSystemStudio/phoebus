@@ -66,7 +66,7 @@ public class XYPlotWidgetRuntime  extends WidgetRuntime<XYPlotWidget>
     }
 
     @Override
-    public void start() throws Exception
+    public void start()
     {
         super.start();
 

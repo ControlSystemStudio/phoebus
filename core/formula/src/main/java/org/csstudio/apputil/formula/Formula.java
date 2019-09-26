@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -395,28 +395,39 @@ public class Formula implements Node
     private Node parseMulDiv(final Scanner s) throws Exception
     {
         // Expect a ...
-        Node n = parseConstant(s);
+        Node n = parseUnary(s);
         // possibly followed by  * b / c ....
         while (! s.isDone())
         {
             if (s.get() == '^')
             {
                 s.next();
-                n = new PwrNode(n, parseConstant(s));
+                n = new PwrNode(n, parseUnary(s));
             }
             else if (s.get() == '*')
             {
                 s.next();
-                n = new MulNode(n, parseConstant(s));
+                n = new MulNode(n, parseUnary(s));
             }
             else if (s.get() == '/')
             {
                 s.next();
-                n = new DivNode(n, parseConstant(s));
+                n = new DivNode(n, parseUnary(s));
             }
             else break;
         }
         return n;
+    }
+
+    private Node parseUnary(final Scanner s) throws Exception
+    {
+        if (s.get() == '!')
+        {
+            s.next();
+            return new NotNode(parseConstant(s));
+        }
+        else
+            return parseConstant(s);
     }
 
     /** Parse addition, subtraction, ... */
@@ -504,11 +515,6 @@ public class Formula implements Node
     /** Boolean &, | */
     private Node parseBool(final Scanner s) throws Exception
     {
-        if (s.get() == '!')
-        {
-            s.next();
-            return new NotNode(parseBool(s));
-        }
         // Expect a ...
         Node n = parseCompare(s);
         // possibly followed by  & b | c ....
@@ -517,11 +523,17 @@ public class Formula implements Node
             if (s.get() == '&')
             {
                 s.next();
+                // Allow '&' as well as '&&'
+                if (s.get() == '&')
+                    s.next();
                 n = new AndNode(n, parseCompare(s));
             }
             else if (s.get() == '|')
             {
                 s.next();
+                // Allow '|' as well as '||'
+                if (s.get() == '|')
+                    s.next();
                 n = new OrNode(n, parseCompare(s));
             }
             else if (s.get() == '?')

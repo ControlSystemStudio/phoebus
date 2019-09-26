@@ -33,11 +33,9 @@ public class EmbeddedDisplayRuntime extends WidgetRuntime<EmbeddedDisplayWidget>
             RuntimeUtil.startRuntime(new_model);
     };
 
-    /** Start: Connect to PVs, ..., then monitor the embedded model to start/stop it
-     *  @throws Exception on error
-     */
+    /** Start: Connect to PVs, ..., then monitor the embedded model to start/stop it */
     @Override
-    public void start() throws Exception
+    public void start()
     {
         super.start();
         widget.runtimePropEmbeddedModel().addPropertyListener(model_listener);

@@ -7,6 +7,10 @@
  *******************************************************************************/
 package org.csstudio.display.converter.edm.widgets;
 
+import static org.csstudio.display.converter.edm.Converter.logger;
+
+import java.util.logging.Level;
+
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.widgets.PictureWidget;
 import org.csstudio.display.converter.edm.EdmConverter;
@@ -27,11 +31,19 @@ public class Convert_activePngClass extends ConverterBase<PictureWidget>
         if (r.getFile() != null)
         {
             // Does EDM only support *.png?
-            final String file = r.getFile();
+            String file = r.getFile();
             if (!file.toLowerCase().endsWith(".png"))
-                widget.propFile().setValue(file + ".png");
-            else
-                widget.propFile().setValue(file);
+                file = file + ".png";
+            widget.propFile().setValue(file);
+
+            try
+            {
+                converter.downloadAsset(file);
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "PNG image cannot get " + file, ex);
+            }
         }
     }
 

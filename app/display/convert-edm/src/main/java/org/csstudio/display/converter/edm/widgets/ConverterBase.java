@@ -87,7 +87,7 @@ public abstract class ConverterBase<W extends Widget>
             val.setValue(t.isVisInvert());
             exprs.add(new RuleInfo.ExprInfoValue<>("true", val));
 
-            rules.add(new RuleInfo(vis_prop.getName(), vis_prop.getName(), false, exprs, pvs));
+            rules.add(new RuleInfo("EDM visibility", vis_prop.getName(), false, exprs, pvs));
             widget.propRules().setValue(rules);
         }
 
@@ -147,7 +147,7 @@ public abstract class ConverterBase<W extends Widget>
                 exprs.add(new RuleInfo.ExprInfoValue<>(expression, prop_col));
             }
 
-            final String name = edm.getName() == null ? "color" : edm.getName();
+            final String name = "EDM " + (edm.getName() == null ? "color" : edm.getName());
             rules.add(new RuleInfo(name, prop.getName(), false, exprs, pvs));
             widget.propRules().setValue(rules);
 
@@ -191,12 +191,12 @@ public abstract class ConverterBase<W extends Widget>
     public static void createAlarmColor(final String alarm_pv, final WidgetProperty<WidgetColor> prop)
     {
         final String alarm_script =
+            "# EDM Alarm-sensitive color\n" +
             "from org.csstudio.display.builder.runtime.script import PVUtil\n" +
             "from org.csstudio.display.builder.model.persist import WidgetColorService\n" +
             "sevr = PVUtil.getSeverity(pvs[0])\n" +
             "cn = ( 'OK', 'MINOR', 'MAJOR', 'INVALID', 'DISCONNECTED' )[sevr]\n" +
-            "c = WidgetColorService.getColor(cn)\n" +
-            "widget.setPropertyValue('" + prop.getName() + "', c)";
+            "widget.setPropertyValue('" + prop.getName() + "', WidgetColorService.getColor(cn))";
 
         final String pv = convertPVName(alarm_pv);
         final Widget widget = prop.getWidget();
@@ -229,6 +229,12 @@ public abstract class ConverterBase<W extends Widget>
         convertFont(edm, 1000, prop);
     }
 
+    /** Liberation font sizes.
+     *  Must be ordered from large to small
+     */
+    private static final double[] FONT_SIZES = new double[]
+    { 72, 60, 48, 36, 32, 28, 24, 20, 18, 16, 14, 12, 11, 10, 9, 8 };
+
     /** @param edm EDM font
      *  @param height_limit Height limit
      *  @param prop Display builder font property to set from EDM font
@@ -249,8 +255,16 @@ public abstract class ConverterBase<W extends Widget>
         else
             style = WidgetFontStyle.REGULAR;
 
-        final double size = Math.min(edm.getSize(), height_limit);
-        prop.setValue(new WidgetFont(family, style, size));
+        // Locate the smallest suitable font size, starting at the largest
+        final double max_size = Math.min(edm.getSize(), height_limit);
+        for (double size : FONT_SIZES)
+            if (size <= max_size)
+            {
+                prop.setValue(new WidgetFont(family, style, size));
+                return;
+            }
+        // Nothing found, use as given, hope for the best
+        prop.setValue(new WidgetFont(family, style, max_size));
     }
 
     /**
@@ -270,6 +284,9 @@ public abstract class ConverterBase<W extends Widget>
         return pvName;
     }
 
+    private static final Pattern calc_expression_vars_pattern = Pattern.compile("\\{(.*)\\}\\((.*)\\)");
+    private static final Pattern calc_number_pattern = Pattern.compile("[-+]?[0-9.]+\\.?[eE]?[-+]?[0-9]*");
+
     /** @param pvName "CALC\{A+2}(SomePVName)"
      *  @return "=`SomePVName`+2"
      */
@@ -280,8 +297,7 @@ public abstract class ConverterBase<W extends Widget>
                            .replace("\\", "");
 
         // "{expression}(PVA, PVB, ...)"
-        final Pattern pattern = Pattern.compile("\\{(.*)\\}\\((.*)\\)");
-        final Matcher matcher = pattern.matcher(cvt);
+        Matcher matcher = calc_expression_vars_pattern.matcher(cvt);
         if (!matcher.matches())
         {
             logger.log(Level.WARNING, "Cannot handle '" + pvName + "', expected CALC\\{expression_with_A_B_C}(pva, pvb, pvc, ..)");
@@ -308,12 +324,20 @@ public abstract class ConverterBase<W extends Widget>
         for (String pv : matcher.group(2).split(","))
             pvs.add(pv.strip());
 
-        // Replace PVs in expression
+        // Replace PVs `A`, `B`, ... in expression.
+        // In the wild, we find what should be
+        //   CALC\\{A/32}(SomePVName)
+        // expressed as
+        //   CALC\\{A/B}(SomePVName, 32)
+        // ==> Replace PV `number` with just the number
         int i=0;
         for (String pv : pvs)
         {
             final String variable = "`" + String.valueOf((char) ('A' + i)) + "`";
-            cvt = cvt.replace(variable, "`" + pv + "`");
+            if (calc_number_pattern.matcher(pv).matches())
+                cvt = cvt.replace(variable, pv);
+            else
+                cvt = cvt.replace(variable, "`" + pv + "`");
             ++i;
         }
         return cvt;
@@ -375,10 +399,24 @@ public abstract class ConverterBase<W extends Widget>
     }
 
     /** @param edl_path EDL file, may end in .edl
-     *  @return File that ends in .bob
+     *  @return File that ends in .bob, or <code>null</code> for invalid path
      */
     public static String convertDisplayPath(final String edl_path)
     {
+        // Check for 'ASCII' EDL paths to avoid e.g. "Ctrl-X"
+        for (int i=0; i<edl_path.length(); ++i)
+        {
+            final char c = edl_path.charAt(i);
+            if (! (Character.isAlphabetic(c) ||
+                   Character.isDigit(c)      ||
+                   "\\/$()_-.".indexOf(c) >= 0))
+            {
+                logger.log(Level.WARNING, "Invalid path '" + edl_path + "' element '" + c + "'");
+                return null;
+            }
+        }
+
+        // Assert file extension
         if (edl_path.endsWith(".edl"))
             return edl_path.replace(".edl", ".bob");
         return edl_path + ".bob";

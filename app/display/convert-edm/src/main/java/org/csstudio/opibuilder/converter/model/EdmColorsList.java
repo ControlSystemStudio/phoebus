@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-
 import java.util.logging.Logger;
 
 /**
@@ -48,10 +47,10 @@ public class EdmColorsList extends EdmEntity {
      * @throws EdmException if any of EdmAttributes contain invalid EdmColor data.
      */
     private void populateColorsMaps(EdmEntity genericColors) throws EdmException {
-        colorsMap = new HashMap<Integer, EdmColor>();
+        colorsMap = new HashMap<>();
         //always has 0 as the undefined color
         colorsMap.put(0, new EdmColor(null, 0,0,0));
-        colorsNameMap = new HashMap<String, EdmColor>();
+        colorsNameMap = new HashMap<>();
 
         // parse subentities of generic ColorsList EdmEntity;
         // each subentity should be generic EdmColor
@@ -68,10 +67,10 @@ public class EdmColorsList extends EdmEntity {
      */
     private void populateMenuColorsMap(EdmEntity colorsData) throws EdmException {
 
-        menuColorsMap = new HashMap<Integer, EdmColor>();
+        menuColorsMap = new HashMap<>();
 
         // Create a set of all defined colors to check if they are all in the menumap.
-        Set<EdmColor> nonMenuColors = new HashSet<EdmColor>(colorsMap.values());
+        Set<EdmColor> nonMenuColors = new HashSet<>(colorsMap.values());
 
         int menuInd = 0;
         for (int entityInd = 0; entityInd < colorsData.getSubEntityCount(); entityInd++) {
@@ -89,7 +88,7 @@ public class EdmColorsList extends EdmEntity {
         }
 
         if (!nonMenuColors.isEmpty()) {
-            log.warning("Color definitions exist that are not in menumap. Adding them at the end.");
+            log.fine("Color definitions exist that are not in menumap. Adding them at the end.");
             Iterator<EdmColor> iterator = nonMenuColors.iterator();
             while (iterator.hasNext()) {
                 menuColorsMap.put(menuInd, iterator.next());

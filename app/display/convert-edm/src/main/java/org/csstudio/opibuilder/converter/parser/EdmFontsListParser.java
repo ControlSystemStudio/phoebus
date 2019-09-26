@@ -29,7 +29,7 @@ public class EdmFontsListParser extends EdmParser {
      * @param fileName Font list file name.
      * @throws EdmException if error occurs.
      */
-    public EdmFontsListParser(String fileName, final InputStream stream) throws EdmException {
+    public EdmFontsListParser(String fileName, final InputStream stream) throws Exception {
         super(fileName, stream);
         parseFonts(getRoot(), edmData.toString());
     }

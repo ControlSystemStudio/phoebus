@@ -18,36 +18,28 @@
 
 package org.phoebus.service.saveandrestore.services.config;
 
-import static org.junit.Assert.assertNotNull;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.phoebus.service.saveandrestore.epics.IEpicsService;
+import org.phoebus.service.saveandrestore.persistence.config.PersistenceConfiguration;
+import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import org.phoebus.service.saveandrestore.epics.config.EpicsConfiguration;
-import org.phoebus.service.saveandrestore.persistence.config.PersistenceConfiguration;
-import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextHierarchy({ @ContextConfiguration(classes = { ServicesConfiguration.class, PersistenceConfiguration.class, EpicsConfiguration.class}) })
+@ContextHierarchy({ @ContextConfiguration(classes = { ServicesConfiguration.class, PersistenceConfiguration.class}) })
 @TestPropertySource(properties = {"dbengine = h2"})
 public class ServicesConfigurationTest {
-	
-	@Autowired
-	private IEpicsService epicsService;
-	
+
 	@Autowired
 	private NodeDAO nodeDAO;
 
-	
 	@Test
 	public void testConfig() {
-		assertNotNull(epicsService);
 		assertNotNull(nodeDAO);
 	}
 }

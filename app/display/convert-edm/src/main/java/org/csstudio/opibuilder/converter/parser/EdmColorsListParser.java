@@ -35,7 +35,7 @@ public class EdmColorsListParser extends EdmParser {
      * @param fileName Edm colors list file.
      * @throws EdmException if parsing error occurs.
      */
-    public EdmColorsListParser(String fileName, final InputStream stream) throws EdmException {
+    public EdmColorsListParser(String fileName, final InputStream stream) throws Exception {
         super(fileName, stream);
 
         String data = edmData.toString();

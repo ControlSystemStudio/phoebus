@@ -40,12 +40,10 @@ public class Convert_activeMessageButtonClass extends ConverterBase<Widget>
     {
         super(converter, parent, mb);
 
-        if (mb.isToggle())
+        if (is_boolean(mb))
         {
             // Create bool button that writes 0/1
             final BoolButtonWidget b = (BoolButtonWidget) widget;
-            final String pv = convertPVName(mb.getControlPv());
-            b.propPVName().setValue(pv);
             b.propShowLED().setValue(false);
             b.propOnLabel().setValue(mb.getOnLabel());
             b.propOffLabel().setValue(mb.getOffLabel());
@@ -63,11 +61,17 @@ public class Convert_activeMessageButtonClass extends ConverterBase<Widget>
                 b.propPassword().setValue(mb.getPassword());
             }
 
-            if (! ("1".equals(mb.getPressValue())  &&
-                   "0".equals(mb.getReleaseValue())))
-                logger.log(Level.WARNING, "Cannot convert EDM message 'toggle' button for values '" +
-                           mb.getPressValue() + "', '" + mb.getReleaseValue() +
-                           "', will write " + pv + " = 1, 0");
+            final String pv = convertPVName(mb.getControlPv());
+            b.propPVName().setValue(pv);
+
+            if (mb.isToggle())
+                b.propMode().setValue(BoolButtonWidget.Mode.TOGGLE);
+            else
+                if ("0".equals(mb.getPressValue())  &&
+                    "1".equals(mb.getReleaseValue()))
+                    b.propMode().setValue(BoolButtonWidget.Mode.PUSH_INVERTED);
+                else
+                    b.propMode().setValue(BoolButtonWidget.Mode.PUSH);
         }
         else
         {
@@ -83,7 +87,10 @@ public class Convert_activeMessageButtonClass extends ConverterBase<Widget>
             else
             {
                 final String pv = convertPVName(mb.getControlPv());
-                b.propActions().setValue(new ActionInfos(List.of(new WritePVActionInfo(mb.getOffLabel(), pv, mb.getPressValue()))));
+                String desc = mb.getOffLabel();
+                if (desc == null)
+                    desc = "Write";
+                b.propActions().setValue(new ActionInfos(List.of(new WritePVActionInfo(desc, pv, mb.getPressValue()))));
                 // If there is a release value, warn that it's ignored.
                 // OK to not write a release value that matches the press value,
                 // since we wrote it on press.
@@ -106,9 +113,16 @@ public class Convert_activeMessageButtonClass extends ConverterBase<Widget>
     protected Widget createWidget(final EdmWidget edm)
     {
         final Edm_activeMessageButtonClass mb = (Edm_activeMessageButtonClass) edm;
-        if (mb.isToggle())
+        if (is_boolean(mb))
             return new BoolButtonWidget();
         else
             return new ActionButtonWidget();
+    }
+
+    private boolean is_boolean(final Edm_activeMessageButtonClass mb)
+    {
+        return ("1".equals(mb.getPressValue()) && "0".equals(mb.getReleaseValue()))
+               ||
+               ("0".equals(mb.getPressValue()) && "1".equals(mb.getReleaseValue()));
     }
 }

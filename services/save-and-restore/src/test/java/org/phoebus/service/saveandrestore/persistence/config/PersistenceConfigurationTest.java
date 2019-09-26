@@ -43,17 +43,11 @@ public class PersistenceConfigurationTest {
 	@Autowired
 	private DataSource dataSource;
 	
-//	@Autowired
-//	private SimpleJdbcInsert configurationInsert;
-	
 	@Autowired
 	private SimpleJdbcInsert configurationEntryInsert;
 	
 	@Autowired
 	private SimpleJdbcInsert configurationEntryRelationInsert;
-	
-//	@Autowired
-//	private SimpleJdbcInsert snapshotInsert;
 	
 	@Autowired
 	private SimpleJdbcInsert snapshotPvInsert;
@@ -68,14 +62,10 @@ public class PersistenceConfigurationTest {
 	@Test
 	public void test() {
 		assertNotNull(dataSource);
-//		assertNotNull(configurationInsert);
-//		assertEquals("config", configurationInsert.getTableName());
 		assertNotNull(configurationEntryInsert);
 		assertEquals("config_pv", configurationEntryInsert.getTableName());
 		assertNotNull(configurationEntryRelationInsert);
 		assertEquals("config_pv_relation", configurationEntryRelationInsert.getTableName());
-//		assertNotNull(snapshotInsert);
-//		assertEquals("snapshot_node", snapshotInsert.getTableName());
 		assertNotNull(snapshotPvInsert);
 		assertEquals("snapshot_node_pv", snapshotPvInsert.getTableName());
 		assertNotNull(jdbcTemplate);

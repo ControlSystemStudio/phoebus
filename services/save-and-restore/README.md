@@ -14,6 +14,12 @@ mvn clean install
 
 # Run
 
+NOTE: the service is based on Spring Boot using a default configuration. Consequently the build artifact contains 
+all dependencies. As such it is launched as a stand-alone jar, see below. To convert the build artifact to a war file for 
+deployment to an application server, see https://spring.io/guides/gs/convert-jar-to-war/ 
+
+Run the service like so:
+
 java [options] -jar service-save-and-restore-<version>.jar
 
 Where mandatory [options] are:

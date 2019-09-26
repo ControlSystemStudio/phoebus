@@ -79,30 +79,6 @@
 			<version>2.8.0</version>
 		</dependency>
 
-		<dependency>
-			<groupId>org.epics</groupId>
-			<artifactId>gpclient-core</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.epics</groupId>
-			<artifactId>gpclient-ca</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.epics</groupId>
-			<artifactId>gpclient-pva</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.epics</groupId>
-			<artifactId>vtype-json</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-
 		<!-- https://mvnrepository.com/artifact/org.glassfish/javax.json -->
 		<dependency>
 			<groupId>org.glassfish</groupId>
@@ -200,18 +176,6 @@
 			<version>4.0</version>
 		</dependency>
 	</dependencies>
-
-
-	<distributionManagement>
-		<repository>
-			<id>distribution-repository</id>
-			<url>${distribution.repository.release}</url>
-		</repository>
-		<snapshotRepository>
-			<id>distribution-repository</id>
-			<url>${distribution.repository.snapshot}</url>
-		</snapshotRepository>
-	</distributionManagement>
 
 	<build>
 		<plugins>

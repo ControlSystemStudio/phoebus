@@ -31,7 +31,7 @@ import org.csstudio.display.builder.runtime.pv.RuntimePV;
 public class ArrayWidgetRuntime extends WidgetRuntime<ArrayWidget>
 {
     private ArrayPVDispatcher dispatcher;
-    private CopyOnWriteArrayList<String> pvnames = new CopyOnWriteArrayList<String>();
+    private CopyOnWriteArrayList<String> pvnames = new CopyOnWriteArrayList<>();
     private String pvid;
 
     private final ArrayPVDispatcher.Listener assign_pv_names = new ArrayPVDispatcher.Listener()
@@ -42,7 +42,7 @@ public class ArrayWidgetRuntime extends WidgetRuntime<ArrayWidget>
             pvnames.clear();
             for (RuntimePV pv : element_pvs)
                 pvnames.add(pv.getName());
-            setPVNames(0, new ArrayList<Widget>(widget.runtimeChildren().getValue()));
+            setPVNames(0, new ArrayList<>(widget.runtimeChildren().getValue()));
         }
     };
 
@@ -81,7 +81,7 @@ public class ArrayWidgetRuntime extends WidgetRuntime<ArrayWidget>
     }
 
     @Override
-    public void start() throws Exception
+    public void start()
     {
         super.start();
         RuntimePV pv = getPrimaryPV().orElse(null);

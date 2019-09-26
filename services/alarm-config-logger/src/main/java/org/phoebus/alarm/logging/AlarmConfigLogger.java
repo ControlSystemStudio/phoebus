@@ -287,7 +287,7 @@ public class AlarmConfigLogger implements Runnable {
     private synchronized void writeAlarmModel() {
         // Output the model to the restore-able scripts folder.
         File node = Paths.get(root.getPath(), ".restore-script").toFile();
-        if (!node.mkdirs()) {
+        if (!node.mkdirs() && !node.exists()) {
             logger.log(Level.WARNING, "Alarm config logging failed to create .restore-script folder");
         }
         File node_info = new File(node, "config.xml");

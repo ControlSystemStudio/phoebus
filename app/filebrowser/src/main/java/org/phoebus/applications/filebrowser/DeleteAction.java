@@ -8,7 +8,10 @@
 package org.phoebus.applications.filebrowser;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.FileHelper;
@@ -41,12 +44,19 @@ public class DeleteAction extends MenuItem
             final Alert prompt = new Alert(AlertType.CONFIRMATION);
             prompt.setTitle(Messages.DeletePromptTitle);
 
+            // Files to delete
+            final List<File> files = new ArrayList<>();
+            // Listing of those files
             final StringBuilder buf = new StringBuilder();
+            // Parent tree items to refresh
+            final Set<FileTreeItem> parents = new HashSet<>();
             for (TreeItem<File> item : items)
             {
+                files.add(item.getValue());
                 if (buf.length() > 0)
                     buf.append(", ");
                 buf.append(item.getValue().getName());
+                parents.add((FileTreeItem)item.getParent());
             }
 
             prompt.setHeaderText(Messages.DeletePromptHeader + buf.toString() + "?");
@@ -56,17 +66,18 @@ public class DeleteAction extends MenuItem
 
             JobManager.schedule(Messages.DeleteJobName + buf.toString(), monitor ->
             {
-                for (TreeItem<File> item : items)
+                // Delete files. DirectoryMonitor might update tree items
+                // as it detects file removal...
+                for (File file : files)
                 {
-                    final File file = item.getValue();
                     if (file.isFile())
                         file.delete();
                     else if (file.isDirectory())
                         FileHelper.delete(file);
-
-                    final FileTreeItem parent = (FileTreeItem)item.getParent();
-                    Platform.runLater(() ->  parent.forceRefresh());
                 }
+                // .. but to get faster response, force refresh of parent items
+                for (FileTreeItem parent : parents)
+                    Platform.runLater(() ->  parent.forceRefresh());
             });
         });
     }

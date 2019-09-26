@@ -130,20 +130,6 @@ public class ServicesTest {
 		Node config = services.getNode("a");
 		assertEquals(1, config.getId());
 	}
-
-	
-	@Test
-	public void testTakeSnapshot() {
-		when(nodeDAO.getNode("a")).thenReturn(configFromClient);
-		when(nodeDAO.savePreliminarySnapshot(configFromClient.getUniqueId(), Collections.emptyList()))
-			.thenReturn(Node.builder().nodeType(NodeType.SNAPSHOT).id(777).build());
-		services.takeSnapshot("a");
-	}
-	
-	@Test(expected = IllegalArgumentException.class)
-	public void testTakeSnapshotConfigNotFound() {
-		services.takeSnapshot("x");
-	}
 	
 	@Test
 	public void testCommitSnapshot() {

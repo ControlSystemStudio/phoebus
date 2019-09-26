@@ -30,8 +30,14 @@
 
 		<dependency>
 			<groupId>org.epics</groupId>
+			<artifactId>vtype</artifactId>
+			<version>1.0.1-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.epics</groupId>
 			<artifactId>vtype-json</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.1-SNAPSHOT</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
@@ -71,16 +77,6 @@
 		</dependency>
 	</dependencies>
 
-	<distributionManagement>
-		<repository>
-			<id>distribution-repository</id>
-			<url>${distribution.repository.release}</url>
-		</repository>
-		<snapshotRepository>
-			<id>distribution-repository</id>
-			<url>${distribution.repository.snapshot}</url>
-		</snapshotRepository>
-	</distributionManagement>
 
 	<build>
 		<plugins>

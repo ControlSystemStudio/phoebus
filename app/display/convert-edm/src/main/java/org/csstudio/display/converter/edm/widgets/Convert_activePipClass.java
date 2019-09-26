@@ -39,6 +39,7 @@ public class Convert_activePipClass extends ConverterBase<Widget>
 
         if (widget instanceof NavigationTabsWidget)
         {
+            // Use nav. tabs for 'menu' that selects a display based on numeric PV
             final NavigationTabsWidget w = (NavigationTabsWidget) widget;
             // Hide the tabs
             w.propTabWidth().setValue(0);
@@ -58,7 +59,7 @@ public class Convert_activePipClass extends ConverterBase<Widget>
                     final TabProperty tab = w.propTabs().getElement(i);
 
                     final String path = convertDisplayPath(display.get());
-                    converter.addLinkedDisplay(path);
+                    converter.addIncludedDisplay(path);
                     tab.file().setValue(path);
 
                     final EdmString edm_macros = symbols == null ? null : symbols.get(si);
@@ -86,10 +87,38 @@ public class Convert_activePipClass extends ConverterBase<Widget>
             scripts.add(new ScriptInfo(ScriptInfo.EMBEDDED_PYTHON, script, true, List.of(new ScriptPV(convertPVName(pip.getFilePv())))));
             w.propScripts().setValue(scripts);
         }
+        else if ((pip.getFile() != null && pip.getDisplayFileName().getValueCount() == 0)
+                 ||
+                 pip.getDisplayFileName().getValueCount() == 1)
+        {
+            // Single display file, either from 'file' or list of displays with only first entry & macros
+            final EmbeddedDisplayWidget w = (EmbeddedDisplayWidget) widget;
+            String path = pip.getDisplayFileName().getValueCount() == 1
+                        ? pip.getDisplayFileName().getEdmAttributesMap().get("0").get()
+                        : pip.getFile();
+            path = convertDisplayPath(path);
+            w.propFile().setValue(path);
+
+            if (pip.getSymbols() != null)
+            {
+                final EdmString edm_macros = pip.getSymbols().getEdmAttributesMap().get("0");
+                if (edm_macros != null)
+                    try
+                    {
+                        w.propMacros().setValue(Macros.fromSimpleSpec(edm_macros.get()));
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.log(Level.WARNING, "Cannot parse macros for embedded display " + path + " from '" + edm_macros.get() + "'", ex);
+                    }
+            }
+
+            w.propTransparent().setValue(true);
+        }
         else
         {
-            final EmbeddedDisplayWidget w = (EmbeddedDisplayWidget) widget;
-            logger.log(Level.WARNING, "Not converting embedded display at this time");
+            // Not handling 'String PV'
+            logger.log(Level.WARNING, "Can only handle EDM Embedded Window (pip) for single display or 'menu'");
         }
     }
 
@@ -97,8 +126,10 @@ public class Convert_activePipClass extends ConverterBase<Widget>
     protected Widget createWidget(final EdmWidget edm)
     {
         final Edm_activePipClass pip = (Edm_activePipClass) edm;
-        if ("menu".equals(pip.getDisplaySource()))
+        // If there's a menu and more than one display, use tabs (hiding the tabs)
+        if ("menu".equals(pip.getDisplaySource())  &&  pip.getDisplayFileName().getValueCount() > 1)
             return new NavigationTabsWidget();
+        // Otherwise use embedded display
         else
             return new EmbeddedDisplayWidget();
     }

@@ -32,17 +32,8 @@ public interface JMasarClient {
 
     public Node updateNode(Node nodeToUpdate);
 
-    public Node takeSnapshot(String uniqueNodeId);
-
     public void deleteNode(String uniqueNodeId);
-
-    private String getCurrentUsersName(){
-        return System.getProperty("user.name");
-    }
 
     public Node updateConfiguration(Node configToUpdate, List<ConfigPv> configPvList);
 
-    public String getJMasarServiceVersion();
-
-    public ConfigPv updateSingleConfigPv(String currentPvName, String newPvName, String currentReadbackPvName, String newReadbackPvName);
 }
