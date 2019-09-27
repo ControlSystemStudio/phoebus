@@ -19,6 +19,10 @@ import org.epics.pva.data.PVAStructure;
 import org.epics.pva.data.nt.PVATimeStamp;
 
 /** PVA Server Demo
+ *
+ *  <p>PVs "demo" and "demo2" updates.
+ *  PV "demo3" is writable.
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -38,9 +42,14 @@ public class ServerDemo
                                                    new PVAString("tag",   "Hello!"),
                                                    time);
 
+        final PVAStructure writable_data = data.cloneData();
+
         // Create PVs
         final ServerPV pv = server.createPV("demo", data);
         final ServerPV pv2 = server.createPV("demo2", data);
+        // TODO Allow/prohibit write access
+        // TODO Handler for reacting to written data
+        final ServerPV write_pv = server.createPV("demo3", writable_data);
 
         // Update PVs
         for (int i=0; i<30000; ++i)
