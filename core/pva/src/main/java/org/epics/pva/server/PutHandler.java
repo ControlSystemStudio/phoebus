@@ -17,6 +17,7 @@ import org.epics.pva.common.CommandHandler;
 import org.epics.pva.common.PVAHeader;
 import org.epics.pva.data.PVABitSet;
 import org.epics.pva.data.PVAData;
+import org.epics.pva.data.PVAStatus;
 import org.epics.pva.data.PVAStructure;
 
 /** Handle client's PUT command
@@ -75,14 +76,66 @@ class PutHandler implements CommandHandler<ServerTCPHandler>
         {
             // Client wrote
             logger.log(Level.FINE, () -> "Received PUT for " + pv + ", subcommand " + String.format("0x%02X ", subcmd));
+
+            final BitSet written = PVABitSet.decodeBitSet(buffer);
+
+            // Check write access in general and for this client
+            if (! (pv.isWritable() && tcp.getAuth().hasWriteAccess(pv.getName())))
+            {
+                GetHandler.sendError(tcp, PVAHeader.CMD_PUT, req, subcmd, "No write access to " + pv.getName());
+                return;
+            }
+
             // BitSet toPutBitSet;
             // PVField pvPutStructureData;
-            final BitSet written = PVABitSet.decodeBitSet(buffer);
-            // TODO For now just get the changes
-            final PVAStructure data = pv.getData().cloneType("written");
+            // XXX Directly update pv.data, not getData() clone?
+            final PVAStructure data = pv.getData();
             data.decodeElements(written, tcp.getClientTypes(), buffer);
 
-            GetHandler.sendError(tcp, PVAHeader.CMD_PUT, req, subcmd, "You wrote bits " + written + " in:\n" + data.format());
+            if (logger.isLoggable(Level.FINE))
+            {
+                for (int index = written.nextSetBit(0);
+                     index >= 0;
+                     index = written.nextSetBit(index + 1))
+                {
+                    final PVAData element = data.get(index);
+                    logger.log(Level.FINE, "Client wrote element " + index + ": " + element);
+                    // Javadoc for nextSetBit() suggests checking for MAX_VALUE
+                    // to avoid index + 1 overflow and thus starting over with first bit
+                    if (index == Integer.MAX_VALUE)
+                        break;
+                }
+            }
+
+            // Notify PV
+            try
+            {
+                pv.wrote(written, data);
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Write failed to " + pv, ex);
+                // XXX Send stack trace with error status?
+                GetHandler.sendError(tcp, PVAHeader.CMD_PUT, req, subcmd, "Write failed");
+                return;
+            }
+
+            sendPutDone(tcp, req, subcmd);
         }
+    }
+
+    private static void sendPutDone(final ServerTCPHandler tcp, final int req, final byte subcmd)
+    {
+        tcp.submit((version, buffer) ->
+        {
+            logger.log(Level.FINE, () -> "Sending PUT response");
+            PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_SERVER, PVAHeader.CMD_PUT, 4+1+1);
+            // int requestID
+            buffer.putInt(req);
+            // byte subcommand
+            buffer.put(subcmd);
+            // Status status
+            PVAStatus.StatusOK.encode(buffer);
+        });
     }
 }
