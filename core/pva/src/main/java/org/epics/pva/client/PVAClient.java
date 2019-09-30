@@ -203,9 +203,15 @@ public class PVAClient
         // Late reply for search that was already satisfied?
         if (channel == null)
         {
+            // Since searches are sent out multiple times until there's a response,
+            // and searches are forwarded via multicast,
+            // so it's common to receive multiple replies for the same channel
+            // from the same server.
             // Check GUID for unexpected reply from another(!) server.
             final PVAChannel check = channels_by_id.get(channel_id);
-            if (check != null)
+            if (check == null)
+                logger.log(Level.WARNING, "Received search reply for unknown channel ID " + channel_id + " from " + server + " " + guid);
+            else
             {
                 final ClientTCPHandler tcp = check.tcp.get();
                 // Warn about duplicate PVs on network
