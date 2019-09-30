@@ -116,6 +116,9 @@ public class PVAHeader
     /** Sub command delete a request GET/PUT/MONITOR/RPC */
     public static final byte CMD_SUB_DESTROY = 0x10;
 
+    /** Sub command of PUT to first GET the current value */
+    public static final byte CMD_SUB_GET = 0x40;
+
 
     /** Control message command to set byte order */
     public static final byte CTRL_SET_BYTE_ORDER = 2;

@@ -65,7 +65,7 @@ class GetHandler implements CommandHandler<ServerTCPHandler>
         else
         {
             logger.log(Level.FINE, () -> "Received GET for " + pv);
-            sendGetReply(tcp, req, pv);
+            sendGetReply(tcp, PVAHeader.CMD_GET, (byte) 0, req, pv);
         }
     }
 
@@ -110,20 +110,30 @@ class GetHandler implements CommandHandler<ServerTCPHandler>
         });
     }
 
-    private void sendGetReply(final ServerTCPHandler tcp, final int req, final ServerPV pv)
+    static void sendGetReply(final ServerTCPHandler tcp, final byte command, final byte subcmd, final int req, final ServerPV pv)
     {
         // Like QSRV, ignore the requested type and send pv.data
         tcp.submit((version, buffer) ->
         {
             final PVAStructure data = pv.getData();
-            logger.log(Level.FINE, () -> "Sending GET data for " + pv + ":\n" + data.format());
+            if (logger.isLoggable(Level.FINE))
+            {
+                final String cmd;
+                if (command == PVAHeader.CMD_PUT && subcmd == PVAHeader.CMD_SUB_GET)
+                    cmd = "GET-PUT";
+                else if (command == PVAHeader.CMD_GET)
+                    cmd = "GET";
+                else
+                    cmd = "GET??";
+                logger.log(Level.FINE, () -> "Sending " + cmd + " data for " + pv + ":\n" + data.format());
+            }
 
-            PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_SERVER, PVAHeader.CMD_GET, 0);
+            PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_SERVER, command, 0);
             final int payload_start = buffer.position();
             // int requestID
             buffer.putInt(req);
             // byte subcommand
-            buffer.put((byte)0);
+            buffer.put(subcmd);
             // Status status
             PVAStatus.StatusOK.encode(buffer);
             // changed: Top-level structure, i.e. all
