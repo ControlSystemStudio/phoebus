@@ -97,12 +97,6 @@ public class StringTable extends BorderPane
         {
             this.text = text;
         }
-
-        @Override
-        public String toString()
-        {
-            return "'" + text + "' (" + color + ")";
-        }
     }
 
     /** CellValue that table can observe.
@@ -114,11 +108,6 @@ public class StringTable extends BorderPane
         private final List<InvalidationListener> invalid_listeners = new ArrayList<>();
         private final List<ChangeListener<? super CellValue>> change_listeners = new ArrayList<>();
         private final CellValue value;
-
-        public ObservableCellValue()
-        {
-            this("");
-        }
 
         public ObservableCellValue(final String text)
         {
@@ -227,13 +216,12 @@ public class StringTable extends BorderPane
         if (color == null)
             cell.setStyle(null);
         else
-        {   // Based on modena.css
+            // Based on modena.css
             // .table-cell has no -fx-background-color to see overall background,
             // but .table-cell:selected uses this to get border with an inset color
             cell.setStyle("-fx-background-color: -fx-table-cell-border-color, " +
                           JFXUtil.webRGB(color) +
                           ";-fx-background-insets: 0, 0 0 1 0;");
-        }
     }
 
     /** Value used for the last row
@@ -301,8 +289,7 @@ public class StringTable extends BorderPane
                 editor.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKey);
             }
             // In last row, don't edit "Click to edit" but show empty initial value
-            final int row = getIndex();
-            if (data.get(row) == MAGIC_LAST_ROW)
+            if (data.get(getIndex()) == MAGIC_LAST_ROW)
                 editor.clear();
         }
 
@@ -332,8 +319,7 @@ public class StringTable extends BorderPane
                 setCellStyle(this, null);
             else
             {
-                final int row = getIndex();
-                setTextFill(data.get(row) == MAGIC_LAST_ROW ? last_row_color : text_color);
+                setTextFill(data.get(getIndex()) == MAGIC_LAST_ROW ? last_row_color : text_color);
                 setCellStyle(this, item.color);
             }
         }
@@ -369,7 +355,7 @@ public class StringTable extends BorderPane
             // The checkbox is always visible and active,
             // no need to 'startEdit' as for other cells which
             // only then show the editor,
-            // but when programatically starting edit, activate the checkbox
+            // but when programmatically starting edit, activate the checkbox
             Platform.runLater(() -> checkbox.requestFocus());
         }
 
@@ -406,8 +392,7 @@ public class StringTable extends BorderPane
             }
             else
             {
-                final int row = getIndex();
-                if (data.get(row) == MAGIC_LAST_ROW)
+                if (data.get(getIndex()) == MAGIC_LAST_ROW)
                 {
                     setText(item.text);
                     setGraphic(null);
@@ -465,7 +450,7 @@ public class StringTable extends BorderPane
             // for example by clicking elsewhere,
             // would accept the value and activate editing the row below.
             // Instead, cancel editing.
-            if (! have_focus)
+            if (! have_focus  &&  isEditing())
                 super.cancelEdit();
         }
 
@@ -503,7 +488,7 @@ public class StringTable extends BorderPane
         {
             super.updateItem(item, empty);
 
-            if (empty || item == null || item.color == null)
+            if (empty || item == null)
                 setStyle(null);
             else
                 setCellStyle(this, item.color);
@@ -593,13 +578,13 @@ public class StringTable extends BorderPane
         toolbar.getItems().addAll(
             createToolbarButton("add_row", Messages.AddRow, event -> addRow()),
             createToolbarButton("remove_row", Messages.RemoveRow, event -> deleteRow()),
-            createToolbarButton("row_up", Messages.MoveRowUp, event -> moveRowUp()),
-            createToolbarButton("row_down", Messages.MoveRowDown, event -> moveRowDown()),
+            createToolbarButton("row_up", Messages.MoveRowUp, event -> moveRowUpDown(true)),
+            createToolbarButton("row_down", Messages.MoveRowDown, event -> moveRowUpDown(false)),
             createToolbarButton("rename_col", Messages.RenameColumn, event -> renameColumn()),
             createToolbarButton("add_col", Messages.AddColumn, event -> addColumn()),
             createToolbarButton("remove_col", Messages.RemoveColumn, event -> deleteColumn()),
-            createToolbarButton("col_left", Messages.MoveColumnLeft, event -> moveColumnLeft()),
-            createToolbarButton("col_right", Messages.MoveColumnRight, event -> moveColumnRight()));
+            createToolbarButton("col_left", Messages.MoveColumnLeft, event -> moveColumnLeftRight(true)),
+            createToolbarButton("col_right", Messages.MoveColumnRight, event -> moveColumnLeftRight(false)));
         Platform.runLater(toolbar::layout);
     }
 
@@ -860,7 +845,7 @@ public class StringTable extends BorderPane
         final int size = getColumnCount();
         final List<ObservableCellValue> row = new ArrayList<>(size);
         for (int i=0; i<size; ++i)
-            row.add(new ObservableCellValue());
+            row.add(new ObservableCellValue(""));
         return row;
     }
 
@@ -1092,24 +1077,14 @@ public class StringTable extends BorderPane
         fireDataChanged();
     }
 
-    /** Move selected row up  */
-    private void moveRowUp()
+    /** @param up Mode up or down? */
+    private void moveRowUpDown(final boolean up)
     {
         int row = table.getSelectionModel().getSelectedIndex();
         final int num = data.size() - 1;
         if (row < 0 || num < 1)
             return;
-        moveRow(row, (row - 1 + num) % num);
-    }
-
-    /** Move selected row down  */
-    private void moveRowDown()
-    {
-        int row = table.getSelectionModel().getSelectedIndex();
-        final int num = data.size() - 1;
-        if (row < 0 || num < 1)
-            return;
-        moveRow(row, (row + 1) % num);
+        moveRow(row, up ? (row - 1 + num) % num : (row + 1) % num);
     }
 
     /** Move a row up/down
@@ -1223,7 +1198,7 @@ public class StringTable extends BorderPane
             final List<ObservableCellValue> row = data.get(r);
             if (row == MAGIC_LAST_ROW)
                 break;
-            row.add(column, new ObservableCellValue());
+            row.add(column, new ObservableCellValue(""));
         }
 
         // Show the updated data
@@ -1233,24 +1208,14 @@ public class StringTable extends BorderPane
         fireTableChanged();
     }
 
-    /** Move selected column to the left */
-    private void moveColumnLeft()
+    /** @param Move selected column left or right? */
+    private void moveColumnLeftRight(final boolean left)
     {
         final int column = getSelectedColumn();
         final int num = table.getColumns().size();
         if (column < 0 || num < 1)
             return;
-        moveColumn(column, (column - 1 + num) % num);
-    }
-
-    /** Move selected column to the right */
-    private void moveColumnRight()
-    {
-        final int column = getSelectedColumn();
-        final int num = table.getColumns().size();
-        if (column < 0 || num < 1)
-            return;
-        moveColumn(column, (column + 1) % num);
+        moveColumn(column, left ? (column - 1 + num) % num : (column + 1) % num);
     }
 
     /** Move a column left/right
