@@ -292,14 +292,28 @@ public class StringTable extends BorderPane
             super.startEdit();
             if (combo == null)
             {
+                // When edited the first time, instrument combo
                 combo = (ComboBox<String>) getGraphic();
                 combo.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKey);
+                combo.focusedProperty().addListener(prop -> handleFocus(combo.isFocused()));
+                // ComboBoxTableCell re-uses the same combo,
+                // so won't add same filters again
             }
 
             // By default, the combo is shown, but not 'active'.
             // requestFocus activates the text field of the combo
             TIMER.schedule(() -> Platform.runLater(() ->  combo.requestFocus()),
                 200, TimeUnit.MILLISECONDS);
+        }
+
+        private void handleFocus(final boolean have_focus)
+        {
+            // By default, loosing the focus,
+            // for example by clicking elsewhere,
+            // would accept the value and activate editing the row below.
+            // Instead, cancel editing.
+            if (! have_focus)
+                super.cancelEdit();
         }
 
         private void handleKey(final KeyEvent event)
