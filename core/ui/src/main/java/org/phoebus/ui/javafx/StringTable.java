@@ -14,12 +14,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import org.phoebus.ui.Messages;
-import org.python.google.common.base.Objects;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -147,7 +147,7 @@ public class StringTable extends BorderPane
         public void setValue(final CellValue new_value)
         {
             if (value.text.equals(new_value.text)  &&
-                Objects.equal(value.color, new_value.color))
+                Objects.equals(value.color, new_value.color))
                 return;
             value.text = new_value.text;
             value.color = new_value.color;
@@ -164,7 +164,7 @@ public class StringTable extends BorderPane
 
         public void setColor(final Color color)
         {
-            if (Objects.equal(value.color, color))
+            if (Objects.equals(value.color, color))
                 return;
             value.color = color;
             notifyListeners();
