@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -21,15 +22,16 @@ import java.util.stream.Collectors;
 import org.phoebus.ui.Messages;
 
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Cell;
 import javafx.scene.control.CheckBox;
@@ -56,7 +58,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.util.Callback;
-import javafx.util.converter.DefaultStringConverter;
+import javafx.util.StringConverter;
 
 /** Table of strings
  *
@@ -85,6 +87,143 @@ import javafx.util.converter.DefaultStringConverter;
 @SuppressWarnings("nls")
 public class StringTable extends BorderPane
 {
+    /** Value of a table cell */
+    private static class CellValue
+    {
+        public String text;
+        public Color color;
+
+        public CellValue(final String text)
+        {
+            this.text = text;
+        }
+    }
+
+    /** CellValue that table can observe.
+     *
+     *  <p>Listeners will be notified when either the text or the color changes.
+     */
+    private static class ObservableCellValue implements ObservableValue<CellValue>
+    {
+        private final List<InvalidationListener> invalid_listeners = new ArrayList<>();
+        private final List<ChangeListener<? super CellValue>> change_listeners = new ArrayList<>();
+        private final CellValue value;
+
+        public ObservableCellValue(final String text)
+        {
+            value = new CellValue(text);
+        }
+
+        @Override
+        public void addListener(final InvalidationListener listener)
+        {
+            invalid_listeners.add(listener);
+        }
+
+        @Override
+        public void removeListener(final InvalidationListener listener)
+        {
+            invalid_listeners.remove(listener);
+        }
+
+        @Override
+        public void addListener(final ChangeListener<? super CellValue> listener)
+        {
+            change_listeners.add(listener);
+        }
+
+        @Override
+        public void removeListener(final ChangeListener<? super CellValue> listener)
+        {
+            change_listeners.remove(listener);
+        }
+
+        @Override
+        public CellValue getValue()
+        {
+            return value;
+        }
+
+        public void setValue(final CellValue new_value)
+        {
+            if (value.text.equals(new_value.text)  &&
+                Objects.equals(value.color, new_value.color))
+                return;
+            value.text = new_value.text;
+            value.color = new_value.color;
+            notifyListeners();
+        }
+
+        public void setText(final String text)
+        {
+            if (value.text.equals(text))
+                return;
+            value.text = text;
+            notifyListeners();
+        }
+
+        public void setColor(final Color color)
+        {
+            if (Objects.equals(value.color, color))
+                return;
+            value.color = color;
+            notifyListeners();
+        }
+
+        private void notifyListeners()
+        {
+            for (InvalidationListener listener : invalid_listeners)
+                listener.invalidated(this);
+            for (ChangeListener<? super CellValue> listener : change_listeners)
+                listener.changed(this, null, value);
+        }
+    }
+
+    /** Convert {@link CellValue} to String and back
+     *
+     *  <p>The back conversion uses the current color of the cell
+     *
+     *  @param cell Cell
+     *  @return {@link StringConverter}
+     */
+    private static StringConverter<CellValue> createConverter(final Cell<CellValue> cell)
+    {
+        return new StringConverter<>()
+        {
+            @Override
+            public String toString(final CellValue value)
+            {
+                return value.text;
+            }
+
+            @Override
+            public CellValue fromString(final String text)
+            {
+                final CellValue value = new CellValue(text);
+                if (cell.getItem() != null)
+                    value.color = cell.getItem().color;
+                return value;
+            }
+        };
+    }
+
+    /** Set cell style
+     *  @param cell Cell to style
+     *  @param color Background color
+     */
+    private static void setCellStyle(final Node cell, final Color color)
+    {
+        if (color == null)
+            cell.setStyle(null);
+        else
+            // Based on modena.css
+            // .table-cell has no -fx-background-color to see overall background,
+            // but .table-cell:selected uses this to get border with an inset color
+            cell.setStyle("-fx-background-color: -fx-table-cell-border-color, " +
+                          JFXUtil.webRGB(color) +
+                          ";-fx-background-insets: 0, 0 0 1 0;");
+    }
+
     /** Value used for the last row
      *
      *  <p>This exact value is placed in the last row.
@@ -94,31 +233,27 @@ public class StringTable extends BorderPane
      *
      *  <p>Table data is compared as exact identity (== MAGIC_LAST_ROW).
      */
-    private static final List<StringProperty> MAGIC_LAST_ROW = Arrays.asList(new SimpleStringProperty(Messages.MagicLastRow));
+    private static final List<ObservableCellValue> MAGIC_LAST_ROW = Arrays.asList(new ObservableCellValue(Messages.MagicLastRow));
 
     /** Value used to temporarily detach the 'data' from table */
-    private static final ObservableList<List<StringProperty>> NO_DATA = FXCollections.observableArrayList();
+    private static final ObservableList<List<ObservableCellValue>> NO_DATA = FXCollections.observableArrayList();
 
     /** Data shown in the table, includes MAGIC_LAST_ROW */
-    private final ObservableList<List<StringProperty>> data = FXCollections.observableArrayList();
-
-    /** Optional cell coloring, does not include MAGIC_LAST_ROW */
-    private volatile List<List<Color>> cell_colors = null;
+    private final ObservableList<List<ObservableCellValue>> data = FXCollections.observableArrayList();
 
     /** Cell value factory aware of MAGIC_LAST_ROW which only has one column */
-    private static final Callback<CellDataFeatures<List<StringProperty>, String>, ObservableValue<String>> VALUE_FACTORY = param ->
+    private static final Callback<CellDataFeatures<List<ObservableCellValue>, CellValue>,
+                                  ObservableValue<CellValue>> VALUE_FACTORY = param ->
     {
-        final TableView<List<StringProperty>> table = param.getTableView();
+        final TableView<List<ObservableCellValue>> table = param.getTableView();
         final int col_index = table.getColumns().indexOf(param.getTableColumn());
-        final List<StringProperty> value = param.getValue();
+        final List<ObservableCellValue> value = param.getValue();
         if (value == MAGIC_LAST_ROW)
-            return col_index == 0 ? MAGIC_LAST_ROW.get(0): new SimpleStringProperty("");
+            return col_index == 0 ? MAGIC_LAST_ROW.get(0): new ObservableCellValue("");
         else if (col_index < value.size())
             return value.get(col_index);
-        return new SimpleStringProperty("<col " + col_index + "?>");
+        return new ObservableCellValue("<col " + col_index + "?>");
     };
-
-    private final boolean editable;
 
     private Color background_color = Color.WHITE;
 
@@ -131,13 +266,13 @@ public class StringTable extends BorderPane
     /** Table cell that displays a String,
      *  with special coloring of the MAGIC_LAST_ROW
      */
-    private class StringTextCell extends TextFieldTableCell<List<StringProperty>, String>
+    private class StringTextCell extends TextFieldTableCell<List<ObservableCellValue>, CellValue>
     {
         private TextField editor = null;
 
         public StringTextCell()
         {
-            super(new DefaultStringConverter());
+            setConverter(createConverter(this));
         }
 
         // Track the text field used for editing
@@ -154,8 +289,7 @@ public class StringTable extends BorderPane
                 editor.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKey);
             }
             // In last row, don't edit "Click to edit" but show empty initial value
-            final int row = getIndex();
-            if (data.get(row) == MAGIC_LAST_ROW)
+            if (data.get(getIndex()) == MAGIC_LAST_ROW)
                 editor.clear();
         }
 
@@ -164,10 +298,10 @@ public class StringTable extends BorderPane
             if (event.getCode() == KeyCode.TAB)
             {
                 // Save the current text field content, since lost focus would otherwise restore previous value
-                commitEdit(editor.getText());
+                commitEdit(getConverter().fromString(editor.getText()));
 
                 // Edit next/prev column in same row
-                final ObservableList<TableColumn<List<StringProperty>, ?>> columns = getTableView().getColumns();
+                final ObservableList<TableColumn<List<ObservableCellValue>, ?>> columns = getTableView().getColumns();
                 final int col = columns.indexOf(getTableColumn());
                 final int next = event.isShiftDown()
                                ? (col + columns.size() - 1) % columns.size()
@@ -178,15 +312,16 @@ public class StringTable extends BorderPane
         }
 
         @Override
-        public void updateItem(final String item, final boolean empty)
+        public void updateItem(final CellValue item, final boolean empty)
         {
             super.updateItem(item, empty);
-            if (empty)
-                return;
-            final int row = getIndex();
-            final int col = getTableView().getColumns().indexOf(getTableColumn());
-            setTextFill(data.get(row) == MAGIC_LAST_ROW ? last_row_color : text_color);
-            setCellStyle(this, row, col);
+            if (empty || item == null)
+                setCellStyle(this, null);
+            else
+            {
+                setTextFill(data.get(getIndex()) == MAGIC_LAST_ROW ? last_row_color : text_color);
+                setCellStyle(this, item.color);
+            }
         }
     }
 
@@ -194,7 +329,7 @@ public class StringTable extends BorderPane
     public static final List<String> BOOLEAN_OPTIONS = Arrays.asList("false", "true");
 
     /** Cell with checkbox, sets data to "true"/"false" */
-    private class BooleanCell extends TableCell<List<StringProperty>, String>
+    private class BooleanCell extends TableCell<List<ObservableCellValue>, CellValue>
     {
         private final CheckBox checkbox = new CheckBox();
 
@@ -207,7 +342,7 @@ public class StringTable extends BorderPane
                 final int row = getIndex();
                 final int col = getTableView().getColumns().indexOf(getTableColumn());
                 final String value = Boolean.toString(checkbox.isSelected());
-                data.get(row).get(col).set(value);
+                data.get(row).get(col).setText(value);
                 fireDataChanged();
             });
             checkbox.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKey);
@@ -220,7 +355,7 @@ public class StringTable extends BorderPane
             // The checkbox is always visible and active,
             // no need to 'startEdit' as for other cells which
             // only then show the editor,
-            // but when programatically starting edit, activate the checkbox
+            // but when programmatically starting edit, activate the checkbox
             Platform.runLater(() -> checkbox.requestFocus());
         }
 
@@ -229,7 +364,7 @@ public class StringTable extends BorderPane
             if (event.getCode() == KeyCode.TAB)
             {
                 // Edit next/prev column in same row
-                final ObservableList<TableColumn<List<StringProperty>, ?>> columns = getTableView().getColumns();
+                final ObservableList<TableColumn<List<ObservableCellValue>, ?>> columns = getTableView().getColumns();
                 final int col = columns.indexOf(getTableColumn());
                 final int next = event.isShiftDown()
                                ? (col + columns.size() - 1) % columns.size()
@@ -246,18 +381,20 @@ public class StringTable extends BorderPane
         }
 
         @Override
-        protected void updateItem(final String item, final boolean empty)
+        protected void updateItem(final CellValue item, final boolean empty)
         {
             super.updateItem(item, empty);
 
-            final int row = getIndex();
-            if (empty)
+            if (empty || item == null)
+            {
                 setGraphic(null);
+                setStyle(null);
+            }
             else
             {
-                if (data.get(row) == MAGIC_LAST_ROW)
+                if (data.get(getIndex()) == MAGIC_LAST_ROW)
                 {
-                    setText(item);
+                    setText(item.text);
                     setGraphic(null);
                 }
                 else
@@ -266,22 +403,23 @@ public class StringTable extends BorderPane
                     setGraphic(checkbox);
                     // Enable checkbox for editable column
                     checkbox.setDisable(! getTableColumn().isEditable());
-                    checkbox.setSelected(item.equalsIgnoreCase("true"));
-                    final int col = getTableView().getColumns().indexOf(getTableColumn());
-                    setCellStyle(this, row, col);
+                    checkbox.setSelected(item.text.equalsIgnoreCase("true"));
+                    setCellStyle(this, item.color);
                 }
             }
         }
     };
 
     /** Cell that allows selecting options from a combo */
-    private class ComboCell extends ComboBoxTableCell<List<StringProperty>, String>
+    private class ComboCell extends ComboBoxTableCell<List<ObservableCellValue>, CellValue>
     {
-        private ComboBox<String> combo = null;
+        private ComboBox<CellValue> combo = null;
 
         public ComboCell(final List<String> options)
         {
-            super(FXCollections.observableArrayList(options));
+            for (String option : options)
+                getItems().add(new CellValue(option));
+            setConverter(createConverter(this));
             setComboBoxEditable(true);
         }
 
@@ -293,7 +431,7 @@ public class StringTable extends BorderPane
             if (combo == null)
             {
                 // When edited the first time, instrument combo
-                combo = (ComboBox<String>) getGraphic();
+                combo = (ComboBox<CellValue>) getGraphic();
                 combo.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKey);
                 combo.focusedProperty().addListener(prop -> handleFocus(combo.isFocused()));
                 // ComboBoxTableCell re-uses the same combo,
@@ -312,8 +450,17 @@ public class StringTable extends BorderPane
             // for example by clicking elsewhere,
             // would accept the value and activate editing the row below.
             // Instead, cancel editing.
-            if (! have_focus)
+            if (! have_focus  &&  isEditing())
                 super.cancelEdit();
+        }
+
+        @Override
+        public void commitEdit(final CellValue new_value)
+        {
+            // Combo submits entered text or value from drop down.
+            // Add the color of current item to that.
+            new_value.color = getItem().color;
+            super.commitEdit(new_value);
         }
 
         private void handleKey(final KeyEvent event)
@@ -326,7 +473,7 @@ public class StringTable extends BorderPane
                 commitEdit(combo.getValue());
 
                 // Edit next/prev column in same row
-                final ObservableList<TableColumn<List<StringProperty>, ?>> columns = getTableView().getColumns();
+                final ObservableList<TableColumn<List<ObservableCellValue>, ?>> columns = getTableView().getColumns();
                 final int col = columns.indexOf(getTableColumn());
                 final int next = event.isShiftDown()
                                ? (col + columns.size() - 1) % columns.size()
@@ -337,21 +484,21 @@ public class StringTable extends BorderPane
         }
 
         @Override
-        public void updateItem(final String item, final boolean empty)
+        public void updateItem(final CellValue item, final boolean empty)
         {
             super.updateItem(item, empty);
-            if (empty)
-                return;
-            final int row = getIndex();
-            final int col = getTableView().getColumns().indexOf(getTableColumn());
-            setCellStyle(this, row, col);
+
+            if (empty || item == null)
+                setStyle(null);
+            else
+                setCellStyle(this, item.color);
         }
     };
 
 
     private final ToolBar toolbar = new ToolBar();
 
-    private final TableView<List<StringProperty>> table = new TableView<>(data);
+    private final TableView<List<ObservableCellValue>> table = new TableView<>(data);
 
     /** Currently editing a cell? */
     private boolean editing = false;
@@ -364,7 +511,7 @@ public class StringTable extends BorderPane
      */
     public StringTable(final boolean editable)
     {
-        this.editable = editable;
+        table.setEditable(editable);
         table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
         table.getSelectionModel().setCellSelectionEnabled(true);
         table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -373,7 +520,6 @@ public class StringTable extends BorderPane
 
         if (editable)
         {
-            table.setEditable(true);
             // Check for keys in both toolbar and table
             addEventFilter(KeyEvent.KEY_PRESSED, this::handleKey);
         }
@@ -404,13 +550,13 @@ public class StringTable extends BorderPane
      */
     public void setSelection(final List<Integer> sel_row_col)
     {
-        final TableViewSelectionModel<List<StringProperty>> selection = table.getSelectionModel();
+        final TableViewSelectionModel<List<ObservableCellValue>> selection = table.getSelectionModel();
         selection.clearSelection();
 
         if (sel_row_col == null)
             return;
 
-        final ObservableList<TableColumn<List<StringProperty>, ?>> columns = table.getColumns();
+        final ObservableList<TableColumn<List<ObservableCellValue>, ?>> columns = table.getColumns();
         int i = 0;
         while (i < sel_row_col.size())
         {
@@ -432,13 +578,13 @@ public class StringTable extends BorderPane
         toolbar.getItems().addAll(
             createToolbarButton("add_row", Messages.AddRow, event -> addRow()),
             createToolbarButton("remove_row", Messages.RemoveRow, event -> deleteRow()),
-            createToolbarButton("row_up", Messages.MoveRowUp, event -> moveRowUp()),
-            createToolbarButton("row_down", Messages.MoveRowDown, event -> moveRowDown()),
+            createToolbarButton("row_up", Messages.MoveRowUp, event -> moveRowUpDown(true)),
+            createToolbarButton("row_down", Messages.MoveRowDown, event -> moveRowUpDown(false)),
             createToolbarButton("rename_col", Messages.RenameColumn, event -> renameColumn()),
             createToolbarButton("add_col", Messages.AddColumn, event -> addColumn()),
             createToolbarButton("remove_col", Messages.RemoveColumn, event -> deleteColumn()),
-            createToolbarButton("col_left", Messages.MoveColumnLeft, event -> moveColumnLeft()),
-            createToolbarButton("col_right", Messages.MoveColumnRight, event -> moveColumnRight()));
+            createToolbarButton("col_left", Messages.MoveColumnLeft, event -> moveColumnLeftRight(true)),
+            createToolbarButton("col_right", Messages.MoveColumnRight, event -> moveColumnLeftRight(false)));
         Platform.runLater(toolbar::layout);
     }
 
@@ -543,7 +689,6 @@ public class StringTable extends BorderPane
         // Doesn't seem necessary any more?
         table.refresh();
 
-        cell_colors = null;
         // Remove table columns, create new ones
         table.getColumns().clear();
         for (String header : headers)
@@ -551,7 +696,7 @@ public class StringTable extends BorderPane
 
         // Start over with no data, since table columns changed
         data.clear();
-        if (editable)
+        if (table.isEditable())
             data.add(MAGIC_LAST_ROW);
         table.setItems(data);
     }
@@ -595,8 +740,8 @@ public class StringTable extends BorderPane
     public void setColumnOptions(final int column, final List<String> options)
     {
         @SuppressWarnings("unchecked")
-        final TableColumn<List<StringProperty>, String> table_column = (TableColumn<List<StringProperty>, String>) table.getColumns().get(column);
-        final Callback<TableColumn<List<StringProperty>, String>, TableCell<List<StringProperty>, String>> factory;
+        final TableColumn<List<ObservableCellValue>, CellValue> table_column = (TableColumn<List<ObservableCellValue>, CellValue>) table.getColumns().get(column);
+        final Callback<TableColumn<List<ObservableCellValue>, CellValue>, TableCell<List<ObservableCellValue>, CellValue>> factory;
 
         if (options == null || options.isEmpty())
             factory = list -> new StringTextCell();
@@ -614,9 +759,9 @@ public class StringTable extends BorderPane
      */
     public List<String> getColumnOptions(final int column)
     {
-        final TableCell<List<StringProperty>, ?> cell = table.getColumns().get(column).getCellFactory().call(null);
+        final TableCell<List<ObservableCellValue>, ?> cell = table.getColumns().get(column).getCellFactory().call(null);
         if (cell instanceof ComboCell)
-            return ((ComboCell)cell).getItems();
+            return ((ComboCell)cell).getItems().stream().map(cv -> cv.text).collect(Collectors.toList());
         else if (cell instanceof BooleanCell)
             return BOOLEAN_OPTIONS;
         return Collections.emptyList();
@@ -638,7 +783,7 @@ public class StringTable extends BorderPane
      */
     private void createTableColumn(final int index, final String header)
     {
-        final TableColumn<List<StringProperty>, String> table_column = new TableColumn<>(header);
+        final TableColumn<List<ObservableCellValue>, CellValue> table_column = new TableColumn<>(header);
         table_column.setCellValueFactory(VALUE_FACTORY);
         // Prevent column re-ordering
         // (handled via moveColumn which also re-orders the data)
@@ -651,15 +796,15 @@ public class StringTable extends BorderPane
         {
             editing = false;
             final int col = event.getTablePosition().getColumn();
-            List<StringProperty> row = event.getRowValue();
+            List<ObservableCellValue> row = event.getRowValue();
             if (row == MAGIC_LAST_ROW)
             {
                 // Entered in last row? Create new row
                 row = createEmptyRow();
-                final List<List<StringProperty>> data = table.getItems();
+                final List<List<ObservableCellValue>> data = table.getItems();
                 data.add(data.size()-1, row);
             }
-            row.get(col).set(event.getNewValue());
+            row.get(col).setValue(event.getNewValue());
             fireDataChanged();
 
             // Automatically edit the next row, same column
@@ -678,7 +823,7 @@ public class StringTable extends BorderPane
      *  @param row
      *  @param table_column
      */
-    private void editCell(final int row, final TableColumn<List<StringProperty>, ?> table_column)
+    private void editCell(final int row, final TableColumn<List<ObservableCellValue>, ?> table_column)
     {
         TIMER.schedule(() ->
             Platform.runLater(() ->
@@ -695,12 +840,12 @@ public class StringTable extends BorderPane
         return table.getColumns().stream().map(col -> col.getText()).collect(Collectors.toList());
     }
 
-    private List<StringProperty> createEmptyRow()
+    private List<ObservableCellValue> createEmptyRow()
     {
         final int size = getColumnCount();
-        final List<StringProperty> row = new ArrayList<>(size);
+        final List<ObservableCellValue> row = new ArrayList<>(size);
         for (int i=0; i<size; ++i)
-            row.add(new SimpleStringProperty(""));
+            row.add(new ObservableCellValue(""));
         return row;
     }
 
@@ -713,7 +858,7 @@ public class StringTable extends BorderPane
     private int getDataRowCount()
     {
         int rows = data.size();
-        if (editable && rows > 0 && data.get(rows-1) == MAGIC_LAST_ROW)
+        if (table.isEditable() && rows > 0 && data.get(rows-1) == MAGIC_LAST_ROW)
             return rows-1;
         return rows;
     }
@@ -726,7 +871,7 @@ public class StringTable extends BorderPane
      */
     public void setData(final List<List<String>> new_data)
     {
-        // Try to update existing StringProperty cells for common rows
+        // Try to update existing cell texts for common rows
         final int rows = getDataRowCount();
         final int both = Math.min(rows, new_data.size());
         for (int r=0; r<both; ++r)
@@ -735,7 +880,7 @@ public class StringTable extends BorderPane
         // Add new rows
         for (int r=rows; r<new_data.size(); ++r)
         {
-            final List<StringProperty> row = createEmptyRow();
+            final List<ObservableCellValue> row = createEmptyRow();
             copyRow(r, new_data.get(r), row);
             data.add(r, row);
         }
@@ -744,7 +889,7 @@ public class StringTable extends BorderPane
         for (int r=rows-1; r>=new_data.size(); --r)
             data.remove(r);
 
-        if (editable  &&  data.size() <= new_data.size())
+        if (table.isEditable()  &&  data.size() <= new_data.size())
             data.add(MAGIC_LAST_ROW);
 
         // Don't fire, since external source changed data, not user
@@ -755,7 +900,7 @@ public class StringTable extends BorderPane
      *  @param src Strings to place into table row
      *  @param dst Table row
      */
-    private void copyRow(final int row, final List<String> src, final List<StringProperty> dst)
+    private void copyRow(final int row, final List<String> src, final List<ObservableCellValue> dst)
     {
         if (src.size() != dst.size())
             logger.log(Level.WARNING, "Table needs " + dst.size() + " columns " + getHeaders() +
@@ -764,11 +909,11 @@ public class StringTable extends BorderPane
         // Update common cells
         int both = Math.min(src.size(), dst.size());
         for (int c=0; c<both; ++c)
-            dst.get(c).set(src.get(c));
+            dst.get(c).setText(src.get(c));
 
         // Clear remaining cells
         for (int c=src.size(); c<dst.size(); ++c)
-            dst.get(c).set("");
+            dst.get(c).setText("");
     }
 
     /** Get complete table content
@@ -782,8 +927,8 @@ public class StringTable extends BorderPane
         for (int r=0; r<rows; ++r)
         {
             final List<String> row = new ArrayList<>(cols);
-            for (StringProperty cell : data.get(r))
-                row.add(cell.get());
+            for (ObservableCellValue cell : data.get(r))
+                row.add(cell.getValue().text);
             result.add(row);
         }
         return result;
@@ -798,10 +943,10 @@ public class StringTable extends BorderPane
     {
         try
         {
-            final List<StringProperty> row_data = data.get(row);
+            final List<ObservableCellValue> row_data = data.get(row);
             if (row_data == MAGIC_LAST_ROW)
                 return "";
-            return row_data.get(col).get();
+            return row_data.get(col).getValue().text;
         }
         catch (IndexOutOfBoundsException ex)
         {
@@ -818,10 +963,10 @@ public class StringTable extends BorderPane
     {
         try
         {
-            final List<StringProperty> row_data = data.get(row);
+            final List<ObservableCellValue> row_data = data.get(row);
             if (row_data == MAGIC_LAST_ROW)
                 throw new IndexOutOfBoundsException("Magic Last Row");
-            row_data.get(col).set(value);
+            row_data.get(col).setText(value);
         }
         catch (IndexOutOfBoundsException ex)
         {
@@ -831,7 +976,7 @@ public class StringTable extends BorderPane
         }
     }
 
-    /** Set background color for specific cells
+    /** Set background color for all cells
      *
      *  <p>Expects a list of rows,
      *  where each row contains a list of colors for each cell
@@ -840,19 +985,25 @@ public class StringTable extends BorderPane
      *  may be <code>null</code>, or contain <code>null</code>
      *  instead of a color for a specific cell.
      *
-     *  <p><b>Note:</b> The cell colors are used as provided,
-     *  no deep copy is created!
-     *  Caller needs to either provide a static or a thread-safe
-     *  table of colors.
+     *  <p><b>Note:</b> Must be called after data has been set.
      *
-     *  @param row Table row
-     *  @param col Table column
-     *  @param color Color of that cell, <code>null</code> for default
+     *  @param colors Cell colors, <code>null</code> for default
      */
     public void setCellColors(final List<List<Color>> colors)
     {
-        cell_colors = colors;
-        table.refresh();
+        for (int row = getDataRowCount()-1; row >= 0; --row)
+        {
+            final List<Color> row_colors = (colors == null || colors.size() <= row)
+                                         ? null
+                                         : colors.get(row);
+            for (int col = getColumnCount()-1; col>=0; --col)
+            {
+                if (row_colors == null || row_colors.size() <= col)
+                    setCellColor(row, col, null);
+                else
+                    setCellColor(row, col, colors.get(row).get(col));
+            }
+        }
     }
 
     /** Get background color for a specific cell
@@ -860,34 +1011,20 @@ public class StringTable extends BorderPane
      *  @param col Table column
      *  @return Color of that cell, <code>null</code> for default
      */
-    private Color getCellColor(final int row, final int col)
+    public void setCellColor(final int row, final int col, final Color color)
     {
-        final List<List<Color>> colors = cell_colors;
-        if (colors != null  &&  row < colors.size())
+        try
         {
-            final List<Color> row_colors = colors.get(row);
-            if (row_colors != null  &&  col < row_colors.size())
-                return row_colors.get(col);
+            final List<ObservableCellValue> row_data = data.get(row);
+            if (row_data == MAGIC_LAST_ROW)
+                throw new IndexOutOfBoundsException("Magic Last Row");
+            row_data.get(col).setColor(color);
         }
-        return null;
-    }
-
-    /** Set style of table cell to reflect optional background color
-     * @param cell
-     *  @param row Table row
-     *  @param col Table column
-     */
-    private void setCellStyle(final Cell<String> cell, final int row, final int col)
-    {
-        final Color color = getCellColor(row, col);
-        if (color == null)
-            cell.setStyle(null);
-        else
-        {   // Based on modena.css
-            // .table-cell has no -fx-background-color to see overall background,
-            // but .table-cell:selected uses this to get border with an inset color
-            cell.setStyle("-fx-background-color: -fx-table-cell-border-color, " + JFXUtil.webRGB(color) +
-                          ";-fx-background-insets: 0, 0 0 1 0;");
+        catch (IndexOutOfBoundsException ex)
+        {
+            logger.log(Level.WARNING,
+                       "Cannot update row " + row + ", col " + col + " to '" + color +
+                       "' in table sized " + getDataRowCount() + " by " + getColumnCount(), ex);
         }
     }
 
@@ -913,7 +1050,7 @@ public class StringTable extends BorderPane
             if  (event.getCode().isLetterKey() || event.getCode().isDigitKey())
             {
                 @SuppressWarnings("unchecked")
-                final TablePosition<List<StringProperty>, ?> pos = table.getFocusModel().getFocusedCell();
+                final TablePosition<List<ObservableCellValue>, ?> pos = table.getFocusModel().getFocusedCell();
                 table.edit(pos.getRow(), pos.getTableColumn());
 
                 // TODO If the cell had been edited before, i.e. the editor already exists,
@@ -937,30 +1074,17 @@ public class StringTable extends BorderPane
         if (row < 0  ||  row > len-1)
             row = len-1;
         data.add(row, createEmptyRow());
-        // If cell_colors in use, add new row there as well
-        if (cell_colors != null && row < cell_colors.size())
-            cell_colors.add(row, new ArrayList<>());
         fireDataChanged();
     }
 
-    /** Move selected row up  */
-    private void moveRowUp()
+    /** @param up Mode up or down? */
+    private void moveRowUpDown(final boolean up)
     {
         int row = table.getSelectionModel().getSelectedIndex();
         final int num = data.size() - 1;
         if (row < 0 || num < 1)
             return;
-        moveRow(row, (row - 1 + num) % num);
-    }
-
-    /** Move selected row down  */
-    private void moveRowDown()
-    {
-        int row = table.getSelectionModel().getSelectedIndex();
-        final int num = data.size() - 1;
-        if (row < 0 || num < 1)
-            return;
-        moveRow(row, (row + 1) % num);
+        moveRow(row, up ? (row - 1 + num) % num : (row + 1) % num);
     }
 
     /** Move a row up/down
@@ -970,11 +1094,8 @@ public class StringTable extends BorderPane
     private void moveRow(final int row, final int target)
     {
         final int column = getSelectedColumn();
-        final List<StringProperty> line = data.remove(row);
+        final List<ObservableCellValue> line = data.remove(row);
         data.add(target, line);
-
-        if (cell_colors != null  && row < cell_colors.size()  && target < cell_colors.size())
-            cell_colors.add(target, cell_colors.remove(row));
 
         table.getSelectionModel().clearAndSelect(target, table.getColumns().get(column));
         table.refresh();
@@ -989,8 +1110,6 @@ public class StringTable extends BorderPane
         if (row < 0  ||  row >= len-1)
             return;
         data.remove(row);
-        if (cell_colors != null  &&  row < cell_colors.size())
-            cell_colors.remove(row);
         table.refresh();
         fireDataChanged();
     }
@@ -1049,7 +1168,7 @@ public class StringTable extends BorderPane
         final int column = getSelectedColumn();
         if (column < 0)
             return;
-        final TableColumn<List<StringProperty>, ?> table_col = table.getColumns().get(column);
+        final TableColumn<List<ObservableCellValue>, ?> table_col = table.getColumns().get(column);
         final String name = getColumnName(table_col.getText());
         if (name == null)
             return;
@@ -1076,16 +1195,10 @@ public class StringTable extends BorderPane
         // Add empty col. to data
         for (int r=0; r<data.size(); ++r)
         {
-            final List<StringProperty> row = data.get(r);
+            final List<ObservableCellValue> row = data.get(r);
             if (row == MAGIC_LAST_ROW)
                 break;
-            row.add(column, new SimpleStringProperty(""));
-            if (cell_colors != null)
-            {
-                final List<Color> colors = cell_colors.get(r);
-                if (colors != null  &&  column < colors.size())
-                    colors.add(column, null);
-            }
+            row.add(column, new ObservableCellValue(""));
         }
 
         // Show the updated data
@@ -1095,24 +1208,14 @@ public class StringTable extends BorderPane
         fireTableChanged();
     }
 
-    /** Move selected column to the left */
-    private void moveColumnLeft()
+    /** @param Move selected column left or right? */
+    private void moveColumnLeftRight(final boolean left)
     {
         final int column = getSelectedColumn();
         final int num = table.getColumns().size();
         if (column < 0 || num < 1)
             return;
-        moveColumn(column, (column - 1 + num) % num);
-    }
-
-    /** Move selected column to the right */
-    private void moveColumnRight()
-    {
-        final int column = getSelectedColumn();
-        final int num = table.getColumns().size();
-        if (column < 0 || num < 1)
-            return;
-        moveColumn(column, (column + 1) % num);
+        moveColumn(column, left ? (column - 1 + num) % num : (column + 1) % num);
     }
 
     /** Move a column left/right
@@ -1132,30 +1235,16 @@ public class StringTable extends BorderPane
         table.setItems(NO_DATA);
 
         // Move table column
-        final TableColumn<List<StringProperty>, ?> col = table.getColumns().remove(column);
+        final TableColumn<List<ObservableCellValue>, ?> col = table.getColumns().remove(column);
         table.getColumns().add(target, col);
 
         // Move column in data
         for (int r=0; r<data.size(); ++r)
         {
-            final List<StringProperty> data_row = data.get(r);
+            final List<ObservableCellValue> data_row = data.get(r);
             if (data_row == MAGIC_LAST_ROW)
                 break;
             data_row.add(target, data_row.remove(column));
-            if (cell_colors != null  &&  r < cell_colors.size())
-            {
-                // If Row or col has no colors, create them as null
-                List<Color> colors = cell_colors.get(r);
-                if (colors == null)
-                {
-                    colors = new ArrayList<>();
-                    cell_colors.set(r, colors);
-                }
-                while (colors.size() <= Math.max(column,  target))
-                    colors.add(null);
-                // Move just like the data
-                colors.add(target, colors.remove(column));
-            }
         }
 
         // Re-attach data to table
@@ -1180,17 +1269,11 @@ public class StringTable extends BorderPane
         // Remove that column from data
         for (int r=0; r<data.size(); ++r)
         {
-            final List<StringProperty> row = data.get(r);
+            final List<ObservableCellValue> row = data.get(r);
             if (row == MAGIC_LAST_ROW)
                 break;
             if (column < row.size())
                 row.remove(column);
-            if (cell_colors != null)
-            {
-                final List<Color> colors = cell_colors.get(r);
-                if (colors != null  &&  column < colors.size())
-                    colors.remove(column);
-            }
         }
         // Re-attach data to table
         table.setItems(data);
