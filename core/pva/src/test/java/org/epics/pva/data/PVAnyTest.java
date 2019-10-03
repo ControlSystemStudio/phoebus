@@ -23,13 +23,16 @@ public class PVAnyTest
         System.out.println(data);
 
         data.setValue(new PVAInt("number", 42));
+        System.out.println(data);
         PVAInt i = data.get();
         assertThat(i.get(), equalTo(42));
 
         data.setValue(null);
+        System.out.println(data);
         assertThat(data.get(), nullValue());
 
         data.setValue(new PVADouble("number", 3.13));
+        System.out.println(data);
         PVADouble d = data.get();
         assertThat(d.get(), equalTo(3.13));
 

@@ -69,7 +69,7 @@ public class PVAny extends PVAData
     }
 
     @Override
-    public void encodeType(ByteBuffer buffer, BitSet described) throws Exception
+    public void encodeType(final ByteBuffer buffer, final BitSet described) throws Exception
     {
         buffer.put((byte) (PVAComplex.FIELD_DESC_TYPE | PVAComplex.VARIANT_UNION));
     }
