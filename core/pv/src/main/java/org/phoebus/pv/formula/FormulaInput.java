@@ -15,6 +15,7 @@ import java.util.logging.Level;
 import org.csstudio.apputil.formula.VariableNode;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VNumber;
+import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
@@ -65,6 +66,11 @@ class FormulaInput
         {
             final VEnum cast = (VEnum) value;
             variable.setValue(cast.getIndex());
+        }
+        else if (value instanceof VNumberArray)
+        {
+            final VNumberArray cast = (VNumberArray) value;
+            variable.setValue(cast.getData());
         }
         else
         {
