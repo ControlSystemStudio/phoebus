@@ -10,5 +10,6 @@
 	</classpathentry>
 	<classpathentry combineaccessrules="false" kind="src" path="/phoebus-target"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-logbook"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-security"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
