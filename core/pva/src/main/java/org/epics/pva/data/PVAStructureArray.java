@@ -55,6 +55,13 @@ public class PVAStructureArray extends PVADataWithID implements PVAArray
         this(name, element_type, new PVAStructure[0]);
     }
 
+    /** @return Element type (no value) */
+    public PVAStructure getElementType()
+    {
+        return element_type;
+    }
+
+    /** @return Array elements */
     public PVAStructure[] get()
     {
         return elements;

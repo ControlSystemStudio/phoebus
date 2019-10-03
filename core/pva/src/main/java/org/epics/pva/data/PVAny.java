@@ -11,38 +11,46 @@ import java.nio.ByteBuffer;
 import java.util.BitSet;
 
 /** PV Access 'any'
-*
-*  <p>Also called "Variant Union",
-*  holds one or more {@link PVAData} elements
-*  which may change for each value update.
-*
-*  @author Kay Kasemir
-*/
+ *
+ *  <p>Also called "Variant Union",
+ *  holds one {@link PVAData} element
+ *  which may change type for each value update.
+ *
+ *  @author Kay Kasemir
+ */
 @SuppressWarnings("nls")
 public class PVAny extends PVAData
 {
     private volatile PVAData value;
 
+    /** @param name Name of the any (may be "")
+     *  @param value Initial value
+     */
     public PVAny(final String name, final PVAData value)
     {
         super(name);
         this.value = value;
     }
 
+    /** @param name Name of the any (may be ""), initially empty */
     public PVAny(final String name)
     {
         this(name, null);
     }
 
-    public PVAData get()
+    /** @param <PVA> {@link PVAData} type
+     *  @return Current value
+     */
+    @SuppressWarnings("unchecked")
+    public <PVA extends PVAData> PVA get()
     {
-        return value;
+        return (PVA) value;
     }
 
     @Override
     public void setValue(final Object new_value) throws Exception
     {
-        if (new_value instanceof PVAData)
+        if (new_value == null  ||  new_value instanceof PVAData)
             value = (PVAData) new_value;
         else
             throw new Exception("Cannot set " + formatType() + " to " + new_value);
