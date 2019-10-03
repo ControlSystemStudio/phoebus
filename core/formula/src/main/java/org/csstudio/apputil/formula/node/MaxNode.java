@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,6 +8,8 @@
 package org.csstudio.apputil.formula.node;
 
 import org.csstudio.apputil.formula.Node;
+import org.epics.util.array.ArrayDouble;
+import org.epics.util.array.ListNumber;
 
 /** One computational node.
  *  @author Kay Kasemir
@@ -22,16 +24,30 @@ public class MaxNode implements Node
     }
 
     @Override
-    public double eval()
+    public ListNumber eval()
     {
-        double result = 0.0;
+        if (args.length <= 0)
+            return ArrayDouble.of();
+
+        /// Evaluate each argument, find common element count
+        final ListNumber[] v = new ListNumber[args.length];
+        int n = 0;
         for (int i = 0; i < args.length; i++)
         {
-            final double v = args[i].eval();
-            if (i==0  ||  v > result)
-                result = v;
+            v[i] = args[i].eval();
+            if (i==0  ||  v[i].size() < n)
+                n = v[i].size();
         }
-        return result;
+        if (n <= 0)
+            return ArrayDouble.of();
+
+        // Compute result[e] = max(v_i[e])
+        final double[] result = new double[n];
+        for (int e=0; e<n; ++e)
+            for (int i = 0; i < args.length; ++i)
+                if (i==0 || v[i].getDouble(e) > result[e])
+                    result[e] = v[i].getDouble(e);
+        return ArrayDouble.of(result);
     }
 
     /** {@inheritDoc} */

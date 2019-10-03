@@ -7,6 +7,8 @@
  ******************************************************************************/
 package org.csstudio.apputil.formula;
 
+import org.epics.util.array.ListNumber;
+
 /** A node used to build a formula.
  *  @author Kay Kasemir
  */
@@ -16,7 +18,7 @@ public interface Node
      *  @return The value of the node.
      *  @exception on error
      */
-    public double eval();
+    public ListNumber eval();
 
     /** Check if this node has given node as a subnode
      *  @return <code>true</code> if given node was found under this one.

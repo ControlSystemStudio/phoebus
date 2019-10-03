@@ -14,10 +14,12 @@ import java.util.logging.Level;
 
 import org.csstudio.apputil.formula.Formula;
 import org.csstudio.apputil.formula.VariableNode;
+import org.epics.util.array.ListNumber;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
+import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VString;
 import org.phoebus.pv.PV;
 
@@ -38,15 +40,20 @@ public class FormulaPV extends PV
             // Parse expression...
             formula = new Formula(expression, true);
 
-            // Set initial value
-            final double value = formula.eval();
-            notifyListenersOfValue(VDouble.of(value, Alarm.none(), Time.now(), Display.none()));
+            final ListNumber value = formula.eval();
+            if (value.size() == 1)
+                notifyListenersOfValue(VDouble.of(value.getDouble(0), Alarm.none(), Time.now(), Display.none()));
+            else
+                notifyListenersOfValue(VNumberArray.of(value, Alarm.none(), Time.now(), Display.none()));
 
             // Determine variables, connect to PVs
             final VariableNode vars[] = formula.getVariables();
             inputs = new FormulaInput[vars.length];
             for (int i=0; i<inputs.length; ++i)
                 inputs[i] = new FormulaInput(this, vars[i]);
+
+            // Set initial value
+            update();
         }
         catch (Exception ex)
         {
@@ -74,11 +81,16 @@ public class FormulaPV extends PV
     /** Compute updated value of formula and notify listeners */
     void update()
     {
-        final double value = formula.eval();
-        if (Double.isNaN(value))
-            notifyListenersOfValue(VDouble.of(value, Alarm.disconnected(), Time.now(), Display.none()));
+        final ListNumber value = formula.eval();
+        if (value.size() == 1)
+        {
+            if (Double.isNaN(value.getDouble(0)))
+                notifyListenersOfValue(VDouble.of(Double.NaN, Alarm.disconnected(), Time.now(), Display.none()));
+            else
+                notifyListenersOfValue(VDouble.of(value.getDouble(0), Alarm.none(), Time.now(), Display.none()));
+        }
         else
-            notifyListenersOfValue(VDouble.of(value, Alarm.none(), Time.now(), Display.none()));
+            notifyListenersOfValue(VNumberArray.of(value, Alarm.none(), Time.now(), Display.none()));
     }
 
     @Override

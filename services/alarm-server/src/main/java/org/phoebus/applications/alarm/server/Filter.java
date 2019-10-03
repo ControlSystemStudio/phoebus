@@ -154,7 +154,7 @@ public class Filter
     {
         evaluation_pending.set(false);
 
-        final double value = formula.eval();
+        final double value = formula.eval().getDouble(0);
 
         // This code is executed on the single TIMER thread, i.e. serialized
         // No need to synchronize on current_value.

@@ -237,18 +237,18 @@ public class FormulaItem extends ModelItem
                     for (int i = 0; i < values.length; i++)
                         variables[i].setValue(val[i]);
                     // Evaluate formula for these inputs
-                    final double res_val = formula.eval();
+                    final double res_val = formula.eval().getDouble(0);
                     final VType value;
 
                     if (have_min_max)
                     {   // Set variables[] from min
                         for (int i = 0; i < values.length; i++)
                             variables[i].setValue(min[i]);
-                        final double res_min = formula.eval();
+                        final double res_min = formula.eval().getDouble(0);
                         // Set variables[] from max
                         for (int i = 0; i < values.length; i++)
                             variables[i].setValue(max[i]);
-                        final double res_max = formula.eval();
+                        final double res_max = formula.eval().getDouble(0);
                         value = VStatistics.of(res_val, 0.0, res_min, res_max, 1, OK_FORMULA, Time.now(), display);
                     }
                     else

@@ -9,6 +9,7 @@ package org.csstudio.apputil.formula;
 
 import java.util.ArrayList;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import org.csstudio.apputil.formula.node.AddNode;
 import org.csstudio.apputil.formula.node.AndNode;
@@ -30,6 +31,7 @@ import org.csstudio.apputil.formula.node.OrNode;
 import org.csstudio.apputil.formula.node.PwrNode;
 import org.csstudio.apputil.formula.node.RndNode;
 import org.csstudio.apputil.formula.node.SubNode;
+import org.epics.util.array.ListNumber;
 
 /** A formula interpreter.
  *  <p>
@@ -62,6 +64,9 @@ import org.csstudio.apputil.formula.node.SubNode;
 @SuppressWarnings("nls")
 public class Formula implements Node
 {
+    /** Logger for formula messages */
+    public static final Logger logger = Logger.getLogger(Formula.class.getPackageName());
+
     /** The original formula that we parsed */
     final private String formula;
 
@@ -171,7 +176,7 @@ public class Formula implements Node
 
     /** {@inheritDoc} */
     @Override
-    public double eval()
+    public ListNumber eval()
     {
         return tree.eval();
     }

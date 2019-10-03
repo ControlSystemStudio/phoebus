@@ -1,11 +1,14 @@
 /*******************************************************************************
- * Copyright (c) 2010 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
 package org.csstudio.apputil.formula;
+
+import org.epics.util.array.ArrayDouble;
+import org.epics.util.array.ListNumber;
 
 /** Named Variable.
  *  @author Kay Kasemir
@@ -16,7 +19,7 @@ public class VariableNode implements Node
     final private String name;
 
     /** Current value of the variable. */
-    private double value;
+    private ListNumber value;
 
     /** Create Variable with given name. */
     public VariableNode(final String name)
@@ -26,6 +29,12 @@ public class VariableNode implements Node
 
     /** Create Variable with given name and value. */
     public VariableNode(final String name, final double value)
+    {
+        this(name, ArrayDouble.of(value));
+    }
+
+    /** Create Variable with given name and value. */
+    public VariableNode(final String name, final ListNumber value)
     {
         this.name = name;
         this.value = value;
@@ -37,20 +46,26 @@ public class VariableNode implements Node
         return name;
     }
 
-    /** Set to a new value. */
+    /** @param New value of variable. */
     public void setValue(final double value)
+    {
+        setValue(ArrayDouble.of(value));
+    }
+
+    /** @param New value of variable. */
+    public void setValue(final ListNumber value)
     {
         this.value = value;
     }
 
     /** @return Returns the value. */
-    public double getValue()
+    public ListNumber getValue()
     {
         return value;
     }
 
     @Override
-    public double eval()
+    public ListNumber eval()
     {
         return value;
     }

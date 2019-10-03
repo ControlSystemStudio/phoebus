@@ -4,5 +4,6 @@
 	<classpathentry kind="src" output="target/classes" path="src/main/java"/>
 	<classpathentry kind="src" path="src/test/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+    <classpathentry combineaccessrules="false" kind="src" path="/phoebus-target"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
