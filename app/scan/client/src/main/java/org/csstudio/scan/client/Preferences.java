@@ -10,8 +10,8 @@ package org.csstudio.scan.client;
 import org.phoebus.framework.preferences.PreferencesReader;
 
 /** Preference settings
-*  @author Kay Kasemir
-*/
+ *  @author Kay Kasemir
+ */
 @SuppressWarnings("nls")
 public class Preferences
 {

@@ -104,7 +104,7 @@ abstract public class TCPHandler
      *
      *  @param socket Socket to read/write
      *  @param client_mode Is this the client, expecting to receive messages from server?
-     *  @see {@link #startSender()}
+     *  @see #startSender()
      */
     public TCPHandler(final SocketChannel socket, final boolean client_mode)
     {

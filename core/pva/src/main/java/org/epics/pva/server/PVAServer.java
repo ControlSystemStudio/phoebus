@@ -53,7 +53,9 @@ public class PVAServer
     /** Handlers for the TCP connections clients established to this server */
     private final KeySetView<ServerTCPHandler, Boolean> tcp_handlers = ConcurrentHashMap.newKeySet();
 
-    /** Create PVA Server */
+    /** Create PVA Server
+     *  @throws Exception on error
+     */
     public PVAServer() throws Exception
     {
         logger.log(Level.CONFIG, "PVA Server " + guid);
@@ -61,7 +63,7 @@ public class PVAServer
         tcp = new ServerTCPListener(this);
     }
 
-    /** Create a PV which serves data to clients
+    /** Create a read-only PV which serves data to clients
      *
      *  <p>Creates a thread-safe copy of the initial value.
      *  To update the data, see {@link ServerPV#update(PVAStructure)}
@@ -72,7 +74,22 @@ public class PVAServer
      */
     public ServerPV createPV(final String name, final PVAStructure data)
     {
-        final ServerPV pv = new ServerPV(name, data);
+        return createPV(name, data, ServerPV.READONLY_WRITE_HANDLER);
+    }
+
+    /** Create a writable PV which serves data to clients
+     *
+     *  <p>Creates a thread-safe copy of the initial value.
+     *  To update the data, see {@link ServerPV#update(PVAStructure)}
+     *
+     *  @param name PV Name
+     *  @param data Type definition and initial value
+     *  @param write_handler {@link WriteEventHandler}
+     *  @return {@link ServerPV}
+     */
+    public ServerPV createPV(final String name, final PVAStructure data, final WriteEventHandler write_handler)
+    {
+        final ServerPV pv = new ServerPV(name, data, write_handler);
         pv_by_name.put(name, pv);
         pv_by_sid.put(pv.getSID(), pv);
         return pv;
@@ -80,11 +97,8 @@ public class PVAServer
 
     /** Create a PV for an RPC service
      *
-     *  <p>Creates a thread-safe copy of the initial value.
-     *  To update the data, see {@link ServerPV#update(PVAStructure)}
-     *
      *  @param name PV Name
-     *  @param data Type definition and initial value
+     *  @param rpc {@link RPCService} that handles client invocations
      *  @return {@link ServerPV}
      */
     public ServerPV createPV(final String name, final RPCService rpc)

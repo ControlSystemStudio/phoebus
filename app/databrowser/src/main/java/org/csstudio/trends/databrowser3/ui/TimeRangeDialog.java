@@ -12,6 +12,7 @@ import org.phoebus.ui.time.TemporalAmountPane;
 import org.phoebus.ui.time.TimeRelativeIntervalPane;
 import org.phoebus.util.time.TimeRelativeInterval;
 
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 
@@ -28,6 +29,14 @@ public class TimeRangeDialog extends Dialog<TimeRelativeInterval>
         setTitle(Messages.TimeColumn);
         getDialogPane().setContent(times);
         getDialogPane().getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
+
+        // TimeRelativeIntervalPane works fine standalone,
+        // but when hosted in dialog 'enter' is not possible
+        // on the date fields because OK button captures 'Enter'.
+        // --> Disable the 'default' behavior of OK button.
+        final Button ok = (Button)getDialogPane().lookupButton(ButtonType.OK);
+        ok.setDefaultButton(false);
+
         setResultConverter(button ->
         {
             if (button == ButtonType.OK)

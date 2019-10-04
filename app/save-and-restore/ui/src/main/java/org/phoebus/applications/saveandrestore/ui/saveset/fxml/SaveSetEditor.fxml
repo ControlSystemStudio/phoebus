@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+
+<GridPane id="parent" fx:id="parent" xmlns="http://javafx.com/javafx/8.0.999-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.saveset.SaveSetController">
+
+		<children>
+			<Button fx:id="saveButton" mnemonicParsing="false" onAction="#saveSaveSet" text="Save" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="0">
+				<GridPane.margin>
+					<Insets bottom="5.0" right="5.0" top="5.0" />
+				</GridPane.margin>
+			</Button>
+			<Label text="Description:" GridPane.columnSpan="1" GridPane.rowIndex="0">
+				<GridPane.margin>
+					<Insets />
+				</GridPane.margin>
+				<padding>
+					<Insets bottom="5.0" left="5.0" top="10.0" />
+				</padding>
+			</Label>
+			<TextArea fx:id="commentTextArea" prefRowCount="3" promptText="Specify non-empty description" GridPane.columnSpan="2" GridPane.rowIndex="1">
+				<GridPane.margin>
+					<Insets left="5.0" right="5.0" />
+				</GridPane.margin>
+			</TextArea>
+			<Label text="PV List:" GridPane.rowIndex="2">
+				<padding>
+					<Insets bottom="10.0" left="5.0" top="10.0" />
+				</padding>
+			</Label>
+
+			<TableView fx:id="pvTable" GridPane.columnSpan="2" GridPane.rowIndex="3" GridPane.vgrow="ALWAYS">
+				<columns>
+					<TableColumn fx:id="pvNameColumn" editable="true" prefWidth="${parent.width * 0.45}" text="PV Name">
+						<!--cellValueFactory>
+							<PropertyValueFactory property="pvName" />
+						</cellValueFactory-->
+					</TableColumn>
+					<TableColumn fx:id="readbackPvNameColumn" prefWidth="${parent.width * 0.45}" text="Read-back PV Name">
+						<cellValueFactory>
+							<PropertyValueFactory property="readbackPvName" />
+						</cellValueFactory>
+					</TableColumn>
+					<TableColumn fx:id="readOnlyColumn" prefWidth="${parent.width * 0.1}" text="Read only">
+						<cellValueFactory>
+							<PropertyValueFactory property="readOnly" />
+						</cellValueFactory>
+					</TableColumn>
+				</columns>
+			</TableView>
+
+			<GridPane alignment="CENTER_LEFT" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.halignment="LEFT" GridPane.rowIndex="4">
+				<children>
+					<Label alignment="CENTER" text="PV Name" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="0">
+					   <GridPane.margin>
+						  <Insets left="5.0" right="5.0" />
+					   </GridPane.margin>
+					</Label>
+					<TextField fx:id="pvNameField" GridPane.columnIndex="1" GridPane.columnSpan="1" GridPane.rowIndex="0" HBox.hgrow="ALWAYS" />
+
+
+					<CheckBox fx:id="readOnlyCheckBox" mnemonicParsing="false" prefHeight="13.0" prefWidth="19.0" GridPane.columnIndex="3" GridPane.rowIndex="0" HBox.hgrow="ALWAYS" />
+              
+					<Button fx:id="addPvButton" disable="true" maxHeight="1.7976931348623157E308" mnemonicParsing="false" onAction="#addPv" text="Add" GridPane.columnIndex="4" GridPane.rowSpan="2">
+					   <GridPane.margin>
+						  <Insets bottom="5.0" left="10.0" right="5.0" top="5.0" />
+					   </GridPane.margin>
+					</Button>
+
+
+					<Label alignment="CENTER" text="Read-back PV Name" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
+					   <GridPane.margin>
+						  <Insets left="5.0" right="5.0" />
+					   </GridPane.margin>
+					</Label>
+					<TextField fx:id="readbackPvNameField" GridPane.columnIndex="1" GridPane.columnSpan="1" GridPane.rowIndex="1" HBox.hgrow="ALWAYS" />
+
+
+					<Label alignment="CENTER" text="Read only" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
+					   <GridPane.margin>
+						  <Insets left="5.0" right="5.0" />
+					   </GridPane.margin>
+					</Label>
+
+
+				
+				</children>
+				<columnConstraints>
+					<ColumnConstraints hgrow="NEVER" maxWidth="313.0" minWidth="10.0" />
+					<ColumnConstraints hgrow="SOMETIMES" maxWidth="384.0" minWidth="10.0" prefWidth="239.0" />
+					<ColumnConstraints hgrow="NEVER" maxWidth="386.0" minWidth="52.0" prefWidth="92.0" />
+            <ColumnConstraints hgrow="NEVER" maxWidth="233.0" minWidth="34.0" prefWidth="35.0" />
+            <ColumnConstraints hgrow="NEVER" maxWidth="218.0" minWidth="51.0" prefWidth="127.0" />
+				</columnConstraints>
+				<rowConstraints>
+					<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+					<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+					<RowConstraints />
+					<RowConstraints />
+				</rowConstraints>
+         <GridPane.margin>
+            <Insets bottom="5.0" top="5.0" />
+         </GridPane.margin>
+			</GridPane>
+		</children>
+   <columnConstraints>
+      <ColumnConstraints />
+      <ColumnConstraints />
+   </columnConstraints>
+   <rowConstraints>
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+   </rowConstraints>
+	</GridPane>

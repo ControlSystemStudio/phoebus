@@ -9,9 +9,7 @@ http://phoebus-doc.readthedocs.io
 
 
 ## Requirements
- - [JDK11 or later, suggested is OpenJDK](http://jdk.java.net/11).
-   (For the time being, Phoebus still builds with Oracle JDK 9 and 10,
-    but it must be a JDK that includes JavaFX).
+ - [JDK11 or later, suggested is OpenJDK](http://jdk.java.net/12).
  - [maven 2.x](https://maven.apache.org/) or [ant](http://ant.apache.org/)
 
 
@@ -64,7 +62,7 @@ mvn exec:java
 To run the product jar
 ```
 cd phoebus-product/target
-java -jar product-0.0.1-SNAPSHOT.jar
+java -jar product-*-SNAPSHOT.jar
 ```
 
 
@@ -99,7 +97,7 @@ Select the phoebus root directory, and check the option to "Seach for nested pro
 
 By default, all projects should be selected ('dependencies', 'core-framework', .., 'product').
 
-When using Java 11, the file `dependencies/phoebus-target/.classpath`
+The file `dependencies/phoebus-target/.classpath`
 needs to be edited to list all the `phoebus-target/target/lib/javafx*.jar` files.
 
 Invoke `Run As/Java Application` on the `Launcher` in the product.
@@ -181,7 +179,7 @@ To run the Phoebus application:
 
     # Build the Javadoc, i.e. html files to be included in the manual
     ( cd phoebus/app/display/editor; ant -f javadoc.xml clean all )
-    
+
     # Building the manual will locate and include
     # all ../phoebus/**/doc/index.rst and ../phoebus/**/doc/html
 	( cd phoebus-doc; make clean html )
@@ -202,11 +200,11 @@ To run the Phoebus application:
     URL='https://controlssoftware.sns.ornl.gov/css_phoebus/nightly/phoebus-$(arch).zip'
     ( cd phoebus;
       app/update/mk_update_settings.sh $URL > phoebus-product/settings.ini
-    ) 
-    
+    )
+
     # Build product & bundle for distribution, including the documentation
     ( cd phoebus; ant clean dist )
-   
+
     # The files phoebus/phoebus-product/target/*.zip and
     # services/*/target/*.zip can now be distributed,
     # unzipped, launched
@@ -224,10 +222,10 @@ To build for a different platform, create the `dependencies` in one of these way
 
     # Either create the build platform for Linux..
 	( cd phoebus; mvn clean verify  -Djavafx.platform=linux  -f dependencies/pom.xml )
-	
+
 	# or Mac OS X ..
 	( cd phoebus; mvn clean verify  -Djavafx.platform=mac    -f dependencies/pom.xml )
-	
+
 	# or Windows:
 	( cd phoebus; mvn clean verify  -Djavafx.platform=win    -f dependencies/pom.xml )
 

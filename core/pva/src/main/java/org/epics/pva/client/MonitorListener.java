@@ -11,7 +11,7 @@ import java.util.BitSet;
 
 import org.epics.pva.data.PVAStructure;
 
-/** Listener to {@link MonitorRequest}
+/** Listener to subscription updates of a {@link PVAChannel}
  *  @author Kay Kasemir
  */
 @FunctionalInterface

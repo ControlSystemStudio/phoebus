@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,6 +20,7 @@ import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.BoolButtonWidget;
+import org.csstudio.display.builder.model.widgets.BoolButtonWidget.Mode;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VType;
@@ -88,7 +89,6 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         led.getStyleClass().add("led");
         button = new Button("BoolButton", led);
         button.getStyleClass().add("action_button");
-        button.setOnAction(event -> handlePress());
         button.setMnemonicParsing(false);
 
         // Model has width/height, but JFX widget has min, pref, max size.
@@ -98,17 +98,34 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         // Fix initial layout
         toolkit.execute(() -> Platform.runLater(button::requestLayout));
 
+        if (! toolkit.isEditMode())
+        {
+            if (model_widget.propMode().getValue() == Mode.TOGGLE)
+                button.setOnAction(event -> handlePress(true));
+            else
+            {
+                final boolean inverted = model_widget.propMode().getValue() == Mode.PUSH_INVERTED;
+                button.setOnMousePressed(event -> handlePress(! inverted));
+                button.setOnMouseReleased(event -> handlePress(inverted));
+            }
+        }
+
         return button;
     }
 
-    /** @param respond to button press */
-    private void handlePress()
+    /** Respond to button press
+     *  @param pressed Was button pressed or released?
+     */
+    private void handlePress(final boolean pressed)
     {
         logger.log(Level.FINE, "{0} pressed", model_widget);
-        Platform.runLater(this::confirm);
+        Platform.runLater(() -> confirm(pressed));
     }
 
-    private void confirm()
+    /** Check for confirmation, then perform the button action
+     *  @param pressed Was button pressed or released?
+     */
+    private void confirm(final boolean pressed)
     {
         final boolean prompt;
         switch (model_widget.propConfirmDialog().getValue())
@@ -132,7 +149,17 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
                     return;
         }
 
-        final int new_val = (rt_value ^ ((use_bit < 0) ? 1 : (1 << use_bit)) );
+        final int bit = (use_bit < 0) ? 1 : (1 << use_bit);
+        final int new_val;
+        if (model_widget.propMode().getValue() == Mode.TOGGLE)
+            new_val = rt_value ^ bit;
+        else
+        {
+            if (pressed)
+                new_val = rt_value | bit;
+            else
+                new_val = rt_value & ~bit;
+        }
         toolkit.fireWrite(model_widget, new_val);
     }
 
@@ -192,6 +219,10 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         value_color = state_colors[on_state];
         value_label = state_labels[on_state];
         value_image = state_images[on_state];
+
+        // When LED is off, use the on/off colors for the background
+        if (model_widget.propShowLED().getValue() == false)
+            background = JFXUtil.shadedStyle(on_state == 0 ? model_widget.propOffColor().getValue() : model_widget.propOnColor().getValue());
 
         dirty_value.mark();
         toolkit.scheduleUpdate(this);
@@ -323,10 +354,18 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
             final ImageView image = value_image;
             if (image == null)
             {
-                jfx_node.setGraphic(led);
-                // Put highlight in top-left corner, about 0.2 wide,
-                // relative to actual size of LED
-                led.setFill(toolkit.isEditMode() ? computeEditColors() : value_color);
+                if (model_widget.propShowLED().getValue())
+                {
+                    jfx_node.setGraphic(led);
+                    // Put highlight in top-left corner, about 0.2 wide,
+                    // relative to actual size of LED
+                    led.setFill(toolkit.isEditMode() ? computeEditColors() : value_color);
+                }
+                else
+                {
+                    jfx_node.setGraphic(null);
+                    jfx_node.setStyle(background);
+                }
             }
             else
                 jfx_node.setGraphic(image);

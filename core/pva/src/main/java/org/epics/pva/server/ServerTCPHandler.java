@@ -32,6 +32,7 @@ class ServerTCPHandler extends TCPHandler
                               new EchoHandler(),
                               new CreateChannelHandler(),
                               new GetHandler(),
+                              new PutHandler(),
                               new MonitorHandler(),
                               new DestroyChannelHandler(),
                               new GetTypeHandler(),

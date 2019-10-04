@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,8 +16,10 @@ import java.util.ListIterator;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
+import java.util.prefs.Preferences;
 
 import org.csstudio.display.builder.editor.actions.ActionDescription;
+import org.csstudio.display.builder.editor.app.DisplayEditorInstance;
 import org.csstudio.display.builder.editor.palette.Palette;
 import org.csstudio.display.builder.editor.poly.PointsBinding;
 import org.csstudio.display.builder.editor.tracker.SelectedWidgetUITracker;
@@ -43,6 +45,7 @@ import org.csstudio.display.builder.model.widgets.TabsWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget.TabItemProperty;
 import org.csstudio.display.builder.representation.ToolkitListener;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.undo.UndoButtons;
 import org.phoebus.ui.undo.UndoableActionManager;
@@ -142,6 +145,16 @@ public class DisplayEditor
     private Palette palette;
     private Pane widget_parent;
     private final Group edit_tools = new Group();
+    private ToggleButton grid;
+    private ToggleButton snap;
+    private ToggleButton coords;
+
+    public static final String
+            SNAP_GRID = "snap_grid",
+            SNAP_WIDGETS = "snap_widgets",
+            SHOW_COORDS = "show_coords";
+
+    private static final Preferences prefs = PhoebusPreferenceService.userNodeForClass(DisplayEditorInstance.class);
 
     /** @param toolkit JFX Toolkit
      *  @param stack_size Number of undo/redo entries
@@ -186,6 +199,10 @@ public class DisplayEditor
 
         final BorderPane root = new BorderPane(model_and_palette);
         root.setTop(toolbar);
+
+        setGrid(prefs.getBoolean(SNAP_GRID, true));
+        setSnap(prefs.getBoolean(SNAP_WIDGETS, true));
+        setCoords(prefs.getBoolean(SHOW_COORDS, true));
 
         return root;
     }
@@ -254,9 +271,9 @@ public class DisplayEditor
 
 
         return new ToolBar(
-            createToggleButton(ActionDescription.ENABLE_GRID),
-            createToggleButton(ActionDescription.ENABLE_SNAP),
-            createToggleButton(ActionDescription.ENABLE_COORDS),
+            grid = createToggleButton(ActionDescription.ENABLE_GRID),
+            snap = createToggleButton(ActionDescription.ENABLE_SNAP),
+            coords = createToggleButton(ActionDescription.ENABLE_COORDS),
             new Separator(),
             order,
             align,
@@ -383,11 +400,11 @@ public class DisplayEditor
         });
 
         new Rubberband(model_root, edit_tools, this::handleRubberbandSelection);
-        new PointsBinding(edit_tools, selection, undo);
+        new PointsBinding(edit_tools, selection_tracker::gridConstrain, selection, undo);
 
         // Attach D&Drop to the widget_parent which is zoomed,
         // so drop will have the zoomed coordinate system
-        WidgetTransfer.addDropSupport(widget_parent, group_handler, selection_tracker, this::addWidgets);
+        WidgetTransfer.addDropSupport(widget_parent, group_handler, selection_tracker, widgets -> addWidgets(widgets, false));
 
         model_root.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyPress);
     }
@@ -446,8 +463,10 @@ public class DisplayEditor
         selection.setSelection(Arrays.asList(widget));
     }
 
-    /** @param widgets Widgets to be added to existing model */
-    private void addWidgets(final List<Widget> widgets)
+    /** @param widgets Widgets to be added to existing model
+     *  @param correct_scroll_origin Correct widget locations by scroll pane origin?
+     */
+    private void addWidgets(final List<Widget> widgets, final boolean correct_scroll_origin)
     {
         // Dropped into a sub-group or the main display?
         ChildrenProperty target = group_handler.getActiveParentChildren();
@@ -456,8 +475,19 @@ public class DisplayEditor
         Widget container = target.getWidget();
         // Correct all dropped widget locations relative to container
         Point2D offset = GeometryTools.getContainerOffset(container);
-        // Also account for scroll pane
-        Point2D origin = JFXGeometryTools.getContentOrigin(model_root);
+
+        final Point2D origin;
+        if (correct_scroll_origin)
+        {
+            // Account for scroll pane and zoom
+            final double zoom = toolkit.getZoom();
+            final Point2D zoomed = JFXGeometryTools.getContentOrigin(model_root);
+            origin = new Point2D(zoomed.getX() / zoom,
+                                 zoomed.getY() / zoom);
+        }
+        else
+            origin = new Point2D(0, 0);
+
         int dx = (int) (offset.getX() - origin.getX());
         int dy = (int) (offset.getY() - origin.getY());
 
@@ -484,7 +514,6 @@ public class DisplayEditor
                 target = ChildrenProperty.getParentsChildren(container);
                 container = target.getWidget();
                 offset = GeometryTools.getContainerOffset(container);
-                origin = JFXGeometryTools.getContentOrigin(model_root);
                 dx = (int) (offset.getX() - origin.getX());
                 dy = (int) (offset.getY() - origin.getY());
             }
@@ -632,7 +661,7 @@ public class DisplayEditor
             final Rectangle2D bounds = GeometryTools.getBounds(widgets);
             // Potentially activate group at drop point
             group_handler.locateParent(x, y, bounds.getWidth(), bounds.getHeight());
-            addWidgets(widgets);
+            addWidgets(widgets, true);
         }
         catch (Exception ex)
         {
@@ -675,13 +704,6 @@ public class DisplayEditor
         }
     }
 
-    public void dispose()
-    {
-        if (model != null)
-            toolkit.disposeRepresentation(model);
-        model = null;
-    }
-
     /** @param level_spec Zoom level specification like "123 %"
      *  @return Zoom spec actually used
      */
@@ -693,5 +715,63 @@ public class DisplayEditor
         edit_tools.getTransforms().setAll(widget_parent.getTransforms());
 
         return level_spec;
+    }
+
+    /** @return Zoom level, 2.0 for '200 %' */
+    public double getZoom()
+    {
+        return toolkit.getZoom();
+    }
+
+    /** @param snap Snap Grid on/off */
+    public void setGrid(final boolean snap)
+    {
+        grid.setSelected(snap);
+        selection_tracker.enableGrid(snap);
+        // Update pref about last snap state
+        saveGrid(snap);
+    }
+
+    /** @param snap Snap Grid on/off */
+    public static void saveGrid(final boolean snap)
+    {
+        prefs.putBoolean(SNAP_GRID, snap);
+    }
+
+    /** @param snap Snap Widgets on/off */
+    public void setSnap(final boolean snap)
+    {
+        this.snap.setSelected(snap);
+        selection_tracker.enableSnap(snap);
+        // Update pref about last snap state
+        saveSnap(snap);
+    }
+
+    /** @param snap Snap Widgets on/off */
+    public static void saveSnap(final boolean snap)
+    {
+        prefs.putBoolean(SNAP_WIDGETS, snap);
+    }
+
+    /** @param show Show Coordinates on/off */
+    public void setCoords(final boolean show)
+    {
+        coords.setSelected(show);
+        getSelectedWidgetUITracker().setShowLocationAndSize(show);
+        // Update pref about last show state
+        saveCoords(show);
+    }
+    
+    /** @param show Show Coordinates on/off */
+    public static void saveCoords(final boolean show)
+    {
+        prefs.putBoolean(SHOW_COORDS, show);
+    }
+
+    public void dispose()
+    {
+        if (model != null)
+            toolkit.disposeRepresentation(model);
+        model = null;
     }
 }

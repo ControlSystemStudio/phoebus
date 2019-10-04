@@ -10,6 +10,8 @@ package org.phoebus.framework.preferences;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
+import java.io.ByteArrayOutputStream;
+
 import org.junit.Test;
 
 /** JUnit test of the PreferencesReader
@@ -32,5 +34,19 @@ public class PreferencesReaderTest
 
         // Replace one property
         assertThat(PreferencesReader.replaceProperties("This is $(test)"), equalTo("This is OK"));
+    }
+
+    @Test
+    public void testListSettings() throws Exception
+    {
+        try
+        (
+            final ByteArrayOutputStream buf = new ByteArrayOutputStream();
+        )
+        {
+            PropertyPreferenceWriter.save(buf);
+            System.out.print(buf.toString());
+        }
+        System.out.println("Done");
     }
 }

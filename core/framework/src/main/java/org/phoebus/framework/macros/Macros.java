@@ -14,6 +14,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -25,6 +27,8 @@ import java.util.stream.Collectors;
 @SuppressWarnings("nls")
 public class Macros implements MacroValueProvider
 {
+    public static final Logger logger = Logger.getLogger(Macros.class.getPackageName());
+
     // Using linked map for predictable order.
     //
     // Example, a tool that tries to first "save" a current macro value in another macro,
@@ -80,8 +84,9 @@ public class Macros implements MacroValueProvider
      *  escaped:
      *  <pre> MSG = "This is a \"Message\""</pre>
      *
-     *  @param names_and_values
-     *  @throws Exception
+     *  @param names_and_values "M1=Value1, M2=Value2"
+     *  @return {@link Macros}
+     *  @throws Exception on error
      */
     public static Macros fromSimpleSpec(final String names_and_values) throws Exception
     {
@@ -150,7 +155,13 @@ public class Macros implements MacroValueProvider
 
             if (value == null)
                 throw new Exception("Error parsing '" + names_and_values + "': Missing value");
-            macros.add(name, value);
+
+            // Legacy tools like EDM would allow "S=$(S)" to pass existing macros,
+            // which we now consider a recursive macro error, so ignore.
+            if (value.equals("$(" + name + ")"))
+                logger.log(Level.WARNING, "Ignoring recursive macro " + name + " = " + value);
+            else
+                macros.add(name, value);
             pos = end;
         }
 

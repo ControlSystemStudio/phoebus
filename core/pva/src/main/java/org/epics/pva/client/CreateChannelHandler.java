@@ -20,7 +20,7 @@ import org.epics.pva.data.PVAStatus;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class CreateChannelHandler implements CommandHandler<ClientTCPHandler>
+class CreateChannelHandler implements CommandHandler<ClientTCPHandler>
 {
     @Override
     public byte getCommand()

@@ -230,6 +230,7 @@ public class PropertyPanelSection extends GridPane
         {
             final FontWidgetProperty font_prop = (FontWidgetProperty) property;
             final Button font_field = new Button();
+            font_field.setMnemonicParsing(false);
             font_field.setMaxWidth(Double.MAX_VALUE);
             final WidgetFontPropertyBinding binding = new WidgetFontPropertyBinding(undo, font_field, font_prop, other);
             bindings.add(binding);
@@ -328,6 +329,7 @@ public class PropertyPanelSection extends GridPane
         {
             final ColorMapWidgetProperty colormap_prop = (ColorMapWidgetProperty) property;
             final Button map_button = new Button();
+            map_button.setMnemonicParsing(false);
             map_button.setMaxWidth(Double.MAX_VALUE);
             final ColorMapPropertyBinding binding = new ColorMapPropertyBinding(undo, map_button, colormap_prop, other);
             bindings.add(binding);
@@ -508,6 +510,7 @@ public class PropertyPanelSection extends GridPane
         {
             final MacrosWidgetProperty macros_prop = (MacrosWidgetProperty) property;
             final Button macros_field = new Button();
+            macros_field.setMnemonicParsing(false);
             macros_field.setMaxWidth(Double.MAX_VALUE);
             final MacrosPropertyBinding binding = new MacrosPropertyBinding(undo, macros_field, macros_prop, other);
             bindings.add(binding);
@@ -518,6 +521,7 @@ public class PropertyPanelSection extends GridPane
         {
             final ActionsWidgetProperty actions_prop = (ActionsWidgetProperty) property;
             final Button actions_field = new Button();
+            actions_field.setMnemonicParsing(false);
             actions_field.setMaxWidth(Double.MAX_VALUE);
             final ActionsPropertyBinding binding = new ActionsPropertyBinding(undo, actions_field, actions_prop, other);
             bindings.add(binding);
@@ -528,6 +532,7 @@ public class PropertyPanelSection extends GridPane
         {
             final ScriptsWidgetProperty scripts_prop = (ScriptsWidgetProperty) property;
             final Button scripts_field = new Button();
+            scripts_field.setMnemonicParsing(false);
             scripts_field.setMaxWidth(Double.MAX_VALUE);
             final ScriptsPropertyBinding binding = new ScriptsPropertyBinding(undo, scripts_field, scripts_prop, other);
             bindings.add(binding);

@@ -5,17 +5,31 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.ui.javafx.TreeHelper;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
 
+/** JFX Tree item for a file (leaf) or directory (has children)
+ *
+ *  <p>Loads child nodes by traversing file system on-demand
+ *  in background thread.
+ *
+ *  <p>Monitors folders for changes.
+ *
+ *  @author Kunal Shroff
+ *  @author Kay Kasemir
+ */
+@SuppressWarnings("nls")
 class FileTreeItem extends TreeItem<File> {
 
     private final DirectoryMonitor monitor;
     private AtomicBoolean isFirstTimeLeaf = new AtomicBoolean(true);
-    private boolean isFirstTimeChildren = true;
+    private AtomicBoolean isFirstTimeChildren = new AtomicBoolean(true);
     private volatile boolean isLeaf;
 
     public FileTreeItem(final DirectoryMonitor monitor, final File childFile) {
@@ -32,7 +46,7 @@ class FileTreeItem extends TreeItem<File> {
     public void forceRefresh()
     {
         isFirstTimeLeaf.set(true);
-        isFirstTimeChildren = true;
+        isFirstTimeChildren.set(true);
 
         TreeHelper.triggerTreeItemRefresh(this);
         setExpanded(false);
@@ -48,9 +62,16 @@ class FileTreeItem extends TreeItem<File> {
     @Override
     public ObservableList<TreeItem<File>> getChildren() {
 
-        if (isFirstTimeChildren) {
-            isFirstTimeChildren = false;
-            super.getChildren().setAll(buildChildren(this));
+        if (isFirstTimeChildren.getAndSet(false))
+        {
+            // Fetch children in background job, since file access could hang for a long time.
+            // This means we return the old, i.e. empty list while the job is running.
+            JobManager.schedule("Files in " + getValue().getName(), monitor ->
+            {
+                final ObservableList<TreeItem<File>> files = buildChildren(monitor, this);
+                // Once job fetched files, update child items back on UI thread
+                Platform.runLater(() -> super.getChildren().setAll(files));
+            });
         }
         return super.getChildren();
     }
@@ -66,21 +87,32 @@ class FileTreeItem extends TreeItem<File> {
     {
         if (isFirstTimeLeaf.getAndSet(false))
         {
+            // In principle, File access could be slow.
+            // But UI called isLeaf() and needs an answer _now_,
+            // cannot provide the answer later from a background thread.
+            // Only option would be to check with a timeout...
+            // On the upside, haven't observed a hangup in here,
+            // maybe because by the time we get called, this FileTreeItem
+            // already exists, i.e. the File has been created.
+            // If there was a hangup, it had happend in buildChildren()
+            // while trying to obtain the File.
             final File f = getValue();
             isLeaf = f.isFile();
         }
         return isLeaf;
     }
 
-    private ObservableList<TreeItem<File>> buildChildren(TreeItem<File> TreeItem) {
-        File f = TreeItem.getValue();
+    private ObservableList<TreeItem<File>> buildChildren(final JobMonitor job, final TreeItem<File> TreeItem) {
+        final File f = TreeItem.getValue();
         if (f != null && f.isDirectory()) {
-            File[] files = f.listFiles();
+            final File[] files = f.listFiles();
             if (files != null) {
                 Arrays.sort(files, (a, b) -> a.getName().compareTo(b.getName()));
-                ObservableList<TreeItem<File>> children = FXCollections.observableArrayList();
-
+                final ObservableList<TreeItem<File>> children = FXCollections.observableArrayList();
+                job.beginTask("List " + files.length + " files");
                 for (File childFile : files) {
+                    if (job.isCanceled())
+                        break;
                     // Keep hidden files hidden?
                     if (childFile.isHidden()  &&  !FileBrowserApp.show_hidden)
                         continue;

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,10 +7,15 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.persist;
 
+import static org.csstudio.display.builder.model.ModelPlugin.logger;
+
 import java.io.InputStream;
+import java.util.ServiceLoader;
+import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.WidgetClassSupport;
+import org.csstudio.display.builder.model.spi.DisplayAutoConverter;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 
 /** Helper for loading a display model
@@ -43,7 +48,21 @@ public class ModelLoader
         }
         catch (Exception ex)
         {
-            throw new Exception("Cannot load '" + display_file + "' (parent: '" + parent_display + "'", ex);
+            try
+            {
+                // Check for auto-converters before giving up
+                for (DisplayAutoConverter converter : ServiceLoader.load(DisplayAutoConverter.class))
+                {
+                    final DisplayModel converted = converter.autoconvert(parent_display, display_file);
+                    if (converted != null)
+                        return converted;
+                }
+            }
+            catch (Exception conversion_error)
+            {
+                logger.log(Level.WARNING, "Auto-converter failed to create " + display_file, conversion_error);
+            }
+            throw new Exception("Cannot load '" + display_file + "' (parent: '" + parent_display + "')", ex);
         }
     }
 

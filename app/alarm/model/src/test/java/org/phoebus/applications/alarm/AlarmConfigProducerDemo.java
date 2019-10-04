@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -138,6 +138,7 @@ public class AlarmConfigProducerDemo
         final Instant end = Instant.now();
         System.out.println("Time to upload configuration to Kafka: " + Duration.between(start, end).toMillis() + " ms");
 
+        // Add a few changes to /Accelerator/Vacuum/Sector000001/SomePVName: Disable, remove, add back in, ..
         for (int i=0; i<10; ++i)
         {
             switch (i%4)
@@ -175,7 +176,7 @@ public class AlarmConfigProducerDemo
     private void sendItemConfig(final Producer<String, AlarmTreeItem<?>> producer,
             final String topic, final AlarmTreeItem<?> item)
     {
-        final String key = item.getPathName();
+        final String key = AlarmSystem.CONFIG_PREFIX + item.getPathName();
         final ProducerRecord<String, AlarmTreeItem<?>> record = new ProducerRecord<>(topic, partition, key, item);
         producer.send(record);
     }
@@ -183,7 +184,7 @@ public class AlarmConfigProducerDemo
     private void sendItemRemoval(final Producer<String, AlarmTreeItem<?>> producer,
             final String topic, final String path)
     {
-        final String key = path;
+        final String key = AlarmSystem.CONFIG_PREFIX + path;
         final ProducerRecord<String, AlarmTreeItem<?>> record = new ProducerRecord<>(topic, partition, key, null);
         producer.send(record);
     }

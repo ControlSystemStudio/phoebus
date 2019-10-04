@@ -20,6 +20,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.ChoiceButtonWidget;
+import org.csstudio.display.builder.representation.javafx.Cursors;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VNumber;
@@ -32,6 +33,7 @@ import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.Toggle;
@@ -306,6 +308,7 @@ public class ChoiceButtonRepresentation extends JFXBaseRepresentation<TilePane, 
             enabled = model_widget.propEnabled().getValue() &&
                       model_widget.runtimePropPVWritable().getValue();
             Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
+            jfx_node.setCursor(enabled ? Cursor.DEFAULT : Cursors.NO_WRITE);
             for (Node node : jfx_node.getChildren())
             {
                 final ButtonBase b = (ButtonBase) node;

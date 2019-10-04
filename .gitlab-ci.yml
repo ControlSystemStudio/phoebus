@@ -1,0 +1,2 @@
+---
+include: 'https://gitlab.esss.lu.se/ics-software/phoebus-build/raw/master/phoebus.gitlab-ci.yml'

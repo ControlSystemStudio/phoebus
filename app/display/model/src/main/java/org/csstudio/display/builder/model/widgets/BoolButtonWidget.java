@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -41,6 +41,7 @@ import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.ConfirmDialog;
+import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.phoebus.framework.persistence.XMLUtil;
@@ -68,7 +69,27 @@ public class BoolButtonWidget extends WritablePVWidget
         }
     };
 
-    /** Handle legacy widged config */
+    public static enum Mode
+    {
+        TOGGLE(Messages.BoolWidget_Toggle),
+        PUSH(Messages.BoolWidget_Push),
+        PUSH_INVERTED(Messages.BoolWidget_PushInverted);
+
+        private final String label;
+
+        private Mode(final String label)
+        {
+            this.label = label;
+        }
+
+        @Override
+        public String toString()
+        {
+            return label;
+        }
+    }
+
+    /** Handle legacy widget config */
     private static class CustomConfigurator extends WidgetConfigurator
     {
         public CustomConfigurator(Version xml_version)
@@ -103,6 +124,15 @@ public class BoolButtonWidget extends WritablePVWidget
         newFilenamePropertyDescriptor(WidgetPropertyCategory.DISPLAY, "on_image", Messages.WidgetProperties_OnImage);
     private static final WidgetPropertyDescriptor<Boolean> propShowLED =
         newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "show_led", Messages.WidgetProperties_ShowLED);
+    public static final WidgetPropertyDescriptor<Mode> propMode =
+        new WidgetPropertyDescriptor<>(WidgetPropertyCategory.BEHAVIOR, "mode", Messages.BoolWidget_Mode)
+    {
+        @Override
+        public EnumWidgetProperty<Mode> createProperty(final Widget widget, final Mode default_value)
+        {
+            return new EnumWidgetProperty<>(this, widget, default_value);
+        }
+    };
 
     private volatile WidgetProperty<Integer> bit;
     private volatile WidgetProperty<String> off_label;
@@ -117,6 +147,7 @@ public class BoolButtonWidget extends WritablePVWidget
     private volatile WidgetProperty<WidgetColor> foreground;
     private volatile WidgetProperty<Boolean> labels_from_pv;
     private volatile WidgetProperty<Boolean> enabled;
+    private volatile WidgetProperty<Mode> mode;
     private volatile WidgetProperty<ConfirmDialog> confirm_dialog;
     private volatile WidgetProperty<String> confirm_message;
     private volatile WidgetProperty<String> password;
@@ -150,6 +181,7 @@ public class BoolButtonWidget extends WritablePVWidget
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BUTTON_BACKGROUND)));
         properties.add(labels_from_pv = propLabelsFromPV.createProperty(this, false));
         properties.add(enabled = propEnabled.createProperty(this, true));
+        properties.add(mode = propMode.createProperty(this, Mode.TOGGLE));
         properties.add(confirm_dialog = propConfirmDialogOptions.createProperty(this, ConfirmDialog.NONE));
         properties.add(confirm_message = propConfirmMessage.createProperty(this, "Are your sure you want to do this?"));
         properties.add(password = propPassword.createProperty(this, ""));
@@ -231,6 +263,12 @@ public class BoolButtonWidget extends WritablePVWidget
     public WidgetProperty<Boolean> propEnabled()
     {
         return enabled;
+    }
+
+    /** @return 'mode' property */
+    public WidgetProperty<Mode> propMode()
+    {
+        return mode;
     }
 
     /** @return 'confirm_dialog' property */

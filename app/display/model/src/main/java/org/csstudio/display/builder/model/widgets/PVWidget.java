@@ -59,6 +59,8 @@ public class PVWidget extends VisibleWidget
 
     private volatile WidgetProperty<String> pv_name;
     private volatile WidgetProperty<VType>  pv_value;
+    private volatile WidgetProperty<Boolean> alarm_border;
+
 
     /** @param type Widget type. */
     public PVWidget(final String type)
@@ -81,7 +83,7 @@ public class PVWidget extends VisibleWidget
         super.defineProperties(properties);
         properties.add(pv_name = propPVName.createProperty(this, ""));
         properties.add(pv_value = runtimePropPVValue.createProperty(this, null));
-        properties.add(propBorderAlarmSensitive.createProperty(this, true));
+        properties.add(alarm_border = propBorderAlarmSensitive.createProperty(this, true));
     }
 
     @Override
@@ -101,5 +103,11 @@ public class PVWidget extends VisibleWidget
     public WidgetProperty<VType> runtimePropValue()
     {
         return pv_value;
+    }
+
+    /** @return 'border_alarm_sensitive' property */
+    public WidgetProperty<Boolean> propBorderAlarmSensitive()
+    {
+        return alarm_border;
     }
 }

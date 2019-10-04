@@ -373,3 +373,40 @@ releases older than R2006b you will have to edit the generated file to
 suit your needs, for example use simply ``plot(v)`` to show the values.
 
 
+
+Command Line Export Options
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The export functionality can also be invoked from the command line,
+without using the graphical user interface.
+This can be convenient when regularly exporting data for several channels.
+
+To see available options, run phoebus like this::
+
+    phoebus -main org.phoebus.archive.Export -help
+    
+    Usage: -main org.phoebus.archive.Export [options]
+
+    Export archived data into files
+
+    General command-line options:
+
+    -help                                    -  This text
+    -settings settings.xml                   -  Import settings from file, either exported XML or property file format
+    -archives                                -  Set archive URLs, separated by '*'
+
+    Archive Information options:
+    -list [pattern]                          -  List channel names, with optional pattern ('.', '*')
+
+    Data Export options:
+    -start '2019-01-02 08:00:00'             -  Start time
+    -end '2019-02-03 16:15:20'               -  End time (defaults to 'now')
+    -bin bin_count                           -  Export 'optimized' data for given bin count
+    -linear HH:MM:SS                         -  Export linearly extrapolated data for time intervals
+    -decimal precision                       -  Decimal format with given precision
+    -exponential precision                   -  Exponential format with given precision
+    -nostate                                 -  Do not include status/severity in tab-separated file
+    -export /path/to/file channel <channels> -  Export data for one or more channels into file
+
+    File names ending in *.m or *.mat generate Matlab files.
+    All other file name endings create tab-separated data files.

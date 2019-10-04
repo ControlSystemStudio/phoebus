@@ -24,6 +24,7 @@ import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
 import org.csstudio.display.builder.model.properties.FontWidgetProperty;
+import org.csstudio.display.builder.model.properties.LineStyle;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.epics.vtype.VType;
@@ -193,6 +194,7 @@ public class PlotWidgetProperties
                                 traceType.createProperty(widget, PlotWidgetTraceType.LINE),
                                 traceColor.createProperty(widget, NamedWidgetColors.getPaletteColor(index)),
                                 CommonWidgetProperties.propLineWidth.createProperty(widget, 1),
+                                CommonWidgetProperties.propLineStyle.createProperty(widget, LineStyle.SOLID),
                                 tracePointType.createProperty(widget, PlotWidgetPointType.NONE),
                                 tracePointSize.createProperty(widget, 10),
                                 traceXValue.createProperty(widget, null),
@@ -208,12 +210,13 @@ public class PlotWidgetProperties
         public WidgetProperty<PlotWidgetTraceType> traceType()      { return getElement(5); }
         public WidgetProperty<WidgetColor> traceColor()             { return getElement(6); }
         public WidgetProperty<Integer> traceWidth()                 { return getElement(7); }
-        public WidgetProperty<PlotWidgetPointType> tracePointType() { return getElement(8); }
-        public WidgetProperty<Integer> tracePointSize()             { return getElement(9); }
-        public WidgetProperty<VType> traceXValue()                  { return getElement(10); }
-        public WidgetProperty<VType> traceYValue()                  { return getElement(11); }
-        public WidgetProperty<VType> traceErrorValue()              { return getElement(12); }
-        public WidgetProperty<Boolean> traceVisible()               { return getElement(13); }
+        public WidgetProperty<LineStyle> traceLineStyle()           { return getElement(8); }
+        public WidgetProperty<PlotWidgetPointType> tracePointType() { return getElement(9); }
+        public WidgetProperty<Integer> tracePointSize()             { return getElement(10); }
+        public WidgetProperty<VType> traceXValue()                  { return getElement(11); }
+        public WidgetProperty<VType> traceYValue()                  { return getElement(12); }
+        public WidgetProperty<VType> traceErrorValue()              { return getElement(13); }
+        public WidgetProperty<Boolean> traceVisible()               { return getElement(14); }
     };
 
     /** 'traces' array */

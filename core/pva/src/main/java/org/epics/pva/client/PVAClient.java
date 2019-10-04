@@ -21,14 +21,19 @@ import org.epics.pva.PVASettings;
 import org.epics.pva.common.Network;
 import org.epics.pva.server.Guid;
 
-/** PVA Client
+/** PV Access Client
  *
- *  <p>Maintain PVs, coordinates search requests etc.
- *
- *  <p>Does not pool PVs by name. A caller requesting
- *  channels for the same name more than once will receive
- *  separate channels, with different internal channel IDs,
- *  which will result in separate channels on the PVA server.
+ *  <p>The {@link PVAClient} is the central client API.
+ *  Basic usage:
+ *  <pre>
+ *  PVAClient client = new PVAClient();
+ *  PVAChannel channel = client.getChannel("SomePVName");
+ *  channel.connect().get(5, TimeUnit.SECONDS);
+ *  PVAStructure value = channel.read("").get(5, TimeUnit.SECONDS);
+ *  System.out.println(channel.getName() + " = " + value);
+ *  channel.close();
+ *  client.close();
+ *  </pre>
  *
  *  @author Kay Kasemir
  */
@@ -52,6 +57,20 @@ public class PVAClient
 
     private final AtomicInteger request_ids = new AtomicInteger();
 
+    /** Create a new PVAClient
+     *
+     *  <p>The {@link PVAClient} maintain PVs and coordinates the necessary search requests.
+     *
+     *  <p>It does not pool PVs by name. A caller requesting
+     *  channels for the same name more than once will receive
+     *  separate channels, with different internal channel IDs,
+     *  which will result in separate channels on the PVA server.
+     *
+     *  <p>The PVAClient API thus provides full control over the number of channels.
+     *  A higher-level PV layer is suggested to perform channel pooling.
+     *
+     * @throws Exception on error
+     */
     public PVAClient() throws Exception
     {
         List<InetSocketAddress> search_addresses = Network.parseAddresses(PVASettings.EPICS_PVA_ADDR_LIST.split("\\s+"));
@@ -97,7 +116,7 @@ public class PVAClient
     *
     *  <p>Starts search.
     *
-    *  @param channel_name
+    *  @param channel_name PVA channel name
     *  @return {@link PVAChannel}
     */
     public PVAChannel getChannel(final String channel_name)
@@ -109,8 +128,8 @@ public class PVAClient
      *
      *  <p>Starts search.
      *
-     *  @param channel_name
-     *  @param listener {@link ClientChannelListener}
+     *  @param channel_name PVA channel name
+     *  @param listener {@link ClientChannelListener} that will be invoked with connection state updates
      *  @return {@link PVAChannel}
      */
     public PVAChannel getChannel(final String channel_name, final ClientChannelListener listener)
@@ -181,11 +200,28 @@ public class PVAClient
 
         // Reply for specific channel
         final PVAChannel channel = search.unregister(channel_id);
-        // Late reply, we already deleted that channel
+        // Late reply for search that was already satisfied?
         if (channel == null)
+        {
+            // Since searches are sent out multiple times until there's a response,
+            // and searches are forwarded via multicast,
+            // so it's common to receive multiple replies for the same channel
+            // from the same server.
+            // Check GUID for unexpected reply from another(!) server.
+            final PVAChannel check = channels_by_id.get(channel_id);
+            if (check == null)
+                logger.log(Level.WARNING, "Received search reply for unknown channel ID " + channel_id + " from " + server + " " + guid);
+            else
+            {
+                final ClientTCPHandler tcp = check.tcp.get();
+                // Warn about duplicate PVs on network
+                if (tcp != null  &&  !tcp.getGuid().equals(guid))
+                    logger.log(Level.WARNING, "More than one channel with name '" + check.getName() + "' detected, connected to " + tcp.getRemoteAddress() + " " + tcp.getGuid() + ", ignored " + server + " " + guid);
+            }
             return;
+        }
         channel.setState(ClientChannelState.FOUND);
-        logger.log(Level.FINE, () -> "Reply for " + channel + " from " + server);
+        logger.log(Level.FINE, () -> "Reply for " + channel + " from " + server + " " + guid);
 
         final ClientTCPHandler tcp = tcp_handlers.computeIfAbsent(server, addr ->
         {

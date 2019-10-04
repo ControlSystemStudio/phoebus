@@ -19,6 +19,10 @@ import org.epics.pva.data.PVAStructure;
 import org.epics.pva.data.nt.PVATimeStamp;
 
 /** PVA Server Demo
+ *
+ *  <p>PVs "demo" and "demo2" updates.
+ *  PV "demo3" is writable.
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -38,9 +42,22 @@ public class ServerDemo
                                                    new PVAString("tag",   "Hello!"),
                                                    time);
 
+        final PVAStructure writable_data = data.cloneData();
+
         // Create PVs
-        final ServerPV pv = server.createPV("demo", data);
+        // Read-only
+        final ServerPV pv1 = server.createPV("demo", data);
         final ServerPV pv2 = server.createPV("demo2", data);
+
+        // Writable
+        final ServerPV write_pv = server.createPV("demo3", writable_data, (pv, changes, written) ->
+        {
+            // Write handler could check what was changed,
+            // clamp data to certain range etc.
+            // Here we accept all and update the PV with the new data.
+            PVATimeStamp.set(written, Instant.now());
+            pv.update(written);
+        });
 
         // Update PVs
         for (int i=0; i<30000; ++i)
@@ -53,7 +70,7 @@ public class ServerDemo
             value.set(value.get() + 1);
             time.set(Instant.now());
 
-            pv.update(data);
+            pv1.update(data);
             pv2.update(data);
         }
 
@@ -61,7 +78,7 @@ public class ServerDemo
         // Cannot change the structure layout for existing PV.
         try
         {
-            pv.update(new PVAStructure("xx", "xxx", new PVAInt("xx", 47)));
+            pv1.update(new PVAStructure("xx", "xxx", new PVAInt("xx", 47)));
         }
         catch (Exception ex)
         {

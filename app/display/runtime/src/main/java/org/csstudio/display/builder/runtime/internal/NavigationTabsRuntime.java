@@ -23,11 +23,9 @@ import org.csstudio.display.builder.runtime.WidgetRuntime;
  */
 public class NavigationTabsRuntime extends WidgetRuntime<NavigationTabsWidget>
 {
-    /** Start: Connect to PVs, ..., then monitor the embedded model to start/stop it
-     *  @throws Exception on error
-     */
+    /** Start: Connect to PVs, ..., then monitor the embedded model to start/stop it */
     @Override
-    public void start() throws Exception
+    public void start()
     {
         super.start();
         widget.runtimePropEmbeddedModel().addPropertyListener(this::embeddedModelChanged);

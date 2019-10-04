@@ -101,6 +101,18 @@ public class Tracker extends Group
         setPosition(tracker.getX(), tracker.getY(), tracker.getWidth(), tracker.getHeight());
     }
 
+    /** @param show Show location and size indicator / initial from prefs */
+    public void setShowLocationAndSize(final boolean show)
+    {
+        this.showLocationAndSize = show;
+    }
+
+    /** @return Show location and size indicator */
+    public boolean getShowLocationAndSize()
+    {
+        return this.showLocationAndSize;
+    }
+
     /** @return 'Handle' type rectangle */
     private Rectangle createHandle()
     {

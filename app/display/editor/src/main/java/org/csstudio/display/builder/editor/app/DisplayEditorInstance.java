@@ -1,11 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
 package org.csstudio.display.builder.editor.app;
+
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFile;
 
 import java.io.File;
 import java.net.URI;
@@ -15,6 +17,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import org.csstudio.display.builder.editor.DisplayEditor;
 import org.csstudio.display.builder.editor.EditorGUI;
 import org.csstudio.display.builder.editor.EditorUtil;
 import org.csstudio.display.builder.editor.Messages;
@@ -22,9 +25,9 @@ import org.csstudio.display.builder.editor.actions.ActionDescription;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.ModelPlugin;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.WidgetClassSupport;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
-import org.csstudio.display.builder.model.WidgetClassSupport;
 import org.csstudio.display.builder.model.persist.WidgetClassesService;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
@@ -55,17 +58,15 @@ import javafx.scene.control.Control;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFile;
-
 /** Display Editor Instance
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class DisplayEditorInstance implements AppInstance
 {
-    /** Memento tags */
-    private static final String LEFT_DIVIDER = "left_divider",
-                                RIGHT_DIVIDER = "right_divider";
+    /** Memento & property tags */
+    public static final String TREE_DIVIDER = "tree_divider",
+                               PROP_DIVIDER = "prop_divider";
 
     private final AppResourceDescriptor app;
     private DockItemWithInput dock_item;
@@ -137,6 +138,8 @@ public class DisplayEditorInstance implements AppInstance
         final List<Widget> selection = editor_gui.getDisplayEditor().getWidgetSelectionHandler().getSelection();
         final ActionWapper cut = new ActionWapper(ActionDescription.CUT);
         final ActionWapper copy = new ActionWapper(ActionDescription.COPY);
+        final MenuItem copy_properties = new CopyPropertiesAction(editor_gui.getDisplayEditor(), selection);
+        final MenuItem paste_properties = new PastePropertiesAction(editor_gui.getDisplayEditor(), selection);
         final MenuItem group = new CreateGroupAction(editor_gui.getDisplayEditor(), selection);
         final MenuItem morph = new MorphWidgetsMenu(editor_gui.getDisplayEditor());
         final MenuItem back = new ActionWapper(ActionDescription.TO_BACK);
@@ -195,6 +198,8 @@ public class DisplayEditorInstance implements AppInstance
         menu.getItems().setAll(cut,
                                copy,
                                new PasteWidgets(getEditorGUI()),
+                               copy_properties,
+                               paste_properties,
                                new SeparatorMenuItem(),
                                group,
                                ungroup,
@@ -228,20 +233,40 @@ public class DisplayEditorInstance implements AppInstance
     @Override
     public void restore(final Memento memento)
     {
-        memento.getBoolean(EditorGUI.SHOW_PROPS).ifPresent(editor_gui::showProperties);
-        memento.getBoolean(EditorGUI.SHOW_TREE).ifPresent(editor_gui::showWidgetTree);
-        final Optional<Number> left = memento.getNumber(LEFT_DIVIDER);
-        final Optional<Number> right = memento.getNumber(RIGHT_DIVIDER);
+        final Optional<Boolean> oprops = memento.getBoolean(EditorGUI.SHOW_PROPS);
+        final boolean props;
+        if (oprops.isPresent())
+            editor_gui.showProperties(props = oprops.get());
+        else
+            props = true;
+        
+        final Optional<Boolean> otree = memento.getBoolean(EditorGUI.SHOW_TREE);
+        final boolean tree;
+        if (otree.isPresent())
+            editor_gui.showWidgetTree(tree = otree.get());
+        else
+            tree = true;
+        
+        memento.getBoolean(DisplayEditor.SHOW_COORDS).ifPresentOrElse(editor_gui::showCoords, () -> editor_gui.showCoords(true));
+        memento.getBoolean(DisplayEditor.SNAP_GRID).ifPresentOrElse(editor_gui::snapGrid, () -> editor_gui.snapGrid(true));
+        memento.getBoolean(DisplayEditor.SNAP_WIDGETS).ifPresentOrElse(editor_gui::snapWidgets, () -> editor_gui.snapWidgets(true));
+        
+        final Optional<Number> tree_div = memento.getNumber(TREE_DIVIDER);
+        final Optional<Number> prop_div = memento.getNumber(PROP_DIVIDER);
 
         // Divider positions will be lost by initial UI layout, so defer
         Platform.runLater(() ->
             dock_item.getDockPane().deferUntilInScene(scene ->
             {
-                if (left.isPresent()  &&  right.isPresent())
-                    editor_gui.setDividerPositions(left.get().doubleValue(),
-                                                   right.get().doubleValue());
-                else if (left.isPresent())
-                    editor_gui.setDividerPositions(left.get().doubleValue());
+                if (tree_div.isPresent()  &&  prop_div.isPresent())
+                    editor_gui.setDividerPositions(tree_div.get().doubleValue(),
+                                                   prop_div.get().doubleValue());
+                else if (tree_div.isPresent())
+                    if (tree)
+                        editor_gui.setDividerPositions(tree_div.get().doubleValue());
+                else if (prop_div.isPresent())
+                    if (props)
+                        editor_gui.setDividerPositions(prop_div.get().doubleValue());
             }));
     }
 
@@ -252,12 +277,24 @@ public class DisplayEditorInstance implements AppInstance
             memento.setBoolean(EditorGUI.SHOW_TREE, false);
         if (! editor_gui.arePropertiesShown())
             memento.setBoolean(EditorGUI.SHOW_PROPS, false);
+        if (! editor_gui.getShowCoords())
+            memento.setBoolean(DisplayEditor.SHOW_COORDS, false);
+        if (! editor_gui.getSnapGrid())
+            memento.setBoolean(DisplayEditor.SNAP_GRID, false);
+        if (! editor_gui.getSnapWidgets())
+            memento.setBoolean(DisplayEditor.SNAP_WIDGETS, false);
 
         final double[] dividers = editor_gui.getDividerPositions();
-        if (dividers.length > 0)
-            memento.setNumber(LEFT_DIVIDER, dividers[0]);
-        if (dividers.length > 1)
-            memento.setNumber(RIGHT_DIVIDER, dividers[1]);
+        if (dividers.length == 1)
+            if (editor_gui.arePropertiesShown())
+                memento.setNumber(PROP_DIVIDER, dividers[0]);
+            else
+                memento.setNumber(TREE_DIVIDER, dividers[0]);
+        else if (dividers.length > 1)
+        {
+            memento.setNumber(TREE_DIVIDER, dividers[0]);
+            memento.setNumber(PROP_DIVIDER, dividers[1]);
+        }
     }
 
     EditorGUI getEditorGUI()
@@ -312,7 +349,7 @@ public class DisplayEditorInstance implements AppInstance
     {
         final URI orig_input = dock_item.getInput();
         final File file = Objects.requireNonNull(ResourceParser.getFile(orig_input));
-        
+
         final DisplayModel model = editor_gui.getDisplayEditor().getModel();
 
         // Check if it's a class file (*.bcf)

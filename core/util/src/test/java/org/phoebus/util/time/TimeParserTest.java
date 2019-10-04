@@ -144,12 +144,74 @@ public class TimeParserTest {
         amount = TimeParser.parseTemporalAmount("1 mo");
         assertEquals(amount, Period.of(0, 1, 0));
 
+        // Just the unit name implies "1 xxx"
+        amount = TimeParser.parseTemporalAmount("month");
+        assertEquals(amount, Period.of(0, 1, 0));
+
         // 60 days span more than a month,
         // but since "month" is not mentioned,
         // it's considered 60 exact days
         // (implying 24 hour days)
         amount = TimeParser.parseTemporalAmount("60 days");
         assertEquals(amount, Duration.ofDays(60));
+    }
+
+    @Test
+    public void testParseFactionalTemporalAmount()
+    {
+        // Just having ".0" used to be an error before fractions were supported
+        TemporalAmount amount = TimeParser.parseTemporalAmount("1.000 hour");
+        System.out.println(TimeParser.format(amount));
+        Instant instant = Instant.ofEpochSecond(0).plus(amount);
+        assertEquals(60*60, instant.getEpochSecond());
+        assertEquals(0, instant.getNano());
+
+        amount = TimeParser.parseTemporalAmount("1.5 hour");
+        System.out.println(TimeParser.format(amount));
+        instant = Instant.ofEpochSecond(0).plus(amount);
+        assertEquals((60+30)*60, instant.getEpochSecond());
+        assertEquals(0, instant.getNano());
+
+        amount = TimeParser.parseTemporalAmount("1.5 hour 6.5 minutes");
+        System.out.println(TimeParser.format(amount));
+        instant = Instant.ofEpochSecond(0).plus(amount);
+        assertEquals((60+30+6)*60+30, instant.getEpochSecond());
+        assertEquals(0, instant.getNano());
+
+        amount = TimeParser.parseTemporalAmount("6.5 minutes");
+        System.out.println(TimeParser.format(amount));
+        instant = Instant.ofEpochSecond(0).plus(amount);
+        assertEquals(6*60+30, instant.getEpochSecond());
+        assertEquals(0, instant.getNano());
+
+        amount = TimeParser.parseTemporalAmount("3.5 seconds");
+        System.out.println(TimeParser.format(amount));
+        instant = Instant.ofEpochSecond(0).plus(amount);
+        assertEquals(3, instant.getEpochSecond());
+        assertEquals(500000000, instant.getNano());
+
+        amount = TimeParser.parseTemporalAmount("1.5 days");
+        System.out.println(TimeParser.format(amount));
+        instant = Instant.ofEpochSecond(0).plus(amount);
+        assertEquals((24+12)*60*60, instant.getEpochSecond());
+        assertEquals(0, instant.getNano());
+
+        // As soon as the time span enters "weeks", it's handled
+        // as a 'Period' which is only good down to days.
+        // So 1.5 weeks = 7 + 3.5 days is rounded to 11 days, not 10.5
+        amount = TimeParser.parseTemporalAmount("1.5 weeks");
+        System.out.println(TimeParser.format(amount));
+        assertEquals(Period.of(0,  0,  11), amount);
+
+        // 1.5 month = 1 month, 2 weeks=14days
+        amount = TimeParser.parseTemporalAmount("1.5 months");
+        System.out.println(TimeParser.format(amount));
+        assertEquals(Period.of(0,  1,  14), amount);
+
+        // 1.5 years = 1 year, 6 months (not divving up further into days)
+        amount = TimeParser.parseTemporalAmount("1.5 years");
+        System.out.println(TimeParser.format(amount));
+        assertEquals(Period.of(1,  6,  0), amount);
     }
 
     @Test

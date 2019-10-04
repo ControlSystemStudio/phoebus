@@ -8,8 +8,10 @@
 package org.csstudio.display.builder.runtime.app;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
+import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.ActionInfo;
@@ -24,6 +26,7 @@ import org.csstudio.display.builder.runtime.Messages;
 import org.csstudio.display.builder.runtime.RuntimeAction;
 import org.csstudio.display.builder.runtime.RuntimeUtil;
 import org.csstudio.display.builder.runtime.WidgetRuntime;
+import org.csstudio.display.builder.runtime.pv.RuntimePV;
 import org.phoebus.applications.email.actions.SendEmailAction;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
@@ -128,17 +131,25 @@ class ContextMenuSupport
         items.add(new SeparatorMenuItem());
 
         // Add PV-based contributions
+        String pv_name = "";
+        // Does widget have a PV name?
         final Optional<WidgetProperty<String>> name_prop = widget.checkProperty(CommonWidgetProperties.propPVName);
         if (name_prop.isPresent())
-        {
-            final String pv_name = name_prop.get().getValue();
-            if (!pv_name.isEmpty())
+            pv_name = name_prop.get().getValue();
+        else
+        {   // See if there are runtime PVs, pick the first one
+            for (RuntimePV pv : runtime.getPVs())
             {
-                // Set the 'selection' to the PV of this widget
-                SelectionService.getInstance().setSelection(DisplayRuntimeApplication.NAME, List.of(new ProcessVariable(pv_name)));
-                // Add PV-based menu entries
-                ContextMenuHelper.addSupportedEntries(node, menu);
+                pv_name = pv.getName();
+                break;
             }
+        }
+        if (!pv_name.isEmpty())
+        {
+            // Set the 'selection' to the PV of this widget
+            SelectionService.getInstance().setSelection(DisplayRuntimeApplication.NAME, List.of(new ProcessVariable(pv_name)));
+            // Add PV-based menu entries
+            ContextMenuHelper.addSupportedEntries(node, menu);
             items.add(new SeparatorMenuItem());
         }
 
@@ -170,8 +181,24 @@ class ContextMenuSupport
         items.add(new PrintAction(model_parent));
 
         items.add(new SaveSnapshotAction(model_parent));
-        items.add(new SendEmailAction(model_parent, "Display Screenshot", "See attached display", () ->  Screenshot.imageFromNode(model_parent)));
-        items.add(new SendLogbookAction(model_parent, "Display Screenshot", "See attached display", () ->  Screenshot.imageFromNode(model_parent)));
+
+        String display_info;
+        try
+        {
+            final DisplayModel model = widget.getDisplayModel();
+            final String name = model.getDisplayName();
+            final String input =  model.getUserData(DisplayModel.USER_DATA_INPUT_FILE);
+            if (Objects.equals(name, input))
+                display_info = "Display '" + name + "'";
+            else
+                display_info = "Display '" + name + "' (" + input + ")";
+        }
+        catch (Exception ex)
+        {
+            display_info = "See attached display";
+        }
+        items.add(new SendEmailAction(model_parent, "Display Screenshot", display_info, () ->  Screenshot.imageFromNode(model_parent)));
+        items.add(new SendLogbookAction(model_parent, "Display Screenshot", display_info, () ->  Screenshot.imageFromNode(model_parent)));
         items.add(new SeparatorMenuItem());
 
         items.add(new DisplayToolbarAction(instance));

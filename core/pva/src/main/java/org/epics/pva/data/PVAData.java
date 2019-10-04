@@ -41,7 +41,7 @@ public abstract class PVAData
      *  This method allows setting the value from
      *  generic {@link Object}.
      *
-     *  @param new_value
+     *  @param new_value New value for this data item
      *  @throws Exception on error, including incompatible data type
      */
     public abstract void setValue(Object new_value) throws Exception;

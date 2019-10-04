@@ -76,6 +76,14 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
 
     public static final String FONT_FAMILY = "Liberation Sans";
 
+    /** When background is 100% transparent (alpha=0),
+     *  the plot will no longer capture any mouse events,
+     *  it's invisible to the mouse.
+     *  Patching that color with an almost transparent one
+     *  avoids the issue.
+     */
+    private static final Color ALMOST_TRANSPARENT = new Color(0, 0, 0, 1);
+
     /** Font to use for, well, title */
     private volatile Font title_font = new Font(FONT_FAMILY, Font.BOLD, 18);
 
@@ -185,7 +193,10 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
     /** @param color Background color */
     public void setBackground(final Color color)
     {
-        background = color;
+        if (color.getAlpha() <= 0)
+            background = ALMOST_TRANSPARENT;
+        else
+            background = color;
     }
 
     /** Opacity (0 .. 100 %) of 'area' */

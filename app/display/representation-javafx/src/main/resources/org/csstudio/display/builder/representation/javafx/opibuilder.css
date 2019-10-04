@@ -81,6 +81,14 @@
     -fx-text-fill: black;
 }
 
+/** Used by MenuButton (Action Button Widget)
+ *  to hide the 'down' arrow when button is too narrow
+ */
+.hide_arrow > .arrow-button,  .hide_arrow > .arrow-button > .arrow
+{
+    -fx-padding: 0;
+}
+
 
 /** Allow more room for text in combo box */
 .combo-box > .list-cell
@@ -220,15 +228,6 @@
 {
     -fx-padding: 0 0.095em 0 0.095em;
     -fx-color: derive(-fx-base,-11.11%);
-}
-
-/* Clicking the "Custom Colors..." link
- * in the color picker can hang the application on Linux.
- * https://github.com/kasemir/org.csstudio.display.builder/issues/339
- */
-.color-picker .color-palette .hyperlink, .color-picker .color-palette .separator
-{
-    visibility: hidden;
 }
 
 /*

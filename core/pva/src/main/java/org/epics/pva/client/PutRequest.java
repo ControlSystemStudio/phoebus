@@ -24,9 +24,6 @@ import org.epics.pva.data.PVAStructure;
 @SuppressWarnings("nls")
 class PutRequest extends CompletableFuture<Void> implements RequestEncoder, ResponseHandler
 {
-    /** Sub command to write value */
-    private static final byte PUT = 0;
-
     private final PVAChannel channel;
 
     private final String request;
@@ -101,7 +98,7 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
             final int pos = buffer.position();
             buffer.putInt(channel.sid);
             buffer.putInt(request_id);
-            buffer.put((byte)(PUT | PVAHeader.CMD_SUB_DESTROY));
+            buffer.put(PVAHeader.CMD_SUB_DESTROY);
 
             // Locate the 'value' field
             PVAData field = data.get("value");
@@ -166,7 +163,7 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
             // Submit request again, this time to PUT data
             channel.getTCP().submit(this, this);
         }
-        else if (subcmd == ((byte)(PUT | PVAHeader.CMD_SUB_DESTROY)))
+        else if (subcmd == PVAHeader.CMD_SUB_DESTROY)
         {
             logger.log(Level.FINE,
                     () -> "Received put PUT reply #" + request_id +

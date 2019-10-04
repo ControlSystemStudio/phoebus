@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -100,8 +100,8 @@ public class StringTableDemo extends ApplicationWrapper
         final Button set_color = new Button("Set Color");
         set_color.setOnAction(event ->
         {
-            table.setCellColors(List.of(List.of(null, Color.ORANGE),
-                                        List.of(null, null, Color.BLUEVIOLET)));
+            table.setCellColor(0, 1, Color.ORANGE);
+            table.setCellColor(1,  2, Color.BLUEVIOLET);
         });
 
         final CheckBox sel_row = new CheckBox("Select rows");
@@ -128,7 +128,7 @@ public class StringTableDemo extends ApplicationWrapper
         });
         stage.show();
 
-        // Thread that keeps updating a cell
+        // Thread that keeps updating a cell text
         final Thread change_cell = new Thread(() ->
         {
             while (true)
@@ -146,5 +146,28 @@ public class StringTableDemo extends ApplicationWrapper
         });
         change_cell.setDaemon(true);
         change_cell.start();
+
+        // Thread that keeps updating a cell color
+        final Thread change_color = new Thread(() ->
+        {
+            while (true)
+            {
+                try
+                {
+                    Thread.sleep(1000);
+                }
+                catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+                final boolean toggle = System.currentTimeMillis() / 1000 % 2 == 0;
+                Platform.runLater(() ->  table.setCellColor(0, 0, toggle ? Color.RED : Color.GREEN));
+                Platform.runLater(() ->  table.setCellColor(0, 1, toggle ? Color.GREEN : Color.BLUE));
+                Platform.runLater(() ->  table.setCellColor(0, 2, toggle ? Color.BLUE : Color.GRAY));
+            }
+        });
+        change_color.setDaemon(true);
+        change_color.start();
+
     }
 }

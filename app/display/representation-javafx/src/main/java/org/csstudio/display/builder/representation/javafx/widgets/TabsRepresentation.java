@@ -23,13 +23,16 @@ import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.Direction;
 import org.csstudio.display.builder.model.widgets.TabsWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget.TabItemProperty;
+import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 
 import javafx.geometry.Point2D;
 import javafx.geometry.Side;
+import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Pane;
@@ -91,6 +94,20 @@ public class TabsRepresentation extends JFXBaseRepresentation<TabPane, TabsWidge
 
         tabs.setMinSize(TabPane.USE_PREF_SIZE, TabPane.USE_PREF_SIZE);
         tabs.setTabMinHeight(model_widget.propTabHeight().getValue());
+
+        // In edit mode, we want to support 'rubberbanding' inside the active tab.
+        // This means mouse clicks need to be passed up to the 'model_root'
+        // where the rubber band handler can then see them.
+        if (toolkit.isEditMode())
+            tabs.addEventFilter(MouseEvent.MOUSE_PRESSED, event ->
+            {
+                for (Parent parent = tabs.getParent();  parent != null;  parent = parent.getParent())
+                    if (JFXRepresentation.MODEL_ROOT_ID.equals(parent.getId()))
+                    {
+                        parent.fireEvent(event);
+                        break;
+                    }
+            });
 
         return tabs;
     }

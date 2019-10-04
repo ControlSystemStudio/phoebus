@@ -91,6 +91,9 @@ abstract class ServerAuth
         @Override
         public boolean hasWriteAccess(final String channel)
         {
+            // TODO Implement access security
+            if (channel.contains("demo"))
+                return true;
             return false;
         }
 
