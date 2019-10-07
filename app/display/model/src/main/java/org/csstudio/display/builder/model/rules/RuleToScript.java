@@ -227,9 +227,9 @@ public class RuleToScript
         script.append("## Script for Rule: ").append(rule.getName()).append("\n\n");
         script.append("from org.csstudio.display.builder.runtime.script import PVUtil\n");
         if (pform == PropFormat.COLOR)
-            script.append("from org.csstudio.display.builder.model.properties import WidgetColor\n");
+            script.append("from ").append(WidgetColor.class.getPackageName()).append(" import WidgetColor\n");
         else if (pform == PropFormat.FONT)
-            script.append("from org.csstudio.display.builder.model.properties import WidgetFont, WidgetFontStyle\n");
+            script.append("from ").append(WidgetFont.class.getPackageName()).append(" import WidgetFont, WidgetFontStyle\n");
 
         script.append("\n## Process variable extraction\n");
         script.append("## Use any of the following valid variable names in an expression:\n");
