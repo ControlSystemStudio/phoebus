@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.csstudio.display.builder.model.rules.RuleInfo.ExpressionInfo;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.Macros;
@@ -53,7 +54,7 @@ public class RuleToScript
 
     private enum PropFormat
     {
-        NUMERIC, BOOLEAN, STRING, COLOR
+        NUMERIC, BOOLEAN, STRING, COLOR, FONT
     }
 
     /** @param prop Property
@@ -74,6 +75,11 @@ public class RuleToScript
                 return "colorVal" + String.valueOf(exprIDX);
             else
                 return "colorCurrent";
+        case FONT:
+            if (exprIDX >= 0)
+                return "fontVal" + String.valueOf(exprIDX);
+            else
+                return "fontCurrent";
         case NUMERIC:
             // Set enum to its ordinal
             if (prop.getValue() instanceof Enum<?>)
@@ -195,6 +201,8 @@ public class RuleToScript
              pform = PropFormat.NUMERIC;
         else if (prop.getDefaultValue() instanceof WidgetColor)
             pform = PropFormat.COLOR;
+        else if (prop.getDefaultValue() instanceof WidgetFont)
+            pform = PropFormat.FONT;
         else
             pform = PropFormat.STRING;
 
@@ -203,6 +211,8 @@ public class RuleToScript
         script.append("from org.csstudio.display.builder.runtime.script import PVUtil\n");
         if (pform == PropFormat.COLOR)
             script.append("from org.csstudio.display.builder.model.properties import WidgetColor\n");
+        else if (pform == PropFormat.FONT)
+            script.append("from org.csstudio.display.builder.model.properties import WidgetFont, WidgetFontStyle\n");
 
         script.append("\n## Process variable extraction\n");
         script.append("## Use any of the following valid variable names in an expression:\n");
@@ -275,6 +285,36 @@ public class RuleToScript
                                   .append(col.getGreen()).append(", ")
                                   .append(col.getBlue()).append(", ")
                                   .append(col.getAlpha()).append(")\n");
+                        }
+                    }
+                    idx++;
+                }
+            }
+        }
+        else if (pform == PropFormat.FONT)
+        {   // If property is a font, create variables for all the used fonts
+            script.append("\n## Define Fonts\n");
+            WidgetFont fon = (WidgetFont) prop.getValue();
+            script.append("fontCurrent = ")
+                  .append("WidgetFont(\"").append(fon.getFamily()).append("\", WidgetFontStyle.")
+                                          .append(fon.getStyle().name()).append(", ")
+                                          .append(fon.getSize()).append(")\n");
+
+            if (!rule.getPropAsExprFlag())
+            {
+                int idx = 0;
+                for (ExpressionInfo<?> expr : rule.getExpressions())
+                {
+                    if (expr.getPropVal() instanceof WidgetProperty<?>)
+                    {
+                        final Object value = (( WidgetProperty<?>)expr.getPropVal()).getValue();
+                        if (value instanceof WidgetFont)
+                        {
+                            fon = (WidgetFont) value;
+                            script.append("fontVal").append(idx).append(" = ")
+                                  .append("WidgetFont(\"").append(fon.getFamily()).append("\", WidgetFontStyle.")
+                                  .append(fon.getStyle().name()).append(", ")
+                                  .append(fon.getSize()).append(")\n");
                         }
                     }
                     idx++;
