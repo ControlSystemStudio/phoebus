@@ -188,6 +188,23 @@ public class RuleToScript
         return text.length() >= pos + ll  &&  text.substring(pos, pos+ll).equals(literal);
     }
 
+    private static StringBuilder createWidgetColor(StringBuilder script, final WidgetColor col)
+    {
+        script.append("WidgetColor(").append(col.getRed()).append(", ")
+                                     .append(col.getGreen()).append(", ")
+                                     .append(col.getBlue()).append(", ")
+                                     .append(col.getAlpha()).append(")\n");
+        return script;
+    }
+
+    private static StringBuilder createWidgetFont(StringBuilder script, final WidgetFont fon)
+    {
+        script.append("WidgetFont(\"").append(fon.getFamily()).append("\", WidgetFontStyle.")
+                                      .append(fon.getStyle().name()).append(", ")
+                                      .append(fon.getSize()).append(")\n");
+        return script;
+    }
+
     public static String generatePy(final Widget attached_widget, final RuleInfo rule)
     {
         final WidgetProperty<?> prop = attached_widget.getProperty(rule.getPropID());
@@ -263,11 +280,8 @@ public class RuleToScript
         {   // If property is a color, create variables for all the used colors
             script.append("\n## Define Colors\n");
             WidgetColor col = (WidgetColor) prop.getValue();
-            script.append("colorCurrent = ")
-                  .append("WidgetColor(").append(col.getRed()).append(", ")
-                                         .append(col.getGreen()).append(", ")
-                                         .append(col.getBlue()).append(", ")
-                                         .append(col.getAlpha()).append(")\n");
+            script.append("colorCurrent = ");
+            createWidgetColor(script, col);
 
             if (!rule.getPropAsExprFlag())
             {
@@ -280,11 +294,8 @@ public class RuleToScript
                         if (value instanceof WidgetColor)
                         {
                             col = (WidgetColor) value;
-                            script.append("colorVal").append(idx).append(" = ")
-                                  .append("WidgetColor(").append(col.getRed()).append(", ")
-                                  .append(col.getGreen()).append(", ")
-                                  .append(col.getBlue()).append(", ")
-                                  .append(col.getAlpha()).append(")\n");
+                            script.append("colorVal").append(idx).append(" = ");
+                            createWidgetColor(script, col);
                         }
                     }
                     idx++;
@@ -295,10 +306,8 @@ public class RuleToScript
         {   // If property is a font, create variables for all the used fonts
             script.append("\n## Define Fonts\n");
             WidgetFont fon = (WidgetFont) prop.getValue();
-            script.append("fontCurrent = ")
-                  .append("WidgetFont(\"").append(fon.getFamily()).append("\", WidgetFontStyle.")
-                                          .append(fon.getStyle().name()).append(", ")
-                                          .append(fon.getSize()).append(")\n");
+            script.append("fontCurrent = ");
+            createWidgetFont(script, fon);
 
             if (!rule.getPropAsExprFlag())
             {
@@ -311,10 +320,8 @@ public class RuleToScript
                         if (value instanceof WidgetFont)
                         {
                             fon = (WidgetFont) value;
-                            script.append("fontVal").append(idx).append(" = ")
-                                  .append("WidgetFont(\"").append(fon.getFamily()).append("\", WidgetFontStyle.")
-                                  .append(fon.getStyle().name()).append(", ")
-                                  .append(fon.getSize()).append(")\n");
+                            script.append("fontVal").append(idx).append(" = ");
+                            createWidgetFont(script, fon);
                         }
                     }
                     idx++;
