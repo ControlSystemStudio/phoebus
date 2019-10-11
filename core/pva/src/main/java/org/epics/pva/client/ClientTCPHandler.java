@@ -84,7 +84,11 @@ class ClientTCPHandler extends TCPHandler
 
     private volatile ScheduledFuture<?> alive_check;
 
-    private volatile long last_life_sign = System.currentTimeMillis();
+    /** Time [ms] when this client received last message from server */
+    private volatile long last_life_sign;
+
+    /** Time [ms] when this client sent last message to server */
+    private volatile long last_message_sent;
 
     private static final RequestEncoder echo_request = new EchoRequest();
 
@@ -106,6 +110,7 @@ class ClientTCPHandler extends TCPHandler
 
         // For default EPICS_CA_CONN_TMO: 30 sec, send echo at ~15 sec:
         // Check every ~3 seconds
+        last_life_sign = last_message_sent = System.currentTimeMillis();
         final long period = Math.max(1, PVASettings.EPICS_CA_CONN_TMO * 1000L / 30 * 3);
         alive_check = timer.scheduleWithFixedDelay(this::checkResponsiveness, period, period, TimeUnit.MILLISECONDS);
         // Don't start the send thread, yet.
@@ -181,6 +186,14 @@ class ClientTCPHandler extends TCPHandler
             removeResponseHandler(request_id);
     }
 
+    @Override
+    protected void send(ByteBuffer buffer) throws Exception
+    {
+        // Remember when we last sent a message to the server
+        last_message_sent = System.currentTimeMillis();
+        super.send(buffer);
+    }
+
     ResponseHandler getResponseHandler(final int request_id)
     {
         return response_handlers.get(request_id);
@@ -199,14 +212,19 @@ class ClientTCPHandler extends TCPHandler
     /** Check responsiveness of this TCP connection */
     private void checkResponsiveness()
     {
-        final long idle = System.currentTimeMillis() - last_life_sign;
+        final long now = System.currentTimeMillis();
+        // How long has server been idle, not sending anything?
+        final long idle = now - last_life_sign;
         if (idle > PVASettings.EPICS_CA_CONN_TMO * 1000)
         {
             // If silent for full EPICS_CA_CONN_TMO, disconnect and start over
             logger.log(Level.FINE, () -> this + " silent for " + idle + "ms, closing");
             client.shutdownConnection(this);
+            return;
         }
-        else if (idle >= PVASettings.EPICS_CA_CONN_TMO * 1000 / 2)
+
+        boolean request_echo = false;
+        if (idle >= PVASettings.EPICS_CA_CONN_TMO * 1000 / 2)
         {
             if (channels.isEmpty())
             {   // Connection is idle because no channel uses it. Close!
@@ -214,10 +232,24 @@ class ClientTCPHandler extends TCPHandler
                 client.shutdownConnection(this);
                 return;
             }
-
             // With default EPICS_CA_CONN_TMO of 30 seconds,
             // Echo requested every 15 seconds.
-            logger.log(Level.FINE, () -> this + " silent for " + idle + "ms, requesting echo");
+            logger.log(Level.FINE, () -> this + " idle for " + idle + "ms, requesting echo");
+            request_echo = true;
+        }
+
+        // How long have we been silent, which could case the server to close connection?
+        final long silent = now - last_message_sent;
+        if (! request_echo  &&  silent >= PVASettings.EPICS_CA_CONN_TMO * 1000 / 2)
+        {
+            // With default EPICS_CA_CONN_TMO of 30 seconds,
+            // Echo requested every 15 seconds.
+            logger.log(Level.FINE, () -> "Client to " + this + " silent for " + silent + "ms, requesting echo");
+            request_echo = true;
+        }
+
+        if (request_echo)
+        {
             // Skip echo if the send queue already has items to avoid
             // filling queue which isn't emptied anyway.
             if (isSendQueueIdle())
