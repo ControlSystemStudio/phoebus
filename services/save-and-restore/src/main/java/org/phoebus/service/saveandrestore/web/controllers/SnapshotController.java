@@ -29,7 +29,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.annotations.ApiOperation;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.service.saveandrestore.services.IServices;
@@ -49,14 +48,13 @@ public class SnapshotController extends BaseController {
 	 * @param uniqueNodeId The unique id of the snapshot
 	 * @return A {@link Node} object.
 	 */
-	@ApiOperation(value = "Get a snapshot.", consumes = JSON)
+
 	@GetMapping("/snapshot/{uniqueNodeId}")
 	public Node getSnapshot(@PathVariable String uniqueNodeId) {
 
 		return services.getSnapshot(uniqueNodeId);
 	}
-	
-	@ApiOperation(value = "Get snapshot data for a snapshot.", consumes = JSON)
+
 	@GetMapping("/snapshot/{uniqueNodeId}/items")
 	public List<SnapshotItem> getSnapshotItems(@PathVariable String uniqueNodeId) {
 
@@ -77,7 +75,6 @@ public class SnapshotController extends BaseController {
 	 * @param userName Mandatory user name.
 	 * @param comment Mandatory comment.
 	 */
-	@ApiOperation(value = "Commit a snapshot, i.e. update with snapshot name, user name and comment.")
 	@PostMapping("/snapshot/{uniqueNodeId}")
 	public void commitSnapshot(@PathVariable String uniqueNodeId, 
 			@RequestParam(required = true) String snapshotName,
@@ -92,7 +89,6 @@ public class SnapshotController extends BaseController {
 	}
 	
 	
-	@ApiOperation(value = "Save a snapshot.")
 	@PutMapping("/snapshot/{configUniqueId}")
 	public Node saveSnapshot(@PathVariable String configUniqueId, 
 			@RequestParam(required = true) String snapshotName,

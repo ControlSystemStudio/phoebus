@@ -17,7 +17,6 @@
  */
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
-import com.google.common.base.Strings;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -596,7 +595,7 @@ public class SnapshotController implements NodeChangedListener {
                     .maxRate(Duration.ofMillis(TABLE_UPDATE_INTERVAL))
                     .start();
 
-            if (!Strings.isNullOrEmpty(readbackPvName)) {
+            if (readbackPvName != null && !readbackPvName.isEmpty()) {
                 this.readbackReader = GPClient.read(this.readbackPvName)
                         .addReadListener((event, p) -> {
                             if (showLiveReadbackProperty.get()) {
