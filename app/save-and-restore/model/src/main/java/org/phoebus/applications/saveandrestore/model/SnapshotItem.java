@@ -23,7 +23,7 @@ import org.epics.vtype.VType;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-import io.swagger.annotations.ApiModel;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -43,7 +43,6 @@ import org.phoebus.applications.saveandrestore.model.json.VTypeSerializer;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel(description = "Created by the service when a snapshot is requested.")
 public class SnapshotItem {
 	private int snapshotId;
 

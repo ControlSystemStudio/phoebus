@@ -22,7 +22,7 @@ package org.phoebus.applications.saveandrestore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Strings;
+
 import javafx.scene.Node;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.framework.persistence.Memento;
@@ -75,9 +75,9 @@ public class SaveAndRestoreApplication implements AppDescriptor, AppInstance {
 		tab.setOnClosed(e -> controller.cleanUp());
 
 		DockPane.getActiveDockPane().addTab(tab);
-		PreferencesReader reader = (PreferencesReader)context.getBean("preferencesReader");
-		String epicsAddressList = reader.get("addr_list");
-		if(!Strings.isNullOrEmpty(epicsAddressList)){
+		PreferencesReader pvPreferencesReader = (PreferencesReader)context.getBean("pvPreferencesReader");
+		String epicsAddressList = pvPreferencesReader.get("addr_list");
+		if(epicsAddressList != null && !epicsAddressList.isEmpty()){
 			System.setProperty("com.cosylab.epics.caj.CAJContext.addr_list", epicsAddressList);
 		}
 		return this;

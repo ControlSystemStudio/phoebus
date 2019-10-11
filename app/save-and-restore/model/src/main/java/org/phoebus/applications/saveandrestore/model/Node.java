@@ -26,7 +26,6 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -52,23 +51,15 @@ import lombok.ToString;
  */
 public class Node implements Comparable<Node>{
 	
-	@ApiModelProperty(required = false, value = "Database id of the node, defined by the server", allowEmptyValue = true)
 	private int id;
-	@ApiModelProperty(required = false, value = "Unique id of this node, defined in this class as a UUID. Client may override the default value through the setter. ", allowEmptyValue = true)
 	@Builder.Default
 	private final String uniqueId = UUID.randomUUID().toString();
-	@ApiModelProperty(required = true, value = "Name of the folder or configuration")
 	private String name;
-	@ApiModelProperty(required = false, value = "Creation date, set by the server", allowEmptyValue = true)
 	private Date created;
-	@ApiModelProperty(required = false, value = "Last modified date, set by the server", allowEmptyValue = true)
 	private Date lastModified;
-	@ApiModelProperty(required = false, value = "Should be defined by the subclass.")
 	@Builder.Default
 	private NodeType nodeType = NodeType.FOLDER;
-	@ApiModelProperty(required = true, value = "User name creating or modifying a node")
 	private String userName;
-	@ApiModelProperty(required = false, value = "Map of key/value pairs to be uses as collection of properties")
 	private Map<String, String> properties;
 
 	/**
