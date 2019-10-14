@@ -7,11 +7,11 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/jmatio-1.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/junit-4.12.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/mockito-core-1.9.5.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/jca-2.4.3-SNAPSHOT.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/epics-util-1.0.1-SNAPSHOT.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/epics-pvdata-6.1.3-SNAPSHOT.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/epics-pvaccess-5.1.3-SNAPSHOT.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/vtype-1.0.1-SNAPSHOT.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/jca-2.4.3.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/epics-util-1.0.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/epics-pvdata-6.1.3.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/epics-pvaccess-5.1.3.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/vtype-1.0.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/py4j-0.10.2.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/javax.mail-1.6.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/objenesis-1.0.jar"/>

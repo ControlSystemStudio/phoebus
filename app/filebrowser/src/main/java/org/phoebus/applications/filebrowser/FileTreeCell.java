@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.scene.input.MouseEvent;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.util.ResourceParser;
@@ -43,6 +45,9 @@ final class FileTreeCell extends TreeCell<File> {
     private static final Border BORDER = new Border(new BorderStroke(Color.GREEN, BorderStrokeStyle.SOLID,
                                                     new CornerRadii(5.0), BorderStroke.THIN));
 
+    private static final Border RED_BORDER = new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID,
+            new CornerRadii(5.0), BorderStroke.THIN));
+
     public FileTreeCell()
     {
         enableDragDrop();
@@ -71,7 +76,7 @@ final class FileTreeCell extends TreeCell<File> {
                 content.putFiles(files);
                 content.putString(files.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
 
-                final Dragboard db = startDragAndDrop(TransferMode.COPY_OR_MOVE);
+                final Dragboard db = startDragAndDrop(isModifierKeyPressed(event) ? TransferMode.COPY : TransferMode.MOVE);
                 db.setContent(content);
             }
             event.consume();
@@ -99,16 +104,18 @@ final class FileTreeCell extends TreeCell<File> {
         });
 
         // Indicate if file may be dropped
+        // File may not be dropped if dragboard contains the drop target (see Github issue #836)
         setOnDragOver(event ->
         {
             final File file = getItem();
-            if (file != null  &&   event.getDragboard().hasFiles())
+            if (file != null && event.getDragboard().hasFiles() && !event.getDragboard().getFiles().contains(file))
             {
-                event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+                event.acceptTransferModes(event.getTransferMode());
                 setBorder(BORDER);
             }
             event.consume();
         });
+
         setOnDragExited(event ->
         {
             setBorder(null);
@@ -118,19 +125,20 @@ final class FileTreeCell extends TreeCell<File> {
         // A file has been dropped into this dir, or this file's directory
         setOnDragDropped(event ->
         {
+
             TreeItem<File> target_item = getTreeItem();
-            if (target_item.getValue() != null  && !target_item.getValue().isDirectory())
+
+            if (target_item.getValue() != null && !target_item.getValue().isDirectory())
                 target_item = target_item.getParent();
-            if (target_item.getValue() != null)
-            {
+            if (target_item.getValue() != null) {
                 final Dragboard db = event.getDragboard();
                 if (db.hasFiles())
-                    for (File file : db.getFiles())
-                    {
+                    for (File file : db.getFiles()) {
                         logger.log(Level.FINE, "Dropped " + file + " onto " + target_item.getValue() + " via " + event.getTransferMode());
-                        move_or_copy(file, target_item, event.getTransferMode() == TransferMode.MOVE);
+                        move_or_copy(file, target_item, event.getTransferMode());
                     }
             }
+
             event.setDropCompleted(true);
             event.consume();
         });
@@ -139,7 +147,7 @@ final class FileTreeCell extends TreeCell<File> {
     /** @param file File to move or copy
      *  @param target_item Destination directory's tree item
      */
-    private void move_or_copy(final File file, final TreeItem<File> target_item, final boolean do_move)
+    private void move_or_copy(final File file, final TreeItem<File> target_item, final TransferMode transferMode)
     {
         final File dir = target_item.getValue();
         // Ignore NOP move
@@ -154,7 +162,7 @@ final class FileTreeCell extends TreeCell<File> {
             final DirectoryMonitor mon = ((FileTreeItem)target_item).getMonitor();
             try
             {
-                if (do_move)
+                if (transferMode.equals(TransferMode.MOVE))
                     FileHelper.move(file, dir);
                 else
                     FileHelper.copy(file, dir);
@@ -214,5 +222,24 @@ final class FileTreeCell extends TreeCell<File> {
         final ImageView icon = ImageCache.getImageView(icon_url);
         if (icon != null)
             Platform.runLater(() -> setGraphic(icon));
+    }
+
+    /**
+     * Determines if the modifier key is pressed as this determines if a drag operation
+     * is of type move (not pressed) or copy (pressed). This method also considers the
+     * operating system as the identity of the modifier key varies (alt/option on Mac OS,
+     * ctrl on the rest).
+     * @param event The mouse event containing information on key press.
+     * @return <code>true</code> if modifier key is pressed, otherwise <code>false</code>
+     */
+    private boolean isModifierKeyPressed(MouseEvent event){
+        String os = System.getProperty("os.name").toLowerCase();
+        if(event.isControlDown() && (os.indexOf("nux") >= 0 || os.indexOf("win") >= 0 || os.indexOf("nix") >= 0) || os.indexOf("aix") >= 0 || os.indexOf("sunos") >= 0){
+            return true;
+        }
+        else if(event.isAltDown() && os.indexOf("mac") >= 0){
+            return true;
+        }
+        return false;
     }
 }

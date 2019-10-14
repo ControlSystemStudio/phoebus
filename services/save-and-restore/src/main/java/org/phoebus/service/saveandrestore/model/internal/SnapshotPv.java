@@ -21,7 +21,6 @@ package org.phoebus.service.saveandrestore.model.internal;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
 
-import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -40,7 +39,6 @@ import org.phoebus.service.saveandrestore.persistence.dao.SnapshotPvDataType;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel(description = "Created by the service when a snapshot is requested.")
 public class SnapshotPv {
 
 	private int snapshotId;

@@ -166,6 +166,10 @@ public class RuntimeScriptHandler implements RuntimePVListener
         for (int i=0; i<pvs.length; ++i)
         {
             final String pv_name = MacroHandler.replace(macros, infos.get(i).getName());
+            if (MacroHandler.containsMacros(pv_name))
+            {
+                logger.log(Level.WARNING, widget + " and Script '" + script + "': pv" + i + " '" + infos.get(i).getName() + "' is not fully resolved: " + pv_name);
+            }
             pvs[i] = PVFactory.getPV(pv_name);
             subscribed[i] = new AtomicBoolean(true);
             runtime.addPV(pvs[i]);

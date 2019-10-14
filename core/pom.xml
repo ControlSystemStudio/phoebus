@@ -13,10 +13,11 @@
     <module>ui</module>
     <module>logbook</module>
     <module>email</module>
+    <module>launcher</module>
   </modules>
   <parent>
-  	<groupId>org.phoebus</groupId>
-  	<artifactId>parent</artifactId>
-  	<version>4.6.0-SNAPSHOT</version>
+   <groupId>org.phoebus</groupId>
+   <artifactId>parent</artifactId>
+   <version>4.6.0-SNAPSHOT</version>
   </parent>
 </project>

@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-    <classpathentry kind="src" output="target/classes" path="src/main/java"/>
-    <classpathentry kind="src" path="src/main/resources"/>
     <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
         <attributes>
             <attribute name="module" value="true"/>
         </attributes>
     </classpathentry>
     <classpathentry combineaccessrules="false" kind="src" path="/phoebus-target"/>
+    <classpathentry combineaccessrules="false" kind="src" path="/core-launcher"/>
     <classpathentry combineaccessrules="false" kind="src" path="/core-framework"/>
     <classpathentry combineaccessrules="false" kind="src" path="/core-ui"/>
     <classpathentry combineaccessrules="false" kind="src" path="/core-types"/>
@@ -27,12 +26,14 @@
     <classpathentry combineaccessrules="false" kind="src" path="/app-channel-utility"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-channel-channelfinder"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-channel-views"/>
+    <classpathentry combineaccessrules="false" kind="src" path="/app-console"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-editor"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-runtime"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-representation-javafx"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-representation"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-model"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-convert-medm"/>
+    <classpathentry combineaccessrules="false" kind="src" path="/app-display-convert-edm"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-databrowser"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-rtplot"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-pvtable"/>

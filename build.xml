@@ -16,6 +16,7 @@
     <ant target="clean" dir="core/ui"/>
     <ant target="clean" dir="core/logbook"/>
     <ant target="clean" dir="core/types"/>
+    <ant target="clean" dir="core/launcher"/>
     <ant target="clean" dir="app/diag"/>
     <ant target="clean" dir="app/email"/>
     <ant target="clean" dir="app/filebrowser"/>
@@ -78,6 +79,7 @@
     <ant dir="core/ui"/>
     <ant dir="core/logbook"/>
     <ant dir="core/types"/>
+    <ant dir="core/launcher"/>
   </target>
 
   <target name="app" depends="core" description="Build app modules">
