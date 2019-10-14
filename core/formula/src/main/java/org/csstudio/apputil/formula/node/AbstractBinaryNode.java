@@ -8,8 +8,14 @@
 package org.csstudio.apputil.formula.node;
 
 import org.csstudio.apputil.formula.Node;
+import org.csstudio.apputil.formula.VTypeHelper;
 import org.epics.util.array.ArrayDouble;
-import org.epics.util.array.ListNumber;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VDoubleArray;
+import org.epics.vtype.VType;
 
 /** Abstract base for binary nodes.
  *  @author Kay Kasemir
@@ -26,15 +32,28 @@ abstract class AbstractBinaryNode implements Node
     }
 
     @Override
-    public ListNumber eval()
+    public VType eval()
     {
-        final ListNumber a = left.eval();
-        final ListNumber b = right.eval();
-        final int n = Math.min(a.size(), b.size());
-        final double[] result = new double[n];
-        for (int i=0; i<n; ++i)
-            result[i] = calc(a.getDouble(i), b.getDouble(i));
-        return ArrayDouble.of(result);
+        final VType a = left.eval();
+        final VType b = right.eval();
+        final Alarm alarm = VTypeHelper.highestAlarmOf(a, b);
+        final Time time = VTypeHelper.lastestTimeOf(a, b);
+        if (VTypeHelper.isNumericArray(a) && VTypeHelper.isNumericArray(b))
+        {
+            final int n = Math.min(VTypeHelper.getArraySize(a),
+                                   VTypeHelper.getArraySize(b));
+            final double[] result = new double[n];
+            for (int i=0; i<n; ++i)
+                result[i] = calc(VTypeHelper.getDouble(a, i),
+                                 VTypeHelper.getDouble(b, i));
+            return VDoubleArray.of(ArrayDouble.of(result), alarm, time, Display.displayOf(a));
+        }
+        else
+        {
+            final double result = calc(VTypeHelper.toDouble(a),
+                                       VTypeHelper.toDouble(b));
+            return VDouble.of(result, alarm, time, Display.displayOf(a));
+        }
     }
 
     abstract protected double calc(double a, double b);

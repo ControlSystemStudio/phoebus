@@ -13,8 +13,12 @@ import java.lang.reflect.Method;
 import java.util.logging.Level;
 
 import org.csstudio.apputil.formula.Node;
-import org.epics.util.array.ArrayDouble;
-import org.epics.util.array.ListNumber;
+import org.csstudio.apputil.formula.VTypeHelper;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VType;
 
 /** Node for evaluating any of the java.lang.Math.* functions
  *  @author Xiaosong Geng
@@ -45,43 +49,32 @@ public class MathFuncNode implements Node
     }
 
     @Override
-    public ListNumber eval()
+    public VType eval()
     {
-        // Evaluate all arguments, get common element count
-        final ListNumber[] v = new ListNumber[args.length];
-        int n = 0;
+        // Evaluate all arguments
+        final Object arglist[] = new Object[args.length];
         for (int i = 0; i < args.length; i++)
         {
-            v[i] = args[i].eval();
-            if (i==0  ||  v[i].size() < n)
-                n = v[i].size();
+            final VType v = args[i].eval();
+            arglist[i] = Double.valueOf(VTypeHelper.toDouble(v));
         }
-        if (n == 0)
-            return ArrayDouble.of();
 
-        // results[e] = method(arg1[e], arg2[e], ...)
-        final double[] results = new double[n];
-        final Object arglist[] = new Object[args.length];
-        for (int e=0; e<n; ++e)
+        double value;
+        try
         {
-            for (int i = 0; i < args.length; i++)
-                arglist[i] = Double.valueOf(v[i].getDouble(e));
-            try
-            {
-                final Object result = method.invoke(null, arglist);
-                if (result instanceof Number)
-                    results[e] = ((Number) result).doubleValue();
-                else
-                    throw new Exception("Expected number, got " + result);
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Formula math function error for " + this, ex);
-                results[e] = Double.NaN;
-            }
+            final Object result = method.invoke(null, arglist);
+            if (result instanceof Number)
+                value = ((Number) result).doubleValue();
+            else
+                throw new Exception("Expected number, got " + result);
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Formula math function error for " + this, ex);
+            value = Double.NaN;
         }
 
-        return ArrayDouble.of(results);
+        return VDouble.of(value, Alarm.none(), Time.now(), Display.none());
     }
 
     /** {@inheritDoc} */

@@ -8,8 +8,12 @@
 package org.csstudio.apputil.formula.node;
 
 import org.csstudio.apputil.formula.Node;
-import org.epics.util.array.ArrayDouble;
-import org.epics.util.array.ListNumber;
+import org.csstudio.apputil.formula.VTypeHelper;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VType;
 
 /** One computational node.
  *  @author Kay Kasemir
@@ -24,30 +28,18 @@ public class MinNode implements Node
     }
 
     @Override
-    public ListNumber eval()
+    public VType eval()
     {
-        if (args.length <= 0)
-            return ArrayDouble.of();
+        double result = Double.NaN;
 
-        /// Evaluate each argument, find common element count
-        final ListNumber[] v = new ListNumber[args.length];
-        int n = 0;
+        /// Evaluate each argument
         for (int i = 0; i < args.length; i++)
         {
-            v[i] = args[i].eval();
-            if (i==0  ||  v[i].size() < n)
-                n = v[i].size();
+            final double value = VTypeHelper.toDouble(args[i].eval());
+            if (i==0  ||  value < result)
+                result = value;
         }
-        if (n <= 0)
-            return ArrayDouble.of();
-
-        // Compute result[e] = min(v_i[e])
-        final double[] result = new double[n];
-        for (int e=0; e<n; ++e)
-            for (int i = 0; i < args.length; i++)
-                if (i==0 || v[i].getDouble(e) < result[e])
-                    result[e] = v[i].getDouble(e);
-        return ArrayDouble.of(result);
+        return VDouble.of(result, Alarm.none(), Time.now(), Display.none());
     }
 
     /** {@inheritDoc} */

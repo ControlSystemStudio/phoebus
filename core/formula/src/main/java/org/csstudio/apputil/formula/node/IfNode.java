@@ -8,8 +8,8 @@
 package org.csstudio.apputil.formula.node;
 
 import org.csstudio.apputil.formula.Node;
-import org.epics.util.array.ArrayDouble;
-import org.epics.util.array.ListNumber;
+import org.csstudio.apputil.formula.VTypeHelper;
+import org.epics.vtype.VType;
 
 /** One computational node.
  *  @author Kay Kasemir
@@ -28,16 +28,13 @@ public class IfNode implements Node
     }
 
     @Override
-    public ListNumber eval()
+    public VType eval()
     {
-        final ListNumber c = cond.eval();
-        final ListNumber yv = yes.eval();
-        final ListNumber nv = no.eval();
-        final int n = Math.min(c.size(), Math.min(yv.size(), nv.size()));
-        final double[] result = new double[n];
-        for (int i=0; i<n; ++i)
-            result[i] = c.getByte(i) != 0 ? yv.getDouble(i) : nv.getDouble(i);
-        return ArrayDouble.of(result);
+        final double c = VTypeHelper.toDouble(cond.eval());
+        if (c != 0.0)
+            return yes.eval();
+        else
+            return no.eval();
     }
 
     /** {@inheritDoc} */

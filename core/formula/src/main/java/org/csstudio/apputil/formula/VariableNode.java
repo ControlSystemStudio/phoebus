@@ -7,8 +7,11 @@
  ******************************************************************************/
 package org.csstudio.apputil.formula;
 
-import org.epics.util.array.ArrayDouble;
-import org.epics.util.array.ListNumber;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VType;
 
 /** Named Variable.
  *  @author Kay Kasemir
@@ -19,7 +22,7 @@ public class VariableNode implements Node
     final private String name;
 
     /** Current value of the variable. */
-    private ListNumber value;
+    private VType value;
 
     /** Create Variable with given name. */
     public VariableNode(final String name)
@@ -30,11 +33,11 @@ public class VariableNode implements Node
     /** Create Variable with given name and value. */
     public VariableNode(final String name, final double value)
     {
-        this(name, ArrayDouble.of(value));
+        this(name, VDouble.of(value, Alarm.none(), Time.now(), Display.none()));
     }
 
     /** Create Variable with given name and value. */
-    public VariableNode(final String name, final ListNumber value)
+    public VariableNode(final String name, final VType value)
     {
         this.name = name;
         this.value = value;
@@ -49,23 +52,17 @@ public class VariableNode implements Node
     /** @param New value of variable. */
     public void setValue(final double value)
     {
-        setValue(ArrayDouble.of(value));
+        setValue(VDouble.of(value, Alarm.none(), Time.now(), Display.none()));
     }
 
     /** @param New value of variable. */
-    public void setValue(final ListNumber value)
+    public void setValue(final VType value)
     {
         this.value = value;
     }
 
-    /** @return Returns the value. */
-    public ListNumber getValue()
-    {
-        return value;
-    }
-
     @Override
-    public ListNumber eval()
+    public VType eval()
     {
         return value;
     }

@@ -7,7 +7,7 @@
  ******************************************************************************/
 package org.csstudio.apputil.formula;
 
-import org.epics.util.array.ListNumber;
+import org.epics.vtype.VType;
 
 /** A node used to build a formula.
  *  @author Kay Kasemir
@@ -18,7 +18,7 @@ public interface Node
      *  @return The value of the node.
      *  @exception on error
      */
-    public ListNumber eval();
+    public VType eval();
 
     /** Check if this node has given node as a subnode
      *  @return <code>true</code> if given node was found under this one.

@@ -31,7 +31,7 @@ import org.csstudio.apputil.formula.node.OrNode;
 import org.csstudio.apputil.formula.node.PwrNode;
 import org.csstudio.apputil.formula.node.RndNode;
 import org.csstudio.apputil.formula.node.SubNode;
-import org.epics.util.array.ListNumber;
+import org.epics.vtype.VType;
 
 /** A formula interpreter.
  *  <p>
@@ -176,7 +176,7 @@ public class Formula implements Node
 
     /** {@inheritDoc} */
     @Override
-    public ListNumber eval()
+    public VType eval()
     {
         return tree.eval();
     }

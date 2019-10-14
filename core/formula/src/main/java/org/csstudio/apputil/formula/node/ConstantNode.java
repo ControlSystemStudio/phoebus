@@ -8,23 +8,27 @@
 package org.csstudio.apputil.formula.node;
 
 import org.csstudio.apputil.formula.Node;
-import org.epics.util.array.ArrayDouble;
-import org.epics.util.array.ListNumber;
+import org.csstudio.apputil.formula.VTypeHelper;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VType;
 
 /** One computational node.
  *  @author Kay Kasemir
  */
 public class ConstantNode implements Node
 {
-    final ArrayDouble value;
+    final VType value;
 
     public ConstantNode(final double value)
     {
-        this.value = ArrayDouble.of(value);
+        this.value = VDouble.of(value, Alarm.none(), Time.now(), Display.none());
     }
 
     @Override
-    public ListNumber eval()
+    public VType eval()
     {
         return value;
     }
@@ -46,6 +50,6 @@ public class ConstantNode implements Node
     @Override
     public String toString()
     {
-        return Double.toString(value.getDouble(0));
+        return Double.toString(VTypeHelper.toDouble(value));
     }
 }
