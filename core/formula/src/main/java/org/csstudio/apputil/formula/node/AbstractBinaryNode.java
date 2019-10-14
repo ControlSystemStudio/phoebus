@@ -41,6 +41,17 @@ abstract class AbstractBinaryNode implements Node
         return calc(a, b, alarm, time);
     }
 
+    /** Default implementation of binary `a X b` operation,
+     *  calling a per-element `calc(double, double)` for numeric arrays.
+     *
+     *  <p>Derived class can add handling for strings etc.
+     *
+     *  @param a First {@link VType}
+     *  @param b Second {@link VType}
+     *  @param alarm Highest {@link Alarm}
+     *  @param time Latest {@link Time}
+     *  @return {@link VType} for result
+     */
     protected VType calc(final VType a, final VType b, final Alarm alarm, final Time time)
     {
         if (VTypeHelper.isNumericArray(a) && VTypeHelper.isNumericArray(b))
@@ -59,9 +70,14 @@ abstract class AbstractBinaryNode implements Node
                                        VTypeHelper.getDouble(b));
             return VDouble.of(result, alarm, time, Display.displayOf(a));
         }
-
     }
 
+    /** Scalar (or element-wise) operation to implement by derived class
+     *
+     *  @param a First value
+     *  @param b second value
+     *  @return Result
+     */
     abstract protected double calc(double a, double b);
 
     /** {@inheritDoc} */
