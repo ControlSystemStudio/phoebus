@@ -38,6 +38,11 @@ abstract class AbstractBinaryNode implements Node
         final VType b = right.eval();
         final Alarm alarm = VTypeHelper.highestAlarmOf(a, b);
         final Time time = VTypeHelper.lastestTimeOf(a, b);
+        return calc(a, b, alarm, time);
+    }
+
+    protected VType calc(final VType a, final VType b, final Alarm alarm, final Time time)
+    {
         if (VTypeHelper.isNumericArray(a) && VTypeHelper.isNumericArray(b))
         {
             final int n = Math.min(VTypeHelper.getArraySize(a),
@@ -54,6 +59,7 @@ abstract class AbstractBinaryNode implements Node
                                        VTypeHelper.getDouble(b));
             return VDouble.of(result, alarm, time, Display.displayOf(a));
         }
+
     }
 
     abstract protected double calc(double a, double b);

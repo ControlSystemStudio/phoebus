@@ -41,29 +41,43 @@ import org.csstudio.apputil.formula.spi.FormulaFunction;
 import org.epics.vtype.VType;
 
 /** A formula interpreter.
- *  <p>
- *  While I found some on the Internet,
- *  I didn't see an open one that included the if-then-else
- *  operation nor one that I understood within 15 minutes
- *  so that I could add that operation.
- *  <p>
- *  Supported, in descending order of precedence:
+ *
+ *  <p>Supported, in descending order of precedence:
  *  <ul>
- *  <li>Numeric constant 3.14, -47; named variables
- *  <li> (sub-formula in braces), sqrt(x), ln(x), exp(x),
+ *  <li>Numeric constant 3.14, -47; "Text Constants"; named variables
+ *  <li>(sub-formula in braces), sqrt(x), ln(x), exp(x),
  *       min(a, b, ...), max(a, b, ...).
  *  <li>*, /, ^
  *  <li>+, -
  *  <li>comparisons <, >, >=, <=, ==, !=
  *  <li>boolean logic !, &, |,  .. ? .. : ..
  *  </ul>
- *  <p>
- *  The formula string is parsed into a tree, so that subsequent
+ *
+ *
+ *  <p>The parser operates in three different modes:
+ *
+ *  <ul>
+ *  <li><code>new Formula("2+6")</code> parses a formula without variables.
+ *      The parsed expression may only contain constants.
+ *      If the parsed expression contained a variable,
+ *      the parser throws an exception.
+ *  <li><code>new Formula("2+A+B", new VariableNode("A", 1.0), new VariableNode("B", 2.0))</code> parses a formula with predefined variables.
+ *      The parsed expression may contain the provided variables.
+ *      If the parsed expression contained an unknown variable,
+ *      the parser throws an exception.
+ *      Before evaluating the expression, the values of the variables may be changed.
+ *  <li><code>new Formula("2+A+B", true)</code> parses a formula with arbitrary variables.
+ *      The parser automatically creates variables as they are encountered in the expression.
+ *      Before evaluating the formula,
+ *      caller needs to query the formula for its automatically determined variables
+ *      and set their values.
+ *  </ul>
+ *
+ *  <p>The formula string is parsed into a tree, so that subsequent
  *  evaluations, possibly with modified values for input variables,
  *  are reasonably fast.
- *  <p>
- *  See FormulaDialog in org.csstudio.apputil.ui plugin.
- *  That plugin also contains a class diagram.
+ *
+ *  <p>Functions can be provided via the {@link FormulaFunction} SPI.
  *
  *  @author Kay Kasemir
  *  @author Xiaosong Geng
@@ -152,7 +166,7 @@ public class Formula implements Node
      *  @throws Exception on parse error
      */
     public Formula(final String formula,
-            final VariableNode[] variables)  throws Exception
+                   final VariableNode[] variables)  throws Exception
     {
         this.formula = formula;
         if (variables == null)

@@ -169,6 +169,9 @@ public class FormulaUnitTest
         f = new Formula("sin(toRadians(30))");
         assertEquals(0.5, VTypeHelper.getDouble(f.eval()), epsilon);
 
+        f = new Formula("sin(PI/2)");
+        assertEquals(1.0, VTypeHelper.getDouble(f.eval()), epsilon);
+
         f = new Formula("cos(30)");
         assertEquals(0.1543, VTypeHelper.getDouble(f.eval()), epsilon);
 
