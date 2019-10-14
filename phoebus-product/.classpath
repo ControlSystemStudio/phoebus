@@ -5,7 +5,6 @@
             <attribute name="module" value="true"/>
         </attributes>
     </classpathentry>
-    <classpathentry kind="src" output="target/classes" path="src/main/java"/>
     <classpathentry combineaccessrules="false" kind="src" path="/phoebus-target"/>
     <classpathentry combineaccessrules="false" kind="src" path="/core-launcher"/>
     <classpathentry combineaccessrules="false" kind="src" path="/core-framework"/>

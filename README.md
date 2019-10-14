@@ -100,7 +100,12 @@ By default, all projects should be selected ('dependencies', 'core-framework', .
 The file `dependencies/phoebus-target/.classpath`
 needs to be edited to list all the `phoebus-target/target/lib/javafx*.jar` files.
 
-Invoke `Run As/Java Application` on the `Main` class in the product.
+In the Package Explorer, select the `product` project.
+Invoke `Run`, `Run Configurations...` from the menu.
+In the launch configuration dialog, select `Java Application` and press `New Configuration`.
+Note that the project should be pre-set to `product`, and the Dependencies tab should list all the project dependencies of the product,
+i.e. all the `core-*` and `app-*` projects.
+For a Main class, enter `org.phoebus.product.Launcher`, press `Apply` and then `Run`.
 
 
 ### Use Maven Files in Eclipse
