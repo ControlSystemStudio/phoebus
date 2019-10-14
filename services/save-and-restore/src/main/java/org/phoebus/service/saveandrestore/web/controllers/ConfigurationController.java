@@ -31,7 +31,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.annotations.ApiOperation;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.UpdateConfigHolder;
@@ -59,7 +58,6 @@ public class ConfigurationController extends BaseController {
 	 *            non-null.
 	 * @return The new folder in the tree.
 	 */
-	@ApiOperation(value = "Create a new node", consumes = JSON, produces = JSON)
 	@PutMapping("/node/{parentsUniqueId}")
 	public Node createNode(@PathVariable String parentsUniqueId, @RequestBody final Node node) {
 		if(node.getUserName() == null || node.getUserName().isEmpty()) {
@@ -78,25 +76,21 @@ public class ConfigurationController extends BaseController {
 	 * @param uniqueNodeId The id of the folder
 	 * @return A {@link Node} object if a node with the specified id exists.
 	 */	
-	@ApiOperation(value = "Get a node, child nodes not included in response", produces = JSON)
 	@GetMapping("/node/{uniqueNodeId}")
 	public Node getNode(@PathVariable final String uniqueNodeId) {
 		return services.getNode(uniqueNodeId);
 	}
 	
-	@ApiOperation(value = "Get the root node, child nodes not included in response", produces = JSON)
 	@GetMapping("/root")
 	public Node getRootNode() {
 		return services.getRootNode();
 	}
 	
-	@ApiOperation(value = "Get the root node, child nodes not included in response", produces = JSON)
 	@GetMapping("/node/{uniqueNodeId}/parent")
 	public Node getParentNode(@PathVariable String uniqueNodeId) {
 		return services.getParentNode(uniqueNodeId);
 	}
 	
-	@ApiOperation(value = "Get a node's, child nodes. Child nodes of snapshot nodes are retrieved through a different end point. ", produces = JSON)
 	@GetMapping("/node/{uniqueNodeId}/children")
 	public List<Node> getChildNodes(@PathVariable final String uniqueNodeId) {
 		return services.getChildNodes(uniqueNodeId);
@@ -116,7 +110,6 @@ public class ConfigurationController extends BaseController {
 	 * @param updateConfigHolder Wrapper of a {@link Node} object representing the config node and a list of {@link ConfigPv}s
 	 * @return The updated configuration {@link Node} object.
 	 */
-	@ApiOperation(value = "Update configuration (e.g. modify PV list or rename configuration)", consumes = JSON, produces = JSON)
 	@PostMapping("/config/{uniqueNodeId}/update")
 	public ResponseEntity<Node> updateConfiguration(@PathVariable String uniqueNodeId, 
 			@RequestBody UpdateConfigHolder updateConfigHolder) {
@@ -152,7 +145,6 @@ public class ConfigurationController extends BaseController {
 	 * 
 	 * @param uniqueNodeId The non-zero id of the node to delete
 	 */
-	@ApiOperation(value = "Delete a configuration and all snapshots associated with it.")
 	@DeleteMapping("/node/{uniqueNodeId}")
 	public void deleteNode(@PathVariable final String uniqueNodeId) {
 		services.deleteNode(uniqueNodeId);
@@ -168,7 +160,6 @@ public class ConfigurationController extends BaseController {
 	 * @param uniqueNodeId The id of the configuration
 	 * @return A potentially empty list of {@link Node}s for the specified configuration.
 	 */
-	@ApiOperation(value = "Get all snapshots for a config. NOTE: preliminary snapshots are not included.", produces = JSON)
 	@GetMapping("/config/{uniqueNodeId}/snapshots")
 	public List<Node> getSnapshots(@PathVariable String uniqueNodeId) {
 		return services.getSnapshots(uniqueNodeId);
@@ -191,7 +182,6 @@ public class ConfigurationController extends BaseController {
 	 * @param userName The (account) name of the user performing the operation.
 	 * @return A {@link Node} object representing the parent (target) folder.
 	 */
-	@ApiOperation(value = "Moves a node (and the sub-tree in case of a folder node) to another parent folder.", produces = JSON)
 	@PostMapping("/node/{uniqueNodeId}")
 	public Node moveNode(@PathVariable String uniqueNodeId, 
 			@RequestParam(value = "to", required = true) String to, 
@@ -210,20 +200,17 @@ public class ConfigurationController extends BaseController {
 	 * should be set by the client in an automated fashion and will be updated by the persistence layer.
 	 * @return A {@link Node} object representing the updated node.
 	 */
-	@ApiOperation(value = "Renames a Node. The parent directory must not contain a node with same name and type.", produces = JSON)
 	@PostMapping("/node/{uniqueNodeId}/update")
 	public Node updateNode(@PathVariable String uniqueNodeId, 
 			@RequestBody Node nodeToUpdate) {
 		return services.updateNode(nodeToUpdate);
 	}
 	
-	@ApiOperation(value = "Retrieves the ConfigPv list for the specified configuration node.", produces = JSON)
 	@GetMapping("/config/{uniqueNodeId}/items")
 	public List<ConfigPv> getConfigPvs(@PathVariable String uniqueNodeId) {
 		return services.getConfigPvs(uniqueNodeId);
 	}
 	
-	@ApiOperation(value = "Updates a ConfigPv with new name and optionally new read-back PV name.", produces = JSON)
 	@PostMapping("/configpv/{pvName}")
 	public ConfigPv updateSingleConfigPv(@PathVariable(required = true) String pvName,
 			@RequestParam(required = true) String newPvName,

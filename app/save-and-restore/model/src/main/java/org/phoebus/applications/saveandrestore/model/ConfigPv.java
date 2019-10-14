@@ -20,7 +20,6 @@ package org.phoebus.applications.saveandrestore.model;
 
 import java.util.Objects;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -39,13 +38,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ConfigPv implements Comparable<ConfigPv>{
 	
-	@ApiModelProperty(required = false, value = "Database id of the config PV, defined by the server", allowEmptyValue = true)
 	private int id;
-	@ApiModelProperty(required = true, value = "The fully qualified EPICS PV name.")
 	private String pvName;
-	@ApiModelProperty(required = true, value = "The fully qualified EPICS readback PV name. Optional.")
 	private String readbackPvName;
-	@ApiModelProperty(required = true, value = "A read only PV will be excluded from restore operation. Default is false.")
 	@Builder.Default
 	private boolean readOnly = false;
 	
