@@ -13,11 +13,13 @@ import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
+import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 
 /** One computational node.
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class ConstantNode implements Node
 {
     final VType value;
@@ -25,6 +27,11 @@ public class ConstantNode implements Node
     public ConstantNode(final double value)
     {
         this.value = VDouble.of(value, Alarm.none(), Time.now(), Display.none());
+    }
+
+    public ConstantNode(final String value)
+    {
+        this.value = VString.of(value, Alarm.none(), Time.now());
     }
 
     @Override
@@ -50,6 +57,9 @@ public class ConstantNode implements Node
     @Override
     public String toString()
     {
-        return Double.toString(VTypeHelper.getDouble(value));
+        if (value instanceof VString)
+            return "\"" + VTypeHelper.getString(value).replace("\"", "\\\"") + "\"";
+        else
+            return Double.toString(VTypeHelper.getDouble(value));
     }
 }

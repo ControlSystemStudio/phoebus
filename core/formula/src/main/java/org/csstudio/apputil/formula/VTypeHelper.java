@@ -18,6 +18,7 @@ import org.epics.vtype.VEnumArray;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VStatistics;
+import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
 
@@ -48,6 +49,19 @@ public class VTypeHelper
                 return data.getDouble(0);
         }
         return Double.NaN;
+    }
+
+    /** Read string from a {@link VType}
+     *  @param value Value
+     *  @return double or NaN
+     */
+    public static String getString(VType value)
+    {
+        if (value instanceof VString)
+            return ((VString)value).getValue();
+        if (value instanceof VEnum)
+            return ((VEnum)value).getValue();
+        return Double.toString(getDouble(value));
     }
 
     /** Read number by array index from array {@link VType}

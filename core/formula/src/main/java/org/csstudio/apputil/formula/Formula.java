@@ -239,11 +239,11 @@ public class Formula implements Node
         else if (s.get() == '\''  ||  s.get() == '`')
         {   // 'VariableName' or `VariableName`
             final char match = s.get();
-            s.next();
+            s.next(false);
             while (!s.isDone()  &&   s.get() != match)
             {
                 buf.append(s.get());
-                s.next();
+                s.next(false);
             }
             if (s.isDone())
                 throw new Exception("Unexpected end of quoted variable name.");
@@ -251,6 +251,25 @@ public class Formula implements Node
             s.next();
             final String name = buf.toString();
             result = findVariable(name);
+        }
+        else if (s.get() == '"')
+        {
+            // "Text Constant"
+            char last = s.get();
+            s.next(false);
+            // Copy until next un-escaped '"'
+            while (!s.isDone()  &&   (s.get() != '"'  || last == '\\'))
+            {
+                last = s.get();
+                if (last != '\\')
+                    buf.append(last);
+                s.next(false);
+            }
+            if (s.isDone())
+                throw new Exception("Unexpected end of quoted string");
+            // Skip final quote
+            s.next();
+            return new ConstantNode(buf.toString());
         }
         else
         {   // Digits?

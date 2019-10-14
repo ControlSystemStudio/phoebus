@@ -330,4 +330,26 @@ public class FormulaUnitTest
         vars[1].setValue(1);
         assertEquals(0.0, VTypeHelper.getDouble(f.eval()), epsilon);
     }
+
+    @Test
+    public void testStrings() throws Exception
+    {
+        // String with escaped quotes: ``Hello, "Dolly!"``
+        Formula f = new Formula("\"Hello, \\\"Dolly!\\\"\"");
+        assertEquals("Hello, \"Dolly!\"", VTypeHelper.getString(f.eval()));
+
+        try
+        {
+            new Formula(" \"Text without closing quote");
+            fail("Didn't catch missing closing quote");
+        }
+        catch (Exception ex)
+        {
+            assertThat(ex.getMessage(), containsString("quoted"));
+        }
+
+
+        f = new Formula("\"Hello, \" + \"World\"");
+        assertEquals("Hello, World", VTypeHelper.getString(f.eval()));
+    }
 }
