@@ -93,14 +93,14 @@ Check Eclipse Preferences:
 ### Use plain Java configuration
 
 Use `File`, `Import`, `General`, `Existing Projects into Workspace`.
-Select the phoebus root directory, and check the option to "Seach for nested projects".
+Select the phoebus root directory, and check the option to "Search for nested projects".
 
 By default, all projects should be selected ('dependencies', 'core-framework', .., 'product').
 
 The file `dependencies/phoebus-target/.classpath`
 needs to be edited to list all the `phoebus-target/target/lib/javafx*.jar` files.
 
-Invoke `Run As/Java Application` on the `Launcher` in the product.
+Invoke `Run As/Java Application` on the `Main` class in the product.
 
 
 ### Use Maven Files in Eclipse
