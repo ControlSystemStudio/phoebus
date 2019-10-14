@@ -47,7 +47,6 @@
 
     <jar destfile="${build}/product-${version}.jar">
       <fileset dir="${classes}"/>
-      <fileset dir="${resources}"/>
       <manifest>
         <attribute name="Main-Class" value="org.phoebus.product.Launcher" />
         <attribute name="Class-Path" value="${manifest-classpath}" />
