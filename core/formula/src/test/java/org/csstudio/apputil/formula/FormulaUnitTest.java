@@ -7,11 +7,18 @@
  ******************************************************************************/
 package org.csstudio.apputil.formula;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 /** Formula tests.
@@ -21,6 +28,15 @@ import org.junit.Test;
 public class FormulaUnitTest
 {
     private final static double epsilon = 0.001;
+
+    @BeforeClass
+    public static void setup()
+    {
+        final Logger root = Logger.getLogger("");
+        root.setLevel(Level.FINE);
+        for (Handler handler : root.getHandlers())
+            handler.setLevel(root.getLevel());
+    }
 
     @Test
     public void testBasics() throws Exception
@@ -248,6 +264,15 @@ public class FormulaUnitTest
         Formula f = new Formula("fac(3)");
         assertEquals(6.0, VTypeHelper.getDouble(f.eval()), epsilon);
 
+        try
+        {
+            f = new Formula("fac(2, 3)");
+            fail("Didn't catch argument mismatch");
+        }
+        catch (Exception ex)
+        {
+            assertThat(ex.getMessage(), containsString("arguments"));
+        }
     }
 
     @Test

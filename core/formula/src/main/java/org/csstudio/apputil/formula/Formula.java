@@ -126,7 +126,7 @@ public class Formula implements Node
         // Locate SPI-provided functions
         for (FormulaFunction func : ServiceLoader.load(FormulaFunction.class))
         {
-            logger.log(Level.CONFIG, () -> "SPI FormulaFunction '" + func.getName() + "', " + func.getArgumentCount() + " arguments");
+            logger.log(Level.FINE, () -> "SPI FormulaFunction '" + func.getName() + "', " + func.getArgumentCount() + " arguments");
             spi_functions.put(func.getName(), func);
         }
     }
