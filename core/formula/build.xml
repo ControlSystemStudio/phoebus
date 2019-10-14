@@ -12,11 +12,11 @@
         </fileset>
       </classpath>
     </javac>
-      <jar destfile="${build}/core-formula-${version}.jar">
+    <jar destfile="${build}/core-formula-${version}.jar">
       <fileset dir="${classes}"/>
     </jar>
   </target>
-    
+
   <target name="test-formula" depends="core-formula">
     <junit printsummary="withOutAndErr" haltonfailure="yes">
       <classpath>
