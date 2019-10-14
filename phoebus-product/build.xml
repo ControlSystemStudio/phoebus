@@ -5,18 +5,17 @@
   <target name="-check-doc">
     <available property="have.doc" file="../../phoebus-doc/build/html/index.html"/>
   </target>
-  
+
   <!-- .. copy manual into product/doc -->
   <target name="copy-doc" depends="-check-doc" if="have.doc">
     <copy todir="${build}/doc">
       <fileset dir="../../phoebus-doc/build/html"/>
     </copy>
   </target>
-  
+
   <target name="product" depends="copy-doc" description="Assemble product">
     <mkdir dir="${classes}"/>
-    <javac srcdir="${src}" destdir="${classes}" classpathref="app-classpath" debug="${debug}"/>
-
+  
     <!-- Assemble lib/ -->
     <copy todir="${build}/lib" flatten="true">
       <!-- Copy all application dependencies -->
@@ -71,6 +70,6 @@
 
   <target name="run" depends="product" description="Run the product">
     <java jar="${build}/product-${version}.jar" fork="true">
-    </java>  
+    </java>
   </target>
 </project>
