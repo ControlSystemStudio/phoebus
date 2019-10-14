@@ -50,6 +50,6 @@ public class ConstantNode implements Node
     @Override
     public String toString()
     {
-        return Double.toString(VTypeHelper.toDouble(value));
+        return Double.toString(VTypeHelper.getDouble(value));
     }
 }

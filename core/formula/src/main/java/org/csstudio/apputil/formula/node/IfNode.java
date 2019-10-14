@@ -30,7 +30,7 @@ public class IfNode implements Node
     @Override
     public VType eval()
     {
-        final double c = VTypeHelper.toDouble(cond.eval());
+        final double c = VTypeHelper.getDouble(cond.eval());
         if (c != 0.0)
             return yes.eval();
         else

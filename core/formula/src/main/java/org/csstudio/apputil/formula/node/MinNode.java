@@ -35,7 +35,7 @@ public class MinNode implements Node
         /// Evaluate each argument
         for (int i = 0; i < args.length; i++)
         {
-            final double value = VTypeHelper.toDouble(args[i].eval());
+            final double value = VTypeHelper.getDouble(args[i].eval());
             if (i==0  ||  value < result)
                 result = value;
         }

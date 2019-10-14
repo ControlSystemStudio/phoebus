@@ -27,7 +27,7 @@ public class VTypeHelper
      *  @param value Value
      *  @return double or NaN
      */
-    final public static double toDouble(final VType value)
+    final public static double getDouble(final VType value)
     {
         if (value instanceof VNumber)
             return ((VNumber)value).getValue().doubleValue();
@@ -50,6 +50,13 @@ public class VTypeHelper
         return Double.NaN;
     }
 
+    /** Read number by array index from array {@link VType}
+     *
+     *  @param value Value
+     *  @param i Array index
+     *  @return double or NaN
+     *  @throws IndexOutOfBoundsException for invalid index
+     */
     public static double getDouble(final VType value, final int i)
     {
         if (value instanceof VNumberArray)
@@ -59,12 +66,18 @@ public class VTypeHelper
         return Double.NaN;
     }
 
+    /** @param value {@link VType}
+     *  @return <code>true</code> if value is a numeric array
+     */
     public static boolean isNumericArray(final VType value)
     {
         return value instanceof VNumberArray  ||
                value instanceof VEnumArray;
     }
 
+    /** @param value {@link VType}
+     *  @return Array size. 0 for scalar.
+     */
     public static int getArraySize(final VType value)
     {
         final ListInteger sizes;
@@ -79,6 +92,10 @@ public class VTypeHelper
         return sizes.size() > 0 ? sizes.getInt(0) : 0;
     }
 
+    /** @param a {@link VType}
+     *  @param b {@link VType}
+     *  @return Highest alarm of the two values
+     */
     public static Alarm highestAlarmOf(final VType a, VType b)
     {
         return Alarm.highestAlarmOf(List.of(Alarm.alarmOf(a),
@@ -86,6 +103,10 @@ public class VTypeHelper
                                     false);
     }
 
+    /** @param a {@link VType}
+     *  @param b {@link VType}
+     *  @return Latest time stamp of the two values
+     */
     public static Time lastestTimeOf(final VType a, final VType b)
     {
         final Time ta = Time.timeOf(a);

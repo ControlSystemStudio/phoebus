@@ -8,7 +8,12 @@
 package org.csstudio.apputil.formula;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.Vector;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.csstudio.apputil.formula.node.AddNode;
@@ -30,7 +35,9 @@ import org.csstudio.apputil.formula.node.NotNode;
 import org.csstudio.apputil.formula.node.OrNode;
 import org.csstudio.apputil.formula.node.PwrNode;
 import org.csstudio.apputil.formula.node.RndNode;
+import org.csstudio.apputil.formula.node.SPIFuncNode;
 import org.csstudio.apputil.formula.node.SubNode;
+import org.csstudio.apputil.formula.spi.FormulaFunction;
 import org.epics.vtype.VType;
 
 /** A formula interpreter.
@@ -72,14 +79,14 @@ public class Formula implements Node
 
     final private Node tree;
 
-    final private static VariableNode constants[] = new VariableNode[]
+    private static final VariableNode constants[] = new VariableNode[]
     {
         new VariableNode("E", Math.E),
         new VariableNode("PI", Math.PI)
     };
 
     /** Names of functions that take one argument. */
-    final private static String one_arg_funcs[] = new String[]
+    private static final String one_arg_funcs[] = new String[]
     {
         "abs",
         "acos",
@@ -104,12 +111,25 @@ public class Formula implements Node
     };
 
     /** Names of functions that take two arguments, */
-    final private static String two_arg_funcs[] = new String[]
+    private static final String two_arg_funcs[] = new String[]
     {
         "atan2",
         "hypot",
         "pow"
     };
+
+    /** SPI-provided functions mapped by name */
+    private static final Map<String, FormulaFunction> spi_functions = new HashMap<>();
+
+    static
+    {
+        // Locate SPI-provided functions
+        for (FormulaFunction func : ServiceLoader.load(FormulaFunction.class))
+        {
+            logger.log(Level.CONFIG, () -> "SPI FormulaFunction '" + func.getName() + "', " + func.getArgumentCount() + " arguments");
+            spi_functions.put(func.getName(), func);
+        }
+    }
 
     /** Determine variables from formula? */
     final private boolean determine_variables;
@@ -290,6 +310,18 @@ public class Formula implements Node
     private Node findFunction(final Scanner s, final String name) throws Exception
     {
         final Node [] args = parseArgExpressions(s);
+
+        // Check SPI-provided functions.
+        // Handled first so SPI could replace built-in functions
+        final FormulaFunction function = spi_functions.get(name);
+        if (function != null)
+        {
+            if (args.length != function.getArgumentCount())
+                throw new Exception("Function '" + function.getName() + "' takes " +
+                                    function.getArgumentCount() + " arguments but received " + Arrays.toString(args));
+            return new SPIFuncNode(function, args);
+        }
+
         // Check functions with one arg
         for (int i=0; i<one_arg_funcs.length; ++i)
             if (name.equalsIgnoreCase(one_arg_funcs[i]))

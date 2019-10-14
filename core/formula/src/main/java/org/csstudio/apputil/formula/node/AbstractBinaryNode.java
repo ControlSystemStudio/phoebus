@@ -50,8 +50,8 @@ abstract class AbstractBinaryNode implements Node
         }
         else
         {
-            final double result = calc(VTypeHelper.toDouble(a),
-                                       VTypeHelper.toDouble(b));
+            final double result = calc(VTypeHelper.getDouble(a),
+                                       VTypeHelper.getDouble(b));
             return VDouble.of(result, alarm, time, Display.displayOf(a));
         }
     }
