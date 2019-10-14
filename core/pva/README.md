@@ -1,7 +1,7 @@
-PVA Client
-==========
+PVA Client and Server
+=====================
 
-PV Access client for Java, based on the 
+PV Access client and server for Java, based on the 
 [PV Access Protocol Description](https://github.com/epics-base/pvAccessCPP/wiki/protocol),
 consulting the [Reference Implementation](https://github.com/epics-base/epicsCoreJava)
 to clarify details.
@@ -12,6 +12,8 @@ functional interfaces because compatibility to the C++ implementation
 is not required.
 Implementation is focused on the requirements of clients like CS-Studio,
 covering the majority of PV Access features but not all of them.
+Also includes a PVA Server implementation, which was mostly created
+to again better understand the protocol and to allow closed-loop tests.
 
 Prerequisites
 -------------
@@ -28,14 +30,15 @@ Both Ant and Maven are supported:
 API Documentation
 -----------------
 
-Both Ant and Maven generate javadoc in target.
-... is in pva/target/site/apidocs/index.html
+Both Ant and Maven generate javadoc in target/site/apidocs/index.html
 
 Configuration
 -------------
 
-`EPICS_PVA_ADDR_LIST` can be set as environment variable
-or Java property.
+Similar to the C++ library, `EPICS_PVA_ADDR_LIST` can be set as an environment variable.
+In addition, the Java library reads a Java property of the same name.
+If both the environment variable and the Java property are defined,
+the latter is used.
 See `PVASettings` source code for additional settings.
 
 Network Details
@@ -44,6 +47,7 @@ Network Details
 The protocol uses UDP port 5076, then TCP port 5075 for first server,
 and randomly chosen TCP ports for additional servers on the same host.
 Local PV name resolution also uses the multicast group 224.0.0.128.
+(These defaults can be changed via configuration settings, see `PVASettings`.)
 
 To debug connection issues on Linux, it can be helpful to disable the firewall:
 
@@ -75,7 +79,7 @@ Then access it via
     pvaclient put ramp 5
     pvaclient monitor ramp rnd
 
-To test the server, run ServerDemo in the IDE of your choice and then access it via
+To test the server, run `ServerDemo` in the IDE of your choice and then access it via
 the tools provided by EPICS base:
 
     pvinfo demo
@@ -130,5 +134,4 @@ PVA Server:
 TODO:
 
  * Testing
- * Server: Support Put
  * Handle fixed size or bounded arrays?
