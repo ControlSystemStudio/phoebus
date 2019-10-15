@@ -103,7 +103,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         private CFProperties properties = new CFProperties();
 
         private CFCBuilder() {
-            this.uri = URI.create(this.properties.getPreferenceValue("channelfinder.serviceURL"));
+            this.uri = URI.create(this.properties.getPreferenceValue("serviceURL"));
             this.protocol = this.uri.getScheme();
         }
 
@@ -259,8 +259,8 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
             }
             if (this.withHTTPAuthentication) {
                 this.httpBasicAuthFilter = new HTTPBasicAuthFilter(
-                        properties.getPreferenceValue("channelfinder.username"),
-                        properties.getPreferenceValue("channelfinder.password"));
+                        properties.getPreferenceValue("username"),
+                        properties.getPreferenceValue("password"));
             }
             return new ChannelFinderClientImpl(this.uri, this.clientConfig, this.httpBasicAuthFilter, this.executor);
         }
