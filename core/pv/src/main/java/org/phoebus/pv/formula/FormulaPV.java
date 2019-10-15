@@ -15,10 +15,9 @@ import java.util.logging.Level;
 import org.csstudio.apputil.formula.Formula;
 import org.csstudio.apputil.formula.VariableNode;
 import org.epics.vtype.Alarm;
-import org.epics.vtype.Display;
 import org.epics.vtype.Time;
-import org.epics.vtype.VDouble;
 import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 import org.phoebus.pv.PV;
 
 /** Formula-based {@link PV}
@@ -38,15 +37,17 @@ public class FormulaPV extends PV
             // Parse expression...
             formula = new Formula(expression, true);
 
-            // Set initial value
-            final double value = formula.eval();
-            notifyListenersOfValue(VDouble.of(value, Alarm.none(), Time.now(), Display.none()));
+            final VType value = formula.eval();
+            notifyListenersOfValue(value);
 
             // Determine variables, connect to PVs
             final VariableNode vars[] = formula.getVariables();
             inputs = new FormulaInput[vars.length];
             for (int i=0; i<inputs.length; ++i)
                 inputs[i] = new FormulaInput(this, vars[i]);
+
+            // Set initial value
+            update();
         }
         catch (Exception ex)
         {
@@ -74,11 +75,8 @@ public class FormulaPV extends PV
     /** Compute updated value of formula and notify listeners */
     void update()
     {
-        final double value = formula.eval();
-        if (Double.isNaN(value))
-            notifyListenersOfValue(VDouble.of(value, Alarm.disconnected(), Time.now(), Display.none()));
-        else
-            notifyListenersOfValue(VDouble.of(value, Alarm.none(), Time.now(), Display.none()));
+        final VType value = formula.eval();
+        notifyListenersOfValue(value);
     }
 
     @Override

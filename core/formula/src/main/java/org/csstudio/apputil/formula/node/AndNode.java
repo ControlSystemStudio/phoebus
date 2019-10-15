@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,12 +20,12 @@ public class AndNode extends AbstractBinaryNode
     }
 
     @Override
-    public double eval()
+    protected double calc(final double a, final double b)
     {
-        return (left.eval() != 0.0   &&   right.eval() != 0.0) ? 1.0 : 0.0;
+        return a != 0.0  &&  b != 0.0  ?  1.0 : 0.0;
     }
 
-   @SuppressWarnings("nls")
+    @SuppressWarnings("nls")
     @Override
     public String toString()
     {

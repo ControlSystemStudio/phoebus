@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,6 +8,11 @@
 package org.csstudio.apputil.formula.node;
 
 import org.csstudio.apputil.formula.Node;
+import org.csstudio.apputil.formula.VTypeHelper;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Time;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 
 /** One computational node.
  *  @author Kay Kasemir
@@ -20,10 +25,19 @@ public class AddNode extends AbstractBinaryNode
     }
 
     @Override
-    public double eval()
+    protected VType calc(final VType a, final VType b, final Alarm alarm, final Time time)
     {
-        final double a = left.eval();
-        final double b = right.eval();
+        if (a instanceof VString  ||  b instanceof VString)
+        {
+            final String result = VTypeHelper.getString(a) + VTypeHelper.getString(b);
+            return VString.of(result, alarm, time);
+        }
+        return super.calc(a, b, alarm, time);
+    }
+
+    @Override
+    protected double calc(double a, double b)
+    {
         return a + b;
     }
 
