@@ -133,6 +133,47 @@
         </plugins>
       </build>
     </profile>
+    <!-- a profile for generating javadocs and the website from the .rst files -->
+    <profile>
+      <id>docs</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.1.1</version>
+            <executions>
+             <execution>
+              <id>attach-javadocs</id>
+              <goals>
+               <goal>jar</goal>
+              </goals>
+              <configuration>
+                  <!-- add this to disable checking -->
+                  <doclint>none</doclint>
+                  <source>11</source>
+              </configuration>
+             </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-site-plugin</artifactId>
+            <version>3.7.1</version>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-project-info-reports-plugin</artifactId>
+            <version>3.0.0</version>
+          </plugin>
+          <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-project-info-reports-plugin</artifactId>
+              <version>3.0.0</version>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
   <repositories>
