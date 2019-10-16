@@ -1,6 +1,29 @@
 package org.phoebus.applications.filebrowser;
 
-import static org.phoebus.applications.filebrowser.FileBrowser.logger;
+import javafx.application.Platform;
+import javafx.collections.ObservableList;
+import javafx.scene.control.TreeCell;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.paint.Color;
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.spi.AppDescriptor;
+import org.phoebus.framework.util.ResourceParser;
+import org.phoebus.framework.workbench.FileHelper;
+import org.phoebus.ui.application.ApplicationLauncherService;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.PlatformInfo;
 
 import java.io.File;
 import java.net.URI;
@@ -11,32 +34,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.event.EventHandler;
-import javafx.scene.Scene;
-import javafx.scene.input.*;
-import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.framework.spi.AppDescriptor;
-import org.phoebus.framework.util.ResourceParser;
-import org.phoebus.framework.workbench.FileHelper;
-import org.phoebus.ui.application.ApplicationLauncherService;
-import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
-import org.phoebus.ui.javafx.ImageCache;
-
-import javafx.application.Platform;
-import javafx.collections.ObservableList;
-import javafx.scene.control.TreeCell;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.paint.Color;
-import org.phoebus.ui.javafx.PlatformInfo;
+import static org.phoebus.applications.filebrowser.FileBrowser.logger;
 
 @SuppressWarnings("nls")
 final class FileTreeCell extends TreeCell<File> {
@@ -45,10 +43,7 @@ final class FileTreeCell extends TreeCell<File> {
 
     private static final Border BORDER = new Border(new BorderStroke(Color.GREEN, BorderStrokeStyle.SOLID,
                                                     new CornerRadii(5.0), BorderStroke.THIN));
-
-    private static final Border RED_BORDER = new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID,
-            new CornerRadii(5.0), BorderStroke.THIN));
-
+    
     public FileTreeCell()
     {
         enableDragDrop();
