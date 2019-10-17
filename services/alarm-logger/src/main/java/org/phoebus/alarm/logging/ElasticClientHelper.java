@@ -16,6 +16,7 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.sniff.Sniffer;
 import org.phoebus.applications.alarm.messages.AlarmCommandMessage;
 import org.phoebus.applications.alarm.messages.AlarmConfigMessage;
 import org.phoebus.applications.alarm.messages.AlarmStateMessage;
@@ -28,6 +29,7 @@ public class ElasticClientHelper {
     Properties props = PropertiesHelper.getProperties();
     private static RestHighLevelClient client;
     private static ElasticClientHelper instance;
+    private static Sniffer sniffer;
 
     private ElasticClientHelper() {
         try {
@@ -35,6 +37,7 @@ public class ElasticClientHelper {
                 logger.info("Shutting down the ElasticClientHelper.");
                 if (client != null) {
                     try {
+                        sniffer.close();
                         client.close();
                     } catch (IOException e) {
                         logger.log(Level.WARNING, "Failed to close the elastic rest client", e);
@@ -44,8 +47,13 @@ public class ElasticClientHelper {
             }));
             client = new RestHighLevelClient(
                     RestClient.builder(new HttpHost(props.getProperty("es_host"),Integer.parseInt(props.getProperty("es_port")))));
+            if (props.getProperty("es_sniff").equals("true")) {
+                sniffer = Sniffer.builder(client.getLowLevelClient()).build();
+                logger.log(Level.INFO, "ES Sniff feature is enabled");
+            }
         } catch (Exception e) {
             try {
+                sniffer.close();
                 client.close();
             } catch (IOException ex) {
                 logger.log(Level.WARNING, "Failed to close the elastic rest client", ex);
