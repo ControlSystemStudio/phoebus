@@ -50,6 +50,7 @@ public class AlarmLoggingService {
         System.out.println("-topics   Accelerator                    - Alarm topics to be logged, they can be defined as a comma separated list");
         System.out.println("-es_host  localhost                      - elastic server host");
         System.out.println("-es_port  9200                           - elastic server port");
+        System.out.println("-es_sniff  false                         - elastic server sniff feature");
         System.out.println("-bootstrap.servers localhost:9092        - Kafka server address");
         System.out.println("-properties /opt/alarm_logger.propertier - Properties file to be used (instead of command line arguments)");
         System.out.println("-date_span_units M                       - Date units for the time based index to span.");
@@ -127,6 +128,12 @@ public class AlarmLoggingService {
                         throw new Exception("Missing -es_port port number");
                     iter.remove();
                     properties.put("es_port",iter.next());
+                    iter.remove();
+                } else if (cmd.equals("-es_sniff")) {
+                    if (!iter.hasNext())
+                        throw new Exception("Missing -es_sniff sniff feature true/false");
+                    iter.remove();
+                    properties.put("es_sniff",iter.next());
                     iter.remove();
                 } else if (cmd.equals("-bootstrap.servers")) {
                     if (!iter.hasNext())
