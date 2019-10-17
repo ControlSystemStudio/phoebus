@@ -4,7 +4,7 @@ import java.util.prefs.Preferences;
 import java.util.prefs.PreferencesFactory;
 
 /**
- *
+ * A service which enabled the use of the file backed implementation of java {@link Preferences}. 
  * @author Kunal Shroff
  *
  */
@@ -20,12 +20,14 @@ public class PhoebusPreferenceService implements PreferencesFactory {
     }
 
     @Override
-    public Preferences userRoot() {
+    public Preferences userRoot()
+    {
         return FileSystemPreferences.getUserRoot();
     }
 
     @Override
-    public Preferences systemRoot() {
+    public Preferences systemRoot()
+    {
         return FileSystemPreferences.getSystemRoot();
     }
 
