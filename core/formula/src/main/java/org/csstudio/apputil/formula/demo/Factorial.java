@@ -28,6 +28,12 @@ public class Factorial implements FormulaFunction
     }
 
     @Override
+    public String getDescription()
+    {
+        return "Calculate the factorial of the given number";
+    }
+
+    @Override
     public int getArgumentCount()
     {
         return 1;
@@ -46,4 +52,5 @@ public class Factorial implements FormulaFunction
             return 1;
         return n * fac(n-1);
     }
+
 }
