@@ -12,7 +12,7 @@ import java.util.List;
 
 import org.phoebus.framework.spi.PVProposalProvider;
 
-/** Provider of {@link PvaProposal}s
+/** {@link ProposalProvider} for PVA
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
