@@ -17,6 +17,9 @@ public interface FormulaFunction
     /** @return Name of the function as used in the formula */
     public String getName();
 
+    /** @return A description on the function performed by the formula */
+    public String getDescription();
+
     /** @return Number of arguments with which the function needs to be called */
     public int getArgumentCount();
 
