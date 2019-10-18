@@ -1,6 +1,7 @@
 package org.csstudio.apputil.formula.areadetector;
 
 
+import org.csstudio.apputil.formula.VTypeHelper;
 import org.csstudio.apputil.formula.spi.FormulaFunction;
 import org.epics.util.array.ArrayUInteger;
 import org.epics.util.array.ArrayULong;
@@ -37,9 +38,8 @@ public class ADDataTypeMappingFunction implements FormulaFunction {
         // TODO check if any of the arguments in null
 
         VNumberArray data = (VNumberArray) args[0];
-        VEnum dataType = (VEnum) args[1];
-        String type = dataType.getValue();
-        switch (type) {
+        String dataType = VTypeHelper.getString(args[1]);
+        switch (dataType) {
         case "UInt8":
             int[] newUInt8Data = new int[data.getData().size()];
             for (int i = 0; i < data.getData().size(); i++) {
