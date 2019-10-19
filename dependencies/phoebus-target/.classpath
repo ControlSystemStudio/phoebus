@@ -68,25 +68,25 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/jackson-dataformat-yaml-2.8.10.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jackson-datatype-jsr310-2.8.10.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jna-4.5.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/joda-time-2.9.9.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/joda-time-2.10.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jopt-simple-5.0.2.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/log4j-api-2.9.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/lucene-analyzers-common-7.3.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/lucene-backward-codecs-7.3.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/lucene-core-7.3.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/lucene-grouping-7.3.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/lucene-highlighter-7.3.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/lucene-join-7.3.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/lucene-memory-7.3.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/lucene-misc-7.3.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/lucene-queries-7.3.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/lucene-queryparser-7.3.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/lucene-sandbox-7.3.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/lucene-spatial-7.3.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/lucene-spatial-extras-7.3.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/lucene-spatial3d-7.3.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/lucene-suggest-7.3.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="target/lib/rank-eval-client-6.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/log4j-api-2.11.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-analyzers-common-7.4.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-backward-codecs-7.4.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-core-7.4.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-grouping-7.4.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-highlighter-7.4.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-join-7.4.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-memory-7.4.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-misc-7.4.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-queries-7.4.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-queryparser-7.4.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-sandbox-7.4.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-spatial3d-7.4.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-spatial-7.4.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-spatial-extras-7.4.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/lucene-suggest-7.4.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="target/lib/rank-eval-client-6.4.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jfxtras-common-9.0-r1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jfxtras-controls-9.0-r1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/jfxtras-fxml-9.0-r1.jar"/>
