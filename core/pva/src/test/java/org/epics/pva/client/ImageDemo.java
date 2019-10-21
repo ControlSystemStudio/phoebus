@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.LogManager;
 
 import org.epics.pva.PVASettings;
+import org.epics.pva.data.PVAByteArray;
 import org.epics.pva.data.PVAShortArray;
 import org.epics.pva.data.PVAUnion;
 import org.junit.Test;
@@ -60,7 +61,7 @@ public class ImageDemo
         // Connect
         final ClientChannelListener channel_listener = (channel, state) -> System.out.println(channel);
         final PVAChannel ch = pva.getChannel(PV_NAME, channel_listener);
-        ch.connect().get();
+        ch.connect().get(5, TimeUnit.SECONDS);
 
         // Read value
         System.out.println(ch.read("").get());
@@ -69,11 +70,18 @@ public class ImageDemo
         final MonitorListener monitor_listener = (channel, changed, overruns, data) ->
         {
             final PVAUnion value = data.get("value");
-            final PVAShortArray array = value.get();
-            if (array == null)
+            if (value.get() == null)
                 System.out.println("value: nothing");
-            else
-                System.out.println("value: " + array.get().length + " elements");
+            else if (value.get() instanceof PVAShortArray)
+            {
+                final PVAShortArray array = value.get();
+                System.out.println("value: " + array.get().length + " short elements");
+            }
+            else if (value.get() instanceof PVAByteArray)
+            {
+                final PVAByteArray array = value.get();
+                System.out.println("value: " + array.get().length + " byte elements");
+            }
         };
         final AutoCloseable subscription = ch.subscribe("value, dimension, timeStamp", monitor_listener);
         TimeUnit.SECONDS.sleep(3000);
