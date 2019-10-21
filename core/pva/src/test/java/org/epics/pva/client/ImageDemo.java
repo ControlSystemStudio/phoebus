@@ -20,11 +20,25 @@ import org.junit.Test;
  *
  *  Run ./ntndarrayServerMain IMAGE
  *
+ *
+ *  Can also be used with Area Detector 'sim':
+ *  In areaDetector/ADCore/iocBoot/commonPlugins.cmd, load the 'NDPluginPva' plugin
+ *
+ *  cd areaDetector/ADSimDetector/iocs/simDetectorIOC/iocBoot/iocSimDetector
+ *  ../../bin/linux-x86_64/simDetectorApp st.cmd
+ *
+ *  caput 13SIM1:cam1:Acquire 1
+ *  caput 13SIM1:image1:EnableCallbacks 1
+ *  caput 13SIM1:Pva1:EnableCallbacks 1
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class ImageDemo
 {
+    // "IMAGE" for ntndarrayServer, "13SIM1:Pva1:Image" for Area Detector
+    private static final String PV_NAME = "13SIM1:Pva1:Image";
+
     static
     {
         try
@@ -45,10 +59,10 @@ public class ImageDemo
 
         // Connect
         final ClientChannelListener channel_listener = (channel, state) -> System.out.println(channel);
-        final PVAChannel ch = pva.getChannel("IMAGE", channel_listener);
-        while (ch.getState() != ClientChannelState.CONNECTED)
-            TimeUnit.MILLISECONDS.sleep(100);
+        final PVAChannel ch = pva.getChannel(PV_NAME, channel_listener);
+        ch.connect().get();
 
+        // Read value
         System.out.println(ch.read("").get());
 
         // Monitor updates
@@ -56,7 +70,10 @@ public class ImageDemo
         {
             final PVAUnion value = data.get("value");
             final PVAShortArray array = value.get();
-            System.out.println("value: " + array.get().length + " elements");
+            if (array == null)
+                System.out.println("value: nothing");
+            else
+                System.out.println("value: " + array.get().length + " elements");
         };
         final AutoCloseable subscription = ch.subscribe("value, dimension, timeStamp", monitor_listener);
         TimeUnit.SECONDS.sleep(3000);
