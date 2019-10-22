@@ -19,8 +19,6 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.properties.ScriptPV;
-import org.csstudio.display.builder.model.rules.RuleInfo;
-import org.csstudio.display.builder.model.rules.RuleToScript;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.runtime.RuntimeUtil;
 import org.csstudio.display.builder.runtime.WidgetRuntime;
@@ -91,37 +89,6 @@ public class RuntimeScriptHandler implements RuntimePVListener
         return scripting.compile(path, script_name, stream);
     }
 
-
-    /** Helper to compile rules script
-     *
-     *  <p>Gets text of script from rules utility
-     *
-     *  @param widget Widget on which the rule is invoked
-     *  @param rule_info Rule to compile
-     *  @return Compiled script
-     *  @throws Exception on error
-     */
-    public static Script compileScript(final Widget widget,
-            final RuleInfo rule_info) throws Exception
-    {
-        // Compile script
-        final ScriptSupport scripting = RuntimeUtil.getScriptSupport(widget);
-
-        final String script = rule_info.getTextPy(widget);
-        final InputStream stream = new ByteArrayInputStream(script.getBytes());
-        String dummy_name = widget.getType() + ":" + widget.getName() + ":" + rule_info.getName() + ".rule.py";
-
-        logger.log(Level.FINER, () -> "Compiling rule script for " + dummy_name + "\n" + RuleToScript.addLineNumbers(script));
-        try
-        {
-            return scripting.compile(null, dummy_name, stream);
-        }
-        catch (Exception e)
-        {
-            throw new Exception("Cannot compile rule: " + dummy_name + "\n" + RuleToScript.addLineNumbers(script), e);
-        }
-    }
-
     /** @param widget Widget on which the script is invoked
      *  @param script_info Script to handle
      *  @throws Exception on error
@@ -131,14 +98,7 @@ public class RuntimeScriptHandler implements RuntimePVListener
         this(widget, compileScript(widget, widget.getMacrosOrProperties(), script_info), script_info.getCheckConnections(), script_info.getPVs());
     }
 
-    /** @param widget Widget on which the rule is invoked
-     *  @param rule_info Rule to handle
-     *  @throws Exception on error
-     */
-    public RuntimeScriptHandler(final Widget widget, final RuleInfo rule_info) throws Exception
-    {
-        this(widget, compileScript(widget, rule_info), true, rule_info.getPVs());
-    }
+
 
     /** @param widget Widget on which the script is invoked
      *  @param script Script to execute
