@@ -103,8 +103,7 @@ public class PVAByteArray extends PVAData implements PVAArray
         byte[] new_value = value;
         if (new_value == null  ||  new_value.length != size)
             new_value = new byte[size];
-        for (int i=0; i<size; ++i)
-            new_value[i] = buffer.get();
+        buffer.get(new_value);
         value = new_value;
     }
 

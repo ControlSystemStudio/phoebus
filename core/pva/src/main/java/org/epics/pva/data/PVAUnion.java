@@ -183,6 +183,11 @@ public class PVAUnion extends PVADataWithID
     public void decode(final PVATypeRegistry types, final ByteBuffer buffer) throws Exception
     {
         selected = PVASize.decodeSize(buffer);
+        if (selected < 0)
+        {   // -1 (we're treating any negative number like that) selects no value
+            logger.log(Level.FINER, () -> "Union element selector is " + selected + ", no value");
+            return;
+        }
         if (selected < 0  ||  selected >= elements.size())
             throw new Exception("Invalid union selector " + selected + " for " + formatType());
         final PVAData element = elements.get(selected);
@@ -244,7 +249,11 @@ public class PVAUnion extends PVADataWithID
             buffer.append(union_name).append(" ");
         buffer.append(name);
         if (selected < 0)
-            buffer.append("\n - nothing selected -\n");
+        {
+            buffer.append("\n");
+            indent(level+1, buffer);
+            buffer.append("- nothing selected -");
+        }
         else
         {
             buffer.append("\n");
