@@ -5,32 +5,48 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.csstudio.apputil.formula.demo;
+package org.csstudio.apputil.formula.math;
 
 import org.csstudio.apputil.formula.VTypeHelper;
 import org.csstudio.apputil.formula.spi.FormulaFunction;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
-import org.epics.vtype.VInt;
+import org.epics.vtype.VDouble;
 import org.epics.vtype.VType;
 
-/** Example for SPI-provided function
+/** Helper for SPI-provided `double function(double)`
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
-public class Factorial implements FormulaFunction
+class OneArgMathFunction implements FormulaFunction
 {
+    @FunctionalInterface
+    public interface OneArgFunction
+    {
+        double calc(double arg);
+    }
+
+    private final String name;
+    private final String description;
+    private final OneArgFunction function;
+
+    protected OneArgMathFunction(final String name, final String description, final OneArgFunction function)
+    {
+        this.name = name;
+        this.description = description;
+        this.function = function;
+    }
+
     @Override
     public String getName()
     {
-        return "fac";
+        return name;
     }
 
     @Override
     public String getDescription()
     {
-        return "Calculate the factorial of the given number";
+        return description;
     }
 
     @Override
@@ -42,15 +58,8 @@ public class Factorial implements FormulaFunction
     @Override
     public VType compute(final VType... args) throws Exception
     {
-        final int n = (int) VTypeHelper.getDouble(args[0]);
-        return VInt.of(fac(n), Alarm.none(), Time.now(), Display.displayOf(args[0]));
+        final double arg = VTypeHelper.getDouble(args[0]);
+        final double value = function.calc(arg);
+        return VDouble.of(value, Alarm.none(), Time.now(), Display.none());
     }
-
-    private static int fac(final int n)
-    {
-        if (n <= 1)
-            return 1;
-        return n * fac(n-1);
-    }
-
 }

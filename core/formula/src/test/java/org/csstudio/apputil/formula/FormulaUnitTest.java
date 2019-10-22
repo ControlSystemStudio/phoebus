@@ -178,6 +178,9 @@ public class FormulaUnitTest
         f = new Formula("atan2(10.0, 0.0)");
         assertEquals(90.0, Math.toDegrees(VTypeHelper.getDouble(f.eval())), epsilon);
 
+        f = new Formula("pow(10.0, 3.0)");
+        assertEquals(1000.0, VTypeHelper.getDouble(f.eval()), epsilon);
+
         f = new Formula("rnd(10.0)");
         for (int i=0; i<50; ++i)
         {

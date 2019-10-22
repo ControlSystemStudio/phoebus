@@ -1,2 +1,29 @@
+# 1-arg math functions
+org.csstudio.apputil.formula.math.Abs
+org.csstudio.apputil.formula.math.ACos
+org.csstudio.apputil.formula.math.ASin
+org.csstudio.apputil.formula.math.ATan
+org.csstudio.apputil.formula.math.Ceil
+org.csstudio.apputil.formula.math.Cos
+org.csstudio.apputil.formula.math.CosH
+org.csstudio.apputil.formula.math.Exp
+org.csstudio.apputil.formula.math.ExpM1
+org.csstudio.apputil.formula.math.Floor
+org.csstudio.apputil.formula.math.Log
+org.csstudio.apputil.formula.math.Log10
+org.csstudio.apputil.formula.math.Sin
+org.csstudio.apputil.formula.math.SinH
+org.csstudio.apputil.formula.math.Sqrt
+org.csstudio.apputil.formula.math.Tan
+org.csstudio.apputil.formula.math.TanH
+org.csstudio.apputil.formula.math.ToDegrees
+org.csstudio.apputil.formula.math.ToRadians
+
+# 2-arg math functions
+org.csstudio.apputil.formula.math.ATan2
+org.csstudio.apputil.formula.math.Hypot
+org.csstudio.apputil.formula.math.Pow
+
+# Other functions
 org.csstudio.apputil.formula.demo.Factorial
 org.csstudio.apputil.formula.areadetector.ADDataTypeMappingFunction
