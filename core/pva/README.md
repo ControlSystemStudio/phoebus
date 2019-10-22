@@ -3,17 +3,20 @@ PVA Client and Server
 
 PV Access client and server for Java, based on the 
 [PV Access Protocol Description](https://github.com/epics-base/pvAccessCPP/wiki/protocol),
-consulting the [Reference Implementation](https://github.com/epics-base/epicsCoreJava)
+consulting the
+[Reference Implementation](https://github.com/epics-base/epicsCoreJava)
 to clarify details.
-Purpose is to better understand the protocol
-and to implement it in pure Java, using concurrent classes
-from the standard library and taking advantage of for example
-functional interfaces because compatibility to the C++ implementation
-is not required.
+
+Original motivation was understanding the protocol and implementing it based on the standard Java library,
+taking advantage of for example functional interfaces and concurrency classes,
+instead of requiring API compatibility to the C++ implementation.
+
 Implementation is focused on the requirements of clients like CS-Studio,
 covering the majority of PV Access features but not all of them.
 Also includes a PVA Server implementation, which was mostly created
 to again better understand the protocol and to allow closed-loop tests.
+
+Network compatibility with all other PVA servers and clients is desired.
 
 Prerequisites
 -------------
@@ -116,6 +119,7 @@ PVA Client:
  * Put: Init, get structure, update field, write, destroy
  * RPC: Send request structure, get response structure
  * Decode data sent by IOC and 'image' demo
+ * Handle 'segmented' messages
  * Close (destroy) channel
  * Close client
  * Info/get/monitor/put command line tool

@@ -66,6 +66,12 @@ abstract public class TCPHandler
     /** Buffer used to receive data via {@link TCPHandler#receive_thread} */
     protected ByteBuffer receive_buffer = ByteBuffer.allocate(PVASettings.EPICS_PVA_RECEIVE_BUFFER_SIZE);
 
+    /** Buffer for assembling parts of segmented message
+     *
+     *  <p>Created and then grown as needed
+     */
+    private ByteBuffer segments = null;
+
     /** Buffer used to send data via {@link TCPHandler#send_thread} */
     protected final ByteBuffer send_buffer = ByteBuffer.allocate(PVASettings.EPICS_PVA_SEND_BUFFER_SIZE);
 
@@ -366,12 +372,6 @@ abstract public class TCPHandler
         }
     }
 
-    /** Buffer for assembling parts of segmented message
-     *
-     *  <p>Created and then grown as needed
-     */
-    private ByteBuffer segments = null;
-
     /** Handle a segmented message
      *
      *  <p>Assembles parts of a segmented message,
@@ -383,6 +383,10 @@ abstract public class TCPHandler
      */
     private void handleSegmentedMessage(final byte segmented, final ByteBuffer buffer) throws Exception
     {
+        // This implementation does copy data from the original receive buffer
+        // into the 'segmented' buffer where they are combined.
+        // Original Java implementation also copied received bytes,
+        // albeit within the same socketBuffer.
         if (segmented == PVAHeader.FLAG_FIRST)
         {
             if (segments == null)
