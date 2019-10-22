@@ -366,11 +366,24 @@ abstract public class TCPHandler
         }
     }
 
+    /** Buffer for assembling parts of segmented message
+     *
+     *  <p>Created and then grown as needed
+     */
     private ByteBuffer segments = null;
 
-    private void handleSegmentedMessage(final byte segemented, final ByteBuffer buffer) throws Exception
+    /** Handle a segmented message
+     *
+     *  <p>Assembles parts of a segmented message,
+     *  then handles it when last part has been received.
+     *
+     *  @param segmented {@link PVAHeader#FLAG_SEGMENT_MASK} bits of the message
+     *  @param buffer Buffer set to one part of a segmented message
+     *  @throws Exception on error
+     */
+    private void handleSegmentedMessage(final byte segmented, final ByteBuffer buffer) throws Exception
     {
-        if (segemented == PVAHeader.FLAG_FIRST)
+        if (segmented == PVAHeader.FLAG_FIRST)
         {
             if (segments == null)
             {
@@ -380,7 +393,7 @@ abstract public class TCPHandler
                 segments.order(buffer.order());
             }
             else if (segments.position() > 0)
-                throw new Exception("Received first message segment while still handling previous one");
+                throw new Exception("Received new first message segment while still handling previous one");
 
             segments = assertBufferSize(segments, buffer.limit());
             segments.put(buffer);
@@ -397,7 +410,7 @@ abstract public class TCPHandler
         }
         else
         {
-            final boolean last = segemented == PVAHeader.FLAG_LAST;
+            final boolean last = segmented == PVAHeader.FLAG_LAST;
 
             if (segments == null  ||  segments.position() <= 0)
                 throw new Exception("Received " + (last ? "last" : "middle") + " message segment without first segment");
@@ -431,7 +444,7 @@ abstract public class TCPHandler
             if (last)
             {
                 try
-                {
+                {   // Handle the merged message
                     segments.flip();
                     handleMessage(segments);
                 }
@@ -440,7 +453,7 @@ abstract public class TCPHandler
                     throw new Exception("Error handling assembled segmented message", ex);
                 }
                 finally
-                {
+                {   // Reset segments buffer to allow starting with another 'first' message
                     segments.clear();
                 }
             }

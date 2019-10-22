@@ -8,7 +8,9 @@
 package org.epics.pva.client;
 
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import org.epics.pva.PVASettings;
 import org.epics.pva.data.PVAByteArray;
@@ -38,7 +40,7 @@ import org.junit.Test;
 public class ImageDemo
 {
     // "IMAGE" for ntndarrayServer, "13SIM1:Pva1:Image" for Area Detector
-    private static final String PV_NAME = "13SIM1:Pva1:Image";
+    private static final String PV_NAME = "IMAGE"; // "13SIM1:Pva1:Image";
 
     static
     {
@@ -50,6 +52,8 @@ public class ImageDemo
         {
             ex.printStackTrace();
         }
+        final Logger root = Logger.getLogger("");
+        root.setLevel(Level.INFO);
     }
 
     @Test
@@ -63,8 +67,8 @@ public class ImageDemo
         final PVAChannel ch = pva.getChannel(PV_NAME, channel_listener);
         ch.connect().get(5, TimeUnit.SECONDS);
 
-        // Read value
-        System.out.println(ch.read("").get());
+        // Read value, show type (value could be too large)
+        System.out.println(ch.read("").get().formatType());
 
         // Monitor updates
         final MonitorListener monitor_listener = (channel, changed, overruns, data) ->
