@@ -28,6 +28,7 @@ import org.epics.pva.data.PVAString;
 import org.epics.pva.data.PVAStringArray;
 import org.epics.pva.data.PVAStructure;
 import org.epics.pva.data.PVAStructureArray;
+import org.epics.pva.data.PVAUnion;
 import org.epics.util.array.ArrayDouble;
 import org.epics.util.array.ArrayFloat;
 import org.epics.util.array.ArrayInteger;
@@ -103,6 +104,15 @@ public class PVAStructureHelper
             return decodeScalar(actual);
         else if (field instanceof PVAArray)
             return decodeNTArray(actual);
+        else if (field instanceof PVAUnion)
+        {   // Decode the currently selected variant of the union
+            final PVAData union_field = ((PVAUnion) field).get();
+            if (union_field instanceof PVANumber  ||
+                union_field instanceof PVAString)
+                return decodeScalarField(struct, union_field);
+            else if (union_field instanceof PVAArray)
+                return decodeNTArrayField(struct, union_field);
+        }
         // TODO: not really sure how to handle arbitrary structures -- no solid use cases yet...
 
         // Create string that indicates name of unknown type
@@ -118,12 +128,19 @@ public class PVAStructureHelper
      */
     private static VType decodeScalar(final PVAStructure struct) throws Exception
     {
-        final PVAData field = struct.get("value");
+        final VType result = decodeScalarField(struct, struct.get("value"));
+        if (result != null)
+            return result;
+        throw new Exception("Expected struct with scalar 'value', got " + struct);
+    }
+
+    private static VType decodeScalarField(final PVAStructure struct, final PVAData field) throws Exception
+    {
         if (field instanceof PVANumber)
             return Decoders.decodeNumber(struct, (PVANumber) field);
         if (field instanceof PVAString)
             return Decoders.decodeString(struct, (PVAString) field);
-        throw new Exception("Expected struct with scalar 'value', got " + struct);
+        return null;
     }
 
     /** Decode table from NTTable
@@ -180,7 +197,11 @@ public class PVAStructureHelper
      */
     private static VType decodeNTArray(final PVAStructure struct) throws Exception
     {
-        final PVAData field = struct.get("value");
+        return decodeNTArrayField(struct, struct.get("value"));
+    }
+
+    private static VType decodeNTArrayField(final PVAStructure struct, final PVAData field) throws Exception
+    {
         if (field instanceof PVADoubleArray)
             return Decoders.decodeDoubleArray(struct, (PVADoubleArray) field);
         if (field instanceof PVAFloatArray)
