@@ -686,15 +686,20 @@ public class DisplayEditor
         {
         	//Export to XML
             xml = ModelWriter.getXML(widgets);
+            List<Rectangle2D> display_bounds = new ArrayList<>();
+            for (Widget widget : widgets)
+            {
+                display_bounds.add(GeometryTools.getDisplayBounds(widget));
+            }
             //Import back from XML
             final DisplayModel model = ModelReader.parseXML(xml);
             widgets = model.getChildren();
             logger.log(Level.FINE, "Duplicated {0} widgets", widgets.size());
 
-            for (Widget widget : widgets)
+            for (int index = 0; index < widgets.size(); index++)
             {
-                widget.propX().setValue(widget.propX().getValue() + 20);
-                widget.propY().setValue(widget.propY().getValue() + 20);
+                widgets.get(index).propX().setValue((int)display_bounds.get(index).getMinX() + 20);
+                widgets.get(index).propY().setValue((int)display_bounds.get(index).getMinY() + 20);
             }
             final Rectangle2D bounds = GeometryTools.getBounds(widgets);
             // Potentially activate group at duplicate point
