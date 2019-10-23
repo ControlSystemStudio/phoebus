@@ -43,11 +43,20 @@ class Scanner
     /** Move to the next character (skipping spaces). */
     public void next() throws Exception
     {
+        next(true);
+    }
+
+    /** Move to next character
+     *  @param skip_spaces Skip spaces?
+     *  @throws Exception on error
+     */
+    public void next(final boolean skip_spaces) throws Exception
+    {
         try
         {
             do
                 current = reader.read();
-            while (to_skip.indexOf(current) >= 0);
+            while (skip_spaces  &&  to_skip.indexOf(current) >= 0);
             if (current == -1)
                 done = true;
         }

@@ -43,4 +43,20 @@ public class PVATimeStamp extends PVAStructure
         secs.set(time.getEpochSecond());
         nano.set(time.getNano());
     }
+
+    /** Update "timeStamp" in value
+     *  @param value Value
+     *  @param time Desired time (seconds, nanoseconds)
+     */
+    public static void set(final PVAStructure value, final Instant time)
+    {
+        final PVAStructure ts = value.get("timeStamp");
+        if (ts == null)
+            throw new IllegalArgumentException("Cannot locate timeStamp in " + value);
+        // Assume a structure "timeStamp" starts with seconds, nano
+        PVALong secs = ts.get(1);
+        PVAInt nano = ts.get(2);
+        secs.set(time.getEpochSecond());
+        nano.set(time.getNano());
+    }
 }

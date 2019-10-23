@@ -39,6 +39,7 @@ public class PVAHeader
     public static final byte FLAG_CONTROL    = 1;
 
     /** Segmented message? Else: Single */
+    public static final byte FLAG_SEGMENT_MASK  = 3 << 4;
     public static final byte FLAG_FIRST      = 1 << 4;
     public static final byte FLAG_LAST       = 2 << 4;
     public static final byte FLAG_MIDDLE     = 3 << 4;
@@ -116,6 +117,9 @@ public class PVAHeader
     /** Sub command delete a request GET/PUT/MONITOR/RPC */
     public static final byte CMD_SUB_DESTROY = 0x10;
 
+    /** Sub command of PUT to first GET the current value */
+    public static final byte CMD_SUB_GET = 0x40;
+
 
     /** Control message command to set byte order */
     public static final byte CTRL_SET_BYTE_ORDER = 2;
@@ -160,7 +164,7 @@ public class PVAHeader
 
         final byte magic = buffer.get(0);
         if (magic != PVAHeader.PVA_MAGIC)
-            throw new Exception("Message lacks magic");
+            throw new Exception(String.format("Message lacks magic 0x%02X, got 0x%02X", PVAHeader.PVA_MAGIC, magic));
 
         final byte version = buffer.get(1);
         if (version < PVAHeader.REQUIRED_PVA_PROTOCOL_REVISION)

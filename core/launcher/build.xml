@@ -1,0 +1,20 @@
+<project default="core-launcher">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="core-launcher">
+    <mkdir dir="${classes}"/>
+    <javac srcdir="${src}" destdir="${classes}" debug="${debug}">
+      <classpath>
+        <pathelement path="../framework/${build}/core-framework-${version}.jar"/>
+        <pathelement path="../ui/${build}/core-ui-${version}.jar"/>
+        <fileset dir="${dependencies}/phoebus-target/target/lib">
+          <include name="*.jar"/>
+        </fileset>
+      </classpath>
+    </javac>
+    <jar destfile="${build}/core-launcher-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+</project>

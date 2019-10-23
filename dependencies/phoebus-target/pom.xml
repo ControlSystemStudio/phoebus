@@ -99,6 +99,12 @@
     </dependency>
 
     <dependency>
+      <groupId>org.epics</groupId>
+      <artifactId>vtype-json</artifactId>
+      <version>${vtype.version}</version>
+    </dependency>
+
+    <dependency>
       <groupId>com.sun.mail</groupId>
       <artifactId>javax.mail</artifactId>
       <version>1.6.1</version>
@@ -253,7 +259,12 @@
     <dependency>
       <groupId>org.elasticsearch.client</groupId>
       <artifactId>elasticsearch-rest-high-level-client</artifactId>
-      <version>6.3.1</version>
+      <version>6.4.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.elasticsearch.client</groupId>
+      <artifactId>elasticsearch-rest-client-sniffer</artifactId>
+      <version>6.4.2</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.jfxtras/jfxtras-controls -->
     <dependency>

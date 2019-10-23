@@ -13,8 +13,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import org.csstudio.apputil.formula.VariableNode;
-import org.epics.vtype.VEnum;
-import org.epics.vtype.VNumber;
 import org.epics.vtype.VType;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
@@ -54,23 +52,7 @@ class FormulaInput
     private void handleUpdate(final VType value)
     {
         logger.log(Level.FINE, () -> formula_pv.getName() + " updated by " + pv);
-        if (PV.isDisconnected(value))
-            variable.setValue(Double.NaN);
-        else if (value instanceof VNumber)
-        {
-            final VNumber cast = (VNumber) value;
-            variable.setValue(cast.getValue().doubleValue());
-        }
-        else if (value instanceof VEnum)
-        {
-            final VEnum cast = (VEnum) value;
-            variable.setValue(cast.getIndex());
-        }
-        else
-        {
-            logger.log(Level.WARNING, formula_pv.getName() + ": Cannot handle update of " + pv);
-            variable.setValue(Double.NaN);
-        }
+        variable.setValue(value);
         formula_pv.update();
     }
 

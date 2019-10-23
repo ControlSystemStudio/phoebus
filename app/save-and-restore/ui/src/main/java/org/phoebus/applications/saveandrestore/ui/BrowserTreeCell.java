@@ -18,7 +18,6 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-import com.google.common.base.Strings;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
@@ -92,7 +91,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
 			}
 			setContextMenu(snapshotContextMenu);
 			String comment = node.getProperty("comment");
-			if(!Strings.isNullOrEmpty(comment)){
+			if(comment != null && !comment.isEmpty()){
 				setTooltip(new Tooltip(comment));
 			}
 			setEditable(false);
@@ -101,7 +100,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
 			((Label) saveSetBox.lookup("#savesetLabel")).setText(node.getName());
 			setGraphic(saveSetBox);
 			String description = node.getProperty("description");
-			if(!Strings.isNullOrEmpty(description)) {
+			if(description != null && !description.isEmpty()) {
 				setTooltip(new Tooltip(description));
 			}
 			setContextMenu(saveSetContextMenu);

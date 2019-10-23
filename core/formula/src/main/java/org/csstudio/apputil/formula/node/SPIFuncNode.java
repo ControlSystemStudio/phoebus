@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,57 +7,58 @@
  ******************************************************************************/
 package org.csstudio.apputil.formula.node;
 
-import java.lang.reflect.Method;
+import static org.csstudio.apputil.formula.Formula.logger;
+
+import java.util.logging.Level;
 
 import org.csstudio.apputil.formula.Node;
+import org.csstudio.apputil.formula.spi.FormulaFunction;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VType;
 
-/** Node for evaluating any of the java.lang.Math.* functions
- *  @author Xiaosong Geng
+/** Node for evaluating an SPI-provided function
  *  @author Kay Kasemir
  */
-public class MathFuncNode implements Node
+@SuppressWarnings("nls")
+public class SPIFuncNode implements Node
 {
-    final private String function;
+    final private FormulaFunction function;
     final private Node args[];
-    final private Method method;
 
-    /** Construct node for math function.
+    /** Construct node for SPI function.
      *
-     *  @param function One of the java.lang.Math.* method names
+     *  @param function {@link FormulaFunction}
      *  @param n Argument node
-     *  @throws Exception On error
      */
-    @SuppressWarnings("rawtypes")
-    public MathFuncNode(final String function, final Node args[]) throws Exception
+    public SPIFuncNode(final FormulaFunction function, final Node args[])
     {
         this.function = function;
         this.args = args;
-        Class argcls[] = new Class[args.length];
-        for (int i = 0; i < args.length; i++)
-            argcls[i] = double.class;
-        method = Math.class.getDeclaredMethod(function, argcls);
+        // Should be called with the correct number of arguments
+        if (args.length != function.getArgumentCount())
+            throw new IllegalStateException("Wrong number of arguments");
     }
 
     @Override
-    public double eval()
+    public VType eval()
     {
-        final Object arglist[] = new Object[args.length];
-        for (int i = 0; i < args.length; i++)
-        {
-            arglist[i] = Double.valueOf(args[i].eval());
-        }
+        // Evaluate all arguments
+        final VType arglist[] = new VType[args.length];
+        for (int i = 0; i < arglist.length; i++)
+            arglist[i] = args[i].eval();
 
         try
         {
-            Object result = method.invoke(null, arglist );
-            if (result instanceof Double)
-                return ((Double) result).doubleValue();
+            return function.compute(arglist);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Formula function error for " + this, ex);
+            return VDouble.of(Double.NaN, Alarm.disconnected(), Time.now(), Display.none());
         }
-        return 0.0;
     }
 
     /** {@inheritDoc} */
@@ -81,10 +82,9 @@ public class MathFuncNode implements Node
     }
 
     @Override
-    @SuppressWarnings("nls")
     public String toString()
     {
-        final StringBuffer b = new StringBuffer(function);
+        final StringBuffer b = new StringBuffer(function.getName());
         b.append("(");
         for (int i = 0; i < args.length; i++)
         {

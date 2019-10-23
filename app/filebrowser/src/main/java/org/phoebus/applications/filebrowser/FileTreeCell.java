@@ -1,6 +1,29 @@
 package org.phoebus.applications.filebrowser;
 
-import static org.phoebus.applications.filebrowser.FileBrowser.logger;
+import javafx.application.Platform;
+import javafx.collections.ObservableList;
+import javafx.scene.control.TreeCell;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.paint.Color;
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.spi.AppDescriptor;
+import org.phoebus.framework.util.ResourceParser;
+import org.phoebus.framework.workbench.FileHelper;
+import org.phoebus.ui.application.ApplicationLauncherService;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.PlatformInfo;
 
 import java.io.File;
 import java.net.URI;
@@ -11,29 +34,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.framework.spi.AppDescriptor;
-import org.phoebus.framework.util.ResourceParser;
-import org.phoebus.framework.workbench.FileHelper;
-import org.phoebus.ui.application.ApplicationLauncherService;
-import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
-import org.phoebus.ui.javafx.ImageCache;
-
-import javafx.application.Platform;
-import javafx.collections.ObservableList;
-import javafx.scene.control.TreeCell;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.paint.Color;
+import static org.phoebus.applications.filebrowser.FileBrowser.logger;
 
 @SuppressWarnings("nls")
 final class FileTreeCell extends TreeCell<File> {
@@ -42,7 +43,7 @@ final class FileTreeCell extends TreeCell<File> {
 
     private static final Border BORDER = new Border(new BorderStroke(Color.GREEN, BorderStrokeStyle.SOLID,
                                                     new CornerRadii(5.0), BorderStroke.THIN));
-
+    
     public FileTreeCell()
     {
         enableDragDrop();
@@ -71,7 +72,7 @@ final class FileTreeCell extends TreeCell<File> {
                 content.putFiles(files);
                 content.putString(files.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
 
-                final Dragboard db = startDragAndDrop(TransferMode.COPY_OR_MOVE);
+                final Dragboard db = startDragAndDrop(getTransferMode(event));
                 db.setContent(content);
             }
             event.consume();
@@ -99,16 +100,18 @@ final class FileTreeCell extends TreeCell<File> {
         });
 
         // Indicate if file may be dropped
+        // File(s) may not be dropped if drag board contains the drop target (see Github issue #836)
         setOnDragOver(event ->
         {
             final File file = getItem();
-            if (file != null  &&   event.getDragboard().hasFiles())
+            if (file != null && event.getDragboard().hasFiles() && !event.getDragboard().getFiles().contains(file))
             {
-                event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+                event.acceptTransferModes(event.getTransferMode());
                 setBorder(BORDER);
             }
             event.consume();
         });
+
         setOnDragExited(event ->
         {
             setBorder(null);
@@ -119,18 +122,18 @@ final class FileTreeCell extends TreeCell<File> {
         setOnDragDropped(event ->
         {
             TreeItem<File> target_item = getTreeItem();
-            if (target_item.getValue() != null  && !target_item.getValue().isDirectory())
+
+            if (target_item.getValue() != null && !target_item.getValue().isDirectory())
                 target_item = target_item.getParent();
-            if (target_item.getValue() != null)
-            {
+            if (target_item.getValue() != null) {
                 final Dragboard db = event.getDragboard();
                 if (db.hasFiles())
-                    for (File file : db.getFiles())
-                    {
+                    for (File file : db.getFiles()) {
                         logger.log(Level.FINE, "Dropped " + file + " onto " + target_item.getValue() + " via " + event.getTransferMode());
-                        move_or_copy(file, target_item, event.getTransferMode() == TransferMode.MOVE);
+                        move_or_copy(file, target_item, event.getTransferMode());
                     }
             }
+
             event.setDropCompleted(true);
             event.consume();
         });
@@ -139,7 +142,7 @@ final class FileTreeCell extends TreeCell<File> {
     /** @param file File to move or copy
      *  @param target_item Destination directory's tree item
      */
-    private void move_or_copy(final File file, final TreeItem<File> target_item, final boolean do_move)
+    private void move_or_copy(final File file, final TreeItem<File> target_item, final TransferMode transferMode)
     {
         final File dir = target_item.getValue();
         // Ignore NOP move
@@ -154,7 +157,7 @@ final class FileTreeCell extends TreeCell<File> {
             final DirectoryMonitor mon = ((FileTreeItem)target_item).getMonitor();
             try
             {
-                if (do_move)
+                if (transferMode.equals(TransferMode.MOVE))
                     FileHelper.move(file, dir);
                 else
                     FileHelper.copy(file, dir);
@@ -214,5 +217,22 @@ final class FileTreeCell extends TreeCell<File> {
         final ImageView icon = ImageCache.getImageView(icon_url);
         if (icon != null)
             Platform.runLater(() -> setGraphic(icon));
+    }
+
+    /**
+     * Determines the {@link TransferMode} based on the state of the modifier key.
+     * This method must consider the
+     * operating system as the identity of the modifier key varies (alt/option on Mac OS, ctrl on the rest).
+     * @param event The mouse event containing information on key press.
+     * @return {@link TransferMode#COPY} if modifier key is pressed, otherwise {@link TransferMode#MOVE}.
+     */
+    private TransferMode getTransferMode(MouseEvent event){
+        if(event.isControlDown() && (PlatformInfo.is_linux || PlatformInfo.isWindows || PlatformInfo.isUnix)){
+            return TransferMode.COPY;
+        }
+        else if(event.isAltDown() && PlatformInfo.is_mac_os_x){
+            return TransferMode.COPY;
+        }
+        return TransferMode.MOVE;
     }
 }

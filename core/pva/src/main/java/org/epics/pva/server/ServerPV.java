@@ -9,6 +9,7 @@ package org.epics.pva.server;
 
 import static org.epics.pva.PVASettings.logger;
 
+import java.util.BitSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentHashMap.KeySetView;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,9 +37,19 @@ public class ServerPV
     /** Service implementation when accessing a data PV as an RPC service */
     private static final RPCService DEFAULT_RPC_SERVICE = request -> NO_SERVICE_VALUE;
 
+    /** {@link WriteEventHandler} for read-only PVs */
+    static final WriteEventHandler READONLY_WRITE_HANDLER = (pv, changes, data) ->
+    {
+        throw new Exception("PV " + pv.getName() + " is read-only");
+    };
+
+    /** Generator of PV server IDs */
     private static final AtomicInteger IDs = new AtomicInteger();
 
+    /** Name of this PV */
     private final String name;
+
+    /** Server ID of this PV */
     private final int sid;
 
     /** Current value
@@ -47,21 +58,27 @@ public class ServerPV
      */
     private final PVAStructure data;
 
+    /** Handler for RPC invocations. May be DEFAULT_RPC_SERVICE */
     private final RPCService rpc;
+
+    /** Handler for write access. May be READONLY_WRITE_HANDLER */
+    private final WriteEventHandler write_handler;
 
     /** All the 'monitor' subscriptions to this PV */
     private final KeySetView<MonitorSubscription, Boolean> subscriptions = ConcurrentHashMap.newKeySet();
 
-    /** Create PV for serving data
+    /** Create a PV for serving data
      *  @param name PV name
      *  @param data Initial value
+     *  @param write_handler Event handler for write access, or READONLY_WRITE_HANDLER
      */
-    ServerPV(final String name, final PVAStructure data)
+    ServerPV(final String name, final PVAStructure data, final WriteEventHandler write_handler)
     {
         this.name = name;
         this.sid = IDs.incrementAndGet();
         this.data = data.cloneData();
         rpc = DEFAULT_RPC_SERVICE;
+        this.write_handler = write_handler;
     }
 
     /** Create PV for handling RPC calls
@@ -74,8 +91,17 @@ public class ServerPV
         this.sid = IDs.incrementAndGet();
         this.data = RPC_SERVICE_VALUE;
         this.rpc = rpc;
+        write_handler = READONLY_WRITE_HANDLER;
     }
 
+
+    /** @return Channel name */
+    public String getName()
+    {
+        return name;
+    }
+
+    /** @return Channel's service ID */
     public int getSID()
     {
         return sid;
@@ -125,7 +151,7 @@ public class ServerPV
             subscription.update(new_data);
     }
 
-    /** Get current value
+    /** Get current value (thread-safe copy)
      *  @return PV's current data
      */
     PVAStructure getData()
@@ -136,7 +162,22 @@ public class ServerPV
         }
     }
 
-    /** Incoke RPC service
+    boolean isWritable()
+    {
+        return write_handler != READONLY_WRITE_HANDLER;
+    }
+
+    /** Notification that a client wrote to the PV
+     *  @param changes Elements that the client tried to change
+     *  @param written_data Data written by the client
+     *  @throws Exception on error
+     */
+    void wrote(final BitSet changes, final PVAStructure written_data) throws Exception
+    {
+        write_handler.handleWrite(this, changes, written_data);
+    }
+
+    /** Invoke RPC service
      *  @param parameters RPC parameters
      *  @return RPC result
      *  @throws Exception on error, for example invalid parameters

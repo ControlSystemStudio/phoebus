@@ -53,15 +53,23 @@ public class ImageDecoder
     {
         // Get dimensions
         final PVAStructureArray dim = struct.get("dimension");
-        if (dim == null || dim.get().length < 2)
-            throw new Exception("Need at least 2 dimensions, got " + dim);
-        // Fetching by field name in case structure changes
-        final int n_dims = dim.get().length;
-        int dimensions[] = new int[n_dims];
-        for (int i = 0; i < n_dims; ++i)
-        {
-            final PVAInt size = dim.get()[i].get("size");
-            dimensions[i] = size.get();
+        if (dim == null)
+            throw new Exception("Missing 'dimension'");
+
+        // The 'dimension' field must be present, but may be empty,
+        // for example in never-processed area detector image
+        final int dimensions[];
+        if (dim.get().length < 2)
+            dimensions = new int[] { 0, 0 };
+        else
+        {   // Fetching by field name in case structure changes
+            final int n_dims = dim.get().length;
+            dimensions = new int[n_dims];
+            for (int i = 0; i < n_dims; ++i)
+            {
+                final PVAInt size = dim.get()[i].get("size");
+                dimensions[i] = size.get();
+            }
         }
 
         final PVAUnion value_field = struct.get("value");
@@ -184,8 +192,13 @@ public class ImageDecoder
             data = ArrayDouble.of(values.get());
             data_type = VImageDataType.pvDouble;
         }
+        else if (value == null)
+        {
+            data = ArrayByte.of();
+            data_type = VImageDataType.pvUByte;
+        }
         else
-            throw new Exception("Cannot decode NTNDArray type of value " + value);
+            throw new Exception("Cannot decode NTNDArray type of value " + value + ", sized " + width + " x " + height);
 
         final Alarm alarm = Decoders.decodeAlarm(struct);
         final Time time = Decoders.decodeTime(struct);

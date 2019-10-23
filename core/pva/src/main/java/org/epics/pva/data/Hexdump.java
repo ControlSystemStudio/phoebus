@@ -143,7 +143,6 @@ public class Hexdump
                 }
             }
         }
-        buffer.rewind();
     }
 
     /** @param bytes Any bytes

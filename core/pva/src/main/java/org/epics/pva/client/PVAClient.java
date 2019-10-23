@@ -200,11 +200,28 @@ public class PVAClient
 
         // Reply for specific channel
         final PVAChannel channel = search.unregister(channel_id);
-        // Late reply, we already deleted that channel
+        // Late reply for search that was already satisfied?
         if (channel == null)
+        {
+            // Since searches are sent out multiple times until there's a response,
+            // and searches are forwarded via multicast,
+            // so it's common to receive multiple replies for the same channel
+            // from the same server.
+            // Check GUID for unexpected reply from another(!) server.
+            final PVAChannel check = channels_by_id.get(channel_id);
+            if (check == null)
+                logger.log(Level.WARNING, "Received search reply for unknown channel ID " + channel_id + " from " + server + " " + guid);
+            else
+            {
+                final ClientTCPHandler tcp = check.tcp.get();
+                // Warn about duplicate PVs on network
+                if (tcp != null  &&  !tcp.getGuid().equals(guid))
+                    logger.log(Level.WARNING, "More than one channel with name '" + check.getName() + "' detected, connected to " + tcp.getRemoteAddress() + " " + tcp.getGuid() + ", ignored " + server + " " + guid);
+            }
             return;
+        }
         channel.setState(ClientChannelState.FOUND);
-        logger.log(Level.FINE, () -> "Reply for " + channel + " from " + server);
+        logger.log(Level.FINE, () -> "Reply for " + channel + " from " + server + " " + guid);
 
         final ClientTCPHandler tcp = tcp_handlers.computeIfAbsent(server, addr ->
         {

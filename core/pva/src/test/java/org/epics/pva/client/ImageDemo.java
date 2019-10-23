@@ -8,9 +8,12 @@
 package org.epics.pva.client;
 
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import org.epics.pva.PVASettings;
+import org.epics.pva.data.PVAByteArray;
 import org.epics.pva.data.PVAShortArray;
 import org.epics.pva.data.PVAUnion;
 import org.junit.Test;
@@ -20,11 +23,25 @@ import org.junit.Test;
  *
  *  Run ./ntndarrayServerMain IMAGE
  *
+ *
+ *  Can also be used with Area Detector 'sim':
+ *  In areaDetector/ADCore/iocBoot/commonPlugins.cmd, load the 'NDPluginPva' plugin
+ *
+ *  cd areaDetector/ADSimDetector/iocs/simDetectorIOC/iocBoot/iocSimDetector
+ *  ../../bin/linux-x86_64/simDetectorApp st.cmd
+ *
+ *  caput 13SIM1:cam1:Acquire 1
+ *  caput 13SIM1:image1:EnableCallbacks 1
+ *  caput 13SIM1:Pva1:EnableCallbacks 1
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class ImageDemo
 {
+    // "IMAGE" for ntndarrayServer, "13SIM1:Pva1:Image" for Area Detector
+    private static final String PV_NAME = "IMAGE"; // "13SIM1:Pva1:Image";
+
     static
     {
         try
@@ -35,6 +52,8 @@ public class ImageDemo
         {
             ex.printStackTrace();
         }
+        final Logger root = Logger.getLogger("");
+        root.setLevel(Level.INFO);
     }
 
     @Test
@@ -45,18 +64,28 @@ public class ImageDemo
 
         // Connect
         final ClientChannelListener channel_listener = (channel, state) -> System.out.println(channel);
-        final PVAChannel ch = pva.getChannel("IMAGE", channel_listener);
-        while (ch.getState() != ClientChannelState.CONNECTED)
-            TimeUnit.MILLISECONDS.sleep(100);
+        final PVAChannel ch = pva.getChannel(PV_NAME, channel_listener);
+        ch.connect().get(5, TimeUnit.SECONDS);
 
-        System.out.println(ch.read("").get());
+        // Read value, show type (value could be too large)
+        System.out.println(ch.read("").get().formatType());
 
         // Monitor updates
         final MonitorListener monitor_listener = (channel, changed, overruns, data) ->
         {
             final PVAUnion value = data.get("value");
-            final PVAShortArray array = value.get();
-            System.out.println("value: " + array.get().length + " elements");
+            if (value.get() == null)
+                System.out.println("value: nothing");
+            else if (value.get() instanceof PVAShortArray)
+            {
+                final PVAShortArray array = value.get();
+                System.out.println("value: " + array.get().length + " short elements");
+            }
+            else if (value.get() instanceof PVAByteArray)
+            {
+                final PVAByteArray array = value.get();
+                System.out.println("value: " + array.get().length + " byte elements");
+            }
         };
         final AutoCloseable subscription = ch.subscribe("value, dimension, timeStamp", monitor_listener);
         TimeUnit.SECONDS.sleep(3000);

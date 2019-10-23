@@ -186,8 +186,8 @@ You can track the log cleaner runs via
 Start Alarm Server
 ------------------
 
-Run the alarm server service.
-For the "Accelerator" configuration on localhost, simply start it.
+You need to run one alarm server for each configuration.
+For the "Accelerator" configuration on localhost, simply start the alarm server service.
 Otherwise run `-help` to see options for selecting another configuration.
 
 In the alarm server console you can view the configuration
@@ -203,6 +203,10 @@ User Interface
 Open the Alarm Tree to show and edit the configuration.
 
 Open Alarm Table as the primary runtime user interface to see and acknowledge active alarms.
+
+Based on preference settings, the alarm user interface can be configured to
+always look at just one alarm configuration, for example "Accelerator",
+or it can be configured to select between several alarm confirgurations at runtime.
 
 
 Message Formats

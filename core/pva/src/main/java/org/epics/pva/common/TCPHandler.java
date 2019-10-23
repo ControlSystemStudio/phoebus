@@ -66,6 +66,12 @@ abstract public class TCPHandler
     /** Buffer used to receive data via {@link TCPHandler#receive_thread} */
     protected ByteBuffer receive_buffer = ByteBuffer.allocate(PVASettings.EPICS_PVA_RECEIVE_BUFFER_SIZE);
 
+    /** Buffer for assembling parts of segmented message
+     *
+     *  <p>Created and then grown as needed
+     */
+    private ByteBuffer segments = null;
+
     /** Buffer used to send data via {@link TCPHandler#send_thread} */
     protected final ByteBuffer send_buffer = ByteBuffer.allocate(PVASettings.EPICS_PVA_SEND_BUFFER_SIZE);
 
@@ -254,7 +260,7 @@ abstract public class TCPHandler
                 int message_size = PVAHeader.checkMessageAndGetSize(receive_buffer, client_mode);
                 while (receive_buffer.position() < message_size)
                 {
-                    checkReceiveBufferSize(message_size);
+                    receive_buffer = assertBufferSize(receive_buffer, message_size);
                     final int read = socket.read(receive_buffer);
                     if (read < 0)
                     {
@@ -312,25 +318,30 @@ abstract public class TCPHandler
         // NOP
     }
 
-    /** Check receive buffer size, grow if needed
+    /** Check buffer size, grow if needed
+     *
+     *  <p>When necessary, a new buffer is allocated,
+     *  existing data copied.
+     *
+     *  @param buffer Original buffer
      *  @param message_size Required receive buffer size
+     *  @return Original buffer, or larger buffer with copied data
      */
-    private void checkReceiveBufferSize(final int message_size)
+    private ByteBuffer assertBufferSize(final ByteBuffer buffer, final int size)
     {
-        if (receive_buffer.capacity() >= message_size)
-            return;
+        if (buffer.capacity() >= size)
+            return buffer;
 
-        final ByteBuffer new_buffer = ByteBuffer.allocate(message_size);
-        new_buffer.order(receive_buffer.order());
-        receive_buffer.flip();
-        new_buffer.put(receive_buffer);
+        final ByteBuffer new_buffer = ByteBuffer.allocate(size);
+        new_buffer.order(buffer.order());
+        buffer.flip();
+        new_buffer.put(buffer);
 
         logger.log(Level.INFO,
-                   Thread.currentThread().getName() + " extends receive buffer from " +
-                   receive_buffer.capacity() + " to " + new_buffer.capacity() +
+                   Thread.currentThread().getName() + " extends buffer from " +
+                   buffer.capacity() + " to " + new_buffer.capacity() +
                    ", copied " + new_buffer.position() + " bytes to new buffer");
-
-        receive_buffer = new_buffer;
+        return new_buffer;
     }
 
     /** Handle a received message
@@ -342,16 +353,115 @@ abstract public class TCPHandler
      *  @param buffer Buffer positioned at start of header
      *  @throws Exception on error
      */
-    protected void handleMessage(final ByteBuffer buffer) throws Exception
+    private void handleMessage(final ByteBuffer buffer) throws Exception
     {
-        final boolean control = (buffer.get(2) & PVAHeader.FLAG_CONTROL) != 0;
-        final byte command = buffer.get(3);
-        // Move to start of potential payload
-        buffer.position(8);
-        if (control)
-            handleControlMessage(command, buffer);
+        final byte flags = buffer.get(2);
+        final byte segemented = (byte) (flags & PVAHeader.FLAG_SEGMENT_MASK);
+        if (segemented != 0)
+            handleSegmentedMessage(segemented, buffer);
         else
-            handleApplicationMessage(command, buffer);
+        {
+            final boolean control = (flags & PVAHeader.FLAG_CONTROL) != 0;
+            final byte command = buffer.get(3);
+            // Move to start of potential payload
+            buffer.position(8);
+            if (control)
+                handleControlMessage(command, buffer);
+            else
+                handleApplicationMessage(command, buffer);
+        }
+    }
+
+    /** Handle a segmented message
+     *
+     *  <p>Assembles parts of a segmented message,
+     *  then handles it when last part has been received.
+     *
+     *  @param segmented {@link PVAHeader#FLAG_SEGMENT_MASK} bits of the message
+     *  @param buffer Buffer set to one part of a segmented message
+     *  @throws Exception on error
+     */
+    private void handleSegmentedMessage(final byte segmented, final ByteBuffer buffer) throws Exception
+    {
+        // This implementation does copy data from the original receive buffer
+        // into the 'segmented' buffer where they are combined.
+        // Original Java implementation also copied received bytes,
+        // albeit within the same socketBuffer.
+        if (segmented == PVAHeader.FLAG_FIRST)
+        {
+            if (segments == null)
+            {
+                logger.log(Level.INFO,
+                           () -> Thread.currentThread().getName() + " allocates segmented message accumulator buffer for " + buffer.limit() + " bytes");
+                segments = ByteBuffer.allocate(buffer.limit());
+                segments.order(buffer.order());
+            }
+            else if (segments.position() > 0)
+                throw new Exception("Received new first message segment while still handling previous one");
+
+            segments = assertBufferSize(segments, buffer.limit());
+            segments.put(buffer);
+            // Clear the 'segmented' flags in the accumulator buffer
+            segments.put(2, (byte) (buffer.get(2) & 0b11001111));
+
+            if (logger.isLoggable(Level.FINER))
+            {
+                final int pos = segments.position();
+                segments.flip();
+                logger.log(Level.FINER, "First message segment:\n" + Hexdump.toHexdump(segments));
+                segments.position(pos);
+            }
+        }
+        else
+        {
+            final boolean last = segmented == PVAHeader.FLAG_LAST;
+
+            if (segments == null  ||  segments.position() <= 0)
+                throw new Exception("Received " + (last ? "last" : "middle") + " message segment without first segment");
+            // Check if command matches the one in first segment
+            final byte seg_command = segments.get(3);
+            if (seg_command != buffer.get(3))
+                throw new Exception(String.format("Received " + (last ? "last" : "middle") +
+                                                  " message segment for command 0x%02X after first segment for command 0x%02X",
+                                                  buffer.get(3), seg_command));
+
+            // Size of segments accumulated so far..
+            final int seg_size = segments.getInt(PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE);
+            // Payload of segment to add
+            final int payload = buffer.getInt(PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE);
+            final int total = seg_size + payload;
+            segments = assertBufferSize(segments, PVAHeader.HEADER_SIZE + total);
+            // Skip header, add payload to segments
+            buffer.position(PVAHeader.HEADER_SIZE);
+            segments.put(buffer);
+            // Update total size
+            segments.putInt(PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE, total);
+
+            if (logger.isLoggable(Level.FINER))
+            {
+                final int pos = segments.position();
+                segments.flip();
+                logger.log(Level.FINER, (last ? "Last" : "Middle") + " message segment:\n" + Hexdump.toHexdump(segments));
+                segments.position(pos);
+            }
+
+            if (last)
+            {
+                try
+                {   // Handle the merged message
+                    segments.flip();
+                    handleMessage(segments);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Error handling assembled segmented message", ex);
+                }
+                finally
+                {   // Reset segments buffer to allow starting with another 'first' message
+                    segments.clear();
+                }
+            }
+        }
     }
 
     /** Handle a received control message

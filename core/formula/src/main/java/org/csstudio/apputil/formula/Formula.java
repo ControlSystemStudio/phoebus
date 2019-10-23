@@ -8,7 +8,13 @@
 package org.csstudio.apputil.formula;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.csstudio.apputil.formula.node.AddNode;
 import org.csstudio.apputil.formula.node.AndNode;
@@ -20,7 +26,6 @@ import org.csstudio.apputil.formula.node.GreaterThanNode;
 import org.csstudio.apputil.formula.node.IfNode;
 import org.csstudio.apputil.formula.node.LessEqualNode;
 import org.csstudio.apputil.formula.node.LessThanNode;
-import org.csstudio.apputil.formula.node.MathFuncNode;
 import org.csstudio.apputil.formula.node.MaxNode;
 import org.csstudio.apputil.formula.node.MinNode;
 import org.csstudio.apputil.formula.node.MulNode;
@@ -29,32 +34,49 @@ import org.csstudio.apputil.formula.node.NotNode;
 import org.csstudio.apputil.formula.node.OrNode;
 import org.csstudio.apputil.formula.node.PwrNode;
 import org.csstudio.apputil.formula.node.RndNode;
+import org.csstudio.apputil.formula.node.SPIFuncNode;
 import org.csstudio.apputil.formula.node.SubNode;
+import org.csstudio.apputil.formula.spi.FormulaFunction;
+import org.epics.vtype.VType;
 
 /** A formula interpreter.
- *  <p>
- *  While I found some on the Internet,
- *  I didn't see an open one that included the if-then-else
- *  operation nor one that I understood within 15 minutes
- *  so that I could add that operation.
- *  <p>
- *  Supported, in descending order of precedence:
+ *
+ *  <p>Supported, in descending order of precedence:
  *  <ul>
- *  <li>Numeric constant 3.14, -47; named variables
- *  <li> (sub-formula in braces), sqrt(x), ln(x), exp(x),
+ *  <li>Numeric constant 3.14, -47; "Text Constants"; named variables
+ *  <li>(sub-formula in braces), sqrt(x), ln(x), exp(x),
  *       min(a, b, ...), max(a, b, ...).
  *  <li>*, /, ^
  *  <li>+, -
  *  <li>comparisons <, >, >=, <=, ==, !=
  *  <li>boolean logic !, &, |,  .. ? .. : ..
  *  </ul>
- *  <p>
- *  The formula string is parsed into a tree, so that subsequent
+ *
+ *
+ *  <p>The parser operates in three different modes:
+ *
+ *  <ul>
+ *  <li><code>new Formula("2+6")</code> parses a formula without variables.
+ *      The parsed expression may only contain constants.
+ *      If the parsed expression contained a variable,
+ *      the parser throws an exception.
+ *  <li><code>new Formula("2+A+B", new VariableNode("A", 1.0), new VariableNode("B", 2.0))</code> parses a formula with predefined variables.
+ *      The parsed expression may contain the provided variables.
+ *      If the parsed expression contained an unknown variable,
+ *      the parser throws an exception.
+ *      Before evaluating the expression, the values of the variables may be changed.
+ *  <li><code>new Formula("2+A+B", true)</code> parses a formula with arbitrary variables.
+ *      The parser automatically creates variables as they are encountered in the expression.
+ *      Before evaluating the formula,
+ *      caller needs to query the formula for its automatically determined variables
+ *      and set their values.
+ *  </ul>
+ *
+ *  <p>The formula string is parsed into a tree, so that subsequent
  *  evaluations, possibly with modified values for input variables,
  *  are reasonably fast.
- *  <p>
- *  See FormulaDialog in org.csstudio.apputil.ui plugin.
- *  That plugin also contains a class diagram.
+ *
+ *  <p>Functions can be provided via the {@link FormulaFunction} SPI.
  *
  *  @author Kay Kasemir
  *  @author Xiaosong Geng
@@ -62,49 +84,32 @@ import org.csstudio.apputil.formula.node.SubNode;
 @SuppressWarnings("nls")
 public class Formula implements Node
 {
+    /** Logger for formula messages */
+    public static final Logger logger = Logger.getLogger(Formula.class.getPackageName());
+
     /** The original formula that we parsed */
     final private String formula;
 
     final private Node tree;
 
-    final private static VariableNode constants[] = new VariableNode[]
+    private static final VariableNode constants[] = new VariableNode[]
     {
         new VariableNode("E", Math.E),
         new VariableNode("PI", Math.PI)
     };
 
-    /** Names of functions that take one argument. */
-    final private static String one_arg_funcs[] = new String[]
-    {
-        "abs",
-        "acos",
-        "asin",
-        "atan",
-        "ceil",
-        "cos",
-        "cosh",
-        "exp",
-        "expm1",
-        "floor",
-        "log",
-        "log10",
-        "round",
-        "sin",
-        "sinh",
-        "sqrt",
-        "tan",
-        "tanh",
-        "toDegrees",
-        "toRadians"
-    };
+    /** SPI-provided functions mapped by name */
+    private static final Map<String, FormulaFunction> spi_functions = new HashMap<>();
 
-    /** Names of functions that take two arguments, */
-    final private static String two_arg_funcs[] = new String[]
+    static
     {
-        "atan2",
-        "hypot",
-        "pow"
-    };
+        // Locate SPI-provided functions
+        for (FormulaFunction func : ServiceLoader.load(FormulaFunction.class))
+        {
+            logger.log(Level.FINE, () -> "SPI FormulaFunction '" + func.getName() + "', " + func.getArgumentCount() + " arguments");
+            spi_functions.put(func.getName(), func);
+        }
+    }
 
     /** Determine variables from formula? */
     final private boolean determine_variables;
@@ -127,7 +132,7 @@ public class Formula implements Node
      *  @throws Exception on parse error
      */
     public Formula(final String formula,
-            final VariableNode[] variables)  throws Exception
+                   final VariableNode[] variables)  throws Exception
     {
         this.formula = formula;
         if (variables == null)
@@ -171,7 +176,7 @@ public class Formula implements Node
 
     /** {@inheritDoc} */
     @Override
-    public double eval()
+    public VType eval()
     {
         return tree.eval();
     }
@@ -214,11 +219,11 @@ public class Formula implements Node
         else if (s.get() == '\''  ||  s.get() == '`')
         {   // 'VariableName' or `VariableName`
             final char match = s.get();
-            s.next();
+            s.next(false);
             while (!s.isDone()  &&   s.get() != match)
             {
                 buf.append(s.get());
-                s.next();
+                s.next(false);
             }
             if (s.isDone())
                 throw new Exception("Unexpected end of quoted variable name.");
@@ -226,6 +231,25 @@ public class Formula implements Node
             s.next();
             final String name = buf.toString();
             result = findVariable(name);
+        }
+        else if (s.get() == '"')
+        {
+            // "Text Constant"
+            char last = s.get();
+            s.next(false);
+            // Copy until next un-escaped '"'
+            while (!s.isDone()  &&   (s.get() != '"'  || last == '\\'))
+            {
+                last = s.get();
+                if (last != '\\')
+                    buf.append(last);
+                s.next(false);
+            }
+            if (s.isDone())
+                throw new Exception("Unexpected end of quoted string");
+            // Skip final quote
+            s.next();
+            return new ConstantNode(buf.toString());
         }
         else
         {   // Digits?
@@ -285,22 +309,17 @@ public class Formula implements Node
     private Node findFunction(final Scanner s, final String name) throws Exception
     {
         final Node [] args = parseArgExpressions(s);
-        // Check functions with one arg
-        for (int i=0; i<one_arg_funcs.length; ++i)
-            if (name.equalsIgnoreCase(one_arg_funcs[i]))
-            {
-                if (args.length != 1)
-                    throw new Exception("Expected 1 arg, got " + args.length);
-                return new MathFuncNode(name, args);
-            }
-        // ... two args...
-        for (int i=0; i<two_arg_funcs.length; ++i)
-            if (name.equalsIgnoreCase(two_arg_funcs[i]))
-            {
-                if (args.length != 2)
-                    throw new Exception("Expected 2 arg, got " + args.length);
-                return new MathFuncNode(name, args);
-            }
+
+        // Check SPI-provided functions.
+        // Handled first so SPI could replace built-in functions
+        final FormulaFunction function = spi_functions.get(name);
+        if (function != null)
+        {
+            if (args.length != function.getArgumentCount())
+                throw new Exception("Function '" + function.getName() + "' takes " +
+                                    function.getArgumentCount() + " arguments but received " + Arrays.toString(args));
+            return new SPIFuncNode(function, args);
+        }
         // ... oddballs
         if (name.equalsIgnoreCase("rnd"))
         {
