@@ -3,6 +3,7 @@ package org.phoebus.applications.probe.view;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,7 +30,6 @@ import io.reactivex.disposables.Disposable;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
@@ -37,7 +37,6 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.paint.Color;
@@ -87,7 +86,7 @@ public class ProbeController {
             txtValue.setStyle("");
             // Restore current value
             // (which might soon be replaced by update from PV if we're writing)
-            update(pv.read());
+            setValue(pv.read());
         }
     }
 
@@ -158,10 +157,9 @@ public class ProbeController {
             ContextMenuHelper.addSupportedEntries(txtPVName, menu);
             menu.show(txtPVName.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
-        
-        txtPVName.setOnDragOver((EventHandler<? super DragEvent>) new EventHandler <DragEvent>() {
-            public void handle(DragEvent event) {
-                /* accept it only if it is  not dragged from the same node 
+
+        txtPVName.setOnDragOver(event -> {
+                /* accept it only if it is  not dragged from the same node
                  * and if it has a string data */
                 if (event.getGestureSource() != txtPVName &&
                         event.getDragboard().hasString()) {
@@ -169,11 +167,9 @@ public class ProbeController {
                     event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
                 }
                 event.consume();
-            }
         });
-        
-        txtPVName.setOnDragDropped(new EventHandler <DragEvent>() {
-            public void handle(DragEvent event) {
+
+        txtPVName.setOnDragDropped(event -> {
                 /* data dropped */
                 /* if there is a string data on dragboard, read it and use it */
                 Dragboard db = event.getDragboard();
@@ -182,13 +178,12 @@ public class ProbeController {
                     setPVName(db.getString());
                     success = true;
                 }
-                /* let the source know whether the string was successfully 
+                /* let the source know whether the string was successfully
                  * transferred and used */
                 event.setDropCompleted(success);
-                
+
                 event.consume();
                 txtPVName.requestFocus();
-            }
         });
     }
 
@@ -196,11 +191,6 @@ public class ProbeController {
     private Disposable pv_flow, permission_flow;
     /** Most recent value, used to update formatting */
     private VType last_value = null;
-
-    private void update(final VType value)
-    {
-        Platform.runLater(() -> setValue(value));
-    }
 
     private void updateWritable(final Boolean writable)
     {
@@ -243,7 +233,7 @@ public class ProbeController {
             pv = PVPool.getPV(txtPVName.getText());
             pv_flow = pv.onValueEvent()
                         .throttleLatest(10, TimeUnit.MILLISECONDS)
-                        .subscribe(this::update);
+                        .subscribe(this::setValue);
             permission_flow = pv.onAccessRightsEvent()
                     .throttleLatest(10, TimeUnit.MILLISECONDS)
                     .subscribe(this::updateWritable);
@@ -254,16 +244,50 @@ public class ProbeController {
         }
     }
 
-    private void setValue(final VType value) {
+    /** Value with 'text' already computed */
+    private class FormattedValue
+    {
+        final VType value;
+        final String text;
+
+        FormattedValue(final VType value)
+        {
+            this.value = value;
+            this.text = FormatOptionHandler.format(value, format.getValue(), precision.getValue(), true);
+        }
+    }
+
+    /** Formatted value to show
+     *
+     *  Set in thread that receives the data.
+     *  Used to throttle calls to UI.
+     */
+    private final AtomicReference<FormattedValue> update_value = new AtomicReference<>();
+
+    private void setValue(final VType value)
+    {
         if (editing)
             return;
 
         last_value = value;
+        // If the 'update_value' was null, schedule a UI update.
+        // Otherwise, a UI update is already scheduled,
+        // in which case we replaced the update_value with a latest data.
+        // Once the UI update actually runs, it will use the latest data.
+        if (update_value.getAndSet(new FormattedValue(value)) == null)
+            Platform.runLater(() -> updateValueUI());
+    }
 
-        txtValue.setText(FormatOptionHandler.format(value, format.getValue(), precision.getValue(), true));
-        setTime(Time.timeOf(value));
-        setAlarm(Alarm.alarmOf(value, value != null));
-        setMetadata(value);
+    private void updateValueUI()
+    {
+        final FormattedValue fmt = update_value.getAndSet(null);
+        if (fmt.text.length() > 100)
+            txtValue.setText(fmt.text.substring(0, 100) + "...");
+        else
+            txtValue.setText(fmt.text);
+        setTime(Time.timeOf(fmt.value));
+        setAlarm(Alarm.alarmOf(fmt.value, fmt.value != null));
+        setMetadata(fmt.value);
     }
 
     private void setTime(final Time time) {
