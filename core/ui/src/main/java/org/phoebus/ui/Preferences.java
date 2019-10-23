@@ -43,5 +43,10 @@ public class Preferences
         ui_monitor_period = prefs.getInt("ui_monitor_period");
         hide_spi_menu = prefs.get("hide_spi_menu").split("\\s*,\\s*");
         status_show_user = prefs.getBoolean("status_show_user");
+
+        // In case PVA library is included, sync its array formatting
+        // (PVASettings cannot use Preferences.max_array_formatting
+        //  since the PVA library may be used standalone)
+        System.setProperty("EPICS_PVA_MAX_ARRAY_FORMATTING", Integer.toString(max_array_formatting));
     }
 }
