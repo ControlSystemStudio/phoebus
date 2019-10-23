@@ -77,6 +77,9 @@ public class PVASettings
      */
     public static int EPICS_CA_CONN_TMO = 30;
 
+    /** Maximum number of array elements shown when printing data */
+    public static int EPICS_PVA_MAX_ARRAY_FORMATTING = 256;
+
     static
     {
         EPICS_PVA_ADDR_LIST = set("EPICS_PVA_ADDR_LIST", EPICS_PVA_ADDR_LIST);
@@ -84,6 +87,7 @@ public class PVASettings
         EPICS_PVA_SERVER_PORT = set("EPICS_PVA_SERVER_PORT", EPICS_PVA_SERVER_PORT);
         EPICS_PVA_BROADCAST_PORT = set("EPICS_PVA_BROADCAST_PORT", EPICS_PVA_BROADCAST_PORT);
         EPICS_CA_CONN_TMO = set("EPICS_CA_CONN_TMO", EPICS_CA_CONN_TMO);
+        EPICS_PVA_MAX_ARRAY_FORMATTING = set("EPICS_PVA_MAX_ARRAY_FORMATTING", EPICS_PVA_MAX_ARRAY_FORMATTING);
         EPICS_PVA_SEND_BUFFER_SIZE = set("EPICS_PVA_SEND_BUFFER_SIZE", EPICS_PVA_SEND_BUFFER_SIZE);
     }
 

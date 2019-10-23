@@ -13,6 +13,8 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Objects;
 
+import org.epics.pva.PVASettings;
+
 /** 'Primitive' PV Access data type
  *   @author Kay Kasemir
  */
@@ -133,7 +135,22 @@ public class PVAStringArray extends PVAData implements PVAArray
     protected void format(final int level, final StringBuilder buffer)
     {
         formatType(level, buffer);
-        buffer.append(" ").append(Arrays.toString(value));
+        final String[] safe = value;
+        if (safe == null)
+            buffer.append("null");
+        else
+        {
+            final int show = Math.min(PVASettings.EPICS_PVA_MAX_ARRAY_FORMATTING, safe.length);
+            for (int i=0; i<show; ++i)
+            {
+                if (i > 0)
+                    buffer.append(", ");
+                buffer.append(safe[i]);
+            }
+            if (safe.length > show)
+                buffer.append(", ...");
+        }
+        buffer.append("]");
     }
 
     @Override

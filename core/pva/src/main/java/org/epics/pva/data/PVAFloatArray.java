@@ -12,6 +12,8 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 
+import org.epics.pva.PVASettings;
+
 /** 'Primitive' PV Access data type
  *   @author Kay Kasemir
  */
@@ -141,12 +143,15 @@ public class PVAFloatArray extends PVAData implements PVAArray
             buffer.append("null");
         else
         {
-            for (int i=0; i<safe.length; ++i)
+            final int show = Math.min(PVASettings.EPICS_PVA_MAX_ARRAY_FORMATTING, safe.length);
+            for (int i=0; i<show; ++i)
             {
                 if (i > 0)
                     buffer.append(", ");
                 buffer.append(safe[i]);
             }
+            if (safe.length > show)
+                buffer.append(", ...");
         }
         buffer.append("]");
     }
