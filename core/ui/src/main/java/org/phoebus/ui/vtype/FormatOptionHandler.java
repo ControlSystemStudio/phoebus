@@ -30,6 +30,7 @@ import org.epics.vtype.VStringArray;
 import org.epics.vtype.VTable;
 import org.epics.vtype.VType;
 import org.phoebus.pv.LongString;
+import org.phoebus.ui.Preferences;
 
 /** Utility for formatting data as string.
  *  @author Kay Kasemir
@@ -111,11 +112,14 @@ public class FormatOptionHandler
                 return "[]";
             final StringBuilder buf = new StringBuilder("[");
             buf.append(formatNumber(data.getDouble(0), array.getDisplay(), option, precision));
-            for (int i=1; i<data.size(); ++i)
+            final int show = Math.min(data.size(), Preferences.max_array_formatting);
+            for (int i=1; i<show; ++i)
             {
                 buf.append(", ");
                 buf.append(formatNumber(data.getDouble(i), array.getDisplay(), option, precision));
             }
+            if (data.size() > show)
+                buf.append(", ...");
             buf.append("]");
             if (show_units  &&  !array.getDisplay().getUnit().isEmpty())
                 buf.append(" ").append(array.getDisplay().getUnit());

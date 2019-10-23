@@ -281,8 +281,9 @@ public class ProbeController {
     private void updateValueUI()
     {
         final FormattedValue fmt = update_value.getAndSet(null);
-        if (fmt.text.length() > 100)
-            txtValue.setText(fmt.text.substring(0, 100) + "...");
+        // Hard limit for amount of text to show for value
+        if (fmt.text.length() > 2000)
+            txtValue.setText(fmt.text.substring(0, 2000) + "...");
         else
             txtValue.setText(fmt.text);
         setTime(Time.timeOf(fmt.value));
