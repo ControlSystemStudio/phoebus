@@ -21,28 +21,20 @@ import org.csstudio.display.builder.model.properties.RulesWidgetProperty;
 import org.csstudio.display.builder.model.properties.ScriptsWidgetProperty;
 
 /** Information about a rule
- *
- *
- *  <p>PVs will be created for each input/output.
- *  The rule is executed whenever one or
- *  more of the 'triggering' inputs receive
- *  a new value.
- *
+ *  A rule is comprised of one or more logical expressions which are evaluated to dynamically set the property of a widget
  *  @author Megan Grodowitz
  */
 @SuppressWarnings("nls")
 public class RuleInfo
 {
 
-
-    /** Instantiate Expression with bool_exp string and widget property value
+    /**
+     * An object describing an expression associated with a widget property.
+     * The expressions can be of 2 types.
+     * 1. boolean expressions, when true the predefined output value is set to the widget property
+     * 2. value expression, the output of the expression itself is set to the widget property
      *
-     * @param bool_exp String for the boolean expression, e.g. (pv0 == 9)
-     * @param prop_val Widget Property to set if the boolean expression evaluates true
-     *
-     * Do NOT pass in a widget property object that belongs to a widget!
-     * The expression will alter the property value. This needs to be a property
-     * object created for this expression, probably by the containing rule.
+     * @author Kunal Shroff
      */
     public static class ExpressionInfo<T>
     {
@@ -50,6 +42,12 @@ public class RuleInfo
         private final boolean boolean_exp;
         private final T prop_val;
 
+        /**
+         * Constructor for creating an Expression
+         * @param exp the expression to be evaluated
+         * @param boolean_exp a flag indicating if this expression is a boolean expression or a value expression
+         * @param prop_val the value to be set if a boolean expression is evaluated true
+         */
         public ExpressionInfo(final String exp, final boolean boolean_exp, final T prop_val)
         {
             this.exp = exp;
@@ -74,8 +72,13 @@ public class RuleInfo
         @Override
         public String toString()
         {
-            // TODO shroffk fix this 
-            return "(" + this.exp + ") ? " + prop_val;
+            if (isBooleanExp())
+            {
+                return "if " + this.exp +"==true : " + prop_val;
+            }
+            else {
+                return this.exp;
+            }
         }
     };
 
