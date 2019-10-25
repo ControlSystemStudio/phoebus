@@ -163,13 +163,13 @@ public abstract class AbstractADL2Model<WM extends Widget>
                             pvs.add(new ScriptPV(pv, true));
 
                     final String newExpr = translateExpression(dynAttr.get_calc());
-                    final RuleInfo rule = new RuleInfo("vis_calc",
-                            CommonWidgetProperties.propVisible.getName(),
-                            false,
-                            List.of(new RuleInfo.ExprInfoValue<>("!("+ newExpr + ")", visible)),
-                            pvs);
-
-                    widgetModel.propRules().setValue(List.of(rule));
+//                    final RuleInfo rule = new RuleInfo("vis_calc",
+//                            CommonWidgetProperties.propVisible.getName(),
+//                            false,
+//                            List.of(new RuleInfo.ExprInfoValue<>("!("+ newExpr + ")", visible)),
+//                            pvs);
+//
+//                    widgetModel.propRules().setValue(List.of(rule));
                 }
             }
         }
@@ -220,13 +220,13 @@ public abstract class AbstractADL2Model<WM extends Widget>
         visible = visible.clone();
         visible.setValue(false);
 
-        final RuleInfo rule = new RuleInfo(name,
-                CommonWidgetProperties.propVisible.getName(),
-                false,
-                List.of(new RuleInfo.ExprInfoValue<>("!("+ booleanExpression + ")", visible)),
-                List.of(new ScriptPV(chan, true)));
-
-        widgetModel.propRules().setValue(List.of(rule));
+//        final RuleInfo rule = new RuleInfo(name,
+//                CommonWidgetProperties.propVisible.getName(),
+//                false,
+//                List.of(new RuleInfo.ExprInfoValue<>("!("+ booleanExpression + ")", visible)),
+//                List.of(new ScriptPV(chan, true)));
+//
+//        widgetModel.propRules().setValue(List.of(rule));
     }
 
     /**
