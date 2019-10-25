@@ -19,21 +19,15 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.RulesWidgetProperty;
-import org.csstudio.display.builder.model.properties.ScriptPV;
 import org.csstudio.display.builder.model.rules.RuleInfo;
-import org.csstudio.display.builder.model.rules.RuleInfo.ExprInfoString;
-import org.csstudio.display.builder.model.rules.RuleInfo.ExprInfoValue;
 import org.csstudio.display.builder.model.rules.RuleInfo.ExpressionInfo;
 import org.csstudio.display.builder.model.rules.RuleInfo.PropInfo;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.csstudio.display.builder.representation.javafx.Messages;
-import org.csstudio.display.builder.representation.javafx.PVTableItem;
-import org.csstudio.display.builder.representation.javafx.PVTableItem.AutoCompletedTableCell;
 import org.csstudio.display.builder.representation.javafx.ScriptsDialog;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.dialog.DialogHelper;
-import org.phoebus.ui.javafx.LineNumberTableCellFactory;
 import org.phoebus.ui.javafx.TableHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
 
@@ -64,7 +58,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.HBox;
@@ -105,7 +98,6 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         }
 
         abstract boolean isWidgetProperty();
-        abstract public ExpressionInfo<T> toExprInfo();
         abstract public T getPropVal();
     };
 
@@ -137,11 +129,6 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
             return internal_prop_val;
         }
 
-        @Override
-        public ExprInfoString toExprInfo()
-        {
-            return new ExprInfoString(boolExp.get(), getPropVal());
-        }
     };
 
     public static class ExprItemValue<T> extends ExprItem< WidgetProperty<T> >
@@ -157,18 +144,11 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         }
 
         @Override
-        public ExprInfoValue<T> toExprInfo()
-        {
-            return new ExprInfoValue<>(boolExp.get(), internal_prop_val);
-        }
-
-        @Override
         boolean isWidgetProperty()
         {
             return true;
         }
 
-        @Override
         public WidgetProperty<T> getPropVal()
         {
             return internal_prop_val;
@@ -182,9 +162,9 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
                 final UndoableActionManager undo) throws Exception
         {
             if (info.getPropVal() instanceof String)
-                return new ExprItemString(info.getBoolExp(), (String)info.getPropVal(), undo);
+                return new ExprItemString(info.getExp(), (String)info.getPropVal(), undo);
             if (info.getPropVal() instanceof WidgetProperty<?>)
-                return new ExprItemValue<>(info.getBoolExp(), (WidgetProperty<?>)info.getPropVal(), undo);
+                return new ExprItemValue<>(info.getExp(), (WidgetProperty<?>)info.getPropVal(), undo);
 
             logger.log(Level.WARNING, "Tried to make new Expression from info with property not of type String or WidgetProperty: "
                     + info.getPropVal().getClass().getName());
@@ -228,7 +208,6 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
     public static class RuleItem
     {
         public List<ExprItem<?>> expressions;
-        public List<PVTableItem> pvs;
         protected StringProperty name = new SimpleStringProperty();
         protected StringProperty prop_id = new SimpleStringProperty();
         public BooleanProperty prop_as_expr = new SimpleBooleanProperty(false);
@@ -237,20 +216,18 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
 
         public RuleItem(final Widget attached_widget, final String prop_id)
         {
-            this(attached_widget, new ArrayList<>(), new ArrayList<>(),
+            this(attached_widget, new ArrayList<>(),
                  Messages.RulesDialog_DefaultRuleName, prop_id, false);
         }
 
         public RuleItem(final Widget attached_widget,
-                final List<ExprItem<?>> exprs,
-                final List<PVTableItem> pvs,
+                final List<ExprItem<?>> expressions,
                 final String name,
                 final String prop_id,
                 final boolean prop_as_exp)
         {
             this.attached_widget = attached_widget;
-            this.expressions = exprs;
-            this.pvs = pvs;
+            this.expressions = expressions;
             this.name.set(name);
             this.prop_id.set(prop_id);
             this.prop_as_expr.set(prop_as_exp);
@@ -258,8 +235,6 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
 
         public static RuleItem forInfo(final Widget attached_widget, final RuleInfo info, final UndoableActionManager undo)
         {
-            final List<PVTableItem> pvs = new ArrayList<>();
-            info.getPVs().forEach(pv -> pvs.add(PVTableItem.forPV(pv)));
             final List<ExprItem<?>> exprs = new ArrayList<>();
             info.getExpressions().forEach(expr ->
             {
@@ -273,16 +248,14 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
                 }
             });
 
-            return new RuleItem(attached_widget, exprs, pvs, info.getName(), info.getPropID(), info.getPropAsExprFlag());
+            return new RuleItem(attached_widget, exprs, info.getName(), info.getPropID(), info.getPropAsExprFlag());
         }
 
         public RuleInfo getRuleInfo()
         {
-            final List<ScriptPV> spvs = new ArrayList<>();
-            pvs.forEach(pv -> spvs.add(pv.toScriptPV()));
             final List<ExpressionInfo<?>> exps = new ArrayList<>();
-            expressions.forEach(exp -> exps.add(exp.toExprInfo()));
-            return new RuleInfo(name.get(), prop_id.get(), prop_as_expr.get(), exps, spvs);
+            expressions.forEach(exp -> exps.add(new ExpressionInfo<>(exp.boolExpProperty().get(), prop_as_expr.get(), exp.getPropVal())));
+            return new RuleInfo(name.get(), prop_id.get(), prop_as_expr.get(), exps);
         }
 
         public StringProperty nameProperty()
