@@ -121,7 +121,10 @@ public class Convert_activeMessageButtonClass extends ConverterBase<Widget>
 
     private boolean is_boolean(final Edm_activeMessageButtonClass mb)
     {
-        return ("1".equals(mb.getPressValue()) && "0".equals(mb.getReleaseValue()))
+        // When EDM button is a toggle that keeps the on/off state,
+        // writing "0" or "1", then use a BoolButtonWidget
+        return mb.isToggle()  &&
+              ("1".equals(mb.getPressValue()) && "0".equals(mb.getReleaseValue()))
                ||
                ("0".equals(mb.getPressValue()) && "1".equals(mb.getReleaseValue()));
     }
