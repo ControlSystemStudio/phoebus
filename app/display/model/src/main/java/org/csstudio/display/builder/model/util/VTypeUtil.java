@@ -8,11 +8,13 @@
 package org.csstudio.display.builder.model.util;
 
 import org.epics.util.array.ListNumber;
+import org.epics.vtype.VBoolean;
 import org.epics.vtype.VByteArray;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VEnumArray;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.ui.vtype.FormatOption;
 import org.phoebus.ui.vtype.FormatOptionHandler;
@@ -66,5 +68,39 @@ public class VTypeUtil
                 return array.getInt(0);
         }
         return Double.valueOf(Double.NaN);
+    }
+
+    /**
+     * Return a boolean representation of the given value if possible.
+     * e.g. VDouble 0.0 is mapped to false and 1.0 is mapped to true
+     * TODO does returning null make sense?
+     * @param value VType value to be mapped to its equivalent boolean
+     * @return boolean The boolean representation of the value
+     */
+    public static Boolean getValueBoolean(VType value) {
+        if (value instanceof VBoolean)
+        {
+            return ((VBoolean) value).getValue();
+        }
+        if (value instanceof VString)
+        {
+            String str = ((VString)value).getValue();
+            if (str.equalsIgnoreCase("true"))
+                return Boolean.TRUE;
+            else if (str.equalsIgnoreCase("false"))
+                return Boolean.FALSE;
+            else
+                return null;
+        }
+        if (value instanceof VNumber)
+        {
+            if (((VNumber)value).getValue().intValue() == 0 )
+                return Boolean.FALSE;
+            else if (((VNumber)value).getValue().intValue() == 1 )
+                return Boolean.TRUE;
+            else
+                return null;
+        }
+        return null;
     }
 }

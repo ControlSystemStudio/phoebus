@@ -27,8 +27,6 @@ import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.rules.RuleInfo;
-import org.csstudio.display.builder.model.rules.RuleInfo.ExprInfoString;
-import org.csstudio.display.builder.model.rules.RuleInfo.ExprInfoValue;
 import org.csstudio.display.builder.model.rules.RuleInfo.ExpressionInfo;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
@@ -122,7 +120,7 @@ public class RulesWidgetProperty extends WidgetProperty<List<RuleInfo>>
             {
                 // <exp bool_exp="foo==1">
                 writer.writeStartElement("exp");
-                writer.writeAttribute("bool_exp", expr.getBoolExp());
+                writer.writeAttribute("bool_exp", expr.getExp());
 
                 if (info.getPropAsExprFlag())
                 {
@@ -151,17 +149,6 @@ public class RulesWidgetProperty extends WidgetProperty<List<RuleInfo>>
                 // </value> or </expression>
                 writer.writeEndElement();
                 // </exp>
-                writer.writeEndElement();
-            }
-            for (final ScriptPV pv : info.getPVs())
-            {
-                //<pv trig="true">
-                writer.writeStartElement(XMLTags.PV_NAME);
-                if (! pv.isTrigger())
-                    writer.writeAttribute(XMLTags.TRIGGER, Boolean.FALSE.toString());
-                //some string of the pv name
-                writer.writeCharacters(pv.getName());
-                //</pv>
                 writer.writeEndElement();
             }
             //</rule>
@@ -230,7 +217,7 @@ public class RulesWidgetProperty extends WidgetProperty<List<RuleInfo>>
             }
 
             final List<ScriptPV> pvs = readPVs(xml);
-            rules.add(new RuleInfo(name, prop_id, prop_as_expr, exprs, pvs));
+            rules.add(new RuleInfo(name, prop_id, prop_as_expr, exprs));
         }
         setValue(rules);
     }
@@ -264,11 +251,7 @@ public class RulesWidgetProperty extends WidgetProperty<List<RuleInfo>>
             if (prop_as_expr)
             {
                 final String val_str = (val_xml != null) ? XMLUtil.getString(val_xml) : "";
-                // if (patch_severity  &&  val_str.contains("pvSev")) ..?
-                // val_str was a Javascript expression,
-                // now needs to be a python expression.
-                // -> Not patching for now
-                exprs.add(new ExprInfoString(bool_exp, val_str));
+                exprs.add(new ExpressionInfo(bool_exp, false, val_str));
             }
             else
             {
@@ -278,7 +261,7 @@ public class RulesWidgetProperty extends WidgetProperty<List<RuleInfo>>
 
                 if ( ! miscUnknownPropID.getName().equals(val_prop.getName()))
                     val_prop.readFromXML(model_reader, val_xml);
-                exprs.add(new ExprInfoValue<>(bool_exp, val_prop));
+                exprs.add(new ExpressionInfo<>(bool_exp, true, val_prop));
             }
         }
         return exprs;

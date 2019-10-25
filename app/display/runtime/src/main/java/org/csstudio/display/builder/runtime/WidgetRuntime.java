@@ -72,6 +72,9 @@ public class WidgetRuntime<MW extends Widget>
     /** If widget has 'pv_name' and 'value', this binds the primary PV */
     private final AtomicReference<PVNameToValueBinding> pv_name_binding = new AtomicReference<>();
 
+    /** If widget has rules */
+    private volatile List<ExpToPropertyBinding> pv_property_binding = new ArrayList<ExpToPropertyBinding>();
+
     /** start() involves background jobs to start script support etc.
      *  This latch indicates that they have completed
      *  and lazily set variables (action_scripts, writable_pvs, ..)
@@ -236,8 +239,33 @@ public class WidgetRuntime<MW extends Widget>
 
         widget.propClass().addPropertyListener(update_widget_class);
 
+        RuntimeUtil.getExecutor().execute(this::startRules);
+
         // Start scripts in pool because Jython setup is expensive
         RuntimeUtil.getExecutor().execute(this::startScripts);
+    }
+    
+    private void startRules()
+    {
+        final List<RuleInfo> rule_infos = widget.propRules().getValue();
+        for (RuleInfo ruleInfo : rule_infos)
+        {
+            final Optional<WidgetProperty<Object>> widget_property = widget.checkProperty(ruleInfo.getPropID());
+            widget_property.ifPresent(p ->
+            {
+                ruleInfo.getExpressions().stream().forEach(expression -> {
+                    if(expression.isBooleanExp())
+                    {
+                        pv_property_binding.add(new BooleanExpToPropertyBinding(this, expression, p, false));
+                    } else
+                    {
+                        pv_property_binding.add(new ValueExpToPropertyBinding(this, expression, p, false));
+                    }
+                });
+
+            });
+        }
+        
     }
 
     /** Start Scripts */
@@ -245,10 +273,9 @@ public class WidgetRuntime<MW extends Widget>
     {
         // Start scripts triggered by PVs
         final List<ScriptInfo> script_infos = widget.propScripts().getValue();
-        final List<RuleInfo> rule_infos = widget.propRules().getValue();
-        if ((script_infos.size() > 0) || (rule_infos.size() > 0))
+        if ((script_infos.size() > 0))
         {
-            final List<RuntimeScriptHandler> handlers = new ArrayList<>(script_infos.size() + rule_infos.size());
+            final List<RuntimeScriptHandler> handlers = new ArrayList<>(script_infos.size());
 
             for (final ScriptInfo script_info : script_infos)
             {
@@ -270,30 +297,6 @@ public class WidgetRuntime<MW extends Widget>
                         // Skip display model
                     }
                     buf.append(widget).append(", ").append(script_info.getPath());
-                    logger.log(Level.WARNING, buf.toString(), ex);
-                }
-            }
-
-            for (final RuleInfo rule_info : rule_infos)
-            {
-                try
-                {
-                    handlers.add(new RuntimeScriptHandler(widget, rule_info));
-                }
-                catch (final Exception ex)
-                {
-                    final StringBuilder buf = new StringBuilder();
-                    buf.append("Rule failed to compile\n");
-                    try
-                    {
-                        final DisplayModel model = widget.getDisplayModel();
-                        buf.append("Display '").append(model.getDisplayName()).append("', ");
-                    }
-                    catch (Exception ignore)
-                    {
-                        // Skip display model
-                    }
-                    buf.append(widget).append(", ").append(rule_info.getName());
                     logger.log(Level.WARNING, buf.toString(), ex);
                 }
             }
@@ -445,6 +448,13 @@ public class WidgetRuntime<MW extends Widget>
                 PVFactory.releasePV(pv);
             }
             writable_pvs = null;
+        }
+
+        if(pv_property_binding != null)
+        {
+            for (ExpToPropertyBinding pvBinding : pv_property_binding) {
+                pvBinding.dispose();
+            }
         }
 
         final PVNameToValueBinding binding = pv_name_binding.getAndSet(null);
