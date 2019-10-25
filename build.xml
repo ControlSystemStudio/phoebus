@@ -44,6 +44,7 @@
     <ant target="clean" dir="app/scan/ui"/>
     <ant target="clean" dir="app/alarm/model"/>
     <ant target="clean" dir="app/alarm/ui"/>
+    <ant target="clean" dir="app/alarm/logging-ui"/>
     <ant target="clean" dir="app/update"/>
     <ant target="clean" dir="app/console"/>
     <ant target="clean" dir="phoebus-product"/>
@@ -110,6 +111,7 @@
     <ant dir="app/scan/ui"/>
     <ant dir="app/alarm/model"/>
     <ant dir="app/alarm/ui"/>
+    <ant dir="app/alarm/logging-ui"/>
     <ant dir="app/update"/>
     <ant dir="app/console"/>
   </target>
