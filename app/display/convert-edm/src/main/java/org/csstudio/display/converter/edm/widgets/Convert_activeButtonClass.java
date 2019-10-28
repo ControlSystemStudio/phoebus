@@ -49,6 +49,17 @@ public class Convert_activeButtonClass extends ConverterBase<BoolButtonWidget>
             off = on;
         widget.propOnLabel().setValue(on);
         widget.propOffLabel().setValue(off);
+
+        // EDM buttons sometime use the same color and label for both states,
+        // and only the subtle 'press' state indicates what's what.
+        if (widget.propOffLabel().getValue().equals(widget.propOnLabel().getValue()))
+        {
+            // Same colors? Change 'off' label to show "(on label)"
+            if (widget.propOffColor().getValue().equals(widget.propOnColor().getValue()))
+                widget.propOffLabel().setValue("(" + widget.propOnLabel().getValue() + ")");
+            else // Otherwise _do_ use the colors for LED, even though EDM didn't have an LED
+                widget.propShowLED().setValue(true);
+        }
     }
 
     @Override
