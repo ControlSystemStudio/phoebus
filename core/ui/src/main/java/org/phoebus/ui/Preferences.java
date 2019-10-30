@@ -26,6 +26,7 @@ public class Preferences
     public static final String top_resources;
     public static final boolean splash;
     public static final String welcome;
+    public static final int max_array_formatting;
     public static final int ui_monitor_period;
     public static final String[] hide_spi_menu;
     public static final boolean status_show_user;
@@ -38,8 +39,14 @@ public class Preferences
         top_resources = prefs.get(TOP_RESOURCES);
         splash = prefs.getBoolean(SPLASH);
         welcome = prefs.get("welcome");
+        max_array_formatting = prefs.getInt("max_array_formatting");
         ui_monitor_period = prefs.getInt("ui_monitor_period");
         hide_spi_menu = prefs.get("hide_spi_menu").split("\\s*,\\s*");
         status_show_user = prefs.getBoolean("status_show_user");
+
+        // In case PVA library is included, sync its array formatting
+        // (PVASettings cannot use Preferences.max_array_formatting
+        //  since the PVA library may be used standalone)
+        System.setProperty("EPICS_PVA_MAX_ARRAY_FORMATTING", Integer.toString(max_array_formatting));
     }
 }

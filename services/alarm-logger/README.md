@@ -73,3 +73,11 @@ This dumps records from one specific index:
 ```
 curl -X GET 'http://localhost:9200/accelerator_alarms_state_2019-02-01/_search?format=json&pretty'
 ```
+
+### Cleanup
+
+In case you want to delete older data:
+
+```
+curl -X DELETE 'localhost:9200/accelerator_alarms_state_2019-02-*'
+```
