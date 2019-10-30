@@ -78,13 +78,13 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
     /** Expression info as property-based item for table */
     public abstract static class ExprItem<T>
     {
-        final protected StringProperty boolExp = new SimpleStringProperty();
+        final protected StringProperty expression = new SimpleStringProperty();
         final protected SimpleObjectProperty<Node> field = new SimpleObjectProperty<>();
         final protected List<WidgetPropertyBinding<?,?>> bindings = new ArrayList<>();
 
-        public ExprItem(final String boolE, final T valE, final UndoableActionManager undo)
+        public ExprItem(final String expression, final T valE, final UndoableActionManager undo)
         {
-            this.boolExp.set(boolE);
+            this.expression.set(expression);
         }
 
         public SimpleObjectProperty<Node> fieldProperty()
@@ -92,9 +92,9 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
             return field;
         }
 
-        public StringProperty boolExpProperty()
+        public StringProperty expressionProperty()
         {
-            return boolExp;
+            return expression;
         }
 
         abstract boolean isWidgetProperty();
@@ -193,9 +193,9 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
                 final UndoableActionManager undo) throws Exception
         {
             if (property instanceof String)
-                return new ExprItemString(old_exp.boolExpProperty().get(), (String)property, undo);
+                return new ExprItemString(old_exp.expressionProperty().get(), (String)property, undo);
             if (property instanceof WidgetProperty<?>)
-                return new ExprItemValue<>(old_exp.boolExpProperty().get(), (WidgetProperty<?>)property, undo);
+                return new ExprItemValue<>(old_exp.expressionProperty().get(), (WidgetProperty<?>)property, undo);
 
             logger.log(Level.WARNING,"Tried to make new Expression from property not of type String or WidgetProperty: "
                     + property.getClass().getName());
@@ -254,7 +254,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         public RuleInfo getRuleInfo()
         {
             final List<ExpressionInfo<?>> exps = new ArrayList<>();
-            expressions.forEach(exp -> exps.add(new ExpressionInfo<>(exp.boolExpProperty().get(), prop_as_expr.get(), exp.getPropVal())));
+            expressions.forEach(exp -> exps.add(new ExpressionInfo<>(exp.expressionProperty().get(), prop_as_expr.get(), exp.getPropVal())));
             return new RuleInfo(name.get(), prop_id.get(), prop_as_expr.get(), exps);
         }
 
@@ -479,6 +479,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
                 propComboBox.getSelectionModel().select(getPropLongString(selected));
                 valExpBox.setDisable(false);
                 valExpBox.selectedProperty().set(selected.prop_as_expr.get());
+                expressions_table.getColumns().get(1).setVisible(!selected.prop_as_expr.get());
                 expression_items.setAll(selected.expressions);
             }
         });
@@ -540,7 +541,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         HBox.setHgrow(propComboBox, Priority.ALWAYS);
 
         // TODO: change this to actually manipulate expression objects in the rule
-        valExpBox = new CheckBox("Value as Expression");
+        valExpBox = new CheckBox("Output Value from Expression");
         valExpBox.setDisable(true);
         valExpBox.selectedProperty().addListener( (ov, old_val, new_val) ->
         {
@@ -548,6 +549,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
                 logger.log(Level.FINE, "Did not update rule property as expression flag to " + new_val);
             else
                 expression_items.setAll(selected_rule_item.expressions);
+            expressions_table.getColumns().get(1).setVisible(!new_val);
         });
 
         final Region spring = new Region();
@@ -742,10 +744,10 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
     private HBox createExpressionsTable ()
     {
         // Create table with editable rule 'bool expression' column
-        final TableColumn<ExprItem<?>, String> bool_exp_col = new TableColumn<>(Messages.RulesDialog_ColBoolExp);
-        bool_exp_col.setSortable(false);
-        bool_exp_col.setCellValueFactory(new PropertyValueFactory<ExprItem<?>, String>("boolExp"));
-        bool_exp_col.setCellFactory(tableColumn -> new TextFieldTableCell<>(new DefaultStringConverter())
+        final TableColumn<ExprItem<?>, String> exp_col = new TableColumn<>(Messages.RulesDialog_ColBoolExp);
+        exp_col.setSortable(false);
+        exp_col.setCellValueFactory(new PropertyValueFactory<ExprItem<?>, String>("expression"));
+        exp_col.setCellFactory(tableColumn -> new TextFieldTableCell<>(new DefaultStringConverter())
         {
             private final ChangeListener<? super Boolean> focusedListener = (ob, o, n) ->
             {
@@ -784,11 +786,11 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         final TableColumn<ExprItem<?>, Node> val_exp_col = new TableColumn<>(Messages.RulesDialog_ColValExp);
 
         //  This statement requires "val_exp_col" be defined.
-        bool_exp_col.setOnEditCommit(event ->
+        exp_col.setOnEditCommit(event ->
         {
             final int row = event.getTablePosition().getRow();
 
-            expression_items.get(row).boolExpProperty().set(event.getNewValue());
+            expression_items.get(row).expressionProperty().set(event.getNewValue());
             ModelThreadPool.getTimer().schedule(() ->
             {
                 Platform.runLater(() -> val_exp_col.getCellData(row).requestFocus());
@@ -820,8 +822,8 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         });
 
         expressions_table = new TableView<>(expression_items);
-        expressions_table.getColumns().add(bool_exp_col);
-        expressions_table.getColumns().add(val_exp_col);
+        expressions_table.getColumns().add(0, exp_col);
+        expressions_table.getColumns().add(1, val_exp_col);
         expressions_table.setEditable(true);
         expressions_table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         expressions_table.setTooltip(new Tooltip(Messages.RulesDialog_ExpressionsTT));
@@ -842,7 +844,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
 
             ModelThreadPool.getTimer().schedule(() ->
             {
-                Platform.runLater(() -> expressions_table.edit(newRow, bool_exp_col));
+                Platform.runLater(() -> expressions_table.edit(newRow, exp_col));
             }, 123, TimeUnit.MILLISECONDS);
         });
 
