@@ -380,8 +380,8 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
     /** Is the property value an expressions (i.e. user input string) **/
     private CheckBox valExpBox;
 
-    /** The splitter used in the rule side. */
-    private SplitPane ruleSplitPane;
+    /** The pane used in the rule side. */
+    private HBox rulePane;
 
     /** The main splitter */
     private final SplitPane content;
@@ -436,12 +436,10 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
             prefs ->
             {
                 content.setDividerPositions(prefs.getDouble("content.divider.position", 0.5));
-                ruleSplitPane.setDividerPositions(prefs.getDouble("rule.content.divider.position", 0.5));
             },
             prefs ->
             {
                 prefs.putDouble("content.divider.position", content.getDividerPositions()[0]);
-                prefs.putDouble("rule.content.divider.position", ruleSplitPane.getDividerPositions()[0]);
             });
     }
 
@@ -562,12 +560,11 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
 
         HBox.setHgrow(exprs, Priority.ALWAYS);
 
-        ruleSplitPane = new SplitPane(exprs);
-        ruleSplitPane.setOrientation(Orientation.HORIZONTAL);
-        ruleSplitPane.setStyle("-fx-background-insets: 0, 0;");
-        VBox.setVgrow(ruleSplitPane, Priority.ALWAYS);
+        rulePane = new HBox(exprs);
+        rulePane.setStyle("-fx-background-insets: 0, 0;");
+        VBox.setVgrow(rulePane, Priority.ALWAYS);
 
-        final VBox subitems = new VBox(10, props, ruleSplitPane);
+        final VBox subitems = new VBox(10, props, rulePane);
         final VBox rulebox = new VBox(10, rules);
         rulebox.setPadding(new Insets(0, 10, 0, 0));
         subitems.setPadding(new Insets(0, 0, 0, 10));
