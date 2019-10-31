@@ -11,6 +11,7 @@ import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.runtime.pv.PVFactory;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
 import org.csstudio.display.builder.runtime.pv.RuntimePVListener;
+import org.phoebus.framework.macros.MacroHandler;
 
 public abstract class ExpToPropertyBinding
 {
@@ -42,34 +43,42 @@ public abstract class ExpToPropertyBinding
         connect();
     }
 
-    /** @return PV or <code>null</code> */
-    public RuntimePV getPV()
-    {
-        return pv_ref.get();
-    }
+//    /** @return PV or <code>null</code> */
+//    public RuntimePV getPV()
+//    {
+//        return pv_ref.get();
+//    }
 
     private void connect()
     {
-        final String pv_name = expression.getExp();
-        if (pv_name.isEmpty())
-        {
-            listener.valueChanged(null, PVWidget.RUNTIME_VALUE_NO_PV);
-            return;
-        }
-        logger.log(Level.FINE,  "Connecting {0} {1}", new Object[] { runtime.widget, pv_name });
-        final RuntimePV pv;
         try
         {
-            pv = PVFactory.getPV(pv_name);
+            String pv_name = MacroHandler.replace(this.runtime.widget.getMacrosOrProperties(), expression.getExp());
+            if (pv_name.isEmpty())
+            {
+                listener.valueChanged(null, PVWidget.RUNTIME_VALUE_NO_PV);
+                return;
+            }
+            logger.log(Level.FINE,  "Connecting {0} {1}", new Object[] { runtime.widget, pv_name });
+            final RuntimePV pv;
+            try
+            {
+                pv = PVFactory.getPV(pv_name);
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Cannot connect to PV " + pv_name, ex);
+                return;
+            }
+            pv.addListener(listener);
+            runtime.addPV(pv, need_write_access);
+            pv_ref.set(pv);
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            logger.log(Level.WARNING, "Cannot connect to PV " + pv_name, ex);
-            return;
+            logger.log(Level.WARNING, "Cannot resolve macros for expression " + expression.getExp(), e);
         }
-        pv.addListener(listener);
-        runtime.addPV(pv, need_write_access);
-        pv_ref.set(pv);
+        
     }
 
     private void disconnect()

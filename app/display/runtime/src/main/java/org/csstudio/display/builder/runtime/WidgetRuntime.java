@@ -253,7 +253,8 @@ public class WidgetRuntime<MW extends Widget>
             final Optional<WidgetProperty<Object>> widget_property = widget.checkProperty(ruleInfo.getPropID());
             widget_property.ifPresent(p ->
             {
-                ruleInfo.getExpressions().stream().forEach(expression -> {
+                ruleInfo.getExpressions().stream().forEach(expression ->
+                {
                     if(expression.isBooleanExp())
                     {
                         pv_property_binding.add(new BooleanExpToPropertyBinding(this, expression, p, false));
