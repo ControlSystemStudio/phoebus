@@ -194,7 +194,7 @@ public class ResourceParserTest
 
         List<String> values = items.get("Fred");
         assertThat(values.size(), equalTo(1));
-        assertThat(values.get(0), nullValue());
+        assertThat(values.get(0), equalTo(""));
 
         values = items.get("Y");
         assertThat(values.size(), equalTo(1));
