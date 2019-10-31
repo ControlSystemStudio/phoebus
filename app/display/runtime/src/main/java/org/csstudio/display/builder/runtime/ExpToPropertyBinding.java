@@ -53,7 +53,7 @@ public abstract class ExpToPropertyBinding
     {
         try
         {
-            String pv_name = MacroHandler.replace(this.runtime.widget.getMacrosOrProperties(), expression.getExp());
+            String pv_name = "=(" + MacroHandler.replace(this.runtime.widget.getMacrosOrProperties(), expression.getExp()) + ")";
             if (pv_name.isEmpty())
             {
                 listener.valueChanged(null, PVWidget.RUNTIME_VALUE_NO_PV);
