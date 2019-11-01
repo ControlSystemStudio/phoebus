@@ -685,6 +685,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
             // "header text" allows for larger content than the "content text"
             alert.setContentText(null);
             alert.setHeaderText(message);
+            alert.initOwner(node.getScene().getWindow());
             alert.showAndWait();
             done.countDown();
         });
@@ -710,6 +711,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
             alert.setResizable(true);
             alert.setTitle(Messages.ShowErrorDialogTitle);
             alert.setHeaderText(error);
+            alert.initOwner(node.getScene().getWindow());
             alert.showAndWait();
             done.countDown();
         });
@@ -739,6 +741,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
             alert.getButtonTypes().clear();
             alert.getButtonTypes().add(ButtonType.YES);
             alert.getButtonTypes().add(ButtonType.NO);
+            alert.initOwner(node.getScene().getWindow());
             final Optional<ButtonType> result = alert.showAndWait();
             // NOTE that button type OK/YES/APPLY checked in here must match!
             done.complete(result.isPresent()  &&  result.get() == ButtonType.YES);
@@ -765,6 +768,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
             DialogHelper.positionDialog(dialog, node, -100, -50);
 
             dialog.setHeaderText(title);
+            dialog.initOwner(node.getScene().getWindow());
             final Optional<String> result = dialog.showAndWait();
             done.complete(result.orElse(null));
         });
@@ -788,6 +792,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         {
             final PasswordDialog dialog = new PasswordDialog(title, correct_password);
             DialogHelper.positionDialog(dialog, node, -100, -50);
+            dialog.initOwner(node.getScene().getWindow());
             final Optional<String> result = dialog.showAndWait();
             done.complete(result.orElse(null));
         });
