@@ -209,7 +209,7 @@ public class ResourceParser
     {
         final int idx = item.indexOf("=");
         final String key = idx > 0 ? item.substring(0, idx) : item;
-        final String value = idx > 0 && item.length() > idx + 1 ? item.substring(idx + 1) : null;
+        final String value = idx > 0 && item.length() > idx + 1 ? item.substring(idx + 1) : "";
         return new SimpleImmutableEntry<String, String>(decode(key), decode(value));
     }
 
