@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.sniff.Sniffer;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
@@ -26,6 +27,7 @@ public class AlarmLogTableApp implements AppResourceDescriptor {
     public static final Image icon = ImageCache.getImage(AlarmLogTableApp.class, "/icons/alarmtable.png");
 
     private RestHighLevelClient client;
+    private Sniffer sniffer;
     private PreferencesReader prefs;
 
     @Override
@@ -60,6 +62,10 @@ public class AlarmLogTableApp implements AppResourceDescriptor {
         try {
             client = new RestHighLevelClient(
                     RestClient.builder(new HttpHost(prefs.get("es_host"), Integer.valueOf(prefs.get("es_port")))));
+            if (prefs.get("es_sniff").equals("true")) {
+                sniffer = Sniffer.builder(client.getLowLevelClient()).build();
+                logger.log(Level.INFO, "ES Sniff feature is enabled");
+            }
         } catch (Exception e) {
             logger.log(Level.WARNING, "Failed to properly create the elastic rest client to: " + prefs.get("es_host")
                     + ":" + prefs.get("es_port"), e);
@@ -71,6 +77,7 @@ public class AlarmLogTableApp implements AppResourceDescriptor {
     public void stop() {
         if (client != null) {
             try {
+                sniffer.close();
                 client.close();
             } catch (IOException e) {
                 logger.log(Level.WARNING, "Failed to properly close the elastic rest client", e);
