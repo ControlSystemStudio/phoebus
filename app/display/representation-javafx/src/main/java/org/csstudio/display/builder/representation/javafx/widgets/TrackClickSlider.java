@@ -33,30 +33,35 @@ public class TrackClickSlider extends Slider
         // SliderSkin is accessible, but the more interesting
         // com.sun.javafx.scene.control.behavior.SliderBehavior
         // is not.
-        // Work around this by locating 'track',
-        // then capturing mouse clicks.
+        // Work around this by locating 'track'...
         for (Node node : skin.getChildren())
             if (node.getStyleClass().contains("track"))
             {
-                node.addEventFilter(MouseEvent.MOUSE_PRESSED, event ->
-                {
-                    if (getOrientation() == Orientation.HORIZONTAL)
-                        handleTrackClick(event.getX() / node.getBoundsInLocal().getWidth());
-                    else
-                    {
-                        final double height = node.getBoundsInLocal().getHeight();
-                        handleTrackClick((height - event.getY()) / height);
-                    }
-                    event.consume();
-                });
+                // Capture mouse clicks, use to inc/dec instead of jumping there
+                node.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> handleTrackClick(node, event));
+
+                // Disable mouse drag, which by default also jumps to mouse
+                node.setOnMouseDragged(null);
                 break;
             }
 
         return skin;
     }
 
-    private void handleTrackClick(final double click)
+    private void handleTrackClick(final Node track, final MouseEvent event)
     {
+        // Where, in units of 0..1, was the track clicked?
+        final double click;
+        if (getOrientation() == Orientation.HORIZONTAL)
+            click = event.getX() / track.getBoundsInLocal().getWidth();
+        else
+        {
+            final double height = track.getBoundsInLocal().getHeight();
+            click = (height - event.getY()) / height;
+        }
+        event.consume();
+
+        // Is that below or above the current value?
         final double val = getValue() / (getMax() - getMin());
         if (click > val)
             increment();
