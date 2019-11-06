@@ -12,6 +12,7 @@ import static org.phoebus.security.PhoebusSecurity.logger;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
@@ -36,10 +37,22 @@ public class AuthorizationService
             final InputStream stream;
 
             final String filename = PhoebusSecurity.authorization_file;
+            final String httpPrefix = "http://";
+            final String httpsPrefix = "https://";
+            
             if (filename.isEmpty())
             {
                 logger.log(Level.CONFIG, "Using " + PhoebusSecurity.class.getResource("/authorization.conf"));
                 stream = PhoebusSecurity.class.getResourceAsStream("/authorization.conf");
+            }
+            else if (filename.startsWith(httpPrefix) || filename.startsWith(httpsPrefix))
+            {
+                try {
+                    stream = new URL(filename).openStream();
+                } catch (Exception e) {
+                    logger.log(Level.SEVERE, "Cannot connect to a remote authorization_file '" + filename + "'");
+                    return;
+                }
             }
             else
             {
