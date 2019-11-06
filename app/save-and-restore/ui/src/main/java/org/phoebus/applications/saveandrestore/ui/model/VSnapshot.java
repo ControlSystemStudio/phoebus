@@ -15,7 +15,7 @@ import java.util.Optional;
 
 
 import org.epics.vtype.VType;
-import org.phoebus.applications.saveandrestore.ui.Utilities;
+import org.phoebus.applications.saveandrestore.Utilities;
 import org.phoebus.applications.saveandrestore.model.Node;
 
 

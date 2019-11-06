@@ -45,20 +45,6 @@ public class Services implements IServices {
 	}
 
 	@Override
-	public void commitSnapshot(String snapshotUniqueId, String snapshotName, String userName, String comment) {
-
-		Node snapshot = nodeDAO.getSnapshot(snapshotUniqueId, false);
-		if (snapshot == null) {
-			String message = String.format("Snapshot with id=%s not found", snapshotUniqueId);
-			logger.info(message);
-			throw new NodeNotFoundException(message);
-		}
-		nodeDAO.commitSnapshot(snapshotUniqueId, snapshotName, userName, comment);
-
-		logger.info("Committed snapshot: {}, id={}", snapshotName, snapshot.getId());
-	}
-
-	@Override
 	public List<Node> getSnapshots(String configUniqueId) {
 		logger.info("Obtaining snapshot for config id={}", configUniqueId);
 		return nodeDAO.getSnapshots(configUniqueId);
@@ -66,9 +52,9 @@ public class Services implements IServices {
 
 	@Override
 	public Node getSnapshot(String snapshotUniqueId) {
-		Node snapshot = nodeDAO.getSnapshot(snapshotUniqueId, true);
+		Node snapshot = nodeDAO.getSnapshot(snapshotUniqueId);
 		if (snapshot == null) {
-			String message = String.format("Snapshot with id=%s not found or is not committed", snapshotUniqueId);
+			String message = String.format("Snapshot with id=%s not found", snapshotUniqueId);
 			logger.error(message);
 			throw new SnapshotNotFoundException(message);
 		}
