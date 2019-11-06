@@ -218,10 +218,14 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
             for (int i=0; i<N; ++i)
             {
                 final WPE element = getElement(i);
-                if (element instanceof MacroizedWidgetProperty<?>)
-                    ((MacroizedWidgetProperty<?>)element).setSpecification(((MacroizedWidgetProperty<?>) iter.next()).getSpecification());
+                final Object el_value = iter.next();
+                if (element  instanceof MacroizedWidgetProperty<?>  &&
+                    el_value instanceof MacroizedWidgetProperty<?>)
+                {
+                    ((MacroizedWidgetProperty<?>)element).setSpecification(((MacroizedWidgetProperty<?>) el_value).getSpecification());
+                }
                 else
-                    element.setValueFromObject(iter.next());
+                    element.setValueFromObject(el_value);
             }
 
             // Notify listeners of the whole array
