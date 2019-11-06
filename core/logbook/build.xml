@@ -6,6 +6,7 @@
     <javac srcdir="${src}" destdir="${classes}" debug="${debug}">
       <classpath>
         <pathelement path="../framework/${build}/core-framework-${version}.jar"/>
+        <pathelement path="../types/${build}/core-types-${version}.jar"/>
         <pathelement path="../ui/${build}/core-ui-${version}.jar"/>
       </classpath>
     </javac>
