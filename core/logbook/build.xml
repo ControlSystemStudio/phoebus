@@ -12,6 +12,7 @@
     </javac>
   	<jar destfile="${build}/core-logbook-${version}.jar">
       <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
     </jar>
   </target>
 </project>
