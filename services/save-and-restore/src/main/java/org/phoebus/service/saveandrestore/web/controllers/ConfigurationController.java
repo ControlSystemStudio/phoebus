@@ -54,7 +54,7 @@ public class ConfigurationController extends BaseController {
 	 * 
 	 * @param parentsUniqueId The unique id of the parent node for the new node.
 	 * @param node
-	 *            A {@link Node} object. The {@link Node#name} field must be
+	 *            A {@link Node} object. The {@link Node#getName()} field must be
 	 *            non-null.
 	 * @return The new folder in the tree.
 	 */

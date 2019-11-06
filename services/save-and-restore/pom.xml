@@ -12,6 +12,7 @@
 
 	<groupId>org.phoebus</groupId>
 	<artifactId>service-save-and-restore</artifactId>
+	<version>4.6.0</version>
 
 	<dependencyManagement>
 		<dependencies>
@@ -164,6 +165,7 @@
 			<artifactId>commons-collections4</artifactId>
 			<version>4.0</version>
 		</dependency>
+
 	</dependencies>
 
 	<build>

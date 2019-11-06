@@ -34,8 +34,6 @@ public interface IServices {
 			
 	public List<ConfigPv> getConfigPvs(String configUniqueId);
 
-	public void commitSnapshot(String snapshotUniqueId, String snapshotName, String userName, String comment);
-	
 	public Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String userName, String comment);
 	
 	public List<Node> getSnapshots(String configUniqueId);

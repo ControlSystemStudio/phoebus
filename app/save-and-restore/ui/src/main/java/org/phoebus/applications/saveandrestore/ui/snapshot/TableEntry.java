@@ -26,7 +26,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import org.epics.vtype.*;
 import org.phoebus.applications.saveandrestore.ui.SingleListenerBooleanProperty;
-import org.phoebus.applications.saveandrestore.ui.Utilities;
+import org.phoebus.applications.saveandrestore.Utilities;
 import org.phoebus.applications.saveandrestore.ui.model.Threshold;
 import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.model.VNoData;

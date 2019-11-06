@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 import org.epics.vtype.VType;
-import org.phoebus.applications.saveandrestore.ui.Utilities;
+import org.phoebus.applications.saveandrestore.Utilities;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 

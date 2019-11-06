@@ -10,7 +10,7 @@ Data is persisted by a relational database engine. The service has been verified
 
 # Build
 
-mvn clean install
+Build the Phoebus product.
 
 # Run
 
@@ -77,10 +77,6 @@ run Flyway scripts manually. The Flyway scripts will create the top level folder
 external database engine. Flyway scripts for the H2 database are found
 in src/test/resources/db/migration. Running the unit tests will create the H2
 database file (h2.db.mv.db) in a folder named db relative to the current directory.
-
-* A Swagger UI is available by default.
-When running the service on any other host than the local development box, also
-add command line parameter -Dhostname=[IP address | FQDN].
 
 Missing features:
 

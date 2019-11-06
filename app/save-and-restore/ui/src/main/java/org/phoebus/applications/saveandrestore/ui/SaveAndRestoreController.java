@@ -264,8 +264,10 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
                         savedTreeViewStructure.stream().forEach(s -> {
                             List<Node> childNodes = saveAndRestoreService.getChildNodes(Node.builder().uniqueId(s).build());
-                            List<TreeItem<Node>> childItems = childNodes.stream().map(n -> createNode(n)).collect(Collectors.toList());
-                            childNodesMap.put(s, childItems);
+                            if(childNodes != null) { // This may be the case if the tree structure was modified outside of the UI
+                                List<TreeItem<Node>> childItems = childNodes.stream().map(n -> createNode(n)).collect(Collectors.toList());
+                                childNodesMap.put(s, childItems);
+                            }
                         });
                         setChildItems(childNodesMap, rootItem);
 

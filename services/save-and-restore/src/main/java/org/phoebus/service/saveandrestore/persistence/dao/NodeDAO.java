@@ -30,10 +30,7 @@ import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 public interface NodeDAO {
 	
 	/**
-	 * Retrieves all child nodes of the specified node. If a child node is a
-	 * {@link Node}, it is included only if it has been committed, see
-	 * {@link NodeDAO#commitSnapshot(String, String, String, String)}
-	 * 
+	 * Retrieves all child nodes of the specified node.
 	 * @param uniqueNodeId The unique id of the node
 	 * @return A potentially empty list of child {@link Node}s.
 	 */
@@ -121,41 +118,12 @@ public interface NodeDAO {
 	 * @param uniqueNodeId
 	 *            The database unique id of the snapshot, see
 	 *            {@link Node#getUniqueId()}.
-	 * @param committedOnly
-	 *            If <code>true</code>, the snapshot must be a committed one.
 	 * @return A {@link Node} object. <code>null</code> is returned if there is
 	 *         no snapshot corresponding to the specified snapshot id, or if
 	 *         <code>committedOnly=true</code> and for a snapshot with matching id
 	 *         that has not been committed.
 	 */
-	public Node getSnapshot(String uniqueNodeId, boolean committedOnly);
-
-	/**
-	 * "Saves" the snapshot by adding a user id and non-null comment.
-	 * 
-	 * @param uniqueNodeId
-	 *            The database unique id of the snapshot, see
-	 *            {@link Node#getUniqueId()}.
-	 * @param snapshotName
-	 *            Non-null snapshot name identity.
-	 * @param userName
-	 *            Non-null user identity.
-	 * @param comment
-	 *            Non-null comment.
-	 */
-	public void commitSnapshot(String uniqueNodeId, String snapshotName, String userName, String comment);
-
-	/**
-	 * Saves a snapshot to the database as a preliminary snapshot, i.e. without user
-	 * id and comment.
-	 * 
-	 * @param parentsUniqueId
-	 *            The unique id of the parent configuration {@link Node}.
-	 * @param snapshotItems
-	 *            The {@link SnapshotItem}s holding the data read from the PVs
-	 * @return A {@link Node} object representing the new snapshot.
-	 */
-	public Node savePreliminarySnapshot(String parentsUniqueId, List<SnapshotItem> snapshotItems);
+	public Node getSnapshot(String uniqueNodeId);
 	
 	public Node saveSnapshot(String parentsUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment, String userName);
 	
