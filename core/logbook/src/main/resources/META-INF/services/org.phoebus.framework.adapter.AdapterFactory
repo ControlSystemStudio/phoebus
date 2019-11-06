@@ -1,0 +1,2 @@
+org.phoebus.logbook.adapters.ProcessVariablesAdapterFactory
+org.phoebus.logbook.adapters.TimeStampedProcessVariableAdapterFactory

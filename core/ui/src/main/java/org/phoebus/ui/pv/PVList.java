@@ -8,11 +8,16 @@
 package org.phoebus.ui.pv;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
+import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.pv.RefCountMap.ReferencedEntry;
+import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -24,12 +29,15 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -82,6 +90,7 @@ public class PVList extends BorderPane
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         table.setPlaceholder(new Label(Messages.PVListPlaceholder));
         createTableColumns();
+        createContextMenu();
 
         Node toolbar = createToolbar();
         setAlignment(toolbar, Pos.CENTER_RIGHT);
@@ -122,6 +131,30 @@ public class PVList extends BorderPane
         ref_col.setCellValueFactory(cell -> cell.getValue().references);
         ref_col.setMaxWidth(500.0);
         table.getColumns().add(ref_col);
+    }
+
+    private void createContextMenu()
+    {
+        // Publish selected items as PV
+        final ListChangeListener<PVInfo> sel_changed = change ->
+        {
+            final List<ProcessVariable> pvs = change.getList()
+                                                    .stream()
+                                                    .map(info -> new ProcessVariable(info.name.get()))
+                                                    .collect(Collectors.toList());
+            SelectionService.getInstance().setSelection(PVListApplication.DISPLAY_NAME, pvs);
+        };
+        table.getSelectionModel().getSelectedItems().addListener(sel_changed);
+        table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
+        // Context menu with selection-based entries, i.e. PV contributions
+        final ContextMenu menu = new ContextMenu();
+        table.setOnContextMenuRequested(event ->
+        {
+            menu.getItems().clear();
+            ContextMenuHelper.addSupportedEntries(table, menu);
+        });
+        table.setContextMenu(menu);
     }
 
     private void triggerRefresh()
