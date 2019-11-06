@@ -69,7 +69,7 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
     private volatile boolean active = false;
     private volatile boolean enabled = false;
 
-    private final Slider slider = new TrackClickSlider();
+    private final Slider slider = new IncDecSlider();
     private final SliderMarkers markers = new SliderMarkers(slider);
 
     @Override
