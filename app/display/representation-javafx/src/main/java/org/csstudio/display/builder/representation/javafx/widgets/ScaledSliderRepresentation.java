@@ -76,7 +76,7 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
     public ScaledSliderRepresentation()
     {
         slider = JFXPreferences.inc_dec_slider
-               ? new TrackClickSlider()
+               ? new IncDecSlider()
                : new Slider();
        markers = new SliderMarkers(slider);
     }

@@ -17,13 +17,13 @@ import javafx.scene.input.MouseEvent;
 /** Slider where clicking on the track increments/decrements
  *
  *  <p>The default slider will jump to the clicked value.
- *  This variant incements or decrements, similar
+ *  This variant increments or decrements, similar
  *  to using the cursor keys.
  *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class TrackClickSlider extends Slider
+public class IncDecSlider extends Slider
 {
     @Override
     protected Skin<?> createDefaultSkin()

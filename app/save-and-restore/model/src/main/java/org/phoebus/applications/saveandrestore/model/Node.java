@@ -51,8 +51,6 @@ import lombok.ToString;
  */
 public class Node implements Comparable<Node>{
 
-	public static final String NODE_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
-	
 	private int id;
 	@Builder.Default
 	private final String uniqueId = UUID.randomUUID().toString();

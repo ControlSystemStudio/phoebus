@@ -12,7 +12,7 @@
 
 	<groupId>org.phoebus</groupId>
 	<artifactId>service-save-and-restore</artifactId>
-	<version>4.6.0</version>
+	<version>4.6.1-SNAPSHOT</version>
 
 	<dependencyManagement>
 		<dependencies>
