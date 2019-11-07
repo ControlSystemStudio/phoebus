@@ -77,7 +77,9 @@ public class AlarmLogTableApp implements AppResourceDescriptor {
     public void stop() {
         if (client != null) {
             try {
-                sniffer.close();
+                if (sniffer != null) {
+                    sniffer.close();
+                }
                 client.close();
             } catch (IOException e) {
                 logger.log(Level.WARNING, "Failed to properly close the elastic rest client", e);
