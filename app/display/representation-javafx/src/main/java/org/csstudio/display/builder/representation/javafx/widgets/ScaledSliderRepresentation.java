@@ -19,6 +19,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.ScaledSliderWidget;
+import org.csstudio.display.builder.representation.javafx.JFXPreferences;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.Display;
 import org.epics.vtype.VType;
@@ -69,8 +70,16 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
     private volatile boolean active = false;
     private volatile boolean enabled = false;
 
-    private final Slider slider = new IncDecSlider();
-    private final SliderMarkers markers = new SliderMarkers(slider);
+    private final Slider slider;
+    private final SliderMarkers markers;
+
+    public ScaledSliderRepresentation()
+    {
+        slider = JFXPreferences.inc_dec_slider
+               ? new IncDecSlider()
+               : new Slider();
+       markers = new SliderMarkers(slider);
+    }
 
     @Override
     protected GridPane createJFXNode() throws Exception
