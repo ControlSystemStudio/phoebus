@@ -73,7 +73,7 @@ public class Update
             url = url.replace("$(arch)", "mac");
         else
             url = url.replace("$(arch)", "win");
-        update_url = PreferencesReader.replaceProperties(url);
+        update_url = url;
 
         wrangler = new PathWrangler(prefs.get("removals"));
     }

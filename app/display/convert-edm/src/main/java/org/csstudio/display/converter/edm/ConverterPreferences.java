@@ -71,7 +71,7 @@ public class ConverterPreferences
                 logger.log(Level.WARNING, "Cannot parse paths from " + edm_paths_config, ex);
             }
 
-        final String dir = PreferencesReader.replaceProperties(prefs.get("auto_converter_dir"));
+        final String dir = prefs.get("auto_converter_dir");
         if (dir.isBlank())
             auto_converter_dir = null;
         else

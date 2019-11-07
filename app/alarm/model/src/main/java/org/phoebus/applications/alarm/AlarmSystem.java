@@ -125,7 +125,7 @@ public class AlarmSystem
         alarm_area_font_size = prefs.getInt("alarm_area_font_size");
         alarm_menu_max_items = prefs.getInt("alarm_menu_max_items");
         alarm_table_max_rows = prefs.getInt("alarm_table_max_rows");
-        command_directory = new File(PreferencesReader.replaceProperties(prefs.get("command_directory")));
+        command_directory = new File(prefs.get("command_directory"));
         annunciator_threshold = prefs.getInt("annunciator_threshold");
         annunciator_retention_count = prefs.getInt("annunciator_retention_count");
         idle_timeout_ms = prefs.getInt("idle_timeout") * 1000L;

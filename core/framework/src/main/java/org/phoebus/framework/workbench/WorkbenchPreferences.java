@@ -30,7 +30,7 @@ public class WorkbenchPreferences
     static
     {
         final PreferencesReader prefs = new PreferencesReader(WorkbenchPreferences.class, "/workbench_preferences.properties");
-        external_apps_directory = new File(PreferencesReader.replaceProperties(prefs.get("external_apps_directory")));
+        external_apps_directory = new File(prefs.get("external_apps_directory"));
         external_apps = prefs.getKeys("external_app_.*").stream().map(prefs::get).collect(Collectors.toList());
     }
 }

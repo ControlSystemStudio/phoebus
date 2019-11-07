@@ -46,20 +46,23 @@ public class PreferencesReader
      *  @param value Value that might contain "$(prop)"
      *  @return Value where "$(prop)" is replaced by Java system property "prop"
      */
-    public static String replaceProperties(final String value)
+    static String replaceProperties(final String value)
     {
         String result = value;
         Matcher matcher = PROP_PATTERN.matcher(value);
         while (matcher.find())
         {
-            final String prop_name = matcher.group();
+            final String prop_spec = matcher.group();
+            final String prop_name = prop_spec.substring(2, prop_spec.length()-1);
             final int start = matcher.start();
             final int end = matcher.end();
-            final String prop = System.getProperty(prop_name.substring(2, prop_name.length()-1));
+            String prop = System.getProperty(prop_name);
+            if (prop == null)
+                prop = System.getenv(prop_name);
             if (prop == null)
             {
                 Logger.getLogger(PreferencesReader.class.getPackageName())
-                      .log(Level.SEVERE, "Alarm System settings: Property '" + prop_name + "' is not defined");
+                      .log(Level.SEVERE, "Reading Preferences: Java system property or Environment variable'" + prop_spec + "' is not defined");
                 break;
             }
             else
@@ -126,7 +129,7 @@ public class PreferencesReader
      */
     public String get(final String key)
     {
-        return prefs.get(key, defaults.getProperty(key));
+        return replaceProperties(prefs.get(key, defaults.getProperty(key)));
     }
 
     /** @param key Key for preference setting
