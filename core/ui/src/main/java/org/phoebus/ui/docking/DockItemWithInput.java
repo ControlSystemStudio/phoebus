@@ -330,6 +330,23 @@ public class DockItemWithInput extends DockItem
         return valid.contains(ext);
     }
 
+    /** @param file File
+     *  @param valid List of valid file extensions
+     *  @return File updated to the first valid file extension
+     */
+    private static File setFileExtension(final File file, final List<String> valid)
+    {
+        String path = file.getPath();
+        // Remove existing extension
+        final int sep = path.lastIndexOf('.');
+        if (sep >= 0)
+            path = path.substring(0, sep);
+        // Add first valid extension
+        if (valid.size() > 0)
+            path += "." + valid.get(0);
+        return new File(path);
+    }
+
     /** Prompt for new file, then save the content of the item that file.
      *
      *  <p>Called by the framework when user invokes the 'Save As'
@@ -350,35 +367,50 @@ public class DockItemWithInput extends DockItem
             // Prompt for file
             final File initial = ResourceParser.getFile(getInput());
             final File file = new SaveAsDialog().promptForFile(getTabPane().getScene().getWindow(),
-                                                    Messages.SaveAs, initial, file_extensions);
+                                                               Messages.SaveAs, initial, file_extensions);
             if (file == null)
                 return false;
 
             // Enforce one of the file extensions
             final List<String> valid = getValidExtensions(file_extensions);
-            if (! checkFileExtension(file, valid))
+            final CompletableFuture<File> actual_file = new CompletableFuture<>();
+            if (checkFileExtension(file, valid))
+                actual_file.complete(file);
+            else
             {
-                // Prompt on UI thread
-                final String prompt = MessageFormat.format(Messages.SaveAsPrompt, file, valid.stream().collect(Collectors.joining(", ")));
+                // Suggest name with valid extension
+                final File suggestion = setFileExtension(file, valid);
 
-                final CompletableFuture<Boolean> go_on = new CompletableFuture<>();
+                // Prompt on UI thread
+                final String prompt = MessageFormat.format(Messages.SaveAsPrompt,
+                                                           file,
+                                                           valid.stream().collect(Collectors.joining(", ")),
+                                                           suggestion);
                 Platform.runLater(() ->
                 {
-                    final Alert dialog = new Alert(AlertType.CONFIRMATION);
+                    final Alert dialog = new Alert(AlertType.CONFIRMATION, prompt, ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
                     dialog.setTitle(Messages.SaveAs);
                     dialog.setHeaderText(Messages.SaveAsHdr);
                     dialog.setContentText(prompt);
+                    dialog.getDialogPane().setPrefSize(500, 300);
                     dialog.setResizable(true);
+
                     DialogHelper.positionDialog(dialog, getTabPane(), -100, -200);
-                    go_on.complete(dialog.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK);
+                    final ButtonType response = dialog.showAndWait().orElse(ButtonType.CANCEL);
+                    if (response == ButtonType.YES)
+                        actual_file.complete(suggestion);
+                    else if (response == ButtonType.NO)
+                        actual_file.complete(file);
+                    else
+                        actual_file.complete(null);
                 });
                 // In background thread, wait for the result
-                if (! go_on.get())
+                if (actual_file.get() == null)
                     return false;
             }
 
             // Update input
-            setInput(ResourceParser.getURI(file));
+            setInput(ResourceParser.getURI(actual_file.get()));
             // Save in that file
             return save(monitor);
         }
