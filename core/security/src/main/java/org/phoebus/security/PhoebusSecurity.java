@@ -24,6 +24,6 @@ public class PhoebusSecurity
     static
     {
         final PreferencesReader prefs = new PreferencesReader(PhoebusSecurity.class, "/phoebus_security_preferences.properties");
-        authorization_file = PreferencesReader.replaceProperties(prefs.get("authorization_file"));
+        authorization_file = prefs.get("authorization_file");
     }
 }

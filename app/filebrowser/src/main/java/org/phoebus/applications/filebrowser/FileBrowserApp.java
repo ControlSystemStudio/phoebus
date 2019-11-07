@@ -23,7 +23,7 @@ public class FileBrowserApp implements AppResourceDescriptor {
     static
     {
         final PreferencesReader prefs = new PreferencesReader(FileBrowserApp.class, "/filebrowser_preferences.properties");
-        default_root = new File(PreferencesReader.replaceProperties(prefs.get("default_root")));
+        default_root = new File(prefs.get("default_root"));
         show_hidden = prefs.getBoolean("show_hidden");
     }
 

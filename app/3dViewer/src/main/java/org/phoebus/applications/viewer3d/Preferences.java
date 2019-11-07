@@ -28,7 +28,7 @@ public class Preferences
         final PreferencesReader prefs = new PreferencesReader(Preferences.class, "/3d_viewer_preferences.properties");
 
         read_timeout = prefs.getInt(READ_TIMEOUT);
-        default_dir = PreferencesReader.replaceProperties(prefs.get(DEFAULT_DIR));
+        default_dir = prefs.get(DEFAULT_DIR);
         cone_faces = prefs.getInt(CONE_FACES);
     }
 }

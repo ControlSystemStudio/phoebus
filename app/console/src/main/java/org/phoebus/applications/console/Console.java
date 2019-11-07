@@ -61,8 +61,8 @@ public class Console
         font_size = prefs.getInt("font_size");
         prompt = prefs.get("prompt");
         prompt_info = prefs.get("prompt_info");
-        shell = PreferencesReader.replaceProperties(prefs.get("shell"));
-        directory = new File(PreferencesReader.replaceProperties(prefs.get("directory")));
+        shell = prefs.get("shell");
+        directory = new File(prefs.get("directory"));
     }
 
     public enum LineType
