@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 public class PVNameFilter
 {
     // Number, optional exponent
-    final private static Pattern number = Pattern.compile("^-?[0-9]+[+.0-9eE-]+");
+    final private static Pattern number = Pattern.compile("^-?[0-9]+[+.0-9eE-]*$");
 
     /** @param pvname Possible PV name as received from a link
      *  @return <code>true</code> if it looks like a valid PV name
