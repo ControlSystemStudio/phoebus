@@ -63,9 +63,7 @@ public class PreferencesReader
             {
                 Logger.getLogger(PreferencesReader.class.getPackageName())
                       .log(Level.SEVERE, "Reading Preferences: Java system property or Environment variable'" + prop_spec + "' is not defined");
-                // I would not break here, leaving the "macro" pattern inside for possible other purposes, allowing to replace known macros at the same time
-                // See for example org.phoebus.applications.update.Update.java
-                // Should not harm
+                break;
             }
             else
                 result = result.substring(0, start) + prop + result.substring(end);
