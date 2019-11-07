@@ -18,13 +18,6 @@
 
 package org.phoebus.service.saveandrestore.persistence.dao.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
@@ -67,6 +60,8 @@ import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.services.exception.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.services.exception.SnapshotNotFoundException;
 
+import static org.junit.Assert.*;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @EnableConfigurationProperties
 @ContextHierarchy({ @ContextConfiguration(classes = { PersistenceConfiguration.class, PersistenceTestConfig.class }) })
@@ -75,7 +70,7 @@ import org.phoebus.service.saveandrestore.services.exception.SnapshotNotFoundExc
 public class DAOTest {
 
 	@Autowired
-	private NodeDAO nodeDAO;
+	private NodeJdbcDAO nodeDAO;
 
 	private Alarm alarm;
 	private Time time;
@@ -380,8 +375,7 @@ public class DAOTest {
 		SnapshotItem item1 = SnapshotItem.builder().configPv(configPvs.get(0))
 				.value(VDouble.of(7.7, alarm, time, display)).build();
 
-		Node newSnapshot = nodeDAO.savePreliminarySnapshot(config.getUniqueId(), Arrays.asList(item1));
-		nodeDAO.commitSnapshot(newSnapshot.getUniqueId(), "snapshot name", "user", "comment");
+		Node newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshot name", "user", "comment");
 
 		config = nodeDAO.getParentNode(newSnapshot.getUniqueId());
 
@@ -408,25 +402,17 @@ public class DAOTest {
 				.value(VDouble.of(7.7, alarm, time, display)).readbackValue(VDouble.of(7.7, alarm, time, display))
 				.build();
 
-		Node newSnapshot = nodeDAO.savePreliminarySnapshot(config.getUniqueId(), Arrays.asList(item1));
+		Node newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshot name", "user", "comment");
 		List<SnapshotItem> snapshotItems = nodeDAO.getSnapshotItems(newSnapshot.getUniqueId());
 		assertEquals(7.7, ((VDouble) snapshotItems.get(0).getValue()).getValue().doubleValue(), 0.01);
 		assertEquals(7.7, ((VDouble) snapshotItems.get(0).getReadbackValue()).getValue().doubleValue(), 0.01);
 
-		Node fullSnapshot = nodeDAO.getSnapshot(newSnapshot.getUniqueId(), true);
-		assertNull(fullSnapshot);
-
-		List<Node> snapshots = nodeDAO.getSnapshots(config.getUniqueId());
-		assertTrue(snapshots.isEmpty());
-
-		nodeDAO.commitSnapshot(newSnapshot.getUniqueId(), "snapshot name", "user", "comment");
-
-		fullSnapshot = nodeDAO.getSnapshot(newSnapshot.getUniqueId(), true);
+		Node fullSnapshot = nodeDAO.getSnapshot(newSnapshot.getUniqueId());
 		assertNotNull(fullSnapshot);
 		snapshotItems = nodeDAO.getSnapshotItems(newSnapshot.getUniqueId());
 		assertEquals(1, snapshotItems.size());
 
-		snapshots = nodeDAO.getSnapshots(config.getUniqueId());
+		List<Node> snapshots = nodeDAO.getSnapshots(config.getUniqueId());
 		assertEquals(1, snapshots.size());
 
 		nodeDAO.deleteNode(newSnapshot.getUniqueId());
@@ -437,16 +423,8 @@ public class DAOTest {
 		List<ConfigPv> configPvs = nodeDAO.getConfigPvs(config.getUniqueId());
 		item1 = SnapshotItem.builder().configPv(configPvs.get(0)).build();
 
-		newSnapshot = nodeDAO.savePreliminarySnapshot(config.getUniqueId(), Arrays.asList(item1));
+		newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshot name", "user", "comment");
 
-		nodeDAO.commitSnapshot(newSnapshot.getUniqueId(), "snapshot name", "user", "comment");
-
-	}
-
-	@Test(expected = SnapshotNotFoundException.class)
-	@FlywayTest(invokeCleanDB = true)
-	public void testCommitNonExistingSnapshot() {
-		nodeDAO.commitSnapshot("a", "", "", "");
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
@@ -463,14 +441,11 @@ public class DAOTest {
 				.value(VDouble.of(7.7, alarm, time, display)).readbackValue(VDouble.of(7.7, alarm, time, display))
 				.build();
 
-		Node newSnapshot = nodeDAO.savePreliminarySnapshot(config.getUniqueId(), Arrays.asList(item1));
-		nodeDAO.commitSnapshot(newSnapshot.getUniqueId(), "snapshot name", "user", "comment");
+		Node newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshot name", "user", "comment");
 		
-		Node newSnapshot2 = nodeDAO.savePreliminarySnapshot(config.getUniqueId(), Arrays.asList(item1));
-		nodeDAO.commitSnapshot(newSnapshot2.getUniqueId(), "snapshot name 2", "user", "comment");
+		Node newSnapshot2 = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshot name 2", "user", "comment");
 		
-		Node anotherSnapshot = nodeDAO.savePreliminarySnapshot(config.getUniqueId(), Arrays.asList(item1));
-		nodeDAO.commitSnapshot(anotherSnapshot.getUniqueId(), "snapshot name", "user", "comment");
+		Node anotherSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshot name", "user", "comment");
 	}
 
 	@Test
@@ -478,29 +453,6 @@ public class DAOTest {
 	public void testGetSnapshotsNoSnapshots() {
 
 		assertTrue(nodeDAO.getSnapshots("a").isEmpty());
-	}
-	
-	@Test
-	@FlywayTest(invokeCleanDB = true)
-	public void testGetSnapshotsCommittedNoSnapshots() {
-
-		Node rootNode = nodeDAO.getRootNode();
-
-		Node config = Node.builder().name("My config 3").nodeType(NodeType.CONFIGURATION).build();
-
-		config = nodeDAO.createNode(rootNode.getUniqueId(), config);
-		nodeDAO.updateConfiguration(config, Arrays.asList(ConfigPv.builder().pvName("whatever").build()));
-
-		SnapshotItem item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
-				.value(VDouble.of(7.7, alarm, time, display)).readbackValue(VDouble.of(7.7, alarm, time, display))
-				.build();
-
-		Node newSnapshot = nodeDAO.savePreliminarySnapshot(config.getUniqueId(), Arrays.asList(item1));
-		List<SnapshotItem> snapshotItems = nodeDAO.getSnapshotItems(newSnapshot.getUniqueId());
-		assertEquals(7.7, ((VDouble) snapshotItems.get(0).getValue()).getValue().doubleValue(), 0.01);
-		assertEquals(7.7, ((VDouble) snapshotItems.get(0).getReadbackValue()).getValue().doubleValue(), 0.01);
-
-		assertTrue(nodeDAO.getSnapshots(config.getUniqueId()).isEmpty());
 	}
 	
 	@Test
@@ -516,14 +468,14 @@ public class DAOTest {
 		SnapshotItem item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
 				.value(VDouble.of(7.7, alarm, time, display))
 				.build();
-		Node newSnapshot = nodeDAO.savePreliminarySnapshot(config.getUniqueId(), Arrays.asList(item1));
+		Node newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "name", "comment", "user");
 		List<SnapshotItem> snapshotItems = nodeDAO.getSnapshotItems(newSnapshot.getUniqueId());
 		assertEquals(7.7, ((VDouble) snapshotItems.get(0).getValue()).getValue().doubleValue(), 0.01);
 		assertNull(snapshotItems.get(0).getReadbackValue());
 		
 		item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
 				.build();
-		newSnapshot = nodeDAO.savePreliminarySnapshot(config.getUniqueId(), Arrays.asList(item1));
+		newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "name2", "comment", "user");
 		snapshotItems = nodeDAO.getSnapshotItems(newSnapshot.getUniqueId());
 		assertNull(snapshotItems.get(0).getValue());
 	}
@@ -728,26 +680,19 @@ public class DAOTest {
 		SnapshotItem item2 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
 				.value(VInt.of(7, alarm, time, display)).build();
 
-		Node snapshot = nodeDAO.savePreliminarySnapshot(config.getUniqueId(), Arrays.asList(item1, item2));
+		Node snapshot = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1, item2), "name", "comment", "user");
 
 		List<SnapshotItem> snapshotItems = nodeDAO.getSnapshotItems(snapshot.getUniqueId());
 
 		assertEquals(7.7, ((VDouble) snapshotItems.get(0).getValue()).getValue().doubleValue(), 0.01);
 		assertEquals(7, ((VInt) snapshotItems.get(1).getValue()).getValue().intValue());
 
-		Node fullSnapshot = nodeDAO.getSnapshot(snapshot.getUniqueId(), true);
-
-		assertNull(fullSnapshot);
-
-		List<Node> snapshots = nodeDAO.getSnapshots(config.getUniqueId());
-
-		assertTrue(snapshots.isEmpty());
-
-		nodeDAO.commitSnapshot(snapshot.getUniqueId(), "snapshot name", "user", "comment");
-
-		fullSnapshot = nodeDAO.getSnapshot(snapshot.getUniqueId(), false);
+		Node fullSnapshot = nodeDAO.getSnapshot(snapshot.getUniqueId());
 
 		assertNotNull(fullSnapshot);
+
+		List<Node> snapshots = nodeDAO.getSnapshots(config.getUniqueId());
+		assertFalse(snapshots.isEmpty());
 		assertEquals(2, nodeDAO.getSnapshotItems(fullSnapshot.getUniqueId()).size());
 
 		config.putProperty("description", "Updated description");
@@ -1035,7 +980,7 @@ public class DAOTest {
 	public void testGetSnapshotThatIsNotSnapshot() {
 		Node root = nodeDAO.getRootNode();
 		Node node = nodeDAO.createNode(root.getUniqueId(), Node.builder().name("dsa").build());
-		assertNull(nodeDAO.getSnapshot(node.getUniqueId(), false));
+		assertNull(nodeDAO.getSnapshot(node.getUniqueId()));
 	}
 
 	@Test(expected = RuntimeException.class)

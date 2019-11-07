@@ -8,6 +8,7 @@
       <src path="${test}"/>
       <classpath>
         <pathelement path="../framework/${build}/core-framework-${version}.jar"/>
+        <pathelement path="../types/${build}/core-types-${version}.jar"/>
         <pathelement path="../util/${build}/core-util-${version}.jar"/>
         <pathelement path="../security/${build}/core-security-${version}.jar"/>
         <pathelement path="../vtype/${build}/core-vtype-${version}.jar"/>

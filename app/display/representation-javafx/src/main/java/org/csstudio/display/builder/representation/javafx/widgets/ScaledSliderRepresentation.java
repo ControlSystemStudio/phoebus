@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,6 +19,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.ScaledSliderWidget;
+import org.csstudio.display.builder.representation.javafx.JFXPreferences;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.Display;
 import org.epics.vtype.VType;
@@ -69,8 +70,16 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
     private volatile boolean active = false;
     private volatile boolean enabled = false;
 
-    private final Slider slider = new Slider();
-    private final SliderMarkers markers = new SliderMarkers(slider);
+    private final Slider slider;
+    private final SliderMarkers markers;
+
+    public ScaledSliderRepresentation()
+    {
+        slider = JFXPreferences.inc_dec_slider
+               ? new IncDecSlider()
+               : new Slider();
+       markers = new SliderMarkers(slider);
+    }
 
     @Override
     protected GridPane createJFXNode() throws Exception
@@ -81,11 +90,11 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
             switch (event.getCode())
             {
             case PAGE_UP:
-                slider.adjustValue(value+slider.getBlockIncrement());
+                slider.increment();
                 event.consume();
                 break;
             case PAGE_DOWN:
-                slider.adjustValue(value-slider.getBlockIncrement());
+                slider.decrement();
                 event.consume();
                 break;
             default: break;

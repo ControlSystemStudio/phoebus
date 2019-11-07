@@ -463,48 +463,58 @@ public class NodeJdbcDAO implements NodeDAO {
 		
 		return getNode(persistedNode.getId());
 	}
-	
 
-	@Transactional
-	@Override
-	public void commitSnapshot(String uniqueNodeId, String snapshotName, String userName, String comment) {
-		
-		Node snapshotNode = getNode(uniqueNodeId);
-		
-		if(snapshotNode == null) {
-			throw new SnapshotNotFoundException(String.format("Snapshot node with id=%s not found", uniqueNodeId));
-		}
-		
-		Node parentNode = getParentNode(snapshotNode.getId());
-		if(parentNode == null) {
-			throw new IllegalArgumentException(String.format("Cannot commit snapshot id=%d as its parent is not found. Should not happen!", snapshotNode.getId()));
-		}
-		
-		List<Node> parentsChildNodes = getChildNodes(parentNode.getUniqueId());
-		parentsChildNodes.remove(snapshotNode);
-		
-		for(Node childNode : parentsChildNodes) {
-			if(childNode.getNodeType().equals(NodeType.SNAPSHOT) && childNode.getName().equals(snapshotName)) {
-				throw new IllegalArgumentException(String.format("A snapshot node with name=%s already exists for the configuration", snapshotName));
-			}
-		}
-		
-		jdbcTemplate.update("update node set name=?, username=?, last_modified=? where unique_id=?", snapshotName, userName, Timestamp.from(Instant.now()), uniqueNodeId);
-		insertOrUpdateProperty(snapshotNode.getId(), new AbstractMap.SimpleEntry<String, String>("comment", comment));
-	}
 	
 	@Transactional
 	@Override
 	public Node saveSnapshot(String parentsUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment, String userName) {
-		Node snapshotNode = savePreliminarySnapshot(parentsUniqueId, snapshotItems);
-		commitSnapshot(snapshotNode.getUniqueId(), snapshotName, userName, comment);
-		
-		return getSnapshot(snapshotNode.getUniqueId(), true);
+		Node snapshotNode = createNode(parentsUniqueId, Node.builder()
+				.name(snapshotName)
+				.nodeType(NodeType.SNAPSHOT)
+				.build());
+
+		Map<String, Object> params = new HashMap<>(6);
+		params.put("snapshot_node_id", snapshotNode.getId());
+
+		for (SnapshotItem snapshotItem : snapshotItems) {
+			params.put("config_pv_id", snapshotItem.getConfigPv().getId());
+			params.put("readback", 0);
+			if (snapshotItem.getValue() != null) {
+				SnapshotPv snapshotPv = SnapshotDataConverter.fromVType(snapshotItem.getValue());
+				params.put("severity", snapshotPv.getAlarmSeverity().toString());
+				params.put("status", snapshotPv.getAlarmStatus().toString());
+				params.put("time", snapshotPv.getTime());
+				params.put("timens", snapshotPv.getTimens());
+				params.put("sizes", snapshotPv.getSizes());
+				params.put("data_type", snapshotPv.getDataType().toString());
+				params.put("value", snapshotPv.getValue());
+			}
+
+			snapshotPvInsert.execute(params);
+
+			if (snapshotItem.getReadbackValue() != null) {
+				SnapshotPv snapshotPv = SnapshotDataConverter.fromVType(snapshotItem.getReadbackValue());
+				params.put("severity", snapshotPv.getAlarmSeverity().toString());
+				params.put("status", snapshotPv.getAlarmStatus().toString());
+				params.put("time", snapshotPv.getTime());
+				params.put("timens", snapshotPv.getTimens());
+				params.put("sizes", snapshotPv.getSizes());
+				params.put("data_type", snapshotPv.getDataType().toString());
+				params.put("value", snapshotPv.getValue());
+				params.put("readback", 1);
+				snapshotPvInsert.execute(params);
+			}
+		}
+
+		jdbcTemplate.update("update node set name=?, username=?, last_modified=? where unique_id=?", snapshotName, userName, Timestamp.from(Instant.now()), snapshotNode.getUniqueId());
+		insertOrUpdateProperty(snapshotNode.getId(), new AbstractMap.SimpleEntry<String, String>("comment", comment));
+
+		return getSnapshot(snapshotNode.getUniqueId());
 	}
 
 	/**
-	 * Retrieves snapshot nodes that have been saved (committed). A saved snapshot records has a non-null user name value.
-	 * @see NodeDAO#getSnapshots(java.lang.String)
+	 * Retrieves saved snapshot nodes.
+	 * @param uniqueNodeId The unique node id of the snapshot
 	 */
 	@Override
 	public List<Node> getSnapshots(String uniqueNodeId) {
@@ -544,60 +554,15 @@ public class NodeJdbcDAO implements NodeDAO {
 		return snapshotItems;
 	}
 
-	@Transactional
 	@Override
-	public Node getSnapshot(String uniqueNodeId, boolean committedOnly) {
+	public Node getSnapshot(String uniqueNodeId) {
 
 		Node snapshotNode = getNode(uniqueNodeId);
-		if(snapshotNode == null || !snapshotNode.getNodeType().equals(NodeType.SNAPSHOT) || (committedOnly && snapshotNode.getProperty("comment") == null)) {
+		if(snapshotNode == null || !snapshotNode.getNodeType().equals(NodeType.SNAPSHOT)) {
 			return null;
 		}
 		
 		return snapshotNode;
-	}
-	
-	@Transactional
-	@Override
-	public Node savePreliminarySnapshot(String parentsUniqueId, List<SnapshotItem> snapshotItems) {
-
-		Node node = createNode(parentsUniqueId, Node.builder()
-				.nodeType(NodeType.SNAPSHOT)
-				.build());
-			
-		Map<String, Object> params = new HashMap<>(6);
-		params.put("snapshot_node_id", node.getId());
-
-		for (SnapshotItem snapshotItem : snapshotItems) {
-			params.put("config_pv_id", snapshotItem.getConfigPv().getId());
-			params.put("readback", 0);
-			if (snapshotItem.getValue() != null) {
-				SnapshotPv snapshotPv = SnapshotDataConverter.fromVType(snapshotItem.getValue());
-				params.put("severity", snapshotPv.getAlarmSeverity().toString());
-				params.put("status", snapshotPv.getAlarmStatus().toString());
-				params.put("time", snapshotPv.getTime());
-				params.put("timens", snapshotPv.getTimens());
-				params.put("sizes", snapshotPv.getSizes());
-				params.put("data_type", snapshotPv.getDataType().toString());
-				params.put("value", snapshotPv.getValue());
-			}
-
-			snapshotPvInsert.execute(params);
-			
-			if (snapshotItem.getReadbackValue() != null) {
-				SnapshotPv snapshotPv = SnapshotDataConverter.fromVType(snapshotItem.getReadbackValue());
-				params.put("severity", snapshotPv.getAlarmSeverity().toString());
-				params.put("status", snapshotPv.getAlarmStatus().toString());
-				params.put("time", snapshotPv.getTime());
-				params.put("timens", snapshotPv.getTimens());
-				params.put("sizes", snapshotPv.getSizes());
-				params.put("data_type", snapshotPv.getDataType().toString());
-				params.put("value", snapshotPv.getValue());
-				params.put("readback", 1);
-				snapshotPvInsert.execute(params);
-			}
-		}
-
-		return node;
 	}
 	
 	/**

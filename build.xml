@@ -13,9 +13,9 @@
     <ant target="clean" dir="core/pva"/>
     <ant target="clean" dir="core/pv"/>
     <ant target="clean" dir="core/security"/>
+    <ant target="clean" dir="core/types"/>
     <ant target="clean" dir="core/ui"/>
     <ant target="clean" dir="core/logbook"/>
-    <ant target="clean" dir="core/types"/>
     <ant target="clean" dir="core/launcher"/>
     <ant target="clean" dir="app/diag"/>
     <ant target="clean" dir="app/email"/>
@@ -77,9 +77,9 @@
     <ant dir="core/pva"/>
     <ant dir="core/pv"/>
     <ant dir="core/security"/>
+    <ant dir="core/types"/>
     <ant dir="core/ui"/>
     <ant dir="core/logbook"/>
-    <ant dir="core/types"/>
     <ant dir="core/launcher"/>
   </target>
 

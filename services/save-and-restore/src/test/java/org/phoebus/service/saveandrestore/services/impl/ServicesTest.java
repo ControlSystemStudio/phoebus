@@ -132,29 +132,6 @@ public class ServicesTest {
 	}
 	
 	@Test
-	public void testCommitSnapshot() {
-		
-		when(nodeDAO.getSnapshot("a", false)).thenReturn(Node.builder().nodeType(NodeType.SNAPSHOT).id(777).build());
-		
-		services.commitSnapshot("a", "snapshot name", "comment", "user");
-		
-		verify(nodeDAO, atLeast(1)).getSnapshot(anyString(), anyBoolean());
-		verify(nodeDAO, times(1)).commitSnapshot(anyString(), anyString(), anyString(), anyString());
-		
-		reset(nodeDAO);
-	}
-	
-	@Test(expected = NodeNotFoundException.class)
-	public void testCommitSnapshotNotFound() {
-		
-		when(nodeDAO.getSnapshot("a", false)).thenReturn(null);
-		
-		services.commitSnapshot("a", "snapshot name", "comment", "user");
-		
-		reset(nodeDAO);
-	}
-	
-	@Test
 	public void testGetSnapshots() {
 		
 		services.getSnapshots(anyString());
@@ -167,7 +144,7 @@ public class ServicesTest {
 	@Test
 	public void testGetSnapshotNotFound() {
 		
-		when(nodeDAO.getSnapshot("s", false)).thenReturn(null);
+		when(nodeDAO.getSnapshot("s")).thenReturn(null);
 		
 		try {
 			services.getSnapshot("s");
@@ -182,7 +159,7 @@ public class ServicesTest {
 	@Test
 	public void testGetSnapshot() {
 		
-		when(nodeDAO.getSnapshot("s", true)).thenReturn(mock(Node.class));
+		when(nodeDAO.getSnapshot("s")).thenReturn(mock(Node.class));
 		
 		Node snapshot = services.getSnapshot("s");
 		

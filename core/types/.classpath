@@ -4,6 +4,5 @@
 	<classpathentry kind="src" output="target/classes" path="src/main/java"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/phoebus-target"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-framework"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/core-logbook"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

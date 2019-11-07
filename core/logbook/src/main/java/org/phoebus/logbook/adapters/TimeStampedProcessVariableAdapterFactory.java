@@ -1,4 +1,4 @@
-package org.phoebus.core.types.adapters;
+package org.phoebus.logbook.adapters;
 
 import static org.phoebus.logbook.LogEntryImpl.LogEntryBuilder.log;
 

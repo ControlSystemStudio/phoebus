@@ -122,7 +122,9 @@ public class JMasarJerseyClient implements JMasarClient{
 
     @Override
     public Node updateNode(Node nodeToUpdate) {
-        nodeToUpdate.setUserName(getCurrentUsersName());
+        if(nodeToUpdate.getUserName() == null || nodeToUpdate.getUserName().isEmpty()) {
+            nodeToUpdate.setUserName(getCurrentUsersName());
+        }
         WebResource webResource = client.resource(jmasarServiceUrl + "/node/" + nodeToUpdate.getUniqueId() + "/update");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)

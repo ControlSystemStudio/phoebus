@@ -43,7 +43,7 @@ import javafx.util.StringConverter;
 import org.epics.vtype.*;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.ui.MultitypeTableCell;
-import org.phoebus.applications.saveandrestore.ui.Utilities;
+import org.phoebus.applications.saveandrestore.Utilities;
 import org.phoebus.applications.saveandrestore.ui.model.*;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 

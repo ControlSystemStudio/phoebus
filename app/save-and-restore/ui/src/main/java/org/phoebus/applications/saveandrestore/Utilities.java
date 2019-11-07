@@ -1,14 +1,23 @@
 /*
- * This software is Copyright by the Board of Trustees of Michigan
- * State University (c) Copyright 2016.
+ * *
+ *  * Copyright (C) 2019 European Spallation Source ERIC.
+ *  * <p>
+ *  * This program is free software; you can redistribute it and/or
+ *  * modify it under the terms of the GNU General Public License
+ *  * as published by the Free Software Foundation; either version 2
+ *  * of the License, or (at your option) any later version.
+ *  * <p>
+ *  * This program is distributed in the hope that it will be useful,
+ *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  * GNU General Public License for more details.
+ *  * <p>
+ *  * You should have received a copy of the GNU General Public License
+ *  * along with this program; if not, write to the Free Software
+ *  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * Contact Information:
- *   Facility for Rare Isotope Beam
- *   Michigan State University
- *   East Lansing, MI 48824-1321
- *   http://frib.msu.edu
  */
-package org.phoebus.applications.saveandrestore.ui;
+package org.phoebus.applications.saveandrestore;
 
 import java.text.*;
 import java.time.Instant;
@@ -235,50 +244,7 @@ public final class Utilities {
         return type;
     }
 
-    /**
-     * Extracts the raw value from the given data object. The raw value is either one of the primitive wrappers or some
-     * kind of a list type if the value is an {@link Array}.
-     *
-     * @param type the value to extract the raw data from
-     * @return the raw data
-     */
-//    public static Object toRawValue(VType type) {
-//        if (type == null) {
-//            return null;
-//        }
-//        if (type instanceof VNumberArray) {
-//            return ((VNumberArray) type).getData();
-//        } else if (type instanceof VEnumArray) {
-//            return ((VEnumArray) type).getData();
-//        } else if (type instanceof VStringArray) {
-//            List<String> data = ((VStringArray) type).getData();
-//            return data == null ? new String[0] : data.toArray(new String[data.size()]);
-//        } else if (type instanceof VBooleanArray) {
-//            return ((VBooleanArray) type).getData();
-//        } else if (type instanceof VNumber) {
-//            return ((VNumber) type).getValue();
-//        } else if (type instanceof VEnum) {
-//            VEnum en = (VEnum) type;
-//            String val = en.getValue();
-//            if (val.isEmpty()) {
-//                // if all labels are empty, return the index as a string, otherwise return the label
-//                List<String> labels = en.getDisplay().getChoices();
-//                for (String s : labels) {
-//                    if (!s.isEmpty()) {
-//                        return val;
-//                    }
-//                }
-//                return String.valueOf(en.getIndex());
-//            } else {
-//                return val;
-//            }
-//        } else if (type instanceof VString) {
-//            return ((VString) type).getValue();
-//        } else if (type instanceof VBoolean) {
-//            return ((VBoolean) type).getValue();
-//        }
-//        return null;
-//    }
+  
 
     /**
      * Transforms the vtype to a string representing the raw value in the vtype. If the value is an array it is
@@ -289,132 +255,132 @@ public final class Utilities {
      * @param type the type to transform
      * @return the string representing the raw value
      */
-//    public static String toRawStringValue(VType type) {
-//        if (type instanceof VNumberArray) {
-//            ListNumber list = ((VNumberArray) type).getData();
-//            StringBuilder sb = new StringBuilder(list.size() * 10);
-//            sb.append('[');
-//            IteratorNumber it = list.iterator();
-//            if (type instanceof VDoubleArray) {
-//                while (it.hasNext()) {
-//                    String str = String.valueOf(it.nextDouble());
-//                    sb.append(COMMA_PATTERN.matcher(str).replaceAll("\\.")).append(SEMI_COLON);
-//                }
-//            } else if (type instanceof VFloatArray) {
-//                while (it.hasNext()) {
-//                    String str = String.valueOf(it.nextFloat());
-//                    sb.append(COMMA_PATTERN.matcher(str).replaceAll("\\.")).append(SEMI_COLON);
-//                }
-//            } else if (type instanceof VLongArray) {
-//                while (it.hasNext()) {
-//                    sb.append(it.nextLong()).append(SEMI_COLON);
-//                }
-//            } else if (type instanceof VIntArray) {
-//                while (it.hasNext()) {
-//                    sb.append(it.nextInt()).append(SEMI_COLON);
-//                }
-//            } else if (type instanceof VShortArray) {
-//                while (it.hasNext()) {
-//                    sb.append(it.nextShort()).append(SEMI_COLON);
-//                }
-//            } else if (type instanceof VByteArray) {
-//                while (it.hasNext()) {
-//                    sb.append(it.nextByte()).append(SEMI_COLON);
-//                }
-//            }
-//            if (list.size() == 0) {
-//                sb.append(']');
-//            } else {
-//                sb.setCharAt(sb.length() - 1, ']');
-//            }
-//            return sb.toString();
-//        } else if (type instanceof VEnumArray) {
-//            List<String> list = ((VEnumArray) type).getData();
-//            List<String> labels = ((VEnumArray) type).getDisplay().getChoices();
-//            final StringBuilder sb = new StringBuilder((list.size() + labels.size()) * 10);
-//            sb.append('[');
-//            list.forEach(s -> sb.append(s).append(SEMI_COLON));
-//            if (list.isEmpty()) {
-//                sb.append(']');
-//            } else {
-//                sb.setCharAt(sb.length() - 1, ']');
-//            }
-//            sb.append('~').append('[');
-//            labels.forEach(s -> sb.append(s).append(SEMI_COLON));
-//            if (labels.isEmpty()) {
-//                sb.append(']');
-//            } else {
-//                sb.setCharAt(sb.length() - 1, ']');
-//            }
-//            return sb.toString();
-//        } else if (type instanceof VStringArray) {
-//            List<String> list = ((VStringArray) type).getData();
-//            final StringBuilder sb = new StringBuilder(list.size() * 20);
-//            sb.append('[');
-//            list.forEach(s -> sb.append(s).append(SEMI_COLON));
-//            if (list.isEmpty()) {
-//                sb.append(']');
-//            } else {
-//                sb.setCharAt(sb.length() - 1, ']');
-//            }
-//            return sb.toString();
-//        } else if (type instanceof VBooleanArray) {
-//            ListBoolean list = ((VBooleanArray) type).getData();
-//            final StringBuilder sb = new StringBuilder(list.size() * 6);
-//            sb.append('[');
-//            int size = list.size();
-//            for (int i = 0; i < size; i++) {
-//                sb.append(list.getBoolean(i)).append(SEMI_COLON);
-//            }
-//            if (list.size() == 0) {
-//                sb.append(']');
-//            } else {
-//                sb.setCharAt(sb.length() - 1, ']');
-//            }
-//            return sb.toString();
-//        } else if (type instanceof VDouble || type instanceof VFloat) {
-//            // for some locales string.valueof might produce
-//            String str = String.valueOf(((VNumber) type).getValue());
-//            return COMMA_PATTERN.matcher(str).replaceAll("\\.");
-//        } else if (type instanceof VNumber) {
-//            return String.valueOf(((VNumber) type).getValue());
-//        } else if (type instanceof VEnum) {
-//            List<String> labels = ((VEnum) type).getDisplay().getChoices();
-//            boolean allEmpty = true;
-//            for (String s : labels) {
-//                if (!s.isEmpty()) {
-//                    allEmpty = false;
-//                    break;
-//                }
-//            }
-//            String value = ((VEnum) type).getValue();
-//            if (allEmpty) {
-//                List<String> newLabels = new ArrayList<>(labels.size());
-//                for (int i = 0; i < labels.size(); i++) {
-//                    newLabels.add(String.valueOf(i));
-//                }
-//                labels = newLabels;
-//                if (value.isEmpty()) {
-//                    value = String.valueOf(((VEnum) type).getIndex());
-//                }
-//            }
-//            final StringBuilder sb = new StringBuilder((labels.size() + 1) * 10);
-//            sb.append(value);
-//            sb.append('~').append('[');
-//            labels.forEach(s -> sb.append(s).append(SEMI_COLON));
-//            if (labels.isEmpty()) {
-//                sb.append(']');
-//            } else {
-//                sb.setCharAt(sb.length() - 1, ']');
-//            }
-//            return sb.toString();
-//        } else if (type instanceof VString) {
-//            return ((VString) type).getValue();
-//        } else if (type instanceof VBoolean) {
-//            return String.valueOf(((VBoolean) type).getValue());
-//        }
-//        return type.toString();
-//    }
+    public static String toRawStringValue(VType type) {
+        if (type instanceof VNumberArray) {
+            ListNumber list = ((VNumberArray) type).getData();
+            StringBuilder sb = new StringBuilder(list.size() * 10);
+            sb.append('[');
+            IteratorNumber it = list.iterator();
+            if (type instanceof VDoubleArray) {
+                while (it.hasNext()) {
+                    String str = String.valueOf(it.nextDouble());
+                    sb.append(COMMA_PATTERN.matcher(str).replaceAll("\\.")).append(SEMI_COLON);
+                }
+            } else if (type instanceof VFloatArray) {
+                while (it.hasNext()) {
+                    String str = String.valueOf(it.nextFloat());
+                    sb.append(COMMA_PATTERN.matcher(str).replaceAll("\\.")).append(SEMI_COLON);
+                }
+            } else if (type instanceof VLongArray) {
+                while (it.hasNext()) {
+                    sb.append(it.nextLong()).append(SEMI_COLON);
+                }
+            } else if (type instanceof VIntArray) {
+                while (it.hasNext()) {
+                    sb.append(it.nextInt()).append(SEMI_COLON);
+                }
+            } else if (type instanceof VShortArray) {
+                while (it.hasNext()) {
+                    sb.append(it.nextShort()).append(SEMI_COLON);
+                }
+            } else if (type instanceof VByteArray) {
+                while (it.hasNext()) {
+                    sb.append(it.nextByte()).append(SEMI_COLON);
+                }
+            }
+            if (list.size() == 0) {
+                sb.append(']');
+            } else {
+                sb.setCharAt(sb.length() - 1, ']');
+            }
+            return sb.toString();
+        } else if (type instanceof VEnumArray) {
+            List<String> list = ((VEnumArray) type).getData();
+            List<String> labels = ((VEnumArray) type).getDisplay().getChoices();
+            final StringBuilder sb = new StringBuilder((list.size() + labels.size()) * 10);
+            sb.append('[');
+            list.forEach(s -> sb.append(s).append(SEMI_COLON));
+            if (list.isEmpty()) {
+                sb.append(']');
+            } else {
+                sb.setCharAt(sb.length() - 1, ']');
+            }
+            sb.append('~').append('[');
+            labels.forEach(s -> sb.append(s).append(SEMI_COLON));
+            if (labels.isEmpty()) {
+                sb.append(']');
+            } else {
+                sb.setCharAt(sb.length() - 1, ']');
+            }
+            return sb.toString();
+        } else if (type instanceof VStringArray) {
+            List<String> list = ((VStringArray) type).getData();
+            final StringBuilder sb = new StringBuilder(list.size() * 20);
+            sb.append('[');
+            list.forEach(s -> sb.append(s).append(SEMI_COLON));
+            if (list.isEmpty()) {
+                sb.append(']');
+            } else {
+                sb.setCharAt(sb.length() - 1, ']');
+            }
+            return sb.toString();
+        } else if (type instanceof VBooleanArray) {
+            ListBoolean list = ((VBooleanArray) type).getData();
+            final StringBuilder sb = new StringBuilder(list.size() * 6);
+            sb.append('[');
+            int size = list.size();
+            for (int i = 0; i < size; i++) {
+                sb.append(list.getBoolean(i)).append(SEMI_COLON);
+            }
+            if (list.size() == 0) {
+                sb.append(']');
+            } else {
+                sb.setCharAt(sb.length() - 1, ']');
+            }
+            return sb.toString();
+        } else if (type instanceof VDouble || type instanceof VFloat) {
+             //for some locales string.valueof might produce
+            String str = String.valueOf(((VNumber) type).getValue());
+            return COMMA_PATTERN.matcher(str).replaceAll("\\.");
+        } else if (type instanceof VNumber) {
+            return String.valueOf(((VNumber) type).getValue());
+        } else if (type instanceof VEnum) {
+            List<String> labels = ((VEnum) type).getDisplay().getChoices();
+            boolean allEmpty = true;
+            for (String s : labels) {
+                if (!s.isEmpty()) {
+                    allEmpty = false;
+                    break;
+                }
+            }
+            String value = ((VEnum) type).getValue();
+            if (allEmpty) {
+                List<String> newLabels = new ArrayList<>(labels.size());
+                for (int i = 0; i < labels.size(); i++) {
+                    newLabels.add(String.valueOf(i));
+                }
+                labels = newLabels;
+                if (value.isEmpty()) {
+                    value = String.valueOf(((VEnum) type).getIndex());
+                }
+            }
+            final StringBuilder sb = new StringBuilder((labels.size() + 1) * 10);
+            sb.append(value);
+            sb.append('~').append('[');
+            labels.forEach(s -> sb.append(s).append(SEMI_COLON));
+            if (labels.isEmpty()) {
+                sb.append(']');
+            } else {
+                sb.setCharAt(sb.length() - 1, ']');
+            }
+            return sb.toString();
+        } else if (type instanceof VString) {
+            return ((VString) type).getValue();
+        } else if (type instanceof VBoolean) {
+            return String.valueOf(((VBoolean) type).getValue());
+        }
+        return type.toString();
+    }
 
     /**
      * Transforms the value of the given {@link VType} to a human readable string. This method uses formatting to format

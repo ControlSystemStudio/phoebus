@@ -132,7 +132,6 @@ public class Messages
     public static String UnLockPane;
     public static String WebBrowser;
     public static String Welcome;
-    public static String WelcomeLabel;
     public static String Window;
 
     static

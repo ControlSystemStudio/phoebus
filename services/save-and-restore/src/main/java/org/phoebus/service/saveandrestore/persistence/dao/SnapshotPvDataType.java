@@ -23,7 +23,7 @@ package org.phoebus.service.saveandrestore.persistence.dao;
  * Created 28 Nov 2018
  */
 public enum SnapshotPvDataType {
-	
+
 	BYTE,
 	UBYTE,
 	SHORT,
@@ -34,5 +34,7 @@ public enum SnapshotPvDataType {
 	ULONG,
 	FLOAT,
 	DOUBLE,
-	STRING;
+	STRING,
+	BOOLEAN,
+	ENUM;
 }

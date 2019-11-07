@@ -132,63 +132,12 @@ public class SnapshotControllerTest {
 	}
 	
 	@Test
-	public void testCommitSnapshot() throws Exception{
-			
-		MockHttpServletRequestBuilder request = post("/snapshot/9?userName=a&comment=b&snapshotName=c");
-
-		mockMvc.perform(request).andExpect(status().isOk());
-	}
-	
-	@Test
-	public void testCommitSnapshotBadRequest1() throws Exception{
-			
-		MockHttpServletRequestBuilder request = post("/snapshot/9?userName=a");
-
-		mockMvc.perform(request).andExpect(status().isBadRequest());
-	}
-	
-	@Test
-	public void testCommitSnapshotBadRequest2() throws Exception{
-			
-		MockHttpServletRequestBuilder request = post("/snapshot/9?comment=a");
-
-		mockMvc.perform(request).andExpect(status().isBadRequest());
-	}
-	
-	@Test
 	public void testNonExistingSnapshot() throws Exception{
 		when(services.getSnapshot("x")).thenThrow(new SnapshotNotFoundException("lasdfk"));
 
 		MockHttpServletRequestBuilder request = get("/snapshot/x").contentType(JSON);
 
 		mockMvc.perform(request).andExpect(status().isNotFound());
-	}
-	
-	@Test
-	public void testCommitRequestNoUserNameOrComment() throws Exception{
-		MockHttpServletRequestBuilder request = post("/snapshot/9");
-		
-		mockMvc.perform(request).andExpect(status().isBadRequest());
-	}
-	
-	@Test
-	public void testCommitRequestEmptyUserName() throws Exception{
-		MockHttpServletRequestBuilder request = post("/snapshot/9?userName=&comment=comment&snapshotName=name");
-		
-		mockMvc.perform(request).andExpect(status().isBadRequest());
-	}
-	
-	@Test
-	public void testCommitRequestEmptyComment() throws Exception{
-		MockHttpServletRequestBuilder request = post("/snapshot/9?userName=foo&comment=&snapshotName=name");
-		
-		mockMvc.perform(request).andExpect(status().isOk());
-	}
-	
-	@Test
-	public void testCommitRequestSnapshotNameComment() throws Exception{
-		MockHttpServletRequestBuilder request = post("/snapshot/9?userName=foo&comment=comment&snapshotName=");
-		mockMvc.perform(request).andExpect(status().isBadRequest());
 	}
 	
 	

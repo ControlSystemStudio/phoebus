@@ -60,34 +60,7 @@ public class SnapshotController extends BaseController {
 
 		return services.getSnapshotItems(uniqueNodeId);
 	}
-	
 
-	/**
-	 * Commits a snapshot such that it will be visible when listing snapshots for a configuration,
-	 * see {@link ConfigurationController#getSnapshots(String)}.
-	 * 
-	 * A {@link HttpStatus#NOT_FOUND} is returned if the specified snapshot id does not exist.
-	 * 
-	 * A {@link HttpStatus#BAD_REQUEST} is returned if the user name or comment are null or of zero length.
-	 *  
-	 * @param uniqueNodeId The id of the snapshot
-	 * @param snapshotName Name of the snapshot
-	 * @param userName Mandatory user name.
-	 * @param comment Mandatory comment.
-	 */
-	@PostMapping("/snapshot/{uniqueNodeId}")
-	public void commitSnapshot(@PathVariable String uniqueNodeId, 
-			@RequestParam(required = true) String snapshotName,
-			@RequestParam(required = true) String userName,
-			@RequestParam(required = false) String comment) {
-		
-		if(snapshotName.length() == 0 || userName.length() == 0) {
-			throw new IllegalArgumentException("Snapshot name and username must be of non-zero length");
-		}
-
-		services.commitSnapshot(uniqueNodeId, snapshotName, userName, comment);
-	}
-	
 	
 	@PutMapping("/snapshot/{configUniqueId}")
 	public Node saveSnapshot(@PathVariable String configUniqueId, 
