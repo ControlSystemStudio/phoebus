@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -69,7 +69,7 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
     private volatile boolean active = false;
     private volatile boolean enabled = false;
 
-    private final Slider slider = new Slider();
+    private final Slider slider = new IncDecSlider();
     private final SliderMarkers markers = new SliderMarkers(slider);
 
     @Override
@@ -81,11 +81,11 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
             switch (event.getCode())
             {
             case PAGE_UP:
-                slider.adjustValue(value+slider.getBlockIncrement());
+                slider.increment();
                 event.consume();
                 break;
             case PAGE_DOWN:
-                slider.adjustValue(value-slider.getBlockIncrement());
+                slider.decrement();
                 event.consume();
                 break;
             default: break;
