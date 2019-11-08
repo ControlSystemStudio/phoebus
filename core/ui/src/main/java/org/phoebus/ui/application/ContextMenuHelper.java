@@ -9,6 +9,7 @@ package org.phoebus.ui.application;
 
 import static org.phoebus.ui.application.PhoebusApplication.logger;
 
+import java.util.List;
 import java.util.logging.Level;
 
 import org.phoebus.framework.selection.SelectionService;
@@ -53,10 +54,11 @@ public class ContextMenuHelper
         //  always activate the stage)
         DockStage.setActiveDockStage(stage);
 
-        if (ContextMenuService.getInstance().listSupportedContextMenuEntries().isEmpty())
+        final List<ContextMenuEntry> entries = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+        if (entries.isEmpty())
             return false;
         
-        for (ContextMenuEntry<?> entry : ContextMenuService.getInstance().listSupportedContextMenuEntries())
+        for (ContextMenuEntry<?> entry : entries)
         {
             final MenuItem item = new MenuItem(entry.getName());
 
