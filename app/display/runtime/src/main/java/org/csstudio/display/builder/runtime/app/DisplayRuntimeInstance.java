@@ -11,12 +11,14 @@ import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.macros.DisplayMacroExpander;
 import org.csstudio.display.builder.model.persist.ModelLoader;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
@@ -84,6 +86,16 @@ public class DisplayRuntimeInstance implements AppInstance
     /** Toolbar button for navigation */
     private ButtonBase navigate_backward, navigate_forward;
 
+    /** Obtain the DisplayRuntimeInstance of a display
+     *  @param model {@link DisplayModel}
+     *  @return {@link DisplayRuntimeInstance}
+     */
+    public static DisplayRuntimeInstance ofDisplayModel(final DisplayModel model)
+    {
+        final Parent model_parent = Objects.requireNonNull(model.getUserData(Widget.USER_DATA_TOOLKIT_PARENT));
+        return (DisplayRuntimeInstance) model_parent.getProperties().get(DisplayRuntimeInstance.MODEL_PARENT_DISPLAY_RUNTIME);
+    }
+
     DisplayRuntimeInstance(final AppDescriptor app)
     {
         this.app = app;
@@ -134,7 +146,7 @@ public class DisplayRuntimeInstance implements AppInstance
     }
 
     /** @return DockItem in which this display is contained */
-    DockItem getDockItem()
+    public DockItem getDockItem()
     {
         return dock_item;
     }
