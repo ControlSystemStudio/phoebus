@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.csstudio.display.builder.model.DisplayModel;
 import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockStage;
 
@@ -84,7 +85,8 @@ public class DisplayRuntimeApplication implements AppResourceDescriptor
         }
         else
         {   // Nothing found, create new one
-            instance = create();
+            final String pane = ResourceParser.getPaneName(resource);
+            instance = new DisplayRuntimeInstance(this, pane);
             instance.loadDisplayFile(info);
         }
 

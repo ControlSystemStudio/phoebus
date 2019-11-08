@@ -9,6 +9,7 @@ import static org.junit.Assert.fail;
 import static org.phoebus.framework.util.ResourceParser.PV_SCHEMA;
 import static org.phoebus.framework.util.ResourceParser.createResourceURI;
 import static org.phoebus.framework.util.ResourceParser.getAppName;
+import static org.phoebus.framework.util.ResourceParser.getPaneName;
 import static org.phoebus.framework.util.ResourceParser.getContent;
 import static org.phoebus.framework.util.ResourceParser.getFile;
 import static org.phoebus.framework.util.ResourceParser.getURI;
@@ -135,7 +136,7 @@ public class ResourceParserTest
         assertThat(pvs, hasItems("Fred"));
 
         // Several PVs (but don't include the application hint)
-        uri = createResourceURI("pv://?Fred&Jane&AnotherPV&app=probe");
+        uri = createResourceURI("pv://?Fred&Jane&AnotherPV&app=probe&pane=test");
         System.out.println(uri);
         assertThat(uri.getScheme(), equalTo(PV_SCHEMA));
 
@@ -181,16 +182,36 @@ public class ResourceParserTest
     }
 
     @Test
+    public void checkPaneHint() throws Exception
+    {
+        // Plain URL, no pane hint
+        URI uri = createResourceURI("pv://?Fred");
+        String pane = getPaneName(uri);
+        assertThat(pane, nullValue());
+
+        // PVs with pane hint
+        uri = createResourceURI("pv://?Fred&pane=test");
+        pane = getPaneName(uri);
+        assertThat(pane, equalTo("test"));
+
+        // File URL with pane hint
+        uri = createResourceURI("file:/path/to/file?pane=test");
+        pane = getPaneName(uri);
+        assertThat(pane, equalTo("test"));
+    }
+
+    @Test
     public void checkQueryItems() throws Exception
     {
         // URI with a bunch of query itens
-        URI uri = createResourceURI("file://some/file?Fred&X=1&Y=2+3&app=probe&Z=2%2B3");
+        URI uri = createResourceURI("file://some/file?Fred&X=1&Y=2+3&app=probe&Z=2%2B3&pane=test");
 
         final Map<String, List<String>> items = parseQueryArgs(uri);
         System.out.println(items);
 
         assertThat(items.keySet(), hasItems("Fred", "X", "Y", "Z"));
         assertThat(items.keySet(), not(hasItems("app")));
+        assertThat(items.keySet(), not(hasItems("test")));
 
         List<String> values = items.get("Fred");
         assertThat(values.size(), equalTo(1));

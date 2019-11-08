@@ -34,6 +34,7 @@ import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
+import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.javafx.ToolbarHelper;
 
 import javafx.application.Platform;
@@ -98,9 +99,18 @@ public class DisplayRuntimeInstance implements AppInstance
 
     DisplayRuntimeInstance(final AppDescriptor app)
     {
+        this(app, null);
+    }
+    
+    DisplayRuntimeInstance(final AppDescriptor app, String prefPane)
+    {
         this.app = app;
 
-        final DockPane dock_pane = DockPane.getActiveDockPane();
+        DockPane dock_pane = null;
+        if (prefPane != null)
+            dock_pane = DockStage.getDockPaneByName(prefPane);
+        if (dock_pane == null)
+            dock_pane = DockPane.getActiveDockPane();
         dock_pane.deferUntilInScene(JFXRepresentation::setSceneStyle);
 
         representation = new DockItemRepresentation(this);
