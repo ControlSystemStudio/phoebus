@@ -34,6 +34,7 @@ import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
+import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.javafx.ToolbarHelper;
 
 import javafx.application.Platform;
@@ -45,6 +46,7 @@ import javafx.scene.control.ToolBar;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 
 /** PV Table Application
  *  @author Kay Kasemir
@@ -98,9 +100,28 @@ public class DisplayRuntimeInstance implements AppInstance
 
     DisplayRuntimeInstance(final AppDescriptor app)
     {
+        this(app, null);
+    }
+    
+    DisplayRuntimeInstance(final AppDescriptor app, String prefTarget)
+    {
         this.app = app;
 
-        final DockPane dock_pane = DockPane.getActiveDockPane();
+        DockPane dock_pane = null;
+        if (prefTarget != null)
+        {
+            if (prefTarget.equals("window"))
+            {
+                // Open new Stage in which this app will be opened, its DockPane is a new active one
+                final Stage new_stage = new Stage();
+                DockStage.configureStage(new_stage);
+                new_stage.show();
+            }
+            else
+                dock_pane = DockStage.getDockPaneByName(prefTarget);
+        }
+        if (dock_pane == null)
+            dock_pane = DockPane.getActiveDockPane();
         dock_pane.deferUntilInScene(JFXRepresentation::setSceneStyle);
 
         representation = new DockItemRepresentation(this);

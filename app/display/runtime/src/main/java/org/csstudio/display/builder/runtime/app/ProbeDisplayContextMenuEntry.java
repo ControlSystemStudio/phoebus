@@ -67,7 +67,11 @@ public class ProbeDisplayContextMenuEntry implements ContextMenuEntry<Void>
         for (ProcessVariable pv : pvs)
         {
             // Open the probe display for each PV, passed via $(PV) macro
-            final URI resource = URI.create(Preferences.probe_display + "?PV=" + pv.getName());
+            final URI resource;
+            if (Preferences.probe_display.contains("?"))
+                resource = URI.create(Preferences.probe_display + "&PV=" + pv.getName());
+            else
+                resource = URI.create(Preferences.probe_display + "?PV=" + pv.getName());
             ApplicationService.createInstance(DisplayRuntimeApplication.NAME, resource);
         }
         return null;
