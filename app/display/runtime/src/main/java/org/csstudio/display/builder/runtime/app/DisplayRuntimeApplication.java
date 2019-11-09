@@ -85,7 +85,7 @@ public class DisplayRuntimeApplication implements AppResourceDescriptor
         }
         else
         {   // Nothing found, create new one
-            final String pane = ResourceParser.getPaneName(resource);
+            final String pane = ResourceParser.getTargetName(resource);
             instance = new DisplayRuntimeInstance(this, pane);
             instance.loadDisplayFile(info);
         }

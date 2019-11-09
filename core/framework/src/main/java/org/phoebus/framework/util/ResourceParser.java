@@ -35,7 +35,7 @@ public class ResourceParser
     private static final String APP_QUERY_TAG = "app=";
 
     /** URI query tag used to specify the destination pane */
-    private static final String PANE_QUERY_TAG = "pane=";
+    private static final String TARGET_QUERY_TAG = "target=";
 
 
     /** Create URI for a resource
@@ -146,7 +146,7 @@ public class ResourceParser
         if (! PV_SCHEMA.equals(scheme))
             return List.of();
         final List<String> pvs = getQueryStream(resource).filter(pv -> !pv.startsWith(APP_QUERY_TAG))
-                                                         .filter(pv -> !pv.startsWith(PANE_QUERY_TAG))
+                                                         .filter(pv -> !pv.startsWith(TARGET_QUERY_TAG))
                                                          .collect(Collectors.toList());
         if (pvs.isEmpty())
             throw new Exception("No PVs found in '" + resource + "'");
@@ -165,21 +165,21 @@ public class ResourceParser
                                        .orElse(null);
     }
 
-    /** Get pane name hint from resource
-     *  @param resource URI that might contain "?...pane=the_pane_name"
+    /** Get target name hint from resource
+     *  @param resource URI that might contain "?...target=the_pane_name"
      *  @return "the_pane_name" or <code>null</code>
      */
-    public static String getPaneName(final URI resource)
+    public static String getTargetName(final URI resource)
     {
-        return getQueryStream(resource).filter(q -> q.startsWith(PANE_QUERY_TAG))
-                                       .map(app_name -> app_name.substring(PANE_QUERY_TAG.length()))
+        return getQueryStream(resource).filter(q -> q.startsWith(TARGET_QUERY_TAG))
+                                       .map(app_name -> app_name.substring(TARGET_QUERY_TAG.length()))
                                        .findFirst()
                                        .orElse(null);
     }
 
     /** Get stream of query items
      *
-     *  <p>Filters the "app=.." item,
+     *  <p>Filters the "app=.." and "target=.." items,
      *  passing only the remaining query items
      *
      *  @param resource Resource with optional query
@@ -188,13 +188,13 @@ public class ResourceParser
     public static Stream<Map.Entry<String, String>> getQueryItemStream(final URI resource)
     {
         return getQueryStream(resource).filter(pv -> !pv.startsWith(APP_QUERY_TAG))
-                                       .filter(pv -> !pv.startsWith(PANE_QUERY_TAG))
+                                       .filter(pv -> !pv.startsWith(TARGET_QUERY_TAG))
                                        .map(ResourceParser::splitQueryParameter);
     }
 
     /** Get map of query items
     *
-    *  <p>Filters the "app=.." item,
+    *  <p>Filters the "app=.." and "target=.." items,
     *  passing only the remaining query items
     *
     *  @param resource Resource with optional query

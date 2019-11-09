@@ -46,6 +46,7 @@ import javafx.scene.control.ToolBar;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 
 /** PV Table Application
  *  @author Kay Kasemir
@@ -102,13 +103,23 @@ public class DisplayRuntimeInstance implements AppInstance
         this(app, null);
     }
     
-    DisplayRuntimeInstance(final AppDescriptor app, String prefPane)
+    DisplayRuntimeInstance(final AppDescriptor app, String prefTarget)
     {
         this.app = app;
 
         DockPane dock_pane = null;
-        if (prefPane != null)
-            dock_pane = DockStage.getDockPaneByName(prefPane);
+        if (prefTarget != null)
+        {
+            if (prefTarget.equals("window"))
+            {
+                // Open new Stage in which this app will be opened, its DockPane is a new active one
+                final Stage new_stage = new Stage();
+                DockStage.configureStage(new_stage);
+                new_stage.show();
+            }
+            else
+                dock_pane = DockStage.getDockPaneByName(prefTarget);
+        }
         if (dock_pane == null)
             dock_pane = DockPane.getActiveDockPane();
         dock_pane.deferUntilInScene(JFXRepresentation::setSceneStyle);
