@@ -193,8 +193,8 @@ public class SaveAndRestoreService {
         nodeAddedListeners.add(nodeAddedListener);
     }
 
-    public void removeNodeAddedListener(NodeAddedListener nodeAddwedListener){
-        nodeAddedListeners.remove(nodeAddwedListener);
+    public void removeNodeAddedListener(NodeAddedListener nodeAddedListener){
+        nodeAddedListeners.remove(nodeAddedListener);
     }
 
     private void notifyNodeAddedListeners(Node parentNode, Node newNode){
