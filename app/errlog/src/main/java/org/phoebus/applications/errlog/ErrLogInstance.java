@@ -21,7 +21,7 @@ import javafx.scene.layout.VBox;
  */
 class ErrLogInstance implements AppInstance
 {
-    /** Singleton instance maintainer by {@link ErrLogApp} */
+    /** Singleton instance maintained by {@link ErrLogApp} */
     static ErrLogInstance INSTANCE = null;
 
     private final AppDescriptor app;
