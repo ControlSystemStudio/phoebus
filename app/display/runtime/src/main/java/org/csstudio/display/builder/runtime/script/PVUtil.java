@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,7 +9,6 @@ package org.csstudio.display.builder.runtime.script;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -21,6 +20,7 @@ import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VTable;
 import org.epics.vtype.VType;
+import org.phoebus.pv.PV;
 import org.phoebus.util.time.TimestampFormats;
 
 /** Utility for handling PVs and their values in scripts.
@@ -31,9 +31,19 @@ import org.phoebus.util.time.TimestampFormats;
 @SuppressWarnings("nls")
 public class PVUtil
 {
+    /** Get valid value from PV
+     *  @param pv PV
+     *  @return Valid value
+     *  @throws NullPointerException when PV is not connected, no valid value
+     */
     public static VType getVType(final RuntimePV pv) throws NullPointerException
     {
-        return Objects.requireNonNull(pv.read(), () -> "PV " + pv.getName() + " has no value");
+        final VType value = pv.read();
+        if (value == null)
+            throw new NullPointerException("PV " + pv.getName() + " has no value");
+        if (PV.isDisconnected(value))
+            throw new NullPointerException("PV " + pv.getName() + " has no valid value");
+        return value;
     }
 
     /** Try to get a 'double' type number from the PV.
@@ -109,6 +119,7 @@ public class PVUtil
      *          Will return single-element array for scalar value,
      *          including <code>{ Double.NaN }</code> in case the value type
      *          does not decode into a number.
+     *  @throws NullPointerException if the PV has no value
      */
     public static double[] getDoubleArray(final RuntimePV pv) throws NullPointerException
     {
@@ -119,6 +130,7 @@ public class PVUtil
      *  @param pv the PV.
      *  @return Current value as long[].
      *          Will return single-element array for scalar value.
+     *  @throws NullPointerException if the PV has no value
      */
     public static long[] getLongArray(final RuntimePV pv) throws NullPointerException
     {
@@ -132,6 +144,7 @@ public class PVUtil
      *          For numeric arrays, the numbers are formatted as strings.
      *          For enum array, the labels are returned.
      *          For scalar PVs, an array with a single string is returned.
+     *  @throws NullPointerException if the PV has no value
      */
     public final static String[] getStringArray(final RuntimePV pv) throws NullPointerException
     {
@@ -148,8 +161,9 @@ public class PVUtil
      *  @return Timestamp string
      *
      *  @see ValueUtil#getTimestamp(VType) to fetch time stamp for custom formatting
+     *  @throws NullPointerException if the PV has no value
      */
-    public static String getTimeString(final RuntimePV pv)
+    public static String getTimeString(final RuntimePV pv) throws NullPointerException
     {
         final Instant time = ValueUtil.getTimestamp(getVType(pv));
         if (time == null)
@@ -165,8 +179,9 @@ public class PVUtil
      *  compatible with existing programming environments.
      *  @param pv PV
      *  @return milliseconds since 1970.
+     *  @throws NullPointerException if the PV has no value
      */
-    public final static long getTimeInMilliseconds(final RuntimePV pv)
+    public final static long getTimeInMilliseconds(final RuntimePV pv) throws NullPointerException
     {
         final Instant time = ValueUtil.getTimestamp(getVType(pv));
         if (time == null)
@@ -285,8 +300,9 @@ public class PVUtil
      *  @return A List of "rows", where rows are lists of scalar data (Strings or Numbers)
      *          belonging to scalar fields of the matching sub-structure;
      *          if there is no matching sub-structure, the list is empty.
+     *  @throws NullPointerException if the PV has no value
      */
-    public static List<List<Object>> getStructure(final RuntimePV pv, final String name)
+    public static List<List<Object>> getStructure(final RuntimePV pv, final String name) throws NullPointerException
     {
     	return ValueUtil.getStructure(getVType(pv), name);
     }
@@ -330,8 +346,9 @@ public class PVUtil
      *          is returned, depending on the element's data type. If not, and the value is a VTable,
      *          an empty list is returned. Otherwise, a List containing one element, a String representation
      *          of the value.
+     *  @throws NullPointerException if the PV has no value
      */
-    public static List<Object> getStructureElement(final RuntimePV pv, final String name)
+    public static List<Object> getStructureElement(final RuntimePV pv, final String name) throws NullPointerException
     {
     	return ValueUtil.getStructureElement(getVType(pv), name);
     }
@@ -344,8 +361,9 @@ public class PVUtil
      *  @param name Structure element name
      *  @param index Element index in range [0, n-1], where n is the length of the structure element
      *  @return Either String or Number for the cell's value, null if invalid name/index
+     *  @throws NullPointerException if the PV has no value
      */
-    public static Object getStructureElement(final RuntimePV pv, final String name, final int index)
+    public static Object getStructureElement(final RuntimePV pv, final String name, final int index) throws NullPointerException
     {
     	return ValueUtil.getStructureElement(getVType(pv), name, index);
     }
