@@ -19,7 +19,7 @@ import javafx.scene.image.Image;
 public class AlarmLogTableApp implements AppResourceDescriptor {
 
     public static final Logger logger = Logger.getLogger(AlarmLogTableApp.class.getName());
-    public static final String NAME = "alarmLogTable";
+    public static final String NAME = "Alarm Log Table";
     public static final String DISPLAYNAME = "Alarm Log Table";
 
     public static final String SUPPORTED_SCHEMA = "alarmLog";
