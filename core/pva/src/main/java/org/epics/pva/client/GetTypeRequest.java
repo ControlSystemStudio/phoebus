@@ -62,7 +62,7 @@ class GetTypeRequest extends CompletableFuture<PVAStructure> implements RequestE
         logger.log(Level.FINE, () -> "Sending Get-Type request #" + request_id + " for " + channel + ", sub field '" + subfield + "'");
 
         PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_GET_TYPE, 4+4+PVAString.getEncodedSize(subfield));
-        buffer.putInt(channel.sid);
+        buffer.putInt(channel.getSID());
         buffer.putInt(request_id);
         PVAString.encodeString(subfield, buffer);
     }

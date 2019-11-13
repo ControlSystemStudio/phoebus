@@ -165,9 +165,9 @@ class ChannelSearch
      */
     public void register(final PVAChannel channel, final boolean now)
     {
-        logger.log(Level.FINE, () -> "Register search for " + channel.getName() + " " + channel.getId());
+        logger.log(Level.FINE, () -> "Register search for " + channel.getName() + " " + channel.getCID());
         channel.setState(ClientChannelState.SEARCHING);
-        searched_channels.computeIfAbsent(channel.getId(), id -> new SearchedChannel(channel));
+        searched_channels.computeIfAbsent(channel.getCID(), id -> new SearchedChannel(channel));
         // Issue immediate search request?
         if (now)
             search(channel);
@@ -254,7 +254,7 @@ class ChannelSearch
         {
             final int payload_start = send_buffer.position() + PVAHeader.HEADER_SIZE;
             final int seq = search_sequence.incrementAndGet();
-            SearchRequest.encode(true, seq, channel.getId(), channel.getName(), udp.getResponseAddress(), send_buffer);
+            SearchRequest.encode(true, seq, channel.getCID(), channel.getName(), udp.getResponseAddress(), send_buffer);
             send_buffer.flip();
             logger.log(Level.FINE, "Search Request #" + seq + " for " + channel);
             sendSearch(payload_start);

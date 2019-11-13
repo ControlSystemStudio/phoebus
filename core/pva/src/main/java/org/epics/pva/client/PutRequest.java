@@ -77,7 +77,7 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
             final int size_offset = buffer.position() + PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE;
             PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_PUT, 4+4+1+6);
             final int payload_start = buffer.position();
-            buffer.putInt(channel.sid);
+            buffer.putInt(channel.getSID());
             buffer.putInt(request_id);
             buffer.put(PVAHeader.CMD_SUB_INIT);
 
@@ -96,7 +96,7 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
             final int size_offset = buffer.position() + PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE;
             PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_PUT, 4+4+1+1);
             final int pos = buffer.position();
-            buffer.putInt(channel.sid);
+            buffer.putInt(channel.getSID());
             buffer.putInt(request_id);
             buffer.put(PVAHeader.CMD_SUB_DESTROY);
 
