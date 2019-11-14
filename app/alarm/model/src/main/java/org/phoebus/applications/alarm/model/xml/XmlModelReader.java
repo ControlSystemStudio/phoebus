@@ -109,13 +109,16 @@ public class XmlModelReader
             {
                 final Node attr = attrs.item(idx);
                 final String attr_name = attr.getNodeName();
-
                 if (attr_name.equals(TAG_NAME))
-                {
                     comp_node_name = attr.getNodeValue();
-                }
             }
         }
+
+        if (comp_node_name == null)
+            throw new Exception("Component without name at " + parent.getPathName());
+
+        if (parent.getChild(comp_node_name) != null)
+            throw new Exception("Component with duplicate name " + comp_node_name + " at " + parent.getPathName());
 
         // New component node.
         final AlarmClientNode component = new AlarmClientNode(parent, comp_node_name);
@@ -185,13 +188,16 @@ public class XmlModelReader
             {
                 final Node attr = attrs.item(idx);
                 final String attr_name = attr.getNodeName();
-
                 if (attr_name.equals(TAG_NAME))
-                {
                     pv_node_name = attr.getNodeValue();
-                }
             }
         }
+
+        if (pv_node_name == null)
+            throw new Exception("PV without name at " + parent.getPathName());
+
+        if (parent.getChild(pv_node_name) != null)
+            throw new Exception("PV with duplicate name " + pv_node_name + " at " + parent.getPathName());
 
         final AlarmClientLeaf pv = new AlarmClientLeaf(parent, pv_node_name);
 
