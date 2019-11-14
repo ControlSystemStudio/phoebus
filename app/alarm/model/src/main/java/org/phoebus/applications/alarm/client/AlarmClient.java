@@ -365,6 +365,10 @@ public class AlarmClient
             if (last)
                 return node;
             // Found or created intermediate node; continue walking down the path
+            if (! (node instanceof AlarmClientNode))
+                throw new Exception("Expected intermediate node, found " +
+                                    node.getClass().getSimpleName() + " " + node.getName() +
+                                    " while traversing " + path);
             parent = (AlarmClientNode) node;
         }
 
