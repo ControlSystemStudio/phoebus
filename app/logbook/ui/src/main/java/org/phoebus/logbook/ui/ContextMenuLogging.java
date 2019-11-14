@@ -12,7 +12,7 @@ import org.phoebus.ui.spi.ContextMenuEntry;
 
 /**
  * A headless context menu entry for creating log entries from adaptable selections.
- * TODO this temporary headless action needs to removed once the create log entry dialog is complete. 
+ * TODO this temporary headless action needs to removed once the create log entry dialog is complete.
  * @author Kunal Shroff
  *
  */
@@ -20,7 +20,7 @@ import org.phoebus.ui.spi.ContextMenuEntry;
 public class ContextMenuLogging implements ContextMenuEntry {
 
     private static final String NAME = "Create Log";
-    private static final List<Class> supportedTypes = Arrays.asList(LogEntry.class);
+    private static final List<Class<?>> supportedTypes = Arrays.asList(LogEntry.class);
 
     @Override
     public String getName() {
@@ -29,20 +29,19 @@ public class ContextMenuLogging implements ContextMenuEntry {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Object callWithSelection(Selection selection) {
+    public void callWithSelection(Selection selection) {
 
-        List<LogEntry> adaptedSelections = new ArrayList<LogEntry>();
+        List<LogEntry> adaptedSelections = new ArrayList<>();
         selection.getSelections().stream().forEach(s -> {
             AdapterService.adapt(s, LogEntry.class).ifPresent(adapted -> {
-                adaptedSelections.add((LogEntry) adapted);
+                adaptedSelections.add(adapted);
             });
         });
         LogService.getInstance().createLogEntry(adaptedSelections, null);
-        return null;
     }
 
     @Override
-    public List<Class> getSupportedTypes() {
+    public List<Class<?>> getSupportedTypes() {
         return supportedTypes;
     }
 

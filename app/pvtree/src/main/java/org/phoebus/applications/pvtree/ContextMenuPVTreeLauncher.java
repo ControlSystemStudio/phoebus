@@ -21,10 +21,10 @@ import javafx.scene.image.Image;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings({ "nls", "rawtypes" })
-public class ContextMenuPVTreeLauncher implements ContextMenuEntry<ProcessVariable>
+@SuppressWarnings("nls")
+public class ContextMenuPVTreeLauncher implements ContextMenuEntry
 {
-    private static final List<Class> supportedTypes = List.of(ProcessVariable.class);
+    private static final List<Class<?>> supportedTypes = List.of(ProcessVariable.class);
 
     private static final Image icon = ImageCache.getImage(ContextMenuPVTreeLauncher.class, "/icons/pvtree.png");
 
@@ -41,13 +41,13 @@ public class ContextMenuPVTreeLauncher implements ContextMenuEntry<ProcessVariab
     }
 
     @Override
-    public List<Class> getSupportedTypes()
+    public List<Class<?>> getSupportedTypes()
     {
         return supportedTypes;
     }
 
     @Override
-    public ProcessVariable callWithSelection(final Selection selection) throws Exception
+    public void callWithSelection(final Selection selection) throws Exception
     {
         final List<ProcessVariable> pvs = selection.getSelections();
         for (ProcessVariable pv : pvs)
@@ -55,7 +55,5 @@ public class ContextMenuPVTreeLauncher implements ContextMenuEntry<ProcessVariab
             final PVTree tree = ApplicationService.createInstance(PVTreeApplication.NAME);
             tree.setPVName(pv.getName());
         }
-
-        return null;
     }
 }

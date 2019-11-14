@@ -20,10 +20,10 @@ import javafx.scene.image.Image;
 /** Entry for context menus that starts PV Table for selected ProcessVariable
  *  @author Kay Kasemir
  */
-@SuppressWarnings({ "rawtypes", "nls" })
-public class ContextMenuPVTableLauncher implements ContextMenuEntry<ProcessVariable>
+@SuppressWarnings("nls")
+public class ContextMenuPVTableLauncher implements ContextMenuEntry
 {
-    private static final List<Class> supportedTypes = List.of(ProcessVariable.class);
+    private static final List<Class<?>> supportedTypes = List.of(ProcessVariable.class);
 
     static final Image icon = ImageCache.getImage(PVTableApplication.class, "/icons/pvtable.png");
 
@@ -40,18 +40,17 @@ public class ContextMenuPVTableLauncher implements ContextMenuEntry<ProcessVaria
     }
 
     @Override
-    public List<Class> getSupportedTypes()
+    public List<Class<?>> getSupportedTypes()
     {
         return supportedTypes;
     }
 
     @Override
-    public ProcessVariable callWithSelection(final Selection selection) throws Exception
+    public void callWithSelection(final Selection selection) throws Exception
     {
         final PVTableInstance instance = ApplicationService.createInstance(PVTableApplication.NAME);
         final List<ProcessVariable> pvs = selection.getSelections();
         for (ProcessVariable pv : pvs)
             instance.getModel().addItem(pv.getName());
-        return null;
     }
 }

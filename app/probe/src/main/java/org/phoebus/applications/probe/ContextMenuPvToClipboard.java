@@ -27,10 +27,10 @@ import javafx.scene.input.ClipboardContent;
 /** Context menu entry for PV that copies PV name to clipboard
  *  @author Kay Kasemir
  */
-@SuppressWarnings({ "rawtypes", "nls" })
-public class ContextMenuPvToClipboard implements ContextMenuEntry<ProcessVariable>
+@SuppressWarnings("nls")
+public class ContextMenuPvToClipboard implements ContextMenuEntry
 {
-    private static final List<Class> supportedTypes = Arrays.asList(ProcessVariable.class);
+    private static final List<Class<?>> supportedTypes = Arrays.asList(ProcessVariable.class);
 
     private static final Image icon = ImageCache.getImage(ImageCache.class, "/icons/copy.png");
 
@@ -47,14 +47,13 @@ public class ContextMenuPvToClipboard implements ContextMenuEntry<ProcessVariabl
     }
 
     @Override
-    public List<Class> getSupportedTypes()
+    public List<Class<?>> getSupportedTypes()
     {
         return supportedTypes;
     }
 
     @Override
-    public ProcessVariable callWithSelection(final Selection selection)
-            throws Exception
+    public void callWithSelection(final Selection selection) throws Exception
     {
         final List<ProcessVariable> pvs = selection.getSelections();
 
@@ -62,7 +61,5 @@ public class ContextMenuPvToClipboard implements ContextMenuEntry<ProcessVariabl
         final ClipboardContent content = new ClipboardContent();
         content.putString(pvs.stream().map(ProcessVariable::getName).collect(Collectors.joining(" ")));
         clipboard.setContent(content);
-        return null;
     }
-
 }

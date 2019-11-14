@@ -21,10 +21,10 @@ import javafx.scene.image.Image;
 /** Entry for context menus that starts Data Browser for selected ProcessVariable
  *  @author Kay Kasemir
  */
-@SuppressWarnings({ "rawtypes", "nls" })
-public class ContextMenuDataBrowserLauncher implements ContextMenuEntry<ProcessVariable>
+@SuppressWarnings("nls")
+public class ContextMenuDataBrowserLauncher implements ContextMenuEntry
 {
-    private static final List<Class> supportedTypes = List.of(ProcessVariable.class);
+    private static final List<Class<?>> supportedTypes = List.of(ProcessVariable.class);
 
     @Override
     public String getName()
@@ -39,13 +39,13 @@ public class ContextMenuDataBrowserLauncher implements ContextMenuEntry<ProcessV
     }
 
     @Override
-    public List<Class> getSupportedTypes()
+    public List<Class<?>> getSupportedTypes()
     {
         return supportedTypes;
     }
 
     @Override
-    public ProcessVariable callWithSelection(final Selection selection) throws Exception
+    public void callWithSelection(final Selection selection) throws Exception
     {
         final DataBrowserInstance instance = ApplicationService.createInstance(DataBrowserApp.NAME);
         final List<ProcessVariable> pvs = selection.getSelections();
@@ -58,6 +58,5 @@ public class ContextMenuDataBrowserLauncher implements ContextMenuEntry<ProcessV
                 item.useDefaultArchiveDataSources();
             instance.getModel().addItem(item);
         }
-        return null;
     }
 }
