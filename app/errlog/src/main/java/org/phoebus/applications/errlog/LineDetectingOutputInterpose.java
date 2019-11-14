@@ -24,6 +24,15 @@ import java.util.function.Consumer;
  */
 public class LineDetectingOutputInterpose extends OutputStream
 {
+    // Tried to implement using PipedInputStream & PipedOutputStream,
+    // but those are expected to be called by only one thread each.
+    // Implementations fetches `Thread.currentThread()` when written,
+    // and reader then checks at certain times if that thread is still alive.
+    // When the redirected System.out is thus called from a short-term thread,
+    // the pipe will report "Write end dead" or "Pipe broken" once that thread exits.
+    // https://stackoverflow.com/questions/1866255/pipedinputstream-how-to-avoid-java-io-ioexception-pipe-broken/1867063#1867063
+    // https://bugs.openjdk.java.net/browse/JDK-4028322
+
     final private PrintStream original;
     final private Consumer<String> line_handler;
     private byte[] linebuf = new byte[512];

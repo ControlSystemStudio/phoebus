@@ -8,8 +8,6 @@
 package org.phoebus.applications.errlog;
 
 import java.io.Closeable;
-import java.io.FileDescriptor;
-import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.function.Consumer;
 import java.util.logging.ConsoleHandler;
@@ -25,36 +23,55 @@ import java.util.logging.Logger;
 @SuppressWarnings("nls")
 public class ErrLog implements Closeable
 {
+    /** Default std/err handler that ignores the recognized lines */
+    private static final Consumer<String> ignore = line -> {};
+
+    /** Handler for recognized lines sent to stdout resp. stderr */
+    private static volatile Consumer<String> handle_stdout = ignore, handle_stderr = ignore;
+
+    /** Prepare for using ErrLog
+     *
+     *  <p>Must be called early in the application startup process,
+     *  before other libraries latch onto the current `System.out`
+     *  or `System.err` streams and would thus ignore our later
+     *  efforts to replace them with an interpose.
+     */
+    public static void prepare()
+    {
+        // In principle we can take a copy of the current System.out and System.err
+        // values, later replace them with an interpose,
+        // and finally either restore the original values,
+        // or use the equivalent new PrintStream(new FileOutputStream(FileDescriptor.out));
+        //
+        // But other libraries might latch on to some current value of System.out,
+        // so they would ignore our interpose,
+        // or keep writing to the interpose long after the ErrLog has been closed.
+        //
+        // Therefore install an interpose early on, once and for all.
+
+        // Note that these interposes will use the value of handle_stdout & handle_stderr
+        // that's current whenever they're executing, i.e. those handlers
+        // can change while the out and err streams remain unchanged.
+        System.setOut(new PrintStream(new LineDetectingOutputInterpose(System.out, line -> handle_stdout.accept(line))));
+        System.setErr(new PrintStream(new LineDetectingOutputInterpose(System.err, line -> handle_stderr.accept(line))));
+    }
+
     /** Root logger for replacing/restoring {@link ConsoleHandler} */
     private static Logger root_logger = Logger.getLogger("");
 
     private Handler orig_console_handler = null,
                     repl_console_handler = null;
 
-    /** Original output stream */
-    private final PrintStream stdout = new PrintStream(new FileOutputStream(FileDescriptor.out));
-
-    /** Original error stream */
-    private final PrintStream stderr = new PrintStream(new FileOutputStream(FileDescriptor.err));
-
-    /** Interpose for stdout resp. stderr */
-    // Tried to implement using PipedInputStream & PipedOutputStream,
-    // but those are expected to be called by only one thread each.
-    // Implementations fetches `Thread.currentThread()` when written,
-    // and reader then checks at certain times if that thread is still alive.
-    // When the redirected System.out is thus called from a short-term thread,
-    // the pipe will report "Write end dead" or "Pipe broken" once that thread exits.
-    // https://stackoverflow.com/questions/1866255/pipedinputstream-how-to-avoid-java-io-ioexception-pipe-broken/1867063#1867063
-    // https://bugs.openjdk.java.net/browse/JDK-4028322
-    private final LineDetectingOutputInterpose outlogger, errlogger;
-
+    /** Enable message line capture
+     *  @param handle_stdout Called with each stdout line
+     *  @param handle_stderr Called with each stderr line
+     *  @throws Exception
+     */
     public ErrLog(final Consumer<String> handle_stdout, final Consumer<String> handle_stderr) throws Exception
     {
-        outlogger = new LineDetectingOutputInterpose(stdout, handle_stdout);
-        System.setOut(new PrintStream(outlogger));
-
-        errlogger = new LineDetectingOutputInterpose(stderr, handle_stderr);
-        System.setErr(new PrintStream(errlogger));
+        // Have interpose use the handlers
+        ErrLog.handle_stdout = handle_stdout;
+        ErrLog.handle_stderr = handle_stderr;
 
         // If there is a ConsoleHandler,
         // it's been set to the original System.err.
@@ -93,7 +110,6 @@ public class ErrLog implements Closeable
         }
 
         // Restore original std, err streams
-        System.setOut(stdout);
-        System.setErr(stderr);
+        handle_stdout = handle_stderr = ignore;
     }
 }

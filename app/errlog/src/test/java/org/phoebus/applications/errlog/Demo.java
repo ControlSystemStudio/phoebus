@@ -24,6 +24,8 @@ public class Demo extends ApplicationWrapper
     @Override
     public void start(final Stage stage) throws Exception
     {
+        ErrLog.prepare();
+
         final Logger logger = Logger.getLogger("");
         logger.log(Level.SEVERE, "Log before installing handler");
         System.out.println("stdout before installing handler");

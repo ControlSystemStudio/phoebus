@@ -42,6 +42,12 @@ public class ErrLogApp implements AppDescriptor
     }
 
     @Override
+    public void start()
+    {
+        ErrLog.prepare();
+    }
+
+    @Override
     public AppInstance create()
     {
         if (ErrLogInstance.INSTANCE == null)
