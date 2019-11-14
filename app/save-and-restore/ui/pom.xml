@@ -110,7 +110,7 @@
 		<dependency>
 			<groupId>org.epics</groupId>
 			<artifactId>vtype</artifactId>
-			<version>1.0.1-SNAPSHOT</version>
+			<version>${vtype.version}</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/junit/junit -->
