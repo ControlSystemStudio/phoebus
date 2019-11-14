@@ -15,6 +15,7 @@
     <module>pvtree</module>
     <module>update</module>
     <module>email</module>
+    <module>errlog</module>
     <module>filebrowser</module>
     <module>logbook</module>
     <module>rtplot</module>
