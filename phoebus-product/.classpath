@@ -38,6 +38,7 @@
     <classpathentry combineaccessrules="false" kind="src" path="/app-rtplot"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-pvtable"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-email"/>
+    <classpathentry combineaccessrules="false" kind="src" path="/app-errlog"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-log-configuration"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-pvtree"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-probe"/>
