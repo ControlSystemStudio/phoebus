@@ -228,6 +228,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
                                   map(model_trace.tracePointType().getValue()),
                                   model_trace.tracePointSize().getValue(),
                                   model_trace.traceYAxis().getValue());
+            trace.setVisible(model_trace.traceVisible().getValue());
 
             model_trace.traceName().addUntypedPropertyListener(trace_listener);
             // Not tracking X and Error PVs. Only matter to runtime.
