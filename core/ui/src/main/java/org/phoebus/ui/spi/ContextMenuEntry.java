@@ -3,17 +3,24 @@ package org.phoebus.ui.spi;
 import java.util.List;
 
 import org.phoebus.framework.selection.Selection;
+import org.phoebus.ui.application.ContextMenuHelper;
 
 import javafx.scene.image.Image;
 
 /**
  * Context menu entry service interface
  *
- * @author Kunal Shroff
- * @param <V>
+ * <p>Applications can use this to register context menu
+ * entries that are applicable to certain types found
+ * in the current selection.
  *
+ * <p>Applications with context menus to their UI
+ * should use the {@link ContextMenuHelper} to add
+ * SPI-provided additions to the menu.
+ *
+ * @author Kunal Shroff
  */
-public interface ContextMenuEntry<V> {
+public interface ContextMenuEntry {
 
     /**
      * The display name of the context menu entry
@@ -39,14 +46,13 @@ public interface ContextMenuEntry<V> {
     /**
      * @return Selection types for which this entry should be displayed
      */
-    public List<Class> getSupportedTypes();
+    public List<Class<?>> getSupportedTypes();
 
     /**
      * Invoke the context menu
      *
-     * @param (TODO replace with the use of selectionService.getCurrentSelection(); ) selection Current selection
-     * @return (TODO What does it return?? )
+     * @param selection Current selection
      * @throws Exception on error
      */
-    public V callWithSelection(Selection selection) throws Exception;
+    public void callWithSelection(Selection selection) throws Exception;
 }

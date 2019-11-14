@@ -17,10 +17,10 @@ import javafx.scene.image.Image;
  * @author Kunal Shroff
  *
  */
-@SuppressWarnings("rawtypes")
+@SuppressWarnings("nls")
 public class ContextLaunchProbe implements ContextMenuEntry {
 
-    private static final List<Class> supportedTypes = Arrays.asList(ProcessVariable.class);
+    private static final List<Class<?>> supportedTypes = Arrays.asList(ProcessVariable.class);
 
     @Override
     public String getName() {
@@ -34,10 +34,9 @@ public class ContextLaunchProbe implements ContextMenuEntry {
     }
 
     @Override
-    public Object callWithSelection(Selection selection) {
+    public void callWithSelection(Selection selection) {
         List<ProcessVariable> pvs = selection.getSelections();
         LaunchProbe(pvs);
-        return null;
     }
 
     private void LaunchProbe(List<ProcessVariable> pvs) {
@@ -54,7 +53,7 @@ public class ContextLaunchProbe implements ContextMenuEntry {
     }
 
     @Override
-    public List<Class> getSupportedTypes() {
+    public List<Class<?>> getSupportedTypes() {
         return supportedTypes;
     }
 

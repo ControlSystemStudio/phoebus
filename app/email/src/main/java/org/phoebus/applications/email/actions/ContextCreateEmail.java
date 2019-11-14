@@ -16,7 +16,7 @@ import org.phoebus.ui.spi.ContextMenuEntry;
  */
 public class ContextCreateEmail implements ContextMenuEntry {
 
-    private static final List<Class> supportedTypes = Arrays.asList(String.class);
+    private static final List<Class<?>> supportedTypes = Arrays.asList(String.class);
 
     @Override
     public String getName() {
@@ -24,14 +24,12 @@ public class ContextCreateEmail implements ContextMenuEntry {
     }
 
     @Override
-    public Object callWithSelection(Selection selection) {
+    public void callWithSelection(Selection selection) {
         ApplicationService.createInstance(EmailApp.NAME);
-        return null;
     }
 
     @Override
-    public List<Class> getSupportedTypes() {
+    public List<Class<?>> getSupportedTypes() {
         return supportedTypes;
     }
-
 }

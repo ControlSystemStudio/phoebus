@@ -30,9 +30,9 @@ import javafx.scene.image.Image;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ProbeDisplayContextMenuEntry implements ContextMenuEntry<Void>
+public class ProbeDisplayContextMenuEntry implements ContextMenuEntry
 {
-    private static final List<Class> types;
+    private static final List<Class<?>> types;
 
     static
     {
@@ -49,7 +49,7 @@ public class ProbeDisplayContextMenuEntry implements ContextMenuEntry<Void>
     }
 
     @Override
-    public List<Class> getSupportedTypes()
+    public List<Class<?>> getSupportedTypes()
     {
         return types;
     }
@@ -61,7 +61,7 @@ public class ProbeDisplayContextMenuEntry implements ContextMenuEntry<Void>
     }
 
     @Override
-    public Void callWithSelection(final Selection selection) throws Exception
+    public void callWithSelection(final Selection selection) throws Exception
     {
         final List<ProcessVariable> pvs = selection.getSelections();
         for (ProcessVariable pv : pvs)
@@ -74,6 +74,5 @@ public class ProbeDisplayContextMenuEntry implements ContextMenuEntry<Void>
                 resource = URI.create(Preferences.probe_display + "?PV=" + pv.getName());
             ApplicationService.createInstance(DisplayRuntimeApplication.NAME, resource);
         }
-        return null;
     }
 }

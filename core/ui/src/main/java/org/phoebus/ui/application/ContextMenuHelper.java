@@ -57,8 +57,8 @@ public class ContextMenuHelper
         final List<ContextMenuEntry> entries = ContextMenuService.getInstance().listSupportedContextMenuEntries();
         if (entries.isEmpty())
             return false;
-        
-        for (ContextMenuEntry<?> entry : entries)
+
+        for (ContextMenuEntry entry : entries)
         {
             final MenuItem item = new MenuItem(entry.getName());
 
@@ -78,7 +78,7 @@ public class ContextMenuHelper
             });
             menu.getItems().add(item);
         }
-        
+
         return true;
     }
 }
