@@ -71,8 +71,9 @@ public class LineDetectingOutputInterpose extends OutputStream
             line_handler.accept(new String(linebuf, 0, count));
             count = 0;
         }
-        else
+        else if (b != '\r')
         {
+            // Skip Windows line feed, but add other text to line
             ensureCapacity(count + 1);
             linebuf[count] = (byte) b;
             count += 1;
