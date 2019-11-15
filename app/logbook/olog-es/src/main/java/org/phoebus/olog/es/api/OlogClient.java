@@ -55,19 +55,19 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 import com.sun.jersey.multipart.impl.MultiPartWriter;
 
 /**
- * 
- * 
+ *
+ *
  * @author Eric Berryman taken from shroffk
- * 
+ *
  */
 public class OlogClient implements LogClient {
     private final WebResource service;
 
     /**
      * Builder Class to help create a olog client.
-     * 
+     *
      * @author shroffk
-     * 
+     *
      */
     public static class OlogClientBuilder {
         // required
@@ -101,7 +101,7 @@ public class OlogClient implements LogClient {
         /**
          * Creates a {@link OlogClientBuilder} for a CF client to Default URL in the
          * channelfinder.properties.
-         * 
+         *
          * @return
          */
         public static OlogClientBuilder serviceURL() {
@@ -110,7 +110,7 @@ public class OlogClient implements LogClient {
 
         /**
          * Creates a {@link OlogClientBuilder} for a CF client to URI <tt>uri</tt>.
-         * 
+         *
          * @param uri
          * @return {@link OlogClientBuilder}
          */
@@ -121,7 +121,7 @@ public class OlogClient implements LogClient {
         /**
          * Creates a {@link OlogClientBuilder} for a CF client to {@link URI}
          * <tt>uri</tt>.
-         * 
+         *
          * @param uri
          * @return {@link OlogClientBuilder}
          */
@@ -131,7 +131,7 @@ public class OlogClient implements LogClient {
 
         /**
          * Enable of Disable the HTTP authentication on the client connection.
-         * 
+         *
          * @param withHTTPAuthentication
          * @return {@link OlogClientBuilder}
          */
@@ -142,7 +142,7 @@ public class OlogClient implements LogClient {
 
         /**
          * Set the username to be used for HTTP Authentication.
-         * 
+         *
          * @param username
          * @return {@link OlogClientBuilder}
          */
@@ -153,7 +153,7 @@ public class OlogClient implements LogClient {
 
         /**
          * Set the password to be used for the HTTP Authentication.
-         * 
+         *
          * @param password
          * @return {@link OlogClientBuilder}
          */
@@ -165,7 +165,7 @@ public class OlogClient implements LogClient {
         /**
          * set the {@link ClientConfig} to be used while creating the channelfinder
          * client connection.
-         * 
+         *
          * @param clientConfig
          * @return {@link OlogClientBuilder}
          */
@@ -182,7 +182,7 @@ public class OlogClient implements LogClient {
 
         /**
          * Set the trustManager that should be used for authentication.
-         * 
+         *
          * @param trustManager
          * @return {@link OlogClientBuilder}
          */
@@ -443,7 +443,7 @@ public class OlogClient implements LogClient {
                     .post(ClientResponse.class, str);
             if (clientResponse.getStatus() < 300) {
                 // XmlLogs responseLogs = clientResponse.getEntity(XmlLogs.class);
-                Collection<LogEntry> returnLogs = new HashSet<LogEntry>();
+                Collection<LogEntry> returnLogs = new HashSet<>();
                 // for (XmlLog xmllog : responseLogs.getLogs()) {
                 // returnLogs.add(xmllog);
                 // }
@@ -496,15 +496,18 @@ public class OlogClient implements LogClient {
     }
 
     private List<LogEntry> findLogs(MultivaluedMap<String, String> mMap) {
-        List<LogEntry> logs = new ArrayList<LogEntry>();
+        List<LogEntry> logs = new ArrayList<>();
         if (!mMap.containsKey("limit")) {
             mMap.putSingle("limit", "100");
         }
         try {
-            logs = logEntryMapper.readValue(
+            // Convert List<XmlLog> into List<LogEntry>
+            final List<XmlLog> xmls = logEntryMapper.readValue(
                     service.path("logs").queryParams(mMap).accept(MediaType.APPLICATION_JSON).get(String.class),
                     new TypeReference<List<XmlLog>>() {
                     });
+            for (XmlLog xml : xmls)
+                logs.add(xml);
             logs.forEach(log -> {
                 // fetch attachment??
                 // This surely can be done better, move the fetch into a job and only invoke it when the client is trying to render the image
@@ -557,7 +560,7 @@ public class OlogClient implements LogClient {
 
     @Override
     public List<LogEntry> findLogsByProperty(String propertyName, String attributeName, String attributeValue) {
-        HashMap<String, String> map = new HashMap<String, String>();
+        HashMap<String, String> map = new HashMap<>();
         map.put(propertyName + "." + attributeName, attributeValue);
         return findLogs(map);
     }
@@ -580,7 +583,7 @@ public class OlogClient implements LogClient {
 
     @Override
     public Collection<Attachment> listAttachments(Long logId) {
-        Collection<Attachment> allAttachments = new HashSet<Attachment>();
+        Collection<Attachment> allAttachments = new HashSet<>();
         XmlAttachments allXmlAttachments = service.path("attachments").path(logId.toString())
                 .accept(MediaType.APPLICATION_XML).get(XmlAttachments.class);
         for (XmlAttachment xmlAttachment : allXmlAttachments.getAttachments()) {
@@ -613,7 +616,7 @@ public class OlogClient implements LogClient {
         // XmlLogs xmlLogs =
         // service.path("logs").accept(MediaType.APPLICATION_XML).accept(MediaType.APPLICATION_JSON)
         // .get(XmlLogs.class);
-        List<LogEntry> logEntries = new ArrayList<LogEntry>();
+        List<LogEntry> logEntries = new ArrayList<>();
         // logEntries.addAll(xmlLogs.getLogs());
         return logEntries;
     }
