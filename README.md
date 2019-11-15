@@ -235,3 +235,25 @@ To build for a different platform, create the `dependencies` in one of these way
 	( cd phoebus; mvn clean verify  -Djavafx.platform=win    -f dependencies/pom.xml )
 
 The remaining build is the same, for example `ant clean dist` to build the distribution.
+
+
+## Release
+
+There is a release profile which helps prepare and deploy the a phoebus release.
+
+```
+mvn -P release release:prepare
+```
+
+- Check that there are no uncommitted changes in the sources
+- Check that there are no SNAPSHOT dependencies
+- Change the version in the POMs from x-SNAPSHOT to a new version (you will be prompted for the versions to use)
+- Transform the SCM information in the POM to include the final destination of the tag
+- Run the project tests against the modified POMs to confirm everything is in working order
+- Commit the modified POMs
+- Tag the code in the SCM with a version name (this will be prompted for)
+- Bump the version in the POMs to a new value y-SNAPSHOT (these values will also be prompted for)
+- Commit the modified POMs
+
+Additionally:
+- Before commiting the changes, there is a script in the target platform `release_classpath.py` which will be executed. This script can be modified to updated the .classpath and other files which need manual intervention during a release.
