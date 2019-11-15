@@ -122,22 +122,22 @@ public class EditorGUI
         final KeyCode code = event.getCode();
         // System.out.println("Editor Key: " + code);
 
-        // Only handle delete, copy, paste when mouse inside editor
+        // Only handle delete, copy, paste when mouse inside editor.
+        // Those keys are often used when editing text,
+        // and it's easy to accidentally loose input focus
+        // and then delete a widget instead of a character.
         final boolean in_editor = editor.getContextMenuNode()
                                         .getLayoutBounds()
                                         .contains(mouse_x, mouse_y);
 
         // Use Ctrl-C .. except on Mac, where it's Command-C ..
-        // Do NOT delete for DELETE and/or BACKSPACE.
-        // Those keys are often used when editing text,
-        // and it's easy to accidentally loose input focus
-        // and then delete a widget instead of a character.
         final boolean meta = event.isShortcutDown();
         if (meta  &&  code == KeyCode.Z)
             editor.getUndoableActionManager().undoLast();
         else if (meta  &&  code == KeyCode.Y)
             editor.getUndoableActionManager().redoLast();
-        else if (in_editor  &&  meta  &&  code == KeyCode.X)
+        else if (in_editor  &&  ((meta  &&  code == KeyCode.X)  ||
+                                  code == KeyCode.DELETE))
             editor.cutToClipboard();
         else if (in_editor  &&  meta  &&  code == KeyCode.C)
             editor.copyToClipboard();
@@ -156,8 +156,8 @@ public class EditorGUI
     private VBox properties_box;
 
     private SplitPane center_split;
-    
-    private final ChangeListener<Number> divider_listener = (ObservableValue<? extends Number> observableValue, Number oldDividerPosition, Number newDividerPosition) -> 
+
+    private final ChangeListener<Number> divider_listener = (ObservableValue<? extends Number> observableValue, Number oldDividerPosition, Number newDividerPosition) ->
     {
         saveDividerPreferences();
     };
@@ -207,10 +207,10 @@ public class EditorGUI
     {
         if (show == isWidgetTreeShown())
             return;
-        
+
         double tdiv = prefs.getDouble(DisplayEditorInstance.TREE_DIVIDER, 0.2);
         double pdiv = prefs.getDouble(DisplayEditorInstance.PROP_DIVIDER, 0.8);
-        
+
         if (show)
         {
             center_split.getItems().add(0,  tree_box);
@@ -225,13 +225,13 @@ public class EditorGUI
             if (arePropertiesShown())
                 Platform.runLater(() -> setDividerPositions(pdiv));
         }
-        
+
         for (Divider div : center_split.getDividers())
         {
             div.positionProperty().removeListener(divider_listener);
             div.positionProperty().addListener(divider_listener);
         }
-        
+
         // Update pref about last tree state
         prefs.putBoolean(SHOW_TREE, show);
     }
@@ -267,7 +267,7 @@ public class EditorGUI
             div.positionProperty().removeListener(divider_listener);
             div.positionProperty().addListener(divider_listener);
         }
-        
+
         // Update pref about last prop state
         prefs.putBoolean(SHOW_PROPS, show);
     }
@@ -301,25 +301,25 @@ public class EditorGUI
     {
         editor.setCoords(show);
     }
-    
+
     /** @return Snap Grid on/off */
     public boolean getSnapGrid()
     {
         return editor.getSelectedWidgetUITracker().getEnableGrid();
     }
-    
+
     /** @return Snap Widgets on/off */
     public boolean getSnapWidgets()
     {
         return editor.getSelectedWidgetUITracker().getEnableSnap();
     }
-    
+
     /** @return Show Coordinates on/off */
     public boolean getShowCoords()
     {
         return editor.getSelectedWidgetUITracker().getShowLocationAndSize();
     }
-    
+
     private Parent createElements()
     {
         editor = new DisplayEditor(toolkit, 50);
@@ -348,10 +348,10 @@ public class EditorGUI
         properties_box = new VBox(header, property_panel);
 
         center_split = new SplitPane(tree_box, editor_scene, properties_box);
-        
+
         double ldiv = prefs.getDouble(DisplayEditorInstance.TREE_DIVIDER, 0.2);
         double rdiv = prefs.getDouble(DisplayEditorInstance.PROP_DIVIDER, 0.8);
-        
+
         center_split.setDividerPositions(ldiv, rdiv);
 
         for (Divider div : center_split.getDividers())
