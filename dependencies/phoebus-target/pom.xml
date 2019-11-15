@@ -9,7 +9,7 @@
 
   <properties>
     <spring.boot-version>2.0.5.RELEASE</spring.boot-version>
-    <pys>${project.basedir}/release_classpath.py</pys>
+    <preReleaseScripts>${project.basedir}/release_classpath.py</preReleaseScripts>
   </properties>
 
   <profiles>
@@ -28,7 +28,9 @@
         </dependency>
       </dependencies>
     </profile>
-
+    <!-- Overriding the default release profile to run the pre release script 
+      with makes the required modification to .classpath and other manually maintained 
+      files -->
     <profile>
       <id>release</id>
       <build>
@@ -48,7 +50,7 @@
               <executable>python</executable>
               <!-- <workingDirectory>dependencies/phoebus-target</workingDirectory> -->
               <arguments>
-                <argument>${pys}</argument>
+                <argument>${preReleaseScripts}</argument>
               </arguments>
             </configuration>
           </plugin>

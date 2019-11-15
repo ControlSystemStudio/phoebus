@@ -173,6 +173,9 @@
         </plugins>
       </build>
     </profile>
+    <!-- A profile for preparing and releasing phoebus.
+     Please refer to http://maven.apache.org/maven-release/maven-release-plugin/index.html 
+      for the detailed description of the steps involved. -->
     <profile>
       <id>release</id>
       <build>
