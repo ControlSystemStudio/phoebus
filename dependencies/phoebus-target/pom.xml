@@ -9,6 +9,7 @@
 
   <properties>
     <spring.boot-version>2.0.5.RELEASE</spring.boot-version>
+    <pys>${project.basedir}/release_classpath.py</pys>
   </properties>
 
   <profiles>
@@ -27,10 +28,38 @@
         </dependency>
       </dependencies>
     </profile>
+
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>1.6.0</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <executable>python</executable>
+              <!-- <workingDirectory>dependencies/phoebus-target</workingDirectory> -->
+              <arguments>
+                <argument>${pys}</argument>
+              </arguments>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
   <dependencies>
-    <!-- For testing. mockito-all contains hamcrest packages, resulting in conflicts. This combination of junit, mockito, hamcrest seems to work -->
+    <!-- For testing. mockito-all contains hamcrest packages, resulting in 
+      conflicts. This combination of junit, mockito, hamcrest seems to work -->
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>install-jars</artifactId>
@@ -204,7 +233,8 @@
       <version>${jackson.version}</version>
     </dependency>
 
-    <!-- Jetty, web server used by scan server, archive engine, .. For versions check http://central.maven.org/maven2/org/eclipse/jetty/jetty-maven-plugin/ -->
+    <!-- Jetty, web server used by scan server, archive engine, .. For versions 
+      check http://central.maven.org/maven2/org/eclipse/jetty/jetty-maven-plugin/ -->
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
@@ -282,7 +312,7 @@
       <version>9.0-r1</version>
     </dependency>
 
-	<!-- Display Builder -->
+    <!-- Display Builder -->
     <dependency>
       <groupId>org.controlsfx</groupId>
       <artifactId>controlsfx</artifactId>
@@ -291,9 +321,9 @@
 
     <!-- MQTT client library -->
     <dependency>
-        <groupId>org.eclipse.paho</groupId>
-        <artifactId>org.eclipse.paho.client.mqttv3</artifactId>
-        <version>1.2.2</version>
+      <groupId>org.eclipse.paho</groupId>
+      <artifactId>org.eclipse.paho.client.mqttv3</artifactId>
+      <version>1.2.2</version>
     </dependency>
     <dependency>
       <groupId>org.testfx</groupId>
