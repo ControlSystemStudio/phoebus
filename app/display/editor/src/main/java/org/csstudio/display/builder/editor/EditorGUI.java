@@ -136,8 +136,9 @@ public class EditorGUI
             editor.getUndoableActionManager().undoLast();
         else if (meta  &&  code == KeyCode.Y)
             editor.getUndoableActionManager().redoLast();
-        else if (in_editor  &&  ((meta  &&  code == KeyCode.X)  ||
-                                  code == KeyCode.DELETE))
+        else if (in_editor  &&  (code == KeyCode.DELETE))
+            editor.removeWidgets();
+        else if (in_editor  &&  (meta  &&  code == KeyCode.X))
             editor.cutToClipboard();
         else if (in_editor  &&  meta  &&  code == KeyCode.C)
             editor.copyToClipboard();

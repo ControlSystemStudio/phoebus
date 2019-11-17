@@ -669,7 +669,20 @@ public class DisplayEditor
         }
     }
 
-    /** Copy currently selected widgets to clipboard
+    /** Remove (delete) selected widgets */
+    public void removeWidgets()
+    {
+        if (selection_tracker.isInlineEditorActive())
+            return;
+
+        final List<Widget> widgets = selection.getSelection();
+        if (widgets.isEmpty())
+            return;
+
+        undo.execute(new RemoveWidgetsAction(selection, widgets));
+    }
+
+    /** Duplicate currently selected widgets without overwriting clipboard
      *  @return Widgets that were duplicated or <code>null</code>
      */
     public List<Widget> duplicateWidgets()
