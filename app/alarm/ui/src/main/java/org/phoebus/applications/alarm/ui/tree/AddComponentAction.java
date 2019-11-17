@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -18,6 +19,8 @@ import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
@@ -152,16 +155,98 @@ class AddComponentAction extends MenuItem
             if (new_name == null  ||  new_name.isEmpty())
                 return;
 
+            // Add in background thread
             JobManager.schedule(getText(), monitor ->
             {
+                final AlarmTreeItem<?> root = getRoot(parent);
                 if (dialog.isPV())
                 {
                     final List<String> new_names = AddComponentDialog.splitNames(new_name);
-                    new_names.forEach(pv ->  model.addPV(parent.getPathName(), pv));
+                    for (String pv : new_names)
+                    {
+                        // Check for item of same name at that level
+                        if (haveExistingItem(node, parent, pv))
+                            break;
+                        // Check for duplicate PV, anywhere in alarm tree
+                        final String existing = findPV(root, pv);
+                        if (existing == null)
+                            model.addPV(parent.getPathName(), pv);
+                        else
+                        {
+                            Platform.runLater(() ->
+                            {
+                                final Alert error = new Alert(AlertType.ERROR);
+                                error.setTitle(getText());
+                                error.setHeaderText("Cannot add PV " + pv);
+                                error.setContentText("Duplicate for " + existing);
+                                error.setResizable(true);
+                                DialogHelper.positionDialog(error, node, -100, -50);
+                                error.showAndWait();
+                            });
+                            break;
+                        }
+                    }
                 }
                 else
-                    model.addComponent(parent.getPathName(), new_name);
+                    if (! haveExistingItem(node, parent, new_name))
+                        model.addComponent(parent.getPathName(), new_name);
             });
         });
+    }
+
+    /** @param node Node to position dialog
+     *  @param parent Parent in alarm tree
+     *  @param new_name New name to add to parent
+     *  @return <code>true</code> if parent already has item of that name,
+     *          and alert dialog has been scheduled.
+     */
+    private boolean haveExistingItem(final Node node, final AlarmTreeItem<?> parent, final String new_name)
+    {
+        // Check for name name on that level
+        if (parent.getChild(new_name) == null)
+            return false;
+        Platform.runLater(() ->
+        {
+            final Alert error = new Alert(AlertType.ERROR);
+            error.setTitle(getText());
+            error.setHeaderText("Cannot add " + new_name);
+            error.setContentText("Duplicate for existing item of same name at " + parent.getPathName());
+            error.setResizable(true);
+            DialogHelper.positionDialog(error, node, -100, -50);
+            error.showAndWait();
+        });
+        return true;
+    }
+
+    /** @param item {@link AlarmTreeItem}
+     *  @return Root element of alarm tree
+     */
+    private AlarmTreeItem<?> getRoot(AlarmTreeItem<?> item)
+    {
+        AlarmTreeItem<?> root = item;
+        while (root.getParent() != null)
+            root = root.getParent();
+        return root;
+    }
+
+    /** @param item Alarm tree item (initially root) where to search for PV
+     *  @param pv Name of PV
+     *  @return PV or <code>null</code> when not found
+     */
+    private String findPV(final AlarmTreeItem<?> item, final String pv)
+    {
+        if (item instanceof  AlarmTreeLeaf)
+        {
+            if (item.getName().equals(pv))
+                return item.getPathName();
+        }
+        else
+            for (AlarmTreeItem<?> sub : item.getChildren())
+            {
+                final String found = findPV(sub, pv);
+                if (found != null)
+                    return found;
+            }
+        return null;
     }
 }

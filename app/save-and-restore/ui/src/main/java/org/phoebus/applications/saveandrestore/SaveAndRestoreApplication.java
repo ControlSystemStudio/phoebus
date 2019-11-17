@@ -19,9 +19,6 @@
 
 package org.phoebus.applications.saveandrestore;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javafx.scene.Node;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
@@ -31,12 +28,7 @@ import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
 
 public class SaveAndRestoreApplication implements AppDescriptor, AppInstance {
 	
@@ -44,9 +36,11 @@ public class SaveAndRestoreApplication implements AppDescriptor, AppInstance {
 	private AnnotationConfigApplicationContext context;
 	private SaveAndRestoreController controller;
 
+	/*
 	public SaveAndRestoreApplication(){
 		context = new AnnotationConfigApplicationContext(AppConfig.class);
 	}
+	 */
 
 	@Override
 	public String getName() {
@@ -61,6 +55,8 @@ public class SaveAndRestoreApplication implements AppDescriptor, AppInstance {
 	@Override
 	public AppInstance create() {
 
+		context = new AnnotationConfigApplicationContext(AppConfig.class);
+
 		SpringFxmlLoader springFxmlLoader = new SpringFxmlLoader();
 
 		DockItem tab = null;
@@ -72,7 +68,6 @@ public class SaveAndRestoreApplication implements AppDescriptor, AppInstance {
 		}
 
 		controller = springFxmlLoader.getLoader().getController();
-		tab.setOnClosed(e -> controller.cleanUp());
 
 		DockPane.getActiveDockPane().addTab(tab);
 		PreferencesReader pvPreferencesReader = (PreferencesReader)context.getBean("pvPreferencesReader");
@@ -90,6 +85,11 @@ public class SaveAndRestoreApplication implements AppDescriptor, AppInstance {
 
 	@Override
 	public void save(Memento memento){
-		controller.cleanUp();
+		controller.save(memento);
+	}
+
+	@Override
+	public void restore(final Memento memento) {
+		controller.restore(memento);
 	}
 }

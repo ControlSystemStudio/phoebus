@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,9 @@ package org.phoebus.ui.docking;
 
 import static org.phoebus.ui.docking.DockPane.logger;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +19,9 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Level;
 
+import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.application.Messages;
+import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Styles;
 
 import javafx.scene.Node;
@@ -60,6 +65,34 @@ public class DockStage
      */
     public static final String ID_MAIN = "DockStage_MAIN";
 
+    /** Singleton logo */
+    private static Image logo = null;
+
+    /** @return Logo, initialized on first call */
+    private static Image getLogo()
+    {
+        if (logo == null)
+        {
+            final File custom_logo = new File(Locations.install(), "site_logo.png");
+            if (custom_logo.exists())
+                try
+                {
+                    logo = new Image(new FileInputStream(custom_logo));
+                }
+                catch (FileNotFoundException ex)
+                {
+                    logger.log(Level.WARNING, "Cannot open " + custom_logo, ex);
+                }
+
+            if (logo == null)
+                logo = ImageCache.getImage(DockStage.class, "/icons/logo.png");
+        }
+        return logo;
+    }
+
+    /** @param what Purpose of the ID, used as prefix
+     *  @return Unique ID
+     */
     static String createID(final String what)
     {
         return what + "_" + UUID.randomUUID().toString().replace('-', '_');
@@ -90,7 +123,7 @@ public class DockStage
         Styles.setSceneStyle(scene);
         try
         {
-            stage.getIcons().add(new Image(DockStage.class.getResourceAsStream("/icons/logo.png")));
+            stage.getIcons().add(getLogo());
         }
         catch (Exception ex)
         {

@@ -3,7 +3,8 @@
 Logging alarm state and other messages to an elastic back end.
 
 ## Dependencies ##
-1. elastic version 6+ ([to install elastic](https://www.elastic.co/products)).
+1. Elasticsearch version 6.x. As the current major version is 7, you will need to find an archived 6.x release here:
+https://www.elastic.co/downloads/past-releases#elasticsearch
 
 ### Start elasticsearch
 
@@ -16,18 +17,7 @@ elasticsearch defaults to port 9200, however if elasticsearch is configured to u
 
 ### Create an elasticsearch index
 
-Once, elasticsearch is set up, run the `create_alarm_index.sh` script if you intend to create just one large index,
-or use `create_alarm_template.sh` if you indent to create a new index each day, week or month.
-
-When using one index, the argument to the start up script should be the root of the alarm tree where all letters are lower case.
-
-For example, with the alarm tree titled 'Accelerator', the script would be run like
-
-    sh create_alarm_index.sh accelerator
-    
-this would result in an elasticsearch index titled 'accelerator_alarms' to be created.
-
-When using the template, no argument is necessary.
+Use `/startup/create_alarm_template.sh` if you indent to create a new index each day, week or month.
 
 ### Run the alarm logging service
 
@@ -47,8 +37,11 @@ ant clean dist
 1. Run the jar
 
 ```
-java -jar target/alarm-logger-<version>.jar
+java -jar target/alarm-logger-<version>.jar -topics MY,ALARM,CONFIGS
 ```
+The argument for the ```-topics``` switch is the comma separated list of alarm configurations you wish to be 
+logged. An alarm configuration is the value specified 
+for the ```-config``` switch when starting an alarm server instance. See the README.md file in the alarm-server module.
 
 2. Using spring boot  
 

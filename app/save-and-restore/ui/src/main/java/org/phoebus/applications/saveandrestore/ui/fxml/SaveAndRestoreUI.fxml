@@ -4,7 +4,8 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<SplitPane dividerPositions="0.5985815602836879" prefHeight="1847.0" prefWidth="707.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController">
+<SplitPane fx:id="splitPane"
+		   dividerPositions="0.5985815602836879" prefHeight="1847.0" prefWidth="707.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController">
 	<items>
 		<BorderPane prefHeight="200.0" prefWidth="200.0">
 			<top>
@@ -15,7 +16,7 @@
 						</HBox.margin>
 					</Label>
 					<Region HBox.hgrow="ALWAYS" />
-					<Button fx:id="reconnectButton" onAction="#loadTreeData" visible="false">
+					<Button fx:id="reconnectButton" onAction="#loadTreeData">
                   		<HBox.margin>
                      		<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                   		</HBox.margin>

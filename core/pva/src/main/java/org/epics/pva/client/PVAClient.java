@@ -135,7 +135,7 @@ public class PVAClient
     public PVAChannel getChannel(final String channel_name, final ClientChannelListener listener)
     {
         final PVAChannel channel = new PVAChannel(this, channel_name, listener);
-        channels_by_id.putIfAbsent(channel.getId(), channel);
+        channels_by_id.putIfAbsent(channel.getCID(), channel);
         search.register(channel, true);
         return channel;
     }
@@ -159,7 +159,7 @@ public class PVAClient
      */
     void forgetChannel(final PVAChannel channel)
     {
-        channels_by_id.remove(channel.getId());
+        channels_by_id.remove(channel.getCID());
 
         // Did channel have a connection?
         final ClientTCPHandler tcp = channel.tcp.get();

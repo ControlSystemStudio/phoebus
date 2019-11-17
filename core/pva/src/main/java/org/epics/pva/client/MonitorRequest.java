@@ -88,7 +88,7 @@ class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
             final int size_offset = buffer.position() + PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE;
             PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_MONITOR, 4+4+1+6);
             final int payload_start = buffer.position();
-            buffer.putInt(channel.sid);
+            buffer.putInt(channel.getSID());
             buffer.putInt(request_id);
 
             if (pipeline > 0)
@@ -110,7 +110,7 @@ class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
             final int ack = received_updates.getAndSet(0);
             logger.log(Level.FINE, () -> "Sending monitor pipeline ack of " + ack + " updates, request #" + request_id + " for " + channel);
             PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_MONITOR, 4+4+1+4);
-            buffer.putInt(channel.sid);
+            buffer.putInt(channel.getSID());
             buffer.putInt(request_id);
             buffer.put(PVAHeader.CMD_SUB_PIPELINE);
             buffer.putInt(ack);
@@ -126,7 +126,7 @@ class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
             else
                 throw new Exception("Cannot handle monitor state " + state);
             PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_MONITOR, 4+4+1);
-            buffer.putInt(channel.sid);
+            buffer.putInt(channel.getSID());
             buffer.putInt(request_id);
             buffer.put(state);
         }

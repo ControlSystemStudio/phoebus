@@ -1,0 +1,10 @@
+<project default="app-errlog">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="app-errlog" depends="compile-app">
+    <jar destfile="${build}/app-errlog-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+</project>

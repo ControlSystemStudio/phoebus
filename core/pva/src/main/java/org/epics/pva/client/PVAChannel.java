@@ -42,13 +42,20 @@ import org.epics.pva.data.PVAStructure;
 @SuppressWarnings("nls")
 public class PVAChannel
 {
-    private static final AtomicInteger IDs = new AtomicInteger();
+    /** Provider for the 'next' client channel ID
+     *
+     *  <p>Starts at 1, i.e. the first channel will use CID 2.
+     *  Since the server tends to start at 1, this makes it
+     *  more obvious in tests which ID is the SID
+     *  and which is the CID.
+     */
+    private static final AtomicInteger CID_Provider = new AtomicInteger(1);
 
     private final PVAClient client;
     private final String name;
     private final ClientChannelListener listener;
-    private final int id = IDs.incrementAndGet();
-    int sid = -1;
+    private final int cid = CID_Provider.incrementAndGet();
+    private volatile int sid = -1;
 
     /** State
      *
@@ -83,10 +90,17 @@ public class PVAChannel
     }
 
     /** @return Client channel ID */
-    int getId()
+    int getCID()
     {
-        return id;
+        return cid;
     }
+
+    /** @return Server channel ID */
+    int getSID()
+    {
+        return sid;
+    }
+
 
     /** @return Channel name */
     public String getName()
@@ -302,7 +316,7 @@ public class PVAChannel
     public void close()
     {
         // In case channel is still being searched, stop
-        client.search.unregister(getId());
+        client.search.unregister(getCID());
 
         // Indicate that channel is closing
         final ClientChannelState old_state = setState(ClientChannelState.CLOSING);
@@ -329,6 +343,6 @@ public class PVAChannel
     @Override
     public String toString()
     {
-        return "'" + name + "' [CID " + id + ", SID " + sid + " " + state.get() + "]";
+        return "'" + name + "' [CID " + cid + ", SID " + sid + " " + state.get() + "]";
     }
 }

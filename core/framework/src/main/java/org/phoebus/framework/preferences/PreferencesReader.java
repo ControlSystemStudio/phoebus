@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
 public class PreferencesReader
 {
     private final Properties defaults = new Properties();
+    private final String package_class;
     private final Preferences prefs;
 
     private static final Pattern PROP_PATTERN = Pattern.compile("\\$\\([^\\)]+\\)");
@@ -48,6 +49,8 @@ public class PreferencesReader
      */
     static String replaceProperties(final String value)
     {
+        if (value == null)
+            return value;
         String result = value;
         Matcher matcher = PROP_PATTERN.matcher(value);
         while (matcher.find())
@@ -82,6 +85,7 @@ public class PreferencesReader
      */
     public PreferencesReader(final Class<?> package_class, final String preferences_properties_filename)
     {
+        this.package_class = package_class.getPackageName();
         try
         {
             defaults.load(package_class.getResourceAsStream(preferences_properties_filename));
@@ -129,7 +133,14 @@ public class PreferencesReader
      */
     public String get(final String key)
     {
-        return replaceProperties(prefs.get(key, defaults.getProperty(key)));
+        final String value = prefs.get(key, defaults.getProperty(key));
+        if (value == null)
+        {
+            Logger.getLogger(PreferencesReader.class.getPackageName())
+                  .log(Level.SEVERE, "No default setting for preference " + package_class + "/" + key);
+            return "";
+        }
+        return replaceProperties(value);
     }
 
     /** @param key Key for preference setting
@@ -137,7 +148,7 @@ public class PreferencesReader
      */
     public boolean getBoolean(final String key)
     {
-        return prefs.getBoolean(key, Boolean.parseBoolean(defaults.getProperty(key)));
+        return Boolean.parseBoolean(get(key));
     }
 
     /** @param key Key for preference setting
@@ -145,7 +156,10 @@ public class PreferencesReader
      */
     public int getInt(final String key)
     {
-        return prefs.getInt(key, Integer.parseInt(defaults.getProperty(key)));
+        final String value = get(key);
+        if (value.isBlank())
+            return 0;
+        return Integer.parseInt(value);
     }
 
     /** @param key Key for preference setting
@@ -153,6 +167,9 @@ public class PreferencesReader
      */
     public double getDouble(final String key)
     {
-        return prefs.getDouble(key, Double.parseDouble(defaults.getProperty(key)));
+        final String value = get(key);
+        if (value.isBlank())
+            return 0.0;
+        return Double.parseDouble(value);
     }
 }

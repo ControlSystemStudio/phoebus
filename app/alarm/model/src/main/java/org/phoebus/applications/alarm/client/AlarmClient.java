@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -365,6 +365,10 @@ public class AlarmClient
             if (last)
                 return node;
             // Found or created intermediate node; continue walking down the path
+            if (! (node instanceof AlarmClientNode))
+                throw new Exception("Expected intermediate node, found " +
+                                    node.getClass().getSimpleName() + " " + node.getName() +
+                                    " while traversing " + path);
             parent = (AlarmClientNode) node;
         }
 
