@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -238,6 +238,7 @@ public class FormulaItem extends ModelItem
                         variables[i].setValue(val[i]);
                     // Evaluate formula for these inputs
                     final double res_val = VTypeHelper.toDouble(formula.eval());
+                    final Time timestamp = Time.of(time);
                     final VType value;
 
                     if (have_min_max)
@@ -249,14 +250,15 @@ public class FormulaItem extends ModelItem
                         for (int i = 0; i < values.length; i++)
                             variables[i].setValue(max[i]);
                         final double res_max = VTypeHelper.toDouble(formula.eval());
-                        value = VStatistics.of(res_val, 0.0, res_min, res_max, 1, OK_FORMULA, Time.now(), display);
+                        // Use min, max, average(=res_val)
+                        value = VStatistics.of(res_val, 0.0, res_min, res_max, 1, OK_FORMULA, timestamp, display);
                     }
                     else
                     {   // No min/max.
                         if (Double.isNaN(res_val))
-                            value = VDouble.of(res_val, INVALID_FORMULA, Time.of(time), display);
+                            value = VDouble.of(res_val, INVALID_FORMULA, timestamp, display);
                         else
-                            value = VDouble.of(res_val, OK_FORMULA, Time.of(time), display);
+                            value = VDouble.of(res_val, OK_FORMULA, timestamp, display);
                     }
                     result.add(new PlotSample(Messages.Formula, value));
                 }
