@@ -609,8 +609,7 @@ public class Controller
         }
         // Stop update task
         model.stop();
-        model.removeListener(model_listener);
-        model.clear();
+        model.dispose();
         update_task.cancel(true);
         update_task = null;
     }

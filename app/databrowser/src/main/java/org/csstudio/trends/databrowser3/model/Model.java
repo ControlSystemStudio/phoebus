@@ -952,4 +952,11 @@ public class Model
         for (ModelListener listener : listeners)
             listener.selectedSamplesChanged();
     }
+
+    /** Dispose all items, remove all listeners */
+    public void dispose()
+    {
+        listeners.clear();
+        clear();
+    }
 }
