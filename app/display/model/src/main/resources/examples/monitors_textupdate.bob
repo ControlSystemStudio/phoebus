@@ -271,7 +271,7 @@ while the DMS specialization maps 2 pi to 360 degrees.
     <pv_name>loc://Text("Hello there how are you doing?")</pv_name>
     <x>191</x>
     <y>800</y>
-    <width>109</width>
+    <width>238</width>
     <format>1</format>
     <precision>4</precision>
   </widget>
@@ -437,11 +437,16 @@ In addition, a scrollbar appears when the text exceeds the widget area.
   </widget>
   <widget type="textupdate" version="2.0.0">
     <name>Text Update_15</name>
-    <pv_name>loc://Text("Hello there how are you doing?")</pv_name>
+    <pv_name>loc://MultilineText("Hello there!
+
+How are you doing?
+Nice to \"meet\" you!
+
+Bye..")</pv_name>
     <x>191</x>
-    <y>830</y>
-    <width>69</width>
-    <height>60</height>
+    <y>870</y>
+    <width>238</width>
+    <height>80</height>
     <format>1</format>
     <precision>4</precision>
     <interactive>true</interactive>

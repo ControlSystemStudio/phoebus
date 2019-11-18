@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2016-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.epics.util.array.ArrayDouble;
 import org.epics.vtype.Alarm;
@@ -38,6 +40,9 @@ public class ValueHelper
 {
     static final Alarm UDF = Alarm.of(AlarmSeverity.UNDEFINED, AlarmStatus.UNDEFINED, "UDF");
 
+    /** loc:// PV name: Starts with alpha, then alphanumeric or ':_-.' */
+    private static final Pattern PV_NAME_PATTERN = Pattern.compile("([A-Za-z][-A-Za-z0-9:_.]*)(.*)", Pattern.DOTALL);
+
     /** Parse local PV name
      *  @param base_name "name", "name(value)" or "name&lt;type>(value)"
      *  @return Name, type-or-null, value-or-null
@@ -45,34 +50,34 @@ public class ValueHelper
      */
     public static String[] parseName(final String base_name) throws Exception
     {
-        // Could use regular expression, but this allows more specific error messages
-        String name=null, type=null, value=null;
+        final Matcher matcher = PV_NAME_PATTERN.matcher(base_name);
+        if (! matcher.matches())
+            throw new Exception("Missing PV name in " + base_name);
+
+        final String name = matcher.group(1);
+        String rest = matcher.group(2);
+
+        // Could use regular expression for all, but this allows more specific error messages
+        String type=null, value=null;
 
         // Locate type
-        int sep = base_name.indexOf('<');
-        if (sep >= 0)
+        if (rest.startsWith("<"))
         {
-            final int end = base_name.indexOf('>', sep+1);
-            if (end <= sep)
+            final int end = rest.indexOf('>', 1);
+            if (end <= 0)
                 throw new Exception("Missing '>' to define type in " + base_name);
-            name = base_name.substring(0, sep);
-            type = base_name.substring(sep+1, end);
+            type = rest.substring(1, end);
+            rest = rest.substring(end + 1);
         }
 
         // Locate value
-        sep = base_name.indexOf('(');
-        if (sep > 0)
+        if (rest.startsWith("("))
         {
-            final int end = base_name.lastIndexOf(')');
-            if (end <= sep)
+            final int end = rest.lastIndexOf(')');
+            if (end <= 0)
                 throw new Exception("Missing ')' of initial value in " + base_name);
-            value = base_name.substring(sep+1, end);
-            if (name == null)
-                name = base_name.substring(0, sep);
+            value = rest.substring(1, end);
         }
-
-        if (name == null)
-            name = base_name.trim();
 
         return new String[] { name, type, value };
     }
