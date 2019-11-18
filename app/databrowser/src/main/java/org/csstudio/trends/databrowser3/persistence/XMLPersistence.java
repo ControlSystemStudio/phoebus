@@ -7,6 +7,8 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.persistence;
 
+import static org.csstudio.trends.databrowser3.Activator.logger;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.time.Duration;
@@ -22,7 +24,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;
 
-import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.model.AnnotationInfo;
 import org.csstudio.trends.databrowser3.model.ArchiveRescale;
 import org.csstudio.trends.databrowser3.model.AxisConfig;
@@ -177,7 +178,10 @@ public class XMLPersistence
             if (scroll)
             {   // Relative start time .. now
                 final TemporalAmount span = TimeWarp.parseLegacy(start);
-                interval = TimeRelativeInterval.startsAt(span);
+                if (Duration.ZERO.equals(span))
+                    interval = TimeRelativeInterval.of(Preferences.time_span, Duration.ZERO);
+                else
+                    interval = TimeRelativeInterval.startsAt(span);
             }
             else
             {   // Absolute start ... end
@@ -269,7 +273,7 @@ public class XMLPersistence
                 }
                 catch (Throwable ex)
                 {
-                    Activator.logger.log(Level.INFO, "XML error in Annotation", ex);
+                    logger.log(Level.INFO, "XML error in Annotation", ex);
                 }
             }
             model.setAnnotations(annotations);
@@ -287,6 +291,17 @@ public class XMLPersistence
                 {
                     // Load PV item
                     final PVItem model_item = PVItem.fromDocument(model, item);
+
+                    if (model_item.getName().isBlank())
+                    {
+                        // Items need a PV name.
+                        // Patch missing name, don't remove item in case following formulas
+                        // use "x5" with this PV's index
+                        model_item.setName("loc://empty(0)");
+                        model_item.setDisplayName(model_item.getName());
+                        logger.log(Level.WARNING, "Patching <pv> entry without <name> into " + model_item.getName());
+                    }
+
                     // Adding item creates the axis for it if not already there
                     model.addItem(model_item);
                     // Ancient data browser stored axis configuration with each item: Update axis from that.
