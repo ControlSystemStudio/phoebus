@@ -109,8 +109,18 @@ public class DBRHelper
 
     private static Alarm convertAlarm(final DBR dbr)
     {
-        if (! (dbr instanceof STS))
+        if (dbr == null)
+        {
+            // Not expected, but null indicates
+            // that there is no value, i.e. disconnected.
             return Alarm.disconnected();
+        }
+        else if (! (dbr instanceof STS))
+        {
+            // Called with a valid DBR that carries no alarm information: OK.
+            // Example scenario is reading record.RTYP, which sends plain DBR_STRING.
+            return Alarm.none();
+        }
 
         final STS sts = (STS) dbr;
 
