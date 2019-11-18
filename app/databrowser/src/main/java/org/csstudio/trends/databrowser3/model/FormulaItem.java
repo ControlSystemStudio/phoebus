@@ -234,21 +234,21 @@ public class FormulaItem extends ModelItem
                     }
 
                     // Set variables[] from val to get res_val
+                    final Time timestamp = Time.of(time);
                     for (int i = 0; i < values.length; i++)
-                        variables[i].setValue(val[i]);
+                        variables[i].setValue(VDouble.of(val[i], OK_FORMULA, timestamp, display));
                     // Evaluate formula for these inputs
                     final double res_val = VTypeHelper.toDouble(formula.eval());
-                    final Time timestamp = Time.of(time);
                     final VType value;
 
                     if (have_min_max)
                     {   // Set variables[] from min
                         for (int i = 0; i < values.length; i++)
-                            variables[i].setValue(min[i]);
+                            variables[i].setValue(VDouble.of(min[i], OK_FORMULA, timestamp, display));
                         final double res_min = VTypeHelper.toDouble(formula.eval());
                         // Set variables[] from max
                         for (int i = 0; i < values.length; i++)
-                            variables[i].setValue(max[i]);
+                            variables[i].setValue(VDouble.of(max[i], OK_FORMULA, timestamp, display));
                         final double res_max = VTypeHelper.toDouble(formula.eval());
                         // Use min, max, average(=res_val)
                         value = VStatistics.of(res_val, 0.0, res_min, res_max, 1, OK_FORMULA, timestamp, display);
