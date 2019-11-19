@@ -392,8 +392,8 @@ access PVs that have already been created.</text>
           <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
 
 selected = ScriptUtil.showSelectionDialog(widget, 
-                                                                  "Pick one",
-                                                                  [ "Apple", "Banana", "Cucumber" ])
+            "Pick one\nof the following\noptions\ndepending on\nyour preferred choice\nof fruit",
+            [ "Apple", "Banana", "Cucumber" ])
 
 if selected is None:
     ScriptUtil.showMessageDialog(widget, "Sorry that you don't like any...")
