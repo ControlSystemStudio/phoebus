@@ -338,13 +338,7 @@ public class ScriptUtil
             if (resolved.startsWith("http:") || resolved.startsWith("https:"))
                 url = resolved;
             else
-            {
-                final String local = ModelResourceUtil.getLocalPath(resolved);
-                if (local != null)
-                    url = new File(local).toURI().toString();
-                else
-                    url = new File(resolved).toURI().toString();
-            }
+                url = new File(resolved).toURI().toString();
             return ToolkitRepresentation.getToolkit(widget.getDisplayModel()).playAudio(url);
         }
         catch (Exception ex)
@@ -436,6 +430,7 @@ public class ScriptUtil
 
     /** @param workspace_path Path within workspace
      *  @return Location in local file system or <code>null</code>
+     *  @deprecated There is no more "workspace", so no need to get local path
      */
     public static String workspacePathToSysPath(final String workspace_path)
     {

@@ -260,7 +260,7 @@ public class ActionUtil
             // Resolve command relative to the source widget model (not 'top'!)
             final DisplayModel widget_model = source_widget.getDisplayModel();
             final String parent_file = widget_model.getUserData(DisplayModel.USER_DATA_INPUT_FILE);
-            final String parent_dir = ModelResourceUtil.getDirectory(ModelResourceUtil.getLocalPath(parent_file));
+            final String parent_dir = ModelResourceUtil.getDirectory(parent_file);
 
             // Execute (this is already running on background thread)
             logger.log(Level.FINE, "Executing command {0} in {1}", new Object[] { command, parent_dir });
