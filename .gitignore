@@ -13,6 +13,7 @@ release.properties
 .settings
 logs.txt
 settings.xml
+!.github/maven/settings.xml
 nohup.out
 
 # Generated help files, html/generated
