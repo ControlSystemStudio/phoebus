@@ -339,17 +339,6 @@ public class ModelResourceUtil
             return file.getAbsolutePath();
         }
 
-        // Try the resource name as is.
-        // Resolves relative links based on the current working directory,
-        // which is inferior to resolving relative to a known parent display,
-        // but nevertheless supported as a fallback.
-        file = new File(URLdecode(resource_name));
-        if (file.exists())
-        {
-            logger.log(Level.FINE, "Found file {0} relative to current working directory", file);
-            return file.getAbsolutePath();
-        }
-
         // Give up
         return null;
     }
