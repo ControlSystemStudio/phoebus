@@ -275,21 +275,15 @@ public class ModelResourceUtil
         if (resource_name.endsWith("." + DisplayModel.LEGACY_FILE_EXTENSION))
         {   // Check if there is an updated file for a legacy resource
             final String updated_resource = resource_name.substring(0, resource_name.length()-3) + DisplayModel.FILE_EXTENSION;
-            final String test = doResolveResource(parent_display, updated_resource);
+            final String test = doResolveResource(parent_display, updated_resource, true);
             if (test != null)
             {
                 logger.log(Level.FINE, "Using updated {0} instead of {1}", new Object[] { test, resource_name });
                 return test;
             }
         }
-        final String result = doResolveResource(parent_display, resource_name);
-        if (result != null)
-            return result;
 
-        // TODO Search along a configurable list of lookup paths?
-
-        // Give up, returning original name
-        return resource_name;
+        return doResolveResource(parent_display, resource_name, false);
     }
 
     private static String URLdecode(final String text)
@@ -312,9 +306,10 @@ public class ModelResourceUtil
      *
      * @param parent_display
      * @param resource_name
+     * @param check_if_exists whether to return null if the resource does not exist as a plain file
      * @return
      */
-    private static String doResolveResource(final String parent_display, final String resource_name)
+    private static String doResolveResource(final String parent_display, final String resource_name, boolean check_if_exists)
     {
         // Actual, existing URL?
         if (canOpenUrl(resource_name))
@@ -333,20 +328,9 @@ public class ModelResourceUtil
 
         // Can display be opened as file?
         File file = new File(URLdecode(combined));
-        if (file.exists())
+        if (check_if_exists == false || file.exists())
         {
             logger.log(Level.FINE, "Found file {0} relative to parent display", file);
-            return file.getAbsolutePath();
-        }
-
-        // Try the resource name as is.
-        // Resolves relative links based on the current working directory,
-        // which is inferior to resolving relative to a known parent display,
-        // but nevertheless supported as a fallback.
-        file = new File(URLdecode(resource_name));
-        if (file.exists())
-        {
-            logger.log(Level.FINE, "Found file {0} relative to current working directory", file);
             return file.getAbsolutePath();
         }
 
