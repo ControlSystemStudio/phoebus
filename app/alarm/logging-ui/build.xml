@@ -14,6 +14,7 @@
     <jar destfile="${build}/app-alarm-logging-ui-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
+      <fileset dir="${src}" includes="**/*.fxml"/>
     </jar>
   </target>
 	
