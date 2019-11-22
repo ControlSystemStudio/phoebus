@@ -7,6 +7,9 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui;
 
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
+import javafx.scene.web.HTMLEditor;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -18,26 +21,28 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
 
+import java.util.List;
+
 /** Action that displays an AlarmTreeItem's guidance
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 class ShowGuidanceAction extends MenuItem
 {
+
     /** @param node Node to position dialog
-     *  @param item Alarm item
-     *  @param guidance Info to show
+     *  @param item Alarm item tha also holds guidance texts
      */
-    public ShowGuidanceAction(final Node node, final AlarmTreeItem<?> item, final TitleDetail guidance)
+    public ShowGuidanceAction(final Node node, final AlarmTreeItem<?> item)
     {
-        super(guidance.title, ImageCache.getImageView(ImageCache.class, "/icons/info.png"));
+        super("Guidance", ImageCache.getImageView(ImageCache.class, "/icons/info.png"));
         setOnAction(event ->
         {
             final Alert dialog = new Alert(AlertType.INFORMATION);
-            dialog.setTitle("Guidance for " + item.getName());
-            dialog.setHeaderText(guidance.title);
+            dialog.setTitle("Guidance");
+            dialog.setHeaderText("Guidance for " + item.getName());
 
-            final TextArea details = new TextArea(guidance.detail);
+            final TextArea details = new TextArea(getGuidanceTexts(item.getGuidance()));
             details.setEditable(false);
             details.setWrapText(true);
 
@@ -45,7 +50,18 @@ class ShowGuidanceAction extends MenuItem
 
             DialogHelper.positionDialog(dialog, node, -100, -50);
             dialog.setResizable(true);
+
             dialog.showAndWait();
         });
+    }
+
+    private String getGuidanceTexts(List<TitleDetail> guidance){
+        StringBuffer stringBuffer = new StringBuffer();
+        for(TitleDetail detail : guidance){
+            stringBuffer.append(detail.title).append("\n");
+            stringBuffer.append(detail.detail).append("\n\n");
+        }
+
+        return stringBuffer.toString();
     }
 }

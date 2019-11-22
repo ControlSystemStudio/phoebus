@@ -93,12 +93,12 @@ public class AlarmContextMenuHelper
         //
         // Considered tool tip, but unclear how to attach TT to menu item.
         final AtomicInteger count = new AtomicInteger();
-        for (AlarmTreeItem<?> item : selection)
-        {
-            addGuidance(node, menu_items, item, count);
-            if (count.get() >= AlarmSystem.alarm_menu_max_items)
-                break;
+
+        // Add guidance menu item only if one single AlarmTreeItem is selected
+        if(selection.size() == 1 && selection.get(0).getGuidance() != null && !selection.get(0).getGuidance().isEmpty()){
+            addGuidance(node, menu_items, selection.get(0));
         }
+
         added.clear();
         count.set(0);
 
@@ -157,21 +157,9 @@ public class AlarmContextMenuHelper
 
     private void addGuidance(final Node node,
                              final List<MenuItem> menu_items,
-                             final AlarmTreeItem<?> item,
-                             final AtomicInteger count)
+                             final AlarmTreeItem<?> item)
     {
-        for (TitleDetail guidance : item.getGuidance())
-            if (added.add(guidance))
-                if (count.incrementAndGet() <= AlarmSystem.alarm_menu_max_items)
-                    menu_items.add(new ShowGuidanceAction(node, item, guidance));
-                else
-                {
-                    menu_items.add(createSkippedEntriesHint(node, "guidance messages"));
-                    return;
-                }
-
-        if (item.getParent() != null)
-            addGuidance(node, menu_items, item.getParent(), count);
+        menu_items.add(new ShowGuidanceAction(node, item));
     }
 
     private void addDisplays(final Node node,
