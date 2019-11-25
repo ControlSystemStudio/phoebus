@@ -187,20 +187,23 @@ public class FileBrowserController {
         treeView.setShowRoot(false);
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-        final TreeTableColumn<File, File> name_col = new TreeTableColumn<>("Name");
-        name_col.setPrefWidth(150);
+        // Create table columns
+        final TreeTableColumn<File, File> name_col = new TreeTableColumn<>(Messages.ColName);
+        name_col.setPrefWidth(200);
         name_col.setCellValueFactory(p -> new ReadOnlyObjectWrapper<>(p.getValue().getValue()));
         name_col.setCellFactory(info -> new FileTreeCell());
         treeView.getColumns().add(name_col);
 
-        final TreeTableColumn<File, String> time_col = new TreeTableColumn<>("Time");
-        time_col.setPrefWidth(150);
+        final TreeTableColumn<File, String> time_col = new TreeTableColumn<>(Messages.ColTime);
         time_col.setCellValueFactory(p ->
         {
             final Instant time = Instant.ofEpochMilli(p.getValue().getValue().lastModified());
             return new ReadOnlyStringWrapper(TimestampFormats.MILLI_FORMAT.format(time));
         });
         treeView.getColumns().add(time_col);
+
+        // Have columns fill table width
+        treeView.setColumnResizePolicy(TreeTableView.CONSTRAINED_RESIZE_POLICY);
 
         // Prepare ContextMenu items
         open.setOnAction(event -> openSelectedResources());

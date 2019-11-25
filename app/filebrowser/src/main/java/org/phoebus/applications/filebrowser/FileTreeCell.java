@@ -186,8 +186,6 @@ final class FileTreeCell extends TreeTableCell<File, File> {
     protected void updateItem(final File file, final boolean empty) {
         super.updateItem(file, empty);
 
-        System.out.println("Update: " + file);
-
         if (empty || file == null) {
             setText(null);
             setGraphic(null);
