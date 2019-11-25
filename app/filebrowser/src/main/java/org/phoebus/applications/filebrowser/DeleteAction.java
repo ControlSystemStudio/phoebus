@@ -60,6 +60,7 @@ public class DeleteAction extends MenuItem
             }
 
             prompt.setHeaderText(Messages.DeletePromptHeader + buf.toString() + "?");
+            prompt.getDialogPane().setPrefWidth(500);
             prompt.setResizable(true);
             DialogHelper.positionDialog(prompt, node, 0, 0);
             if (prompt.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK)
