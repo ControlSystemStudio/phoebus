@@ -302,12 +302,12 @@ public class DisplayRuntimeInstance implements AppInstance
                 final String exception_message;
 
                 if (ex.getCause() != null)
-                    exception_message = ex.getCause().getLocalizedMessage();
+                    exception_message = ":\n" + ex.getCause().getLocalizedMessage();
                 else
                     exception_message = "";
 
                 ExceptionDetailsErrorDialog.openError("Cannot load model",
-                        "Cannot load model from\n" + info.getPath() + ":\n" + exception_message, ex);
+                        "Cannot load model from\n" + info.getPath() + exception_message, ex);
 
                 display_info = Optional.empty();
                 Platform.runLater(() ->
