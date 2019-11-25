@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -305,11 +305,13 @@ public class MementoHelper
      *  @param memento_file The file the memento xml is stored in.
      *  @param last_opened_file The last opened file.
      *  @param default_application The default application name.
+     *  @param show_menu Show menu?
      *  @param show_toolbar Show toolbar?
      */
     public static void saveState(final File memento_file,
                                  final File last_opened_file,
                                  final String default_application,
+                                 final boolean show_menu,
                                  final boolean show_toolbar)
     {
         logger.log(Level.INFO, "Persisting state to " + memento_file);
@@ -323,6 +325,7 @@ public class MementoHelper
             if (default_application != null)
                 memento.setString(PhoebusApplication.DEFAULT_APPLICATION, default_application);
             memento.setBoolean(PhoebusApplication.SHOW_TABS, DockPane.isAlwaysShowingTabs());
+            memento.setBoolean(PhoebusApplication.SHOW_MENU, show_menu);
             memento.setBoolean(PhoebusApplication.SHOW_TOOLBAR, show_toolbar);
 
             // Persist each stage (window) and its tabs

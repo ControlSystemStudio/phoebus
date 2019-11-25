@@ -99,6 +99,7 @@ public class PhoebusApplication extends Application {
     public static final String LAST_OPENED_FILE = "last_opened_file",
                                DEFAULT_APPLICATION = "default_application",
                                SHOW_TABS = "show_tabs",
+                               SHOW_MENU = "show_menu",
                                SHOW_TOOLBAR = "show_toolbar";
 
     /** Menu item for top resources */
@@ -106,6 +107,9 @@ public class PhoebusApplication extends Application {
 
     /** Menu item to show/hide tabs */
     private CheckMenuItem show_tabs;
+
+    /** Menu bar, may be hidden via memento */
+    private MenuBar menuBar;
 
     /** Tool bar, may be hidden */
     private ToolBar toolbar;
@@ -246,7 +250,7 @@ public class PhoebusApplication extends Application {
         monitor.beginTask(Messages.MonitorTaskUi, 4);
 
         main_stage = new Stage();
-        final MenuBar menuBar = createMenu(main_stage);
+        menuBar = createMenu(main_stage);
         toolbar = createToolbar();
         createTopResourcesMenu();
 
@@ -709,6 +713,27 @@ public class PhoebusApplication extends Application {
         return toolBar;
     }
 
+    /** @return <code>true</code> if menu is visible */
+    boolean isMenuVisible()
+    {
+        final BorderPane layout = DockStage.getLayout(main_stage);
+        final VBox top = (VBox) layout.getTop();
+        return top.getChildren().contains(menuBar);
+    }
+
+    private void showMenu(final boolean show)
+    {
+        final BorderPane layout = DockStage.getLayout(main_stage);
+        final VBox top = (VBox) layout.getTop();
+        if (show)
+        {
+            if (! top.getChildren().contains(menuBar))
+                top.getChildren().add(0, menuBar);
+        }
+        else
+            top.getChildren().remove(menuBar);
+    }
+
     /** @return <code>true</code> if toolbar is visible */
     boolean isToolbarVisible()
     {
@@ -974,6 +999,7 @@ public class PhoebusApplication extends Application {
                 DockPane.alwaysShowTabs(show);
                 show_tabs.setSelected(show);
             });
+            memento.getBoolean(SHOW_MENU).ifPresent(this::showMenu);
             memento.getBoolean(SHOW_TOOLBAR).ifPresent(show ->
             {
                 showToolbar(show);
@@ -1037,7 +1063,7 @@ public class PhoebusApplication extends Application {
         // Save current state, _before_ tabs are closed and thus
         // there's nothing left to save
         final File memfile = XMLMementoTree.getDefaultFile();
-        MementoHelper.saveState(memfile, last_opened_file, default_application, isToolbarVisible());
+        MementoHelper.saveState(memfile, last_opened_file, default_application, isMenuVisible(), isToolbarVisible());
 
         if (!closeStages(stages))
             return false;

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -118,7 +118,7 @@ class SaveLayoutMenuItem extends MenuItem
         // Save in background thread
         JobManager.schedule("Save " + memento_filename, monitor ->
         {
-            MementoHelper.saveState(memento_file, null, null, phoebus.isToolbarVisible());
+            MementoHelper.saveState(memento_file, null, null, phoebus.isMenuVisible(), phoebus.isToolbarVisible());
 
             // After the layout has been saved,
             // update menu to include the newly saved layout
