@@ -31,6 +31,7 @@ import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
@@ -284,13 +285,39 @@ public class DisplayRuntimeInstance implements AppInstance
         // load model off UI thread
         JobManager.schedule("Load Display", monitor ->
         {
-            final DisplayModel model = loadModel(monitor, info);
+            try
+            {
+                final DisplayModel model = loadModel(monitor, info);
 
-            final Future<Void> represented = representation.submit(() -> representModel(model));
-            represented.get();
+                final Future<Void> represented = representation.submit(() -> representModel(model));
+                represented.get();
 
-            // Start runtime for the model
-            RuntimeUtil.startRuntime(model);
+                // Start runtime for the model
+                RuntimeUtil.startRuntime(model);
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.SEVERE, "Cannot load model from " + info.getPath(), ex);
+
+                final String exception_message;
+
+                if (ex.getCause() != null)
+                    exception_message = ex.getCause().getLocalizedMessage();
+                else
+                    exception_message = "";
+
+                ExceptionDetailsErrorDialog.openError("Cannot load model",
+                        "Cannot load model from\n" + info.getPath() + ":\n" + exception_message, ex);
+
+                display_info = Optional.empty();
+                Platform.runLater(() ->
+                {
+                    final Parent parent = representation.getModelParent();
+                    JFXRepresentation.getChildren(parent).clear();
+                    close();
+                });
+                return;
+            }
         });
     }
 
@@ -305,54 +332,39 @@ public class DisplayRuntimeInstance implements AppInstance
      *  @param info Display to load
      *  @return Model that has been loaded
      */
-    private DisplayModel loadModel(final JobMonitor monitor, final DisplayInfo info)
+    private DisplayModel loadModel(final JobMonitor monitor, final DisplayInfo info) throws Exception
     {
         monitor.beginTask(info.toString());
-        try
-        {
-            final DisplayModel model = info.shouldResolve()
-                ? ModelLoader.resolveAndLoadModel(null, info.getPath())
-                : ModelLoader.loadModel(info.getPath());
+        final DisplayModel model = info.shouldResolve()
+            ? ModelLoader.resolveAndLoadModel(null, info.getPath())
+            : ModelLoader.loadModel(info.getPath());
 
-            // This code is called
-            // 1) When opening a new display
-            //    No macros in info.
-            // 2) On application restart with DisplayInfo from memento
-            //    Info contains snapshot of macros from last run
-            //    Could simply use info's macros if they are non-empty,
-            //    but merging macros with those loaded from model file
-            //    allows for newly added macros in the display file.
-            final Macros macros = Macros.merge(model.propMacros().getValue(), info.getMacros());
-            model.propMacros().setValue(macros);
+        // This code is called
+        // 1) When opening a new display
+        //    No macros in info.
+        // 2) On application restart with DisplayInfo from memento
+        //    Info contains snapshot of macros from last run
+        //    Could simply use info's macros if they are non-empty,
+        //    but merging macros with those loaded from model file
+        //    allows for newly added macros in the display file.
+        final Macros macros = Macros.merge(model.propMacros().getValue(), info.getMacros());
+        model.propMacros().setValue(macros);
 
-            // For runtime, expand macros
-            if (! representation.isEditMode())
-                DisplayMacroExpander.expandDisplayMacros(model);
-            return model;
-        }
-        catch (Exception ex)
-        {
-            showError("Error loading " + info, ex);
-        }
-        return null;
+        // For runtime, expand macros
+        if (! representation.isEditMode())
+            DisplayMacroExpander.expandDisplayMacros(model);
+        return model;
     }
 
     /** Represent model
      *  @param model Model to represent
      *  @return {@link Void} to allow use in {@link Callable}
      */
-    private Void representModel(final DisplayModel model)
+    private Void representModel(final DisplayModel model) throws Exception
     {
-        try
-        {
-            final Parent parent = representation.getModelParent();
-            JFXRepresentation.getChildren(parent).clear();
-            representation.representModel(parent, model);
-        }
-        catch (Exception ex)
-        {
-            showError("Cannot represent model", ex);
-        }
+        final Parent parent = representation.getModelParent();
+        JFXRepresentation.getChildren(parent).clear();
+        representation.representModel(parent, model);
         return null;
     }
 
