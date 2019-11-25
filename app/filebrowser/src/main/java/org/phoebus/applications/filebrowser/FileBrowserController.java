@@ -224,6 +224,9 @@ public class FileBrowserController {
         time_col.setCellValueFactory(p -> p.getValue().getValue().time);
         treeView.getColumns().add(time_col);
 
+        // Allow users to show/hide columns
+        treeView.setTableMenuButtonVisible(true);
+
         // Have columns fill table width
         treeView.setColumnResizePolicy(TreeTableView.CONSTRAINED_RESIZE_POLICY);
 
