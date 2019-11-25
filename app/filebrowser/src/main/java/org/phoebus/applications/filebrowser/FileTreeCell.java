@@ -38,7 +38,7 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
 
 @SuppressWarnings("nls")
-final class FileTreeCell extends TreeTableCell<File, File> {
+final class FileTreeCell extends TreeTableCell<FileInfo, File> {
     static final Image file_icon = ImageCache.getImage(ImageCache.class, "/icons/file_obj.png");
     static final Image folder_icon = ImageCache.getImage(ImageCache.class, "/icons/fldr_obj.png");
 
@@ -61,9 +61,9 @@ final class FileTreeCell extends TreeTableCell<File, File> {
                 // Drag not just this file, but all selected files
                 final List<File> files = new ArrayList<>();
                 files.add(file);
-                for (TreeItem<File> sel : getTreeTableView().getSelectionModel().getSelectedItems())
+                for (TreeItem<FileInfo> sel : getTreeTableView().getSelectionModel().getSelectedItems())
                 {
-                    final File other = sel.getValue();
+                    final File other = sel.getValue().file;
                     if (! files.contains(other))
                         files.add(other);
                 }
@@ -91,7 +91,7 @@ final class FileTreeCell extends TreeTableCell<File, File> {
                 // Might want to check if file.exists() in case move failed,
                 // but actual move is performed in background, so right now file
                 // might still be present...
-                final TreeItem<File> deleted_item = getTreeTableRow().getTreeItem();
+                final TreeItem<FileInfo> deleted_item = getTreeTableRow().getTreeItem();
                 deleted_item.getParent().getChildren().remove(deleted_item);
             }
             else
@@ -122,9 +122,9 @@ final class FileTreeCell extends TreeTableCell<File, File> {
         // A file has been dropped into this dir, or this file's directory
         setOnDragDropped(event ->
         {
-            TreeItem<File> target_item = getTreeTableRow().getTreeItem();
+            TreeItem<FileInfo> target_item = getTreeTableRow().getTreeItem();
 
-            if (target_item.getValue() != null && !target_item.getValue().isDirectory())
+            if (target_item.getValue() != null && !target_item.getValue().file.isDirectory())
                 target_item = target_item.getParent();
             if (target_item.getValue() != null) {
                 final Dragboard db = event.getDragboard();
@@ -143,9 +143,9 @@ final class FileTreeCell extends TreeTableCell<File, File> {
     /** @param file File to move or copy
      *  @param target_item Destination directory's tree item
      */
-    private void move_or_copy(final File file, final TreeItem<File> target_item, final TransferMode transferMode)
+    private void move_or_copy(final File file, final TreeItem<FileInfo> target_item, final TransferMode transferMode)
     {
-        final File dir = target_item.getValue();
+        final File dir = target_item.getValue().file;
         // Ignore NOP move
         if (file.getParentFile().equals(dir))
             return;
@@ -165,19 +165,19 @@ final class FileTreeCell extends TreeTableCell<File, File> {
                 Platform.runLater(() ->
                 {
                     // System.out.println("Add tree item for " + new_name + " to " + target_item.getValue());
-                    final ObservableList<TreeItem<File>> siblings = target_item.getChildren();
+                    final ObservableList<TreeItem<FileInfo>> siblings = target_item.getChildren();
                     siblings.add(new FileTreeItem(mon, new_name));
                     FileTreeItem.sortSiblings(siblings);
                 });
             }
             catch (Exception ex)
             {
-                final TreeTableView<File> tree = getTreeTableView();
+                final TreeTableView<FileInfo> tree = getTreeTableView();
                 ExceptionDetailsErrorDialog.openError(tree, Messages.MoveOrCopyAlertTitle,
                                                       MessageFormat.format(Messages.MoveOrCopyAlert, file, target_item.getValue()), ex);
                 // Force full refresh
                 Platform.runLater(() ->
-                    tree.setRoot(new FileTreeItem(mon, tree.getRoot().getValue())) );
+                    tree.setRoot(new FileTreeItem(mon, tree.getRoot().getValue().file)) );
             }
         });
     }
@@ -186,7 +186,7 @@ final class FileTreeCell extends TreeTableCell<File, File> {
     protected void updateItem(final File file, final boolean empty) {
         super.updateItem(file, empty);
 
-        if (empty || file == null) {
+        if (empty || file == null || getTreeTableRow() == null || getTreeTableRow().getTreeItem() == null) {
             setText(null);
             setGraphic(null);
         } else {
