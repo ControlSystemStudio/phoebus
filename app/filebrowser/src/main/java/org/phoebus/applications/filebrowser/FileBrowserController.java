@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -17,7 +18,10 @@ import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.util.time.TimestampFormats;
 
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -30,7 +34,8 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
+import javafx.scene.control.TreeTableColumn;
+import javafx.scene.control.TreeTableView;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ContextMenuEvent;
@@ -56,7 +61,7 @@ public class FileBrowserController {
     @FXML
     Button browse;
     @FXML
-    TreeView<File> treeView;
+    TreeTableView<File> treeView;
 
     private final MenuItem open = new MenuItem(Messages.Open, ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
     private final Menu openWith = new Menu(Messages.OpenWith, ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
@@ -181,7 +186,21 @@ public class FileBrowserController {
     public void initialize() {
         treeView.setShowRoot(false);
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        treeView.setCellFactory(f -> new FileTreeCell());
+
+        final TreeTableColumn<File, File> name_col = new TreeTableColumn<>("Name");
+        name_col.setPrefWidth(150);
+        name_col.setCellValueFactory(p -> new ReadOnlyObjectWrapper<>(p.getValue().getValue()));
+        name_col.setCellFactory(info -> new FileTreeCell());
+        treeView.getColumns().add(name_col);
+
+        final TreeTableColumn<File, String> time_col = new TreeTableColumn<>("Time");
+        time_col.setPrefWidth(150);
+        time_col.setCellValueFactory(p ->
+        {
+            final Instant time = Instant.ofEpochMilli(p.getValue().getValue().lastModified());
+            return new ReadOnlyStringWrapper(TimestampFormats.MILLI_FORMAT.format(time));
+        });
+        treeView.getColumns().add(time_col);
 
         // Prepare ContextMenu items
         open.setOnAction(event -> openSelectedResources());

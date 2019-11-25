@@ -1,10 +1,30 @@
 package org.phoebus.applications.filebrowser;
 
+import static org.phoebus.applications.filebrowser.FileBrowser.logger;
+
+import java.io.File;
+import java.net.URI;
+import java.net.URL;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
+
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.spi.AppDescriptor;
+import org.phoebus.framework.util.ResourceParser;
+import org.phoebus.framework.workbench.FileHelper;
+import org.phoebus.ui.application.ApplicationLauncherService;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.PlatformInfo;
+
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
-import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
+import javafx.scene.control.TreeTableCell;
+import javafx.scene.control.TreeTableView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
@@ -16,34 +36,15 @@ import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
-import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.framework.spi.AppDescriptor;
-import org.phoebus.framework.util.ResourceParser;
-import org.phoebus.framework.workbench.FileHelper;
-import org.phoebus.ui.application.ApplicationLauncherService;
-import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
-import org.phoebus.ui.javafx.ImageCache;
-import org.phoebus.ui.javafx.PlatformInfo;
-
-import java.io.File;
-import java.net.URI;
-import java.net.URL;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.stream.Collectors;
-
-import static org.phoebus.applications.filebrowser.FileBrowser.logger;
 
 @SuppressWarnings("nls")
-final class FileTreeCell extends TreeCell<File> {
+final class FileTreeCell extends TreeTableCell<File, File> {
     static final Image file_icon = ImageCache.getImage(ImageCache.class, "/icons/file_obj.png");
     static final Image folder_icon = ImageCache.getImage(ImageCache.class, "/icons/fldr_obj.png");
 
     private static final Border BORDER = new Border(new BorderStroke(Color.GREEN, BorderStrokeStyle.SOLID,
                                                     new CornerRadii(5.0), BorderStroke.THIN));
-    
+
     public FileTreeCell()
     {
         enableDragDrop();
@@ -60,7 +61,7 @@ final class FileTreeCell extends TreeCell<File> {
                 // Drag not just this file, but all selected files
                 final List<File> files = new ArrayList<>();
                 files.add(file);
-                for (TreeItem<File> sel : getTreeView().getSelectionModel().getSelectedItems())
+                for (TreeItem<File> sel : getTreeTableView().getSelectionModel().getSelectedItems())
                 {
                     final File other = sel.getValue();
                     if (! files.contains(other))
@@ -90,7 +91,7 @@ final class FileTreeCell extends TreeCell<File> {
                 // Might want to check if file.exists() in case move failed,
                 // but actual move is performed in background, so right now file
                 // might still be present...
-                final TreeItem<File> deleted_item = getTreeItem();
+                final TreeItem<File> deleted_item = getTreeTableRow().getTreeItem();
                 deleted_item.getParent().getChildren().remove(deleted_item);
             }
             else
@@ -121,7 +122,7 @@ final class FileTreeCell extends TreeCell<File> {
         // A file has been dropped into this dir, or this file's directory
         setOnDragDropped(event ->
         {
-            TreeItem<File> target_item = getTreeItem();
+            TreeItem<File> target_item = getTreeTableRow().getTreeItem();
 
             if (target_item.getValue() != null && !target_item.getValue().isDirectory())
                 target_item = target_item.getParent();
@@ -171,7 +172,7 @@ final class FileTreeCell extends TreeCell<File> {
             }
             catch (Exception ex)
             {
-                final TreeView<File> tree = getTreeView();
+                final TreeTableView<File> tree = getTreeTableView();
                 ExceptionDetailsErrorDialog.openError(tree, Messages.MoveOrCopyAlertTitle,
                                                       MessageFormat.format(Messages.MoveOrCopyAlert, file, target_item.getValue()), ex);
                 // Force full refresh
@@ -185,11 +186,13 @@ final class FileTreeCell extends TreeCell<File> {
     protected void updateItem(final File file, final boolean empty) {
         super.updateItem(file, empty);
 
+        System.out.println("Update: " + file);
+
         if (empty || file == null) {
             setText(null);
             setGraphic(null);
         } else {
-            if (getTreeItem().getParent() == null) {
+            if (getTreeTableRow().getTreeItem().getParent() == null) {
                 // Root (actually hidden, so this is never called)
                 setText(file.getAbsolutePath());
             } else {
