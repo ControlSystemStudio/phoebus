@@ -455,6 +455,13 @@ public class EditorGUI
                 model = new DisplayModel();
                 model.propName().setValue("Empty");
             }
+
+            if (model.isClean() == false)
+            {
+                ExceptionDetailsErrorDialog.openError("Errors while loading model",
+                        "There were some errors while loading model from " + file + "\nNot all widgets are displayed correctly; saving the display in this state might lead to losing those widgets. Please check the log for details.", null);
+            }
+
             setModel(model);
             this.file = file;
         });

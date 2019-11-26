@@ -289,6 +289,12 @@ public class DisplayRuntimeInstance implements AppInstance
             {
                 final DisplayModel model = loadModel(monitor, info);
 
+                if (model.isClean() == false)
+                {
+                    ExceptionDetailsErrorDialog.openError("Errors while loading model",
+                            "There were some errors while loading model from " + info.getPath() + "\nNot all widgets are displayed correctly. Please check the log for details.", null);
+                }
+
                 final Future<Void> represented = representation.submit(() -> representModel(model));
                 represented.get();
 
