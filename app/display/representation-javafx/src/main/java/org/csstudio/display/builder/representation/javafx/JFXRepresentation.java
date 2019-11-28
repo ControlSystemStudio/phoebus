@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -768,6 +768,9 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
             DialogHelper.positionDialog(dialog, node, -100, -50);
 
             dialog.setHeaderText(title);
+            final int lines = title.split("\n").length;
+            dialog.setResizable(true);
+            dialog.getDialogPane().setPrefHeight(50+25*lines);
             dialog.initOwner(node.getScene().getWindow());
             final Optional<String> result = dialog.showAndWait();
             done.complete(result.orElse(null));

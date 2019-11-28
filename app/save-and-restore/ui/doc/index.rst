@@ -17,7 +17,7 @@ ____________
 There are three object types managed by the save-and-restore service through the application:
 
 - Folder: container of other folders or save sets.
-- Save set: a list of PV names and associated meta-data.
+- Save set: a list of PV names and associated meta-data. NOTE: PV names must be prefixed with ca:// or pva://.
 - Snapshot: the PV values read from PVs listed in a save set.
 
 All objects are managed as nodes of a tree structure. The root of the tree structure is a (hidden) folder that may only

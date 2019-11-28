@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -72,18 +72,24 @@ public class TextUpdateRepresentation extends RegionBaseRepresentation<Control, 
             area.setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
             area.setEditable(false);
             area.getStyleClass().add("text_entry");
-            area.setManaged(false);
+            area.setWrapText(true);
+            // 'Interactive' widget needs to react to selection,
+            // and as remarked in TextEntry this works best 'managed'
+            area.setManaged(true);
             return area;
         }
-        final Label label = new Label();
-        label.getStyleClass().add("text_update");
-
-        // This code manages layout,
-        // because otherwise for example border changes would trigger
-        // expensive Node.notifyParentOfBoundsChange() recursing up the scene graph
-        label.setManaged(false);
-
-        return label;
+        else
+        {
+            final Label label = new Label();
+            label.getStyleClass().add("text_update");
+    
+            // This code manages layout,
+            // because otherwise for example border changes would trigger
+            // expensive Node.notifyParentOfBoundsChange() recursing up the scene graph
+            label.setManaged(false);
+    
+            return label;
+        }
     }
 
     @Override
@@ -198,32 +204,38 @@ public class TextUpdateRepresentation extends RegionBaseRepresentation<Control, 
             final RotationStep rotation = model_widget.propRotationStep().getValue();
             final int width = model_widget.propWidth().getValue(),
                       height = model_widget.propHeight().getValue();
+            final int w, h;
             switch (rotation)
             {
-            case NONE:
-                jfx_node.resize(width, height);
-                if (was_ever_transformed)
-                    jfx_node.getTransforms().clear();
-                break;
             case NINETY:
-                jfx_node.resize(height, width);
+                w = height; h = width;
                 jfx_node.getTransforms().setAll(new Rotate(-rotation.getAngle()),
                                                 new Translate(-height, 0));
                 was_ever_transformed = true;
                 break;
             case ONEEIGHTY:
-                jfx_node.resize(width, height);
+                w = width; h = height;
                 jfx_node.getTransforms().setAll(new Rotate(-rotation.getAngle()),
                                                 new Translate(-width, -height));
                 was_ever_transformed = true;
                                break;
             case MINUS_NINETY:
-                jfx_node.resize(height, width);
+                w = height; h = width;
                 jfx_node.getTransforms().setAll(new Rotate(-rotation.getAngle()),
                                                 new Translate(0, -width));
                 was_ever_transformed = true;
                 break;
+            case NONE:
+            default:
+                w = width; h = height;
+                if (was_ever_transformed)
+                    jfx_node.getTransforms().clear();
+                break;
             }
+            if (jfx_node.isManaged())
+                jfx_node.setPrefSize(w,  h);
+            else
+                jfx_node.resize(w, h);
 
             if (model_widget.propTransparent().getValue())
                 jfx_node.setBackground(null); // No fill
@@ -264,8 +276,8 @@ public class TextUpdateRepresentation extends RegionBaseRepresentation<Control, 
                 ((Label)jfx_node).setText(value_text);
             else
                 ((TextArea)jfx_node).setText(value_text);
-            // Since jfx_node.isManaged() == false, need to trigger layout
-            jfx_node.layout();
+            if (! jfx_node.isManaged())
+                jfx_node.layout();
         }
     }
 }

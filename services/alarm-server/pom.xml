@@ -1,9 +1,8 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>services</artifactId>
-    <version>4.6.0-SNAPSHOT</version>
+    <version>4.6.1-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>service-alarm-server</artifactId>
@@ -25,33 +24,33 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-framework</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-util</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-pv</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-formula</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-email</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.1-SNAPSHOT</version>
     </dependency>
 
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-alarm-model</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.1-SNAPSHOT</version>
     </dependency>
   </dependencies>
   <build>
@@ -123,13 +122,12 @@
             <configuration>
               <failOnError>true</failOnError>
               <tasks>
-                <echo message="Adding dependencies to product"/>
-                <manifestclasspath property="manifest-classpath"
-                                   jarfile="${project.build.directory}/service-alarm-server-${project.version}.jar">
+                <echo message="Adding dependencies to product" />
+                <manifestclasspath property="manifest-classpath" jarfile="${project.build.directory}/service-alarm-server-${project.version}.jar">
                   <classpath>
                     <path>
                       <fileset dir="${project.build.directory}/lib">
-                        <include name="*.jar"/>
+                        <include name="*.jar" />
                       </fileset>
                     </path>
                   </classpath>
@@ -137,7 +135,7 @@
 
                 <!--
                  -->
-                 <echo message="Manifest classpath: ${manifest-classpath}"/>
+                 <echo message="Manifest classpath: ${manifest-classpath}" />
 
                 <jar update="true" destfile="${project.build.directory}/service-alarm-server-${project.version}.jar">
                   <manifest>

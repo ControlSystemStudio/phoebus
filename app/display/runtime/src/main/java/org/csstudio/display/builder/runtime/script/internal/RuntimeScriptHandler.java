@@ -81,12 +81,12 @@ public class RuntimeScriptHandler implements RuntimePVListener
         {   // Load external script
             final String resolved = ModelResourceUtil.resolveResource(parent_display, script_name);
             stream = ModelResourceUtil.openResourceStream(resolved);
-            path = ModelResourceUtil.getDirectory(ModelResourceUtil.getLocalPath(resolved));
+            path = ModelResourceUtil.getDirectory(resolved);
         }
         else
         {   // Use script text that was embedded in display
             stream = new ByteArrayInputStream(script_info.getText().getBytes());
-            path = ModelResourceUtil.getDirectory(ModelResourceUtil.getLocalPath(parent_display));
+            path = ModelResourceUtil.getDirectory(parent_display);
         }
         return scripting.compile(path, script_name, stream);
     }

@@ -472,7 +472,12 @@ public class Perspective extends SplitPane
         {
             logger.log(Level.WARNING, "Unable to flush preferences", ex);
         }
-        plot.dispose();
+        // Stop PVs etc. ASAP
         controller.stop();
+        // Then dispose plot
+        plot.dispose();
+        // Not specifically disposing property_panel.
+        // Their model listeners have been removed when controller stopped
+        // and 'disposed' model.
     }
 }
