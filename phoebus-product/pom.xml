@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>product</artifactId>
 
@@ -11,122 +10,122 @@
     <dependency>
      <groupId>org.phoebus</groupId>
      <artifactId>core-launcher</artifactId>
-     <version>4.6.0-SNAPSHOT</version>
+     <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-diag</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-filebrowser</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-probe</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-logbook-inmemory</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-pvtable</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-pvtree</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-log-configuration</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-email</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-errlog</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-rtplot</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-databrowser</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-display-representation-javafx</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-display-runtime</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-display-editor</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-display-convert-medm</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-display-convert-edm</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-scan-ui</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-alarm-ui</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-alarm-logging-ui</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-update</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-3dViewer</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-perfmon</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-console</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
 
     <!-- diirt
@@ -159,17 +158,17 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-channel-views</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-channel-channelfinder</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-save-and-restore-ui</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -226,21 +225,20 @@
             <configuration>
               <failOnError>true</failOnError>
               <tasks>
-                <echo message="Copying doc/"/>
-                <ant antfile="build.xml" target="copy-doc"/>
-                <echo message="Adding dependencies to product"/>
-                <manifestclasspath property="manifest-classpath"
-                                   jarfile="${project.build.directory}/product-${project.version}.jar">
+                <echo message="Copying doc/" />
+                <ant antfile="build.xml" target="copy-doc" />
+                <echo message="Adding dependencies to product" />
+                <manifestclasspath property="manifest-classpath" jarfile="${project.build.directory}/product-${project.version}.jar">
                   <classpath>
                     <path>
                       <fileset dir="${project.build.directory}/lib">
-                        <include name="*.jar"/>
+                        <include name="*.jar" />
                       </fileset>
                     </path>
                   </classpath>
                 </manifestclasspath>
 
-                <!-- <echo message="Manifest classpath: ${manifest-classpath}"/> -->
+                <!-- <echo message="Manifest classpath: ${manifest-classpath}" /> -->
                 <jar update="true" destfile="${project.build.directory}/product-${project.version}.jar">
                   <manifest>
                     <attribute name="Class-Path" value="${manifest-classpath}" />
@@ -276,6 +274,6 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>parent</artifactId>
-    <version>4.6.0-SNAPSHOT</version>
+    <version>4.6.0</version>
   </parent>
 </project>
