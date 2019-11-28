@@ -109,7 +109,7 @@ public class ModelReader
     {
         root = XMLUtil.openXMLDocument(stream, XMLTags.DISPLAY);
         version = readVersion(root);
-        this.xml_file = xml_file == null ? "line" : xml_file;
+        this.xml_file = xml_file;
     }
 
     /** @return XML root element for custom access */
@@ -146,6 +146,8 @@ public class ModelReader
         model.getConfigurator(version).configureFromXML(this, model, root);
         // Read widgets of model
         readWidgets(model.runtimeChildren(), root);
+        if (widget_errors_during_parse > 0)
+            logger.log(Level.SEVERE, "There were " + widget_errors_during_parse + " error(s) during loading display from " + (xml_file != null ? xml_file : "stream"));
         model.setReaderResult(this);
         return model;
     }
@@ -189,6 +191,7 @@ public class ModelReader
         // don't add them as children, yet,
         // because ParseAgainException could rearrange the XML on this level.
         final List<Widget> widgets = new ArrayList<>();
+        final String source = xml_file == null ? "line" : xml_file;
         widget_errors_during_parse = 0;
         for (final Element widget_xml : XMLUtil.getChildElements(parent_xml, XMLTags.WIDGET))
         {
@@ -207,7 +210,7 @@ public class ModelReader
                 // Mention missing widget only once per reader
                 if (! unknown_widget_type.contains(ex.getType()))
                 {
-                    logger.log(Level.SEVERE, ex.getMessage() + ", " + xml_file + ":" + XMLUtil.getLineInfo(widget_xml) + "\tnote: each unknown widget type is reported only once for each model it appears in");
+                    logger.log(Level.SEVERE, ex.getMessage() + ", " + source + ":" + XMLUtil.getLineInfo(widget_xml) + "\tnote: each unknown widget type is reported only once for each model it appears in");
                     unknown_widget_type.add(ex.getType());
                 }
                 // Continue with next widget
@@ -216,7 +219,7 @@ public class ModelReader
             {
                 ++widget_errors_during_parse;
                 logger.log(Level.SEVERE,
-                           "Widget configuration file error, " + xml_file + ":" + XMLUtil.getLineInfo(widget_xml), ex);
+                           "Widget configuration file error, " + source + ":" + XMLUtil.getLineInfo(widget_xml), ex);
                 // Continue with next widget
             }
         }
