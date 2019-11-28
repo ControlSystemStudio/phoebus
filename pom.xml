@@ -6,9 +6,9 @@
   <version>4.6.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>phoebus (parent)</name>
-  
+
   <scm>
-    <developerConnection>scm:git:https://github.com/kshroff/phoebus</developerConnection>
+    <developerConnection>scm:git:https://github.com/shroffk/phoebus</developerConnection>
   </scm>
 
   <properties>
