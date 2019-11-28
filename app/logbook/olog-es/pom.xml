@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app-logbook</artifactId>
-    <version>4.6.0</version>
+    <version>4.6.1-SNAPSHOT</version>
   </parent>
   <artifactId>app-logbook-olog-es</artifactId>
   <dependencies>
@@ -69,7 +69,7 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-logbook</artifactId>
-      <version>4.6.0</version>
+      <version>4.6.1-SNAPSHOT</version>
     </dependency>
   </dependencies>
 </project>

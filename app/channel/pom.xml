@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app</artifactId>
-    <version>4.6.0</version>
+    <version>4.6.1-SNAPSHOT</version>
   </parent>
   <artifactId>app-channel</artifactId>
   <packaging>pom</packaging>
