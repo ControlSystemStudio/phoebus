@@ -30,11 +30,15 @@ import org.phoebus.ui.dialog.SaveAsDialog;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
+import org.phoebus.security.authorization.AuthorizationService;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Window;
+import javafx.util.Duration;
 
 /** Display Runtime Application
  *  @author Kay Kasemir
@@ -44,7 +48,7 @@ public class DisplayEditorApplication implements AppResourceDescriptor
 {
     private static final List<String> FILE_EXTENSIONS = List.of(DisplayModel.FILE_EXTENSION, DisplayModel.LEGACY_FILE_EXTENSION, WidgetClassSupport.FILE_EXTENSION);
     public static final String NAME = "display_editor";
-    public static final String DISPLAY_NAME = "Display Editor";
+    public static final String DISPLAY_NAME = Messages.DisplayApplicationName;
 
     /** Last local file that was opened.
      *  Used to offer as a location for downloading remote files.
@@ -78,6 +82,27 @@ public class DisplayEditorApplication implements AppResourceDescriptor
     @Override
     public DisplayEditorInstance create()
     {
+    	if (!AuthorizationService.hasAuthorization("edit_display"))
+    	{
+            // User does not have a permission to start editor
+            final Alert alert = new Alert(Alert.AlertType.WARNING);
+            DialogHelper.positionDialog(alert, DockPane.getActiveDockPane(), -200, -100);
+            alert.initOwner(DockPane.getActiveDockPane().getScene().getWindow());
+            alert.setResizable(true);
+            alert.setTitle(DISPLAY_NAME);
+            alert.setHeaderText(Messages.DisplayApplicationMissingRight);
+            // Autohide in some seconds, also to handle the situation after
+            // startup without edit_display rights but opening editor from memento
+            PauseTransition wait = new PauseTransition(Duration.seconds(7));
+            wait.setOnFinished((e) -> {
+            	Button btn = (Button)alert.getDialogPane().lookupButton(ButtonType.OK);
+            	btn.fire();
+            });
+            wait.play();
+            
+            alert.showAndWait();
+            return null;
+    	}
         return new DisplayEditorInstance(this);
     }
 
@@ -102,6 +127,7 @@ public class DisplayEditorApplication implements AppResourceDescriptor
         else
         {   // Nothing found, create new one
             instance = create();
+            if (instance == null) return null;
             instance.loadDisplay(file_resource);
         }
         return instance;
@@ -155,6 +181,7 @@ public class DisplayEditorApplication implements AppResourceDescriptor
             // Does user want to download into local file?
             final Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             DialogHelper.positionDialog(alert, DockPane.getActiveDockPane(), -200, -100);
+            alert.initOwner(DockPane.getActiveDockPane().getScene().getWindow());
             alert.setResizable(true);
             alert.setTitle(Messages.DownloadTitle);
             alert.setHeaderText(MessageFormat.format(Messages.DownloadPromptFMT,

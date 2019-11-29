@@ -33,6 +33,7 @@ import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.logbook.ui.menu.SendLogbookAction;
+import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.javafx.ImageCache;
@@ -205,7 +206,7 @@ class ContextMenuSupport
 
         // If the editor is available, add "Open in Editor"
         final AppResourceDescriptor editor = ApplicationService.findApplication("display_editor");
-        if (editor != null)
+        if (editor != null && AuthorizationService.hasAuthorization("edit_display"))
             items.add(new OpenInEditorAction(editor, widget));
 
         items.add(new SeparatorMenuItem());
