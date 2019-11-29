@@ -122,7 +122,7 @@ public class DockItem extends Tab
     private List<Runnable> closed_callback = null;
 
     /** Create dock item for instance of an application
-     *  @param application {@link AppInstance}
+     *  @param applicationInstance {@link AppInstance}
      *  @param content Content for this application instance
      */
     public DockItem(final AppInstance applicationInstance, final Node content)
@@ -456,6 +456,13 @@ public class DockItem extends Tab
             Styles.set(other.getScene(), css);
 
         other.show();
+
+        if(old_parent.getDockItems().isEmpty() ){
+            String id = (String)old_parent.getScene().getWindow().getProperties().get(DockStage.KEY_ID);
+            if(!id.equals(DockStage.ID_MAIN)){
+                old_parent.getScene().getWindow().hide();
+            }
+        }
 
         return other;
     }

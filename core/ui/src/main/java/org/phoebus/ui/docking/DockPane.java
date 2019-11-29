@@ -503,6 +503,10 @@ public class DockPane extends TabPane
                 for (String css : old_scene.getStylesheets())
                     Styles.set(scene, css);
 
+            if(item.getDockPane().getDockItems().size() == 1){
+                item.getDockPane().getScene().getWindow().hide();
+            }
+
             // Move tab. In principle,
             // (1) first remove from old parent,
             // (2) then add to new parent.
