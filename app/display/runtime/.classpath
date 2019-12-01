@@ -13,6 +13,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/app-display-representation-javafx"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-display-representation"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-display-model"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-email"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-types"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-ui"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-pv"/>
