@@ -29,9 +29,11 @@ import org.csstudio.display.builder.runtime.WidgetRuntime;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
 import org.phoebus.applications.email.actions.SendEmailAction;
 import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.email.EmailPreferences;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.logbook.ui.LogbookUiPreferences;
 import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.application.ContextMenuHelper;
@@ -198,8 +200,10 @@ class ContextMenuSupport
         {
             display_info = "See attached display";
         }
-        items.add(new SendEmailAction(model_parent, "Display Screenshot", display_info, () ->  Screenshot.imageFromNode(model_parent)));
-        items.add(new SendLogbookAction(model_parent, "Display Screenshot", display_info, () ->  Screenshot.imageFromNode(model_parent)));
+        if (EmailPreferences.isEmailSupported())
+        	items.add(new SendEmailAction(model_parent, "Display Screenshot", display_info, () ->  Screenshot.imageFromNode(model_parent)));
+        if (LogbookUiPreferences.is_supported)
+        	items.add(new SendLogbookAction(model_parent, "Display Screenshot", display_info, () ->  Screenshot.imageFromNode(model_parent)));
         items.add(new SeparatorMenuItem());
 
         items.add(new DisplayToolbarAction(instance));
