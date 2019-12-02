@@ -15,6 +15,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 
 import java.util.List;
 
+import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.properties.WidgetColor;
@@ -116,6 +117,9 @@ public class DisplayModel extends Widget
     private volatile WidgetProperty<Integer> gridStepY;
     private volatile ChildrenProperty children;
 
+    /** Loaded without errors? */
+    private volatile Boolean clean;
+
     /** Create display model */
     public DisplayModel()
     {
@@ -165,6 +169,42 @@ public class DisplayModel extends Widget
     {
         final Widget embedder = getUserData(DisplayModel.USER_DATA_EMBEDDING_WIDGET);
         return embedder == null;
+    }
+
+    public final void setReaderResult(final ModelReader modelReader)
+    {
+        if (this.clean != null)
+            throw new RuntimeException("Cannot change cleanliness of DisplayModel");
+
+        this.clean = new Boolean(modelReader.getNumberOfWidgetErrors() == 0);
+    }
+
+    /** @return <code>true</code> if this display was loaded without errors,
+     *          <code>false</code> if there were widget errors
+     */
+    public final boolean isClean()
+    {
+        Boolean safe = clean;
+
+        if (safe == null)
+            return true;
+
+        if (safe.booleanValue() == false)
+            return false;
+
+        // Check embedded displays and navigation tabs too
+        for (Widget child: getChildren())
+        {
+            java.util.Optional<WidgetProperty<DisplayModel>> child_dm_prop = child.checkProperty("embedded_model");
+            if (child_dm_prop.isPresent())
+            {
+                final DisplayModel child_dm = child_dm_prop.get().getValue();
+                if (child_dm != null && child_dm.isClean() == false)
+                    return false;
+            }
+        }
+
+        return true;
     }
 
     @Override

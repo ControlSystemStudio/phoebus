@@ -15,6 +15,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
@@ -294,6 +296,22 @@ public class DisplayRuntimeInstance implements AppInstance
 
                 // Start runtime for the model
                 RuntimeUtil.startRuntime(model);
+
+                logger.log(Level.FINE, "Waiting for representation of model " + info.getPath());
+
+                try
+                {
+                    representation.awaitRepresentation(30, TimeUnit.SECONDS);
+                    logger.log(Level.FINE, "Done with representing model of " + info.getPath());
+                }
+                catch (TimeoutException | InterruptedException ex)
+                {
+                    logger.log(Level.SEVERE, "Cannot wait for representation of " + info.getPath(), ex);
+                }
+
+                // Check if there were widget errors
+                if (model.isClean() == false)
+                    showRepresentationError();
             }
             catch (Exception ex)
             {
@@ -450,6 +468,15 @@ public class DisplayRuntimeInstance implements AppInstance
             text.setPrefSize(800, 600);
             JFXRepresentation.getChildren(representation.getModelParent()).setAll(text);
         });
+    }
+
+    /** Inform user that there were representation errors
+     *
+     */
+    private void showRepresentationError()
+    {
+        ExceptionDetailsErrorDialog.openError("Errors while loading model",
+                "There were some errors while loading model from " + display_info.get().getPath() + "\nNot all widgets are displayed correctly. Please check the log for details.", null);
     }
 
     /** DockItem closed */

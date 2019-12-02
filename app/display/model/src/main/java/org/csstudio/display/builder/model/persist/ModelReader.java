@@ -76,6 +76,8 @@ public class ModelReader
     private final static int MAX_PARSE_AGAIN = Preferences.max_reparse;
     private final Element root;
     private final Version version;
+    private final String xml_file;
+    private int widget_errors_during_parse;
 
     /** Parse display from XML
      *  @param xml XML text
@@ -95,8 +97,19 @@ public class ModelReader
      */
     public ModelReader(final InputStream stream) throws Exception
     {
+        this(stream, null);
+    }
+
+    /** Create reader.
+     *  @param stream Input stream to read, will be closed
+     *  @param xml_file Name of input file. Can be null if not applicable
+     *  @throws Exception on error
+     */
+    public ModelReader(final InputStream stream, final String xml_file) throws Exception
+    {
         root = XMLUtil.openXMLDocument(stream, XMLTags.DISPLAY);
         version = readVersion(root);
+        this.xml_file = xml_file;
     }
 
     /** @return XML root element for custom access */
@@ -113,6 +126,12 @@ public class ModelReader
         return version;
     }
 
+    /** @return number of widget errors occured during parse */
+    public int getNumberOfWidgetErrors()
+    {
+        return widget_errors_during_parse;
+    }
+
     /** Read model from XML.
      *  @return Model
      *  @throws Exception on error
@@ -127,6 +146,9 @@ public class ModelReader
         model.getConfigurator(version).configureFromXML(this, model, root);
         // Read widgets of model
         readWidgets(model.runtimeChildren(), root);
+        if (widget_errors_during_parse > 0)
+            logger.log(Level.SEVERE, "There were " + widget_errors_during_parse + " error(s) during loading display from " + (xml_file != null ? xml_file : "stream"));
+        model.setReaderResult(this);
         return model;
     }
 
@@ -169,6 +191,8 @@ public class ModelReader
         // don't add them as children, yet,
         // because ParseAgainException could rearrange the XML on this level.
         final List<Widget> widgets = new ArrayList<>();
+        final String source = xml_file == null ? "line" : xml_file;
+        widget_errors_during_parse = 0;
         for (final Element widget_xml : XMLUtil.getChildElements(parent_xml, XMLTags.WIDGET))
         {
             try
@@ -182,18 +206,20 @@ public class ModelReader
             }
             catch (WidgetTypeException ex)
             {
+                ++widget_errors_during_parse;
                 // Mention missing widget only once per reader
                 if (! unknown_widget_type.contains(ex.getType()))
                 {
-                    logger.log(Level.WARNING, ex.getMessage() + ", line " + XMLUtil.getLineInfo(widget_xml));
+                    logger.log(Level.SEVERE, ex.getMessage() + ", " + source + ":" + XMLUtil.getLineInfo(widget_xml) + "\tnote: each unknown widget type is reported only once for each model it appears in");
                     unknown_widget_type.add(ex.getType());
                 }
                 // Continue with next widget
             }
             catch (final Throwable ex)
             {
-                logger.log(Level.WARNING,
-                           "Widget configuration file error, line " + XMLUtil.getLineInfo(widget_xml), ex);
+                ++widget_errors_during_parse;
+                logger.log(Level.SEVERE,
+                           "Widget configuration file error, " + source + ":" + XMLUtil.getLineInfo(widget_xml), ex);
                 // Continue with next widget
             }
         }

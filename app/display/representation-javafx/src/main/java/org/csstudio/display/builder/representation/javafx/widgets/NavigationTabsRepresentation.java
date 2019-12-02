@@ -103,6 +103,7 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
             logger.log(Level.FINE, "Skipped: {0}", skipped);
 
         // Load embedded display in background thread
+        toolkit.onRepresentationStarted();
         JobManager.schedule("Load navigation tab", this::updatePendingDisplay);
     };
 
@@ -195,43 +196,51 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
      */
     private synchronized void updatePendingDisplay(final JobMonitor monitor)
     {
-        final DisplayAndGroup handle = pending_display_and_group.getAndSet(null);
-        if (handle == null)
-            return;
-        if (body == null)
-        {
-            // System.out.println("Aborted: " + handle);
-            return;
-        }
-
-        monitor.beginTask("Load " + handle.toString());
         try
-        {   // Load new model (potentially slow)
-            final DisplayModel new_model = loadDisplayModel(model_widget, handle);
+        {
+            final DisplayAndGroup handle = pending_display_and_group.getAndSet(null);
+            if (handle == null)
+                return;
+            if (body == null)
+            {
+                // System.out.println("Aborted: " + handle);
+                return;
+            }
 
-            // Atomically update the 'active' model
-            final DisplayModel old_model = active_content_model.getAndSet(new_model);
-            if (old_model != null)
-            {   // Dispose old model
+            monitor.beginTask("Load " + handle.toString());
+            try
+            {   // Load new model (potentially slow)
+                final DisplayModel new_model = loadDisplayModel(model_widget, handle);
+
+                // Atomically update the 'active' model
+                final DisplayModel old_model = active_content_model.getAndSet(new_model);
+                if (old_model != null)
+                {   // Dispose old model
+                    final Future<Object> completion = toolkit.submit(() ->
+                    {
+                        toolkit.disposeRepresentation(old_model);
+                        return null;
+                    });
+                    checkCompletion(model_widget, completion, "timeout disposing old representation");
+                }
+                // Represent new model on UI thread
+                toolkit.onRepresentationStarted();
                 final Future<Object> completion = toolkit.submit(() ->
                 {
-                    toolkit.disposeRepresentation(old_model);
+                    representContent(new_model);
                     return null;
                 });
-                checkCompletion(model_widget, completion, "timeout disposing old representation");
+                checkCompletion(model_widget, completion, "timeout representing new content");
+                model_widget.runtimePropEmbeddedModel().setValue(new_model);
             }
-            // Represent new model on UI thread
-            final Future<Object> completion = toolkit.submit(() ->
+            catch (Exception ex)
             {
-                representContent(new_model);
-                return null;
-            });
-            checkCompletion(model_widget, completion, "timeout representing new content");
-            model_widget.runtimePropEmbeddedModel().setValue(new_model);
+                logger.log(Level.WARNING, "Failed to handle embedded display " + handle, ex);
+            }
         }
-        catch (Exception ex)
+        finally
         {
-            logger.log(Level.WARNING, "Failed to handle embedded display " + handle, ex);
+            toolkit.onRepresentationFinished();
         }
     }
 
@@ -247,6 +256,10 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
         catch (final Exception ex)
         {
             logger.log(Level.WARNING, "Failed to represent embedded display", ex);
+        }
+        finally
+        {
+            toolkit.onRepresentationFinished();
         }
     }
 
