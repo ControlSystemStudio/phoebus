@@ -27,6 +27,8 @@ public class Messages
     public static String Copy;
     public static String CreateGroup;
     public static String Cut;
+    public static String DisplayApplicationMissingRight;
+    public static String DisplayApplicationName;
     public static String Distribute;
     public static String DistributeHorizontally;
     public static String DistributeVertically;
