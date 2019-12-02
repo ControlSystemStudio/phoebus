@@ -19,6 +19,7 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -129,7 +130,13 @@ public class FileBrowserController {
         if (dir.equals(file))
         {
             logger.log(Level.FINE, () -> "Forcing refresh of " + item);
-            Platform.runLater(() -> item.getValue().update());
+            Platform.runLater(() ->
+            {
+                // Update and show the latest size, time, ...
+                item.getValue().update();
+                // Force tree to re-sort in case column sort is active
+                treeView.sort();
+            });
             return;
         }
 
@@ -221,8 +228,9 @@ public class FileBrowserController {
         treeView.getColumns().add(name_col);
 
         // Linux (Gnome) and Mac file browsers list size before time
-        final TreeTableColumn<FileInfo, String> size_col = new TreeTableColumn<>(Messages.ColSize);
+        final TreeTableColumn<FileInfo, Number> size_col = new TreeTableColumn<>(Messages.ColSize);
         size_col.setCellValueFactory(p -> p.getValue().getValue().size);
+        size_col.setCellFactory(info -> new FileSizeCell());
         treeView.getColumns().add(size_col);
 
         final TreeTableColumn<FileInfo, String> time_col = new TreeTableColumn<>(Messages.ColTime);
@@ -235,10 +243,36 @@ public class FileBrowserController {
         // treeView.setColumnResizePolicy(TreeTableView.CONSTRAINED_RESIZE_POLICY);
 
         // Last column fills remaining space
-        time_col.prefWidthProperty().bind(treeView.widthProperty()
-                                                  .subtract(name_col.widthProperty())
-                                                  .subtract(size_col.widthProperty())
-                                                  .subtract(2));
+
+        final InvalidationListener resize = prop ->
+        {
+            // Available with, less space used for the TableMenuButton '+' on the right
+            // so that the up/down column sort markers remain visible
+            double available = treeView.getWidth() - 10;
+            if (name_col.isVisible())
+            {
+                // Only name visible? Use the space!
+                if (!size_col.isVisible() && !time_col.isVisible())
+                    name_col.setPrefWidth(available);
+                else
+                    available -= name_col.getWidth();
+            }
+            if (size_col.isVisible())
+            {
+                if (! time_col.isVisible())
+                    size_col.setPrefWidth(available);
+                else
+                    available -= size_col.getWidth();
+            }
+            if (time_col.isVisible())
+                time_col.setPrefWidth(available);
+        };
+        treeView.widthProperty().addListener(resize);
+        name_col.widthProperty().addListener(resize);
+        size_col.widthProperty().addListener(resize);
+        name_col.visibleProperty().addListener(resize);
+        size_col.visibleProperty().addListener(resize);
+        time_col.visibleProperty().addListener(resize);
 
         // Allow users to show/hide columns
         treeView.setTableMenuButtonVisible(true);
