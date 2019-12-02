@@ -82,8 +82,8 @@ public class DisplayEditorApplication implements AppResourceDescriptor
     @Override
     public DisplayEditorInstance create()
     {
-    	if (!AuthorizationService.hasAuthorization("edit_display"))
-    	{
+        if (!AuthorizationService.hasAuthorization("edit_display"))
+        {
             // User does not have a permission to start editor
             final Alert alert = new Alert(Alert.AlertType.WARNING);
             DialogHelper.positionDialog(alert, DockPane.getActiveDockPane(), -200, -100);
@@ -95,14 +95,14 @@ public class DisplayEditorApplication implements AppResourceDescriptor
             // startup without edit_display rights but opening editor from memento
             PauseTransition wait = new PauseTransition(Duration.seconds(7));
             wait.setOnFinished((e) -> {
-            	Button btn = (Button)alert.getDialogPane().lookupButton(ButtonType.OK);
-            	btn.fire();
+                Button btn = (Button)alert.getDialogPane().lookupButton(ButtonType.OK);
+                btn.fire();
             });
             wait.play();
             
             alert.showAndWait();
             return null;
-    	}
+        }
         return new DisplayEditorInstance(this);
     }
 

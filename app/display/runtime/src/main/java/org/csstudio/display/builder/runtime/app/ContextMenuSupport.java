@@ -201,9 +201,9 @@ class ContextMenuSupport
             display_info = "See attached display";
         }
         if (EmailPreferences.isEmailSupported())
-        	items.add(new SendEmailAction(model_parent, "Display Screenshot", display_info, () ->  Screenshot.imageFromNode(model_parent)));
+            items.add(new SendEmailAction(model_parent, "Display Screenshot", display_info, () ->  Screenshot.imageFromNode(model_parent)));
         if (LogbookUiPreferences.is_supported)
-        	items.add(new SendLogbookAction(model_parent, "Display Screenshot", display_info, () ->  Screenshot.imageFromNode(model_parent)));
+            items.add(new SendLogbookAction(model_parent, "Display Screenshot", display_info, () ->  Screenshot.imageFromNode(model_parent)));
         items.add(new SeparatorMenuItem());
 
         items.add(new DisplayToolbarAction(instance));
