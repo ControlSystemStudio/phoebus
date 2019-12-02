@@ -25,7 +25,7 @@ import javafx.scene.control.TreeItem;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-class FileTreeItem extends TreeItem<File> {
+class FileTreeItem extends TreeItem<FileInfo> {
 
     private final DirectoryMonitor monitor;
     private AtomicBoolean isFirstTimeLeaf = new AtomicBoolean(true);
@@ -33,7 +33,7 @@ class FileTreeItem extends TreeItem<File> {
     private volatile boolean isLeaf;
 
     public FileTreeItem(final DirectoryMonitor monitor, final File childFile) {
-        super(childFile);
+        super(new FileInfo(childFile));
         this.monitor = monitor;
     }
 
@@ -54,21 +54,21 @@ class FileTreeItem extends TreeItem<File> {
     }
 
     /** @param siblings List of FileTreeItem to sort by file name */
-    static void sortSiblings(final List<TreeItem<File>> siblings)
+    static void sortSiblings(final List<TreeItem<FileInfo>> siblings)
     {
-        siblings.sort((a, b) -> a.getValue().getName().compareTo(b.getValue().getName()));
+        siblings.sort((a, b) -> a.getValue().file.getName().compareTo(b.getValue().file.getName()));
     }
 
     @Override
-    public ObservableList<TreeItem<File>> getChildren() {
+    public ObservableList<TreeItem<FileInfo>> getChildren() {
 
         if (isFirstTimeChildren.getAndSet(false))
         {
             // Fetch children in background job, since file access could hang for a long time.
             // This means we return the old, i.e. empty list while the job is running.
-            JobManager.schedule("Files in " + getValue().getName(), monitor ->
+            JobManager.schedule("Files in " + getValue().file.getName(), monitor ->
             {
-                final ObservableList<TreeItem<File>> files = buildChildren(monitor, this);
+                final ObservableList<TreeItem<FileInfo>> files = buildChildren(monitor, this);
                 // Once job fetched files, update child items back on UI thread
                 Platform.runLater(() -> super.getChildren().setAll(files));
             });
@@ -96,19 +96,19 @@ class FileTreeItem extends TreeItem<File> {
             // already exists, i.e. the File has been created.
             // If there was a hangup, it had happend in buildChildren()
             // while trying to obtain the File.
-            final File f = getValue();
+            final File f = getValue().file;
             isLeaf = f.isFile();
         }
         return isLeaf;
     }
 
-    private ObservableList<TreeItem<File>> buildChildren(final JobMonitor job, final TreeItem<File> TreeItem) {
-        final File f = TreeItem.getValue();
+    private ObservableList<TreeItem<FileInfo>> buildChildren(final JobMonitor job, final TreeItem<FileInfo> TreeItem) {
+        final File f = TreeItem.getValue().file;
         if (f != null && f.isDirectory()) {
             final File[] files = f.listFiles();
             if (files != null) {
                 Arrays.sort(files, (a, b) -> a.getName().compareTo(b.getName()));
-                final ObservableList<TreeItem<File>> children = FXCollections.observableArrayList();
+                final ObservableList<TreeItem<FileInfo>> children = FXCollections.observableArrayList();
                 job.beginTask("List " + files.length + " files");
                 for (File childFile : files) {
                     if (job.isCanceled())

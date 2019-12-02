@@ -7,8 +7,6 @@
  *******************************************************************************/
 package org.phoebus.applications.filebrowser;
 
-import java.io.File;
-
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
@@ -25,7 +23,7 @@ public class RefreshAction extends MenuItem
     /** @param node Node used to position confirmation dialog
      *  @param item Item to rename
      */
-    public RefreshAction(final Node node, final TreeItem<File> item)
+    public RefreshAction(final Node node, final TreeItem<FileInfo> item)
     {
         super(Messages.Refresh, ImageCache.getImageView(ImageCache.class, "/icons/refresh.png"));
 
