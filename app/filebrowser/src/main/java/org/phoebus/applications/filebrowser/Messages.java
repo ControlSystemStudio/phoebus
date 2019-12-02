@@ -22,6 +22,7 @@ public class Messages
     public static String BaseDirectoryTT;
     public static String BrowserRootTitle;
     public static String ColName;
+    public static String ColSize;
     public static String ColTime;
     public static String CopyPathClp;
     public static String CreateDirectoryErr;

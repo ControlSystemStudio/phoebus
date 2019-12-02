@@ -220,21 +220,39 @@ public class FileBrowserController {
         name_col.setCellFactory(info -> new FileTreeCell());
         treeView.getColumns().add(name_col);
 
+        // Linux (Gnome) and Mac file browsers list size before time
+        final TreeTableColumn<FileInfo, String> size_col = new TreeTableColumn<>(Messages.ColSize);
+        size_col.setCellValueFactory(p -> p.getValue().getValue().size);
+        treeView.getColumns().add(size_col);
+
         final TreeTableColumn<FileInfo, String> time_col = new TreeTableColumn<>(Messages.ColTime);
         time_col.setCellValueFactory(p -> p.getValue().getValue().time);
         treeView.getColumns().add(time_col);
 
+        // This would cause columns to fill table width,
+        // but _always_ does that, not allowing us to restore
+        // saved widths from memento:
+        // treeView.setColumnResizePolicy(TreeTableView.CONSTRAINED_RESIZE_POLICY);
+
+        // Last column fills remaining space
+        time_col.prefWidthProperty().bind(treeView.widthProperty()
+                                                  .subtract(name_col.widthProperty())
+                                                  .subtract(size_col.widthProperty())
+                                                  .subtract(2));
+
         // Allow users to show/hide columns
         treeView.setTableMenuButtonVisible(true);
-
-        // Have columns fill table width
-        treeView.setColumnResizePolicy(TreeTableView.CONSTRAINED_RESIZE_POLICY);
 
         // Prepare ContextMenu items
         open.setOnAction(event -> openSelectedResources());
         contextMenu.getItems().addAll(open, openWith);
 
         treeView.setOnKeyPressed(this::handleKeys);
+    }
+
+    TreeTableView<FileInfo> getView()
+    {
+        return treeView;
     }
 
     private void handleKeys(final KeyEvent event)
