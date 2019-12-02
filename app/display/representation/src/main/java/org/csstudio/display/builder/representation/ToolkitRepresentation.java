@@ -18,6 +18,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.Phaser;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -94,6 +96,7 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
     };
 
     protected DisplayModel model;
+    private   Phaser       phaser;
 
     /** Constructor
      *  @param edit_mode Edit mode?
@@ -247,7 +250,11 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
         Objects.requireNonNull(parent, "Missing toolkit parent item");
 
         if (model.isTopDisplayModel())
+        {
             this.model = model;
+            // Register ourselves
+            phaser = new Phaser(1);
+        }
 
         // Attach toolkit
         model.setUserData(DisplayModel.USER_DATA_TOOLKIT, this);
@@ -285,38 +292,78 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
     @SuppressWarnings("unchecked")
     public void representWidget(final TWP parent, final Widget widget)
     {
-        WidgetRepresentationFactory<TWP, TW> factory = (WidgetRepresentationFactory<TWP, TW>) factories.get(widget.getType());
-        if (factory == null)
-        {
-            logger.log(Level.SEVERE, "Lacking representation for " + widget.getType());
-            // Check for a generic "unknown" representation
-            factory = (WidgetRepresentationFactory<TWP, TW>) factories.get(WidgetRepresentationFactory.UNKNOWN);
-            if (factory == null)
-                return;
-        }
-
-        final TWP re_parent;
         try
         {
-            final WidgetRepresentation<TWP, TW, Widget> representation = factory.create();
-            representation.initialize(this, widget);
-            re_parent = representation.createComponents(parent);
-            widget.setUserData(Widget.USER_DATA_REPRESENTATION, representation);
-            logger.log(Level.FINE, "Representing {0} as {1}", new Object[] { widget, representation });
+            // Signal the start of a representation
+            onRepresentationStarted();
+
+            WidgetRepresentationFactory<TWP, TW> factory = (WidgetRepresentationFactory<TWP, TW>) factories.get(widget.getType());
+            if (factory == null)
+            {
+                logger.log(Level.SEVERE, "Lacking representation for " + widget.getType());
+                // Check for a generic "unknown" representation
+                factory = (WidgetRepresentationFactory<TWP, TW>) factories.get(WidgetRepresentationFactory.UNKNOWN);
+                if (factory == null)
+                    return;
+            }
+
+            final TWP re_parent;
+            try
+            {
+                final WidgetRepresentation<TWP, TW, Widget> representation = factory.create();
+                representation.initialize(this, widget);
+                re_parent = representation.createComponents(parent);
+                widget.setUserData(Widget.USER_DATA_REPRESENTATION, representation);
+                logger.log(Level.FINE, "Representing {0} as {1}", new Object[] { widget, representation });
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.SEVERE, "Cannot represent " + widget, ex);
+                return;
+            }
+            // Recurse into child widgets
+            final ChildrenProperty children = ChildrenProperty.getChildren(widget);
+            if (children != null)
+            {
+                representChildren(re_parent, widget, children);
+                logger.log(Level.FINE, "Tracking changes to children of {0}", widget);
+                children.addPropertyListener(container_children_listener);
+            }
         }
-        catch (Exception ex)
+        finally
         {
-            logger.log(Level.SEVERE, "Cannot represent " + widget, ex);
-            return;
+            // Signal the end of a representation
+            onRepresentationFinished();
         }
-        // Recurse into child widgets
-        final ChildrenProperty children = ChildrenProperty.getChildren(widget);
-        if (children != null)
-        {
-            representChildren(re_parent, widget, children);
-            logger.log(Level.FINE, "Tracking changes to children of {0}", widget);
-            children.addPropertyListener(container_children_listener);
-        }
+    }
+
+    /** Signal the start of the representation of a widget
+     *
+     *  <p> To be called by WidgetRepresentation classes before submitting a task to be run on another thread
+     */
+    public void onRepresentationStarted()
+    {
+        phaser.register();
+    }
+
+    /** Signal the end of the representation of a widget
+     *
+     *
+     *  <p> To be called by WidgetRepresentation classes upon representation thread completion
+     */
+    public void onRepresentationFinished()
+    {
+        phaser.arriveAndDeregister();
+    }
+
+    /** Wait for the complete representation of a model
+     *
+     *  <p> This includes the representation of embedded displays and navigation tabs
+     */
+    public void awaitRepresentation(long timeout, TimeUnit unit) throws TimeoutException, InterruptedException
+    {
+        phaser.arrive();
+        phaser.awaitAdvanceInterruptibly(0, timeout, unit);
     }
 
     /** Remove all the toolkit items of the model

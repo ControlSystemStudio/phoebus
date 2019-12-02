@@ -187,7 +187,22 @@ public class DisplayModel extends Widget
         if (clean == null)
             return true;
 
-        return clean.booleanValue();
+        if (clean.booleanValue() == false)
+            return false;
+
+        // Check embedded displays and navigation tabs too
+        for (Widget child: getChildren())
+        {
+            java.util.Optional<WidgetProperty<DisplayModel>> child_dm_prop = child.checkProperty("embedded_model");
+            if (child_dm_prop.isPresent())
+            {
+                final DisplayModel child_dm = child_dm_prop.get().getValue();
+                if (child_dm != null && child_dm.isClean() == false)
+                    return false;
+            }
+        }
+
+        return true;
     }
 
     @Override
