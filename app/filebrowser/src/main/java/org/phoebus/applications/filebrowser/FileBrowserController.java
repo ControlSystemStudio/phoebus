@@ -130,7 +130,13 @@ public class FileBrowserController {
         if (dir.equals(file))
         {
             logger.log(Level.FINE, () -> "Forcing refresh of " + item);
-            Platform.runLater(() -> item.getValue().update());
+            Platform.runLater(() ->
+            {
+                // Update and show the latest size, time, ...
+                item.getValue().update();
+                // Force tree to re-sort in case column sort is active
+                treeView.sort();
+            });
             return;
         }
 
@@ -222,8 +228,9 @@ public class FileBrowserController {
         treeView.getColumns().add(name_col);
 
         // Linux (Gnome) and Mac file browsers list size before time
-        final TreeTableColumn<FileInfo, String> size_col = new TreeTableColumn<>(Messages.ColSize);
+        final TreeTableColumn<FileInfo, Number> size_col = new TreeTableColumn<>(Messages.ColSize);
         size_col.setCellValueFactory(p -> p.getValue().getValue().size);
+        size_col.setCellFactory(info -> new FileSizeCell());
         treeView.getColumns().add(size_col);
 
         final TreeTableColumn<FileInfo, String> time_col = new TreeTableColumn<>(Messages.ColTime);
@@ -239,7 +246,6 @@ public class FileBrowserController {
 
         final InvalidationListener resize = prop ->
         {
-            System.out.println("Resize via " + prop);
             // Available with, less space used for the TableMenuButton '+' on the right
             // so that the up/down column sort markers remain visible
             double available = treeView.getWidth() - 10;
