@@ -118,7 +118,7 @@ public class DisplayModel extends Widget
     private volatile ChildrenProperty children;
 
     /** Loaded without errors? */
-    private Boolean clean;
+    private volatile Boolean clean;
 
     /** Create display model */
     public DisplayModel()
@@ -184,10 +184,12 @@ public class DisplayModel extends Widget
      */
     public final boolean isClean()
     {
-        if (clean == null)
+        Boolean safe = clean;
+
+        if (safe == null)
             return true;
 
-        if (clean.booleanValue() == false)
+        if (safe.booleanValue() == false)
             return false;
 
         // Check embedded displays and navigation tabs too
