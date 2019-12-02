@@ -98,9 +98,7 @@ public class FileBrowser implements AppInstance
         {
             if (! col.isVisible())
                 memento.setBoolean(SHOW_COLUMN+i, false);
-            // Save width of 'free' columns, skipping 'bound' widths
-            if (! col.prefWidthProperty().isBound())
-                memento.setNumber(WIDTH+i, col.getWidth());
+            memento.setNumber(WIDTH+i, col.getWidth());
             ++i;
         }
     }
