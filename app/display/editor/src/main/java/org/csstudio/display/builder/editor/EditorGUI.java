@@ -13,6 +13,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.prefs.BackingStoreException;
@@ -443,20 +446,47 @@ public class EditorGUI
         EditorUtil.getExecutor().execute(() ->
         {
             DisplayModel model;
+            String canon_path = null;
             try
             {
-                model = ModelLoader.loadModel(new FileInputStream(file), file.getCanonicalPath());
+                canon_path = file.getCanonicalPath();
+                model = ModelLoader.loadModel(new FileInputStream(file), canon_path);
             }
             catch (final Exception ex)
             {
+                canon_path = null;
                 logger.log(Level.SEVERE, "Cannot load model from " + file, ex);
                 ExceptionDetailsErrorDialog.openError("Creating empty file",
                         "Cannot load model from\n" + file + "\n\nCreating new, empty file", ex);
                 model = new DisplayModel();
                 model.propName().setValue("Empty");
             }
+
             setModel(model);
             this.file = file;
+
+            try
+            {
+                logger.log(Level.FINE, "Waiting for representation of model " + canon_path);
+
+                toolkit.awaitRepresentation(30, TimeUnit.SECONDS);
+                logger.log(Level.FINE, "Done with representing model of " + canon_path);
+            }
+            catch (TimeoutException | InterruptedException ex)
+            {
+                logger.log(Level.SEVERE, "Cannot wait for representation of " + canon_path, ex);
+            }
+            catch (NullPointerException ex)
+            {
+                // Worst case scenario; the CountDownLatch in setModel() timed out and there is no Phaser in toolkit yet
+            }
+
+            if (canon_path != null && model.isClean() == false)
+            {
+                ExceptionDetailsErrorDialog.openError("Errors while loading model",
+                        "There were some errors while loading model from " + file + "\nNot all widgets are displayed correctly; saving the display in this state might lead to losing those widgets. Please check the log for details.", null);
+            }
+
         });
     }
 
@@ -485,16 +515,33 @@ public class EditorGUI
 
     private void setModel(final DisplayModel model)
     {
+        final CountDownLatch ui_started = new CountDownLatch(1);
+
         // Representation needs to be created in UI thread
         toolkit.execute(() ->
         {
-            editor.setModel(model);
-            tree.setModel(model);
+            try
+            {
+                editor.setModel(model);
+                tree.setModel(model);
 
-            final Consumer<DisplayModel> listener = model_listener;
-            if (listener != null)
-                listener.accept(model);
+                final Consumer<DisplayModel> listener = model_listener;
+                if (listener != null)
+                    listener.accept(model);
+            }
+            finally
+            {
+                ui_started.countDown();
+            }
         });
+
+        try
+        {
+            ui_started.await(30, TimeUnit.SECONDS);
+        }
+        catch (InterruptedException ex)
+        {
+        }
     }
 
     private void saveDividerPreferences()

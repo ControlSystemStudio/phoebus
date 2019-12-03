@@ -30,13 +30,13 @@ public class RenameAction extends MenuItem
     /** @param node Node used to position confirmation dialog
      *  @param item Item to rename
      */
-    public RenameAction(final Node node, final TreeItem<File> item)
+    public RenameAction(final Node node, final TreeItem<FileInfo> item)
     {
         super(Messages.Rename, ImageCache.getImageView(ImageCache.class, "/icons/name.png"));
 
         setOnAction(event ->
         {
-            final File file = item.getValue();
+            final File file = item.getValue().file;
             final TextInputDialog prompt = new TextInputDialog(file.getName());
             prompt.setTitle(getText());
             prompt.setHeaderText(Messages.RenameHdr);

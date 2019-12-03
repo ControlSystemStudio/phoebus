@@ -35,7 +35,7 @@ public class DeleteAction extends MenuItem
     /** @param node Node used to position confirmation dialog
      *  @param item Item to delete
      */
-    public DeleteAction(final Node node, final List<TreeItem<File>> items)
+    public DeleteAction(final Node node, final List<TreeItem<FileInfo>> items)
     {
         super(Messages.Delete, ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
 
@@ -50,16 +50,18 @@ public class DeleteAction extends MenuItem
             final StringBuilder buf = new StringBuilder();
             // Parent tree items to refresh
             final Set<FileTreeItem> parents = new HashSet<>();
-            for (TreeItem<File> item : items)
+            for (TreeItem<FileInfo> item : items)
             {
-                files.add(item.getValue());
+                files.add(item.getValue().file);
                 if (buf.length() > 0)
                     buf.append(", ");
-                buf.append(item.getValue().getName());
+                buf.append(item.getValue().file.getName());
                 parents.add((FileTreeItem)item.getParent());
             }
 
             prompt.setHeaderText(Messages.DeletePromptHeader + buf.toString() + "?");
+            prompt.getDialogPane().setPrefWidth(500);
+            prompt.setResizable(true);
             DialogHelper.positionDialog(prompt, node, 0, 0);
             if (prompt.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK)
                 return;
