@@ -38,15 +38,23 @@ public class WidgetIcons
 
     private static Image loadIcon(final String type)
     {
-        final WidgetDescriptor descriptor = WidgetFactory.getInstance().getWidgetDescriptor(type);
         try
         {
+            final WidgetDescriptor descriptor = WidgetFactory.getInstance().getWidgetDescriptor(type);
             logger.log(Level.FINE, "Obtaining icon for widget type " + type);
             return new Image(descriptor.getIconURL().toExternalForm());
         }
         catch (Throwable ex)
         {
             logger.log(Level.WARNING, "Cannot obtain widget for " + type, ex);
+            try
+            {
+                return new Image(WidgetIcons.class.getResource("/icons/question_mark.png").toExternalForm());
+            }
+            catch (Throwable ex2)
+            {
+                logger.log(Level.SEVERE, "Cannot obtain default icon", ex2);
+            }
         }
         return null;
     }
