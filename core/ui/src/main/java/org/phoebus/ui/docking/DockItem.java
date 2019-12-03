@@ -14,6 +14,7 @@ import java.awt.Point;
 import java.awt.PointerInfo;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import java.util.logging.Level;
@@ -447,6 +448,8 @@ public class DockItem extends Tab
         old_parent.getTabs().remove(this);
 
         final Stage other = new Stage();
+        other.setTitle(UUID.randomUUID().toString());
+
         DockStage.configureStage(other, this);
         other.setWidth(old_parent.getWidth() + extra_width);
         other.setHeight(old_parent.getHeight() + extra_height);
@@ -456,13 +459,6 @@ public class DockItem extends Tab
             Styles.set(other.getScene(), css);
 
         other.show();
-
-        if(old_parent.getDockItems().isEmpty() ){
-            String id = (String)old_parent.getScene().getWindow().getProperties().get(DockStage.KEY_ID);
-            if(!id.equals(DockStage.ID_MAIN)){
-                old_parent.getScene().getWindow().hide();
-            }
-        }
 
         return other;
     }
