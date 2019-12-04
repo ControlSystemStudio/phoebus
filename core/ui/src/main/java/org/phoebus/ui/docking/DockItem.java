@@ -14,6 +14,7 @@ import java.awt.Point;
 import java.awt.PointerInfo;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import java.util.logging.Level;
@@ -122,7 +123,7 @@ public class DockItem extends Tab
     private List<Runnable> closed_callback = null;
 
     /** Create dock item for instance of an application
-     *  @param application {@link AppInstance}
+     *  @param applicationInstance {@link AppInstance}
      *  @param content Content for this application instance
      */
     public DockItem(final AppInstance applicationInstance, final Node content)
@@ -447,6 +448,8 @@ public class DockItem extends Tab
         old_parent.getTabs().remove(this);
 
         final Stage other = new Stage();
+        other.setTitle(UUID.randomUUID().toString());
+
         DockStage.configureStage(other, this);
         other.setWidth(old_parent.getWidth() + extra_width);
         other.setHeight(old_parent.getHeight() + extra_height);

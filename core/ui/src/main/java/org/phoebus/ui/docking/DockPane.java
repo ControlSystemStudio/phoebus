@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javafx.scene.control.*;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.javafx.ImageCache;
@@ -27,11 +28,6 @@ import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
@@ -65,6 +61,17 @@ public class DockPane extends TabPane
     private static WeakReference<DockPane> active = new WeakReference<>(null);
 
     private static boolean always_show_tabs = true;
+
+    private Stage stage;
+
+    public void setStage(Stage stage){
+        this.stage = stage;
+    }
+
+    public void closeStage(){
+        stage.close();
+        stage = null;
+    }
 
     /** @param listener Listener to add
      *  @throws IllegalStateException if listener already added
@@ -211,6 +218,7 @@ public class DockPane extends TabPane
         setOnContextMenuRequested(this::showContextMenu);
     }
 
+
     private void showContextMenu(final ContextMenuEvent event)
     {
         final ContextMenu menu = new ContextMenu();
@@ -335,8 +343,9 @@ public class DockPane extends TabPane
         // can complete before we merge,
         // instead of remove, merge, .. add fails because scene graph
         // change in unforeseen ways
-        if (getTabs().isEmpty())
+        if (getTabs().isEmpty()) {
             Platform.runLater(this::mergeEmptyAnonymousSplit);
+        }
         else
             // Update tabs on next UI tick so that findTabHeader() can succeed
             // in case this is in a newly created SplitDock
@@ -503,6 +512,8 @@ public class DockPane extends TabPane
                 for (String css : old_scene.getStylesheets())
                     Styles.set(scene, css);
 
+
+
             // Move tab. In principle,
             // (1) first remove from old parent,
             // (2) then add to new parent.
@@ -582,11 +593,15 @@ public class DockPane extends TabPane
     /** If this pane is within a SplitDock, not named, and empty, merge! */
     void mergeEmptyAnonymousSplit()
     {
-        if (! (dock_parent instanceof SplitDock))
+        if (! (dock_parent instanceof SplitDock)){
+            Platform.runLater(this::applyEmptyDockPanePolicy);
             return;
-        if (name.length() > 0)
+        }
+        if (name.length() > 0) {
             return;
+        }
         ((SplitDock) dock_parent).merge();
+        Platform.runLater(this::applyEmptyDockPanePolicy);
     }
 
     @Override
@@ -594,5 +609,23 @@ public class DockPane extends TabPane
     {
         return (isFixed() ? "FIXED DockPane " : "DockPane ") +
                Integer.toHexString(System.identityHashCode(this)) + " '" + name + "' "+ getTabs();
+    }
+
+    /**
+     * Closes empty windows.
+     * Windows become empty when all tabs have been dragged out, or closed explicitly.
+     * The main window is never closed, though.
+     */
+    private void applyEmptyDockPanePolicy(){
+        Scene scene = getScene();
+        if(scene == null){
+            return;
+        }
+        Object id = scene.getWindow().getProperties().get(DockStage.KEY_ID);
+        if(!DockStage.ID_MAIN.equals(id)){
+            if(!SplitDock.class.isInstance(dock_parent)){
+                getScene().getWindow().hide();
+            }
+        }
     }
 }
