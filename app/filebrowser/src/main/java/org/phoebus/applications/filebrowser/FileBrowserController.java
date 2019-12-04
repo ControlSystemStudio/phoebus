@@ -225,6 +225,7 @@ public class FileBrowserController {
         name_col.setPrefWidth(200);
         name_col.setCellValueFactory(p -> new ReadOnlyObjectWrapper<>(p.getValue().getValue().file));
         name_col.setCellFactory(info -> new FileTreeCell());
+        name_col.setComparator(FileTreeItem.fileTreeItemComparator);
         treeView.getColumns().add(name_col);
 
         // Linux (Gnome) and Mac file browsers list size before time
