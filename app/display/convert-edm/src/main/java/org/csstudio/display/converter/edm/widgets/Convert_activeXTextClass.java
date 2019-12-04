@@ -28,8 +28,8 @@ public class Convert_activeXTextClass extends ConverterBase<LabelWidget>
 
         widget.propTransparent().setValue(t.getAttribute("useDisplayBg").isExistInEDL() && t.isUseDisplayBg());
 
-        // EDM uses '\r' as line delimiter
-        widget.propText().setValue(t.getValue().get().replace('\r', '\n'));
+        // EDM uses '\r' as well as '\001' as line delimiter
+        widget.propText().setValue(t.getValue().get().replace('\001', '\n').replace('\r', '\n'));
 
         // Remove 2 pixels from height for each line, then find font that 'fits'
         final int lines = textLineCount(widget.propText().getValue());
