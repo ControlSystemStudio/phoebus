@@ -30,7 +30,6 @@ public class Preferences
     public static final int ui_monitor_period;
     public static final String[] hide_spi_menu;
     public static final boolean status_show_user;
-    public static final boolean closeEmptyWindows;
 
     static
     {
@@ -44,7 +43,6 @@ public class Preferences
         ui_monitor_period = prefs.getInt("ui_monitor_period");
         hide_spi_menu = prefs.get("hide_spi_menu").split("\\s*,\\s*");
         status_show_user = prefs.getBoolean("status_show_user");
-        closeEmptyWindows = prefs.getBoolean("close_empty_windows");
 
         // In case PVA library is included, sync its array formatting
         // (PVASettings cannot use Preferences.max_array_formatting

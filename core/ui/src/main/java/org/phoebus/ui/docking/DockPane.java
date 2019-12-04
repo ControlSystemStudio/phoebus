@@ -16,11 +16,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import javafx.collections.ListChangeListener;
 import javafx.scene.control.*;
-import javafx.stage.Window;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.ui.Preferences;
 import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Styles;
@@ -615,14 +612,11 @@ public class DockPane extends TabPane
     }
 
     /**
-     * Closes empty windows if preference setting close_empty_windows is set to true.
+     * Closes empty windows.
      * Windows become empty when all tabs have been dragged out, or closed explicitly.
      * The main window is never closed, though.
      */
     private void applyEmptyDockPanePolicy(){
-        if (!Preferences.closeEmptyWindows){
-            return;
-        }
         Scene scene = getScene();
         if(scene == null){
             return;
