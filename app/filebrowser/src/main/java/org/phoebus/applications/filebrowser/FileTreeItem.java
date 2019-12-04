@@ -2,6 +2,7 @@ package org.phoebus.applications.filebrowser;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -56,7 +57,7 @@ class FileTreeItem extends TreeItem<FileInfo> {
     /** @param siblings List of FileTreeItem to sort by file name */
     static void sortSiblings(final List<TreeItem<FileInfo>> siblings)
     {
-        siblings.sort((a, b) -> a.getValue().file.getName().compareTo(b.getValue().file.getName()));
+        siblings.sort((a, b) -> fileTreeItemComparator.compare(a.getValue().file, b.getValue().file));
     }
 
     @Override
@@ -107,7 +108,7 @@ class FileTreeItem extends TreeItem<FileInfo> {
         if (f != null && f.isDirectory()) {
             final File[] files = f.listFiles();
             if (files != null) {
-                Arrays.sort(files, (a, b) -> a.getName().compareTo(b.getName()));
+                Arrays.sort(files, fileTreeItemComparator);
                 final ObservableList<TreeItem<FileInfo>> children = FXCollections.observableArrayList();
                 job.beginTask("List " + files.length + " files");
                 for (File childFile : files) {
@@ -128,4 +129,10 @@ class FileTreeItem extends TreeItem<FileInfo> {
 
         return FXCollections.emptyObservableList();
     }
+
+    static Comparator<File> fileTreeItemComparator = (a, b) -> {
+        if (a.isFile() != b.isFile())
+            return a.isFile() ? 1 : -1;
+        return a.getName().compareTo(b.getName());
+    };
 }
