@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.properties.ConfirmDialog;
 import org.csstudio.display.builder.model.properties.WritePVActionInfo;
@@ -105,6 +106,14 @@ public class Convert_activeMessageButtonClass extends ConverterBase<Widget>
             {
                 b.propConfirmDialog().setValue(true);
                 b.propPassword().setValue(mb.getPassword());
+            }
+
+            // Turn invisible EDM button into transparent, no text action button
+            if (mb.isInvisible())
+            {
+                b.propBackgroundColor().setValue(NamedWidgetColors.TRANSPARENT);
+                b.propText().setValue("");
+                b.propTransparent().setValue(true);
             }
         }
     }
