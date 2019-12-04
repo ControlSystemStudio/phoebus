@@ -41,6 +41,7 @@ public class JCA_Preferences
     private static final String LARGE_ARRAY_THRESHOLD = "large_array_threshold";
     private static final String DBE_PROPERTY_SUPPORTED = "dbe_property_supported";
     private static final String MONITOR_MASK = "monitor_mask";
+    private static final String NAME_SERVERS = "name_servers";
 
     private static final JCA_Preferences instance = new JCA_Preferences();
 
@@ -136,6 +137,9 @@ public class JCA_Preferences
         final String max_array_bytes = prefs.get(MAX_ARRAY_BYTES);
         setSystemProperty("com.cosylab.epics.caj.CAJContext.max_array_bytes", max_array_bytes);
         setSystemProperty("gov.aps.jca.jni.JNIContext.max_array_bytes", max_array_bytes);
+
+        final String name_servers = prefs.get(NAME_SERVERS);
+        setSystemProperty("com.cosylab.epics.caj.CAJContext.name_servers", name_servers);
 
         // gov.aps.jca.event.QueuedEventDispatcher avoids
         // deadlocks when calling JCA while receiving JCA callbacks.
