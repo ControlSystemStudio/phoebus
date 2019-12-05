@@ -9,14 +9,18 @@ package org.csstudio.display.builder.model.widgets;
 
 import java.util.List;
 
+import javax.xml.stream.XMLStreamWriter;
+
 import org.csstudio.display.builder.model.Version;
 import org.csstudio.display.builder.model.persist.ModelReader;
+import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.WidgetCategory;
 import org.csstudio.display.builder.model.WidgetConfigurator;
-import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 
 
 /** Placeholder class for widgets that cannot be parsed
@@ -45,11 +49,15 @@ public class PlaceholderWidget extends VisibleWidget
             final PlaceholderWidget p_widget = (PlaceholderWidget)widget;
 
             p_widget.propTooltip().setValue(p_widget.getInitialTooltip());
+            // Get rid of parent
+            p_widget.xml = (Element) xml.cloneNode(true);
+
             return true;
         }
     }
 
     private String orig_type = "placeholder";
+    private Element xml;
 
     /** Widget constructor.
      */
@@ -90,5 +98,41 @@ public class PlaceholderWidget extends VisibleWidget
     public final String getOrigType()
     {
         return orig_type;
+    }
+
+    public final void writeToXML(final ModelWriter model_writer, final XMLStreamWriter writer) throws Exception
+    {
+        writeNode(xml, writer);
+    }
+
+    private final void writeNode(final Element element, final XMLStreamWriter writer) throws Exception
+    {
+        writer.writeStartElement(element.getNodeName());
+
+        writeAttributes(element, writer);
+
+        final String text = XMLUtil.getString(element);
+        if (! text.trim().isEmpty())
+            writer.writeCharacters(text);
+
+        for (final Element prop_xml : XMLUtil.getChildElements(element))
+        {
+            writeNode(prop_xml, writer);
+        }
+
+        writer.writeEndElement();
+    }
+
+    private final void writeAttributes(final Element element, final XMLStreamWriter writer) throws Exception
+    {
+        NamedNodeMap attrs = element.getAttributes();
+        if (attrs == null)
+            return;
+
+        for (int idx = 0; idx < attrs.getLength(); ++idx)
+        {
+            Node attr = attrs.item(idx);
+            writer.writeAttribute(attr.getNodeName(), attr.getNodeValue());
+        }
     }
 }

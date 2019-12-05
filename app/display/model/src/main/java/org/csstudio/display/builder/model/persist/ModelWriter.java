@@ -23,6 +23,7 @@ import org.csstudio.display.builder.model.Preferences;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
+import org.csstudio.display.builder.model.widgets.PlaceholderWidget;
 import org.phoebus.framework.persistence.IndentingXMLStreamWriter;
 import org.phoebus.framework.persistence.XMLUtil;
 
@@ -118,17 +119,22 @@ public class ModelWriter implements Closeable
      */
     protected void writeWidget(final Widget widget) throws Exception
     {   // 'protected' to allow unit test calls
-        writer.writeStartElement(XMLTags.WIDGET);
-        writer.writeAttribute(XMLTags.TYPE, widget.getType());
-        writer.writeAttribute(XMLTags.VERSION, widget.getVersion().toString());
+        if (widget instanceof PlaceholderWidget)
+            ((PlaceholderWidget)widget).writeToXML(this, writer);
+        else
+        {
+            writer.writeStartElement(XMLTags.WIDGET);
+            writer.writeAttribute(XMLTags.TYPE, widget.getType());
+            writer.writeAttribute(XMLTags.VERSION, widget.getVersion().toString());
 
-        writeWidgetProperties(widget);
+            writeWidgetProperties(widget);
 
-        ChildrenProperty children = ChildrenProperty.getChildren(widget);
-        if (children != null)
-            children.writeToXML(this, writer);
+            ChildrenProperty children = ChildrenProperty.getChildren(widget);
+            if (children != null)
+                children.writeToXML(this, writer);
 
-        writer.writeEndElement();
+            writer.writeEndElement();
+        }
     }
 
     /** @param widget All properties of this widget, except for runtime and default props, are written
