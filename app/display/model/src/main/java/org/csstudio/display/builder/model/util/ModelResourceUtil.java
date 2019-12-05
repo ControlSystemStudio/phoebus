@@ -87,7 +87,7 @@ public class ModelResourceUtil
 
     private static boolean isAbsolute(final String path)
     {
-        return path.startsWith("/")  ||
+        return new File(path).isAbsolute() ||
                isURL(path);
     }
 
