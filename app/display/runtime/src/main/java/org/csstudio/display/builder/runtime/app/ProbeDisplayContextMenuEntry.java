@@ -68,10 +68,13 @@ public class ProbeDisplayContextMenuEntry implements ContextMenuEntry
         {
             // Open the probe display for each PV, passed via $(PV) macro
             final URI resource;
+            final String encoded = pv.getName()
+                    .replace("=", "%3d")
+                    .replace("+", "%2b");
             if (Preferences.probe_display.contains("?"))
-                resource = URI.create(Preferences.probe_display + "&PV=" + pv.getName());
+                resource = URI.create(Preferences.probe_display + "&PV=" + encoded);
             else
-                resource = URI.create(Preferences.probe_display + "?PV=" + pv.getName());
+                resource = URI.create(Preferences.probe_display + "?PV=" + encoded);
             ApplicationService.createInstance(DisplayRuntimeApplication.NAME, resource);
         }
     }
