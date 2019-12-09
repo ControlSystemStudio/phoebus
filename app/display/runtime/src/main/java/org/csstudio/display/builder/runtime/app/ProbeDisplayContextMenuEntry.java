@@ -8,6 +8,7 @@
 package org.csstudio.display.builder.runtime.app;
 
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.List;
 
@@ -68,9 +69,7 @@ public class ProbeDisplayContextMenuEntry implements ContextMenuEntry
         {
             // Open the probe display for each PV, passed via $(PV) macro
             final URI resource;
-            final String encoded = pv.getName()
-                    .replace("=", "%3d")
-                    .replace("+", "%2b");
+            final String encoded = URLEncoder.encode(pv.getName(), "UTF-8");
             if (Preferences.probe_display.contains("?"))
                 resource = URI.create(Preferences.probe_display + "&PV=" + encoded);
             else
