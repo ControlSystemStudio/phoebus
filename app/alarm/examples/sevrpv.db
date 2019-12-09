@@ -1,0 +1,36 @@
+# Example for "Severity PV"
+# used with automated action set to "sevrpv:NameOfPV"
+#
+# softIoc -s -m N=NameOfPV -d sevrpv.db
+
+record(mbbi, "$(N)")
+{
+    field(ZRVL, 0)
+    field(ZRST, "OK")
+    field(ONVL, 1)
+    field(ONST, "MINOR_ACK")
+    field(ONSV, "MINOR")
+    field(TWVL, 2)
+    field(TWST, "MAJOR_ACK")
+    field(TWSV, "MAJOR")
+    field(THVL, 3)
+    field(THST, "INVALID_ACK")
+    field(THSV, "INVALID")
+    field(FRVL, 4)
+    field(FRST, "UNDEFINED_ACK")
+    field(FRSV, "INVALID")
+    field(FVVL, 5)
+    field(FVST, "MINOR")
+    field(FVSV, "MINOR")
+    field(SXVL, 6)
+    field(SXST, "MAJOR")
+    field(SXSV, "MAJOR")
+    field(SVVL, 7)
+    field(SVST, "INVALID")
+    field(SVSV, "INVALID")
+    field(EIVL, 8)
+    field(EIST, "UNDEFINED")
+    field(EISV, "INVALID")
+    field(INP,  "0")
+    field(PINI, "YES")
+}
