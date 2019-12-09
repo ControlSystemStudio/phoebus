@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.AbstractMap.SimpleImmutableEntry;
@@ -246,6 +247,26 @@ public class ResourceParser
         {
             Logger.getLogger(ResourceParser.class.getPackageName())
                   .log(Level.WARNING, "Error decoding '" + text + "'", ex);
+            return text;
+        }
+    }
+
+    /** Encode string to URI format
+     *  @param text string
+     *  @return Encoded URI formatted string
+     */
+    public static String encode(final String text)
+    {
+        if (text == null)
+            return null;
+        try
+        {
+            return URLEncoder.encode(text, UTF_8);
+        }
+        catch (Exception ex)
+        {
+            Logger.getLogger(ResourceParser.class.getPackageName())
+                  .log(Level.WARNING, "Error encoding '" + text + "'", ex);
             return text;
         }
     }
