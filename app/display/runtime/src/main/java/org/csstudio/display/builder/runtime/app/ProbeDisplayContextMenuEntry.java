@@ -8,7 +8,6 @@
 package org.csstudio.display.builder.runtime.app;
 
 import java.net.URI;
-import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.List;
 
@@ -16,6 +15,7 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.runtime.Preferences;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.Selection;
+import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.ContextMenuEntry;
@@ -69,7 +69,7 @@ public class ProbeDisplayContextMenuEntry implements ContextMenuEntry
         {
             // Open the probe display for each PV, passed via $(PV) macro
             final URI resource;
-            final String encoded = URLEncoder.encode(pv.getName(), "UTF-8");
+            final String encoded = ResourceParser.encode(pv.getName());
             if (Preferences.probe_display.contains("?"))
                 resource = URI.create(Preferences.probe_display + "&PV=" + encoded);
             else
