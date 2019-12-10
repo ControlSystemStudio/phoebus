@@ -207,6 +207,8 @@ public class AlarmConfigLogger implements Runnable {
         try {
             logger.log(Level.INFO, "processing message:" + path + ":" + alarm_config);
             if (alarm_config != null) {
+		int index = path.indexOf(":");
+		path = path.substring(index+1);
                 path = path.replaceAll("[:|?*]", "_");
                 File node = Paths.get(root.getParent(), path).toFile();
                 node.mkdirs();
@@ -219,6 +221,8 @@ public class AlarmConfigLogger implements Runnable {
                             "Alarm config logging failed for path " + path + ", config " + alarm_config, e);
                 }
             } else {
+		int index = path.indexOf(":");
+		path = path.substring(index+1);
                 path = path.replaceAll("[:|?*]", "_");
                 Path directory = Paths.get(root.getParent(), path);
                 if(directory.toFile().exists()) {
