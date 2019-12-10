@@ -203,59 +203,58 @@ public class AlarmConfigLogger implements Runnable {
      * @param alarm_config
      * @param commit
      */
-    private synchronized void processAlarmConfigMessages(String path, String alarm_config, boolean commit) {
+    private synchronized void processAlarmConfigMessages(String rawPath, String alarm_config, boolean commit) {
         try {
-            logger.log(Level.INFO, "processing message:" + path + ":" + alarm_config);
-            if (alarm_config != null) {
-		int index = path.indexOf(":");
-		path = path.substring(index+1);
-                path = path.replaceAll("[:|?*]", "_");
-                File node = Paths.get(root.getParent(), path).toFile();
-                node.mkdirs();
-                File node_info = new File(node, "alarm_config.json");
-                try (FileWriter fo = new FileWriter(node_info)) {
-                    fo.write(objectMapper.writerWithDefaultPrettyPrinter()
-                            .writeValueAsString(objectMapper.readValue(alarm_config, Object.class)));
-                } catch (IOException e) {
-                    logger.log(Level.WARNING,
-                            "Alarm config logging failed for path " + path + ", config " + alarm_config, e);
+	    if (rawPath.contains("config:/")) {
+		String path = (rawPath.split("config:/"))[1];
+                logger.log(Level.INFO, "processing message:" + path + ":" + alarm_config);
+                if (alarm_config != null) {
+                    path = path.replaceAll("[:|?*]", "_");
+                    File node = Paths.get(root.getParent(), path).toFile();
+                    node.mkdirs();
+                    File node_info = new File(node, "alarm_config.json");
+                    try (FileWriter fo = new FileWriter(node_info)) {
+                        fo.write(objectMapper.writerWithDefaultPrettyPrinter()
+                                .writeValueAsString(objectMapper.readValue(alarm_config, Object.class)));
+                    } catch (IOException e) {
+                        logger.log(Level.WARNING,
+                                "Alarm config logging failed for path " + path + ", config " + alarm_config, e);
+                    }
+                } else {
+                    path = path.replaceAll("[:|?*]", "_");
+                    Path directory = Paths.get(root.getParent(), path);
+                    if(directory.toFile().exists()) {
+                        Files.walk(directory).map(Path::toFile).forEach(File::delete);
+                        directory.toFile().delete();
+                    }
                 }
-            } else {
-		int index = path.indexOf(":");
-		path = path.substring(index+1);
-                path = path.replaceAll("[:|?*]", "_");
-                Path directory = Paths.get(root.getParent(), path);
-                if(directory.toFile().exists()) {
-                    Files.walk(directory).map(Path::toFile).forEach(File::delete);
-                    directory.toFile().delete();
-                }
-            }
-            writeAlarmModel();
-            if(commit) {
-             // Commit the initialized git repo
-                try (Git git = Git.open(root)) {
-                    git.add().addFilepattern(".").call();
-                    git.commit().setAll(true).setMessage("Alarm config update "+path).call();
+                writeAlarmModel();
+                if(commit) {
+                // Commit the initialized git repo
+                    try (Git git = Git.open(root)) {
+                        git.add().addFilepattern(".").call();
+                        git.commit().setAll(true).setMessage("Alarm config update "+path).call();
 
-                    // Check if it is configured with the appropriate remotes
-                    if (remoteLocation != null && !remoteLocation.isEmpty()) {
-                        // If remote defined push to remote
-                        PushCommand pushCommand = git.push();
-                        pushCommand.setRemote(REMOTE_NAME);
-                        pushCommand.setForce(true);
-                        pushCommand.setCredentialsProvider(
+                        // Check if it is configured with the appropriate remotes
+                        if (remoteLocation != null && !remoteLocation.isEmpty()) {
+                            // If remote defined push to remote
+                            PushCommand pushCommand = git.push();
+                            pushCommand.setRemote(REMOTE_NAME);
+                            pushCommand.setForce(true);
+                            pushCommand.setCredentialsProvider(
                                 new UsernamePasswordCredentialsProvider(
                                         props.getProperty("username"),
                                         props.getProperty("password"))
                                 );
-                        pushCommand.call();
+                            pushCommand.call();
+                        }
+                    } catch (GitAPIException | IOException e) {
+                        logger.log(Level.WARNING, "Failed to commit the configuration changes", e);
                     }
-                } catch (GitAPIException | IOException e) {
-                    logger.log(Level.WARNING, "Failed to commit the configuration changes", e);
-                }
+		}
             }
         } catch (final Exception ex) {
-            logger.log(Level.WARNING, "Alarm state check error for path " + path + ", config " + alarm_config, ex);
+            logger.log(Level.WARNING, "Alarm state check error for path " + rawPath + ", config " + alarm_config, ex);
         }
     }
 
