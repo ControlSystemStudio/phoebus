@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,9 +7,12 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.server.actions;
 
+import static org.phoebus.applications.alarm.AlarmSystem.logger;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
@@ -44,6 +47,8 @@ public class AutomatedActionExecutor implements BiConsumer<AlarmTreeItem<?>, Tit
                 EmailActionExecutor.sendEmail(item, action.detail.substring(7).split(" *, *"));
             else if (action.detail.startsWith("cmd:"))
                 CommandActionExecutor.run(item, action.detail.substring(4));
+            else
+                logger.log(Level.WARNING, "Automated action " + action + " lacks 'mailto:' or 'cmd:' in detail");
         });
     }
 
