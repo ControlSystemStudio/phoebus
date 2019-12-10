@@ -578,4 +578,12 @@ public class RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
     {
         plot.dispose();
     }
+
+    /**
+     * Resets the X and Y axis ranges to the initial values, i.e. the values they had before
+     * any zoom or pan actions.
+    */
+    public void resetAxisRanges(){
+        plot.resetAxisRanges();
+    }
 }
