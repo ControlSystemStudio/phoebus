@@ -185,4 +185,12 @@ public class ChangeAxisRanges<XTYPE extends Comparable<XTYPE>> extends UndoableA
                 plot.fireYAxisChange(axis);
         }
     }
+
+    public AxisRange<XTYPE> getOriginalXRange(){
+        return original_x_range;
+    }
+
+    public List<AxisRange<Double>> getOriginalYRanges(){
+        return original_yranges;
+    }
 }

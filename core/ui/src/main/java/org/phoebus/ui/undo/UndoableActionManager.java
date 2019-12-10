@@ -132,4 +132,12 @@ public class UndoableActionManager
         for (final UndoRedoListener listener : listeners)
             listener.operationsHistoryChanged(to_undo, to_redo);
     }
+
+    /**
+     * Accessor for the undo stack.
+     * @return A {@link List} of undo actions. May be empty.
+     */
+    public List<UndoableAction> getUndoStack(){
+        return undoStack.getItems();
+    }
 }

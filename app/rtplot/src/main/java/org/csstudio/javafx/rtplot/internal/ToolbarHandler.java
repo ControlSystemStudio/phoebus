@@ -48,6 +48,7 @@ public class ToolbarHandler<XTYPE extends Comparable<XTYPE>>
         EDIT_ANNOTATION,
         CROSSHAIR,
         STAGGER,
+        RESET_AXIS_RANGES,
         ZOOM_IN,
         ZOOM_OUT,
         PAN,
@@ -59,6 +60,7 @@ public class ToolbarHandler<XTYPE extends Comparable<XTYPE>>
     final private ToolBar toolbar;
     private ToggleButton crosshair, zoom_in, zoom_out, pan, pointer;
     private Button edit_annotation;
+    private Button resetAxisRanges;
 
     /** Have any custom items been added? */
     private boolean have_custom_items = false;
@@ -83,7 +85,7 @@ public class ToolbarHandler<XTYPE extends Comparable<XTYPE>>
     /** Add a custom tool bar item
      *  @param icon Icon {@link Image}
      *  @param tool_tip Tool tip text
-     *  @return {@link ToolItem}
+     *  @return {@link Button}
      */
     public Button addItem(final ImageView icon, final String tool_tip)
     {
@@ -180,11 +182,16 @@ public class ToolbarHandler<XTYPE extends Comparable<XTYPE>>
     {
         zoom_in = newToggleButton(ToolIcons.ZOOM_IN, Messages.Zoom_In_TT);
         zoom_out = newToggleButton(ToolIcons.ZOOM_OUT, Messages.Zoom_Out_TT);
+        resetAxisRanges = newButton(ToolIcons.RESET_AXIS_RANGES, Messages.Reset_Axis_Ranges);
         pan = newToggleButton(ToolIcons.PAN, Messages.Pan_TT);
         pointer = newToggleButton(ToolIcons.POINTER, Messages.Plain_Pointer);
 
         if (active)
         {
+            resetAxisRanges.setOnMouseClicked(me -> {
+                plot.resetAxisRanges();
+            });
+
             zoom_in.setOnAction(event ->
             {
                 selectMouseMode(zoom_in);
@@ -195,6 +202,7 @@ public class ToolbarHandler<XTYPE extends Comparable<XTYPE>>
                 selectMouseMode(zoom_out);
                 plot.setMouseMode(MouseMode.ZOOM_OUT);
             });
+
             pan.setOnAction(event ->
             {
                 selectMouseMode(pan);

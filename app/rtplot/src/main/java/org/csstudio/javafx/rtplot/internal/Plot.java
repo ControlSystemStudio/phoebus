@@ -50,6 +50,7 @@ import org.phoebus.ui.javafx.PlatformInfo;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.input.MouseEvent;
+import org.phoebus.ui.undo.UndoableAction;
 
 /** Plot with axes and area that displays the traces
  *
@@ -1344,5 +1345,44 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         listeners.clear();
         plot_markers.clear();
         plot_marker = null;
+    }
+
+    /**
+     * Resets the X and Y axis ranges to the initial values. These initial values
+     * are found by looking for the first {@link ChangeAxisRanges} action in the undo stack
+     * obtained from the {@link org.phoebus.ui.undo.UndoableActionManager}. A
+     * {@link ChangeAxisRanges} is created upon
+     * the first zoom or pan action and hence contains the information about the initial X and
+     * Y axes ranges.
+     * The action taken in this method is itself a {@link ChangeAxisRanges} using the plot's current X and Y axis ranges
+     * are used as the "original" ranges. It is executed as an {@link UndoableAction} and
+     * can therefore be undone to return to the previous zoom/pan state.
+     * If the undo stack is empty or does not contain any {@link ChangeAxisRanges} actions,
+     * nothing happens.
+     */
+    public void resetAxisRanges(){
+        List<UndoableAction> undoableActions = undo.getUndoStack();
+        if(undoableActions.isEmpty()){
+            return;
+        }
+
+        for(UndoableAction undoableAction : undoableActions){
+            if(undoableAction instanceof ChangeAxisRanges){
+                ChangeAxisRanges changeAxisRanges = (ChangeAxisRanges)undoableAction;
+                AxisRange originalXRange = changeAxisRanges.getOriginalXRange();
+                List<AxisRange> originalYRanges = changeAxisRanges.getOriginalYRanges();
+                AxisRange currentXRange = x_axis.getValueRange();
+                List<AxisRange> currentYRanges =  new ArrayList<>();
+                List<Boolean> currentAutoScaleValues = new ArrayList<>();
+                for (YAxisImpl<XTYPE> axis : y_axes) {
+                    currentYRanges.add(axis.getValueRange());
+                    currentAutoScaleValues.add(axis.isAutoscale());
+                }
+                ChangeAxisRanges restoreAxisRanges = new ChangeAxisRanges(this, Messages.Zoom_In, x_axis, currentXRange, originalXRange, x_axis.isAutoscale(), false,
+                        y_axes, currentYRanges, originalYRanges, currentAutoScaleValues);
+                undo.execute(restoreAxisRanges);
+                break;
+            }
+        }
     }
 }
