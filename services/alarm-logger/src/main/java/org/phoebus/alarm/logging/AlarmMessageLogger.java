@@ -42,6 +42,13 @@ public class AlarmMessageLogger implements Runnable {
     private static final String CONFIG_INDEX_FORMAT = "_alarms_config";
     private static final String STATE_INDEX_FORMAT = "_alarms_state";
 
+    /**
+     * Create a alarm logger for the alarm messages (both state and configuration)
+     * for a given alarm server topic.
+     * This runnable will create the kafka streams for the given alarm messages which match the format 'topic'
+     * 
+     * @param topic - the alarm topic in kafka
+     */
     public AlarmMessageLogger(String topic) {
         super();
         this.topic = topic;
