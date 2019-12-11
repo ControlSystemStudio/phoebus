@@ -125,7 +125,7 @@ public class Decoders
                     : AlarmStatus.values()[code.get()];
 
             final PVAString msg = alarm.get("message");
-            message = msg == null ? "<null>" : msg.get();
+            message = (msg == null || msg.get() == null) ? "<null>" : msg.get();
         }
         else
         {

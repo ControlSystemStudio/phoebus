@@ -9,6 +9,7 @@ package org.phoebus.applications.pvtable.model;
 
 import java.text.NumberFormat;
 import java.time.Instant;
+import java.util.stream.Collectors;
 
 import org.epics.util.array.IteratorNumber;
 import org.epics.util.array.ListByte;
@@ -23,6 +24,7 @@ import org.epics.vtype.VFloatArray;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VString;
+import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
 import org.phoebus.applications.pvtable.Settings;
 
@@ -152,6 +154,12 @@ public class VTypeHelper
             while (numbers.hasNext())
                 buf.append(", ").append(numbers.nextLong());
             return buf.toString();
+        }
+        if (value instanceof VStringArray)
+        {
+            return ((VStringArray) value).getData()
+                                         .stream()
+                                         .collect(Collectors.joining(", "));
         }
         if (value instanceof VEnumArray)
         {
