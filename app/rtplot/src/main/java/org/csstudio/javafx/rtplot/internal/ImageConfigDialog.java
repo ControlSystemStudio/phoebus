@@ -34,6 +34,7 @@ import javafx.stage.Modality;
 /** Dialog for runtime changes to an image plot
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class ImageConfigDialog  extends Dialog<Void>
 {
     private final RTImagePlot plot;

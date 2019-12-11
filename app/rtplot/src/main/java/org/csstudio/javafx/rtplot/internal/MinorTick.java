@@ -11,6 +11,7 @@ package org.csstudio.javafx.rtplot.internal;
  *  @author Kay Kasemir
  *  @param <XTYPE> Data type used for the {@link Ticks}
  */
+@SuppressWarnings("nls")
 public class MinorTick<XTYPE>
 {
     final protected XTYPE value;
