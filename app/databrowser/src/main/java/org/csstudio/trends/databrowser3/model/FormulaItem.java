@@ -56,24 +56,26 @@ public class FormulaItem extends ModelItem
      *  from the GUI thread via updateFormula().
      *  Concurrently, an update thread can invoke reevaluate().
      *  All access to <code>formula</code>, <code>inputs</code>,
-     *  <code>variables</code> must therefore synchronize on <code>this</code>.
+     *  <code>variables</code> must therefore take
+     *  the appropriate samples' read/write lock.
      */
     private Formula formula;
 
     /** Input elements to the formula
-     *  @see #formula for synchronization
+     *  @see #formula for locking
      */
     private FormulaInput inputs[];
 
     /** Variable nodes.
      *  Array elements correspond to entries in <code>inputs[]</code>
-     *  @see #formula for synchronization
+     *  @see #formula for locking
      */
     private VariableNode variables[];
 
     /** Samples of the formula, computed from inputs.
-     *  Access must synchronize on samples (done inside PlotSampleArray) */
-    private PlotSampleArray samples = new PlotSampleArray();
+     *  Access must lock samples
+     */
+    private final PlotSampleArray samples = new PlotSampleArray();
 
     /** Initialize formula
      *  @param name Name of the Formula item
@@ -87,7 +89,9 @@ public class FormulaItem extends ModelItem
         super(name);
         updateFormula(expression, inputs);
         // Compute initial values
+        samples.lockForWriting();
         compute();
+        samples.unlockForWriting();
     }
 
     /** @return Expression */
@@ -106,11 +110,19 @@ public class FormulaItem extends ModelItem
      *  @param item ModelItem potentially used in formula
      *  @return <code>true</code> if used as input
      */
-    synchronized public boolean usesInput(final ModelItem item)
+    public boolean usesInput(final ModelItem item)
     {
-        for (FormulaInput input : inputs)
-            if (input.getItem() == item)
-                return true;
+        samples.lock.readLock().lock();
+        try
+        {
+            for (FormulaInput input : inputs)
+                if (input.getItem() == item)
+                    return true;
+        }
+        finally
+        {
+            samples.lock.readLock().unlock();
+        }
         return false;
     }
 
@@ -120,16 +132,22 @@ public class FormulaItem extends ModelItem
      *  @throws Exception on error in expression
      */
     public void updateFormula(final String expression,
-            final FormulaInput inputs[]) throws Exception
+                              final FormulaInput inputs[]) throws Exception
     {
         // Prevent compute() from using inconsistent formula & inputs
-        synchronized (this)
+        if (! samples.lockForWriting())
+            throw new Exception("Cannot lock formula " + getName() + " to update the expression");
+        try
         {
             this.inputs = inputs;
             variables = new VariableNode[inputs.length];
             for (int i=0; i<variables.length; ++i)
                 variables[i] = new VariableNode(inputs[i].getVariableName());
             this.formula = new Formula(expression, variables);
+        }
+        finally
+        {
+            samples.unlockForWriting();
         }
         fireItemLookChanged();
     }
@@ -142,126 +160,125 @@ public class FormulaItem extends ModelItem
      */
     private void compute()
     {
+        if (! samples.lock.isWriteLockedByCurrentThread())
+            logger.log(Level.WARNING, "Samples for " + getName() + " are not locked! " + samples.lock, new Exception("Stack detail"));
+
         final List<PlotSample> result = new ArrayList<>();
         final Display display = Display.none();
 
         try
         {
-            // Prevent changes to formula & inputs
-            synchronized (this)
+            // 'Current' value for each input or null when no more
+            // In computation loop, values is actually moved to the _next_
+            // value
+            final VType values[] = new VType[inputs.length];
+
+            // 'Current' numeric min/val/max of values
+            final double min[] = new double[inputs.length];
+            final double val[] = new double[inputs.length];
+            final double max[] = new double[inputs.length];
+
+            // Determine first sample for each input
+            boolean more_input = false;
+            for (int i = 0; i < values.length; i++)
             {
-                // 'Current' value for each input or null when no more
-                // In computation loop, values is actually moved to the _next_
-                // value
-                final VType values[] = new VType[inputs.length];
+                // Initially, none have any data
+                min[i] = val[i] = max[i] = Double.NaN;
+                // Is there an initial value for any input?
+                values[i] = inputs[i].first();
+                if (values[i] != null)
+                    more_input = true;
+            }
 
-                // 'Current' numeric min/val/max of values
-                final double min[] = new double[inputs.length];
-                final double val[] = new double[inputs.length];
-                final double max[] = new double[inputs.length];
-
-                // Determine first sample for each input
-                boolean more_input = false;
+            // Compute result for each 'line in the spreadsheet'
+            Instant time;
+            while (more_input)
+            {   // Find oldest time stamp of all the inputs
+                time = null;
                 for (int i = 0; i < values.length; i++)
                 {
-                    // Initially, none have any data
-                    min[i] = val[i] = max[i] = Double.NaN;
-                    // Is there an initial value for any input?
-                    values[i] = inputs[i].first();
-                    if (values[i] != null)
-                        more_input = true;
+                    if (values[i] == null)
+                        continue;
+                    final Instant sample_time = VTypeHelper.getTimestamp(values[i]);
+                    if (time == null  ||  sample_time.compareTo(time) < 0)
+                        time = sample_time;
+                }
+                if (time == null)
+                {   // No input left with any data
+                    more_input = false;
+                    break;
                 }
 
-                // Compute result for each 'line in the spreadsheet'
-                Instant time;
-                while (more_input)
-                {   // Find oldest time stamp of all the inputs
-                    time = null;
-                    for (int i = 0; i < values.length; i++)
+                // 'time' now defines the current spreadsheet line.
+                // Set min/max/val to sample from each input for that time.
+                // This might move values[i] resp. the inputs' iterators
+                // to the 'next' sample
+                boolean have_min_max = true;
+                for (int i = 0; i < values.length; i++)
+                {
+                    if (values[i] == null) // No more data
                     {
-                        if (values[i] == null)
-                            continue;
-                        final Instant sample_time = VTypeHelper.getTimestamp(values[i]);
-                        if (time == null  ||  sample_time.compareTo(time) < 0)
-                            time = sample_time;
+                        min[i] = val[i] = max[i] = Double.NaN;
+                        have_min_max = false;
                     }
-                    if (time == null)
-                    {   // No input left with any data
-                        more_input = false;
-                        break;
-                    }
-
-                    // 'time' now defines the current spreadsheet line.
-                    // Set min/max/val to sample from each input for that time.
-                    // This might move values[i] resp. the inputs' iterators
-                    // to the 'next' sample
-                    boolean have_min_max = true;
-                    for (int i = 0; i < values.length; i++)
-                    {
-                        if (values[i] == null) // No more data
+                    else if (VTypeHelper.getTimestamp(values[i]).compareTo(time) <= 0)
+                    {   // Input is valid before-and-up-to 'time'
+                        if (values[i] instanceof VStatistics)
                         {
-                            min[i] = val[i] = max[i] = Double.NaN;
+                            final VStatistics mmv = (VStatistics)values[i];
+                            min[i] = mmv.getMin();
+                            val[i] = mmv.getAverage();
+                            max[i] = mmv.getMax();
+                        }
+                        else
+                        {
+                            min[i] = max[i] = Double.NaN;
+                            val[i] = VTypeHelper.toDouble(values[i]);
+                            // Use NaN for any non-number
+                            if (Double.isInfinite(val[i]))
+                                val[i] = Double.NaN;
                             have_min_max = false;
                         }
-                        else if (VTypeHelper.getTimestamp(values[i]).compareTo(time) <= 0)
-                        {   // Input is valid before-and-up-to 'time'
-                            if (values[i] instanceof VStatistics)
-                            {
-                                final VStatistics mmv = (VStatistics)values[i];
-                                min[i] = mmv.getMin();
-                                val[i] = mmv.getAverage();
-                                max[i] = mmv.getMax();
-                            }
-                            else
-                            {
-                                min[i] = max[i] = Double.NaN;
-                                val[i] = VTypeHelper.toDouble(values[i]);
-                                // Use NaN for any non-number
-                                if (Double.isInfinite(val[i]))
-                                    val[i] = Double.NaN;
-                                have_min_max = false;
-                            }
-                            // Move to next input sample
-                            values[i] = inputs[i].next();
-                        }
-                        else
-                        {   // values[i].getTime() > time, so leave min/max/val[i]
-                            // as is until 'time' catches up with the next input sample.
-                            // Just update the have_min_max flag
-                            if (Double.isNaN(min[i])  ||  Double.isNaN(max[i]))
-                                have_min_max = false;
-                        }
-                    }
-
-                    // Set variables[] from val to get res_val
-                    final Time timestamp = Time.of(time);
-                    for (int i = 0; i < values.length; i++)
-                        variables[i].setValue(VDouble.of(val[i], OK_FORMULA, timestamp, display));
-                    // Evaluate formula for these inputs
-                    final double res_val = VTypeHelper.toDouble(formula.eval());
-                    final VType value;
-
-                    if (have_min_max)
-                    {   // Set variables[] from min
-                        for (int i = 0; i < values.length; i++)
-                            variables[i].setValue(VDouble.of(min[i], OK_FORMULA, timestamp, display));
-                        final double res_min = VTypeHelper.toDouble(formula.eval());
-                        // Set variables[] from max
-                        for (int i = 0; i < values.length; i++)
-                            variables[i].setValue(VDouble.of(max[i], OK_FORMULA, timestamp, display));
-                        final double res_max = VTypeHelper.toDouble(formula.eval());
-                        // Use min, max, average(=res_val)
-                        value = VStatistics.of(res_val, 0.0, res_min, res_max, 1, OK_FORMULA, timestamp, display);
+                        // Move to next input sample
+                        values[i] = inputs[i].next();
                     }
                     else
-                    {   // No min/max.
-                        if (Double.isNaN(res_val))
-                            value = VDouble.of(res_val, INVALID_FORMULA, timestamp, display);
-                        else
-                            value = VDouble.of(res_val, OK_FORMULA, timestamp, display);
+                    {   // values[i].getTime() > time, so leave min/max/val[i]
+                        // as is until 'time' catches up with the next input sample.
+                        // Just update the have_min_max flag
+                        if (Double.isNaN(min[i])  ||  Double.isNaN(max[i]))
+                            have_min_max = false;
                     }
-                    result.add(new PlotSample(Messages.Formula, value));
                 }
+
+                // Set variables[] from val to get res_val
+                final Time timestamp = Time.of(time);
+                for (int i = 0; i < values.length; i++)
+                    variables[i].setValue(VDouble.of(val[i], OK_FORMULA, timestamp, display));
+                // Evaluate formula for these inputs
+                final double res_val = VTypeHelper.toDouble(formula.eval());
+                final VType value;
+
+                if (have_min_max)
+                {   // Set variables[] from min
+                    for (int i = 0; i < values.length; i++)
+                        variables[i].setValue(VDouble.of(min[i], OK_FORMULA, timestamp, display));
+                    final double res_min = VTypeHelper.toDouble(formula.eval());
+                    // Set variables[] from max
+                    for (int i = 0; i < values.length; i++)
+                        variables[i].setValue(VDouble.of(max[i], OK_FORMULA, timestamp, display));
+                    final double res_max = VTypeHelper.toDouble(formula.eval());
+                    // Use min, max, average(=res_val)
+                    value = VStatistics.of(res_val, 0.0, res_min, res_max, 1, OK_FORMULA, timestamp, display);
+                }
+                else
+                {   // No min/max.
+                    if (Double.isNaN(res_val))
+                        value = VDouble.of(res_val, INVALID_FORMULA, timestamp, display);
+                    else
+                        value = VDouble.of(res_val, OK_FORMULA, timestamp, display);
+                }
+                result.add(new PlotSample(Messages.Formula, value));
             }
         }
         catch (Exception ex)
@@ -279,8 +296,11 @@ public class FormulaItem extends ModelItem
     public boolean reevaluate()
     {
         boolean anything_new = false;
-        // Prevent changes to inputs array
-        synchronized (this)
+
+        // Prevent changes to inputs array while we update the data
+        if (! samples.lockForWriting())
+            return false;
+        try
         {
             for (FormulaInput input : inputs)
                 if (input.hasNewSamples())
@@ -288,13 +308,14 @@ public class FormulaItem extends ModelItem
                     anything_new = true;
                     break;
                 }
+            if (!anything_new)
+                return false;
+            compute();
         }
-        if (!anything_new)
-            return false;
-        // Formula and inputs could actually change right now,
-        // but we're about to re-compute anyway, and we'll lock while
-        // doing that
-        compute();
+        finally
+        {
+            samples.unlockForWriting();
+        }
         return true;
     }
 
