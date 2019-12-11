@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 
+import javafx.scene.control.Alert;
 import org.csstudio.javafx.rtplot.Activator;
 import org.csstudio.javafx.rtplot.Annotation;
 import org.csstudio.javafx.rtplot.Axis;
@@ -43,6 +44,7 @@ import org.csstudio.javafx.rtplot.internal.undo.ChangeAxisRanges;
 import org.csstudio.javafx.rtplot.internal.undo.UpdateAnnotationAction;
 import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
 import org.csstudio.javafx.rtplot.internal.util.ScreenTransform;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.BufferUtil;
 import org.phoebus.ui.javafx.DoubleBuffer;
 import org.phoebus.ui.javafx.PlatformInfo;
@@ -1359,6 +1361,8 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
      * can therefore be undone to return to the previous zoom/pan state.
      * If the undo stack is empty or does not contain any {@link ChangeAxisRanges} actions,
      * nothing happens.
+     * A check is performed to determine if the number of traces (Y axes) in the current plot is the same as it
+     * was initially. If not, an error dialog is shown to the effect that a reset is not possible.
      */
     public void resetAxisRanges(){
         List<UndoableAction> undoableActions = undo.getUndoStack();
@@ -1372,6 +1376,14 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
                 AxisRange originalXRange = changeAxisRanges.getOriginalXRange();
                 List<AxisRange> originalYRanges = changeAxisRanges.getOriginalYRanges();
                 AxisRange currentXRange = x_axis.getValueRange();
+                if(y_axes.size() != originalYRanges.size()){
+                    final Alert error = new Alert(Alert.AlertType.ERROR);
+                    error.setTitle(Messages.resetAxisRangesErrorTitle);
+                    error.setHeaderText(Messages.resetAxisRangesErrorHeaderText);
+                    DialogHelper.positionDialog(error, this, -100, -50);
+                    error.showAndWait();
+                    return;
+                }
                 List<AxisRange> currentYRanges =  new ArrayList<>();
                 List<Boolean> currentAutoScaleValues = new ArrayList<>();
                 for (YAxisImpl<XTYPE> axis : y_axes) {

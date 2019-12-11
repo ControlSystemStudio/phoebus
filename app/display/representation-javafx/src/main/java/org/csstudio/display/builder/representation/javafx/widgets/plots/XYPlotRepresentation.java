@@ -15,6 +15,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import javafx.scene.control.Button;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -28,6 +31,7 @@ import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget;
 import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget.MarkerProperty;
 import org.csstudio.display.builder.representation.Preferences;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.csstudio.display.builder.representation.javafx.Messages;
 import org.csstudio.display.builder.representation.javafx.widgets.RegionBaseRepresentation;
 import org.csstudio.javafx.rtplot.Activator;
 import org.csstudio.javafx.rtplot.Axis;
@@ -408,6 +412,14 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         if (! toolkit.isEditMode())
             for (MarkerProperty marker : model_widget.propMarkers().getValue())
                 createMarker(marker);
+
+        // Add button to reset ranges of X and Y axes to the values when plot was first rendered.
+        Button resetAxisRanges =
+                plot.addToolItem(JFXUtil.getIcon("reset_axis_ranges.png"), Messages.Reset_Axis_Ranges);
+
+        resetAxisRanges.setOnMouseClicked(me -> {
+            plot.resetAxisRanges();
+        });
 
         return plot;
     }

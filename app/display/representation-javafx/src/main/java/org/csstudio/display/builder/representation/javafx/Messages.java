@@ -168,6 +168,7 @@ public class Messages
     public static String Zoom_All;
     public static String Zoom_Height;
     public static String Zoom_Width;
+    public static String Reset_Axis_Ranges;
 
     static
     {
