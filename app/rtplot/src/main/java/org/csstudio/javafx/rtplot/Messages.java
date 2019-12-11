@@ -114,7 +114,8 @@ public class Messages
     public static String Zoom_Out_Y;
     public static String Zoom_Stagger;
     public static String Zoom_Stagger_TT;
-    public static String Reset_Axis_Ranges;
+    public static String resetAxisRangesErrorTitle;
+    public static String resetAxisRangesErrorHeaderText;
 
     static
     {

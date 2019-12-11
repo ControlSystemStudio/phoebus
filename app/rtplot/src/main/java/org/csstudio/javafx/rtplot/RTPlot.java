@@ -56,7 +56,7 @@ import javafx.stage.Stage;
  *  @author Amanda Carpenter - added manual control for axis limits
  */
 @SuppressWarnings("nls")
-public class RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
+public class  RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
 {
     final protected Plot<XTYPE> plot;
     final protected ToolbarHandler<XTYPE> toolbar;
