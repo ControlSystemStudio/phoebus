@@ -265,7 +265,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
             final int desired = model_trace.traceYAxis().getValue();
             if (desired != trace.getYAxis())
                 plot.moveTrace(trace, desired);
-            plot.requestLayout();
+            plot.requestUpdate();
         };
 
         // PV changed value -> runtime updated X/Y value property -> valueChanged()
