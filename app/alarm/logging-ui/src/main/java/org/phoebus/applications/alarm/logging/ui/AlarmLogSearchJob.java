@@ -152,7 +152,7 @@ public class AlarmLogSearchJob implements JobRunnable {
                                 }
                                 if (message_time != null) {
                                     Instant instant = LocalDateTime.parse(message_time.asText(), formatter)
-				    .atZone(ZoneId.of("UTC")).toInstant().atZone(ZoneId.systemDefault()).toInstant();
+				        .atZone(ZoneId.of("UTC")).toInstant().atZone(ZoneId.systemDefault()).toInstant();
                                     alarmMessage.setMessage_time(instant);
                                 }
                                 if (alarmMessage.getPv() == null) {
