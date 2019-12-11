@@ -1,5 +1,6 @@
 package org.phoebus.applications.alarm.messages;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -18,7 +19,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  */
 @JsonInclude(Include.NON_NULL)
-public class AlarmMessage {
+public class AlarmMessage implements Serializable{
+
+    private static final long serialVersionUID = 7936081175563008693L;
 
     private String user;
     private String host;
@@ -29,11 +32,11 @@ public class AlarmMessage {
     private Instant alarmTime;
 
     // config message
-    private boolean enabled;
-    private boolean latching;
-    private boolean annunciating;
-    private int delay;
-    private int count;
+    private boolean enabled = true;
+    private boolean latching = true;
+    private boolean annunciating = true;
+    private int delay = 0;
+    private int count = 0;
     private String filter;
     private List<AlarmDetail> guidance;
     private List<AlarmDetail> displays;
@@ -377,5 +380,15 @@ public class AlarmMessage {
         private List<AlarmDetail> commands;
         @JsonIgnore
         private List<AlarmDetail> actions;
+    }
+
+    @Override
+    public String toString() {
+        try {
+            return toJson();
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 }
