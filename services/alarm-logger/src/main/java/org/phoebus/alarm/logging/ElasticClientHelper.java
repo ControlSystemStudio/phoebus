@@ -14,6 +14,7 @@ import org.elasticsearch.action.DocWriteResponse.Result;
 import org.elasticsearch.action.admin.indices.get.GetIndexRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.sniff.Sniffer;
@@ -86,7 +87,7 @@ public class ElasticClientHelper {
         GetIndexRequest request = new GetIndexRequest();
         request.indices(indexName);
         try {
-            return client.indices().exists(request);
+            return client.indices().exists(request, RequestOptions.DEFAULT);
         } catch (IOException e) {
             logger.log(Level.WARNING, "Failed to query elastic", e);
             return false;
@@ -97,7 +98,7 @@ public class ElasticClientHelper {
         IndexRequest indexRequest = new IndexRequest(indexName.toLowerCase(), "alarm");
         try {
             indexRequest.source(alarmStateMessage.sourceMap());
-            IndexResponse indexResponse = client.index(indexRequest);
+            IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
             return indexResponse.getResult().equals(Result.CREATED);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "failed to log message " + alarmStateMessage + " to index " + indexName, e);
@@ -109,7 +110,7 @@ public class ElasticClientHelper {
         IndexRequest indexRequest = new IndexRequest(indexName.toLowerCase(), "alarm_cmd");
         try {
             indexRequest.source(alarmCommandMessage.sourceMap());
-            IndexResponse indexResponse = client.index(indexRequest);
+            IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
             return indexResponse.getResult().equals(Result.CREATED);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "failed to log message " + alarmCommandMessage + " to index " + indexName, e);
@@ -121,7 +122,7 @@ public class ElasticClientHelper {
         IndexRequest indexRequest = new IndexRequest(indexName.toLowerCase(), "alarm_config");
         try {
             indexRequest.source(alarmConfigMessage.sourceMap());
-            IndexResponse indexResponse = client.index(indexRequest);
+            IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
             return indexResponse.getResult().equals(Result.CREATED);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "failed to log message " + alarmConfigMessage + " to index " + indexName, e);
