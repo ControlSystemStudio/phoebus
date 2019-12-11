@@ -414,6 +414,9 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
     @Override
     public void drawTickLabel(final Graphics2D gc, final Double tick)
     {
+        if (! isVisible())
+            return;
+
         final int y0 = getScreenCoord(tick);
         final String mark = ticks.formatDetailed(tick);
 

@@ -617,13 +617,22 @@ public class Controller
     /** (Re-) create traces in plot for each item in the model */
     public void createPlotTraces()
     {
-        plot.removeAll();
-        int i = 0;
-        for (AxisConfig axis : model.getAxes())
-            plot.updateAxis(i++, axis);
-        for (ModelItem item : model.getItems())
-            if (item.isVisible())
-                plot.addTrace(item);
+        if (! plot.lockTracesForWriting())
+            return;
+        try
+        {
+            plot.removeAll();
+            int i = 0;
+            for (AxisConfig axis : model.getAxes())
+                plot.updateAxis(i++, axis);
+            for (ModelItem item : model.getItems())
+                if (item.isVisible())
+                    plot.addTrace(item);
+        }
+        finally
+        {
+            plot.unlockTracesForWriting();
+        }
         setAxisFonts();
     }
 

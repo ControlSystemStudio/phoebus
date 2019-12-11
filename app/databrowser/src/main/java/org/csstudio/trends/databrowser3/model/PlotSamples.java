@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 
 import org.csstudio.javafx.rtplot.data.InstrumentedReadWriteLock;
@@ -28,7 +28,7 @@ import org.csstudio.javafx.rtplot.data.PlotDataProvider;
 @SuppressWarnings("nls")
 abstract public class PlotSamples implements PlotDataProvider<Instant>
 {
-    protected final ReadWriteLock lock = new InstrumentedReadWriteLock();
+    protected final ReentrantReadWriteLock lock = new InstrumentedReadWriteLock();
 
     /** To be set when samples change
      *  @see #testAndClearNewSamplesFlag()

@@ -29,7 +29,6 @@ import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 
-import javafx.scene.control.Alert;
 import org.csstudio.javafx.rtplot.Activator;
 import org.csstudio.javafx.rtplot.Annotation;
 import org.csstudio.javafx.rtplot.Axis;
@@ -48,11 +47,12 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.BufferUtil;
 import org.phoebus.ui.javafx.DoubleBuffer;
 import org.phoebus.ui.javafx.PlatformInfo;
+import org.phoebus.ui.undo.UndoableAction;
 
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
+import javafx.scene.control.Alert;
 import javafx.scene.input.MouseEvent;
-import org.phoebus.ui.undo.UndoableAction;
 
 /** Plot with axes and area that displays the traces
  *
@@ -1364,19 +1364,23 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
      * A check is performed to determine if the number of traces (Y axes) in the current plot is the same as it
      * was initially. If not, an error dialog is shown to the effect that a reset is not possible.
      */
-    public void resetAxisRanges(){
-        List<UndoableAction> undoableActions = undo.getUndoStack();
-        if(undoableActions.isEmpty()){
+    public void resetAxisRanges()
+    {
+        final List<UndoableAction> undoableActions = undo.getUndoStack();
+        if(undoableActions.isEmpty())
             return;
-        }
 
-        for(UndoableAction undoableAction : undoableActions){
-            if(undoableAction instanceof ChangeAxisRanges){
-                ChangeAxisRanges changeAxisRanges = (ChangeAxisRanges)undoableAction;
-                AxisRange originalXRange = changeAxisRanges.getOriginalXRange();
-                List<AxisRange> originalYRanges = changeAxisRanges.getOriginalYRanges();
-                AxisRange currentXRange = x_axis.getValueRange();
-                if(y_axes.size() != originalYRanges.size()){
+        for(UndoableAction undoableAction : undoableActions)
+        {
+            if (undoableAction instanceof ChangeAxisRanges)
+            {
+                @SuppressWarnings("unchecked")
+                final ChangeAxisRanges<XTYPE> changeAxisRanges = (ChangeAxisRanges<XTYPE>)undoableAction;
+                final AxisRange<XTYPE> originalXRange = changeAxisRanges.getOriginalXRange();
+                final List<AxisRange<Double>> originalYRanges = changeAxisRanges.getOriginalYRanges();
+                final AxisRange<XTYPE> currentXRange = x_axis.getValueRange();
+                if (y_axes.size() != originalYRanges.size())
+                {
                     final Alert error = new Alert(Alert.AlertType.ERROR);
                     error.setTitle(Messages.resetAxisRangesErrorTitle);
                     error.setHeaderText(Messages.resetAxisRangesErrorHeaderText);
@@ -1384,13 +1388,14 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
                     error.showAndWait();
                     return;
                 }
-                List<AxisRange> currentYRanges =  new ArrayList<>();
-                List<Boolean> currentAutoScaleValues = new ArrayList<>();
-                for (YAxisImpl<XTYPE> axis : y_axes) {
+                final List<AxisRange<Double>> currentYRanges =  new ArrayList<>(y_axes.size());
+                final List<Boolean> currentAutoScaleValues = new ArrayList<>(y_axes.size());
+                for (YAxisImpl<XTYPE> axis : y_axes)
+                {
                     currentYRanges.add(axis.getValueRange());
                     currentAutoScaleValues.add(axis.isAutoscale());
                 }
-                ChangeAxisRanges restoreAxisRanges = new ChangeAxisRanges(this, Messages.Zoom_In, x_axis, currentXRange, originalXRange, x_axis.isAutoscale(), false,
+                final ChangeAxisRanges<XTYPE> restoreAxisRanges = new ChangeAxisRanges<>(this, Messages.Zoom_In, x_axis, currentXRange, originalXRange, x_axis.isAutoscale(), false,
                         y_axes, currentYRanges, originalYRanges, currentAutoScaleValues);
                 undo.execute(restoreAxisRanges);
                 break;

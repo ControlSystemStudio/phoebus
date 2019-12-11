@@ -7,6 +7,8 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui.plot;
 
+import static org.csstudio.trends.databrowser3.Activator.logger;
+
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -15,6 +17,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
 
 import org.csstudio.javafx.rtplot.Annotation;
 import org.csstudio.javafx.rtplot.Axis;
@@ -23,6 +28,7 @@ import org.csstudio.javafx.rtplot.RTPlotListener;
 import org.csstudio.javafx.rtplot.RTTimePlot;
 import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.javafx.rtplot.YAxis;
+import org.csstudio.javafx.rtplot.data.InstrumentedReadWriteLock;
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.AnnotationInfo;
@@ -51,7 +57,21 @@ public class ModelBasedPlot
     /** Plot widget/figure */
     protected RTTimePlot plot;
 
-    final private Map<Trace<Instant>, ModelItem> items_by_trace = new ConcurrentHashMap<>();
+    private final Map<Trace<Instant>, ModelItem> items_by_trace = new ConcurrentHashMap<>();
+
+    /** plot.getTraces() is thread safe in the sense that one may
+     *  always call it to get the current list of traces.
+     *  It is simply called that way to update annotations.
+     *
+     *  There is, however, a race when PVs are (initially) added.
+     *  For that, all traces of the plot are removed and then added
+     *  as the list of PVs changes resp. grows.
+     *  Concurrently, data with 'units' may arrive from PV,
+     *  requiring to read the trace list and then update its units.
+     *  This lock is used when updating the trace list (write lock)
+     *  and when finding a trace (read lock).
+     */
+    private final ReentrantReadWriteLock trace_lock = new InstrumentedReadWriteLock();
 
     /** Initialize plot
      *  @param parent Parent widget
@@ -174,9 +194,53 @@ public class ModelBasedPlot
         return listener.orElse(null);
     }
 
+    /** Adding or removing traces requires a write lock */
+    public boolean lockTracesForWriting()
+    {
+        try
+        {
+            if (trace_lock.writeLock().tryLock(5, TimeUnit.SECONDS))
+                return true;
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot lock plot traces", ex);
+        }
+        return false;
+    }
+
+    /** Release traces write lock */
+    public void unlockTracesForWriting()
+    {
+        trace_lock.writeLock().unlock();;
+    }
+
+    /** Read lock */
+    public boolean lockTraces()
+    {
+        try
+        {
+            if (trace_lock.readLock().tryLock(5, TimeUnit.SECONDS))
+                return true;
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot lock plot traces", ex);
+        }
+        return false;
+    }
+
+    /** Release traces read lock */
+    public void unlockTraces()
+    {
+        trace_lock.readLock().unlock();
+    }
+
     /** Remove all axes and traces */
     public void removeAll()
     {
+        if (! trace_lock.isWriteLockedByCurrentThread())
+            logger.log(Level.WARNING, "Traces not locked", new Exception("Call stack"));
         items_by_trace.clear();
         // Remove all traces
         for (Trace<Instant> trace : plot.getTraces())
@@ -248,6 +312,8 @@ public class ModelBasedPlot
      */
     public void addTrace(final ModelItem item)
     {
+        if (! trace_lock.isWriteLockedByCurrentThread())
+            logger.log(Level.WARNING, "Traces not locked", new Exception("Call stack"));
         final Trace<Instant> trace = plot.addTrace(item.getResolvedDisplayName(),
                 item.getUnits(),
                 item.getSamples(),
@@ -262,6 +328,8 @@ public class ModelBasedPlot
     /** @param item ModelItem to remove from plot */
     public void removeTrace(final ModelItem item)
     {
+        if (! trace_lock.isWriteLockedByCurrentThread())
+            logger.log(Level.WARNING, "Traces not locked", new Exception("Call stack"));
         final Trace<Instant> trace;
         try
         {
@@ -315,10 +383,19 @@ public class ModelBasedPlot
      */
     private Trace<Instant> findTrace(final ModelItem item)
     {
-        for (Trace<Instant> trace : plot.getTraces())
-            if (trace.getData() == item.getSamples())
-                return trace;
-        throw new IllegalArgumentException("Cannot locate trace for " + item);
+        if (! lockTraces())
+            throw new IllegalArgumentException("Cannot lock traces to locate trace for " + item);
+        try
+        {
+            for (Trace<Instant> trace : plot.getTraces())
+                if (trace.getData() == item.getSamples())
+                    return trace;
+            throw new IllegalArgumentException("Cannot locate trace for " + item);
+        }
+        finally
+        {
+            unlockTraces();
+        }
     }
 
     /** @param trace {@link Trace} for which to locate the {@link ModelItem}
