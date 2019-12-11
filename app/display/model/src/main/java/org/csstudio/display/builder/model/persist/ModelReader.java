@@ -26,6 +26,7 @@ import org.csstudio.display.builder.model.WidgetConfigurator.ParseAgainException
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetFactory;
 import org.csstudio.display.builder.model.WidgetFactory.WidgetTypeException;
+import org.csstudio.display.builder.model.widgets.PlaceholderWidget;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 
@@ -195,9 +196,12 @@ public class ModelReader
         widget_errors_during_parse = 0;
         for (final Element widget_xml : XMLUtil.getChildElements(parent_xml, XMLTags.WIDGET))
         {
+            boolean added = false;
+
             try
             {
                 widgets.add(readWidget(widget_xml));
+                added = true;
             }
             catch (ParseAgainException ex)
             {
@@ -221,6 +225,16 @@ public class ModelReader
                 logger.log(Level.SEVERE,
                            "Widget configuration file error, " + source + ":" + XMLUtil.getLineInfo(widget_xml), ex);
                 // Continue with next widget
+            }
+
+            if (! added)
+            {
+                Widget widget = createPlaceholderWidget(widget_xml);
+                // Check for ParseAgainException
+                if (widget == null)
+                    return null;
+
+                widgets.add(widget);
             }
         }
         return widgets;
@@ -273,6 +287,28 @@ public class ModelReader
                 return widget;
         }
         throw new WidgetTypeException(type, "No suitable widget for " + type);
+    }
+
+    private Widget createPlaceholderWidget(final Element widget_xml)
+    {
+        final String type = widget_xml.getAttribute(XMLTags.TYPE);
+        final PlaceholderWidget widget = new PlaceholderWidget(type);
+        try
+        {
+            logger.log(Level.FINE, "Adding placeholder PlaceholderWidget");
+            widget.getConfigurator(readVersion(widget_xml)).configureFromXML(this, widget, widget_xml);
+        }
+        catch (ParseAgainException ex)
+        {
+            return null;
+        }
+        catch (Exception ex)
+        {
+            // ignore
+            logger.log(Level.SEVERE, ex.getMessage() + " while configuring PlaceholderWidget");
+        }
+
+        return widget;
     }
 
     /** @param element Element
