@@ -57,7 +57,7 @@ public class SnapshotTab extends Tab {
         SpringFxmlLoader springFxmlLoader = new SpringFxmlLoader();
         try {
 
-            VBox borderPane = (VBox)springFxmlLoader.load("/org/phoebus/applications/saveandrestore/ui/snapshot/fxml/SnapshotEditor.fxml");
+            VBox borderPane = (VBox)springFxmlLoader.load("ui/snapshot/SnapshotEditor.fxml");
             setContent(borderPane);
 
             regularImage = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/snapshot.png");
