@@ -10,7 +10,7 @@ package org.csstudio.trends.databrowser3.ui.properties;
 import java.util.Objects;
 
 import javafx.collections.ObservableList;
-import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellEditEvent;
@@ -28,7 +28,7 @@ import javafx.scene.control.TableView;
 @SuppressWarnings("nls")
 public class DirectChoiceBoxTableCell<S, T> extends TableCell<S, T>
 {
-    private final ChoiceBox<T> choicebox;
+    private final ComboBox<T> choicebox;
 
     /** Flag to distinguish 'onAction' caused by user
      *  from call when setting value programmatically,
@@ -41,7 +41,17 @@ public class DirectChoiceBoxTableCell<S, T> extends TableCell<S, T>
      */
     public DirectChoiceBoxTableCell(final ObservableList<T> choices)
     {
-        choicebox = new ChoiceBox<T>(choices);
+        // Used to be ChoiceBox, which is like a ComboBox without
+        // 'edit' option and without border,
+        // but that resulted in high CPU usage deep inside JFX code
+        // when choices were added or removed while the choice box is
+        // in a table cell.
+        // https://github.com/shroffk/phoebus/issues/1015
+        //
+        // ComboBox doesn't have that problem,
+        // and with transparent background it looks like the choice box
+        choicebox = new ComboBox<>(choices);
+        choicebox.setStyle("-fx-background-color: transparent;");
     }
 
     @Override
