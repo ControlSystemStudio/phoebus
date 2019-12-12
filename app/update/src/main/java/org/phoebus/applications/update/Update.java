@@ -16,6 +16,9 @@ import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Enumeration;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import java.util.zip.ZipEntry;
@@ -97,19 +100,46 @@ public class Update
      */
     public static File download(final JobMonitor monitor, final URL distribution_url) throws Exception
     {
+        // On success, caller will delete the file.
+        final File file = File.createTempFile("phoebus_update", ".zip");
+
+        // Watcher thread that displays file size in monitor
+        final CountDownLatch done = new CountDownLatch(1);
+        final Thread watcher = new Thread(() ->
+        {
+            try
+            {
+                while (! done.await(1, TimeUnit.SECONDS))
+                {
+                    final long size = file.length();
+                    monitor.updateTaskName(String.format("Downloaded " + distribution_url + ": %.3f MB", size/1.0e6));
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Download watch thread", ex);
+            }
+        }, "Watch Download");
+        watcher.setDaemon(true);
+        watcher.start();
+
         try
         (
             final InputStream src = distribution_url.openStream();
         )
         {
-            // URL can be read, so OK to create file.
-            // Caller will delete the file.
-            final File file = File.createTempFile("phoebus_update", ".zip");
             logger.info("Download " + distribution_url + " into " + file);
-            // Would be nice to update monitor, but that would mean
-            // implementing Files.copy to instrument it...
             Files.copy(src, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
             return file;
+        }
+        catch (Exception ex)
+        {
+            file.delete();
+            throw ex;
+        }
+        finally
+        {
+            done.countDown();
         }
     }
 
