@@ -34,6 +34,10 @@ public class PlotSampleArray extends PlotSamples
     @Override
     public PlotSample get(final int index)
     {
+        // For debugging, show stack trace when missing lock
+        if (lock.getReadHoldCount() <= 0  && ! lock.isWriteLockedByCurrentThread())
+            new Exception("Missing lock").printStackTrace();
+
         return samples.get(index);
     }
 }
