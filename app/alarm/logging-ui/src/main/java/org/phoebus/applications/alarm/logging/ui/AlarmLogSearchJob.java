@@ -17,6 +17,7 @@ import java.time.temporal.TemporalAmount;
 import javafx.collections.ObservableMap;
 
 import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -135,7 +136,7 @@ public class AlarmLogSearchJob implements JobRunnable {
         searchRequest.source(sourceBuilder);
         List<AlarmLogTableType> result;
         try {
-            result = Arrays.asList(client.search(searchRequest).getHits().getHits()).stream()
+            result = Arrays.asList(client.search(searchRequest, RequestOptions.DEFAULT).getHits().getHits()).stream()
                     .map(new Function<SearchHit, AlarmLogTableType>() {
                         @Override
                         public AlarmLogTableType apply(SearchHit hit) {
