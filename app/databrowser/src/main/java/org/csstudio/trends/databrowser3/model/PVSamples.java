@@ -111,6 +111,10 @@ public class PVSamples extends PlotSamples
     @Override
     public PlotSample get(final int index)
     {
+        // For debugging, show stack trace when missing lock
+        if (lock.getReadHoldCount() <= 0  && ! lock.isWriteLockedByCurrentThread())
+            logger.log(Level.WARNING, "Missing lock", new Exception("Stack Trace"));
+
         final int raw_count = getRawSize();
         if (index < raw_count)
             return getRawSample(index);

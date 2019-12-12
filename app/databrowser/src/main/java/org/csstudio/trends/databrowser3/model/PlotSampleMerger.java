@@ -45,6 +45,8 @@ public class PlotSampleMerger
         Instant add_end = add[Na-1].getPosition();
 
         final PlotSampleArray searchable_array = new PlotSampleArray();
+        // Not accessed from other threads, but lock to allow lock checks
+        searchable_array.lockForWriting();
 
         //        System.out.print("Have samples " + old_start.toString());
         //        System.out.print(" to " + old_end.toString());
