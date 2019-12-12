@@ -7,12 +7,16 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.model;
 
+import static org.csstudio.trends.databrowser3.Activator.logger;
+
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 
 /** Plain array implementation of PlotSamples
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class PlotSampleArray extends PlotSamples
 {
     private List<PlotSample> samples = Collections.emptyList();
@@ -36,7 +40,7 @@ public class PlotSampleArray extends PlotSamples
     {
         // For debugging, show stack trace when missing lock
         if (lock.getReadHoldCount() <= 0  && ! lock.isWriteLockedByCurrentThread())
-            new Exception("Missing lock").printStackTrace();
+            logger.log(Level.WARNING, "Missing lock", new Exception("Stack Trace"));
 
         return samples.get(index);
     }
