@@ -48,7 +48,7 @@ public class SaveSetTab extends Tab implements NodeChangedListener{
 
         SpringFxmlLoader springFxmlLoader = new SpringFxmlLoader();
         try {
-            setContent((javafx.scene.Node)springFxmlLoader.load("/org/phoebus/applications/saveandrestore/ui/saveset/fxml/SaveSetEditor.fxml"));
+            setContent((javafx.scene.Node)springFxmlLoader.load("ui/saveset/SaveSetEditor.fxml"));
             saveSetController = springFxmlLoader.getLoader().getController();
             tabTitleProperty.set(node.getName());
             setGraphic(getTabGraphic());

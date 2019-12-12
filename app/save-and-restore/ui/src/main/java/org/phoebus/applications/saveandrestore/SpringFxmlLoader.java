@@ -19,6 +19,7 @@ package org.phoebus.applications.saveandrestore;
 
 import javafx.fxml.FXMLLoader;
 
+import javax.swing.*;
 import java.io.IOException;
 
 /**
@@ -33,7 +34,7 @@ public class SpringFxmlLoader {
     public Object load(String url) {
         try {
             loader = new FXMLLoader();
-            loader.setLocation(this.getClass().getResource(url));
+            loader.setLocation(SpringFxmlLoader.class.getResource(url));
             loader.setControllerFactory(clazz -> ApplicationContextProvider.getApplicationContext().getBean(clazz));
             return loader.load();
         } catch (IOException ioException) {

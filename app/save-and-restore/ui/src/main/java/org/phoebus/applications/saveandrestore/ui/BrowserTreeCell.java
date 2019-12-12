@@ -48,7 +48,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
 		FXMLLoader loader = new FXMLLoader();
 
 		try {
-			loader.setLocation(this.getClass().getResource("fxml/TreeCellGraphic.fxml"));
+			loader.setLocation(BrowserTreeCell.class.getResource("TreeCellGraphic.fxml"));
 			javafx.scene.Node rootNode = loader.load();
 			folderBox = rootNode.lookup("#folder");
 			saveSetBox = rootNode.lookup("#saveset");

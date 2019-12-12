@@ -62,7 +62,7 @@ public class SaveAndRestoreApplication implements AppDescriptor, AppInstance {
 		DockItem tab = null;
 
 		try {
-			tab = new DockItem(this, (Node)springFxmlLoader.load("ui/fxml/SaveAndRestoreUI.fxml"));
+			tab = new DockItem(this, (Node)springFxmlLoader.load("ui/SaveAndRestoreUI.fxml"));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
