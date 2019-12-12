@@ -237,7 +237,7 @@ public class TracesTab extends Tab
             }
             // In case an axis _name_ changed, this needs to be shown
             // in the "Axis" column.
-            updateFromModel();
+            updateAxisNames();
         }
 
         @Override
@@ -352,10 +352,17 @@ public class TracesTab extends Tab
     private void updateFromModel()
     {
         trace_table.getItems().setAll(model.getItems());
+        updateAxisNames();
+    }
+
+    private void updateAxisNames()
+    {
         final List<String> names = new ArrayList<>(model.getAxes().size());
         for (AxisConfig ai : model.getAxes())
             names.add(ai.getName());
-        axis_names.setAll(names);
+
+        if (! names.equals(axis_names))
+            axis_names.setAll(names);
     }
 
     private void createTraceTable()
