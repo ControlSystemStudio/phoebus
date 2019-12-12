@@ -30,12 +30,6 @@ public class DirectChoiceBoxTableCell<S, T> extends TableCell<S, T>
 {
     private final ComboBox<T> choicebox;
 
-    /** Flag to distinguish 'onAction' caused by user
-     *  from call when setting value programmatically,
-     *  to prevent recursive updates
-     */
-    private boolean changing = false;
-
     /** Constructor
      *  @param choices Choices to offer, may be updated at runtime
      */
@@ -63,17 +57,17 @@ public class DirectChoiceBoxTableCell<S, T> extends TableCell<S, T>
             setGraphic(null);
         else
         {
-            changing = true;
             choicebox.setValue(value);
-            changing = false;
             setGraphic(choicebox);
 
             choicebox.setOnAction(event ->
             {
-                // Prevent loop from 'setValue' call above.
+                // 'onAction' is invoked from setValue as called above,
+                // but also when table updates its cells.
+                // Ignore those.
                 // Also ignore dummy updates to null which happen
                 // when the list of choices changes
-                if (changing ||
+                if (! choicebox.isShowing() ||
                     choicebox.getValue() == null)
                     return;
 
