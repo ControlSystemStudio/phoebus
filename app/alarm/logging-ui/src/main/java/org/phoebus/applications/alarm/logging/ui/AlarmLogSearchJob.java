@@ -48,8 +48,8 @@ public class AlarmLogSearchJob implements JobRunnable {
     private final BiConsumer<String, Exception> errorHandler;
 
     private final ObjectMapper objectMapper;
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
-            .withZone(ZoneId.systemDefault());
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
+            .withZone(ZoneId.of("UTC"));
     private final PreferencesReader prefs = new PreferencesReader(AlarmLogTableApp.class,
             "/alarm_logging_preferences.properties");
 
@@ -148,12 +148,12 @@ public class AlarmLogSearchJob implements JobRunnable {
                                         AlarmLogTableType.class);
                                 if (time != null) {
                                     Instant instant = LocalDateTime.parse(time.asText(), formatter)
-                                            .atZone(ZoneId.systemDefault()).toInstant();
+					.atZone(ZoneId.of("UTC")).toInstant().atZone(ZoneId.systemDefault()).toInstant();
                                     alarmMessage.setInstant(instant);
                                 }
                                 if (message_time != null) {
                                     Instant instant = LocalDateTime.parse(message_time.asText(), formatter)
-                                            .atZone(ZoneId.systemDefault()).toInstant();
+				        .atZone(ZoneId.of("UTC")).toInstant().atZone(ZoneId.systemDefault()).toInstant();
                                     alarmMessage.setMessage_time(instant);
                                 }
                                 if (alarmMessage.getPv() == null) {

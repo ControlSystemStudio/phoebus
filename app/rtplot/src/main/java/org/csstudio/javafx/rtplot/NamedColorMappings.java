@@ -13,6 +13,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /** Predefined, named color mappings
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class NamedColorMappings
 {
     private static final CopyOnWriteArrayList<NamedColorMapping> mappings = new CopyOnWriteArrayList<>();
