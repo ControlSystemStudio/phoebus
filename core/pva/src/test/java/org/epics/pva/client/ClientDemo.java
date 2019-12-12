@@ -47,20 +47,37 @@ public class ClientDemo
     @Test
     public void testSimplestGet() throws Exception
     {
-        // Create a client
-        final PVAClient pva = new PVAClient();
+        try
+        (   // Create a client and channel (will be auto-closed)
+            final PVAClient pva = new PVAClient();
+            final PVAChannel ch = pva.getChannel("ramp");
+        )
+        {
+            // Connect
+            ch.connect().get(5, TimeUnit.SECONDS);
 
-        // Connect
-        final PVAChannel ch = pva.getChannel("ramp");
-        ch.connect().get(5, TimeUnit.SECONDS);
+            // Get data
+            final Future<PVAStructure> data = ch.read("");
+            System.out.println(ch.getName() + " = " + data.get());
+        }
+    }
 
-        // Get data
-        final Future<PVAStructure> data = ch.read("");
-        System.out.println(ch.getName() + " = " + data.get());
+    @Test
+    public void testInfo() throws Exception
+    {
+        try
+        (
+            final PVAClient pva = new PVAClient();
+            final PVAChannel ch = pva.getChannel("ramp");
+        )
+        {
+            // Connect
+            ch.connect().get(5, TimeUnit.SECONDS);
 
-        // Close channel and client
-        ch.close();
-        pva.close();
+            // Get structure info (no data)
+            final Future<PVAStructure> info = ch.info("");
+            System.out.println(ch.getName() + " = " + info.get().formatType());
+        }
     }
 
     @Test

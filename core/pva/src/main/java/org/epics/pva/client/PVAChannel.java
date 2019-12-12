@@ -40,7 +40,7 @@ import org.epics.pva.data.PVAStructure;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVAChannel
+public class PVAChannel implements AutoCloseable
 {
     /** Provider for the 'next' client channel ID
      *
@@ -313,6 +313,7 @@ public class PVAChannel
     }
 
     /** Close the channel */
+    @Override
     public void close()
     {
         // In case channel is still being searched, stop
