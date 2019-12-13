@@ -54,5 +54,13 @@
       <artifactId>app-3dViewer</artifactId>
       <version>4.6.1-SNAPSHOT</version>
     </dependency>
+
+    <!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-transcoder -->
+    <dependency>
+      <groupId>org.apache.xmlgraphics</groupId>
+      <artifactId>batik-transcoder</artifactId>
+      <version>1.12</version>
+    </dependency>
+
   </dependencies>
 </project>
