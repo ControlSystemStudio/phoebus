@@ -282,7 +282,19 @@ abstract public class TCPHandler
                 // message handler from reading beyond message boundary.
                 final int actual_limit = receive_buffer.limit();
                 receive_buffer.limit(message_size);
-                handleMessage(receive_buffer);
+                try
+                {
+                    handleMessage(receive_buffer);
+                }
+                catch (Exception ex)
+                {
+                    // Once we fail to decode and handle a message,
+                    // it is likely that the server/client protocol gets
+                    // out of step and never recovers.
+                    // Still, log error and keep reading in case
+                    // the issue is limited to just this one message.
+                    logger.log(Level.WARNING, Thread.currentThread().getName() + " message error. Protocol might be broken from here on.", ex);
+                }
 
                 receive_buffer.limit(actual_limit);
                 // No matter if message handler read the complete message,
