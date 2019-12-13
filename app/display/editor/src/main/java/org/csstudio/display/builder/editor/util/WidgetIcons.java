@@ -15,6 +15,7 @@ import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetFactory;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.image.Image;
 
@@ -42,14 +43,14 @@ public class WidgetIcons
         {
             final WidgetDescriptor descriptor = WidgetFactory.getInstance().getWidgetDescriptor(type);
             logger.log(Level.FINE, "Obtaining icon for widget type " + type);
-            return new Image(descriptor.getIconURL().toExternalForm());
+            return ImageCache.getImage(descriptor.getIconURL());
         }
         catch (Throwable ex)
         {
             logger.log(Level.WARNING, "Cannot obtain widget for " + type, ex);
             try
             {
-                return new Image(WidgetIcons.class.getResource("/icons/question_mark.png").toExternalForm());
+                return ImageCache.getImage(WidgetIcons.class, "/icons/question_mark.png");
             }
             catch (Throwable ex2)
             {

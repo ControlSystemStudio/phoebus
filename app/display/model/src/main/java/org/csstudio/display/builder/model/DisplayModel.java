@@ -176,7 +176,7 @@ public class DisplayModel extends Widget
         if (this.clean != null)
             throw new RuntimeException("Cannot change cleanliness of DisplayModel");
 
-        this.clean = new Boolean(modelReader.getNumberOfWidgetErrors() == 0);
+        this.clean = Boolean.valueOf(modelReader.getNumberOfWidgetErrors() == 0);
     }
 
     /** @return <code>true</code> if this display was loaded without errors,

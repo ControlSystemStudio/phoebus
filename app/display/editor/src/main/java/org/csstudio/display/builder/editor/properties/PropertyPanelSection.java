@@ -20,7 +20,9 @@ import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.editor.undo.SetMacroizedWidgetPropertyAction;
 import org.csstudio.display.builder.editor.util.WidgetIcons;
 import org.csstudio.display.builder.model.ArrayWidgetProperty;
+import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.MacroizedWidgetProperty;
+import org.csstudio.display.builder.model.ModelPlugin;
 import org.csstudio.display.builder.model.StructuredWidgetProperty;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetFactory;
@@ -197,16 +199,25 @@ public class PropertyPanelSection extends GridPane
             //  If "Type", use a label with an icon.
             if (property.getName().equals(CommonWidgetProperties.propType.getName()))
             {
-                final String type = widget.getType();
-                try
-                {
-                    final ImageView icon = new ImageView(WidgetIcons.getIcon(type));
-                    final String name = WidgetFactory.getInstance().getWidgetDescriptor(type).getName();
-                    field = new Label(name, icon);
+                if (widget instanceof DisplayModel)
+                {   // DisplayModel is not registered as a Widget that users can add
+                    field = new Label(Messages.Display, ImageCache.getImageView(ModelPlugin.class, "/icons/display.png"));
                 }
-                catch (Exception ex)
-                {   //  Some widgets have no icon (e.g. DisplayModel).
-                    field = new Label(String.valueOf(property.getValue()));
+                else
+                {
+                    final String type = widget.getType();
+                    try
+                    {
+                        final ImageView icon = new ImageView(WidgetIcons.getIcon(type));
+                        final String name = WidgetFactory.getInstance().getWidgetDescriptor(type).getName();
+                        field = new Label(name, icon);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Even 'unknown' widgets should have an icon,
+                        // but fall back to just showing the type name
+                        field = new Label(String.valueOf(property.getValue()));
+                    }
                 }
             }
             else
