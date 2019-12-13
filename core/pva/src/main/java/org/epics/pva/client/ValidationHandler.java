@@ -27,7 +27,7 @@ class ValidationHandler implements CommandHandler<ClientTCPHandler>
     @Override
     public byte getCommand()
     {
-        return PVAHeader.CMD_VALIDATION;
+        return PVAHeader.CMD_CONNECTION_VALIDATION;
     }
 
     @Override

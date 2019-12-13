@@ -24,7 +24,7 @@ class CancelHandler implements CommandHandler<ServerTCPHandler>
     @Override
     public byte getCommand()
     {
-        return PVAHeader.CMD_CANCEL;
+        return PVAHeader.CMD_CANCEL_REQUEST;
     }
 
     @Override

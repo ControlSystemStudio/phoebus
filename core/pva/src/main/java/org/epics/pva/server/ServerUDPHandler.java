@@ -196,7 +196,7 @@ class ServerUDPHandler extends UDPHandler
         synchronized (send_buffer)
         {
             send_buffer.clear();
-            PVAHeader.encodeMessageHeader(send_buffer, PVAHeader.FLAG_SERVER, PVAHeader.CMD_SEARCH_REPLY, 12+4+16+2+4+1+2+ (cid < 0 ? 0 : 4));
+            PVAHeader.encodeMessageHeader(send_buffer, PVAHeader.FLAG_SERVER, PVAHeader.CMD_SEARCH_RESPONSE, 12+4+16+2+4+1+2+ (cid < 0 ? 0 : 4));
 
             // Server GUID
             guid.encode(send_buffer);

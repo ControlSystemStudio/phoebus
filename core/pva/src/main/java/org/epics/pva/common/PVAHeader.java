@@ -54,7 +54,7 @@ public class PVAHeader
     public static final byte CMD_BEACON = 0x00;
 
     /** Application command: Connection validation */
-    public static final byte CMD_VALIDATION = 0x01;
+    public static final byte CMD_CONNECTION_VALIDATION = 0x01;
 
     /** Application command: Echo */
     public static final byte CMD_ECHO = 0x02;
@@ -63,7 +63,7 @@ public class PVAHeader
     public static final byte CMD_SEARCH = 0x03;
 
     /** Application command: Reply to search */
-    public static final byte CMD_SEARCH_REPLY = 0x04;
+    public static final byte CMD_SEARCH_RESPONSE = 0x04;
 
     /** Application command: Create Channel */
     public static final byte CMD_CREATE_CHANNEL = 0x07;
@@ -72,7 +72,7 @@ public class PVAHeader
     public static final byte CMD_DESTROY_CHANNEL = 0x08;
 
     /** Application command: Connection was validated */
-    public static final byte CMD_VALIDATED = 0x09;
+    public static final byte CMD_CONNECTION_VALIDATED = 0x09;
 
     /** Application command: Get data */
     public static final byte CMD_GET = 0x0A;
@@ -86,7 +86,7 @@ public class PVAHeader
     /** Application command: Destroy Request */
     public static final byte CMD_DESTROY_REQUEST = 0x0F;
 
-    /** Application command: Get type info */
+    /** Application command: Get type info (aka "FIELD" request) */
     public static final byte CMD_GET_TYPE = 0x11;
 
     /** Application command: Message */
@@ -96,7 +96,7 @@ public class PVAHeader
     public static final byte CMD_RPC = 0x14;
 
     /** Application command: Cancel request */
-    public static final byte CMD_CANCEL = 0x15;
+    public static final byte CMD_CANCEL_REQUEST = 0x15;
 
     /** Application command: Origin tag */
     public static final byte CMD_ORIGIN_TAG = 0x16;

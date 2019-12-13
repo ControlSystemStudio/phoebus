@@ -320,7 +320,7 @@ class ClientTCPHandler extends TCPHandler
         // Reply to Connection Validation request.
         logger.log(Level.FINE, () -> "Sending connection validation response, auth = " + auth);
         // Since send thread is not running, yet, send directly
-        PVAHeader.encodeMessageHeader(send_buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_VALIDATION, 4+2+2+1);
+        PVAHeader.encodeMessageHeader(send_buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_CONNECTION_VALIDATION, 4+2+2+1);
         final int start = send_buffer.position();
 
         // Inform server about our receive buffer size
