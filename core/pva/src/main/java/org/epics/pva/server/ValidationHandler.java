@@ -25,7 +25,7 @@ class ValidationHandler implements CommandHandler<ServerTCPHandler>
     @Override
     public byte getCommand()
     {
-        return PVAHeader.CMD_VALIDATION;
+        return PVAHeader.CMD_CONNECTION_VALIDATION;
     }
 
     @SuppressWarnings("unused")
@@ -52,7 +52,7 @@ class ValidationHandler implements CommandHandler<ServerTCPHandler>
             logger.log(Level.FINE, () -> "Confirm validation");
             PVAHeader.encodeMessageHeader(buf,
                     PVAHeader.FLAG_SERVER,
-                    PVAHeader.CMD_VALIDATED, 1);
+                    PVAHeader.CMD_CONNECTION_VALIDATED, 1);
             PVAStatus.StatusOK.encode(buf);
         });
     }

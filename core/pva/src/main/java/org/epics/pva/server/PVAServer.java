@@ -32,7 +32,7 @@ import org.epics.pva.data.PVAStructure;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVAServer
+public class PVAServer implements AutoCloseable
 {
     public static ForkJoinPool POOL = ForkJoinPool.commonPool();
 
@@ -160,6 +160,7 @@ public class PVAServer
     }
 
     /** Close all connections */
+    @Override
     public void close()
     {
         // Stop listening to searches

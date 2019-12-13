@@ -138,7 +138,7 @@ class ClientUDPHandler extends UDPHandler
             return handleBeacon(from, version, payload, buffer);
         case PVAHeader.CMD_SEARCH:
             return handleSearchRequest(from, version, payload, buffer);
-        case PVAHeader.CMD_SEARCH_REPLY:
+        case PVAHeader.CMD_SEARCH_RESPONSE:
             return handleSearchReply(from, version, payload, buffer);
         default:
             logger.log(Level.WARNING, "PVA Server " + from + " sent UDP packet with unknown command 0x" + Integer.toHexString(command));

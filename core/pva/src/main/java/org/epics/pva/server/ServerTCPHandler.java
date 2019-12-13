@@ -70,7 +70,7 @@ class ServerTCPHandler extends TCPHandler
             logger.log(Level.FINE, () -> "Sending Validation Request");
             PVAHeader.encodeMessageHeader(buffer,
                     PVAHeader.FLAG_SERVER,
-                    PVAHeader.CMD_VALIDATION, 4+2+1+PVAString.getEncodedSize("anonymous") + PVAString.getEncodedSize("ca"));
+                    PVAHeader.CMD_CONNECTION_VALIDATION, 4+2+1+PVAString.getEncodedSize("anonymous") + PVAString.getEncodedSize("ca"));
 
             // int serverReceiveBufferSize;
             buffer.putInt(receive_buffer.capacity());

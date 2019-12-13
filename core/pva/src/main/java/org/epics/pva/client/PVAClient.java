@@ -38,7 +38,7 @@ import org.epics.pva.server.Guid;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVAClient
+public class PVAClient implements AutoCloseable
 {
     /** Default channel listener logs state changes */
     private static final ClientChannelListener DEFAULT_CHANNEL_LISTENER = (ch, state) ->  logger.log(Level.INFO, ch.toString());
@@ -286,6 +286,7 @@ public class PVAClient
      *
      *  <p>Waits a little for all channels to be closed.
      */
+    @Override
     public void close()
     {
         // Stop searching for missing channels

@@ -32,62 +32,68 @@ public class ServerDemo
     {
         LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/pva_logging.properties"));
 
-        // Create PVA Server
-        final PVAServer server = new PVAServer();
-
-        // Create data structures to serve
-        final PVATimeStamp time = new PVATimeStamp();
-        final PVAStructure data = new PVAStructure("demo", "demo_t",
-                                                   new PVADouble("value", 3.13),
-                                                   new PVAString("tag",   "Hello!"),
-                                                   time);
-
-        final PVAStructure writable_data = data.cloneData();
-
-        // Create PVs
-        // Read-only
-        final ServerPV pv1 = server.createPV("demo", data);
-        final ServerPV pv2 = server.createPV("demo2", data);
-
-        // Writable
-        final ServerPV write_pv = server.createPV("demo3", writable_data, (pv, changes, written) ->
-        {
-            // Write handler could check what was changed,
-            // clamp data to certain range etc.
-            // Here we accept all and update the PV with the new data.
-            PVATimeStamp.set(written, Instant.now());
-            pv.update(written);
-        });
-
-        // Update PVs
-        for (int i=0; i<30000; ++i)
-        {
-            TimeUnit.SECONDS.sleep(1);
-
-            // Update the data, tell server that it changed.
-            // Server figures out what changed.
-            final PVADouble value = data.get("value");
-            value.set(value.get() + 1);
-            time.set(Instant.now());
-
-            pv1.update(data);
-            pv2.update(data);
-        }
-
-        // Note that updated data type must match the originally served data.
-        // Cannot change the structure layout for existing PV.
         try
+        (
+            // Create PVA Server (auto-closed)
+            final PVAServer server = new PVAServer();
+        )
         {
-            pv1.update(new PVAStructure("xx", "xxx", new PVAInt("xx", 47)));
-        }
-        catch (Exception ex)
-        {
-            // Expected
-            if (! ex.getMessage().toLowerCase().contains("incompatibl"))
-                throw ex;
-        }
+            // Create data structures to serve
+            final PVATimeStamp time = new PVATimeStamp();
+            final PVAStructure data = new PVAStructure("demo", "demo_t",
+                                                       new PVADouble("value", 3.13),
+                                                       new PVAString("tag",   "Hello!"),
+                                                       new PVAStructure("alarm", "alarm_t",
+                                                                        new PVAInt("severity", 0),
+                                                                        new PVAInt("status", 0),
+                                                                        new PVAString("message", "OK")
+                                                                       ),
+                                                       time);
 
-        // Close server (real world server tends to run forever, though)
-        server.close();
+            final PVAStructure writable_data = data.cloneData();
+
+            // Create PVs
+            // Read-only
+            final ServerPV pv1 = server.createPV("demo", data);
+            final ServerPV pv2 = server.createPV("demo2", data);
+
+            // Writable
+            final ServerPV write_pv = server.createPV("demo3", writable_data, (pv, changes, written) ->
+            {
+                // Write handler could check what was changed,
+                // clamp data to certain range etc.
+                // Here we accept all and update the PV with the new data.
+                PVATimeStamp.set(written, Instant.now());
+                pv.update(written);
+            });
+
+            // Update PVs
+            for (int i=0; i<30000; ++i)
+            {
+                TimeUnit.SECONDS.sleep(1);
+
+                // Update the data, tell server that it changed.
+                // Server figures out what changed.
+                final PVADouble value = data.get("value");
+                value.set(value.get() + 1);
+                time.set(Instant.now());
+
+                pv1.update(data);
+                pv2.update(data);
+            }
+
+            // Note that updated data type must match the originally served data.
+            // Cannot change the structure layout for existing PV.
+            try
+            {
+                pv1.update(new PVAStructure("xx", "xxx", new PVAInt("xx", 47)));
+            }
+            catch (Exception ex)
+            {
+                // Expected
+                if (! ex.getMessage().toLowerCase().contains("incompatibl"))
+                    throw ex;
+            }
+        }
     }
 }
