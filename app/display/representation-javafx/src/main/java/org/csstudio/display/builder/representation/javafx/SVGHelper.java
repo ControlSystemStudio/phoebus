@@ -30,6 +30,14 @@ import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.text.MessageFormat;
 
+/**
+ * Helper class to load SVG files. It is based on the following post on Stackoverflow:
+ * https://stackoverflow.com/questions/12436274/svg-image-in-javafx-2-2
+ *
+ * The dependency to Apache Batik inflates the size of the lib folder by ~3 MB.
+ *
+ * Testing shows that gradients may not always render correctly. Maybe a Batik issue?
+ */
 public class SVGHelper {
 
     private static BufferedImageTranscoder bufferedImageTranscoder;
@@ -38,6 +46,11 @@ public class SVGHelper {
         bufferedImageTranscoder = new BufferedImageTranscoder();
     }
 
+    /**
+     * Loads SVG file as an {@link Image}.
+     * @param svgFilePath Non-null input stream to SVG file.
+     * @return A {@link Image} object if all goes well.
+     */
     public static Image loadSVG(InputStream svgFilePath) {
         TranscoderInput input = new TranscoderInput(svgFilePath);
         try {
