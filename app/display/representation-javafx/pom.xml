@@ -59,7 +59,7 @@
     <dependency>
       <groupId>org.apache.xmlgraphics</groupId>
       <artifactId>batik-transcoder</artifactId>
-      <version>1.12</version>
+      <version>${batik.version}</version>
     </dependency>
 
   </dependencies>
