@@ -11,6 +11,7 @@ package org.csstudio.display.builder.representation.javafx.widgets;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
+import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,6 +36,7 @@ import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.SymbolWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.csstudio.display.builder.representation.javafx.SVGHelper;
 import org.epics.util.array.ListNumber;
 import org.epics.vtype.VBoolean;
 import org.epics.vtype.VEnum;
@@ -69,6 +71,7 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+
 
 
 /**
@@ -783,7 +786,13 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
                     {
                         // Open the image from the stream created from the
                         // resource file.
-                        return new Image(ModelResourceUtil.openResourceStream(imageFileName));
+                        InputStream inputStream = ModelResourceUtil.openResourceStream(imageFileName);
+                        if(imageFileName.toLowerCase().endsWith("svg")){
+                            return SVGHelper.loadSVG(inputStream);
+                        }
+                        else{
+                            return new Image(inputStream);
+                        }
                     } catch ( Exception ex ) {
                         logger.log(Level.WARNING, "Failure loading image: ({0}) {1} [{2}].", new Object[] { fileName, imageFileName, ex.getMessage() });
                     }
@@ -812,7 +821,5 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         Image getImage ( ) {
             return image;
         }
-
     }
-
 }
