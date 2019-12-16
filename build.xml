@@ -30,7 +30,7 @@
     <ant target="clean" dir="app/pvtable"/>
     <ant target="clean" dir="app/rtplot"/>
     <ant target="clean" dir="app/databrowser"/>
-    <ant target="clean" dir="app/3dViewer"/>
+    <ant target="clean" dir="app/3d-viewer"/>
     <ant target="clean" dir="app/perfmon"/>
     <ant target="clean" dir="app/pace"/>
     <ant target="clean" dir="app/display/model"/>

@@ -10,7 +10,7 @@
         <path refid="app-classpath"/>
         <pathelement path="../../rtplot/${build}/app-rtplot-${version}.jar"/>
         <pathelement path="../../databrowser/${build}/app-databrowser-${version}.jar"/>
-      	<pathelement path="../../3dViewer/${build}/app-3dViewer-${version}.jar"/>
+      	<pathelement path="../../3dViewer/${build}/app-3d-viewer-${version}.jar"/>
         <pathelement path="../model/${build}/app-display-model-${version}.jar"/>
         <pathelement path="../representation/${build}/app-display-representation-${version}.jar"/>
       </classpath>

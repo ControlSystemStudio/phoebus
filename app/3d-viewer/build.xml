@@ -12,7 +12,7 @@
       </classpath>
     </javac>
 
-    <jar destfile="${build}/app-3dViewer-${version}.jar">
+    <jar destfile="${build}/app-3d-viewer-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>
