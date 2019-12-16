@@ -28,7 +28,6 @@ import org.apache.batik.transcoder.image.ImageTranscoder;
 
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
-import java.text.MessageFormat;
 
 /**
  * Helper class to load SVG files. It is based on the following post on Stackoverflow:
@@ -48,16 +47,16 @@ public class SVGHelper {
 
     /**
      * Loads SVG file as an {@link Image}.
-     * @param svgFilePath Non-null input stream to SVG file.
+     * @param fileStream Non-null input stream to SVG file.
      * @return A {@link Image} object if all goes well.
      */
-    public static Image loadSVG(InputStream svgFilePath) {
-        TranscoderInput input = new TranscoderInput(svgFilePath);
+    public static Image loadSVG(InputStream fileStream) throws Exception{
+        TranscoderInput input = new TranscoderInput(fileStream);
         try {
             bufferedImageTranscoder.transcode(input, null);
             return SwingFXUtils.toFXImage(bufferedImageTranscoder.getBufferedImage(), null);
         } catch (TranscoderException e) {
-            throw new RuntimeException(MessageFormat.format("Unable to transcode SVG file, cause: {0}", e.getMessage()));
+            throw new Exception("Unable to transcode SVG file", e);
         }
     }
 

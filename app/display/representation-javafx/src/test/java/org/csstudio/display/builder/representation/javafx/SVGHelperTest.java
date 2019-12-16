@@ -36,9 +36,53 @@ public class SVGHelperTest {
     public void testSVGHelper(){
         InputStream is = getClass().getClassLoader().getResourceAsStream("interlock.svg");
 
-        Image image = SVGHelper.loadSVG(is);
+        try {
+            Image image = SVGHelper.loadSVG(is);
 
-        assertTrue(image.getHeight() > 0);
-        assertTrue(image.getWidth() > 0);
+            assertTrue(image.getHeight() > 0);
+            assertTrue(image.getWidth() > 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Verifies that {@link Exception} is thrown when loading png file.
+     * @throws Exception
+     */
+    @Test(expected = Exception.class)
+    public void testSVGHelperPngFile() throws Exception{
+        InputStream is = getClass().getClassLoader().getResourceAsStream("interlock.png");
+        SVGHelper.loadSVG(is);
+    }
+
+    /**
+     * Verifies that {@link Exception} is thrown when loading jpg file.
+     * @throws Exception
+     */
+    @Test(expected = Exception.class)
+    public void testSVGHelperJpgFile() throws Exception{
+        InputStream is = getClass().getClassLoader().getResourceAsStream("interlock.jpg");
+        SVGHelper.loadSVG(is);
+    }
+
+    /**
+     * Verifies that {@link Exception} is thrown when loading gif file.
+     * @throws Exception
+     */
+    @Test(expected = Exception.class)
+    public void testSVGHelperGifFile() throws Exception{
+        InputStream is = getClass().getClassLoader().getResourceAsStream("interlock.gif");
+        SVGHelper.loadSVG(is);
+    }
+
+    /**
+     * Verifies that {@link Exception} is thrown when loading tiff file.
+     * @throws Exception
+     */
+    @Test(expected = Exception.class)
+    public void testSVGHelperTiffFile() throws Exception{
+        InputStream is = getClass().getClassLoader().getResourceAsStream("interlock.tiff");
+        SVGHelper.loadSVG(is);
     }
 }
