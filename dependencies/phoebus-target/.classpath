@@ -119,6 +119,25 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/spring-web-5.0.9.RELEASE.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/spring-webmvc-5.0.9.RELEASE.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/hibernate-validator-6.0.12.Final.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/batik-anim-1.12.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/batik-awt-util-1.12.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/batik-bridge-1.12.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/batik-constants-1.12.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/batik-css-1.12.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/batik-dom-1.12.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/batik-ext-1.12.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/batik-gvt-1.12.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/batik-i18n-1.12.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/batik-parser-1.12.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/batik-script-1.12.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/batik-svg-dom-1.12.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/batik-svggen-1.12.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/batik-transcoder-1.12.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/batik-util-1.12.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/batik-xml-1.12.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/xml-apis-ext-1.3.04.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/xmlgraphics-commons-2.4.jar"/>
+
 	<!-- On Windows, need to add this:
 	<classpathentry exported="true" kind="lib" path="target/lib/javafx-base-13.0.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/javafx-base-13.0.1-win.jar"/>
