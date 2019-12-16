@@ -10,7 +10,6 @@
   <properties>
     <spring.boot-version>2.0.5.RELEASE</spring.boot-version>
     <preReleaseScripts>${project.basedir}/release_classpath.py</preReleaseScripts>
-    <batik.version>1.12</batik.version>
   </properties>
 
   <profiles>
