@@ -189,13 +189,14 @@ public class PVAStructure extends PVADataWithID
                 logger.log(Level.FINER, () -> "Getting data for indexed element " + i + ": " + se.getStructureName());
                 final int count = se.decodeElements(types, buffer);
                 logger.log(Level.FINER, () -> "Decoded elements " + i + ".." + (i + count));
-                to_decode.clear(index, index + count);
+                // Mark all struct elements i .. i+count (incl.) as read
+                to_decode.clear(i, i + count + 1);
             }
             else
             {
                 logger.log(Level.FINER, () -> "Getting data for indexed element " + i + ": " + element.formatType());
                 element.decode(types, buffer);
-                to_decode.clear(index);
+                to_decode.clear(i);
             }
             logger.log(Level.FINER, () -> "Remaining elements to read: " + to_decode);
 

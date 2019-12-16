@@ -46,6 +46,7 @@ public class Messages
     public static String HelpAboutHdr;
     public static String HelpAboutColName;
     public static String HelpAboutColValue;
+    public static String HelpAboutEnv;
     public static String HelpAboutInst;
     public static String HelpAboutJava;
     public static String HelpAboutJfx;

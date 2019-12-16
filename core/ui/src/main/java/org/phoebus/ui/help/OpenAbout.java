@@ -174,6 +174,18 @@ public class OpenAbout implements MenuEntry
         area.setEditable(false);
         final Tab apps = new Tab(Messages.HelpAboutAppFea, area);
 
+        // Environment variables
+        final StringBuilder props_env = new StringBuilder();
+        System.getenv()
+              .keySet()
+              .stream()
+              .sorted()
+              .forEach(var ->  props_env.append(var).append(" = ").append(System.getenv(var)).append("\n"));
+
+        area = new TextArea(props_env.toString());
+        area.setEditable(false);
+        final Tab envs = new Tab(Messages.HelpAboutEnv, area);
+
         // System properties
         final StringBuilder props_text = new StringBuilder();
         System.getProperties()
@@ -209,7 +221,7 @@ public class OpenAbout implements MenuEntry
 
         final Tab prefs = new Tab(Messages.HelpAboutPrefs, new VBox(5, area, bottom_row));
 
-        final TabPane tabs = new TabPane(apps, props, prefs);
+        final TabPane tabs = new TabPane(apps, envs, props, prefs);
         return tabs;
     }
 
