@@ -24,7 +24,7 @@
     <module>alarm</module>
     <module>scan</module>
     <module>channel</module>
-    <module>3dViewer</module>
+    <module>3d-viewer</module>
     <module>perfmon</module>
     <module>pace</module>
     <module>save-and-restore</module>
