@@ -105,7 +105,7 @@ File Locations
 .. follow general Maven practice:
 
  * `src/main/java` - Java code for release
- * `src/main/resources` - Resources (*.fxml, *.png, ...)
+ * `src/main/resources` - Resources (`*.fxml`, `*.png`, ...)
  * `src/test/java` - Test code
  * `src/test/resources` - Resources used in the test (example input files, ...)
 
