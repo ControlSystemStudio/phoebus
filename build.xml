@@ -98,7 +98,7 @@
     <ant dir="app/pvtable"/>
     <ant dir="app/rtplot"/>
     <ant dir="app/databrowser"/>
-    <ant dir="app/3dViewer"/>
+    <ant dir="app/3d-viewer"/>
     <ant dir="app/perfmon"/>
     <ant dir="app/pace"/>
     <ant dir="app/display/model"/>
