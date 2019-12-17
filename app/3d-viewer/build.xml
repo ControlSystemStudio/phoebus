@@ -1,7 +1,7 @@
-<project default="app-3dViewer">
+<project default="app-3d-viewer">
   <import file="../../dependencies/ant_settings.xml"/>
 
-  <target name="app-3dViewer">
+  <target name="app-3d-viewer">
     <mkdir dir="${classes}"/>
     <javac destdir="${classes}" debug="${debug}">
       <src path="${src}"/>
@@ -12,7 +12,7 @@
       </classpath>
     </javac>
 
-    <jar destfile="${build}/app-3dViewer-${version}.jar">
+    <jar destfile="${build}/app-3d-viewer-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>
