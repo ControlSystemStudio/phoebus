@@ -47,12 +47,14 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         public final String name;
         public final String state;
         public final VType value;
+        public final String path;
 
-        public NameStateValue(final String name, final String state, final VType value)
+        public NameStateValue(final String name, final String state, final VType value, String path)
         {
             this.name = name;
             this.state = state;
             this.value = value;
+            this.path = path;
         }
     }
 
@@ -126,6 +128,10 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         state.setCellFactory(col -> new ReadOnlyTextCell<>());
         state.setCellValueFactory(param -> new ReadOnlyStringWrapper(param.getValue().state));
 
+        final TableColumn<NameStateValue, String> path = new TableColumn<>("Widget Path");//Messages.WidgetInfoDialog_State);
+        path.setCellFactory(col -> new ReadOnlyTextCell<>());
+        path.setCellValueFactory(param -> new ReadOnlyStringWrapper(param.getValue().path));
+
         final TableColumn<NameStateValue, String> value = new TableColumn<>(Messages.WidgetInfoDialog_Value);
         value.setCellFactory(col -> new ReadOnlyTextCell<>());
         value.setCellValueFactory(param ->
@@ -155,6 +161,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         table.getColumns().add(name);
         table.getColumns().add(state);
         table.getColumns().add(value);
+        table.getColumns().add(path);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         return new Tab(Messages.WidgetInfoDialog_TabPVs, table);

@@ -10,8 +10,11 @@ package org.csstudio.display.builder.runtime.app;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.representation.javafx.WidgetInfoDialog;
 import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
 import org.csstudio.display.builder.runtime.Messages;
@@ -41,10 +44,8 @@ public class WidgetInfoAction extends WeakRefWidgetAction
         setOnAction(event ->
         {
             final Widget widget = getWidget();
-            final WidgetRuntime<?> runtime = WidgetRuntime.ofWidget(widget);
             final List<WidgetInfoDialog.NameStateValue> pvs = new ArrayList<>();
-            for (RuntimePV pv : runtime.getPVs())
-                pvs.add(new WidgetInfoDialog.NameStateValue(pv.getName(), pv.isReadonly() ? Messages.WidgetInformationRo : Messages.WidgetInformationWr, pv.read()));
+            getChildrenPvs(widget, pvs, widget.getName());
             final WidgetInfoDialog dialog = new WidgetInfoDialog(widget, pvs);
 
             final Node node = JFXBaseRepresentation.getJFXNode(widget);
@@ -52,5 +53,16 @@ public class WidgetInfoAction extends WeakRefWidgetAction
             DialogHelper.positionDialog(dialog, node, (int)-pos.getWidth()/2, (int)-pos.getHeight()/2);
             dialog.show();
         });
+    }
+
+    private void getChildrenPvs(Widget widget, List<WidgetInfoDialog.NameStateValue> pvs, String path)
+    {
+        final WidgetRuntime<?> runtime = WidgetRuntime.ofWidget(widget);
+        for (RuntimePV pv : runtime.getPVs())
+            pvs.add(new WidgetInfoDialog.NameStateValue(pv.getName(), pv.isReadonly() ? Messages.WidgetInformationRo : Messages.WidgetInformationWr, pv.read(), path));
+        Optional<WidgetProperty<List<Widget>>> children = widget.checkProperty(ChildrenProperty.DESCRIPTOR);
+        if (children.isPresent())
+            for (Widget child : children.get().getValue())
+                 getChildrenPvs(child, pvs, path + "." + child.getName());
     }
 }
