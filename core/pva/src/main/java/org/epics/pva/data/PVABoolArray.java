@@ -91,9 +91,7 @@ public class PVABoolArray extends PVAData implements PVAArray
     public void decode(final PVATypeRegistry types, final ByteBuffer buffer) throws Exception
     {
         final int size = PVASize.decodeSize(buffer);
-        boolean[] new_value = value;
-        if (new_value == null  ||  new_value.length != size)
-            new_value = new boolean[size];
+        final boolean[] new_value = new boolean[size];
         for (int i=0; i<size; ++i)
             new_value[i] = buffer.get() != 0;
         value = new_value;

@@ -91,9 +91,7 @@ public class PVADoubleArray extends PVAData implements PVAArray
     public void decode(final PVATypeRegistry types, final ByteBuffer buffer) throws Exception
     {
         final int size = PVASize.decodeSize(buffer);
-        double[] new_value = value;
-        if (new_value == null  ||  new_value.length != size)
-            new_value = new double[size];
+        final double[] new_value = new double[size];
         for (int i=0; i<size; ++i)
             new_value[i] = buffer.getDouble();
         value = new_value;

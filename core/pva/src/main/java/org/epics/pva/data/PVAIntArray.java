@@ -102,9 +102,7 @@ public class PVAIntArray extends PVAData implements PVAArray
     public void decode(final PVATypeRegistry types, final ByteBuffer buffer) throws Exception
     {
         final int size = PVASize.decodeSize(buffer);
-        int[] new_value = value;
-        if (new_value == null  ||  new_value.length != size)
-            new_value = new int[size];
+        final int[] new_value = new int[size];
         for (int i=0; i<size; ++i)
             new_value[i] = buffer.getInt();
         value = new_value;

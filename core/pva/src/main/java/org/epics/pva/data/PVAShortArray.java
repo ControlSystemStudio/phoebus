@@ -103,9 +103,7 @@ public class PVAShortArray extends PVAData implements PVAArray
     {
         final int size = PVASize.decodeSize(buffer);
         // Try to re-use existing array
-        short[] new_value = value;
-        if (new_value == null  ||  new_value.length != size)
-            new_value = new short[size];
+        final short[] new_value = new short[size];
         // Considered using
         //   buffer.asShortBuffer().get(new_value);
         // but debugger shows that it ends up in the same loop:
