@@ -84,6 +84,8 @@ public class SaveSetTab extends Tab implements NodeChangedListener{
 
     @Override
     public void nodeChanged(Node node){
-        tabTitleProperty.set(node.getName());
+        if(node.getUniqueId().equals(getId())) {
+            tabTitleProperty.set(node.getName());
+        }
     }
 }

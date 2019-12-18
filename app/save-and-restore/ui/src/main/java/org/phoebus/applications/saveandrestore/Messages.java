@@ -28,7 +28,7 @@ public class Messages {
     public static String restoreErrorTitle;
     public static String restoreErrorContent;
     public static String menuItemDeleteSelectedPVs;
-    public static String promptRenamePVTitle;
+    public static String promptDeletePVTitle;
     public static String contextMenuNewFolder;
     public static String contextMenuNewTopLevelFolder;
     public static String contextMenuNewSaveSet;

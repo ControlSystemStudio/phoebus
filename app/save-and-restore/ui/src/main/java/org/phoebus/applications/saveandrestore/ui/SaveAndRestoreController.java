@@ -477,7 +477,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         // Disallow opening a tab multiple times for the same save set.
         for(Tab tab : tabPane.getTabs()) {
-            if(tab.getId().equals(node.getValue().getUniqueId())) {
+            if(tab.getId() != null && tab.getId().equals(node.getValue().getUniqueId())) {
                 return;
             }
         }
