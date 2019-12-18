@@ -34,6 +34,7 @@ import org.csstudio.scan.info.MemoryInfo;
 import org.csstudio.scan.info.Scan;
 import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.info.ScanServerInfo;
+import org.csstudio.scan.info.ScanState;
 import org.csstudio.scan.info.SimulationResult;
 import org.csstudio.scan.server.ScanCommandImpl;
 import org.csstudio.scan.server.ScanCommandImplTool;
@@ -415,13 +416,27 @@ public class ScanServerImpl implements ScanServer
         if (id >= 0)
         {
             final ExecutableScan scan = scan_engine.getExecutableScan(id);
-            scan.abort();
+            scan.doAbort(scan.prepareAbort());
         }
         else
         {
+            logger.log(Level.INFO, "Abort all scans");
             final List<ExecutableScan> scans = scan_engine.getExecutableScans();
-            for (ExecutableScan scan : scans)
-                scan.abort();
+            // List is ordered from old (running) to new (idle).
+            // First abort idle scans at the top of the queue so they won't ever start.
+            // Otherwise, a running scan would get aborted first,
+            // then the next scan in the queue would start only to get aborted.
+            // Worst case, when the running-then-aborted scan ends,
+            // it finds other Idle scans and marks the scan-active PV as 1.
+            // To prevent that, first mark all scans to be aborted as such,
+            // which once more prevents their start and also avoids them
+            // being counted as 'active'.
+            final ScanState[] previous = new ScanState[scans.size()];
+            for (int i=scans.size()-1; i>=0; --i)
+                previous[i] = scans.get(i).prepareAbort();
+            // Then actually abort all which are already marked as aborted
+            for (int i=scans.size()-1; i>=0; --i)
+                scans.get(i).doAbort(previous[i]);
         }
     }
 

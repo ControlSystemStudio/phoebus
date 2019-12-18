@@ -506,6 +506,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
                 ScanCommandUtil.write(this, device_active.get(), Double.valueOf(1.0));
                 ScanCommandUtil.write(this, device_progress.get(), Double.valueOf(0.0));
                 getDevice(device_finish.get()).write("Starting ...");
+                logger.log(Level.INFO, this + " sets "  + device_active.get() + " = 1.0");
             }
 
             try
@@ -560,20 +561,20 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
         }
         finally
         {
-            end_ms = System.currentTimeMillis();
-
-            // Assert that the state is 'done'
-            // to exclude this scan from the engine.hasPendingScans() information
-            state.getAndUpdate(current ->
-            {
-                if (current.isDone())
-                    return current;
-                logger.log(Level.WARNING, "Scan state was %s, changing to Failed", current.toString());
-                return ScanState.Failed;
-            });
-
             try
             {
+                end_ms = System.currentTimeMillis();
+
+                // Assert that the state is 'done'
+                // to exclude this scan from the engine.hasPendingScans() information
+                state.getAndUpdate(current ->
+                {
+                    if (current.isDone())
+                        return current;
+                    logger.log(Level.WARNING, "Scan state was %s, changing to Failed", current.toString());
+                    return ScanState.Failed;
+                });
+
                 // Final status PV update.
                 if (device_active.isPresent())
                 {
@@ -584,11 +585,12 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
                     // Update to "anything else running?"
                     final int active = engine.hasPendingScans() ? 1 : 0;
                     ScanCommandUtil.write(this, device_active.get(), active);
+                    logger.log(Level.INFO, this + " sets "  + device_active.get() + " = " + active);
                 }
             }
-            catch (Exception ex)
+            catch (Throwable ex)
             {
-                logger.log(Level.WARNING, "Final Scan status PV update failed", ex);
+                logger.log(Level.WARNING, "Scan finalization failed", ex);
             }
 
             // Stop devices
@@ -752,14 +754,22 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
         }
     }
 
-    /** Ask for execution to stop */
-    public void abort()
+    /** Mark for abort
+     *  @return Previous scan state
+     */
+    public ScanState prepareAbort()
     {
         // Set state to aborted unless it is already 'done'
-        final ScanState previous = state.getAndUpdate((current_state)  ->  current_state.isDone() ? current_state : ScanState.Aborted);
+        return state.getAndUpdate((current_state)  ->  current_state.isDone() ? current_state : ScanState.Aborted);
+    }
+
+    /** Abort scan
+     *  @param previous Previous state from `prepareAbort()`
+     */
+    public void doAbort(final ScanState previous)
+    {
         if (previous.isDone())
             return;
-
         logger.log(Level.INFO, "Abort " + this + " (" + previous + ")");
 
         // Interrupt, except when already aborted, failed, ..
