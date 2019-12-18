@@ -102,7 +102,7 @@ public class PVAByteArray extends PVAData implements PVAArray
     public void decode(final PVATypeRegistry types, final ByteBuffer buffer) throws Exception
     {
         final int size = PVASize.decodeSize(buffer);
-        byte[] new_value = new byte[size];
+        final byte[] new_value = new byte[size];
         buffer.get(new_value);
         value = new_value;
     }
