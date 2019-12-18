@@ -119,6 +119,7 @@ public class DisplayEditorInstance implements AppInstance
     {
         final ObservableList<Node> toolbar = editor_gui.getDisplayEditor().getToolBar().getItems();
         toolbar.add(ToolbarHelper.createSpring());
+        toolbar.add(new SaveDisplayButton(this));
         toolbar.add(ExecuteDisplayAction.asButton(this));
     }
 
@@ -239,18 +240,18 @@ public class DisplayEditorInstance implements AppInstance
             editor_gui.showProperties(props = oprops.get());
         else
             props = true;
-        
+
         final Optional<Boolean> otree = memento.getBoolean(EditorGUI.SHOW_TREE);
         final boolean tree;
         if (otree.isPresent())
             editor_gui.showWidgetTree(tree = otree.get());
         else
             tree = true;
-        
+
         memento.getBoolean(DisplayEditor.SHOW_COORDS).ifPresentOrElse(editor_gui::showCoords, () -> editor_gui.showCoords(true));
         memento.getBoolean(DisplayEditor.SNAP_GRID).ifPresentOrElse(editor_gui::snapGrid, () -> editor_gui.snapGrid(true));
         memento.getBoolean(DisplayEditor.SNAP_WIDGETS).ifPresentOrElse(editor_gui::snapWidgets, () -> editor_gui.snapWidgets(true));
-        
+
         final Optional<Number> tree_div = memento.getNumber(TREE_DIVIDER);
         final Optional<Number> prop_div = memento.getNumber(PROP_DIVIDER);
 
