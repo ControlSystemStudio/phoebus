@@ -51,7 +51,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         public final VType value;
         public final String path;
 
-        public NameStateValue(final String name, final String state, final VType value, String path)
+        public NameStateValue(final String name, final String state, final VType value, final String path)
         {
             this.name = name;
             this.state = state;
@@ -97,7 +97,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         setResultConverter(button -> true);
     }
 
-    private Tab createMacros(Macros orig_macros)
+    private Tab createMacros(final Macros orig_macros)
     {
         final Macros macros = (orig_macros == null) ? new Macros() : orig_macros;
         // Use text field to allow copying the name and value
