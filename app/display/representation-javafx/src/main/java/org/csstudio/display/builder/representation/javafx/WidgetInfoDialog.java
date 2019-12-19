@@ -17,6 +17,7 @@ import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetFactory;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.VTypeUtil;
+import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.VNumberArray;
@@ -27,6 +28,7 @@ import org.phoebus.ui.javafx.ReadOnlyTextCell;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Tab;
@@ -47,12 +49,14 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         public final String name;
         public final String state;
         public final VType value;
+        public final String path;
 
-        public NameStateValue(final String name, final String state, final VType value)
+        public NameStateValue(final String name, final String state, final VType value, String path)
         {
             this.name = name;
             this.state = state;
             this.value = value;
+            this.path = path;
         }
     }
 
@@ -64,6 +68,8 @@ public class WidgetInfoDialog extends Dialog<Boolean>
     {
         setTitle(Messages.WidgetInfoDialog_Title);
         setHeaderText(MessageFormat.format(Messages.WidgetInfoDialog_Info_Fmt, new Object[] { widget.getName(), widget.getType() }));
+    	final Node node = JFXBaseRepresentation.getJFXNode(widget);
+    	initOwner(node.getScene().getWindow());
 
         if (! (widget instanceof DisplayModel))
         {   // Widgets (but not the DisplayModel!) have a descriptor for their icon
@@ -126,6 +132,10 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         state.setCellFactory(col -> new ReadOnlyTextCell<>());
         state.setCellValueFactory(param -> new ReadOnlyStringWrapper(param.getValue().state));
 
+        final TableColumn<NameStateValue, String> path = new TableColumn<>(Messages.WidgetInfoDialog_Path);
+        path.setCellFactory(col -> new ReadOnlyTextCell<>());
+        path.setCellValueFactory(param -> new ReadOnlyStringWrapper(param.getValue().path));
+
         final TableColumn<NameStateValue, String> value = new TableColumn<>(Messages.WidgetInfoDialog_Value);
         value.setCellFactory(col -> new ReadOnlyTextCell<>());
         value.setCellValueFactory(param ->
@@ -155,6 +165,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         table.getColumns().add(name);
         table.getColumns().add(state);
         table.getColumns().add(value);
+        table.getColumns().add(path);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         return new Tab(Messages.WidgetInfoDialog_TabPVs, table);

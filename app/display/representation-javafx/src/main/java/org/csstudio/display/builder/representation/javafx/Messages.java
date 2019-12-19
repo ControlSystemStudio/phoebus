@@ -158,6 +158,7 @@ public class Messages
     public static String WidgetInfoDialog_Disconnected;
     public static String WidgetInfoDialog_Info_Fmt;
     public static String WidgetInfoDialog_Name;
+    public static String WidgetInfoDialog_Path;
     public static String WidgetInfoDialog_Property;
     public static String WidgetInfoDialog_State;
     public static String WidgetInfoDialog_TabMacros;
