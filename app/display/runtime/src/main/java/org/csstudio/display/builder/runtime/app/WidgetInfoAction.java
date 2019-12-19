@@ -13,8 +13,13 @@ import java.util.List;
 import java.util.Optional;
 
 import org.csstudio.display.builder.model.ChildrenProperty;
+import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
+import org.csstudio.display.builder.model.widgets.NavigationTabsWidget;
+import org.csstudio.display.builder.model.widgets.TabsWidget;
+import org.csstudio.display.builder.model.widgets.TabsWidget.TabItemProperty;
 import org.csstudio.display.builder.representation.javafx.WidgetInfoDialog;
 import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
 import org.csstudio.display.builder.runtime.Messages;
@@ -60,9 +65,33 @@ public class WidgetInfoAction extends WeakRefWidgetAction
         final WidgetRuntime<?> runtime = WidgetRuntime.ofWidget(widget);
         for (RuntimePV pv : runtime.getPVs())
             pvs.add(new WidgetInfoDialog.NameStateValue(pv.getName(), pv.isReadonly() ? Messages.WidgetInformationRo : Messages.WidgetInformationWr, pv.read(), path));
+
+        if (widget instanceof EmbeddedDisplayWidget || widget instanceof NavigationTabsWidget)
+        {
+            final Optional<WidgetProperty<DisplayModel>> optPropModel = widget.checkProperty("embedded_model");
+            if (optPropModel.isPresent())
+            {
+                final DisplayModel emb_model = optPropModel.get().getValue();
+                if (emb_model != null)
+                    exploreChildren(emb_model, pvs, path);
+            }
+        }
+        else if (widget instanceof TabsWidget)
+        {
+            final List<TabItemProperty> tabs = ((TabsWidget)widget).propTabs().getValue();
+            for (TabItemProperty tab : tabs)
+                for (Widget child : tab.children().getValue())
+                    getChildrenPvs(child, pvs, path + ":" + tab.name().getValue() + "." + child.getName());
+        }
+        else
+            exploreChildren(widget, pvs, path);
+    }
+
+    private void exploreChildren(Widget widget, List<WidgetInfoDialog.NameStateValue> pvs, String path) {
         Optional<WidgetProperty<List<Widget>>> children = widget.checkProperty(ChildrenProperty.DESCRIPTOR);
         if (children.isPresent())
             for (Widget child : children.get().getValue())
-                 getChildrenPvs(child, pvs, path + "." + child.getName());
+                getChildrenPvs(child, pvs, path + "." + child.getName());
     }
+
 }

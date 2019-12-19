@@ -17,6 +17,7 @@ import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetFactory;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.VTypeUtil;
+import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.VNumberArray;
@@ -27,6 +28,7 @@ import org.phoebus.ui.javafx.ReadOnlyTextCell;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Tab;
@@ -66,6 +68,8 @@ public class WidgetInfoDialog extends Dialog<Boolean>
     {
         setTitle(Messages.WidgetInfoDialog_Title);
         setHeaderText(MessageFormat.format(Messages.WidgetInfoDialog_Info_Fmt, new Object[] { widget.getName(), widget.getType() }));
+    	final Node node = JFXBaseRepresentation.getJFXNode(widget);
+    	initOwner(node.getScene().getWindow());
 
         if (! (widget instanceof DisplayModel))
         {   // Widgets (but not the DisplayModel!) have a descriptor for their icon
@@ -128,7 +132,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         state.setCellFactory(col -> new ReadOnlyTextCell<>());
         state.setCellValueFactory(param -> new ReadOnlyStringWrapper(param.getValue().state));
 
-        final TableColumn<NameStateValue, String> path = new TableColumn<>("Widget Path");//Messages.WidgetInfoDialog_State);
+        final TableColumn<NameStateValue, String> path = new TableColumn<>(Messages.WidgetInfoDialog_Path);
         path.setCellFactory(col -> new ReadOnlyTextCell<>());
         path.setCellValueFactory(param -> new ReadOnlyStringWrapper(param.getValue().path));
 
