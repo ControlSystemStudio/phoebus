@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2012-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,12 +7,21 @@
  ******************************************************************************/
 package org.csstudio.scan.server;
 
+import static org.csstudio.scan.server.ScanServerInstance.logger;
+
 import java.io.PrintStream;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
+import org.csstudio.scan.server.condition.WaitForDevicesCondition;
 import org.csstudio.scan.server.config.ScanConfig;
+import org.csstudio.scan.server.device.Device;
+import org.csstudio.scan.server.device.DeviceContext;
+import org.csstudio.scan.server.device.DeviceContextHelper;
 import org.csstudio.scan.server.device.SimulatedDevice;
 import org.csstudio.scan.server.internal.JythonSupport;
 import org.phoebus.framework.macros.MacroHandler;
@@ -27,7 +36,7 @@ public class SimulationContext
     final private ScanConfig simulation_info;
     private final MacroContext macros;
 
-    final private Map<String, SimulatedDevice> devices = new HashMap<String, SimulatedDevice>();
+    final private Map<String, SimulatedDevice> devices = new HashMap<>();
 
     final private PrintStream log_stream;
 
@@ -111,6 +120,36 @@ public class SimulationContext
         log_stream.print(" - ");
         log_stream.println(info);
         simulation_seconds += seconds;
+    }
+
+    /** Perform complete simulation: Check devices, sim commands, ...
+     *  @param scan Scan implementations to simulate
+     *  @throws Exception
+     */
+    public void performSimulation(final List<ScanCommandImpl<?>> scan) throws Exception
+    {
+        final DeviceContext real_devices = new DeviceContext();
+        // Collect all devices used by the commands
+        DeviceContextHelper.addScanDevices(real_devices, macros, scan);
+        real_devices.startDevices();
+        try
+        {
+            // Check connection
+            logger.log(Level.INFO, "Check device connections...");
+            final WaitForDevicesCondition connect = new WaitForDevicesCondition(real_devices.getDevices());
+            final Duration timeout = ScanServerInstance.getScanConfig().getReadTimeout();
+            if (! connect.await(timeout.toMillis(), TimeUnit.MILLISECONDS))
+                for (Device device : real_devices.getDevices())
+                    if (! device.isReady())
+                        log_stream.println("ERROR: Cannot access " + device);
+
+            // Simulate commands
+            simulate(scan);
+        }
+        finally
+        {
+            real_devices.stopDevices();
+        }
     }
 
     /** @param scan Scan implementations to simulate

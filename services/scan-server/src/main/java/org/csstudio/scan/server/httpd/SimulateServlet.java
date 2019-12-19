@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2013-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -62,6 +62,7 @@ public class SimulateServlet extends HttpServlet
             final SimulationResult simulation = scan_server.simulateScan(scan_commands);
             // Return scan ID
             out.println("<simulation>");
+            // TODO Add separate <errors> section
             out.print("  <log>");
             out.print("<![CDATA[");
             out.print(simulation.getSimulationLog());
