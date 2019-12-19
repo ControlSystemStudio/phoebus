@@ -26,7 +26,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
@@ -95,7 +94,7 @@ public class SaveSetController implements NodeChangedListener {
 	private ObservableList<ConfigPv> saveSetEntries = FXCollections.observableArrayList();
 
 	private SimpleBooleanProperty selectionEmpty = new SimpleBooleanProperty(false);
-	//private SimpleBooleanProperty singelSelection = new SimpleBooleanProperty(false);
+	private SimpleBooleanProperty singelSelection = new SimpleBooleanProperty(false);
 	private SimpleStringProperty saveSetCommentProperty = new SimpleStringProperty();
 	private SimpleStringProperty tabTitleProperty = new SimpleStringProperty();
 	private Node loadedConfig;
@@ -125,14 +124,12 @@ public class SaveSetController implements NodeChangedListener {
 			selectionEmpty.set(nv == null);
 		});
 
-		/*
 		pvTable.getSelectionModel().getSelectedItems().addListener(new ListChangeListener<ConfigPv>() {
 			@Override
 			public void onChanged(Change<? extends ConfigPv> c) {
 				singelSelection.set(c.getList().size() == 1);
 			}
 		});
-		 */
 
 		defaultSelectionModel = pvTable.getSelectionModel();
 
@@ -158,7 +155,7 @@ public class SaveSetController implements NodeChangedListener {
 				return;
 			}
 			Alert alert = new Alert(AlertType.CONFIRMATION);
-			alert.setTitle(Messages.promptRenamePVTitle);
+			alert.setTitle(Messages.promptDeletePVTitle);
 			alert.setContentText(Messages.promptDeletePVFromSaveSet);
 			Optional<ButtonType> result = alert.showAndWait();
 			if (result.isPresent() && result.get().equals(ButtonType.OK)) {
@@ -168,68 +165,18 @@ public class SaveSetController implements NodeChangedListener {
 				});
 			}
 		});
+
 		deleteMenuItem.disableProperty().bind(selectionEmpty);
 
-		/*
-		MenuItem renamePvMenuItem = new MenuItem(Messages.menuItemEditPVName);
-		renamePvMenuItem.setOnAction(ae -> {
-
-			ConfigPv configPv = pvTable.getSelectionModel().getSelectedItem();
-
-			Alert alert = new Alert(AlertType.CONFIRMATION);
-			alert.setTitle(Messages.promptRenamePVTitle);
-			alert.setContentText(MessageFormat.format(Messages.promptRenamePVContent, configPv.getPvName()));
-			Optional<ButtonType> result = alert.showAndWait();
-			if (result.isPresent() && result.get().equals(ButtonType.OK)) {
-
-			}
-		});
-		renamePvMenuItem.disableProperty().bind(singelSelection.not());
-		*/
-
-		pvNameContextMenu.getItems().addAll(deleteMenuItem); //, renamePvMenuItem);
+		pvNameContextMenu.getItems().addAll(deleteMenuItem);
 
 		pvNameColumn.setEditable(true);
 		pvNameColumn.setCellValueFactory(new PropertyValueFactory<>("pvName"));
-		//pvNameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-		pvNameColumn.setOnEditCommit(
-				new EventHandler<TableColumn.CellEditEvent<ConfigPv, String>>() {
-					@Override
-					public void handle(TableColumn.CellEditEvent<ConfigPv, String> t) {
-
-					}
-				}
-		);
-
-		pvNameColumn.setContextMenu(pvNameContextMenu);
 
 		pvNameColumn.setCellFactory(new Callback<>() {
 			@Override
 			public TableCell call(TableColumn param) {
-
 				final TableCell<ConfigPv, String> cell = new TableCell<>() {
-
-//					private TextField textField;
-//
-//					@Override
-//					public void startEdit() {
-//						if (!isEmpty()) {
-//							super.startEdit();
-//							createTextField();
-//							//setText(null);
-//							setGraphic(textField);
-//							textField.selectAll();
-//						}
-//					}
-//
-//					@Override
-//					public void cancelEdit() {
-//						super.cancelEdit();
-//
-//						setText((String) getItem());
-//						setGraphic(null);
-//					}
-
 					@Override
 					public void updateItem(String item, boolean empty) {
 						super.updateItem(item, empty);
@@ -245,103 +192,8 @@ public class SaveSetController implements NodeChangedListener {
 							}
 						}
 					}
-
-//					@Override
-//					public void commitEdit(String newValue){
-//						Alert alert = new Alert(AlertType.CONFIRMATION);
-//						alert.setTitle("Rename PV?");
-//						alert.setContentText("NOTE: Renaming the \"" + getItem() + "\" will affect all save sets and snapshots referring to this PV.\n\nDo you wish to continue?");
-//						Optional<ButtonType> result = alert.showAndWait();
-//						if (result.isPresent() && result.get().equals(ButtonType.OK)) {
-//
-//						}
-//					}
-//
-//					private void createTextField() {
-//						textField = new TextField(getString());
-//						textField.setMinWidth(this.getWidth() - this.getGraphicTextGap()* 2);
-//						textField.setOnKeyPressed(keyEvent -> {
-//									if (keyEvent.getCode() == KeyCode.ENTER && !textField.getText().isEmpty()) {
-//										setItem(textField.getText());
-//										commitEdit(getItem());
-//									} else if (keyEvent.getCode() == KeyCode.ESCAPE) {
-//										cancelEdit();
-//									}
-//							});
-//					}
-//
-//					private String getString() {
-//						return getItem() == null ? "" : getItem().toString();
-//					}
 				};
 				cell.setContextMenu(pvNameContextMenu);
-				return cell;
-			}
-		});
-
-		ContextMenu readbackPvNameContextMenu = new ContextMenu();
-		MenuItem renameReadbackPvMenuItem = new MenuItem("Edit read-back PV Name");
-		renameReadbackPvMenuItem.setOnAction(ae -> {
-			ObservableList<ConfigPv> selectedPvs = pvTable.getSelectionModel().getSelectedItems();
-			if(selectedPvs == null || selectedPvs.isEmpty()){
-				return;
-			}
-
-			// TODO: Launch dialog and call remote saveAndRestoreService
-		});
-
-		readbackPvNameContextMenu.getItems().add(renameReadbackPvMenuItem);
-		readbackPvNameColumn.setCellFactory(new Callback<>() {
-			@Override
-			public TableCell<ConfigPv, String> call(TableColumn<ConfigPv, String> param) {
-				final TableCell cell = new TableCell() {
-
-					@Override
-					public void updateItem(Object item, boolean empty) {
-						if(item == null){
-							setText(null);
-							return;
-						}
-						super.updateItem(item, empty);
-						selectionEmpty.set(empty);
-						if (empty) {
-							setText(null);
-						} else {
-							if (isEditing()) {
-								setText(null);
-							} else {
-								setText(getItem().toString());
-								setGraphic(null);
-							}
-						}
-					}
-				};
-				cell.setContextMenu(readbackPvNameContextMenu);
-				return cell;
-			}
-		});
-
-
-		readOnlyColumn.setCellFactory(new Callback<>(){
-			@Override
-			public TableCell<ConfigPv, Boolean> call(TableColumn<ConfigPv, Boolean> param) {
-				final TableCell cell = new TableCell(){
-					@Override
-					public void updateItem(Object item, boolean empty) {
-						super.updateItem(item, empty);
-						selectionEmpty.set(empty);
-						if (empty) {
-							setText(null);
-						} else {
-							if (isEditing()) {
-								setText(null);
-							} else {
-								setText(((Boolean)item ? "yes" : "no"));
-								setGraphic(null);
-							}
-						}
-					}
-				};
 				return cell;
 			}
 		});

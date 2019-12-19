@@ -36,12 +36,6 @@ public class SaveAndRestoreApplication implements AppDescriptor, AppInstance {
 	private AnnotationConfigApplicationContext context;
 	private SaveAndRestoreController controller;
 
-	/*
-	public SaveAndRestoreApplication(){
-		context = new AnnotationConfigApplicationContext(AppConfig.class);
-	}
-	 */
-
 	@Override
 	public String getName() {
 		return NAME;
@@ -72,6 +66,7 @@ public class SaveAndRestoreApplication implements AppDescriptor, AppInstance {
 		DockPane.getActiveDockPane().addTab(tab);
 		PreferencesReader pvPreferencesReader = (PreferencesReader)context.getBean("pvPreferencesReader");
 		String epicsAddressList = pvPreferencesReader.get("addr_list");
+
 		if(epicsAddressList != null && !epicsAddressList.isEmpty()){
 			System.setProperty("com.cosylab.epics.caj.CAJContext.addr_list", epicsAddressList);
 		}

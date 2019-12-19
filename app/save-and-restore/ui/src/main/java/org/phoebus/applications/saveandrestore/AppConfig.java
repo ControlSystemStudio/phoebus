@@ -32,6 +32,8 @@ import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetController;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotController;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.pv.PVFactory;
+import org.phoebus.pv.ca.JCA_PVFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -58,9 +60,10 @@ public class AppConfig {
 
     @PostConstruct
     public void init(){
-        preferencesReader = new PreferencesReader(getClass(), "/save_and_restore_preferences.properties");
-        pvPreferencesReader = new PreferencesReader(getClass(), "/pv_ca_preferences.properties");
         preferences = PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class);
+        preferencesReader = new PreferencesReader(getClass(), "/save_and_restore_preferences.properties");
+        pvPreferencesReader = new PreferencesReader(JCA_PVFactory.class, "/pv_ca_preferences.properties");
+
     }
 
     @Bean
@@ -156,5 +159,11 @@ public class AppConfig {
     @Bean
     public ObjectMapper objectMapper(){
         return new ObjectMapper();
+    }
+
+    @Bean
+    public String defaultEpicsProtocol(){
+        PreferencesReader preferencesReader = new PreferencesReader(PVFactory.class, "/pv_preferences.properties");
+        return preferencesReader.get("default");
     }
 }

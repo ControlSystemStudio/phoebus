@@ -11,13 +11,17 @@ The application depends on the save-and-restore service deployed on the network 
 HTTP. The URL of the service is specified in the save-and-restore.properties file or in the settings file
 pointed to on the command line.
 
+Connection to PVs works the same as for visual components. The preference org.phoebus.pv/default will determine
+how the connection will be set up (ca or pva), but user may explicitly select protocol by using scheme prefix
+ca:// or pva://, e.g. ca://my_PV.
+
 Object types
 ____________
 
 There are three object types managed by the save-and-restore service through the application:
 
 - Folder: container of other folders or save sets.
-- Save set: a list of PV names and associated meta-data. NOTE: PV names must be prefixed with ca:// or pva://.
+- Save set: a list of PV names and associated meta-data.
 - Snapshot: the PV values read from PVs listed in a save set.
 
 All objects are managed as nodes of a tree structure. The root of the tree structure is a (hidden) folder that may only

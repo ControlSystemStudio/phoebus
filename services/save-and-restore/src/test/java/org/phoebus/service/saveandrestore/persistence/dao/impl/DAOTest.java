@@ -1030,7 +1030,16 @@ public class DAOTest {
 		
 		updatedConfigPv = nodeDAO.updateSingleConfigPv("pvName2", "pvName2", "readbackName", null);
 		assertNull(updatedConfigPv.getReadbackPvName());
-		
+
+		configPv = ConfigPv.builder().pvName("pvName").readbackPvName("readbackPvName").build();
+		nodeDAO.updateConfiguration(newConfig, Arrays.asList(configPv));
+		list = nodeDAO.getConfigPvs(newConfig.getUniqueId());
+		assertEquals("pvName", list.get(0).getPvName());
+		assertEquals("readbackPvName", list.get(0).getReadbackPvName());
+
+		updatedConfigPv = nodeDAO.updateSingleConfigPv("pvName", "pvName2", "readbackPvName", null);
+		assertEquals("pvName2", updatedConfigPv.getPvName());
+		assertEquals("readbackPvName", list.get(0).getReadbackPvName());
 	}
 	
 	@Test
