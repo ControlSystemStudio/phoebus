@@ -111,7 +111,7 @@ public class EmbeddedDisplayWidget extends VisibleWidget
         CommonWidgetProperties.newStringPropertyDescriptor(
             WidgetPropertyCategory.DISPLAY, "group_name", Messages.EmbeddedDisplayWidget_GroupName);
 
-    static final WidgetPropertyDescriptor<DisplayModel> runtimeModel =
+    public static final WidgetPropertyDescriptor<DisplayModel> runtimeModel =
         new WidgetPropertyDescriptor<>(WidgetPropertyCategory.RUNTIME, "embedded_model", "Embedded Model")
         {
             @Override

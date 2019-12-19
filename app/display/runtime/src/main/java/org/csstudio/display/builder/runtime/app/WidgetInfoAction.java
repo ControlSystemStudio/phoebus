@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.csstudio.display.builder.runtime.app;
 
+import static org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget.runtimeModel;
+
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +43,14 @@ public class WidgetInfoAction extends WeakRefWidgetAction
 {
     private static final Image icon = ImageCache.getImage(WidgetInfoAction.class, "/icons/information.png");
 
+    /** @param widget Widget
+     *  @return "Widget Name" (type)
+     */
+    static String formatWidgetInfo(final Widget widget)
+    {
+        return "\"" + widget.getName() + "\" (" + widget.getType() + ")";
+    }
+
     public WidgetInfoAction(final Widget the_widget)
     {
         //super("'" + the_widget.getName() + "' Information", new ImageView(icon), the_widget);
@@ -50,7 +60,7 @@ public class WidgetInfoAction extends WeakRefWidgetAction
         {
             final Widget widget = getWidget();
             final List<WidgetInfoDialog.NameStateValue> pvs = new ArrayList<>();
-            getChildrenPvs(widget, pvs, widget.getName());
+            getChildrenPvs(widget, pvs, formatWidgetInfo(widget));
             final WidgetInfoDialog dialog = new WidgetInfoDialog(widget, pvs);
 
             final Node node = JFXBaseRepresentation.getJFXNode(widget);
@@ -60,7 +70,7 @@ public class WidgetInfoAction extends WeakRefWidgetAction
         });
     }
 
-    private void getChildrenPvs(Widget widget, List<WidgetInfoDialog.NameStateValue> pvs, String path)
+    private void getChildrenPvs(final Widget widget, final List<WidgetInfoDialog.NameStateValue> pvs, final String path)
     {
         final WidgetRuntime<?> runtime = WidgetRuntime.ofWidget(widget);
         for (RuntimePV pv : runtime.getPVs())
@@ -68,7 +78,7 @@ public class WidgetInfoAction extends WeakRefWidgetAction
 
         if (widget instanceof EmbeddedDisplayWidget || widget instanceof NavigationTabsWidget)
         {
-            final Optional<WidgetProperty<DisplayModel>> optPropModel = widget.checkProperty("embedded_model");
+            final Optional<WidgetProperty<DisplayModel>> optPropModel = widget.checkProperty(runtimeModel);
             if (optPropModel.isPresent())
             {
                 final DisplayModel emb_model = optPropModel.get().getValue();
@@ -81,17 +91,17 @@ public class WidgetInfoAction extends WeakRefWidgetAction
             final List<TabItemProperty> tabs = ((TabsWidget)widget).propTabs().getValue();
             for (TabItemProperty tab : tabs)
                 for (Widget child : tab.children().getValue())
-                    getChildrenPvs(child, pvs, path + ":" + tab.name().getValue() + "." + child.getName());
+                    getChildrenPvs(child, pvs, path + " [" + tab.name().getValue() + "], " + formatWidgetInfo(child));
         }
         else
             exploreChildren(widget, pvs, path);
     }
 
-    private void exploreChildren(Widget widget, List<WidgetInfoDialog.NameStateValue> pvs, String path) {
-        Optional<WidgetProperty<List<Widget>>> children = widget.checkProperty(ChildrenProperty.DESCRIPTOR);
-        if (children.isPresent())
-            for (Widget child : children.get().getValue())
-                getChildrenPvs(child, pvs, path + "." + child.getName());
+    private void exploreChildren(final Widget widget, final List<WidgetInfoDialog.NameStateValue> pvs, final String path)
+    {
+        final ChildrenProperty children = ChildrenProperty.getChildren(widget);
+        if (children != null)
+            for (Widget child : children.getValue())
+                getChildrenPvs(child, pvs, path + ", " + formatWidgetInfo(child));
     }
-
 }
