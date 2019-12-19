@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import org.csstudio.scan.info.SimulationResult;
 import org.csstudio.scan.server.condition.WaitForDevicesCondition;
 import org.csstudio.scan.server.config.ScanConfig;
 import org.csstudio.scan.server.device.Device;
@@ -110,6 +111,15 @@ public class SimulationContext
         return device;
     }
 
+    /** Add error line to the simulation log
+     *  @param error Line describing the error
+     */
+    public void logError(final String error)
+    {
+        log_stream.print(SimulationResult.ERROR);
+        log_stream.println(error);
+    }
+
     /** Log information about the currently simulated command
      *  @param info End-user readable description what the command would do when executed
      *  @param seconds Estimated time in seconds that the command would take if executed
@@ -141,7 +151,7 @@ public class SimulationContext
             if (! connect.await(timeout.toMillis(), TimeUnit.MILLISECONDS))
                 for (Device device : real_devices.getDevices())
                     if (! device.isReady())
-                        log_stream.println("ERROR: Cannot access " + device);
+                        logError("Cannot access " + device);
 
             // Simulate commands
             simulate(scan);

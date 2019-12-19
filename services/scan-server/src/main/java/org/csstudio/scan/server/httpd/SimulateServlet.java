@@ -62,7 +62,6 @@ public class SimulateServlet extends HttpServlet
             final SimulationResult simulation = scan_server.simulateScan(scan_commands);
             // Return scan ID
             out.println("<simulation>");
-            // TODO Add separate <errors> section
             out.print("  <log>");
             out.print("<![CDATA[");
             out.print(simulation.getSimulationLog());
