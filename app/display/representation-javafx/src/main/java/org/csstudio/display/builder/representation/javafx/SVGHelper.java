@@ -31,7 +31,7 @@ import java.io.InputStream;
 
 /**
  * Helper class to load SVG files. It is based on the following post on Stackoverflow:
- * https://stackoverflow.com/questions/12436274/svg-image-in-javafx-2-2
+ * https://stackoverflow.com/questions/12436274/svg-image-in-javafx-2-2.
  *
  * The dependency to Apache Batik inflates the size of the lib folder by ~3 MB.
  *
@@ -48,12 +48,17 @@ public class SVGHelper {
     /**
      * Loads SVG file as an {@link Image}.
      * @param fileStream Non-null input stream to SVG file.
+     * @param width The wanted width of the image.
+     * @param height The wanted height of the image.
      * @return A {@link Image} object if all goes well.
      */
-    public static Image loadSVG(InputStream fileStream) throws Exception{
+    public static Image loadSVG(InputStream fileStream, Float width, Float height) throws Exception{
         TranscoderInput input = new TranscoderInput(fileStream);
         try {
+            bufferedImageTranscoder.addTranscodingHint(ImageTranscoder.KEY_WIDTH, width);
+            bufferedImageTranscoder.addTranscodingHint(ImageTranscoder.KEY_HEIGHT, height);
             bufferedImageTranscoder.transcode(input, null);
+
             return SwingFXUtils.toFXImage(bufferedImageTranscoder.getBufferedImage(), null);
         } catch (TranscoderException e) {
             throw new Exception("Unable to transcode SVG file", e);

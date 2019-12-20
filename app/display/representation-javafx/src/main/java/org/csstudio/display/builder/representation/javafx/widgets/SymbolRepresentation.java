@@ -612,7 +612,14 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         if ( symbol != null ) {
             if ( symbol.getImage() == null ) {
                 getDefaultSymbolNode().setSize(width, height);
-            } else {
+            } else if(symbol.getFileName().toLowerCase().endsWith("svg")){
+                Image image = symbol.resize(width, height);
+                imageView.setImage(image);
+                imageView.setFitWidth(width);
+                imageView.setFitHeight(height);
+                imageView.setPreserveRatio(preserveRatio);
+            }
+            else {
                 imageView.setFitWidth(width);
                 imageView.setFitHeight(height);
                 imageView.setPreserveRatio(preserveRatio);
@@ -779,25 +786,24 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
             if ( imageFileName != null ) {
                 if (toolkit.isEditMode())
                     ImageCache.remove(imageFileName);
-
-                image = ImageCache.cache(imageFileName, () ->
+                try
                 {
-                    try
-                    {
-                        // Open the image from the stream created from the
-                        // resource file.
-                        InputStream inputStream = ModelResourceUtil.openResourceStream(imageFileName);
-                        if(imageFileName.toLowerCase().endsWith("svg")){
-                            return SVGHelper.loadSVG(inputStream);
-                        }
-                        else{
-                            return new Image(inputStream);
-                        }
-                    } catch ( Exception ex ) {
-                        logger.log(Level.WARNING, "Failure loading image: ({0}) {1} [{2}].", new Object[] { fileName, imageFileName, ex.getMessage() });
+                    InputStream inputStream = ModelResourceUtil.openResourceStream(imageFileName);
+                    if(imageFileName.toLowerCase().endsWith("svg")){
+                        image = SVGHelper.loadSVG(inputStream, (float)originalWidth, (float)originalHeight);
                     }
-                    return null;
-                });
+                    else{
+                        image = ImageCache.cache(imageFileName, () ->
+                        {
+
+                            // Open the image from the stream created from the
+                            // resource file.
+                            return new Image(inputStream);
+                        });
+                    }
+                } catch ( Exception ex ) {
+                    logger.log(Level.WARNING, "Failure loading image: ({0}) {1} [{2}].", new Object[] { fileName, imageFileName, ex.getMessage() });
+                }
 
                 if ( image != null ) {
                     originalWidth = image.getWidth();
@@ -820,6 +826,19 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
         Image getImage ( ) {
             return image;
+        }
+
+        Image resize(double width, double hight){
+            String imageFileName = resolveImageFile(model_widget, fileName);
+            try {
+                InputStream inputStream = ModelResourceUtil.openResourceStream(imageFileName);
+                if(imageFileName.toLowerCase().endsWith("svg")){
+                    return SVGHelper.loadSVG(inputStream, (float)width, (float)hight);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
         }
     }
 }
