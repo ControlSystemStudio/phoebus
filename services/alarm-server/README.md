@@ -38,6 +38,7 @@ With the Kafka cluster running you can start the alarm server using the provided
 
 some useful startup arguments include
 
+```
 -help                       - Help
 -server   localhost:9092    - Location of Kafka server
 -config   Accelerator       - Alarm configuration
@@ -45,4 +46,4 @@ some useful startup arguments include
 -export   config.xml        - Export alarm configuration to file
 -import   config.xml        - Import alarm configruation from file
 -logging logging.properties - Load log settings
-
+```
