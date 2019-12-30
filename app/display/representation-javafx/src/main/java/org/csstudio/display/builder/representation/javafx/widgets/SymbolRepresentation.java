@@ -612,17 +612,8 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         if ( symbol != null ) {
             if ( symbol.getImage() == null ) {
                 getDefaultSymbolNode().setSize(width, height);
-            } else if(symbol.getFileName().toLowerCase().endsWith("svg")){
-                Image image = symbol.resize(width, height);
-                imageView.setImage(image);
-                imageView.setFitWidth(width);
-                imageView.setFitHeight(height);
-                imageView.setPreserveRatio(preserveRatio);
-            }
-            else {
-                imageView.setFitWidth(width);
-                imageView.setFitHeight(height);
-                imageView.setPreserveRatio(preserveRatio);
+            }else{
+                symbol.resize(width, height, preserveRatio);
             }
         }
     }
@@ -676,7 +667,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
                     s = currentSymbolsMap.get(fileName);
 
                     if ( s == null ) { // Neither previously loaded.
-                        s = new Symbol(fileName);
+                        s = new Symbol(fileName, model_widget.propWidth().getValue(), model_widget.propHeight().getValue());
                     }
 
                     symbolsMap.put(fileName, s);
@@ -777,32 +768,32 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
             fileName = null;
         }
 
-        Symbol ( String fileName ) {
+        Symbol ( String fileName, double width, double height ) {
 
             this.fileName = fileName;
 
             String imageFileName = resolveImageFile(model_widget, fileName);
 
             if ( imageFileName != null ) {
-                if (toolkit.isEditMode())
+                if (toolkit.isEditMode()) {
                     ImageCache.remove(imageFileName);
-                try
-                {
-                    InputStream inputStream = ModelResourceUtil.openResourceStream(imageFileName);
-                    if(imageFileName.toLowerCase().endsWith("svg")){
-                        image = SVGHelper.loadSVG(inputStream, (float)originalWidth, (float)originalHeight);
-                    }
-                    else{
-                        image = ImageCache.cache(imageFileName, () ->
-                        {
+                }
 
-                            // Open the image from the stream created from the
-                            // resource file.
-                            return new Image(inputStream);
-                        });
-                    }
-                } catch ( Exception ex ) {
-                    logger.log(Level.WARNING, "Failure loading image: ({0}) {1} [{2}].", new Object[] { fileName, imageFileName, ex.getMessage() });
+                if(imageFileName.toLowerCase().endsWith("svg")){
+                    image = loadSVG(width, height);
+                }
+                else{
+                    image = ImageCache.cache(imageFileName, () ->
+                    {
+                        // Open the image from the stream created from the
+                        // resource file.
+                        try{
+                            return new Image(ModelResourceUtil.openResourceStream(imageFileName));
+                        } catch ( Exception ex ) {
+                            logger.log(Level.WARNING, "Failure loading image: ({0}) {1} [{2}].", new Object[] { fileName, imageFileName, ex.getMessage() });
+                        }
+                        return null;
+                    });
                 }
 
                 if ( image != null ) {
@@ -828,17 +819,43 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
             return image;
         }
 
-        Image resize(double width, double hight){
-            String imageFileName = resolveImageFile(model_widget, fileName);
-            try {
-                InputStream inputStream = ModelResourceUtil.openResourceStream(imageFileName);
-                if(imageFileName.toLowerCase().endsWith("svg")){
-                    return SVGHelper.loadSVG(inputStream, (float)width, (float)hight);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+        /**
+         * Resizes the image. If the underlying resource is a SVG, it is reloaded.
+         * @param width
+         * @param height
+         * @param preserveRatio T
+         */
+        void resize(double width, double height, boolean preserveRatio){
+            if(fileName.toLowerCase().endsWith("svg")) {
+                image = loadSVG(width, height);
+                imageView.setImage(image);
             }
-            return null;
+            imageView.setFitWidth(width);
+            imageView.setFitHeight(height);
+            imageView.setPreserveRatio(preserveRatio);
+        }
+
+        /**
+         * Loads a SVG resource. The image cache is used, but the key to the SVG resource depends
+         * on the width and height of the image. Reason is that when resizing a image the underlying
+         * SVG must be transcoded again with the new size.
+         * @param width
+         * @param height
+         * @return An {@link Image} or <code>null</code>.
+         */
+        Image loadSVG(double width, double height){
+            String imageFileName = resolveImageFile(model_widget, fileName);
+            String cachedSVGFileName = imageFileName + "_" + width + "_" + height;
+            return ImageCache.cache(cachedSVGFileName, () ->
+            {
+                // Open the image from the stream created from the resource file.
+                try(InputStream inputStream = ModelResourceUtil.openResourceStream(imageFileName)){
+                    return SVGHelper.loadSVG(inputStream, width, height);
+                } catch ( Exception ex ) {
+                    logger.log(Level.WARNING, "Failure loading image: ({0}) {1} [{2}].", new Object[] { fileName, imageFileName, ex.getMessage() });
+                }
+                return null;
+            });
         }
     }
 }

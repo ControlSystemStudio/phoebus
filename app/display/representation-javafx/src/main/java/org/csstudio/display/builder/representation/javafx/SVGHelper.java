@@ -27,7 +27,7 @@ import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.ImageTranscoder;
 
 import java.awt.image.BufferedImage;
-import java.io.InputStream;
+import java.io.*;
 
 /**
  * Helper class to load SVG files. It is based on the following post on Stackoverflow:
@@ -39,24 +39,23 @@ import java.io.InputStream;
  */
 public class SVGHelper {
 
-    private static BufferedImageTranscoder bufferedImageTranscoder;
-
-    static{
-        bufferedImageTranscoder = new BufferedImageTranscoder();
-    }
-
     /**
-     * Loads SVG file as an {@link Image}.
+     * Loads SVG file as an {@link Image}. The resolution of the generated image is determined by the
+     * width and height parameters. Consequently scaling to a much larger size will result in "pixelation".
+     * Client code is hence advised to reload the SVG resource using the new width and height when
+     * the container widget is resized.
+     *
      * @param fileStream Non-null input stream to SVG file.
      * @param width The wanted width of the image.
      * @param height The wanted height of the image.
-     * @return A {@link Image} object if all goes well.
+     * @return A {@link Image} object if the input stream can be parsed and transcoded.
      */
-    public static Image loadSVG(InputStream fileStream, Float width, Float height) throws Exception{
+    public static Image loadSVG(InputStream fileStream, double width, double height) throws Exception{
+        BufferedImageTranscoder bufferedImageTranscoder = new BufferedImageTranscoder();
         TranscoderInput input = new TranscoderInput(fileStream);
-        try {
-            bufferedImageTranscoder.addTranscodingHint(ImageTranscoder.KEY_WIDTH, width);
-            bufferedImageTranscoder.addTranscodingHint(ImageTranscoder.KEY_HEIGHT, height);
+        try{
+            bufferedImageTranscoder.addTranscodingHint(ImageTranscoder.KEY_WIDTH, (float)width);
+            bufferedImageTranscoder.addTranscodingHint(ImageTranscoder.KEY_HEIGHT, (float)height);
             bufferedImageTranscoder.transcode(input, null);
 
             return SwingFXUtils.toFXImage(bufferedImageTranscoder.getBufferedImage(), null);
