@@ -26,8 +26,10 @@ import org.phoebus.ui.javafx.ImageCache;
 import javafx.application.Platform;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 /** Display {@link SimulationResult}
@@ -68,10 +70,30 @@ public class SimulationDisplay implements AppInstance
     // </commands>
     private final ListView<String> log = new ListView<>();
 
+    /** List cell that highlights 'error' lines */
+    private static class ColoredLine extends ListCell<String>
+    {
+        @Override
+        protected void updateItem(final String line, final boolean empty)
+        {
+            super.updateItem(line, empty);
+            if (line == null  ||  empty)
+                setText("");
+            else
+            {
+                setText(line);
+                if (line.startsWith(SimulationResult.ERROR))
+                    setTextFill(Color.DARKRED);
+                else
+                    setTextFill(Color.BLACK);            }
+        }
+    }
+
     public SimulationDisplay(final SimulationDisplayApplication app)
     {
         this.app = app;
 
+        log.setCellFactory(view -> new ColoredLine());
         log.setPlaceholder(new Label("Getting scan simulation..."));
         final DockItem tab = new DockItem(this, log);
         DockPane.getActiveDockPane().addTab(tab);

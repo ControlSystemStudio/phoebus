@@ -46,7 +46,8 @@
        This check, however, needs to read the current value of the PV,
        so it also needs some timeout.
        Similarly, the Log command uses this timeout to fetch the current
-       value of the devices to log.
+       value of the devices to log
+       and the simulation uses this to await the connection of all PVs.
    -->
   <read_timeout>20</read_timeout>
   

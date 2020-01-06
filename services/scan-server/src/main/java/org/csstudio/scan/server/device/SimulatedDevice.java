@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2012-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -77,6 +77,7 @@ public class SimulatedDevice extends Device
     @Override
     public void write(final Object value) throws Exception
     {
+        // TODO Throw exception if value outside of permitted range
         if (value instanceof Number)
             this.value = VDouble.of( ((Number) value).doubleValue(), Alarm.none(), Time.now(), Display.none() );
         fireDeviceUpdate();
