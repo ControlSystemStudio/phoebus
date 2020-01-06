@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2012-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,12 +11,14 @@ import static org.csstudio.scan.server.ScanServerInstance.logger;
 
 import java.io.PrintStream;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import org.csstudio.scan.device.DeviceInfo;
 import org.csstudio.scan.info.SimulationResult;
 import org.csstudio.scan.server.condition.WaitForDevicesCondition;
 import org.csstudio.scan.server.config.ScanConfig;
@@ -34,12 +36,18 @@ import org.python.core.PyException;
 @SuppressWarnings("nls")
 public class SimulationContext
 {
-    final private ScanConfig simulation_info;
+    private final ScanConfig simulation_info;
     private final MacroContext macros;
 
-    final private Map<String, SimulatedDevice> devices = new HashMap<>();
+    /** Real devices, will be connected to check connection and
+     *  for reading limit PVs
+     */
+    private final DeviceContext real_devices = new DeviceContext();
 
-    final private PrintStream log_stream;
+    /** Simulated devices, will be written */
+    private final Map<String, SimulatedDevice> devices = new HashMap<>();
+
+    private final PrintStream log_stream;
 
     private final SimulationHook hook;
 
@@ -105,7 +113,7 @@ public class SimulationContext
         SimulatedDevice device = devices.get(expanded_name);
         if (device == null)
         {
-            device = new SimulatedDevice(expanded_name, simulation_info);
+            device = new SimulatedDevice(expanded_name, simulation_info, real_devices);
             devices.put(expanded_name, device);
         }
         return device;
@@ -138,13 +146,27 @@ public class SimulationContext
      */
     public void performSimulation(final List<ScanCommandImpl<?>> scan) throws Exception
     {
-        final DeviceContext real_devices = new DeviceContext();
         // Collect all devices used by the commands
         DeviceContextHelper.addScanDevices(real_devices, macros, scan);
+
+        // Add min/max devices
+        final List<String> range_pvs = new ArrayList<>();
+        for (Device device : real_devices.getDevices())
+        {
+            String pv = simulation_info.getMinimumPV(device.getName());
+            if (pv != null)
+                range_pvs.add(pv);
+            pv = simulation_info.getMaximumPV(device.getName());
+            if (pv != null)
+                range_pvs.add(pv);
+        }
+        for (String pv : range_pvs)
+            real_devices.addPVDevice(new DeviceInfo(pv));
+
+        // Check connection
         real_devices.startDevices();
         try
         {
-            // Check connection
             logger.log(Level.INFO, "Check device connections...");
             final WaitForDevicesCondition connect = new WaitForDevicesCondition(real_devices.getDevices());
             final Duration timeout = ScanServerInstance.getScanConfig().getReadTimeout();
