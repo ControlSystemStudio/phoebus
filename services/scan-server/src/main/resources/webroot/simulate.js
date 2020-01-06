@@ -3,6 +3,9 @@ $(function()
 {
     $('#simulate').click(function()
     {
+        $('#simulation').val("Fetching simulation...");
+        $('#runtime').text("");
+
         var commands = $('#scan').val();
         
         $.ajax(
