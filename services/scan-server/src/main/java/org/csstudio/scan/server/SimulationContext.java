@@ -176,7 +176,15 @@ public class SimulationContext
                         logError("Cannot access " + device);
 
             // Simulate commands
-            simulate(scan);
+            try
+            {
+                simulate(scan);
+            }
+            catch (Exception ex)
+            {
+                logError(ex.getMessage());
+                logger.log(Level.WARNING, "Simulation fails", ex);
+            }
         }
         finally
         {
