@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <display version="2.0.0">
   <name>Text Update</name>
-  <height>800</height>
+  <width>1060</width>
+  <height>960</height>
   <widget type="label" version="2.0.0">
     <name>Label</name>
     <class>TITLE</class>
@@ -293,8 +294,8 @@ while the DMS specialization maps 2 pi to 360 degrees.
   <widget type="textupdate" version="2.0.0">
     <name>Text Update_8</name>
     <pv_name>sim://sine</pv_name>
-    <x>460</x>
-    <y>121</y>
+    <x>420</x>
+    <y>120</y>
     <width>160</width>
     <horizontal_alignment>1</horizontal_alignment>
     <rotation_step>2</rotation_step>
@@ -302,8 +303,8 @@ while the DMS specialization maps 2 pi to 360 degrees.
   <widget type="textupdate" version="2.0.0">
     <name>Text Update_18</name>
     <pv_name>sim://sine</pv_name>
-    <x>636</x>
-    <y>91</y>
+    <x>596</x>
+    <y>90</y>
     <width>40</width>
     <height>80</height>
     <horizontal_alignment>1</horizontal_alignment>
@@ -313,8 +314,8 @@ while the DMS specialization maps 2 pi to 360 degrees.
   <widget type="label" version="2.0.0">
     <name>Label_20</name>
     <text>The widget can be rotated:</text>
-    <x>450</x>
-    <y>91</y>
+    <x>410</x>
+    <y>90</y>
     <width>186</width>
     <height>28</height>
   </widget>
@@ -450,5 +451,41 @@ Bye..")</pv_name>
     <format>1</format>
     <precision>4</precision>
     <interactive>true</interactive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_26</name>
+    <text>Alignment Options:</text>
+    <x>690</x>
+    <y>90</y>
+    <width>186</width>
+    <height>28</height>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_19</name>
+    <pv_name>sim://sine</pv_name>
+    <x>690</x>
+    <y>120</y>
+    <width>90</width>
+    <height>50</height>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_20</name>
+    <pv_name>sim://sine</pv_name>
+    <x>830</x>
+    <y>120</y>
+    <width>90</width>
+    <height>50</height>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_21</name>
+    <pv_name>sim://sine</pv_name>
+    <x>970</x>
+    <y>120</y>
+    <width>90</width>
+    <height>50</height>
+    <horizontal_alignment>2</horizontal_alignment>
+    <vertical_alignment>2</vertical_alignment>
   </widget>
 </display>
