@@ -3,18 +3,32 @@ package org.phoebus.channel.views.ui;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.epics.vtype.VType;
 import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.ChannelUtil;
+import org.phoebus.pv.PV;
+import org.phoebus.pv.PVPool;
 
+/**
+ * Model for the Channel Tree built using properties
+ * @author Kunal Shroff
+ */
 class ChannelTreeByPropertyModel {
 
-    List<Channel> allChannels;
-    List<String> properties;
     private ChannelTreeByPropertyNode root;
     final String query;
     private final boolean showChannelNames;
+
+    List<Channel> allChannels;
+    List<String> properties;
+    
+    // PVs represented by this three
+    List<PV> nodePVs;
+    Map<String, VType> nodePVValues;
 
     public ChannelTreeByPropertyModel(String query, Collection<Channel> allChannels, List<String> properties, boolean showChannelNames) {
         if (allChannels == null) {
@@ -25,6 +39,10 @@ class ChannelTreeByPropertyModel {
         // have a value for all properties
         this.allChannels = new ArrayList<Channel>(ChannelUtil.filterbyProperties(allChannels, properties));
         this.properties = properties;
+
+        this.nodePVs = new ArrayList<PV>();
+        this.nodePVValues = new HashMap<String, VType>();
+
         this.query = query;
         this.showChannelNames = showChannelNames;
         this.root = new ChannelTreeByPropertyNode(this, null, query);
@@ -36,5 +54,10 @@ class ChannelTreeByPropertyModel {
 
     public boolean isShowChannelNames() {
         return showChannelNames;
+    }
+
+    public void dispose() {
+        nodePVs.forEach(pv -> PVPool.releasePV(pv));
+        nodePVs.clear();
     }
 }

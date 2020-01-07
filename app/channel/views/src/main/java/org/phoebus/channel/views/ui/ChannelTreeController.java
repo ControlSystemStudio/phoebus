@@ -1,13 +1,14 @@
 package org.phoebus.channel.views.ui;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import javax.management.Query;
 
 import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.ChannelUtil;
@@ -17,8 +18,6 @@ import org.phoebus.ui.spi.ContextMenuEntry;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
@@ -28,10 +27,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import javafx.stage.WindowEvent;
 
 /**
- * Controller for the file browser app
+ * Controller for the Tree view of Channels based on a set of selected properties
  * 
  * @author Kunal Shroff
  *
@@ -45,15 +43,20 @@ public class ChannelTreeController extends ChannelFinderController {
     @FXML
     Button configure;
     @FXML
+    Button connect;
+    @FXML
     TreeView<ChannelTreeByPropertyNode> treeView;
 
     private List<String> orderedProperties = Collections.emptyList();
-    private Collection<Channel> channels = Collections.emptyList();;
+    private Collection<Channel> channels = Collections.emptyList();
     private ChannelTreeByPropertyModel model;
 
     @FXML
     public void initialize() {
 
+        if(model != null) {
+            model.dispose();
+        }
         treeView.setCellFactory(f -> new ChannelTreeCell());
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         treeView.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
@@ -61,6 +64,11 @@ public class ChannelTreeController extends ChannelFinderController {
                 SelectionService.getInstance().setSelection(treeView, treeView.getSelectionModel().getSelectedItems());
             }
         });
+    }
+
+    @FXML
+    public void dispose() {
+        model.dispose();
     }
 
     public void setQuery(String string) {
@@ -80,9 +88,12 @@ public class ChannelTreeController extends ChannelFinderController {
     }
 
     private void reconstructTree() {
+        if (model != null)
+            model.dispose();
         model = new ChannelTreeByPropertyModel(query.getText(), channels, orderedProperties, true);
         ChannelTreeItem root = new ChannelTreeItem(model.getRoot());
         treeView.setRoot(root);
+        connect();
     }
 
     /**
@@ -98,6 +109,17 @@ public class ChannelTreeController extends ChannelFinderController {
                 setOrderedProperties(r);
             });
         }
+    }
+
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+    /**
+     * Connect the pv's and append their live values to the tree view of the
+     * channels.
+     */
+    @FXML
+    public void connect() {
+        scheduler.scheduleAtFixedRate(treeView::refresh, 0, 400, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -188,5 +210,6 @@ public class ChannelTreeController extends ChannelFinderController {
             }
         }
     }
+
 
 }
