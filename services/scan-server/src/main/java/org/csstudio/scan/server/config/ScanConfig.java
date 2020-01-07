@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -38,6 +38,8 @@ public class ScanConfig
     final private static String XML_ALIAS = "alias",
                                 XML_DATALOG = "data_log",
                                 XML_MACROS = "macros",
+                                XML_MAXIMUM = "maximum",
+                                XML_MINIMUM = "minimum",
                                 XML_NAME = "name",
                                 XML_NAME_PATTERN = "name_pattern",
                                 XML_OLD_SCAN_REMOVAL_THRESHOLD = "old_scan_removal_threadhold",
@@ -74,8 +76,17 @@ public class ScanConfig
     /** Predefined devices, maybe with alias */
     private final List<DeviceInfo> devices = new ArrayList<>();
 
+    /** Map from alias to device name */
+    private final Map<String, String> aliases = new HashMap<>();
+
     /** Map of PV names to slew rate */
     private final Map<String, Double> pv_slew_rates = new HashMap<>();
+
+    /** Map of PV names to PV for its minimum value */
+    private final Map<String, String> pv_mimimum = new HashMap<>();
+
+    /** Map of PV names to PV for its maximum value */
+    private final Map<String, String> pv_maximum = new HashMap<>();
 
     /** Pattern for PV name and associated slew rate */
     private static class PatternedSlew
@@ -163,16 +174,22 @@ public class ScanConfig
         return old_scan_removal_threadhold;
     }
 
-    /** @return {@link DeviceInfo}s read from file */
+    /** @return {@link DeviceInfo}s read from config file */
     public List<DeviceInfo> getDevices()
     {
         return devices;
     }
 
+    private String resolveAlias(final String device_name)
+    {
+        return aliases.getOrDefault(device_name, device_name);
+    }
+
     /** Get slew rate for device, otherwise returning default */
     public double getSlewRate(final String device_name)
     {
-        Double slew = pv_slew_rates.get(device_name);
+        final String actual = resolveAlias(device_name);
+        Double slew = pv_slew_rates.get(actual);
         if (slew != null)
             return slew;
 
@@ -181,6 +198,24 @@ public class ScanConfig
             if (ps.matches(device_name))
                 return ps.slew_rate;
         return DEFAULT_SLEW_RATE;
+    }
+
+    /** @param device_name
+     *  @return PV for range minimum, or <code>null</code>
+     */
+    public String getMinimumPV(final String device_name)
+    {
+        final String actual = resolveAlias(device_name);
+        return pv_mimimum.get(actual);
+    }
+
+    /** @param device_name
+     *  @return PV for range maximum, or <code>null</code>
+     */
+    public String getMaximumPV(final String device_name)
+    {
+        final String actual = resolveAlias(device_name);
+        return pv_maximum.get(actual);
     }
 
     /** Read device configuration from XML stream
@@ -227,11 +262,21 @@ public class ScanConfig
             final Optional<Double> slew_rate = XMLUtil.getChildDouble(pv, XML_SLEW_RATE);
             final Optional<String> name = XMLUtil.getChildString(pv, XML_NAME);
             if (name.isPresent())
-            {   // Got name, maybe with alias and slew rate
-                final String alias = XMLUtil.getChildString(pv, XML_ALIAS).orElse(name.get());
-                devices.add(new DeviceInfo(name.get(), alias));
-                if (slew_rate.isPresent())
-                    pv_slew_rates.put(name.get(), slew_rate.get());
+            {   // Got name, maybe with alias, slew rate, limits
+                final Optional<String> alias = XMLUtil.getChildString(pv, XML_ALIAS);
+                if (alias.isPresent())
+                {
+                    devices.add(new DeviceInfo(name.get(), alias.get()));
+                    aliases.put(alias.get(), name.get());
+                }
+                else
+                    devices.add(new DeviceInfo(name.get(), name.get()));
+
+                slew_rate.ifPresent(rate ->  pv_slew_rates.put(name.get(), rate));
+                XMLUtil.getChildString(pv, XML_MINIMUM)
+                       .ifPresent(limit -> pv_mimimum.put(name.get(), limit));
+                XMLUtil.getChildString(pv, XML_MAXIMUM)
+                       .ifPresent(limit -> pv_maximum.put(name.get(), limit));
             }
             else
             {   // Check if it's a pattern, which then requires a slew rate
@@ -243,4 +288,5 @@ public class ScanConfig
             }
         }
     }
+
 }
