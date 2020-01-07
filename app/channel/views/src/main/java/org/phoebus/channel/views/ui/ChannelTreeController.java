@@ -20,6 +20,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
@@ -43,7 +44,7 @@ public class ChannelTreeController extends ChannelFinderController {
     @FXML
     Button configure;
     @FXML
-    Button connect;
+    CheckBox connect;
     @FXML
     TreeView<ChannelTreeByPropertyNode> treeView;
 
@@ -53,10 +54,7 @@ public class ChannelTreeController extends ChannelFinderController {
 
     @FXML
     public void initialize() {
-
-        if(model != null) {
-            model.dispose();
-        }
+        dispose();
         treeView.setCellFactory(f -> new ChannelTreeCell());
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         treeView.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
@@ -68,7 +66,10 @@ public class ChannelTreeController extends ChannelFinderController {
 
     @FXML
     public void dispose() {
-        model.dispose();
+        if(model != null)
+        {
+            model.dispose();
+        }
     }
 
     public void setQuery(String string) {
@@ -87,13 +88,13 @@ public class ChannelTreeController extends ChannelFinderController {
         reconstructTree();
     }
 
+    @FXML
     private void reconstructTree() {
-        if (model != null)
-            model.dispose();
-        model = new ChannelTreeByPropertyModel(query.getText(), channels, orderedProperties, true);
+        dispose();
+        model = new ChannelTreeByPropertyModel(query.getText(), channels, orderedProperties, true, connect.isSelected());
         ChannelTreeItem root = new ChannelTreeItem(model.getRoot());
         treeView.setRoot(root);
-        connect();
+        refreshPvValues();
     }
 
     /**
@@ -114,11 +115,10 @@ public class ChannelTreeController extends ChannelFinderController {
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     /**
-     * Connect the pv's and append their live values to the tree view of the
+     * Refreshes the values of the leaf pv's and append their live values to the tree view of the
      * channels.
      */
-    @FXML
-    public void connect() {
+    public void refreshPvValues() {
         scheduler.scheduleAtFixedRate(treeView::refresh, 0, 400, TimeUnit.MILLISECONDS);
     }
 

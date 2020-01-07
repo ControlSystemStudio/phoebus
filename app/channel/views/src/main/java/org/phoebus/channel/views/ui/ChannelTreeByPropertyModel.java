@@ -22,6 +22,8 @@ class ChannelTreeByPropertyModel {
     private ChannelTreeByPropertyNode root;
     final String query;
     private final boolean showChannelNames;
+    // Flag instructing the model to connect to the leaf pv's
+    private final boolean connect;
 
     List<Channel> allChannels;
     List<String> properties;
@@ -30,7 +32,7 @@ class ChannelTreeByPropertyModel {
     List<PV> nodePVs;
     Map<String, VType> nodePVValues;
 
-    public ChannelTreeByPropertyModel(String query, Collection<Channel> allChannels, List<String> properties, boolean showChannelNames) {
+    public ChannelTreeByPropertyModel(String query, Collection<Channel> allChannels, List<String> properties, boolean showChannelNames, boolean connect) {
         if (allChannels == null) {
             allChannels = Collections.emptyList();
         }
@@ -45,6 +47,7 @@ class ChannelTreeByPropertyModel {
 
         this.query = query;
         this.showChannelNames = showChannelNames;
+        this.connect = connect;
         this.root = new ChannelTreeByPropertyNode(this, null, query);
     }
 
@@ -54,6 +57,10 @@ class ChannelTreeByPropertyModel {
 
     public boolean isShowChannelNames() {
         return showChannelNames;
+    }
+
+    public boolean isConnect() {
+        return connect;
     }
 
     public void dispose() {

@@ -40,6 +40,13 @@ public class ChannelTreeByPropertyNode {
     // Parent of the node, or null if root
     private final ChannelTreeByPropertyNode parentNode;
 
+    /**
+     * Create the node in the channel tree ordered by a set of properties
+     * @param model
+     * @param parentNode
+     * @param displayName
+     * @param connect
+     */
     public ChannelTreeByPropertyNode(ChannelTreeByPropertyModel model, ChannelTreeByPropertyNode parentNode, String displayName) {
         this.model = model;
         this.parentNode = parentNode;
@@ -63,16 +70,18 @@ public class ChannelTreeByPropertyNode {
             for (Channel channel : parentNode.nodeChannels) {
                 if (this.displayName.equals(channel.getName())) {
                     nodeChannels.add(channel);
-                    try {
-                        final PV pv = PVPool.getPV(channel.getName());
-                        pv.onValueEvent().throttleLatest(100, TimeUnit.MILLISECONDS).subscribe(value -> {
-                            this.model.nodePVValues.put(pv.getName(), value);
-                        });
-                        this.model.nodePVs.add(pv);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    if(this.model.isConnect())
+                    {
+                        try {
+                            final PV pv = PVPool.getPV(channel.getName());
+                            pv.onValueEvent().throttleLatest(100, TimeUnit.MILLISECONDS).subscribe(value -> {
+                                this.model.nodePVValues.put(pv.getName(), value);
+                            });
+                            this.model.nodePVs.add(pv);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
-                    
                 }
             }
         } else {
