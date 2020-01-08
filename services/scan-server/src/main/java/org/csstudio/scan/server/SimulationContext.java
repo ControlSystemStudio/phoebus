@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2012-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,12 +7,24 @@
  ******************************************************************************/
 package org.csstudio.scan.server;
 
+import static org.csstudio.scan.server.ScanServerInstance.logger;
+
 import java.io.PrintStream;
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
+import org.csstudio.scan.device.DeviceInfo;
+import org.csstudio.scan.info.SimulationResult;
+import org.csstudio.scan.server.condition.WaitForDevicesCondition;
 import org.csstudio.scan.server.config.ScanConfig;
+import org.csstudio.scan.server.device.Device;
+import org.csstudio.scan.server.device.DeviceContext;
+import org.csstudio.scan.server.device.DeviceContextHelper;
 import org.csstudio.scan.server.device.SimulatedDevice;
 import org.csstudio.scan.server.internal.JythonSupport;
 import org.phoebus.framework.macros.MacroHandler;
@@ -24,12 +36,18 @@ import org.python.core.PyException;
 @SuppressWarnings("nls")
 public class SimulationContext
 {
-    final private ScanConfig simulation_info;
+    private final ScanConfig simulation_info;
     private final MacroContext macros;
 
-    final private Map<String, SimulatedDevice> devices = new HashMap<String, SimulatedDevice>();
+    /** Real devices, will be connected to check connection and
+     *  for reading limit PVs
+     */
+    private final DeviceContext real_devices = new DeviceContext();
 
-    final private PrintStream log_stream;
+    /** Simulated devices, will be written */
+    private final Map<String, SimulatedDevice> devices = new HashMap<>();
+
+    private final PrintStream log_stream;
 
     private final SimulationHook hook;
 
@@ -95,10 +113,19 @@ public class SimulationContext
         SimulatedDevice device = devices.get(expanded_name);
         if (device == null)
         {
-            device = new SimulatedDevice(expanded_name, simulation_info);
+            device = new SimulatedDevice(expanded_name, simulation_info, real_devices);
             devices.put(expanded_name, device);
         }
         return device;
+    }
+
+    /** Add error line to the simulation log
+     *  @param error Line describing the error
+     */
+    public void logError(final String error)
+    {
+        log_stream.print(SimulationResult.ERROR);
+        log_stream.println(error);
     }
 
     /** Log information about the currently simulated command
@@ -111,6 +138,58 @@ public class SimulationContext
         log_stream.print(" - ");
         log_stream.println(info);
         simulation_seconds += seconds;
+    }
+
+    /** Perform complete simulation: Check devices, sim commands, ...
+     *  @param scan Scan implementations to simulate
+     *  @throws Exception
+     */
+    public void performSimulation(final List<ScanCommandImpl<?>> scan) throws Exception
+    {
+        // Collect all devices used by the commands
+        DeviceContextHelper.addScanDevices(real_devices, macros, scan);
+
+        // Add min/max devices
+        final List<String> range_pvs = new ArrayList<>();
+        for (Device device : real_devices.getDevices())
+        {
+            String pv = simulation_info.getMinimumPV(device.getName());
+            if (pv != null)
+                range_pvs.add(pv);
+            pv = simulation_info.getMaximumPV(device.getName());
+            if (pv != null)
+                range_pvs.add(pv);
+        }
+        for (String pv : range_pvs)
+            real_devices.addPVDevice(new DeviceInfo(pv));
+
+        // Check connection
+        real_devices.startDevices();
+        try
+        {
+            logger.log(Level.INFO, "Check device connections...");
+            final WaitForDevicesCondition connect = new WaitForDevicesCondition(real_devices.getDevices());
+            final Duration timeout = ScanServerInstance.getScanConfig().getReadTimeout();
+            if (! connect.await(timeout.toMillis(), TimeUnit.MILLISECONDS))
+                for (Device device : real_devices.getDevices())
+                    if (! device.isReady())
+                        logError("Cannot access " + device);
+
+            // Simulate commands
+            try
+            {
+                simulate(scan);
+            }
+            catch (Exception ex)
+            {
+                logError(ex.getMessage());
+                logger.log(Level.WARNING, "Simulation fails", ex);
+            }
+        }
+        finally
+        {
+            real_devices.stopDevices();
+        }
     }
 
     /** @param scan Scan implementations to simulate

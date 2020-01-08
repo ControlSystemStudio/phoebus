@@ -53,13 +53,14 @@ public class MacroizedWidgetPropertyBinding
         (final ObservableValue<? extends Boolean> observable,
          final Boolean old_focus, final Boolean focus) ->
     {
-        // Gain focus -> active. Loose focus -> restore
-        updating = focus;
-        // This will restore the JFX control to the current value
-        // regardless if user 'entered' a new value, then looses
-        // focus, or just looses focus.
+        // Gain focus -> active. Loose focus -> submit 
+        updating = true;
+        // This will submit new value if looses focus.
         if (! focus)
-            restore();
+        {
+            submit(false);
+            updating = false;
+        }
     };
 
     private final EventHandler<KeyEvent> key_press_handler =
@@ -82,7 +83,7 @@ public class MacroizedWidgetPropertyBinding
             break;
         case ENTER:
             // Submit value, leave active state
-            submit();
+            submit(true);
             updating = false;
             break;
         default:
@@ -93,7 +94,7 @@ public class MacroizedWidgetPropertyBinding
 
     private final EventHandler<ActionEvent> action_handler = event ->
     {
-        submit();
+        submit(true);
         updating = false;
     };
 
@@ -124,19 +125,27 @@ public class MacroizedWidgetPropertyBinding
             ((TextField)jfx_node).setOnAction(null);
         jfx_node.setOnKeyPressed(null);
         widget_property.removePropertyListener(model_listener);
+        // Allow for submitting changes on picture background click
+        submit(false);
     }
 
-    private void submit()
+    private void submit(final boolean force)
     {
         final String text = jfx_node.getText().replaceAll("\\\\n", "\n").replaceAll("\\\\t", "\t");
-        undo.execute(new SetMacroizedWidgetPropertyAction(widget_property, text));
-        if (! other.isEmpty())
+        final boolean primary_changed = !widget_property.getSpecification().equals(text);
+        if (primary_changed)
+            undo.execute(new SetMacroizedWidgetPropertyAction(widget_property, text));
+        // For multiple selection:
+        // Block unintentional changes if field looses focus and there is no change in primary property
+        // Allow for ENTER to copy through a value in primary property without its explicit change
+        if ((! other.isEmpty()) && (force || primary_changed))
         {
             final String path = widget_property.getPath();
             for (Widget w : other)
             {
                 final MacroizedWidgetProperty<?> other_prop = (MacroizedWidgetProperty<?>) w.getProperty(path);
-                undo.execute(new SetMacroizedWidgetPropertyAction(other_prop, text));
+                if (!text.equals(other_prop.getSpecification()))
+                    undo.execute(new SetMacroizedWidgetPropertyAction(other_prop, text));
             }
         }
     }

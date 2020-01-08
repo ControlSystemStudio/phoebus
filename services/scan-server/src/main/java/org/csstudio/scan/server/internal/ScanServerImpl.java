@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -135,6 +135,7 @@ public class ScanServerImpl implements ScanServer
     public SimulationResult simulateScan(final String commands_as_xml)
             throws Exception
     {
+        logger.log(Level.INFO, "Starting simulation...");
         try
         (   // Create Jython interpreter for this scan
             final JythonSupport jython = new JythonSupport();
@@ -153,7 +154,7 @@ public class ScanServerImpl implements ScanServer
 
             // Simulate
             final SimulationContext simulation = new SimulationContext(jython, log_out);
-            simulation.simulate(scan);
+            simulation.performSimulation(scan);
 
             // Close log
             log_out.println("--------");
@@ -169,6 +170,7 @@ public class ScanServerImpl implements ScanServer
             scan.clear();
             commands.clear();
 
+            logger.log(Level.INFO, "Completed simulation.");
             return new SimulationResult(simulation.getSimulationSeconds(), log_text);
         }
         catch (Exception ex)

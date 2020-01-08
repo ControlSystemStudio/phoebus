@@ -46,7 +46,8 @@
        This check, however, needs to read the current value of the PV,
        so it also needs some timeout.
        Similarly, the Log command uses this timeout to fetch the current
-       value of the devices to log.
+       value of the devices to log
+       and the simulation uses this to await the connection of all PVs.
    -->
   <read_timeout>20</read_timeout>
   
@@ -103,6 +104,18 @@
     <name>motor_x</name>
     <alias>xpos</alias>
     <slew_rate>0.1</slew_rate>
+    
+    <!-- Minimum and maximum are PVs(!) that the
+         simulation checks when writing a value.
+         If configured, the value must be
+           minimum <= value <= maximum.
+           
+         The PVs are typically set to for example
+         the motor.LLM and motor.HLM.
+         'Local' PVs can be used to pass constant limits. 
+      -->
+    <minimum>loc://xmin(0)</minimum>
+    <maximum>loc://ymax(10)</maximum>
   </pv>
 
   <!-- In addition, a name_pattern is allowed

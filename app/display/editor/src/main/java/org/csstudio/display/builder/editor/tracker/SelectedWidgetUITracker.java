@@ -41,6 +41,7 @@ import org.phoebus.ui.undo.CompoundUndoableAction;
 import org.phoebus.ui.undo.UndoableAction;
 import org.phoebus.ui.undo.UndoableActionManager;
 
+import javafx.beans.value.ChangeListener;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Group;
@@ -310,28 +311,38 @@ public class SelectedWidgetUITracker extends Tracker
         if (property.getName().equals(CommonWidgetProperties.propPVName.getName()))
             PVAutocompleteMenu.INSTANCE.attachField(inline_editor);
 
-        // On enter, update the property. On Escape, just close.
+        // On enter or lost focus, update the property. On Escape, just close.
+        final ChangeListener<? super Boolean> focused_listener = (prop, old, focused) ->
+        {
+            if (! focused)
+            {
+                if (!property.getSpecification().equals(inline_editor.getText()))
+                    undo.execute(new SetMacroizedWidgetPropertyAction(property, inline_editor.getText()));
+                // Close when focus lost
+                closeInlineEditor();
+            }
+        };
+
         inline_editor.setOnAction(event ->
         {
             undo.execute(new SetMacroizedWidgetPropertyAction(property, inline_editor.getText()));
+            inline_editor.focusedProperty().removeListener(focused_listener);
             closeInlineEditor();
         });
+
         inline_editor.setOnKeyPressed(event ->
         {
             switch (event.getCode())
             {
             case ESCAPE:
                 event.consume();
+                inline_editor.focusedProperty().removeListener(focused_listener);
                 closeInlineEditor();
             default:
             }
         });
-        // Close when focus lost
-        inline_editor.focusedProperty().addListener((prop, old, focused) ->
-        {
-            if (! focused)
-                closeInlineEditor();
-        });
+
+        inline_editor.focusedProperty().addListener(focused_listener);
 
         inline_editor.selectAll();
         inline_editor.requestFocus();
