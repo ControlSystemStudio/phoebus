@@ -13,10 +13,8 @@ import org.phoebus.channelfinder.Property;
 import org.phoebus.channelfinder.Tag;
 import org.phoebus.channelfinder.utility.AddProperty2ChannelsJob;
 import org.phoebus.channelfinder.utility.AddTag2ChannelsJob;
-import org.phoebus.channelfinder.utility.ChannelSearchJob;
 import org.phoebus.channelfinder.utility.RemovePropertyChannelsJob;
 import org.phoebus.channelfinder.utility.RemoveTagChannelsJob;
-import org.phoebus.framework.adapter.AdapterFactory;
 import org.phoebus.framework.adapter.AdapterService;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.selection.SelectionService;
@@ -25,7 +23,6 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
-import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
