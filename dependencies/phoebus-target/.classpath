@@ -63,6 +63,7 @@
 	<classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-rest-high-level-client-6.4.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-secure-sm-6.4.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-x-content-6.4.2.jar"/>
+        <classpathentry exported="true" kind="lib" path="target/lib/lang-mustache-client-6.4.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/HdrHistogram-2.1.9.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/hppc-0.7.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="target/lib/httpasyncclient-4.1.2.jar"/>
