@@ -37,7 +37,7 @@ public class SVGHelperTest {
         InputStream is = getClass().getClassLoader().getResourceAsStream("interlock.svg");
 
         try {
-            Image image = SVGHelper.loadSVG(is);
+            Image image = SVGHelper.loadSVG(is, 400d, 400d);
 
             assertTrue(image.getHeight() > 0);
             assertTrue(image.getWidth() > 0);
@@ -53,7 +53,7 @@ public class SVGHelperTest {
     @Test(expected = Exception.class)
     public void testSVGHelperPngFile() throws Exception{
         InputStream is = getClass().getClassLoader().getResourceAsStream("interlock.png");
-        SVGHelper.loadSVG(is);
+        SVGHelper.loadSVG(is, 400d, 400d);
     }
 
     /**
@@ -63,7 +63,7 @@ public class SVGHelperTest {
     @Test(expected = Exception.class)
     public void testSVGHelperJpgFile() throws Exception{
         InputStream is = getClass().getClassLoader().getResourceAsStream("interlock.jpg");
-        SVGHelper.loadSVG(is);
+        SVGHelper.loadSVG(is, 400d, 400d);
     }
 
     /**
@@ -73,7 +73,7 @@ public class SVGHelperTest {
     @Test(expected = Exception.class)
     public void testSVGHelperGifFile() throws Exception{
         InputStream is = getClass().getClassLoader().getResourceAsStream("interlock.gif");
-        SVGHelper.loadSVG(is);
+        SVGHelper.loadSVG(is, 400d, 400d);
     }
 
     /**
@@ -83,6 +83,6 @@ public class SVGHelperTest {
     @Test(expected = Exception.class)
     public void testSVGHelperTiffFile() throws Exception{
         InputStream is = getClass().getClassLoader().getResourceAsStream("interlock.tiff");
-        SVGHelper.loadSVG(is);
+        SVGHelper.loadSVG(is, 400d, 400d);
     }
 }
