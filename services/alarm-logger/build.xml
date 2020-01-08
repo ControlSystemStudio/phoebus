@@ -19,6 +19,7 @@
       	<include name="dependencies/**/classmate*.jar"/>
       	<include name="dependencies/**/commons-codec*.jar"/>
       	<include name="dependencies/**/commons-logging*.jar"/>
+      	<include name="dependencies/**/compiler*.jar"/>
       	<include name="dependencies/**/connect-api*.jar"/>
       	<include name="dependencies/**/connect-json*.jar"/>
       	<include name="dependencies/**/elasticsearch-*.jar"/>
@@ -30,12 +31,16 @@
       	<include name="dependencies/**/httpcore-*.jar"/>
       	<include name="dependencies/**/jackson-*.jar"/>
       	<include name="dependencies/**/javax.annotation*.jar"/>
+      	<include name="dependencies/**/jboss*.jar"/>
       	<include name="dependencies/**/jna-*.jar"/>
       	<include name="dependencies/**/joda-time-*.jar"/>
       	<include name="dependencies/**/jopt-simple-*.jar"/>
+      	<include name="dependencies/**/jul-to-slf4j*.jar"/>
       	<include name="dependencies/**/kafka-clients-*.jar"/>
       	<include name="dependencies/**/kafka-streams-*.jar"/>
-      	<include name="dependencies/**/log4j-api-*.jar"/>
+      	<include name="dependencies/**/lang-mustache-client-*.jar"/>
+      	<include name="dependencies/**/log4j-*.jar"/>
+      	<include name="dependencies/**/logback-*.jar"/>
       	<include name="dependencies/**/lucene-*.jar"/>
         <include name="dependencies/**/lz4*.jar"/>
       	<include name="dependencies/**/parent-join-client-*.jar"/>
@@ -44,10 +49,9 @@
         <include name="dependencies/**/slf4j*.jar"/>
         <include name="dependencies/**/snakeyaml-*.jar"/>
       	<include name="dependencies/**/snappy-java-*.jar"/>
-        <include name="dependencies/**/t-digest-*.jar"/>
       	<include name="dependencies/**/spring-*.jar"/>
+        <include name="dependencies/**/t-digest-*.jar"/>
       	<include name="dependencies/**/tomcat-*.jar"/>
-      	<include name="dependencies/**/jboss*.jar"/>
       	<include name="dependencies/**/validation-api-2*.jar"/>
   	  	
       	<include name="core/**/core-framework-*.jar"/>
