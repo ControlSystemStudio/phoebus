@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -521,7 +521,8 @@ public class  RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
         plot.setUpdateThrottle(dormant_time, unit);
     }
 
-    // Used to request a complete redraw of the plot with new layout of node,
+    // requestCompleteUpdate() used to be called 'requestLayout', overriding the JFX method,
+    // to also request a complete redraw of the plot with new layout of node,
     // but that creates loops:
     // layout -> compute new image -> set image -> trigger another layout
     // @Override
@@ -530,7 +531,13 @@ public class  RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
     //     plot.requestLayout();
     // }
 
-    /** Request a complete redraw of the plot */
+    /** Request a complete redraw of the plot after new layout */
+    public void requestCompleteUpdate()
+    {
+        plot.requestLayout();
+    }
+
+    /** Request a complete redraw of the plot with current layout */
     public void requestUpdate()
     {
         plot.requestUpdate();

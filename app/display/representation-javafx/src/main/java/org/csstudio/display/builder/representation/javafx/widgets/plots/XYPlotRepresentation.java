@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,9 +15,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-import javafx.scene.control.Button;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -52,6 +49,7 @@ import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
 import org.phoebus.ui.javafx.UpdateThrottle;
 
+import javafx.scene.control.Button;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
@@ -253,7 +251,8 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
 
         private void traceChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
         {
-            trace.setName(model_trace.traceName().getValue());
+            // Changed trace name requires layout of axes and legend
+            boolean need_layout = trace.setName(model_trace.traceName().getValue());
             trace.setType(map(model_trace.traceType().getValue()));
             trace.setColor(JFXUtil.convert(model_trace.traceColor().getValue()));
             trace.setWidth(model_trace.traceWidth().getValue());
@@ -265,7 +264,10 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
             final int desired = model_trace.traceYAxis().getValue();
             if (desired != trace.getYAxis())
                 plot.moveTrace(trace, desired);
-            plot.requestUpdate();
+            if (need_layout)
+                plot.requestCompleteUpdate();
+            else
+                plot.requestUpdate();
         };
 
         // PV changed value -> runtime updated X/Y value property -> valueChanged()

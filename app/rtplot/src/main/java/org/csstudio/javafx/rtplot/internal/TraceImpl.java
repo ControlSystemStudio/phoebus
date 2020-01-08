@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -96,9 +96,12 @@ public class TraceImpl<XTYPE extends Comparable<XTYPE>> implements Trace<XTYPE>
 
     /** {@inheritDoc} */
     @Override
-    public void setName(final String name)
+    public boolean setName(final String name)
     {
-        this.name = Objects.requireNonNull(name);
+        if (this.name.equals(Objects.requireNonNull(name)))
+            return false;
+        this.name = name;
+        return true;
     }
 
     /** {@inheritDoc} */
