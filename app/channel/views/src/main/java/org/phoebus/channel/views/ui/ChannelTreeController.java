@@ -1,5 +1,6 @@
 package org.phoebus.channel.views.ui;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
 
 import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.ChannelUtil;
+import org.phoebus.framework.adapter.AdapterService;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.spi.ContextMenuEntry;
@@ -26,12 +28,11 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
-import javafx.scene.control.TreeTableView;
 import javafx.scene.control.TreeTableColumn.CellDataFeatures;
+import javafx.scene.control.TreeTableView;
+import javafx.scene.image.ImageView;
 import javafx.util.Callback;
 
 /**
@@ -84,7 +85,11 @@ public class ChannelTreeController extends ChannelFinderController {
         treeTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         treeTableView.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (newSelection != null) {
-                SelectionService.getInstance().setSelection(treeTableView, treeTableView.getSelectionModel().getSelectedItems());
+                final List<Channel> selectedChannels = new ArrayList<Channel>();
+                treeTableView.getSelectionModel().getSelectedItems().stream().forEach(item -> {
+                    selectedChannels.addAll(item.getValue().getNodeChannels());
+                });
+                SelectionService.getInstance().setSelection(treeTableView, selectedChannels);
             }
         });
     }
@@ -165,11 +170,22 @@ public class ChannelTreeController extends ChannelFinderController {
 
         List<ContextMenuEntry> contextEntries = ContextMenuService.getInstance().listSupportedContextMenuEntries();
         contextEntries.forEach(entry -> {
-            MenuItem item = new MenuItem(entry.getName());
+            MenuItem item = new MenuItem(entry.getName(), new ImageView(entry.getIcon()));
             item.setOnAction(e -> {
                 try {
-                    //final Stage stage = (Stage) listView.getScene().getWindow();
+                    SelectionService.getInstance().getSelection();
+                    ObservableList<TreeItem<ChannelTreeByPropertyNode>> old = treeTableView.getSelectionModel()
+                            .getSelectedItems();
+
+                    List<Object> supportedTypes = SelectionService.getInstance().getSelection().getSelections().stream()
+                            .map(s -> {
+                                return AdapterService.adapt(s, (Class) entry.getSupportedTypes().get(0)).get();
+                            }).collect(Collectors.toList());
+                    // set the selection
+                    SelectionService.getInstance().setSelection(treeTableView, supportedTypes);
                     entry.callWithSelection(SelectionService.getInstance().getSelection());
+                    // reset the selection
+                    SelectionService.getInstance().setSelection(treeTableView, old);
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
