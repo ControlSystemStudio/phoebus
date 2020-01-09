@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -36,6 +36,7 @@ import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.persist.XMLTags;
+import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.RotationStep;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
@@ -144,8 +145,23 @@ public class ActionButtonWidget extends VisibleWidget
             final ActionButtonWidget button = (ActionButtonWidget)widget;
             final MacroizedWidgetProperty<String> tooltip = (MacroizedWidgetProperty<String>) button.propTooltip();
             if (xml_version.getMajor() < 3)
+            {
                 // See getInitialTooltip()
                 tooltip.setSpecification(tooltip.getSpecification().replace("pv_value", "actions"));
+
+                // In BOY, individual actions could have a <confirm_message>
+                // This has been simplified to an overall confirmation setting for the button,
+                // so move the (last) confirm message from action(s) to the button.
+                final Element actions = XMLUtil.getChildElement(xml, CommonWidgetProperties.propActions.getName());
+                if (actions != null)
+                    for (Element action : XMLUtil.getChildElements(actions, XMLTags.ACTION))
+                        XMLUtil.getChildString(action, propConfirmMessage.getName())
+                               .ifPresent(message ->
+                                          {
+                                              button.propConfirmMessage().setValue(message);
+                                              button.propConfirmDialog().setValue(true);
+                                          });
+            }
             // If there is no pv_name, remove from tool tip
             if ( ((MacroizedWidgetProperty<String>)button.pv_name).getSpecification().isEmpty())
                 tooltip.setSpecification(tooltip.getSpecification().replace("$(pv_name)\n", ""));
