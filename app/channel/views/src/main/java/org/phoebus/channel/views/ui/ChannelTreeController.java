@@ -15,6 +15,8 @@ import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -26,7 +28,11 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
+import javafx.scene.control.TreeTableCell;
+import javafx.scene.control.TreeTableColumn;
+import javafx.scene.control.TreeTableView;
+import javafx.scene.control.TreeTableColumn.CellDataFeatures;
+import javafx.util.Callback;
 
 /**
  * Controller for the Tree view of Channels based on a set of selected properties
@@ -45,7 +51,12 @@ public class ChannelTreeController extends ChannelFinderController {
     @FXML
     CheckBox connect;
     @FXML
-    TreeView<ChannelTreeByPropertyNode> treeView;
+    TreeTableView<ChannelTreeByPropertyNode> treeTableView;
+
+    @FXML
+    TreeTableColumn<ChannelTreeByPropertyNode, String> node;
+    @FXML
+    TreeTableColumn<ChannelTreeByPropertyNode, String> value;
 
     private List<String> orderedProperties = Collections.emptyList();
     private Collection<Channel> channels = Collections.emptyList();
@@ -54,11 +65,26 @@ public class ChannelTreeController extends ChannelFinderController {
     @FXML
     public void initialize() {
         dispose();
-        treeView.setCellFactory(f -> new ChannelTreeCell());
-        treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        treeView.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+
+        node.setCellValueFactory(new Callback<TreeTableColumn.CellDataFeatures<ChannelTreeByPropertyNode,String>, ObservableValue<String>>() {
+            
+            @Override
+            public ObservableValue<String> call(CellDataFeatures<ChannelTreeByPropertyNode, String> cellValue) {
+                return new ReadOnlyStringWrapper(cellValue.getValue().getValue().getDisplayName());
+            }
+        });
+        value.setCellValueFactory(new Callback<TreeTableColumn.CellDataFeatures<ChannelTreeByPropertyNode,String>, ObservableValue<String>>() {
+            
+            @Override
+            public ObservableValue<String> call(CellDataFeatures<ChannelTreeByPropertyNode, String> cellValue) {
+                return new ReadOnlyStringWrapper(cellValue.getValue().getValue().getDisplayValue());
+            }
+        });
+
+        treeTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        treeTableView.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (newSelection != null) {
-                SelectionService.getInstance().setSelection(treeView, treeView.getSelectionModel().getSelectedItems());
+                SelectionService.getInstance().setSelection(treeTableView, treeTableView.getSelectionModel().getSelectedItems());
             }
         });
     }
@@ -95,7 +121,7 @@ public class ChannelTreeController extends ChannelFinderController {
         dispose();
         model = new ChannelTreeByPropertyModel(query.getText(), channels, orderedProperties, true, connect.isSelected());
         ChannelTreeItem root = new ChannelTreeItem(model.getRoot());
-        treeView.setRoot(root);
+        treeTableView.setRoot(root);
         refreshPvValues();
     }
 
@@ -121,7 +147,7 @@ public class ChannelTreeController extends ChannelFinderController {
      * channels.
      */
     public void refreshPvValues() {
-        scheduler.scheduleAtFixedRate(treeView::refresh, 0, 400, TimeUnit.MILLISECONDS);
+        scheduler.scheduleAtFixedRate(treeTableView::refresh, 0, 400, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -151,9 +177,13 @@ public class ChannelTreeController extends ChannelFinderController {
             contextMenu.getItems().add(item);
         });
 
-        treeView.setContextMenu(contextMenu);
+        treeTableView.setContextMenu(contextMenu);
     }
 
+    /**
+     * An implementation for the {@link TreeItem} which dynamically creates the children when required.
+     * @author Kunal Shroff
+     */
     private final class ChannelTreeItem extends TreeItem<ChannelTreeByPropertyNode> {
 
         private boolean isFirstTimeLeaf = true;
@@ -196,22 +226,5 @@ public class ChannelTreeController extends ChannelFinderController {
             return children;
         }
     }
-
-    private final class ChannelTreeCell extends TreeCell<ChannelTreeByPropertyNode> {
-
-        @Override
-        protected void updateItem(ChannelTreeByPropertyNode node, boolean empty) {
-            super.updateItem(node, empty);
-            if (node != null) {
-                setText(node.getDisplayName());
-            } else {
-                setText(null);
-                setTooltip(null);
-                setContextMenu(null);
-                setGraphic(null);
-            }
-        }
-    }
-
 
 }

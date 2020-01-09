@@ -132,30 +132,32 @@ public class ChannelTreeByPropertyNode {
 
     public String getDisplayName()
     {
-        if (model.nodePVValues.containsKey(displayName))
-        {
-            return displayName + formatVType(model.nodePVValues.get(displayName));
-        }
         return displayName;
     }
-    
+
+    public String getDisplayValue()
+    {
+        if (model.nodePVValues.containsKey(displayName))
+        {
+            return formatVType(model.nodePVValues.get(displayName));
+        }
+        return null;
+    }
+
     private String formatVType(VType value )
     {
         Alarm alarm = Alarm.alarmOf(value);
         StringBuffer sb = new StringBuffer();
-        sb.append(" [ ")
-          .append(FormatOptionHandler.format(value, FormatOption.DEFAULT, -1, true));
+        sb.append(FormatOptionHandler.format(value, FormatOption.DEFAULT, -1, true));
         if (!alarm.getSeverity().equals(AlarmSeverity.NONE)) 
         {
-            sb.append(" ");
             sb.append(alarm.getSeverity().toString());
         }
         if (!alarm.getStatus().equals(AlarmStatus.NONE))
         {
-            sb.append(" ");
+            sb.append(" - ");
             sb.append(alarm.getStatus().toString());
         }
-        sb.append(" ] ");
         return sb.toString();
     }
 
