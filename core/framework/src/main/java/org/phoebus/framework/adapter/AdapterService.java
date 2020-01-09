@@ -64,8 +64,8 @@ public class AdapterService {
      * @return List of {@link AdapterFactory}s that can handle cls
      */
     public static List<AdapterFactory> getAdaptersforAdaptable(Class cls) {
-        if(adaptables.get(cls.getName()) != null) {
-            return adaptables.get(cls.getName());
+        if(adaptables.get(cls) != null) {
+            return adaptables.get(cls);
         } else {
             return Collections.emptyList();
         }
