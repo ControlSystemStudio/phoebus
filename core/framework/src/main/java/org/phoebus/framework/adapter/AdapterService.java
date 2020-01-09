@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
+import java.util.stream.Collectors;
 
 /**
  * A service which manages the conversion of different types of selection from one type to another.
@@ -21,7 +22,13 @@ public class AdapterService {
 
     private static ServiceLoader<AdapterFactory> loader;
 
+    /**
+     * A map where the key is a type mapped to a list of adapter that can convert to this type.
+     */
     private static Map<Class, List<AdapterFactory>> adapters = new HashMap<Class, List<AdapterFactory>>();
+    /**
+     * A map where the key is a type mapped to a list of adapters that can process this type to other types.
+     */
     private static Map<Class, List<AdapterFactory>> adaptables = new HashMap<Class, List<AdapterFactory>>();
 
     static {
@@ -75,7 +82,9 @@ public class AdapterService {
         if(adapterType.isInstance(adaptableObject)) {
             return Optional.of(adapterType.cast(adaptableObject));
         }
-        List<AdapterFactory> factories = AdapterService.getAdaptersforAdaptable(adapterType);
+        List<AdapterFactory> factories = AdapterService.getAdaptersforAdaptable(adaptableObject.getClass()).stream().filter(factory -> {
+            return factory.getAdapterList().contains(adapterType);
+        }).collect(Collectors.toList());
         return factories.get(0).adapt(adaptableObject, adapterType);
         
     }

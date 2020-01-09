@@ -41,9 +41,13 @@ public class ContextMenuService {
     }
 
     /**
-     *
-     * @param selectionType
-     * @return
+     * Using the current selection from the {@link SelectionService} and checking
+     * the {@link AdapterService} for all additionally supported types via adapters.
+     * The {@link ContextMenuService} returns a list of context menu actions
+     * supported for the current selection.
+     * 
+     * @return A list of {@link ContextMenuEntry}'s supported for the current
+     *         selection
      */
     public List<ContextMenuEntry> listSupportedContextMenuEntries() {
         // List of types of the current selection
