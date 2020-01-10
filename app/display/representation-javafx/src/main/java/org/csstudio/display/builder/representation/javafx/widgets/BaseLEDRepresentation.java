@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -252,7 +252,39 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
             {
                 label.setText(value_label);
                 label.layout();
+
+                // In edit mode, the color is a gradient of all options
+                if (! toolkit.isEditMode())
+                {
+                    // In runtime mode, it's an actual color.
+                    // Compare brightness of LED with text.
+                    final Color color = (Color) value_color;
+                    Color text_color = JFXUtil.convert(model_widget.propForegroundColor().getValue());
+                    final double text_brightness = getBrightness(text_color),
+                                 brightness      = getBrightness(color);
+                    if (Math.abs(text_brightness - brightness) < 350)
+                    {   // Colors of text and LED are very close in brightness.
+                        // Make text visible by forcing black resp. white
+                        if (brightness > BRIGHT_THRESHOLD)
+                            label.setTextFill(Color.BLACK);
+                        else
+                            label.setTextFill(Color.WHITE);
+                    }
+                    else
+                        label.setTextFill(text_color);
+                }
             }
         }
+    }
+
+    // Brightness weightings from BOY
+    // https://github.com/ControlSystemStudio/cs-studio/blob/master/applications/opibuilder/opibuilder-plugins/org.csstudio.swt.widgets/src/org/csstudio/swt/widgets/figures/LEDFigure.java
+    // Original RGB was 0..255 with dark/bright threshold 105000
+    // JFX color uses RGB 0..1, so threshold becomes 105000/255 ~ 410
+    public static final double BRIGHT_THRESHOLD = 410;
+
+    public static double getBrightness(final Color color)
+    {
+        return color.getRed() * 299 + color.getGreen() * 587 + color.getBlue() * 114;
     }
 }
