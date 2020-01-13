@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import org.phoebus.ui.javafx.EditCell;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
@@ -44,7 +45,6 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -63,17 +63,14 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableView.TableViewSelectionModel;
-import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.util.converter.DefaultStringConverter;
 
 /** Dialog for editing {@link RuleInfo}s
  *  @author Megan Grodowitz
@@ -668,41 +665,15 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         final TableColumn<RuleItem, String> name_col = new TableColumn<>(Messages.RulesDialog_ColName);
 
         name_col.setCellValueFactory(new PropertyValueFactory<RuleItem, String>("name"));
-        name_col.setCellFactory(list -> new TextFieldTableCell<>(new DefaultStringConverter())
-        {
-            private final ChangeListener<? super Boolean> focusedListener = (ob, o, n) ->
-            {
-                if (!n)
-                    cancelEdit();
-            };
 
-            @Override
-            public void cancelEdit()
-            {
-                ( (TextField) getGraphic() ).focusedProperty().removeListener(focusedListener);
-                super.cancelEdit();
-            }
+        name_col.setCellFactory(list -> EditCell.createStringEditCell());
 
-            @Override
-            public void commitEdit(final String newValue)
-            {
-                ( (TextField) getGraphic() ).focusedProperty().removeListener(focusedListener);
-                super.commitEdit(newValue);
-                Platform.runLater( ( ) -> btn_add_pv.requestFocus());
-            }
-
-            @Override
-            public void startEdit()
-            {
-                super.startEdit();
-                ( (TextField) getGraphic() ).focusedProperty().addListener(focusedListener);
-            }
-        });
         name_col.setOnEditCommit(event ->
         {
             final int row = event.getTablePosition().getRow();
             rule_items.get(row).name.set(event.getNewValue());
             fixupRules(row);
+            Platform.runLater( ( ) -> btn_add_pv.requestFocus());
         });
 
         rules_table = new TableView<>(rule_items);
@@ -835,15 +806,21 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         final TableColumn<ExprItem<?>, String> bool_exp_col = new TableColumn<>(Messages.RulesDialog_ColBoolExp);
         bool_exp_col.setSortable(false);
         bool_exp_col.setCellValueFactory(new PropertyValueFactory<ExprItem<?>, String>("boolExp"));
+        TableCell booleanExpressionTableCell = EditCell.createStringEditCell();
+        //booleanExpressionTableCell.setAlignment(Pos.CENTER_LEFT);
+        bool_exp_col.setCellFactory(tableColumn -> EditCell.createStringEditCell());
+
+
+        /*
         bool_exp_col.setCellFactory(tableColumn -> new TextFieldTableCell<>(new DefaultStringConverter())
         {
             private final ChangeListener<? super Boolean> focusedListener = (ob, o, n) ->
             {
-                if (!n)
-                    cancelEdit();
+                if (!n) {
+                    // Focus lost, commit value
+                    commitEdit(((TextField)getGraphic()).getText());
+                }
             };
-
-            /* Instance initializer. */
             {
                 setAlignment(Pos.CENTER_LEFT);
             }
@@ -851,14 +828,14 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
             @Override
             public void cancelEdit()
             {
-                ( (TextField) getGraphic() ).focusedProperty().removeListener(focusedListener);
+                getGraphic().focusedProperty().removeListener(focusedListener);
                 super.cancelEdit();
             }
 
             @Override
             public void commitEdit (final String newValue)
             {
-                ( (TextField) getGraphic() ).focusedProperty().removeListener(focusedListener);
+                getGraphic().focusedProperty().removeListener(focusedListener);
                 super.commitEdit(newValue);
             }
 
@@ -866,9 +843,13 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
             public void startEdit()
             {
                 super.startEdit();
-                ( (TextField) getGraphic() ).focusedProperty().addListener(focusedListener);
+                getGraphic().focusedProperty().addListener(focusedListener);
             }
         });
+
+         */
+
+
 
         // Create table with editable rule 'value expression' column
         final TableColumn<ExprItem<?>, Node> val_exp_col = new TableColumn<>(Messages.RulesDialog_ColValExp);
