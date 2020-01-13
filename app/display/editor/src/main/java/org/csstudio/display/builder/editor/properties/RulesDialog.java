@@ -806,50 +806,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         final TableColumn<ExprItem<?>, String> bool_exp_col = new TableColumn<>(Messages.RulesDialog_ColBoolExp);
         bool_exp_col.setSortable(false);
         bool_exp_col.setCellValueFactory(new PropertyValueFactory<ExprItem<?>, String>("boolExp"));
-        TableCell booleanExpressionTableCell = EditCell.createStringEditCell();
-        //booleanExpressionTableCell.setAlignment(Pos.CENTER_LEFT);
         bool_exp_col.setCellFactory(tableColumn -> EditCell.createStringEditCell());
-
-
-        /*
-        bool_exp_col.setCellFactory(tableColumn -> new TextFieldTableCell<>(new DefaultStringConverter())
-        {
-            private final ChangeListener<? super Boolean> focusedListener = (ob, o, n) ->
-            {
-                if (!n) {
-                    // Focus lost, commit value
-                    commitEdit(((TextField)getGraphic()).getText());
-                }
-            };
-            {
-                setAlignment(Pos.CENTER_LEFT);
-            }
-
-            @Override
-            public void cancelEdit()
-            {
-                getGraphic().focusedProperty().removeListener(focusedListener);
-                super.cancelEdit();
-            }
-
-            @Override
-            public void commitEdit (final String newValue)
-            {
-                getGraphic().focusedProperty().removeListener(focusedListener);
-                super.commitEdit(newValue);
-            }
-
-            @Override
-            public void startEdit()
-            {
-                super.startEdit();
-                getGraphic().focusedProperty().addListener(focusedListener);
-            }
-        });
-
-         */
-
-
 
         // Create table with editable rule 'value expression' column
         final TableColumn<ExprItem<?>, Node> val_exp_col = new TableColumn<>(Messages.RulesDialog_ColValExp);
