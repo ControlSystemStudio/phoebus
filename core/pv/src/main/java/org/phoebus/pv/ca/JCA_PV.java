@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -229,9 +229,9 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
 
         try
         {
-            logger.log(Level.FINE, getName() + " subscribes");
             final int mask = JCA_Preferences.getInstance().getMonitorMask();
             final int request_count = JCAContext.getInstance().getRequestCount(channel);
+            logger.log(Level.FINE, getName() + " subscribes with count = " + request_count);
             final Monitor new_monitor = channel.addMonitor(DBRHelper.getTimeType(plain_dbr, channel.getFieldType()), request_count, mask, this);
 
             final Monitor old_monitor = value_monitor.getAndSet(new_monitor);
@@ -258,6 +258,7 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
                 Monitor old_metadata_monitor = null;
                 try
                 {
+                    logger.log(Level.FINE, getName() + " subscribes to 'property' changes");
                     old_metadata_monitor = metadata_monitor.getAndSet(
                         channel.addMonitor(meta_request, request_count, Monitor.PROPERTY, meta_change_listener));
 
