@@ -33,6 +33,9 @@ public class ChannelTree implements AppInstance {
             tab = new DockItem(this, loader.load());
             controller = loader.getController();
             controller.setClient(app.getClient());
+            tab.addClosedNotification(() -> {
+                controller.dispose();
+            });
             DockPane.getActiveDockPane().addTab(tab);
         } catch (IOException e) {
             Logger.getLogger(getClass().getName()).log(Level.WARNING, "Cannot load UI", e);

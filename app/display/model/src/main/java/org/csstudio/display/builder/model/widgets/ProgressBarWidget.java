@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -25,9 +25,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.phoebus.framework.persistence.XMLUtil;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Text;
 
 /** Widget that displays a progress bar
  *  @author Kay Kasemir
@@ -51,7 +49,6 @@ public class ProgressBarWidget extends PVWidget
         }
     };
 
-    //TODO: BOY thermometer where show bulb property false
     /** Widget configurator to read legacy *.opi files*/
     private static class ProgressBarConfigurator extends WidgetConfigurator
     {
@@ -64,17 +61,24 @@ public class ProgressBarWidget extends PVWidget
         public boolean configureFromXML(final ModelReader model_reader, final Widget widget, final Element xml)
                 throws Exception
         {
-            //Legacy tank widget was always vertical; needs horizontal=false
-            if (xml_version.getMajor() < 2 && XMLUtil.getChildElement(xml, propHorizontal.getName()) == null)
+            super.configureFromXML(model_reader, widget, xml);
+
+            if (xml_version.getMajor() < 2)
             {
-                final Document doc = xml.getOwnerDocument();
-                final Element new_el = doc.createElement(propHorizontal.getName());
-                final Text falze = doc.createTextNode("false");
-                new_el.appendChild(falze);
-                xml.appendChild(new_el);
+                // BOY progress bar reserved room on top for limit markers,
+                // and on bottom for scale
+                if (XMLUtil.getChildBoolean(xml, "show_markers").orElse(true))
+                {
+                    // This widget has no markers on top, so move widget down and reduce height.
+                    // There is no 'marker font', seems to have constant height
+                    final int reduce = 25;
+                    widget.propY().setValue(widget.propY().getValue() + reduce);
+                    widget.propHeight().setValue(widget.propHeight().getValue() - reduce);
+                }
+                // Do use space below where BOY placed markers for the bar itself.
+                // In the future, there could be a scale.
             }
 
-            super.configureFromXML(model_reader, widget, xml);
             return true;
         }
     }

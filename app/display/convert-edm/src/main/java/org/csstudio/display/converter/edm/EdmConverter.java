@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -26,10 +27,12 @@ import java.util.stream.Collectors;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.properties.ActionInfos;
+import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.converter.edm.widgets.ConverterBase;
 import org.csstudio.opibuilder.converter.model.EdmDisplay;
@@ -351,6 +354,18 @@ public class EdmConverter
             for (int o=i+1;  o<list.size();  ++o)
             {
                 final Widget other = list.get(o);
+
+                // Ignore transparent...
+                Optional<WidgetProperty<Boolean>> check = other.checkProperty(CommonWidgetProperties.propTransparent);
+                if (check.isPresent()  && check.get().getValue())
+                    continue;
+
+                // .. or invisible widgets
+                check = other.checkProperty(CommonWidgetProperties.propVisible);
+                if (check.isPresent()  && !check.get().getValue())
+                    continue;
+
+                // Does other widget cover this one?
                 if (! isWidgetCovered(bottom, other))
                     continue;
 
