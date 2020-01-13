@@ -8,6 +8,8 @@
  */
 package org.csstudio.display.builder.representation.javafx;
 
+import javafx.event.Event;
+import javafx.scene.control.*;
 import org.csstudio.display.builder.model.properties.ScriptPV;
 import org.phoebus.ui.autocomplete.AutocompleteMenu;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
@@ -19,8 +21,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TextField;
 
 /**
  * Info class for property-based item table.
@@ -73,7 +73,6 @@ public class PVTableItem {
             this.focusedOnCommit = focusedOnCommit;
 
             setAlignment(Pos.CENTER_LEFT);
-
         }
 
         @Override
@@ -85,7 +84,19 @@ public class PVTableItem {
 
         @Override
         public void commitEdit ( String newValue ) {
-            super.commitEdit(newValue);
+            if (!isEditing() && !newValue.equals(getItem())) {
+                TableView table = getTableView();
+                if (table != null) {
+                    TableColumn column = getTableColumn();
+                    TableColumn.CellEditEvent event = new TableColumn.CellEditEvent(table,
+                            new TablePosition(table, getIndex(), column),
+                            TableColumn.editCommitEvent(), newValue);
+                    Event.fireEvent(column, event);
+                }
+            }
+            else {
+                super.commitEdit(newValue);
+            }
             Platform.runLater( ( ) -> focusedOnCommit.requestFocus());
         }
 
@@ -101,7 +112,6 @@ public class PVTableItem {
                 setGraphic(textField);
 
                 textField.selectAll();
-
             }
 
             Platform.runLater( ( ) -> textField.requestFocus());
@@ -142,7 +152,7 @@ public class PVTableItem {
                 textField.setOnAction(event -> commitEdit(textField.getText()));
                 textField.focusedProperty().addListener( ( ob, o, n ) -> {
                     if ( !n ) {
-                        cancelEdit();
+                        commitEdit(textField.getText());
                     }
                 });
                 PVAutocompleteMenu.INSTANCE.attachField(textField);

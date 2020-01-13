@@ -23,6 +23,7 @@ import org.csstudio.display.builder.representation.javafx.PVTableItem.AutoComple
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.MultiLineInputDialog;
+import org.phoebus.ui.javafx.EditCell;
 import org.phoebus.ui.javafx.LineNumberTableCellFactory;
 import org.phoebus.ui.javafx.TableHelper;
 
@@ -357,36 +358,8 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
         // Create table with editable script 'file' column
         scripts_name_col = new TableColumn<>(Messages.ScriptsDialog_ColScript);
         scripts_name_col.setCellValueFactory(new PropertyValueFactory<ScriptItem, String>("file"));
-        scripts_name_col.setCellFactory(col -> new TextFieldTableCell<>(new DefaultStringConverter())
-        {
-            private final ChangeListener<? super Boolean> focusedListener = (ob, o, n) ->
-            {
-                if (!n)
-                    cancelEdit();
-            };
+        scripts_name_col.setCellFactory(list -> EditCell.createStringEditCell());
 
-            @Override
-            public void cancelEdit()
-            {
-                ((TextField) getGraphic()).focusedProperty().removeListener(focusedListener);
-                super.cancelEdit();
-            }
-
-            @Override
-            public void startEdit()
-            {
-                super.startEdit();
-                ((TextField) getGraphic()).focusedProperty().addListener(focusedListener);
-            }
-
-            @Override
-            public void commitEdit(final String newValue)
-            {
-                ((TextField) getGraphic()).focusedProperty().removeListener(focusedListener);
-                super.commitEdit(newValue);
-                Platform.runLater(() -> btn_pv_add.requestFocus());
-            }
-        });
         scripts_name_col.setOnEditCommit(event ->
         {
             final int row = event.getTablePosition().getRow();
