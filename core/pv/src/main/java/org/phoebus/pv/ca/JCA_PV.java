@@ -203,13 +203,15 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
     {
         try
         {
+            logger.log(Level.FINE, () -> getName() + " get meta data");
             // With very old IOCs, could only get one element for Ctrl type.
             // With R3.15.5, fetching just one element for a record.INP$
             // (i.e. fetching the string as a BYTE[])
-            // crashes the IOC.
-            // --> Using the same request count as for the subscription
-            logger.log(Level.FINE, getName() + " get meta data");
-            final int request_count = JCAContext.getInstance().getRequestCount(channel);
+            // crashed the IOC, i.e. had to use same request count as for the subscription,
+            // request_count = JCAContext.getInstance().getRequestCount(channel);
+            // But that bug has been fixed in 3.15.6
+            // (https://bugs.launchpad.net/epics-base/+bug/1678494).
+            // so to optimize, only fetch one value element for the meta data.
             channel.get(DBRHelper.getCtrlType(plain_dbr, channel.getFieldType()), 1, meta_get_listener);
             channel.getContext().flushIO();
         }
