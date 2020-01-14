@@ -208,8 +208,9 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
             // (i.e. fetching the string as a BYTE[])
             // crashes the IOC.
             // --> Using the same request count as for the subscription
+            logger.log(Level.FINE, getName() + " get meta data");
             final int request_count = JCAContext.getInstance().getRequestCount(channel);
-            channel.get(DBRHelper.getCtrlType(plain_dbr, channel.getFieldType()), request_count, meta_get_listener);
+            channel.get(DBRHelper.getCtrlType(plain_dbr, channel.getFieldType()), 1, meta_get_listener);
             channel.getContext().flushIO();
         }
         catch (Exception ex)
