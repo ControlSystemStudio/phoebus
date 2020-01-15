@@ -86,10 +86,8 @@ public class OlogClient implements LogClient {
 
         private OlogProperties properties = new OlogProperties();
 
-        private static final String DEFAULT_OLOG_URL = "http://localhost:8080/Olog/resources"; //$NON-NLS-1$
-
         private OlogClientBuilder() {
-            this.ologURI = URI.create(this.properties.getPreferenceValue("olog_url", DEFAULT_OLOG_URL));
+            this.ologURI = URI.create(this.properties.getPreferenceValue("olog_url"));
             this.protocol = this.ologURI.getScheme();
         }
 
@@ -213,14 +211,14 @@ public class OlogClient implements LogClient {
                             }, sslContext));
                 }
             }
-            this.username = ifNullReturnPreferenceValue(this.username, "username", "username");
-            this.password = ifNullReturnPreferenceValue(this.password, "password", "password");
+            this.username = ifNullReturnPreferenceValue(this.username, "username");
+            this.password = ifNullReturnPreferenceValue(this.password, "password");
             return new OlogClient(this.ologURI, this.clientConfig, this.withHTTPAuthentication, this.username, this.password);
         }
 
-        private String ifNullReturnPreferenceValue(String value, String key, String Default) {
+        private String ifNullReturnPreferenceValue(String value, String key) {
             if (value == null) {
-                return this.properties.getPreferenceValue(key, Default);
+                return this.properties.getPreferenceValue(key);
             } else {
                 return value;
             }
@@ -228,8 +226,7 @@ public class OlogClient implements LogClient {
 
     }
 
-    private OlogClient(URI ologURI, ClientConfig config, boolean withHTTPBasicAuthFilter, String username,
-            String password) {
+    private OlogClient(URI ologURI, ClientConfig config, boolean withHTTPBasicAuthFilter, String username, String password) {
         config.getClasses().add(MultiPartWriter.class);
         Client client = Client.create(config);
         if (withHTTPBasicAuthFilter) {
@@ -239,7 +236,7 @@ public class OlogClient implements LogClient {
             client.addFilter(new RawLoggingFilter(Logger.getLogger(OlogClient.class.getName())));
         }
         client.setFollowRedirects(true);
-        service = client.resource(UriBuilder.fromUri(ologURI).build());
+        this.service = client.resource(UriBuilder.fromUri(ologURI).build());
     }
 
     @Override
@@ -434,26 +431,26 @@ public class OlogClient implements LogClient {
 
     @Override
     public Collection<LogEntry> set(Collection<LogEntry> xmlLogs) {
-        try {
-            String str = logEntryMapper.writeValueAsString(xmlLogs);
-            ClientResponse clientResponse = service.path("logs")
-                    .type(MediaType.APPLICATION_JSON)
-                    .accept(MediaType.APPLICATION_XML)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .post(ClientResponse.class, str);
-            if (clientResponse.getStatus() < 300) {
-                // XmlLogs responseLogs = clientResponse.getEntity(XmlLogs.class);
-                Collection<LogEntry> returnLogs = new HashSet<>();
-                // for (XmlLog xmllog : responseLogs.getLogs()) {
-                // returnLogs.add(xmllog);
-                // }
-                return Collections.unmodifiableCollection(returnLogs);
-            } else {
-                throw new UniformInterfaceException(clientResponse);
+        Collection<LogEntry> createdLogs = new HashSet<>();
+        xmlLogs.stream().forEachOrdered(log -> {
+
+            ClientResponse clientResponse;
+            try {
+                clientResponse = service.path("logs")
+                        .type(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_XML)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .post(ClientResponse.class, logEntryMapper.writeValueAsString(log));
+
+                if (clientResponse.getStatus() < 300) {
+                    createdLogs.add(clientResponse.getEntity(XmlLog.class));
+                } else {
+                    throw new UniformInterfaceException(clientResponse);
+                }
+            } catch (UniformInterfaceException | ClientHandlerException | JsonProcessingException e) {
+                e.printStackTrace();
             }
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        });
         return null;
     }
 
@@ -534,20 +531,6 @@ public class OlogClient implements LogClient {
         return Collections.unmodifiableList(logs);
     }
 
-    // private List<LogEntry> findLogs(MultivaluedMap<String, String> mMap) {
-    // List<LogEntry> logs = new ArrayList<LogEntry>();
-    // if (!mMap.containsKey("limit")) {
-    // mMap.putSingle("limit", "1");
-    // }
-    // XmlLogs xmlLogs =
-    // service.path("logs").queryParams(mMap).accept(MediaType.APPLICATION_XML)
-    // .accept(MediaType.APPLICATION_JSON).get(XmlLogs.class);
-    // for (XmlLog xmllog : xmlLogs.getLogs()) {
-    // logs.add(xmllog);
-    // }
-    // return Collections.unmodifiableList(logs);
-    // }
-
     @Override
     public List<LogEntry> findLogsByLogbook(String logbookName) {
         return findLogs("logbook", logbookName);
@@ -598,13 +581,19 @@ public class OlogClient implements LogClient {
     }
 
     @Override
+    public List<LogEntry> listLogs() {
+        List<LogEntry> logEntries = new ArrayList<>();
+        return logEntries;
+    }
+
+    @Override
     public Collection<Logbook> listLogbooks() {
         try {
-            Map<String, List<Logbook>> map = logEntryMapper.readValue(
+            List<Logbook> logbooks = logEntryMapper.readValue(
                     service.path("logbooks").accept(MediaType.APPLICATION_JSON).get(String.class),
-                    new TypeReference<Map<String, List<Logbook>>>() {
+                    new TypeReference<List<Logbook>>() {
             });
-            return map.get("logbook");
+            return logbooks;
         } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
             e.printStackTrace();
             return Collections.emptySet();
@@ -612,23 +601,13 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public List<LogEntry> listLogs() {
-        // XmlLogs xmlLogs =
-        // service.path("logs").accept(MediaType.APPLICATION_XML).accept(MediaType.APPLICATION_JSON)
-        // .get(XmlLogs.class);
-        List<LogEntry> logEntries = new ArrayList<>();
-        // logEntries.addAll(xmlLogs.getLogs());
-        return logEntries;
-    }
-
-    @Override
     public Collection<Property> listProperties() {
         try {
-            Map<String, List<Property>> map = logEntryMapper.readValue(
+            List<Property> properties = logEntryMapper.readValue(
                     service.path("properties").accept(MediaType.APPLICATION_JSON).get(String.class),
-                    new TypeReference<Map<String, List<Property>>>() {
+                    new TypeReference<List<Property>>() {
             });
-            return map.get("property");
+            return properties;
         } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
             e.printStackTrace();
             return Collections.emptySet();
@@ -638,11 +617,11 @@ public class OlogClient implements LogClient {
     @Override
     public Collection<Tag> listTags() {
         try {
-            Map<String, List<Tag>> map = logEntryMapper.readValue(
+            List<Tag> tags = logEntryMapper.readValue(
                     service.path("tags").accept(MediaType.APPLICATION_JSON).get(String.class),
-                    new TypeReference<Map<String, List<Tag>>>() {
+                    new TypeReference<List<Tag>>() {
             });
-            return map.get("tag");
+            return tags;
         } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
             e.printStackTrace();
             return Collections.emptySet();
