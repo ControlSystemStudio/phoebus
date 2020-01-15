@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -203,13 +203,16 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
     {
         try
         {
+            logger.log(Level.FINE, () -> getName() + " get meta data");
             // With very old IOCs, could only get one element for Ctrl type.
             // With R3.15.5, fetching just one element for a record.INP$
             // (i.e. fetching the string as a BYTE[])
-            // crashes the IOC.
-            // --> Using the same request count as for the subscription
-            final int request_count = JCAContext.getInstance().getRequestCount(channel);
-            channel.get(DBRHelper.getCtrlType(plain_dbr, channel.getFieldType()), request_count, meta_get_listener);
+            // crashed the IOC, i.e. had to use same request count as for the subscription,
+            // request_count = JCAContext.getInstance().getRequestCount(channel);
+            // But that bug has been fixed in 3.15.6
+            // (https://bugs.launchpad.net/epics-base/+bug/1678494).
+            // so to optimize, only fetch one value element for the meta data.
+            channel.get(DBRHelper.getCtrlType(plain_dbr, channel.getFieldType()), 1, meta_get_listener);
             channel.getContext().flushIO();
         }
         catch (Exception ex)
@@ -229,9 +232,9 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
 
         try
         {
-            logger.log(Level.FINE, getName() + " subscribes");
             final int mask = JCA_Preferences.getInstance().getMonitorMask();
             final int request_count = JCAContext.getInstance().getRequestCount(channel);
+            logger.log(Level.FINE, getName() + " subscribes with count = " + request_count);
             final Monitor new_monitor = channel.addMonitor(DBRHelper.getTimeType(plain_dbr, channel.getFieldType()), request_count, mask, this);
 
             final Monitor old_monitor = value_monitor.getAndSet(new_monitor);
@@ -258,6 +261,7 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
                 Monitor old_metadata_monitor = null;
                 try
                 {
+                    logger.log(Level.FINE, getName() + " subscribes to 'property' changes");
                     old_metadata_monitor = metadata_monitor.getAndSet(
                         channel.addMonitor(meta_request, request_count, Monitor.PROPERTY, meta_change_listener));
 

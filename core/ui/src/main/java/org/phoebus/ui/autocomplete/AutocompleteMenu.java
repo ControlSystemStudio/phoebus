@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -155,6 +155,7 @@ public class AutocompleteMenu
         field.addEventFilter(KeyEvent.KEY_PRESSED, key_pressed_filter);
         field.addEventFilter(KeyEvent.KEY_RELEASED, key_released_filter);
         field.focusedProperty().addListener(focused_listener);
+        XPasteBuffer.addMiddleClickPaste(field);
     }
 
     /** Detach a previously attached field from the completion menu.
@@ -175,6 +176,7 @@ public class AutocompleteMenu
         field.focusedProperty().removeListener(focused_listener);
         field.removeEventFilter(KeyEvent.KEY_RELEASED, key_released_filter);
         field.removeEventFilter(KeyEvent.KEY_PRESSED, key_pressed_filter);
+        XPasteBuffer.removeMiddleClickPaste(field);
     }
 
     /** Toggle menu on Ctrl-Space

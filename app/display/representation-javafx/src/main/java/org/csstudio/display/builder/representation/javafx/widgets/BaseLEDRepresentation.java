@@ -262,7 +262,7 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
                     Color text_color = JFXUtil.convert(model_widget.propForegroundColor().getValue());
                     final double text_brightness = getBrightness(text_color),
                                  brightness      = getBrightness(color);
-                    if (Math.abs(text_brightness - brightness) < 350)
+                    if (Math.abs(text_brightness - brightness) < SIMILARITY_THRESHOLD)
                     {   // Colors of text and LED are very close in brightness.
                         // Make text visible by forcing black resp. white
                         if (brightness > BRIGHT_THRESHOLD)
@@ -281,8 +281,15 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
     // https://github.com/ControlSystemStudio/cs-studio/blob/master/applications/opibuilder/opibuilder-plugins/org.csstudio.swt.widgets/src/org/csstudio/swt/widgets/figures/LEDFigure.java
     // Original RGB was 0..255 with dark/bright threshold 105000
     // JFX color uses RGB 0..1, so threshold becomes 105000/255 ~ 410
+    /** Threshold for considering a color 'bright', suggesting black for text */
     public static final double BRIGHT_THRESHOLD = 410;
 
+    /** Brightness differences below this are considered 'similar brightness' */
+    public static final double SIMILARITY_THRESHOLD = 350;
+
+    /** @param color Color
+     *  @return Weighed brightness
+     */
     public static double getBrightness(final Color color)
     {
         return color.getRed() * 299 + color.getGreen() * 587 + color.getBlue() * 114;

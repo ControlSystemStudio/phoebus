@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -60,6 +60,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
     private volatile boolean square_led = false;
 
     private volatile Shape[] leds = null;
+    private volatile Label[] labels = null;
 
 
     @Override
@@ -193,6 +194,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
             y += dy;
         }
         this.leds = leds;
+        this.labels = labels;
         pane.getChildren().setAll(leds);
         for (Label label : labels)
             if (label != null)
@@ -386,6 +388,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
         if (dirty_content.checkAndClear())
         {
             final Shape[] save_leds = leds;
+            final Label[] save_labels = labels;
             final Color[] save_values = value_colors;
             if (save_leds == null  ||  save_values == null)
                 return;
@@ -398,8 +401,29 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
                     leds[i].setFill(edit_colors);
             }
             else
+            {
+                final Color text_color = JFXUtil.convert(model_widget.propForegroundColor().getValue());
+                final double text_brightness = BaseLEDRepresentation.getBrightness(text_color);
                 for (int i = 0; i < N; i++)
+                {
                     leds[i].setFill(save_values[i]);
+                    if (save_labels[i] != null)
+                    {
+                        // Compare brightness of LED with text.
+                        final double brightness = BaseLEDRepresentation.getBrightness(save_values[i]);
+                        if (Math.abs(text_brightness - brightness) < BaseLEDRepresentation.SIMILARITY_THRESHOLD)
+                        {   // Colors of text and LED are very close in brightness.
+                            // Make text visible by forcing black resp. white
+                            if (brightness > BaseLEDRepresentation.BRIGHT_THRESHOLD)
+                                save_labels[i].setTextFill(Color.BLACK);
+                            else
+                                save_labels[i].setTextFill(Color.WHITE);
+                        }
+                        else
+                            save_labels[i].setTextFill(text_color);
+                    }
+                }
+            }
         }
     }
 }
