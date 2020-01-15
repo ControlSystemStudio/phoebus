@@ -34,10 +34,14 @@ import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.Tag;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -480,6 +484,23 @@ public class OlogClient implements LogClient {
     static SimpleModule module = new SimpleModule("CustomModel", Version.unknownVersion());
     static SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
 
+    static class PropertyDeserializer extends JsonDeserializer<XmlProperty> {
+
+        @Override
+        public XmlProperty deserialize(JsonParser jp, DeserializationContext ctxt) 
+          throws IOException, JsonProcessingException {
+            JsonNode node = jp.getCodec().readTree(jp);
+            String name = node.get("name").asText();
+            String owner = node.get("owner").asText();
+            String state = node.get("state").asText();
+            Map<String, String> attributes = new HashMap<String, String>();
+            node.get("attributes").iterator().forEachRemaining(n -> {
+                attributes.put(n.get("name").asText(), n.get("value").asText());
+            });
+            return new XmlProperty(name, attributes);
+        }
+    }
+    
     static {
         resolver.addMapping(Logbook.class, XmlLogbook.class);
         resolver.addMapping(Tag.class, XmlTag.class);
@@ -487,6 +508,7 @@ public class OlogClient implements LogClient {
         resolver.addMapping(Attachment.class, XmlAttachment.class);
         module.setAbstractTypes(resolver);
 
+        module.addDeserializer(XmlProperty.class, new PropertyDeserializer());
         logEntryMapper.registerModule(module);
         logEntryMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
