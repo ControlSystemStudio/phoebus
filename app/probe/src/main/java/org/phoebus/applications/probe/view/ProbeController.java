@@ -330,7 +330,8 @@ public class ProbeController {
             final Display dis = ((VNumber) value).getDisplay();
             buf.append(Messages.Units).append(dis.getUnit()).append("\n");
             buf.append(Messages.Format).append(dis.getFormat().format(0.123456789)).append("\n");
-            buf.append(Messages.Range).append(dis.getControlRange().getMinimum()).append(" .. ").append(dis.getControlRange().getMaximum()).append("\n");
+            buf.append(Messages.DisplayRange).append(dis.getDisplayRange().getMinimum()).append(" .. ").append(dis.getDisplayRange().getMaximum()).append("\n");
+            buf.append(Messages.ControlRange).append(dis.getControlRange().getMinimum()).append(" .. ").append(dis.getControlRange().getMaximum()).append("\n");
             buf.append(Messages.Warnings).append(dis.getWarningRange().getMinimum()).append(" .. ").append(dis.getWarningRange().getMaximum()).append("\n");
             buf.append(Messages.Alarms).append(dis.getAlarmRange().getMinimum()).append(" .. ").append(dis.getAlarmRange().getMaximum()).append("\n");
         }

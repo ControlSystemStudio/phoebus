@@ -20,7 +20,9 @@ public class Messages
     // ---
     public static String Alarm;
     public static String Alarms;
+    public static String ControlRange;
     public static String Copy;
+    public static String DisplayRange;
     public static String EnumLbls;
     public static String Format;
     public static String Precision;
@@ -29,7 +31,6 @@ public class Messages
     public static String ProbeMenuPath;
     public static String PromptTxt;
     public static String PvNameLbl;
-    public static String Range;
     public static String Search;
     public static String TimeStamp;
     public static String Units;
