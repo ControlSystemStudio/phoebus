@@ -469,14 +469,18 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
 
             if (display_info != null)
             {
-                double infoMin = display_info.getControlRange().getMinimum();
-                double infoMax = display_info.getControlRange().getMaximum();
-
-                if (!Double.isNaN(infoMin) && !Double.isNaN(infoMax) && infoMin < infoMax)
+                // Use control range, falling back to display
+                if (display_info.getControlRange().isFinite())
                 {
-                    newMin = infoMin;
-                    newMax = infoMax;
+                    newMin = display_info.getControlRange().getMinimum();
+                    newMax = display_info.getControlRange().getMaximum();
                 }
+                else if (display_info.getDisplayRange().isFinite())
+                {
+                    newMin = display_info.getDisplayRange().getMinimum();
+                    newMax = display_info.getDisplayRange().getMaximum();
+                }
+                // else: Leave at 0..100
             }
         }
 
