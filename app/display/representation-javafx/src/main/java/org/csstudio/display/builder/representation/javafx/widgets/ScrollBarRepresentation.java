@@ -245,8 +245,17 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
             final Display display_info = Display.displayOf(model_widget.runtimePropValue().getValue());
             if (display_info != null)
             {
-                min_val = display_info.getControlRange().getMinimum();
-                max_val = display_info.getControlRange().getMaximum();
+                // Use control range, falling back to display
+                if (display_info.getControlRange().isFinite())
+                {
+                    min_val = display_info.getControlRange().getMinimum();
+                    max_val = display_info.getControlRange().getMaximum();
+                }
+                else
+                {
+                    min_val = display_info.getDisplayRange().getMinimum();
+                    max_val = display_info.getDisplayRange().getMaximum();
+                }
                 final double delta = ( max_val - min_val );
                 block_val = delta / 10.0;
                 step_val = delta / 100.0;

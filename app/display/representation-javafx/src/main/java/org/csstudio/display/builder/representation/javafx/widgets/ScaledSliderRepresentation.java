@@ -265,8 +265,18 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
             final Display display_info = Display.displayOf(model_widget.runtimePropValue().getValue());
             if (display_info != null)
             {
-                new_min = display_info.getControlRange().getMinimum();
-                new_max = display_info.getControlRange().getMaximum();
+                // Should use the 'control' range but fall back to 'display' range
+                if (display_info.getControlRange().isFinite())
+                {
+                    new_min = display_info.getControlRange().getMinimum();
+                    new_max = display_info.getControlRange().getMaximum();
+                }
+                else
+                {
+                    new_min = display_info.getDisplayRange().getMinimum();
+                    new_max = display_info.getDisplayRange().getMaximum();
+                    // May also be empty, will fall back to 0..100
+                }
 
                 new_lolo = display_info.getAlarmRange().getMinimum();
 
