@@ -155,6 +155,7 @@ public class Messages
     public static String WidgetProperties_BarBackgroundColor;
     public static String WidgetProperties_BarColor;
     public static String WidgetProperties_Bit;
+    public static String WidgetProperties_ReadbackBit;
     public static String WidgetProperties_BorderAlarmSensitive;
     public static String WidgetProperties_BorderColor;
     public static String WidgetProperties_BorderWidth;

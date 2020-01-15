@@ -38,8 +38,11 @@ import javafx.scene.paint.Paint;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.Ellipse;
 
-/** Creates JavaFX item for model widget
- *  @author Megan Grodowitz
+/**
+ * Creates JavaFX item for model widget.
+ * If non-empty a read-back PV name is specified the state of the widget (LED, background or image) will
+ * be bound to that PV. The state of label is however always bound to the primary PV.
+ * @author Megan Grodowitz
  */
 @SuppressWarnings("nls")
 public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBase, BoolButtonWidget>
@@ -49,8 +52,11 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
     private final DirtyFlag dirty_value = new DirtyFlag();
     /** State: 0 or 1 */
     private volatile int on_state = 1;
+    private volatile int readbackOnState = 1;
     private volatile int use_bit = 0;
     private volatile Integer rt_value = 0;
+    private volatile Integer readbackRuntimeValue = 0;
+    private volatile int readbackBit = 0;
 
     // Design decision: Plain Button.
     // JFX ToggleButton appears natural to reflect two states,
@@ -81,6 +87,8 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
     private final WidgetPropertyListener<Integer> bitChangedListener = this::bitChanged;
     private final WidgetPropertyListener<Boolean> enablementChangedListener = this::enablementChanged;
     private final WidgetPropertyListener<VType> valueChangedListener = this::valueChanged;
+    private final WidgetPropertyListener<VType> readbackValueChangedListener = this::readbackValueChanged;
+    private final WidgetPropertyListener<Integer> readbackBitChangedListener = this::readbackBitChanged;
 
     @Override
     public ButtonBase createJFXNode() throws Exception
@@ -184,11 +192,16 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         model_widget.runtimePropPVWritable().addPropertyListener(enablementChangedListener);
         model_widget.propBit().addPropertyListener(bitChangedListener);
         model_widget.runtimePropValue().addPropertyListener(valueChangedListener);
+        model_widget.propReadbackPVName().addUntypedPropertyListener(representationChangedListener);
+        model_widget.propReadbackPVValue().addPropertyListener(readbackValueChangedListener);
+        model_widget.propReadbackBit().addPropertyListener(readbackBitChangedListener);
 
         imagesChanged(null, null, null);
         bitChanged(model_widget.propBit(), null, model_widget.propBit().getValue());
+        bitChanged(model_widget.propReadbackBit(), null, model_widget.propReadbackBit().getValue());
         enablementChanged(null, null, null);
         valueChanged(null, null, model_widget.runtimePropValue().getValue());
+        readbackValueChanged(null, null, model_widget.propReadbackPVValue().getValue());
     }
 
     @Override
@@ -210,20 +223,30 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         model_widget.runtimePropPVWritable().removePropertyListener(enablementChangedListener);
         model_widget.propBit().removePropertyListener(bitChangedListener);
         model_widget.runtimePropValue().removePropertyListener(valueChangedListener);
+        model_widget.propReadbackPVName().removePropertyListener(representationChangedListener);
+        model_widget.propReadbackPVValue().removePropertyListener(readbackValueChangedListener);
+        model_widget.propReadbackBit().removePropertyListener(readbackBitChangedListener);
         super.unregisterListeners();
     }
 
+    /**
+     * The state of the LED, background (if LED is disabled) and image is determined by either the
+     * primary PV, or by the read-back PV. The state of the label is always determined by the primary
+     * PV rumtime value, though.
+     */
     private void stateChanged()
     {
         on_state = ((use_bit < 0) ? (rt_value != 0) : (((rt_value >> use_bit) & 1) == 1)) ? 1 : 0;
-        value_color = state_colors[on_state];
+        readbackOnState = ((readbackBit < 0) ? (readbackRuntimeValue != 0) : (((readbackRuntimeValue >> readbackBit) & 1) == 1)) ? 1 : 0;
         value_label = state_labels[on_state];
-        value_image = state_images[on_state];
-
+        int indicatorState = model_widget.propReadbackPVName().getValue().isEmpty() ? on_state : readbackOnState;
+        value_color = state_colors[indicatorState];
+        value_image = state_images[indicatorState];
         // When LED is off, use the on/off colors for the background
-        if (model_widget.propShowLED().getValue() == false)
-            background = JFXUtil.shadedStyle(on_state == 0 ? model_widget.propOffColor().getValue() : model_widget.propOnColor().getValue());
+        if (model_widget.propShowLED().getValue() == false){
 
+            background = JFXUtil.shadedStyle(indicatorState == 0 ? model_widget.propOffColor().getValue() : model_widget.propOnColor().getValue());
+        }
         dirty_value.mark();
         toolkit.scheduleUpdate(this);
     }
@@ -234,11 +257,16 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         stateChanged();
     }
 
+    private void readbackBitChanged(final WidgetProperty<Integer> property, final Integer old_value, final Integer new_value)
+    {
+        readbackBit = new_value;
+        stateChanged();
+    }
+
     private void valueChanged(final WidgetProperty<VType> property, final VType old_value, final VType new_value)
     {
         if ((new_value instanceof VEnum)  &&
-            model_widget.propLabelsFromPV().getValue())
-        {
+                model_widget.propLabelsFromPV().getValue()){
             final List<String> labels = ((VEnum) new_value).getDisplay().getChoices();
             if (labels.size() == 2)
             {
@@ -248,6 +276,13 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         }
 
         rt_value = VTypeUtil.getValueNumber(new_value).intValue();
+
+        stateChanged();
+    }
+
+    private void readbackValueChanged(final WidgetProperty<VType> property, final VType old_value, final VType new_value)
+    {
+        readbackRuntimeValue =  VTypeUtil.getValueNumber(new_value).intValue();
         stateChanged();
     }
 
@@ -289,7 +324,12 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         };
 
         state_labels = new String[] { model_widget.propOffLabel().getValue(), model_widget.propOnLabel().getValue() };
-        value_color = state_colors[on_state];
+        if(model_widget.propReadbackPVName().getValue().isEmpty()){
+            value_color = state_colors[on_state];
+        }
+        else{
+            value_color = state_colors[readbackOnState];
+        }
         value_label = state_labels[on_state];
         dirty_representation.mark();
         toolkit.scheduleUpdate(this);

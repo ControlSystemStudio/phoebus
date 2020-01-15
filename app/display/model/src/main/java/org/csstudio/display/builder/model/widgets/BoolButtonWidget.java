@@ -7,22 +7,6 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.widgets;
 
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newBooleanPropertyDescriptor;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newFilenamePropertyDescriptor;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBit;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmDialogOptions;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmMessage;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLabelsFromPV;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propOffColor;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propOffLabel;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propOnColor;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propOnLabel;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPassword;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -40,15 +24,16 @@ import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
-import org.csstudio.display.builder.model.properties.ConfirmDialog;
-import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
-import org.csstudio.display.builder.model.properties.WidgetColor;
-import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.csstudio.display.builder.model.properties.*;
+import org.epics.vtype.VType;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 
-/** Widget that provides button for making a binary change
- *  @author Megan Grodowitz
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.*;
+
+/**
+ * Widget that provides button for making a binary change.
+ * @author Megan Grodowitz
  */
 @SuppressWarnings("nls")
 public class BoolButtonWidget extends WritablePVWidget
@@ -124,6 +109,13 @@ public class BoolButtonWidget extends WritablePVWidget
         newFilenamePropertyDescriptor(WidgetPropertyCategory.DISPLAY, "on_image", Messages.WidgetProperties_OnImage);
     private static final WidgetPropertyDescriptor<Boolean> propShowLED =
         newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "show_led", Messages.WidgetProperties_ShowLED);
+    public static final WidgetPropertyDescriptor<String> propReadbackPVName =
+            CommonWidgetProperties.newPVNamePropertyDescriptor(WidgetPropertyCategory.WIDGET, "readback_pv_name", Messages.WidgetProperties_ReadbackPVName);
+    public static final WidgetPropertyDescriptor<VType> propReadbackPVValue =
+            CommonWidgetProperties.newRuntimeValue("readback_pv_value", Messages.WidgetProperties_ReadbackPVValue);
+    public static final WidgetPropertyDescriptor<Integer> propReadbackBit =
+            newIntegerPropertyDescriptor(WidgetPropertyCategory.WIDGET, "readback_bit", Messages.WidgetProperties_ReadbackBit);
+
     public static final WidgetPropertyDescriptor<Mode> propMode =
         new WidgetPropertyDescriptor<>(WidgetPropertyCategory.BEHAVIOR, "mode", Messages.BoolWidget_Mode)
     {
@@ -141,6 +133,9 @@ public class BoolButtonWidget extends WritablePVWidget
     private volatile WidgetProperty<String> on_label;
     private volatile WidgetProperty<WidgetColor> on_color;
     private volatile WidgetProperty<String> on_image;
+    private volatile WidgetProperty<String> readbackPVName;
+    private volatile WidgetProperty<VType> readbackPVValue;
+    private volatile WidgetProperty<Integer> readbackBit;
     private volatile WidgetProperty<Boolean> show_LED;
     private volatile WidgetProperty<WidgetFont> font;
     private volatile WidgetProperty<WidgetColor> background;
@@ -185,6 +180,9 @@ public class BoolButtonWidget extends WritablePVWidget
         properties.add(confirm_dialog = propConfirmDialogOptions.createProperty(this, ConfirmDialog.NONE));
         properties.add(confirm_message = propConfirmMessage.createProperty(this, "Are your sure you want to do this?"));
         properties.add(password = propPassword.createProperty(this, ""));
+        properties.add(readbackPVName = propReadbackPVName.createProperty(this, ""));
+        properties.add(readbackPVValue = propReadbackPVValue.createProperty(this, RUNTIME_VALUE_NO_PV));
+        properties.add(readbackBit = propReadbackBit.createProperty(this, 0));
     }
 
     /** @return 'bit' property */
@@ -287,5 +285,25 @@ public class BoolButtonWidget extends WritablePVWidget
     public WidgetProperty<String> propPassword()
     {
         return password;
+    }
+
+    /**
+         * @return The PV name associated with the 'On' state.
+         */
+        public WidgetProperty<String> propReadbackPVName(){
+            return readbackPVName;
+        }
+
+        /**
+         *
+         * @return The PV value associated with the 'On' state.
+         */
+        public WidgetProperty<VType> propReadbackPVValue(){
+            return readbackPVValue;
+        }
+
+
+        public WidgetProperty<Integer> propReadbackBit(){
+            return readbackBit;
     }
 }

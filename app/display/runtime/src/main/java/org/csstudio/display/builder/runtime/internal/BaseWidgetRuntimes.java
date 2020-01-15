@@ -13,15 +13,7 @@ import java.util.function.Supplier;
 
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.widgets.ArrayWidget;
-import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
-import org.csstudio.display.builder.model.widgets.GroupWidget;
-import org.csstudio.display.builder.model.widgets.KnobWidget;
-import org.csstudio.display.builder.model.widgets.NavigationTabsWidget;
-import org.csstudio.display.builder.model.widgets.ScaledSliderWidget;
-import org.csstudio.display.builder.model.widgets.ScrollBarWidget;
-import org.csstudio.display.builder.model.widgets.TableWidget;
-import org.csstudio.display.builder.model.widgets.TabsWidget;
+import org.csstudio.display.builder.model.widgets.*;
 import org.csstudio.display.builder.model.widgets.plots.DataBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
 import org.csstudio.display.builder.model.widgets.plots.StripchartWidget;
@@ -51,7 +43,8 @@ public class BaseWidgetRuntimes implements WidgetRuntimesService
             entry(TableWidget.WIDGET_DESCRIPTOR.getType(),           () -> new TableWidgetRuntime()),
             entry(TabsWidget.WIDGET_DESCRIPTOR.getType(),            () -> new TabsWidgetRuntime()),
             entry(DataBrowserWidget.WIDGET_DESCRIPTOR.getType(),     () -> new DataBrowserWidgetRuntime()),
-            entry(XYPlotWidget.WIDGET_DESCRIPTOR.getType(),          () -> new XYPlotWidgetRuntime())
+            entry(XYPlotWidget.WIDGET_DESCRIPTOR.getType(),          () -> new XYPlotWidgetRuntime()),
+            entry(BoolButtonWidget.WIDGET_DESCRIPTOR.getType(), BoolButtonWidgetRuntime::new)
         );
     }
 }
