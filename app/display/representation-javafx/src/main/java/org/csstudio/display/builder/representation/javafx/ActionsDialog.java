@@ -428,7 +428,12 @@ public class ActionsDialog extends Dialog<ActionInfos>
         {
             open_display_description.setText(info.getDescription());
             open_display_path.setText(info.getFile());
-            open_display_targets.getToggles().get(info.getTarget().ordinal()).setSelected(true);
+            // Mapping is needed if bob file was created in CS Studio/Eclipse
+            Target target = info.getTarget();
+            if(target.equals(Target.STANDALONE)){
+                target = Target.WINDOW;
+            }
+            open_display_targets.getToggles().get(target.ordinal()).setSelected(true);
             open_display_pane.setText(info.getPane());
             open_display_macros.setMacros(info.getMacros());
         }
