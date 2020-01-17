@@ -24,10 +24,15 @@ public class CFProposalProvider implements PVProposalProvider {
     private static final Logger log = Logger.getLogger(CFProposalProvider.class.getName());
     private ChannelFinderClient client = null;
     private boolean active = true;
+    private static List<Proposal> EMPTY_RESULT = Collections.emptyList();
 
     public CFProposalProvider() {
         if (client == null) {
             client = ChannelFinderService.getInstance().getClient();
+            if(client == null){
+                log.log(Level.WARNING, "CF proposal provider got null CF client!");
+                return;
+            }
             try {
                 client.getAllTags();
             } catch (Exception e) {
@@ -46,6 +51,9 @@ public class CFProposalProvider implements PVProposalProvider {
 
     @Override
     public List<Proposal> lookup(String searchString) {
+        if(client == null){
+            return EMPTY_RESULT;
+        }
         // TODO this needs the v3.0.2 of channelfinder
         if (active) {
             Map<String, String> searchMap = new HashMap<String, String>();
