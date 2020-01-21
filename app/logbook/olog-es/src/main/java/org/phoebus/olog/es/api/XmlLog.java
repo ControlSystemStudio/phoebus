@@ -284,8 +284,7 @@ public class XmlLog implements LogEntry {
     /**
      * Setter for Table id.
      *
-     * @param Table
-     *            id to set
+     * @param tableId to set
      */
     public void setTableId(Long tableId) {
         this.tableId = tableId;
@@ -350,18 +349,7 @@ public class XmlLog implements LogEntry {
         this.tags = tags;
     }
 
-    /**
-     * Getter for the log's XmlAttachments.
-     *
-     * @return XmlAttachments for this log
-     */
     @XmlElement(name = "attachments")
-    public XmlAttachments getXmlAttachments() {
-        XmlAttachments attachments = new XmlAttachments();
-        attachments.setAttachments(attachments.getAttachments());
-        return attachments;
-    }
-
     @Override
     public Collection<Attachment> getAttachments() {
         return attachments == null ? new ArrayList<Attachment>() : attachments;
