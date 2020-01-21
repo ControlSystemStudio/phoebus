@@ -194,7 +194,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
         } catch ( Exception ex ) {
 
-            logger.log(Level.WARNING, "Failure resolving image path: {0} [{1}].", new Object[] { imageFileName, ex.getMessage() });
+            logger.log(Level.WARNING, String.format("Failure resolving image path: %s", imageFileName), ex);
 
             return null;
 
@@ -845,17 +845,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
          */
         Image loadSVG(double width, double height){
             String imageFileName = resolveImageFile(model_widget, fileName);
-            String cachedSVGFileName = imageFileName + "_" + width + "_" + height;
-            return ImageCache.cache(cachedSVGFileName, () ->
-            {
-                // Open the image from the stream created from the resource file.
-                try(InputStream inputStream = ModelResourceUtil.openResourceStream(imageFileName)){
-                    return SVGHelper.loadSVG(inputStream, width, height);
-                } catch ( Exception ex ) {
-                    logger.log(Level.WARNING, "Failure loading image: ({0}) {1} [{2}].", new Object[] { fileName, imageFileName, ex.getMessage() });
-                }
-                return null;
-            });
+            return SVGHelper.loadSVG(imageFileName, width, height);
         }
     }
 }

@@ -22,9 +22,10 @@ package org.csstudio.display.builder.representation.javafx;
 import javafx.scene.image.Image;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import java.io.File;
+import java.net.URL;
 
-import java.io.InputStream;
+import static org.junit.Assert.*;
 
 public class SVGHelperTest {
 
@@ -34,55 +35,82 @@ public class SVGHelperTest {
      */
     @Test
     public void testSVGHelper(){
-        InputStream is = getClass().getClassLoader().getResourceAsStream("interlock.svg");
 
         try {
-            Image image = SVGHelper.loadSVG(is, 400d, 400d);
-
+            Image image = SVGHelper.loadSVG(getPath("interlock.svg"), 400d, 400d);
             assertTrue(image.getHeight() > 0);
             assertTrue(image.getWidth() > 0);
         } catch (Exception e) {
-            e.printStackTrace();
+           fail(e.getMessage());
         }
     }
 
+
     /**
-     * Verifies that {@link Exception} is thrown when loading png file.
-     * @throws Exception
+     * Verifies that <code>null</code> is returned when loading png file.
      */
-    @Test(expected = Exception.class)
-    public void testSVGHelperPngFile() throws Exception{
-        InputStream is = getClass().getClassLoader().getResourceAsStream("interlock.png");
-        SVGHelper.loadSVG(is, 400d, 400d);
+    @Test
+    public void testSVGHelperPngFile(){
+        String path = null;
+        try {
+            path = getPath("interlock.png");
+        } catch (Exception e) {
+            fail(e.getMessage());
+            return;
+        }
+        assertNull(SVGHelper.loadSVG(path, 400d, 400d));
     }
 
     /**
-     * Verifies that {@link Exception} is thrown when loading jpg file.
-     * @throws Exception
+     * Verifies that <code>null</code> is returned when loading jpg file.
      */
-    @Test(expected = Exception.class)
-    public void testSVGHelperJpgFile() throws Exception{
-        InputStream is = getClass().getClassLoader().getResourceAsStream("interlock.jpg");
-        SVGHelper.loadSVG(is, 400d, 400d);
+    @Test
+    public void testSVGHelperJpgFile(){
+
+        String path = null;
+        try {
+            path = getPath("interlock.jpg");
+        } catch (Exception e) {
+            fail(e.getMessage());
+            return;
+        }
+        assertNull(SVGHelper.loadSVG(path, 400d, 400d));
     }
 
     /**
-     * Verifies that {@link Exception} is thrown when loading gif file.
-     * @throws Exception
+     * Verifies that <code>null</code> is returned when loading gif file.
      */
-    @Test(expected = Exception.class)
+    @Test
     public void testSVGHelperGifFile() throws Exception{
-        InputStream is = getClass().getClassLoader().getResourceAsStream("interlock.gif");
-        SVGHelper.loadSVG(is, 400d, 400d);
+        String path = null;
+        try {
+            path = getPath("interlock.gif");
+        } catch (Exception e) {
+            fail(e.getMessage());
+            return;
+        }
+        assertNull(SVGHelper.loadSVG(path, 400d, 400d));
     }
 
     /**
-     * Verifies that {@link Exception} is thrown when loading tiff file.
-     * @throws Exception
+     * Verifies that <code>null</code> is returned when loading tiff file.
      */
-    @Test(expected = Exception.class)
+    @Test
     public void testSVGHelperTiffFile() throws Exception{
-        InputStream is = getClass().getClassLoader().getResourceAsStream("interlock.tiff");
-        SVGHelper.loadSVG(is, 400d, 400d);
+
+        String path = null;
+        try {
+            path = getPath("interlock.tiff");
+        } catch (Exception e) {
+            fail(e.getMessage());
+            return;
+        }
+        assertNull(SVGHelper.loadSVG(path, 400d, 400d));
+    }
+
+    private String getPath(String resource) throws Exception{
+        URL url = getClass().getClassLoader().getResource(resource);
+        File file = new File(url.toURI());
+        return file.getAbsolutePath();
     }
 }

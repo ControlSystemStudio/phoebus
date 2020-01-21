@@ -25,9 +25,14 @@ import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.ImageTranscoder;
+import org.csstudio.display.builder.model.util.ModelResourceUtil;
+import org.phoebus.ui.javafx.ImageCache;
 
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.util.logging.Level;
+
+import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
 /**
  * Helper class to load SVG files. It is based on the following post on Stackoverflow:
@@ -38,6 +43,32 @@ import java.io.*;
  * Testing shows that gradients may not always render correctly. Maybe a Batik issue?
  */
 public class SVGHelper {
+
+
+    /**
+     * Loads SVG file as an {@link Image}. The resolution of the generated image is determined by the
+     * width and height parameters. Consequently scaling to a much larger size will result in "pixelation".
+     * Client code is hence advised to reload the SVG resource using the new width and height when
+     * the container widget is resized.
+     *
+     * @param imageFileName Non-null, absolute path to SVG resource.
+     * @param width The wanted width of the image.
+     * @param height The wanted height of the image.
+     * @return A {@link Image} object if the input stream can be parsed and transcoded.
+     */
+    public static Image loadSVG(String imageFileName, double width, double height){
+        String cachedSVGFileName = imageFileName + "_" + width + "_" + height;
+        return ImageCache.cache(cachedSVGFileName, () ->
+        {
+            // Open the image from the stream created from the resource file.
+            try(InputStream inputStream = ModelResourceUtil.openResourceStream(imageFileName)){
+                return loadSVG(inputStream, width, height);
+            } catch ( Exception ex ) {
+                logger.log(Level.WARNING, String.format("Failure loading image: %s", imageFileName), ex);
+            }
+            return null;
+        });
+    }
 
     /**
      * Loads SVG file as an {@link Image}. The resolution of the generated image is determined by the
