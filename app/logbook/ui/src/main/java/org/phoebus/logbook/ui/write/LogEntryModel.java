@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 
@@ -67,6 +68,7 @@ public class LogEntryModel
     private String  title, text;
 
     private final ObservableList<String> logbooks, tags, selectedLogbooks, selectedTags;
+    private final ObservableList<String> levels;
     private final ObservableList<Image>  images;
     private final ObservableList<File>   files;
 
@@ -100,6 +102,7 @@ public class LogEntryModel
 
         tags     = FXCollections.observableArrayList();
         logbooks = FXCollections.observableArrayList();
+        levels   = FXCollections.observableArrayList();
 
         selectedLogbooks = FXCollections.observableArrayList();
         selectedTags     = FXCollections.observableArrayList();
@@ -253,6 +256,15 @@ public class LogEntryModel
     public void setText(final String text)
     {
         this.text = text;
+    }
+
+    /**
+     * Get an unmodifiable list of supported log levels.
+     * @return - supported log levels
+     */
+    public ObservableList<String> getLevels()
+    {
+        return FXCollections.unmodifiableObservableList(levels);
     }
 
     /**
@@ -441,8 +453,8 @@ public class LogEntryModel
         LogEntryBuilder logEntryBuilder = new LogEntryBuilder();
         logEntryBuilder.title(title)
             .description(text)
-            .createdDate(date)
-            .modifiedDate(date)
+//            .createdDate(date)
+//            .modifiedDate(date)
             .level(level);
 
         for (String selectedLogbook : selectedLogbooks)
@@ -529,6 +541,24 @@ public class LogEntryModel
             });
     }
 
+    /** Fetch the available log levels on a separate thread.*/
+    public void fetchLevels()
+    {
+        if (null != logFactory)
+            JobManager.schedule("Fetch Levels ", monitor ->
+            {
+                LogClient logClient = logFactory.getLogClient();
+                
+                List<String> levelList = logClient.listLevels().stream().collect(Collectors.toList());
+
+                // Certain views have listeners to these observable lists. So, when they change, the call backs need to execute on the FX Application thread.
+                Platform.runLater(() ->
+                {
+                    levelList.forEach(level -> levels.add(level));
+                });
+            });
+    }
+
     /**
      * Add a change listener to the available tags list.
      * @param changeListener
@@ -548,6 +578,15 @@ public class LogEntryModel
     }
 
     /**
+     * Add a change listener to the available log level list.
+     * @param changeListener
+     */
+    public void addLevelListener(ListChangeListener<String> changeListener)
+    {
+        levels.addListener(changeListener);
+    }
+
+    /**
      * Set the runnable to be executed after the submit action completes.
      * <p>This runnable will be executed on another thread so everything it does should be thread safe.
      * @param runnable
@@ -556,4 +595,6 @@ public class LogEntryModel
     {
         onSubmitAction = runnable;
     }
+
+
 }
