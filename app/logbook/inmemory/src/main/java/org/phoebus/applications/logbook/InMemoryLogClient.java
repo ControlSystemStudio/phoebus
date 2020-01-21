@@ -38,6 +38,7 @@ public class InMemoryLogClient implements LogClient{
     private final Collection<Tag> tags = Arrays.asList(TagImpl.of("Operations"),
                                                        TagImpl.of("Alarm"),
                                                        TagImpl.of("Example"));
+    private final List<String> levels = Arrays.asList("Urgent", "Suggestion", "Info", "Request", "Problem");
 
     public InMemoryLogClient() {
         LogEntries = new HashMap<Long, LogEntry>();
@@ -45,10 +46,16 @@ public class InMemoryLogClient implements LogClient{
     }
 
     @Override
+    public Collection<String> listLevels() {
+        return levels;
+    }
+
+    @Override
     public Collection<Logbook> listLogbooks() {
         return logbooks;
     }
 
+    
     @Override
     public Collection<Tag> listTags() {
         return tags;

@@ -263,6 +263,14 @@ public class OlogClient implements LogClient {
         service = client.resource(UriBuilder.fromUri(ologURI).build());
     }
 
+    // A predefined set of levels supported by olog
+    private final List<String> levels = Arrays.asList("Urgent", "Suggestion", "Info", "Request", "Problem");
+
+    @Override
+    public Collection<String> listLevels() {
+        return levels;
+    }
+    
     @Override
     public Collection<Logbook> listLogbooks() {
         return wrappedSubmit(new Callable<Collection<Logbook>>() {
