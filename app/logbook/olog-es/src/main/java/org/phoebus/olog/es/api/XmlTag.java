@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @XmlRootElement(name = "tag")
 public class XmlTag implements Tag {
     private String name = null;
-    private String state = null;
+    private String state = "Active";
     /**
      * Creates a new instance of XmlTag.
      *
