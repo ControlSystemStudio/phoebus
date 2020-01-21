@@ -232,6 +232,10 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
          * @return {@link ChannelFinderClientImpl}
          */
         public ChannelFinderClient create() throws ChannelFinderException {
+            if(this.uri == null || this.uri.toString().isEmpty()){
+                log.warning("Cannot create a channel finder client as URL is null or empty");
+                return null;
+            }
             log.info("Creating a channelfinder client to : " + this.uri);
             if (this.protocol.equalsIgnoreCase("http")) { //$NON-NLS-1$
                 this.clientConfig = new DefaultClientConfig();
