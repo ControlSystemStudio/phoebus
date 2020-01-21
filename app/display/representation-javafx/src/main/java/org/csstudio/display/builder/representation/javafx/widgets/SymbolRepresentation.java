@@ -194,7 +194,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
         } catch ( Exception ex ) {
 
-            logger.log(Level.WARNING, "Failure resolving image path: {0} [{1}].", new Object[] { imageFileName, ex.getMessage() });
+            logger.log(Level.WARNING, String.format("Failure resolving image path: %s", imageFileName), ex);
 
             return null;
 
