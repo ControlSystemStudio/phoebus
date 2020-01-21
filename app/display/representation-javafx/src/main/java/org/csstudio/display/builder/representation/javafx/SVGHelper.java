@@ -64,7 +64,7 @@ public class SVGHelper {
             try(InputStream inputStream = ModelResourceUtil.openResourceStream(imageFileName)){
                 return loadSVG(inputStream, width, height);
             } catch ( Exception ex ) {
-                logger.log(Level.WARNING, "Failure loading image: {0} [{1}].", new Object[] { imageFileName, ex.getMessage() });
+                logger.log(Level.WARNING, String.format("Failure loading image: %s", imageFileName), ex);
             }
             return null;
         });
