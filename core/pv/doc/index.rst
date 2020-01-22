@@ -82,6 +82,10 @@ They do not communicate with the control system.
 Unless a type selector and initial value are provided, a local value will be of type 'double'
 with initial value of 0.
 
+Local process variables only exist as long as they are referenced.
+When all references to a local process variable are released, the PV is
+deleted.
+
 Examples::
 
     loc://example
@@ -90,6 +94,20 @@ Examples::
     loc://a_text("Hello")
     loc://large<VLong>(42)
     loc://options<VEnum>(2, "A", "Initial", "B", "C")
+
+
+Formulas
+--------
+Formula-based PVs can perform simple computations on constants and other PVs.
+The equation can be created via the 'eq://' prefix or alternatively via '='.
+Other process variables are referenced via backquotes.
+
+Examples::
+
+    eq://3+4
+    =3+4
+    =10 + 5*`sim://sine`
+    =`sim://ramp`>1 ? 10 : -10
 
 
 MQTT
