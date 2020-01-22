@@ -10,6 +10,7 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
 
@@ -27,6 +28,7 @@ public class DockItemRepresentation extends JFXRepresentation
     // TODO This is ~RCP_JFXRepresentation
     private final DisplayRuntimeInstance app_instance;
 
+
     public DockItemRepresentation(final DisplayRuntimeInstance app_instance)
     {
         super(false);
@@ -35,8 +37,17 @@ public class DockItemRepresentation extends JFXRepresentation
 
     @Override
     public ToolkitRepresentation<Parent, Node> openNewWindow(final DisplayModel model,
-            final Consumer<DisplayModel> close_handler) throws Exception
+            final Consumer<DisplayModel> close_handler)
     {
+        // If a display has already been opened, reuse it by bringing it to the front.
+        DockItemWithInput existing = DockStage.getDockItemWithInput(DisplayRuntimeApplication.NAME,
+                DisplayInfo.forModel(model).toURI());
+        if(existing != null){
+            DisplayRuntimeInstance instance = existing.getApplication();
+            instance.raise();
+            return instance.getRepresentation();
+        }
+
         // Open new Stage
         final Stage new_stage = new Stage();
 
