@@ -35,6 +35,13 @@ public interface LogClient {
     public Collection<Property> listProperties();
 
     /**
+     * List the supported log levels
+     * 
+     * @return a list of supported levels
+     */
+    public Collection<String> listLevels();
+    
+    /**
      * List all the active attributes associated with the property
      * <tt>propertyName</tt> property must exist, name != null
      * 
@@ -448,5 +455,6 @@ public interface LogClient {
      *            logId
      */
     public void delete(String fileName, Long logId);
+
 
 }

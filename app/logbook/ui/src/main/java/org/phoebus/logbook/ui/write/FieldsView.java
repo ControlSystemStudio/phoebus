@@ -14,8 +14,7 @@ import org.phoebus.logbook.ui.Messages;
 import org.phoebus.util.time.TimestampFormats;
 
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
@@ -46,10 +45,7 @@ public class FieldsView extends VBox
     private final Label                  dateLabel, levelLabel;
     private final TextField              dateField;
     private final ComboBox<String>       levelSelector;
-    private final ObservableList<String> levels = FXCollections.observableArrayList(
-                                                        Messages.Urgent,
-                                                        Messages.High,
-                                                        Messages.Normal);
+
     // Title and body of log entry
     private final Label            titleLabel, textLabel;
     private final TextField        titleField;
@@ -67,11 +63,21 @@ public class FieldsView extends VBox
 
         this.model.setDate(now);
         levelLabel = new Label(Messages.Level);
-        levelSelector = new ComboBox<String>(levels);
-        levelSelector.getSelectionModel().select(Messages.Normal);
-        
+        levelSelector = new ComboBox<String>(model.getLevels());
+
+        model.fetchLevels();
+        model.addLevelListener((ListChangeListener.Change<? extends String> c) ->
+        {
+            if (c.next())
+            {
+                if(!model.getLevels().isEmpty() && model.getLevels().get(0) != null)
+                    levelSelector.getSelectionModel().select(model.getLevels().get(0));
+                else
+                    levelSelector.getSelectionModel().select(Messages.Normal);
+            }
+        });
         setSelectorAction();
-        
+
         titleLabel = new Label(Messages.Title);
         titleField = new TextField(model.getTitle());
         titleField.textProperty().addListener((changeListener, oldVal, newVal) ->

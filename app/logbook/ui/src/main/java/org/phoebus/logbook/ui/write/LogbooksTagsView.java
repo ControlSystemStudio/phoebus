@@ -216,6 +216,7 @@ public class LogbooksTagsView extends VBox
         // Once the listeners are added ask the model to fetch the lists.
         // This is done on a separate thread since network I/O can take some time or not ever return.
         // Only start it once the listeners are in place or else the drop down's won't have all the items.
+//        model.fetchLevels();
         model.fetchLists();
     }
 

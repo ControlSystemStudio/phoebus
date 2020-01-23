@@ -10,6 +10,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.phoebus.util.time.TimeParser;
+import static org.phoebus.util.time.TimestampFormats.MILLI_FORMAT;
 
 import com.google.common.base.Strings;
 
@@ -17,7 +18,7 @@ public class LogbookQueryUtil {
 
     // Ordered search keys
     public static enum Keys {
-        SEARCH("search"), LOGBOOKS("logbook"), TAGS("tag"), STARTTIME("start"), ENDTIME("end");
+        SEARCH("desc"), LOGBOOKS("logbook"), TAGS("tag"), STARTTIME("start"), ENDTIME("end");
         private final String name;
 
         private Keys(String name) {
@@ -76,9 +77,9 @@ public class LogbookQueryUtil {
                 if (key.equals(Keys.STARTTIME.getName()) || key.equals(Keys.ENDTIME.getName())) {
                     Object time = TimeParser.parseInstantOrTemporalAmount(value);
                     if (time instanceof Instant) {
-                        return String.valueOf(((Instant)time).toEpochMilli()/1000);
+                        return MILLI_FORMAT.format((Instant)time);
                     } else if (time instanceof TemporalAmount) {
-                        return String.valueOf(Instant.now().minus((TemporalAmount)time).toEpochMilli()/1000);
+                        return MILLI_FORMAT.format(Instant.now().minus((TemporalAmount)time));
                     }
                 }
                 return value;
