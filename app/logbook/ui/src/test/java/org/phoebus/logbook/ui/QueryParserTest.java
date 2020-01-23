@@ -3,12 +3,14 @@ package org.phoebus.logbook.ui;
 import static org.junit.Assert.assertEquals;
 
 import java.net.URI;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
 import org.phoebus.logbook.ui.LogbookQueryUtil.Keys;
 
+import static org.phoebus.util.time.TimestampFormats.MILLI_FORMAT;
 /**
  * Test the parsing of the logbook query URI syntax
  * 
@@ -19,10 +21,10 @@ public class QueryParserTest {
 
     @Test
     public void basic() {
-        URI uri = URI.create("logbook://?search=*Fault*Motor*&tag=operation");
+        URI uri = URI.create("logbook://?desc=*Fault*Motor*&tag=operation");
         Map<String, String> queryParameters = LogbookQueryUtil.parseQueryURI(uri);
         Map<String, String> expectedMap = new HashMap<String, String>();
-        expectedMap.put("search", "*Fault*Motor*");
+        expectedMap.put("desc", "*Fault*Motor*");
         expectedMap.put("tag", "operation");
         assertEquals(expectedMap, queryParameters);
 
@@ -31,12 +33,12 @@ public class QueryParserTest {
     @Test
     public void timeParsing() {
         long now = System.currentTimeMillis();
-        URI uri = URI.create("logbook://?search=*Fault*Motor*&tag=operation&start=8hours&end=now");
+        URI uri = URI.create("logbook://?desc=*Fault*Motor*&tag=operation&start=8hours&end=now");
         Map<String, String> queryParameters = LogbookQueryUtil.parseQueryURI(uri);
         assertEquals("*Fault*Motor*", queryParameters.get(Keys.SEARCH.getName()));
         assertEquals("operation", queryParameters.get(Keys.TAGS.getName()));
-        assertEquals(now/1000, Double.valueOf(queryParameters.get(Keys.ENDTIME.getName())), 60);
-        assertEquals((now-(8*60*60*1000))/1000, Double.valueOf(queryParameters.get(Keys.STARTTIME.getName())), 60);
+        assertEquals(now, Instant.from(MILLI_FORMAT.parse(queryParameters.get(Keys.ENDTIME.getName()))).toEpochMilli(), 60000);
+        assertEquals((now-(8*60*60*1000)), Instant.from(MILLI_FORMAT.parse(queryParameters.get(Keys.STARTTIME.getName()))).toEpochMilli(), 60000);
     }
 
     /**
@@ -44,10 +46,10 @@ public class QueryParserTest {
      */
     @Test
     public void emptyValueTest() {
-        URI uri = URI.create("logbook://?search=*Fault*Motor*&tag=operation&logbook");
+        URI uri = URI.create("logbook://?desc=*Fault*Motor*&tag=operation&logbook");
         Map<String, String> queryParameters = LogbookQueryUtil.parseQueryURI(uri);
         Map<String, String> expectedMap = new HashMap<String, String>();
-        expectedMap.put("search", "*Fault*Motor*");
+        expectedMap.put("desc", "*Fault*Motor*");
         expectedMap.put("tag", "operation");
         expectedMap.put("logbook", "*");
         assertEquals(expectedMap, queryParameters);
@@ -58,7 +60,7 @@ public class QueryParserTest {
      */
     @Test(expected = Exception.class)
     public void multiValueTest() {
-        URI uri = URI.create("logbook://?search=*Fault*Motor*&tag=operation&tag=loto");
+        URI uri = URI.create("logbook://?desc=*Fault*Motor*&tag=operation&tag=loto");
         Map<String, String> queryParameters = LogbookQueryUtil.parseQueryURI(uri);
     }
 }

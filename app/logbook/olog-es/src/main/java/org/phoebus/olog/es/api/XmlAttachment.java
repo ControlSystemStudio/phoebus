@@ -13,6 +13,9 @@ import javax.xml.bind.annotation.XmlType;
 
 import org.phoebus.logbook.Attachment;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Attachment object that can be represented as XML/JSON in payload data. TODO:
  * pass attachments over XML / without webdav? make log entries with attachments
@@ -23,6 +26,7 @@ import org.phoebus.logbook.Attachment;
 
 @XmlType
 @XmlRootElement(name = "attachment")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class XmlAttachment implements Attachment {
 
     @XmlTransient
@@ -79,6 +83,7 @@ public class XmlAttachment implements Attachment {
     /**
      * @return the contentType
      */
+    @JsonProperty("fileMetadataDescription")
     public String getContentType() {
         return contentType;
     }
@@ -127,6 +132,7 @@ public class XmlAttachment implements Attachment {
     }
 
     @Override
+    @JsonProperty("filename")
     public String getName() {
         return fileName;
     }

@@ -17,7 +17,7 @@ public class TagImpl implements Tag {
 
     private TagImpl(String name) {
         this.name = name;
-        this.state = "";
+        this.state = "Active";
     }
 
     public String getName() {
