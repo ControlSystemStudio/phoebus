@@ -65,6 +65,7 @@ The provided simulated process variables are:
     * sine(min, max, update_seconds)
     * sinewave(period_seconds, wavelength, size, update_seconds)
     * strings(update_seconds)
+    * const(value)
     
 Examples::
 
@@ -72,6 +73,8 @@ Examples::
     sim://ramp
     sim://ramp(1, 10, 0.2)
     sim://noise
+    sim://const(42)
+    sim://const("Fred")
 
 Local
 -----
