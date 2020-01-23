@@ -38,7 +38,19 @@ public class CommonFonts
         "LiberationSans-Italic.ttf",
         "LiberationSerif-Regular.ttf",
         "LiberationMono-Italic.ttf",
-        "LiberationSans-Regular.ttf"
+        "LiberationSans-Regular.ttf",
+        "SourceSansPro-Black.ttf",
+        "SourceSansPro-BlackItalic.ttf",
+        "SourceSansPro-Bold.ttf",
+        "SourceSansPro-BoldItalic.ttf",
+        "SourceSansPro-ExtraLight.ttf",
+        "SourceSansPro-Italic.ttf",
+        "SourceSansPro-Light.ttf",
+        "SourceSansPro-LightItalic.ttf",
+        "SourceSansPro-ExtraLightItalic.ttf",
+        "SourceSansPro-Regular.ttf",
+        "SourceSansPro-SemiBold.ttf",
+        "SourceSansPro-SemiBoldItalic.ttf"
     };
 
     /** Install common fonts */
