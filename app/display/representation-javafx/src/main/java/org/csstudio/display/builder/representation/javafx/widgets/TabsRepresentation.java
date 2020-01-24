@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -101,12 +101,19 @@ public class TabsRepresentation extends JFXBaseRepresentation<TabPane, TabsWidge
         if (toolkit.isEditMode())
             tabs.addEventFilter(MouseEvent.MOUSE_PRESSED, event ->
             {
-                for (Parent parent = tabs.getParent();  parent != null;  parent = parent.getParent())
-                    if (JFXRepresentation.MODEL_ROOT_ID.equals(parent.getId()))
-                    {
-                        parent.fireEvent(event);
-                        break;
-                    }
+                // As in 'group' widget, only do this when ALT is pressed,
+                // so ALT-rubberband will select inside the tab.
+                // Plain click still directly reaches the child widget in the current tab,
+                // or - if we hit the background of the tab - the tab widget itself.
+                // If we passed any click up to the model root, you could
+                // longer click on widgets inside the tab or the tab itself.
+                if (event.isAltDown())
+                    for (Parent parent = tabs.getParent();  parent != null;  parent = parent.getParent())
+                        if (JFXRepresentation.MODEL_ROOT_ID.equals(parent.getId()))
+                        {
+                            parent.fireEvent(event);
+                            break;
+                        }
             });
 
         return tabs;
