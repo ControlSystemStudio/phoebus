@@ -66,7 +66,7 @@ public class Engine
         System.out.println("-description \"Some Info\"      Import: Description for the engine");
         System.out.println("-replace_engine               Import: Replace existing engine config, or stop?");
         System.out.println("-steal_channels               Import: Reassign channels that belong to other engine?");
-        System.out.println("-settings settings.xml        Import preferences (PV connectivity) from property format file");
+        System.out.println("-settings settings.ini        Import preferences (PV connectivity, archive URL, ...) from property format file");
         System.out.println("-noshell                      Disable the command shell for running without a terminal");
         System.out.println("-logging logging.properties   Load log settings");
         System.out.println();
