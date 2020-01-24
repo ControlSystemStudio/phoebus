@@ -11,10 +11,10 @@ Each site will likely want to create their own product to
  3. Maybe add a custom splash screen, welcome page, launcher
  4. Some sites might want to add site-specific source code
 
-To accomplish 1-3, no source code is needed, only a `pom.xml` or and build file
+To accomplish 1-3, no source code is needed, only a `pom.xml` or `ant` build file
 as shown in this directory.
 
 For site-specific examples, see
 
- * https://github.com/shroffk/nsls2-phoebus
+ * https://github.com/shroffk/nsls2-phoebus (actually creates several products for 'beamline' vs. 'accelerator')
  * https://github.com/kasemir/phoebus-sns
