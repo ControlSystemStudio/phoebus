@@ -103,9 +103,9 @@
     <classpathentry exported="true" kind="lib" path="target/lib/lucene-spatial-extras-7.4.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/lucene-suggest-7.4.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/mimepull-1.9.3.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/mockito-core-1.9.5.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/mockito-core-2.23.4.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/mysql-connector-java-5.1.45.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/objenesis-1.0.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/objenesis-2.6.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/org.eclipse.jgit-5.0.3.201809091024-r.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/pbrawclient-0.0.8.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/postgresql-42.1.4.jar"/>

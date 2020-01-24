@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -70,6 +70,8 @@ public class SimPVFactory implements PVFactory
             return NoiseWavePV.forParameters(name, parseDoubles(parameters));
         else if (func.equals("flipflop"))
             return FlipFlopPV.forParameters(name, parseDoubles(parameters));
+        else if (func.equals("const"))
+            return ConstPV.create(name, base_name);
         else
             throw new Exception("Unknown simulated PV " + name);
     }

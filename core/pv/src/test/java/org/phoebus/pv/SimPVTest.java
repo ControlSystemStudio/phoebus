@@ -7,8 +7,11 @@
  ******************************************************************************/
 package org.phoebus.pv;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.concurrent.CountDownLatch;
 
+import org.csstudio.apputil.formula.VTypeHelper;
 import org.junit.Test;
 
 import io.reactivex.disposables.Disposable;
@@ -32,6 +35,14 @@ public class SimPVTest
         });
         done.await();
         flow.dispose();
+        PVPool.releasePV(pv);
+    }
+
+    @Test
+    public void demoConst() throws Exception
+    {
+        final PV pv = PVPool.getPV("sim://const(3.14)");
+        assertEquals(3.14, VTypeHelper.getDouble(pv.read()), 0.001);
         PVPool.releasePV(pv);
     }
 }
