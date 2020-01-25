@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,8 +14,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.prefs.BackingStoreException;
@@ -401,11 +401,13 @@ public class EditorGUI
         {
             // Enable/disable menu entries based on selection
             final List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
+            final MenuItem delete = new ActionWapper(ActionDescription.DELETE);
             final MenuItem cut = new ActionWapper(ActionDescription.CUT);
             final MenuItem copy = new ActionWapper(ActionDescription.COPY);
             final MenuItem group = new CreateGroupAction(editor, widgets);
             if (widgets.size() < 0)
             {
+                delete.setDisable(true);
                 cut.setDisable(true);
                 copy.setDisable(true);
             }
@@ -417,7 +419,8 @@ public class EditorGUI
                 ungroup = new RemoveGroupAction(editor, null);
                 ungroup.setDisable(true);
             }
-            menu.getItems().setAll(cut,
+            menu.getItems().setAll(delete,
+                                   cut,
                                    copy,
                                    new PasteWidgets(this),
                                    new FindWidgetAction(node, editor),

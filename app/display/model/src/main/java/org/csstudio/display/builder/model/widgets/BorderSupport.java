@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,7 @@ package org.csstudio.display.builder.model.widgets;
 
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBorderColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBorderWidth;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propTransparent;
 
 import java.util.List;
 import java.util.Optional;
@@ -76,6 +77,12 @@ public class BorderSupport
         case  6: // BUTTON_RAISED
         case  7: // BUTTON_PRESSED
             widget.getProperty(propBorderColor).setValue(WidgetColorService.getColor(NamedWidgetColors.TEXT));
+            break;
+        case 14: // ROUND_RECTANGLE_BACKGROUND
+            // Forced the background color to be used even if 'transparent'
+            widget.checkProperty(propTransparent.getName())
+                  .ifPresent(trans -> trans.setValue(false));
+            break;
         }
 
         // Border used to be inside the bounds,

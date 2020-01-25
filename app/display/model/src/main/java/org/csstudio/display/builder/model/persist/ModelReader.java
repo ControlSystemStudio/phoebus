@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -240,12 +240,11 @@ public class ModelReader
         return widgets;
     }
 
-    /** Read widget from XML
-     *  @param widget_xml Widget's XML element
-     *  @return Widget
+    /** @param widget_xml Widget's XML element
+     *  @return Widget type name
      *  @throws Exception on error
      */
-    private Widget readWidget(final Element widget_xml) throws Exception
+    private static String getWidgetType(final Element widget_xml) throws Exception
     {
         String type = widget_xml.getAttribute(XMLTags.TYPE);
         if (type.isEmpty())
@@ -256,6 +255,17 @@ public class ModelReader
             if (type.isEmpty())
                 throw new Exception("Missing widget type");
         }
+        return type;
+    }
+
+    /** Read widget from XML
+     *  @param widget_xml Widget's XML element
+     *  @return Widget
+     *  @throws Exception on error
+     */
+    private Widget readWidget(final Element widget_xml) throws Exception
+    {
+        final String type = getWidgetType(widget_xml);
         final Widget widget = createWidget(type, widget_xml);
 
         final ChildrenProperty children = ChildrenProperty.getChildren(widget);
@@ -291,24 +301,24 @@ public class ModelReader
 
     private Widget createPlaceholderWidget(final Element widget_xml)
     {
-        final String type = widget_xml.getAttribute(XMLTags.TYPE);
-        final PlaceholderWidget widget = new PlaceholderWidget(type);
         try
         {
+            final String type = getWidgetType(widget_xml);
+            final PlaceholderWidget widget = new PlaceholderWidget(type);
             logger.log(Level.FINE, "Adding placeholder PlaceholderWidget");
             widget.getConfigurator(readVersion(widget_xml)).configureFromXML(this, widget, widget_xml);
+            return widget;
         }
         catch (ParseAgainException ex)
         {
-            return null;
+            // ignore
         }
         catch (Exception ex)
         {
-            // ignore
+            // ignore but log
             logger.log(Level.SEVERE, ex.getMessage() + " while configuring PlaceholderWidget");
         }
-
-        return widget;
+        return null;
     }
 
     /** @param element Element

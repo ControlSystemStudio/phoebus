@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -104,16 +104,36 @@ public class BoolButtonWidget extends WritablePVWidget
             if (! super.configureFromXML(model_reader, widget, xml))
                 return false;
 
-            final BoolButtonWidget button = (BoolButtonWidget) widget;
-            // If legacy widgets was configured to not use labels, clear them
-            XMLUtil.getChildBoolean(xml, "show_boolean_label").ifPresent(show ->
+            // BOY used 1.0.0, this button is at least 2.0.0
+            if (xml_version.getMajor() < 2)
             {
-                if (!show)
+                final BoolButtonWidget button = (BoolButtonWidget) widget;
+
+                // Translate 'toggle_button' into 'mode'.
+                if (! XMLUtil.getChildBoolean(xml, "toggle_button").orElse(true))
+                    button.propMode().setValue(Mode.PUSH);
+
+                // If legacy widgets was configured to not use labels, clear them
+                XMLUtil.getChildBoolean(xml, "show_boolean_label").ifPresent(show ->
                 {
-                    button.propOffLabel().setValue("");
-                    button.propOnLabel().setValue("");
+                    if (!show)
+                    {
+                        button.propOffLabel().setValue("");
+                        button.propOnLabel().setValue("");
+                    }
+                });
+
+                if (! button.propShowLED().getValue())
+                {
+                    // When LED indicator is hidden, BOY filled button with background color.
+                    // This implementation uses the on/off colors, so set those to old background.
+                    WidgetColor color = button.propBackgroundColor().getValue();
+                    button.propOffColor().setValue(color);
+                    // Darken for 'pressed' state
+                    color = new WidgetColor(color.getRed()*80/100, color.getGreen()*80/100, color.getBlue()*80/100);
+                    button.propOnColor().setValue(color);
                 }
-            });
+            }
             return true;
         }
     };

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -213,6 +213,15 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         super.unregisterListeners();
     }
 
+    private void computeBackground()
+    {
+        // When LED is off, use the on/off colors for the background
+        if (model_widget.propShowLED().getValue() == false)
+            background = JFXUtil.shadedStyle(on_state == 0 ? model_widget.propOffColor().getValue() : model_widget.propOnColor().getValue());
+        else
+            background = JFXUtil.shadedStyle(model_widget.propBackgroundColor().getValue());
+    }
+
     private void stateChanged()
     {
         on_state = ((use_bit < 0) ? (rt_value != 0) : (((rt_value >> use_bit) & 1) == 1)) ? 1 : 0;
@@ -220,9 +229,7 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         value_label = state_labels[on_state];
         value_image = state_images[on_state];
 
-        // When LED is off, use the on/off colors for the background
-        if (model_widget.propShowLED().getValue() == false)
-            background = JFXUtil.shadedStyle(on_state == 0 ? model_widget.propOffColor().getValue() : model_widget.propOnColor().getValue());
+        computeBackground();
 
         dirty_value.mark();
         toolkit.scheduleUpdate(this);
@@ -281,7 +288,7 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
     private void representationChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
         foreground = JFXUtil.convert(model_widget.propForegroundColor().getValue());
-        background = JFXUtil.shadedStyle(model_widget.propBackgroundColor().getValue());
+
         state_colors = new Color[]
         {
             JFXUtil.convert(model_widget.propOffColor().getValue()),
@@ -291,6 +298,9 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         state_labels = new String[] { model_widget.propOffLabel().getValue(), model_widget.propOnLabel().getValue() };
         value_color = state_colors[on_state];
         value_label = state_labels[on_state];
+
+        computeBackground();
+
         dirty_representation.mark();
         toolkit.scheduleUpdate(this);
     }

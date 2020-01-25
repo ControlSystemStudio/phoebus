@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -121,7 +121,11 @@ public class TextEntryWidget extends WritablePVWidget
                     // Might be NativeText or TextInput
                     if (type != null  &&  type.contains("Text"))
                     {
+                        // BOY 'TextInput' was at 2.0.0 or higher.
+                        // Down-grade to label 1.0.0 to handle legacy border etc.
+                        // for that version, not mistaking it for a Label version >= 2.0.0
                         xml.setAttribute("typeId", "org.csstudio.opibuilder.widgets.Label");
+                        xml.setAttribute("version", "1.0.0");
                         // XMLUtil.dump(xml);
                         throw new ParseAgainException();
                     }

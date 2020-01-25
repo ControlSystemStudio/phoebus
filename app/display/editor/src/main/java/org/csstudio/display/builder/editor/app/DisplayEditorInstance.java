@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -137,6 +137,7 @@ public class DisplayEditorInstance implements AppInstance
     {
         // Depending on number of selected widgets, allow grouping, ungrouping, morphing
         final List<Widget> selection = editor_gui.getDisplayEditor().getWidgetSelectionHandler().getSelection();
+        final ActionWapper delete = new ActionWapper(ActionDescription.DELETE);
         final ActionWapper cut = new ActionWapper(ActionDescription.CUT);
         final ActionWapper copy = new ActionWapper(ActionDescription.COPY);
         final MenuItem copy_properties = new CopyPropertiesAction(editor_gui.getDisplayEditor(), selection);
@@ -147,6 +148,7 @@ public class DisplayEditorInstance implements AppInstance
         final MenuItem front = new ActionWapper(ActionDescription.TO_FRONT);
         if (selection.size() <= 0)
         {
+            delete.setDisable(true);
             cut.setDisable(true);
             copy.setDisable(true);
             // OK to create (resp. 'start') a group with just one widget.
@@ -196,7 +198,8 @@ public class DisplayEditorInstance implements AppInstance
         show_props.setSelected(editor_gui.arePropertiesShown());
         show_props.setOnAction(event -> editor_gui.showProperties(! editor_gui.arePropertiesShown()));
 
-        menu.getItems().setAll(cut,
+        menu.getItems().setAll(delete,
+                               cut,
                                copy,
                                new PasteWidgets(getEditorGUI()),
                                copy_properties,
