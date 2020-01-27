@@ -28,6 +28,7 @@ import org.csstudio.opibuilder.adl2boy.translator.ChoiceButton2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Composite2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Display2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Image2Model;
+import org.csstudio.opibuilder.adl2boy.translator.Indicator2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Menu2Model;
 import org.csstudio.opibuilder.adl2boy.translator.MessageButton2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Meter2Model;
@@ -193,6 +194,8 @@ public class Converter
                     new TextUpdate2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("valuator"))
                     new Valuator2Model(adlWidget, colorMap, parentModel);
+                else if (widgetType.equals("indicator"))
+                    new Indicator2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("children"))
                 {
                     // TODO 'children' is not quite the same as 'composite'
