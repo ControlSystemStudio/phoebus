@@ -323,6 +323,12 @@ public class Converter
             files.remove(0);
         }
 
+        if (output_dir != null  &&  force  && !output_dir.exists())
+        {
+            logger.log(Level.INFO, "Creating output directory " + output_dir);
+            output_dir.mkdirs();
+        }
+
         for (String file : files)
         {
             try
