@@ -417,10 +417,14 @@ public abstract class AbstractADL2Model<WM extends Widget>
         for (int ii = 0; ii < argList.length; ii++) {
             String[] argParts = argList[ii].split("=");
             if (argParts.length == 1)
-            {   // Pass X=""
-                if (strBuff.length() != 0)
-                    strBuff.append(", ");
-                strBuff.append(argParts[0]).append("=\"\"");
+            {
+                if (! argParts[0].isEmpty())
+                {   // Pass X=""
+                    if (strBuff.length() != 0)
+                        strBuff.append(", ");
+                    strBuff.append(argParts[0]).append("=\"\"");
+                }
+                // else: Empty
             }
             else if (argParts.length == 2)
             {
