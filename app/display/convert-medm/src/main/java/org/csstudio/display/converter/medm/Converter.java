@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -208,9 +209,10 @@ public class Converter
 
     /** @param infile Input file (*.opi, older *.bob)
      *  @param output_dir Folder where to create output.bob, <code>null</code> to use folder of input file
+     *  @param force Overwrite existing files?
      *  @throws Exception on error
      */
-    private static void convert(final String input, final File output_dir) throws Exception
+    private static void convert(final String input, final File output_dir, final boolean force) throws Exception
     {
         final File infile = new File(input);
         if (! infile.canRead())
@@ -220,7 +222,7 @@ public class Converter
         {
             logger.log(Level.INFO, "Converting all files in directory " + infile);
             for (File file : infile.listFiles())
-                convert(file.getAbsolutePath(), output_dir);
+                convert(file.getAbsolutePath(), output_dir, force);
             return;
         }
 
@@ -242,44 +244,90 @@ public class Converter
             if (output_dir != null)
                 outfile = new File(output_dir, outfile.getName());
             if (outfile.canRead())
-                throw new Exception("Output file " + outfile + " exists");
+            {
+                if (force)
+                {
+                    logger.log(Level.INFO, "Overwriting existing file " + outfile);
+                    outfile.delete();
+                }
+                else
+                    throw new Exception("Output file " + outfile + " exists. Use option -force to overwrite existing files.");
+            }
 
             new Converter(infile, outfile);
         }
     }
 
-    public static void main(final String[] args)
+    private static void help()
     {
-        if (args.length == 0  || args[0].startsWith("-h"))
+        System.out.println("Usage: -main org.csstudio.display.converter.medm.Converter [-help] [-output /path/to/folder] <files>");
+        System.out.println();
+        System.out.println("Converts MEDM *.adl files to Display Builder *.bob format");
+        System.out.println();
+        System.out.println("-output /path/to/folder   - Folder into which converted files are written (must exist)");
+        System.out.println("-force                    - Overwrite existing output files");
+        System.out.println("<files>                   - One or more files to convert");
+    }
+
+    public static void main(final String[] original_args)
+    {
+        final List<String> files = new ArrayList<>();
+        File output_dir = null;
+        boolean force = false;
+
+        final List<String> args = new ArrayList<>(List.of(original_args));
+        final Iterator<String> iter = args.iterator();
+        while (iter.hasNext())
         {
-            System.out.println("Usage: -main org.csstudio.display.converter.medm.Converter [-help] [-output /path/to/folder] <files>");
-            System.out.println();
-            System.out.println("Converts MEDM *.adl files to Display Builder *.bob format");
-            System.out.println();
-            System.out.println("-output /path/to/folder   - Folder into which converted files are written");
-            System.out.println("<files>                   - One or more files to convert");
+            final String cmd = iter.next();
+            if (cmd.startsWith("-h"))
+            {
+                help();
+                return;
+            }
+            else if (cmd.startsWith("-o"))
+            {
+                if (! iter.hasNext())
+                {
+                    System.err.println("Missing folder for -output /path/to/folder");
+                    return;
+                }
+                iter.remove();
+                output_dir = new File(iter.next());
+                iter.remove();
+            }
+            else if (cmd.startsWith("-f"))
+            {
+                force = true;
+                iter.remove();
+            }
+            else if (cmd.startsWith("-"))
+            {
+                System.err.println("Unknown option " + cmd);
+                help();
+                return;
+            }
+            else
+                files.add(cmd);
+        }
+
+        if (files.isEmpty())
+        {
+            help();
             return;
         }
-        final List<String> files = new ArrayList<>(List.of(args));
-        final File output_dir;
         if (files.get(0).startsWith("-o"))
         {
             if (files.size() < 2)
-            {
-                System.err.println("Missing folder for -output /path/to/folder");
-                return;
-            }
-            output_dir = new File(files.get(1));
             files.remove(0);
             files.remove(0);
         }
-        else
-            output_dir = null;
+
         for (String file : files)
         {
             try
             {
-                convert(file, output_dir);
+                convert(file, output_dir, force);
             }
             catch (Exception ex)
             {
