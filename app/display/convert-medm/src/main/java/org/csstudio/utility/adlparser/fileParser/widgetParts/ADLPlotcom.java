@@ -85,6 +85,8 @@ public class ADLPlotcom extends WidgetPart {
                 }else if(FileLine.argEquals(row[0], "bclr")){ //$NON-NLS-1$
                     set_bclr(FileLine.getIntValue(row[1]));
                     set_isBackColorDefined(true);
+                }else if(FileLine.argEquals(row[0], "package")){ //$NON-NLS-1$
+                    // Ignore
                 }else {
                      throw new WrongADLFormatException(Messages.ADLObject_WrongADLFormatException_Parameter_Begin+fileLine+Messages.ADLObject_WrongADLFormatException_Parameter_End);
                 }
