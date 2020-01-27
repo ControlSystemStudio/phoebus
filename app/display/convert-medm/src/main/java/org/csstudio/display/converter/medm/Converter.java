@@ -193,9 +193,14 @@ public class Converter
                     new TextUpdate2Model(adlWidget, colorMap, parentModel);
                 else if (widgetType.equals("valuator"))
                     new Valuator2Model(adlWidget, colorMap, parentModel);
-                // TODO Add all the widgets
+                else if (widgetType.equals("children"))
+                {
+                    // TODO 'children' is not quite the same as 'composite'
+                    new Composite2Model(adlWidget, colorMap, parentModel);
+                }
                 else
                 {
+                    // TODO Add all the widgets
                     logger.log(Level.WARNING, "Ignoring #" + adlWidget.getObjectNr() + " " + widgetType);
                     new Placeholder(adlWidget, colorMap, parentModel);
                 }
