@@ -233,6 +233,12 @@ public class Converter
             if (output_dir != null)
             {
                 logger.log(Level.INFO, "Copying file " + input + " into " + output_dir);
+                final File target = new File(output_dir, new File(input).getName());
+                if (target.exists() && force)
+                {
+                    logger.log(Level.INFO, "Overwriting existing file " + target);
+                    target.delete();
+                }
                 FileHelper.copy(new File(input), output_dir);
                 return;
             }
