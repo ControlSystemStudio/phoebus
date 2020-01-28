@@ -31,4 +31,11 @@ JAR=`echo ${TOP}/product-*.jar`
 # To get one instance, use server mode
 OPT="-server 4918"
 
-java -jar $JAR $OPT "$@" &
+if [ "x$1" == "x-main" ]
+then
+  # Run MEDM converter etc. in foreground
+  java -jar $JAR $OPT "$@"
+else
+  # Run UI as separate thread
+  java -jar $JAR $OPT "$@" &
+fi

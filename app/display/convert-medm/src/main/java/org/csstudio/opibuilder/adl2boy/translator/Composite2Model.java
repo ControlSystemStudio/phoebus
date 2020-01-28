@@ -6,6 +6,10 @@
 
 package org.csstudio.opibuilder.adl2boy.translator;
 
+import static org.csstudio.display.converter.medm.Converter.logger;
+
+import java.util.logging.Level;
+
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.WidgetColor;
@@ -73,17 +77,22 @@ public class Composite2Model extends AbstractADL2Model<Widget> {
         {
             final GroupWidget group = (GroupWidget) widgetModel;
 
-            Converter.convertChildren(compositeWidget.getChildWidgets(), widgetModel, colorMap);
-
-            // Move child positions to be relative to group
-            final int compositeX = widgetModel.propX().getValue();
-            final int compositeY = widgetModel.propY().getValue();
-
-            for (Widget model : group.runtimeChildren().getValue())
+            if (compositeWidget.getChildWidgets() != null)
             {
-                model.propX().setValue(model.propX().getValue() - compositeX);
-                model.propY().setValue(model.propY().getValue() - compositeY);
+                Converter.convertChildren(compositeWidget.getChildWidgets(), widgetModel, colorMap);
+
+                // Move child positions to be relative to group
+                final int compositeX = widgetModel.propX().getValue();
+                final int compositeY = widgetModel.propY().getValue();
+
+                for (Widget model : group.runtimeChildren().getValue())
+                {
+                    model.propX().setValue(model.propX().getValue() - compositeX);
+                    model.propY().setValue(model.propY().getValue() - compositeY);
+                }
             }
+            else
+                logger.log(Level.WARNING, "Empty composite");
         }
     }
 }
