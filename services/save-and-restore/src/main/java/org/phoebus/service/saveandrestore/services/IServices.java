@@ -53,6 +53,4 @@ public interface IServices {
 	public Node getRootNode();
 	
 	public Node getParentNode(String uniqueNodeId);
-	
-	public ConfigPv updateSingleConfigPv(String currentPvName, String newPvName, String currentReadbackPvName, String newReadbackPvName);	
 }

@@ -83,4 +83,9 @@ public class PersistenceConfiguration {
 	public SimpleJdbcInsert nodeClosureInsert() {
 		return new SimpleJdbcInsert(dataSource()).withTableName("node_closure");
 	}
+
+	@Bean
+	public SimpleJdbcInsert pvInsert() {
+		return new SimpleJdbcInsert(dataSource()).withTableName("pv").usingGeneratedKeyColumns("id");
+	}
 }

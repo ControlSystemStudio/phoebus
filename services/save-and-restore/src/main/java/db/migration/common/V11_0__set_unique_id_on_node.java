@@ -18,12 +18,12 @@
 
 package db.migration.common;
 
+import org.flywaydb.core.api.migration.BaseJavaMigration;
+import org.flywaydb.core.api.migration.Context;
+
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.UUID;
-
-import org.flywaydb.core.api.migration.BaseJavaMigration;
-import org.flywaydb.core.api.migration.Context;
 
 /**
  * @author georgweiss

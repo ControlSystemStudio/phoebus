@@ -49,14 +49,12 @@ public class SnapshotPvRowMapperTest {
 		when(resultSet.getString("value")).thenReturn("[7]");
 		when(resultSet.getString("sizes")).thenReturn("[1]");
 		when(resultSet.getString("data_type")).thenReturn("INTEGER");
-		when(resultSet.getBoolean("readback")).thenReturn(true);
 		when(resultSet.getString("name")).thenReturn("pvname");
 		when(resultSet.getString("readback_name")).thenReturn("pvname");
 		when(resultSet.getString("provider")).thenReturn("ca");
 		
 		
 		assertTrue(new SnapshotPvRowMapper().mapRow(resultSet, 0) instanceof SnapshotPv);
-		assertTrue(new SnapshotPvRowMapper().mapRow(resultSet, 0).isReadback());
 	}
 	
 	@Test
@@ -73,11 +71,8 @@ public class SnapshotPvRowMapperTest {
 		when(resultSet.getString("value")).thenReturn("[7]");
 		when(resultSet.getString("sizes")).thenReturn("[1]");
 		when(resultSet.getString("data_type")).thenReturn("INTEGER");
-		when(resultSet.getBoolean("readback")).thenReturn(false);
 		when(resultSet.getString("name")).thenReturn("pvname");
 		when(resultSet.getString("readback_name")).thenReturn("pvname");
 		when(resultSet.getString("provider")).thenReturn("ca");
-		
-		assertFalse(new SnapshotPvRowMapper().mapRow(resultSet, 0).isReadback());
 	}
 }

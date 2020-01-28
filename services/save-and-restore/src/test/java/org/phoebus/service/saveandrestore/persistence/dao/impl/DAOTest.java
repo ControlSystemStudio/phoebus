@@ -232,7 +232,7 @@ public class DAOTest {
 		assertNull(nodeDAO.getNode(config.getUniqueId()));
 		assertNull(nodeDAO.getNode(snapshot.getUniqueId()));
 	}
-	
+
 	@Test
 	public void testDeleteNodeInvalidNodeId() {
 		try {
@@ -240,14 +240,14 @@ public class DAOTest {
 			fail("IllegalArgumentException expected here");
 		} catch (Exception e) {
 		}
-		
+
 		try {
 			nodeDAO.deleteNode("");
 			fail("IllegalArgumentException expected here");
 		} catch (Exception e) {
 		}
 	}
-	
+
 
 
 	@Test
@@ -381,7 +381,7 @@ public class DAOTest {
 
 		assertNotNull(config);
 	}
-	
+
 	@Test
 	@FlywayTest(invokeCleanDB = true)
 	public void testGetParentNodeDataAccessException() {
@@ -426,7 +426,7 @@ public class DAOTest {
 		newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshot name", "user", "comment");
 
 	}
-	
+
 	@Test(expected = IllegalArgumentException.class)
 	@FlywayTest(invokeCleanDB = true)
 	public void testCommitSnapshotNameClashesWithExisting() {
@@ -442,9 +442,9 @@ public class DAOTest {
 				.build();
 
 		Node newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshot name", "user", "comment");
-		
+
 		Node newSnapshot2 = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshot name 2", "user", "comment");
-		
+
 		Node anotherSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshot name", "user", "comment");
 	}
 
@@ -454,7 +454,7 @@ public class DAOTest {
 
 		assertTrue(nodeDAO.getSnapshots("a").isEmpty());
 	}
-	
+
 	@Test
 	@FlywayTest(invokeCleanDB = true)
 	public void testGetSnapshotItemsWithNullPvValues() {
@@ -472,7 +472,7 @@ public class DAOTest {
 		List<SnapshotItem> snapshotItems = nodeDAO.getSnapshotItems(newSnapshot.getUniqueId());
 		assertEquals(7.7, ((VDouble) snapshotItems.get(0).getValue()).getValue().doubleValue(), 0.01);
 		assertNull(snapshotItems.get(0).getReadbackValue());
-		
+
 		item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
 				.build();
 		newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "name2", "comment", "user");
@@ -501,7 +501,7 @@ public class DAOTest {
 
 		nodeDAO.moveNode("a", folder1.getUniqueId(), "username");
 	}
-	
+
 	@Test(expected = IllegalArgumentException.class)
 	@FlywayTest(invokeCleanDB = true)
 	public void testMoveNodeSourceWrongType() {
@@ -513,7 +513,7 @@ public class DAOTest {
 
 		nodeDAO.moveNode(snapshot.getUniqueId(), folder.getUniqueId(), "username");
 	}
-	
+
 	@Test(expected = IllegalArgumentException.class)
 	@FlywayTest(invokeCleanDB = true)
 	public void testMoveNodeTargetNodeInvalidId() {
@@ -575,12 +575,12 @@ public class DAOTest {
 		nodeDAO.moveNode(config2.getUniqueId(), rootNode.getUniqueId(), "username");
 
 	}
-	
+
 	@Test
 	@FlywayTest(invokeCleanDB = true)
 	public void testGetChildNodes() throws Exception {
 		Node rootNode = nodeDAO.getRootNode();
-		
+
 		Map<String, String> props = new HashMap<>();
 		props.put("a", "b");
 
@@ -588,13 +588,13 @@ public class DAOTest {
 
 		// Create folder1 in the root folder
 		folder1 = nodeDAO.createNode(rootNode.getUniqueId(), folder1);
-		
+
 		List<Node> childNodes = nodeDAO.getChildNodes(rootNode.getUniqueId());
-		
+
 		assertEquals("b", childNodes.get(0).getProperty("a"));
 		assertTrue(nodeDAO.getChildNodes(folder1.getUniqueId()).isEmpty());
 	}
-	
+
 	@Test(expected = NodeNotFoundException.class)
 	@FlywayTest(invokeCleanDB = true)
 	public void testGetChildNodesOfNonExistingNode() throws Exception {
@@ -653,8 +653,8 @@ public class DAOTest {
 		// After move folder1 has no child nodes
 		assertTrue(nodeDAO.getChildNodes(folder1.getUniqueId()).isEmpty());
 	}
-	
-	
+
+
 
 	@Test
 	@FlywayTest(invokeCleanDB = true)
@@ -729,7 +729,7 @@ public class DAOTest {
 	public void testUpdateNodethatIsNotConfiguration() {
 		nodeDAO.updateConfiguration(Node.builder().id(Node.ROOT_NODE_ID).build(), null);
 	}
-	
+
 	@Test
 	@FlywayTest(invokeCleanDB = true)
 	public void testUpdateNodeBadProperties() {
@@ -745,45 +745,45 @@ public class DAOTest {
 		props.put("a", null);
 		childNode2.setProperties(props);
 		childNode2 = nodeDAO.updateNode(childNode2);
-		
+
 		assertNull("b", childNode2.getProperty("a"));
-		
+
 		props = new HashMap<>();
 		props.put("a", "b");
 		childNode2.setProperties(props);
 		nodeDAO.updateNode(childNode2);
-		
+
 		props = new HashMap<>();
 		props.put("a", "");
 		childNode2.setProperties(props);
 		childNode2 = nodeDAO.updateNode(childNode2);
-		
+
 		assertNull("b", childNode2.getProperty("a"));
-		
+
 		props = new HashMap<>();
 		props.put("a", "b");
 		childNode2.setProperties(props);
 		nodeDAO.updateNode(childNode2);
-		
+
 		props = new HashMap<>();
 		props.put(null, "c");
 		childNode2.setProperties(props);
 		childNode2 = nodeDAO.updateNode(childNode2);
-		
+
 		assertNull("b", childNode2.getProperty("a"));
-		
+
 		props = new HashMap<>();
 		props.put("a", "b");
 		childNode2.setProperties(props);
 		nodeDAO.updateNode(childNode2);
-		
+
 		props = new HashMap<>();
 		props.put("", "c");
 		childNode2.setProperties(props);
 		childNode2 = nodeDAO.updateNode(childNode2);
-		
+
 		assertNull("b", childNode2.getProperty("a"));
-		
+
 	}
 
 	@Test
@@ -901,7 +901,7 @@ public class DAOTest {
 
 		nodeDAO.updateNode(rootNode);
 	}
-	
+
 	@Test(expected = IllegalArgumentException.class)
 	@FlywayTest(invokeCleanDB = true)
 	public void testUpdateNonExistingNode() {
@@ -973,8 +973,8 @@ public class DAOTest {
 		assertNotNull(childNode2.getProperty("x"));
 	}
 
-	
-	
+
+
 	@Test
 	@FlywayTest(invokeCleanDB = true)
 	public void testGetSnapshotThatIsNotSnapshot() {
@@ -1009,80 +1009,6 @@ public class DAOTest {
 
 	@Test
 	@FlywayTest(invokeCleanDB = true)
-	public void testRenameConfigPv() {
-		Node rootNode = nodeDAO.getRootNode();
-
-		ConfigPv configPv = ConfigPv.builder().pvName("pvName").build();
-
-		Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("My config").userName("username").build();
-		Node newConfig = nodeDAO.createNode(rootNode.getUniqueId(), config);
-		nodeDAO.updateConfiguration(newConfig, Arrays.asList(configPv));
-		
-		List<ConfigPv> list = nodeDAO.getConfigPvs(newConfig.getUniqueId());
-		assertEquals("pvName", list.get(0).getPvName());
-		
-		ConfigPv updatedConfigPv = nodeDAO.updateSingleConfigPv("pvName", "pvName2", null, null);
-		assertEquals("pvName2", updatedConfigPv.getPvName());
-		
-		updatedConfigPv = nodeDAO.updateSingleConfigPv("pvName2", "pvName2", null, "readbackName");
-		assertEquals("pvName2", updatedConfigPv.getPvName());
-		assertEquals("readbackName", updatedConfigPv.getReadbackPvName());
-		
-		updatedConfigPv = nodeDAO.updateSingleConfigPv("pvName2", "pvName2", "readbackName", null);
-		assertNull(updatedConfigPv.getReadbackPvName());
-
-		configPv = ConfigPv.builder().pvName("pvName").readbackPvName("readbackPvName").build();
-		nodeDAO.updateConfiguration(newConfig, Arrays.asList(configPv));
-		list = nodeDAO.getConfigPvs(newConfig.getUniqueId());
-		assertEquals("pvName", list.get(0).getPvName());
-		assertEquals("readbackPvName", list.get(0).getReadbackPvName());
-
-		updatedConfigPv = nodeDAO.updateSingleConfigPv("pvName", "pvName2", "readbackPvName", null);
-		assertEquals("pvName2", updatedConfigPv.getPvName());
-		assertEquals("readbackPvName", list.get(0).getReadbackPvName());
-	}
-	
-	@Test
-	@FlywayTest(invokeCleanDB = true)
-	public void testRenameConfigPvInvalidNames() {
-		try {
-			nodeDAO.updateSingleConfigPv("quack", "quack", null, null);
-			fail("IllegalArgumentException expected here");
-		} catch (IllegalArgumentException e) {
-		}
-		
-		try {
-			nodeDAO.updateSingleConfigPv(null, "quack", null, null);
-			fail("IllegalArgumentException expected here");
-		} catch (IllegalArgumentException e) {
-		}
-		
-		Node rootNode = nodeDAO.getRootNode();
-
-		ConfigPv configPv = ConfigPv.builder().pvName("pvName").build();
-
-		Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("My config").userName("username").build();
-		Node newConfig = nodeDAO.createNode(rootNode.getUniqueId(), config);
-		nodeDAO.updateConfiguration(newConfig, Arrays.asList(configPv));
-			
-		nodeDAO.updateSingleConfigPv("pvName", "pvName2", null, null);
-		
-		try {
-			nodeDAO.updateSingleConfigPv("pvName", "pvName2", null, null);
-			fail("IllegalArgumentException expected here");
-		} catch (Exception e) {
-		}
-		
-		try {
-			nodeDAO.updateSingleConfigPv("pvName", "pvName2", "", null);
-			fail("IllegalArgumentException expected here");
-		} catch (Exception e) {
-		}
-	}
-	
-
-	@Test
-	@FlywayTest(invokeCleanDB = true)
 	public void testSaveSnapshot() {
 		Node rootNode = nodeDAO.getRootNode();
 
@@ -1094,35 +1020,34 @@ public class DAOTest {
 		SnapshotItem item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
 				.value(VDouble.of(7.7, alarm, time, display)).readbackValue(VDouble.of(7.7, alarm, time, display))
 				.build();
-		
+
 		Node snapshotNode = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshotName", "comment", "userName");
-		
+
 		List<SnapshotItem> snapshotItems = nodeDAO.getSnapshotItems(snapshotNode.getUniqueId());
-		
+
 		assertTrue(snapshotItems.size() == 1);
-	
+
 	}
-	
+
 	@Test(expected = IllegalArgumentException.class)
 	@FlywayTest(invokeCleanDB = true)
 	public void testCreateSnapshotInFolderParent() {
 		Node rootNode = nodeDAO.getRootNode();
 
 		Node snapshot = Node.builder().name("Snapshot").nodeType(NodeType.SNAPSHOT).build();
-		
+
 		nodeDAO.createNode(rootNode.getUniqueId(), snapshot);
 	}
-	
+
 	@Test
 	@FlywayTest(invokeCleanDB = true)
 	public void testCreateNodeWithNonNullUNiqueId() {
 		Node rootNode = nodeDAO.getRootNode();
 
 		Node folder = Node.builder().name("Folder").nodeType(NodeType.FOLDER).uniqueId("uniqueid").build();
-		
+
 		folder = nodeDAO.createNode(rootNode.getUniqueId(), folder);
-		
+
 		assertEquals("uniqueid", folder.getUniqueId());
 	}
-
 }

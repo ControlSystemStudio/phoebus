@@ -46,7 +46,6 @@ public class SnapshotPvRowMapper implements RowMapper<SnapshotPv> {
 				.value(resultSet.getString("value"))
 				.sizes(resultSet.getString("sizes"))
 				.dataType(resultSet.getString("data_type") == null ? null : SnapshotPvDataType.valueOf(resultSet.getString("data_type")))
-				.readback(resultSet.getBoolean("readback"))
 				.build();
 
 	}
