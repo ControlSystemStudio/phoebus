@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,6 +8,7 @@
 package org.csstudio.display.converter.edm.widgets;
 
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.BoolButtonWidget;
 import org.csstudio.display.converter.edm.EdmConverter;
 import org.csstudio.opibuilder.converter.model.EdmWidget;
@@ -50,15 +51,14 @@ public class Convert_activeButtonClass extends ConverterBase<BoolButtonWidget>
         widget.propOnLabel().setValue(on);
         widget.propOffLabel().setValue(off);
 
-        // EDM buttons sometime use the same color and label for both states,
+        // Some EDM buttons use the same color and label for both states,
         // and only the subtle 'press' state indicates what's what.
-        if (widget.propOffLabel().getValue().equals(widget.propOnLabel().getValue()))
+        // --> Change to darker 'off' color
+        if (off.equals(on)  &&  widget.propOffColor().getValue().equals(widget.propOnColor().getValue()))
         {
-            // Same colors? Change 'off' label to show "(on label)"
-            if (widget.propOffColor().getValue().equals(widget.propOnColor().getValue()))
-                widget.propOffLabel().setValue("(" + widget.propOnLabel().getValue() + ")");
-            else // Otherwise _do_ use the colors for LED, even though EDM didn't have an LED
-                widget.propShowLED().setValue(true);
+            WidgetColor color = widget.propOnColor().getValue();
+            color = new WidgetColor(color.getRed()*80/100, color.getGreen()*80/100, color.getBlue()*80/100);
+            widget.propOffColor().setValue(color);
         }
     }
 

@@ -27,6 +27,7 @@ public class Convert_activeBarClass extends ConverterBase<ProgressBarWidget>
         convertColor(r.getIndicatorColor(), widget.propFillColor());
         widget.propHorizontal().setValue(!"vertical".equals(r.getOrientation()));
         widget.propPVName().setValue(convertPVName(r.getIndicatorPv()));
+        widget.propLimitsFromPV().setValue(r.isLimitsFromDb());
     }
 
     @Override

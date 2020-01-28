@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,6 +17,9 @@ import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.csstudio.apputil.formula.Formula;
+import org.csstudio.apputil.formula.VTypeHelper;
+import org.csstudio.apputil.formula.VariableNode;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -162,6 +165,40 @@ public abstract class ConverterBase<W extends Widget>
 
         prop.setValue(convertStaticColor(edm));
     }
+
+    /** Evaluate 'dynamic' color rule
+     *  @param edm {@link EdmColor}, must be dynamic
+     *  @param value Numeric value for which to fetch color
+     *  @return Color
+     */
+    public static WidgetColor evaluateDynamicColor(final EdmColor edm, final double value)
+    {
+        if (! edm.isDynamic())
+            throw new IllegalStateException("Color is not dynamic: " + edm);
+
+        final VariableNode[] variables = { new VariableNode("pv0", value) };
+        for (Entry<String, String> entry : edm.getRuleMap().entrySet())
+        {
+            final String expression = convertColorRuleExpression(entry.getKey());
+            try
+            {
+                final Formula formula = new Formula(expression, variables);
+                if (VTypeHelper.getDouble(formula.eval()) != 0.0)
+                {
+                    final EdmColor color = EdmModel.getColorsList().getColor(entry.getValue());
+                    return convertStaticColor(color);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Cannot parse expression in dynamic color '" + edm + "': " + expression);
+                break;
+            }
+        }
+        logger.log(Level.WARNING, "Dynamic color '" + edm + "' has no match for " + value);
+        return convertStaticColor(edm);
+    }
+
 
     /** Find a '=' that is neither preceded by '<', '>', '=' nor followed by '=' */
     private static final Pattern expand_equal = Pattern.compile("(?<![<>=])=(?!=)");
@@ -361,11 +398,11 @@ public abstract class ConverterBase<W extends Widget>
                 sb.append(parts[0].substring(5));
                 if (parts.length > 1)
                 {
-                    String type = "";
+//                    String type = "";
                     String initValue = parts[1];
                     if (parts[1].startsWith("d:"))
                     {
-                        type = "<VDouble>";
+//                        type = "<VDouble>";
                         initValue = parts[1].substring(2);
                     }
                     else if (parts[1].startsWith("i:"))

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -334,6 +334,22 @@ public class FormulaUnitTest
         assertEquals(1.0, VTypeHelper.getDouble(f.eval()), epsilon);
         vars[0].setValue(0);
         vars[1].setValue(1);
+        assertEquals(0.0, VTypeHelper.getDouble(f.eval()), epsilon);
+
+        // Boolean 'or' using '||' notation, one PV
+        f = new Formula("`pv0` <= -1  ||  `pv0` > 10", true);
+        vars = f.getVariables();
+        assertEquals(1, vars.length);
+        assertEquals("pv0", vars[0].getName());
+        vars[0].setValue(0);
+        assertEquals(0.0, VTypeHelper.getDouble(f.eval()), epsilon);
+        vars[0].setValue(10);
+        assertEquals(0.0, VTypeHelper.getDouble(f.eval()), epsilon);
+        vars[0].setValue(11);
+        assertEquals(1.0, VTypeHelper.getDouble(f.eval()), epsilon);
+        vars[0].setValue(-1);
+        assertEquals(1.0, VTypeHelper.getDouble(f.eval()), epsilon);
+        vars[0].setValue(-0.5);
         assertEquals(0.0, VTypeHelper.getDouble(f.eval()), epsilon);
     }
 
