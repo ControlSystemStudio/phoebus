@@ -30,7 +30,7 @@ import java.sql.Timestamp;
  * @author georgweiss
  * Created 24 Jan 2020
  */
-public class V18_0__migrate_pvs extends BaseJavaMigration{
+public class V18_0__migrate_pv_data_step2 extends BaseJavaMigration{
 
     private static final int NO_ID = -1;
 
