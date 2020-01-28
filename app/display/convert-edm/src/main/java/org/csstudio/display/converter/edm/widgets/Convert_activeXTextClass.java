@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -36,13 +36,18 @@ public class Convert_activeXTextClass extends ConverterBase<LabelWidget>
         final int font_lim = (widget.propHeight().getValue()-2*lines) / lines;
         convertFont(t.getFont(), font_lim, widget.propFont());
 
-        widget.propAutoSize().setValue(t.getAttribute("autoSize").isExistInEDL() && t.isAutoSize());
-
-        widget.propVerticalAlignment().setValue(VerticalAlignment.MIDDLE);
-        if ("right".equals(t.getFontAlign()))
-            widget.propHorizontalAlignment().setValue(HorizontalAlignment.RIGHT);
-        else if ("center".equals(t.getFontAlign()))
-            widget.propHorizontalAlignment().setValue(HorizontalAlignment.CENTER);
+        if (t.getAttribute("autoSize").isExistInEDL() && t.isAutoSize())
+        {   // Autosize 'shrinks' the size; leave alignment left & top
+            widget.propAutoSize().setValue(true);
+        }
+        else
+        {   // Honor alignment settings
+            widget.propVerticalAlignment().setValue(VerticalAlignment.MIDDLE);
+            if ("right".equals(t.getFontAlign()))
+                widget.propHorizontalAlignment().setValue(HorizontalAlignment.RIGHT);
+            else if ("center".equals(t.getFontAlign()))
+                widget.propHorizontalAlignment().setValue(HorizontalAlignment.CENTER);
+        }
 
         // Alarm-sensitive color? Else use (optionally dynamic) color
         if (t.isBgAlarm())
