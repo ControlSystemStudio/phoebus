@@ -155,12 +155,14 @@ public class ActionButtonWidget extends VisibleWidget
                 final Element actions = XMLUtil.getChildElement(xml, CommonWidgetProperties.propActions.getName());
                 if (actions != null)
                     for (Element action : XMLUtil.getChildElements(actions, XMLTags.ACTION))
-                        XMLUtil.getChildString(action, propConfirmMessage.getName())
-                               .ifPresent(message ->
-                                          {
-                                              button.propConfirmMessage().setValue(message);
-                                              button.propConfirmDialog().setValue(true);
-                                          });
+                    {
+                        final String message = XMLUtil.getChildString(action, propConfirmMessage.getName()).orElse("");
+                        if (! message.isBlank())
+                        {
+                            button.propConfirmMessage().setValue(message);
+                            button.propConfirmDialog().setValue(true);
+                        }
+                    }
             }
             // If there is no pv_name, remove from tool tip
             if ( ((MacroizedWidgetProperty<String>)button.pv_name).getSpecification().isEmpty())
