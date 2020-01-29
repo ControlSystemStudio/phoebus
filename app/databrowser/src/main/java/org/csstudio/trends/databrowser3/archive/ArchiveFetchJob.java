@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -50,6 +51,9 @@ public class ArchiveFetchJob implements JobRunnable
 {
     /** Poll period in millisecs */
     private static final int POLL_PERIOD_MS = 1000;
+
+    /** Limit the number of concurrently running jobs */
+    private static final Semaphore concurrent_requests = new Semaphore(Preferences.concurrent_requests, true);
 
     /** Item for which to fetch samples */
     private final PVItem item;
@@ -220,29 +224,40 @@ public class ArchiveFetchJob implements JobRunnable
         if (MacroHandler.containsMacros(item.getResolvedName()))
             return;
 
-        monitor.beginTask(Messages.ArchiveFetchStart);
-        final WorkerThread worker = new WorkerThread();
-        final Future<?> done = Activator.thread_pool.submit(worker);
-        // Poll worker and progress monitor
-        long start = System.currentTimeMillis();
-        while (!done.isDone())
-        {   // Wait until worker is done, or time out to update info message
-            try
-            {
-                done.get(POLL_PERIOD_MS, TimeUnit.MILLISECONDS);
+        monitor.beginTask("Pending...");
+
+        concurrent_requests.acquire();
+        try
+        {
+            monitor.beginTask(Messages.ArchiveFetchStart);
+
+            final WorkerThread worker = new WorkerThread();
+            final Future<?> done = Activator.thread_pool.submit(worker);
+            // Poll worker and progress monitor
+            long start = System.currentTimeMillis();
+            while (!done.isDone())
+            {   // Wait until worker is done, or time out to update info message
+                try
+                {
+                    done.get(POLL_PERIOD_MS, TimeUnit.MILLISECONDS);
+                }
+                catch (Exception ex)
+                {
+                    // Ignore
+                }
+                final long seconds = (System.currentTimeMillis() - start) / 1000;
+                final String info = MessageFormat.format(Messages.ArchiveFetchProgressFmt,
+                                                         worker.getMessage(), seconds);
+                monitor.updateTaskName(info);
+                // Try to cancel the worker in response to user's cancel request.
+                // Continues to cancel the worker until isDone()
+                if (monitor.isCanceled())
+                    worker.cancel();
             }
-            catch (Exception ex)
-            {
-                // Ignore
-            }
-            final long seconds = (System.currentTimeMillis() - start) / 1000;
-            final String info = MessageFormat.format(Messages.ArchiveFetchProgressFmt,
-                                                     worker.getMessage(), seconds);
-            monitor.updateTaskName(info);
-            // Try to cancel the worker in response to user's cancel request.
-            // Continues to cancel the worker until isDone()
-            if (monitor.isCanceled())
-                worker.cancel();
+        }
+        finally
+        {
+            concurrent_requests.release();
         }
     }
 
