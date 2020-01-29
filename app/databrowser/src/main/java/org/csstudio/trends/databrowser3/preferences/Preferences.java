@@ -97,7 +97,8 @@ public class Preferences
 
         archive_fetch_delay = prefs.getInt(ARCHIVE_FETCH_DELAY);
 
-        concurrent_requests = prefs.getInt(CONCURRENT_REQUESTS);
+        // Allow at least one at a time
+        concurrent_requests = Math.max(1, prefs.getInt(CONCURRENT_REQUESTS));
 
         String enum_name = prefs.get(ARCHIVE_RESCALE);
         try
