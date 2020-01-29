@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,6 +26,7 @@ public class SimProposalProvider implements PVProposalProvider
 
     /** All the simulated PVs with supported variations of their arguments */
     private static final List<SimProposal> all_proposals = List.of(
+        new SimProposal("sim://const", "value"),
         new SimProposal("sim://flipflop", "update_seconds"),
         new SimProposal("sim://gaussianNoise", "center", "std_dev", "update_seconds"),
         new SimProposal("sim://gaussianwave", "period_seconds", "std_dev", "size", "update_seconds"),
