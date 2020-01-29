@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMacros;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propName;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propSelectedColor;
 import static org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget.propGroupName;
 import static org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget.runtimeModel;
 import static org.csstudio.display.builder.model.widgets.TabsWidget.propActiveTab;
@@ -91,9 +92,6 @@ public class NavigationTabsWidget extends VisibleWidget
 
     private static final WidgetPropertyDescriptor<Integer> propTabSpacing =
         CommonWidgetProperties.newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "tab_spacing", "Tab Spacing");
-
-    private static final WidgetPropertyDescriptor<WidgetColor> propSelectedColor =
-            CommonWidgetProperties.newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "selected_color", "Selected Color");
 
     private static final WidgetPropertyDescriptor<WidgetColor> propDeselectedColor =
             CommonWidgetProperties.newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "deselected_color", "Deselected Color");

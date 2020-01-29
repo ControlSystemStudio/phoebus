@@ -29,7 +29,11 @@ public class Convert_activeXTextClass extends ConverterBase<LabelWidget>
         widget.propTransparent().setValue(t.getAttribute("useDisplayBg").isExistInEDL() && t.isUseDisplayBg());
 
         // EDM uses '\r' as well as '\001' as line delimiter
-        widget.propText().setValue(t.getValue().get().replace('\001', '\n').replace('\r', '\n'));
+        // EDM text that has been 'manually aligned' with leading/trailing spaces
+        // often exceeds the widget size and doesn't show up at all  -> trim/strip.
+        // If text should e.g. be centered, configure EDM label align="center"
+        // instead of manually padding with spaces.
+        widget.propText().setValue(t.getValue().get().replace('\001', '\n').replace('\r', '\n').strip());
 
         // Remove 2 pixels from height for each line, then find font that 'fits'
         final int lines = textLineCount(widget.propText().getValue());

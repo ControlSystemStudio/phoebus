@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,8 +16,10 @@ import org.csstudio.display.builder.model.widgets.ProgressBarWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.Display;
 import org.epics.vtype.VType;
+import org.phoebus.ui.javafx.Styles;
 
 import javafx.scene.control.ProgressBar;
+import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 
@@ -157,13 +159,32 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
                 jfx_node.getTransforms().clear();
                 jfx_node.resize(width, height);
             }
+
+            // Default 'inset' of .bar uses 7 pixels.
+            // A widget sized 15 has 8 pixels left for the bar.
+            // Select leaner style where .bar uses full size.
+            Styles.update(jfx_node, "SmallBar",
+                          Math.min(width, height) <= 15);
+
             // Could clear style and use setBackground(),
             // but result is very plain.
             // Tweaking the color used by CSS keeps overall style.
             // See also http://stackoverflow.com/questions/13467259/javafx-how-to-change-progressbar-color-dynamically
-            jfx_node.setStyle("-fx-accent: " + JFXUtil.webRGB(model_widget.propFillColor().getValue()));
+            final StringBuilder style = new StringBuilder();
+            style.append("-fx-accent: ").append(JFXUtil.webRGB(model_widget.propFillColor().getValue())).append(';');
+            style.append("-fx-control-inner-background: ").append(JFXUtil.webRGB(model_widget.propBackgroundColor().getValue())).append(';');
+            jfx_node.setStyle(style.toString());
         }
         if (dirty_value.checkAndClear())
             jfx_node.setProgress(percentage);
     }
+
+    public static void main(String[] args)
+    {
+        final Color color = Color.rgb(236, 236, 236).deriveColor(0, 1.0, 0.9254*0.8, 1.0);
+        System.out.println(color.getBrightness());
+        System.out.println(color.getRed() * 255);
+        System.out.println(color.getGreen() * 255);
+        System.out.println(color.getBlue() * 255);
+           }
 }
