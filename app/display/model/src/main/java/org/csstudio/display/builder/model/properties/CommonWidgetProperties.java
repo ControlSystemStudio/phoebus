@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -378,6 +378,10 @@ public class CommonWidgetProperties
     /** 'line_color' property */
     public static final WidgetPropertyDescriptor<WidgetColor> propLineColor =
             newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "line_color", Messages.WidgetProperties_LineColor);
+
+    /** 'selected_color' property */
+    public static final WidgetPropertyDescriptor<WidgetColor> propSelectedColor =
+            CommonWidgetProperties.newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "selected_color", "Selected Color");
 
     /** 'color' property */
     public static final WidgetPropertyDescriptor<WidgetColor> propColor =

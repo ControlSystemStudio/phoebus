@@ -27,6 +27,7 @@ public class Convert_activeChoiceButtonClass extends ConverterBase<ChoiceButtonW
         widget.propHorizontal().setValue("horizontal".equals(r.getOrientation()));
         convertColor(r.getBgColor(), widget.propBackgroundColor());
         convertColor(r.getFgColor(), widget.propForegroundColor());
+        convertColor(r.getSelectColor(), widget.propSelectedColor());
         convertFont(r.getFont(), widget.propFont());
 
         if (r.getAttribute("controlPv").isExistInEDL())
