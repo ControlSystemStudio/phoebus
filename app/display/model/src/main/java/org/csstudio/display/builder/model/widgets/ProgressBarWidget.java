@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.widgets;
 
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFillColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontal;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLimitsFromPV;
@@ -65,6 +66,7 @@ public class ProgressBarWidget extends PVWidget
 
             if (xml_version.getMajor() < 2)
             {
+                final ProgressBarWidget bar = (ProgressBarWidget) widget;
                 // BOY progress bar reserved room on top for limit markers,
                 // and on bottom for scale
                 if (XMLUtil.getChildBoolean(xml, "show_markers").orElse(true))
@@ -72,11 +74,15 @@ public class ProgressBarWidget extends PVWidget
                     // This widget has no markers on top, so move widget down and reduce height.
                     // There is no 'marker font', seems to have constant height
                     final int reduce = 25;
-                    widget.propY().setValue(widget.propY().getValue() + reduce);
-                    widget.propHeight().setValue(widget.propHeight().getValue() - reduce);
+                    bar.propY().setValue(bar.propY().getValue() + reduce);
+                    bar.propHeight().setValue(bar.propHeight().getValue() - reduce);
                 }
                 // Do use space below where BOY placed markers for the bar itself.
                 // In the future, there could be a scale.
+
+                final Element el = XMLUtil.getChildElement(xml, "color_fillbackground");
+                if (el != null)
+                    bar.propBackgroundColor().readFromXML(model_reader, el);
             }
 
             return true;
@@ -94,6 +100,7 @@ public class ProgressBarWidget extends PVWidget
     private volatile WidgetProperty<Double> minimum;
     private volatile WidgetProperty<Double> maximum;
     private volatile WidgetProperty<WidgetColor> fill_color;
+    private volatile WidgetProperty<WidgetColor> background_color;
     private volatile WidgetProperty<Boolean> horizontal;
 
     public ProgressBarWidget()
@@ -106,6 +113,7 @@ public class ProgressBarWidget extends PVWidget
     {
         super.defineProperties(properties);
         properties.add(fill_color = propFillColor.createProperty(this, new WidgetColor(60, 255, 60)));
+        properties.add(background_color = propBackgroundColor.createProperty(this, new WidgetColor(250, 250, 250)));
         properties.add(limits_from_pv = propLimitsFromPV.createProperty(this, true));
         properties.add(minimum = propMinimum.createProperty(this, 0.0));
         properties.add(maximum = propMaximum.createProperty(this, 100.0));
@@ -116,6 +124,12 @@ public class ProgressBarWidget extends PVWidget
     public WidgetProperty<WidgetColor> propFillColor()
     {
         return fill_color;
+    }
+
+    /** @return 'background_color' property */
+    public WidgetProperty<WidgetColor> propBackgroundColor()
+    {
+        return background_color;
     }
 
     /** @return 'limits_from_pv' property */
