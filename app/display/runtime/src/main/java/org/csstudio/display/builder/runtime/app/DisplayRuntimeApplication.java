@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,7 @@ import java.net.URL;
 import java.util.List;
 
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.ModelPlugin;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.docking.DockItemWithInput;
@@ -48,6 +49,12 @@ public class DisplayRuntimeApplication implements AppResourceDescriptor
     public List<String> supportedFileExtentions()
     {
         return DisplayModel.FILE_EXTENSIONS;
+    }
+
+    @Override
+    public void start()
+    {
+        ModelPlugin.reloadConfigurationFiles();
     }
 
     @Override
