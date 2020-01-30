@@ -38,7 +38,6 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.paint.Color;
 
 /** Dialog for displaying widget information
  *  @author Kay Kasemir
@@ -88,13 +87,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
             }
             else
                 severity = AlarmSeverity.NONE;
-
-            final Color color = SeverityColors.getTextColor(severity);
-            final String spec = String.format("-fx-text-fill: #%02X%02X%02X",
-                                              (int) (color.getRed()*255),
-                                              (int) (color.getGreen()*255),
-                                              (int) (color.getBlue()*255));
-            text.setStyle(spec);
+            text.setStyle("-fx-text-fill: " + JFXUtil.webRGB(SeverityColors.getTextColor(severity)));
         }
     }
 
