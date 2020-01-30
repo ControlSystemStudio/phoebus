@@ -21,12 +21,14 @@ package db.migration.common;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Timestamp;
 
 /**
- * Adds pv_id values to snapshot_node_pv table.
+ * Migrates readback values such that both the value and readback value - where applicable - is
+ * contained in a single record in the snapshot_node_pv table.
  * @author georgweiss
  * Created 24 Jan 2020
  */
@@ -38,37 +40,62 @@ public class V20_0__migrate_pv_data_step4 extends BaseJavaMigration{
     public void migrate(Context context) throws Exception {
 
         try (Statement statement = context.getConnection().createStatement()) {
-            try (ResultSet rows = statement.executeQuery("SELECT * FROM snapshot_node_pv")) {
+            try (ResultSet rows = statement.executeQuery("SELECT id FROM node WHERE type='SNAPSHOT'")) {
                 while (rows.next()) {
-                    int snapshotNodeId = rows.getInt("snapshot_node_id");
-                    int configPvId = rows.getInt("config_pv_id");
-                    boolean isReadback = rows.getBoolean("readback");
-                    int pvId = getPvId(context, configPvId, isReadback);
-                    try (Statement statement2 = context.getConnection().createStatement()){
-                        statement2.execute("UPDATE snapshot_node_pv SET pv_id=" + pvId + " WHERE snapshot_node_id=" + snapshotNodeId +
-                                " AND config_pv_id=" + configPvId + " AND readback=" + isReadback);
-                    }
+                    int snapshotNodeId = rows.getInt("id");
+                    processSnapshot(context, snapshotNodeId);
                 }
             }
         }
     }
 
-    private int getPvId(Context context, int configPvId, boolean isReadback) throws Exception{
-        Statement statement = context.getConnection().createStatement();
-        int pvId = NO_ID;
-        if(!isReadback){
-            ResultSet rows = statement.executeQuery("SELECT pv_id FROM config_pv WHERE id=" + configPvId);
-            // Only one result expected
-            rows.next();
-            pvId = rows.getInt("pv_id");
+    private void processSnapshot(Context context, int snapshotNodeId) throws Exception{
+        try (Statement statement = context.getConnection().createStatement()) {
+            try (ResultSet rows = statement.executeQuery("SELECT config_pv_id FROM snapshot_node_pv " +
+                    "WHERE snapshot_node_id=" + snapshotNodeId + " AND readback=false")) {
+                while (rows.next()){
+                    Integer configPvId = rows.getInt("config_pv_id");
+                    try(Statement statement2 = context.getConnection().createStatement()){
+                        try(ResultSet rows2 = statement2.executeQuery("SELECT * FROM snapshot_node_pv WHERE config_pv_id=" +
+                                configPvId + " AND snapshot_node_id= " + snapshotNodeId + " AND readback=true")){
+                            // Zero or one result
+                            while(rows2.next()){
+                                long readbackTime = rows2.getLong("time");
+                                int readbackTimens = rows2.getInt("timens");
+                                String readbackValue = rows2.getString("value");
+                                String readbackSizes = rows2.getString("sizes");
+                                String readbackStatus = rows2.getString("status");
+                                String readbackSeverity = rows2.getString("severity");
+                                String reacbackDataType = rows2.getString("data_type");
+                                String sql = "UPDATE snapshot_node_pv SET readback_time=?," +
+                                        "readback_timens=?, " +
+                                        "readback_value=?, " +
+                                        "readback_sizes=?, " +
+                                        "readback_status=?, " +
+                                        "readback_severity=?, " +
+                                        "readback_data_type=? " +
+                                        "WHERE snapshot_node_id=? AND config_pv_id=? AND readback=false";
+                                try(PreparedStatement statement3 = context.getConnection().prepareStatement(sql)){
+                                    statement3.setLong(1, readbackTime);
+                                    statement3.setInt(2, readbackTimens);
+                                    statement3.setString(3, readbackValue);
+                                    statement3.setString(4, readbackSizes);
+                                    statement3.setString(5, readbackStatus);
+                                    statement3.setString(6, readbackSeverity);
+                                    statement3.setString(7, reacbackDataType);
+                                    statement3.setInt(8, snapshotNodeId);
+                                    statement3.setInt(9, configPvId);
+                                    statement3.execute();
+                                    context.getConnection().commit();
+                                    try(Statement statement4 = context.getConnection().createStatement()){
+                                        statement4.execute("DELETE FROM snapshot_node_pv WHERE snapshot_node_id=" + snapshotNodeId + " AND config_pv_id=" + configPvId + " AND readback=true");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
-        else{
-            ResultSet rows = statement.executeQuery("SELECT readback_pv_id FROM config_pv WHERE id=" + configPvId);
-            // Only one result expected
-            rows.next();
-            pvId = rows.getInt("readback_pv_id");
-        }
-        statement.close();
-        return pvId;
     }
 }
