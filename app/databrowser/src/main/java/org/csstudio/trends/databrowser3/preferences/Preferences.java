@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -32,6 +32,7 @@ public class Preferences
      */
     final public static String
         ARCHIVE_FETCH_DELAY = "archive_fetch_delay",
+        CONCURRENT_REQUESTS = "concurrent_requests",
         ARCHIVE_RESCALE = "archive_rescale",
         ARCHIVES = "archives",
         URLS = "urls",
@@ -69,6 +70,7 @@ public class Preferences
     }
 
     public static int archive_fetch_delay;
+    public static int concurrent_requests;
     public static ArchiveRescale archive_rescale = ArchiveRescale.STAGGER;
     public static List<ArchiveDataSource> archive_urls;
     public static List<ArchiveDataSource> archives;
@@ -94,6 +96,9 @@ public class Preferences
         final PreferencesReader prefs = new PreferencesReader(Activator.class, "/databrowser_preferences.properties");
 
         archive_fetch_delay = prefs.getInt(ARCHIVE_FETCH_DELAY);
+
+        // Allow at least one at a time
+        concurrent_requests = Math.max(1, prefs.getInt(CONCURRENT_REQUESTS));
 
         String enum_name = prefs.get(ARCHIVE_RESCALE);
         try
