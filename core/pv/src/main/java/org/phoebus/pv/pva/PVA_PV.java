@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -64,16 +64,28 @@ public class PVA_PV extends PV
                                final BitSet overruns,
                                final PVAStructure data)
     {
-        try
+        if (data == null)
         {
-            final VType value = PVAStructureHelper.getVType(data, name_helper);
-            notifyListenersOfValue(value);
+            // The PVA protocol allows the server to 'destroy' a monitor.
+            // This higher-level client library aims to establish only
+            // one subscription per PV, and when the server cancels it,
+            // all we can do is indicate this similar to a disconnect,
+            // since the client won't receive any more data,
+            // with a log message that explains what happened.
+            logger.log(Level.WARNING, "Server ends subscription for " + this);
+            notifyListenersOfDisconnect();
         }
-        catch (Exception ex)
-        {
-            logger.log(Level.WARNING, "Cannot decode " + channel + " = " + data, ex);
+        else
+            try
+            {
+                final VType value = PVAStructureHelper.getVType(data, name_helper);
+                notifyListenersOfValue(value);
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Cannot decode " + channel + " = " + data, ex);
+            }
         }
-    }
 
     @Override
     public Future<VType> asyncRead() throws Exception
