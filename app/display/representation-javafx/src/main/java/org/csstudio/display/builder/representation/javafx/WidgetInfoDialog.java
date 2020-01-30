@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -24,6 +24,7 @@ import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.ui.javafx.ReadOnlyTextCell;
+import org.phoebus.ui.pv.SeverityColors;
 
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
@@ -37,6 +38,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.paint.Color;
 
 /** Dialog for displaying widget information
  *  @author Kay Kasemir
@@ -57,6 +59,42 @@ public class WidgetInfoDialog extends Dialog<Boolean>
             this.state = state;
             this.value = value;
             this.path = path;
+        }
+    }
+
+    /** Cell with text colored based on alarm severity */
+    private static class AlarmColoredCell extends ReadOnlyTextCell<NameStateValue>
+    {
+        @Override
+        protected void updateItem(final String item, final boolean empty)
+        {
+            super.updateItem(item, empty);
+            final AlarmSeverity severity;
+            if (! empty                   &&
+                getTableRow() != null     &&
+                getTableRow().getItem() != null)
+            {
+                final VType vtype = getTableRow().getItem().value;
+                if (vtype == null)
+                    severity = AlarmSeverity.UNDEFINED;
+                else
+                {
+                    final Alarm alarm = Alarm.alarmOf(vtype);
+                    if (alarm == null)
+                        severity = AlarmSeverity.UNDEFINED;
+                    else
+                        severity = alarm.getSeverity();
+                }
+            }
+            else
+                severity = AlarmSeverity.NONE;
+
+            final Color color = SeverityColors.getTextColor(severity);
+            final String spec = String.format("-fx-text-fill: #%02X%02X%02X",
+                                              (int) (color.getRed()*255),
+                                              (int) (color.getGreen()*255),
+                                              (int) (color.getBlue()*255));
+            text.setStyle(spec);
         }
     }
 
@@ -137,7 +175,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         path.setCellValueFactory(param -> new ReadOnlyStringWrapper(param.getValue().path));
 
         final TableColumn<NameStateValue, String> value = new TableColumn<>(Messages.WidgetInfoDialog_Value);
-        value.setCellFactory(col -> new ReadOnlyTextCell<>());
+        value.setCellFactory(col -> new AlarmColoredCell());
         value.setCellValueFactory(param ->
         {
             String text;
