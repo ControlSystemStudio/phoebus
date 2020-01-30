@@ -80,7 +80,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
                 {
                     final Alarm alarm = Alarm.alarmOf(vtype);
                     if (alarm == null)
-                        severity = AlarmSeverity.UNDEFINED;
+                        severity = AlarmSeverity.NONE;
                     else
                         severity = alarm.getSeverity();
                 }
