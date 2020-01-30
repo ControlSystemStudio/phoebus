@@ -535,7 +535,6 @@ public class NodeJdbcDAO implements NodeDAO {
 
 		for (SnapshotItem snapshotItem : snapshotItems) {
 			params.put("config_pv_id", snapshotItem.getConfigPv().getId());
-			params.put("readback", 0);
 			if (snapshotItem.getValue() != null) {
 				SnapshotPv snapshotPv = SnapshotDataConverter.fromVType(snapshotItem.getValue());
 				params.put("severity", snapshotPv.getAlarmSeverity().toString());
@@ -551,14 +550,13 @@ public class NodeJdbcDAO implements NodeDAO {
 
 			if (snapshotItem.getReadbackValue() != null) {
 				SnapshotPv snapshotPv = SnapshotDataConverter.fromVType(snapshotItem.getReadbackValue());
-				params.put("severity", snapshotPv.getAlarmSeverity().toString());
-				params.put("status", snapshotPv.getAlarmStatus().toString());
-				params.put("time", snapshotPv.getTime());
-				params.put("timens", snapshotPv.getTimens());
-				params.put("sizes", snapshotPv.getSizes());
-				params.put("data_type", snapshotPv.getDataType().toString());
-				params.put("value", snapshotPv.getValue());
-				params.put("readback", 1);
+				params.put("readback_severity", snapshotPv.getAlarmSeverity().toString());
+				params.put("readback_status", snapshotPv.getAlarmStatus().toString());
+				params.put("readback_time", snapshotPv.getTime());
+				params.put("readback_timens", snapshotPv.getTimens());
+				params.put("readback_sizes", snapshotPv.getSizes());
+				params.put("readback_data_type", snapshotPv.getDataType().toString());
+				params.put("readback_value", snapshotPv.getValue());
 				snapshotPvInsert.execute(params);
 			}
 		}
@@ -592,24 +590,13 @@ public class NodeJdbcDAO implements NodeDAO {
 	@Override
 	public List<SnapshotItem> getSnapshotItems(String snapshotUniqueId){
 
-		List<SnapshotItem> snapshotItems = new ArrayList<>();
-
-		List<SnapshotPv> snapshotPVs = jdbcTemplate.query("select snp.*, pv1.name, pv2.name as readback_name, cp.readonly, cp.id as id from snapshot_node_pv as snp " +
+		List<SnapshotItem> snapshotItems = jdbcTemplate.query("select snp.*, pv1.name, pv2.name as readback_name, cp.readonly, cp.id as id from snapshot_node_pv as snp " +
 			"join config_pv as cp on snp.config_pv_id=cp.id " +
 			"left join pv pv1 on cp.pv_id=pv1.id " +
 			"left join pv pv2 on cp.readback_pv_id=pv2.id " +
 				"where snapshot_node_id=(select id from node where unique_id=?)",
 				new Object[] {snapshotUniqueId},
-				new SnapshotPvRowMapper());
-
-		for(SnapshotPv snapshotPv : snapshotPVs) {
-			// Should return zero or one element.
-			List<SnapshotPv> readbacks = jdbcTemplate.query("select * from snapshot_node_pv join config_pv on snapshot_node_pv.config_pv_id=config_pv.id "
-							+ "where readback=true and snapshot_node_id=(select id from node where unique_id=?)",
-					new Object[] {snapshotUniqueId},
-					new SnapshotPvRowMapper());
-			snapshotItems.add(SnapshotDataConverter.fromSnapshotPv(snapshotPv, readbacks.isEmpty() ? null : readbacks.get(0)));
-		}
+				new SnapshotItemRowMapper());
 
 		return snapshotItems;
 	}
