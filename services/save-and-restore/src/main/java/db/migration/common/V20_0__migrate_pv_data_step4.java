@@ -46,7 +46,7 @@ public class V20_0__migrate_pv_data_step4 extends BaseJavaMigration{
                     int pvId = getPvId(context, configPvId, isReadback);
                     try (Statement statement2 = context.getConnection().createStatement()){
                         statement2.execute("UPDATE snapshot_node_pv SET pv_id=" + pvId + " WHERE snapshot_node_id=" + snapshotNodeId +
-                                " AND config_pv_id=" + configPvId);
+                                " AND config_pv_id=" + configPvId + " AND readback=" + isReadback);
                     }
                 }
             }
