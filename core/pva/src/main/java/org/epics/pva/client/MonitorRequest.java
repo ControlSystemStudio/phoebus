@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -143,10 +143,11 @@ class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
         // Response to specific command, or value update?
         if (subcmd != 0)
         {
-            PVAStatus status = PVAStatus.decode(buffer);
+            final PVAStatus status = PVAStatus.decode(buffer);
             if (! status.isSuccess())
             {
-                logger.log(Level.WARNING, channel + " Monitor Response for " + request + ": " + status);
+                logger.log(Level.WARNING, channel + " Monitor Response for " + request +
+                                          ", subcommand " +  subcmd + ": " + status);
                 return;
             }
 
@@ -173,35 +174,28 @@ class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
                 state = PVAHeader.CMD_SUB_START;
                 channel.getTCP().submit(this, this);
             }
+            else if (subcmd == PVAHeader.CMD_SUB_DESTROY)
+            {
+                if (buffer.remaining() > 0)
+                {
+                    logger.log(Level.FINE, () -> "Received final monitor #" + request_id + " for " + channel);
+                    decodeValueUpdate(buffer);
+                }
+                else
+                    logger.log(Level.FINE, () -> "Received final (empty) monitor #" + request_id + " for " + channel);
+
+                // Indicate end of subscription triggered by server
+                listener.handleMonitor(channel, null, null, null);
+
+                // Flag that the monitor has been destroyed
+                state = PVAHeader.CMD_SUB_DESTROY;
+            }
             else
                 throw new Exception("Unexpected Monitor response to subcmd " + subcmd);
         }
         else
         {   // Value update
-            if (channel.getState() != ClientChannelState.CONNECTED)
-            {
-                logger.log(Level.WARNING,
-                           () -> "Received unexpected monitor #" + request_id +
-                                 " update for " + channel);
-                return;
-            }
-            logger.log(Level.FINE,
-                       () -> "Received monitor #" + request_id +
-                             " update for " + channel);
-
-            // Decode data from monitor update
-            // 1) Bitset that indicates which elements of struct have changed
-            final BitSet changes = PVABitSet.decodeBitSet(buffer);
-
-            // 2) Decode those elements
-            data.decodeElements(changes, channel.getTCP().getTypeRegistry(), buffer);
-
-            final BitSet overrun = PVABitSet.decodeBitSet(buffer);
-            logger.log(Level.FINER, () -> "Overruns: " + overrun);
-
-            // Notify listener of latest value
-            listener.handleMonitor(channel, changes, overrun, data);
-
+            decodeValueUpdate(buffer);
             // With pipelining, once we receive nfree/2, request as many again.
             // With a responsive client, this jumps nfree up to the original 'pipeline' count.
             // With a slow client, for example stuck in listener.handleMonitor(),
@@ -215,15 +209,48 @@ class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
         }
     }
 
+    private void decodeValueUpdate(final ByteBuffer buffer) throws Exception
+    {
+        if (channel.getState() != ClientChannelState.CONNECTED)
+        {
+            logger.log(Level.WARNING,
+                       () -> "Received unexpected monitor #" + request_id +
+                             " update for " + channel);
+            return;
+        }
+        logger.log(Level.FINE,
+                   () -> "Received monitor #" + request_id +
+                         " update for " + channel);
+
+        // Decode data from monitor update
+        // 1) Bitset that indicates which elements of struct have changed
+        final BitSet changes = PVABitSet.decodeBitSet(buffer);
+
+        // 2) Decode those elements
+        data.decodeElements(changes, channel.getTCP().getTypeRegistry(), buffer);
+
+        final BitSet overrun = PVABitSet.decodeBitSet(buffer);
+        logger.log(Level.FINER, () -> "Overruns: " + overrun);
+
+        // Notify listener of latest value
+        listener.handleMonitor(channel, changes, overrun, data);
+    }
+
     @Override
     public void close() throws Exception
     {
-        // Submit request again, this time to stop getting data
-        state = PVAHeader.CMD_SUB_DESTROY;
         final ClientTCPHandler tcp = channel.getTCP();
-        tcp.submit(this, this);
+        if (state == PVAHeader.CMD_SUB_DESTROY)
+            logger.log(Level.FINE, () -> "Omitting monitor DESTROY, server canceled request #" + request_id + " for " + channel);
+        else
+        {
+            // Submit request again, this time to stop getting data
+            state = PVAHeader.CMD_SUB_DESTROY;
+            tcp.submit(this, this);
+        }
         // Not expecting more replies
-        tcp.removeResponseHandler(request_id);
+        if (tcp.removeResponseHandler(request_id) == null)
+            logger.log(Level.WARNING, "Subscription #" + request_id + " closed more than once for " + channel);
     }
 
     @Override

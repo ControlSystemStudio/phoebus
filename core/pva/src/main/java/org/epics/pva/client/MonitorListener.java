@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,6 +23,9 @@ public interface MonitorListener
      *  while inside this method.
      *  For example, the array data of a `PVA*Array`
      *  may be reused after this method has been called.
+     *
+     *  <p>When the server cancels the subscription,
+     *  the changes, overruns and data will be <code>null</code>.
      *
      *  @param channel Channel that received an update
      *  @param changes Elements of the structure that changed
