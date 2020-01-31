@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -320,5 +321,58 @@ public class ClientDemo
 
         // Check if anything else happens after channels were closed
         Thread.sleep(10000);
+    }
+
+    /** pvxs 'countdown' test: We close early */
+    @Test
+    public void testCountdownMonitorClosedEarly() throws Exception
+    {
+        final PVAClient pva = new PVAClient();
+        final PVAChannel channel = pva.getChannel("countdown");
+        channel.connect().get(5, TimeUnit.SECONDS);
+
+        // Server sends 5 updates, but we close after the 3rd
+        final CountDownLatch updates = new CountDownLatch(3);
+        final AutoCloseable subscription = channel.subscribe("", (ch, changes, overruns, data) ->
+        {
+            System.out.println(data);
+            updates.countDown();
+        });
+        updates.await(10, TimeUnit.SECONDS);
+        subscription.close();
+        System.out.println("Closing subscription after 3 updates, before server stops it");
+
+        channel.close();
+        pva.close();
+    }
+
+    /** pvxs 'countdown' test: Server closes after N updates */
+    @Test
+    public void testCountdownMonitorClosedByServer() throws Exception
+    {
+        final PVAClient pva = new PVAClient();
+        final PVAChannel channel = pva.getChannel("countdown");
+        channel.connect().get(5, TimeUnit.SECONDS);
+
+        // Server sends 6 updates
+        final CountDownLatch updates = new CountDownLatch(6);
+        final AutoCloseable subscription = channel.subscribe("", (ch, changes, overruns, data) ->
+        {
+            System.out.println(data);
+            updates.countDown();
+        });
+        updates.await(10, TimeUnit.SECONDS);
+        System.out.println("Server sent 6 updates. Anything else?");
+
+        TimeUnit.SECONDS.sleep(5);
+
+        System.out.println("Closing subscription that server already abandoned");
+        subscription.close();
+
+        // System.out.println("Closing subscription AGAIN, causing warning but otherwise OK");
+        // subscription.close();
+
+        channel.close();
+        pva.close();
     }
 }
