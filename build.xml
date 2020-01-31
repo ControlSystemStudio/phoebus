@@ -36,6 +36,7 @@
     <ant target="clean" dir="app/display/model"/>
     <ant target="clean" dir="app/display/representation"/>
     <ant target="clean" dir="app/display/representation-javafx"/>
+    <ant target="clean" dir="app/display/fonts"/>
     <ant target="clean" dir="app/display/runtime"/>
     <ant target="clean" dir="app/display/editor"/>
     <ant target="clean" dir="app/display/convert-medm"/>
@@ -104,6 +105,7 @@
     <ant dir="app/display/model"/>
     <ant dir="app/display/representation"/>
     <ant dir="app/display/representation-javafx"/>
+    <ant dir="app/display/fonts"/>
     <ant dir="app/display/runtime"/>
     <ant dir="app/display/editor"/>
     <ant dir="app/display/convert-medm"/>
