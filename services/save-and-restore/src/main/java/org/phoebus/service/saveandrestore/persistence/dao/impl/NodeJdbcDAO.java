@@ -325,7 +325,7 @@ public class NodeJdbcDAO implements NodeDAO {
 			list = jdbcTemplate.queryForList("select cp.id from config_pv as cp " +
 							"left join pv pv1 on cp.pv_id=pv1.id " +
 							"left join pv pv2 on cp.readback_pv_id=pv2.id " +
-							"where pv1.name='COUNTER' and pv2.name=?",
+							"where pv1.name=? and pv2.name=?",
 					new Object[] { configPv.getPvName(), configPv.getReadbackPvName()}, Integer.class);
 		}
 
@@ -535,30 +535,32 @@ public class NodeJdbcDAO implements NodeDAO {
 
 		for (SnapshotItem snapshotItem : snapshotItems) {
 			params.put("config_pv_id", snapshotItem.getConfigPv().getId());
-			if (snapshotItem.getValue() != null) {
-				SnapshotPv snapshotPv = SnapshotDataConverter.fromVType(snapshotItem.getValue());
-				params.put("severity", snapshotPv.getAlarmSeverity().toString());
-				params.put("status", snapshotPv.getAlarmStatus().toString());
-				params.put("time", snapshotPv.getTime());
-				params.put("timens", snapshotPv.getTimens());
-				params.put("sizes", snapshotPv.getSizes());
-				params.put("data_type", snapshotPv.getDataType().toString());
-				params.put("value", snapshotPv.getValue());
+
+			// Should not happen, but if the snapshot value has not been set, continue...
+			if(snapshotItem.getValue() == null){
+				continue;
 			}
 
-			snapshotPvInsert.execute(params);
+			SnapshotPv snapshotPv = SnapshotDataConverter.fromVType(snapshotItem.getValue());
+			params.put("severity", snapshotPv.getAlarmSeverity().toString());
+			params.put("status", snapshotPv.getAlarmStatus().toString());
+			params.put("time", snapshotPv.getTime());
+			params.put("timens", snapshotPv.getTimens());
+			params.put("sizes", snapshotPv.getSizes());
+			params.put("data_type", snapshotPv.getDataType().toString());
+			params.put("value", snapshotPv.getValue());
 
 			if (snapshotItem.getReadbackValue() != null) {
-				SnapshotPv snapshotPv = SnapshotDataConverter.fromVType(snapshotItem.getReadbackValue());
-				params.put("readback_severity", snapshotPv.getAlarmSeverity().toString());
-				params.put("readback_status", snapshotPv.getAlarmStatus().toString());
-				params.put("readback_time", snapshotPv.getTime());
-				params.put("readback_timens", snapshotPv.getTimens());
-				params.put("readback_sizes", snapshotPv.getSizes());
-				params.put("readback_data_type", snapshotPv.getDataType().toString());
-				params.put("readback_value", snapshotPv.getValue());
-				snapshotPvInsert.execute(params);
+				SnapshotPv snapshotReadbackPv = SnapshotDataConverter.fromVType(snapshotItem.getReadbackValue());
+				params.put("readback_severity", snapshotReadbackPv.getAlarmSeverity().toString());
+				params.put("readback_status", snapshotReadbackPv.getAlarmStatus().toString());
+				params.put("readback_time", snapshotReadbackPv.getTime());
+				params.put("readback_timens", snapshotReadbackPv.getTimens());
+				params.put("readback_sizes", snapshotReadbackPv.getSizes());
+				params.put("readback_data_type", snapshotReadbackPv.getDataType().toString());
+				params.put("readback_value", snapshotReadbackPv.getValue());
 			}
+			snapshotPvInsert.execute(params);
 		}
 
 		jdbcTemplate.update("update node set name=?, username=?, last_modified=? where unique_id=?", snapshotName, userName, Timestamp.from(Instant.now()), snapshotNode.getUniqueId());

@@ -396,16 +396,17 @@ public class DAOTest {
 		Node config = Node.builder().name("My config 3").nodeType(NodeType.CONFIGURATION).build();
 
 		config = nodeDAO.createNode(rootNode.getUniqueId(), config);
-		nodeDAO.updateConfiguration(config, Arrays.asList(ConfigPv.builder().pvName("whatever").build()));
+		nodeDAO.updateConfiguration(config, Arrays.asList(ConfigPv.builder().pvName("whatever").readbackPvName("readback_whatever").build()));
 
 		SnapshotItem item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
-				.value(VDouble.of(7.7, alarm, time, display)).readbackValue(VDouble.of(7.7, alarm, time, display))
+				.value(VDouble.of(7.7, alarm, time, display)).readbackValue(VDouble.of(8.8, alarm, time, display))
 				.build();
 
 		Node newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshot name", "user", "comment");
 		List<SnapshotItem> snapshotItems = nodeDAO.getSnapshotItems(newSnapshot.getUniqueId());
+		assertEquals(1, snapshotItems.size());
 		assertEquals(7.7, ((VDouble) snapshotItems.get(0).getValue()).getValue().doubleValue(), 0.01);
-		assertEquals(7.7, ((VDouble) snapshotItems.get(0).getReadbackValue()).getValue().doubleValue(), 0.01);
+		assertEquals(8.8, ((VDouble) snapshotItems.get(0).getReadbackValue()).getValue().doubleValue(), 0.01);
 
 		Node fullSnapshot = nodeDAO.getSnapshot(newSnapshot.getUniqueId());
 		assertNotNull(fullSnapshot);
@@ -419,12 +420,6 @@ public class DAOTest {
 
 		snapshots = nodeDAO.getSnapshots(config.getUniqueId());
 		assertTrue(snapshots.isEmpty());
-
-		List<ConfigPv> configPvs = nodeDAO.getConfigPvs(config.getUniqueId());
-		item1 = SnapshotItem.builder().configPv(configPvs.get(0)).build();
-
-		newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshot name", "user", "comment");
-
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -441,11 +436,11 @@ public class DAOTest {
 				.value(VDouble.of(7.7, alarm, time, display)).readbackValue(VDouble.of(7.7, alarm, time, display))
 				.build();
 
-		Node newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshot name", "user", "comment");
+		nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshot name", "user", "comment");
 
-		Node newSnapshot2 = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshot name 2", "user", "comment");
+		nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshot name 2", "user", "comment");
 
-		Node anotherSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshot name", "user", "comment");
+		nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshot name", "user", "comment");
 	}
 
 	@Test
@@ -477,7 +472,7 @@ public class DAOTest {
 				.build();
 		newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "name2", "comment", "user");
 		snapshotItems = nodeDAO.getSnapshotItems(newSnapshot.getUniqueId());
-		assertNull(snapshotItems.get(0).getValue());
+		assertTrue(snapshotItems.isEmpty());
 	}
 
 	@Test
@@ -784,43 +779,6 @@ public class DAOTest {
 
 		assertNull("b", childNode2.getProperty("a"));
 
-	}
-
-	@Test
-	@FlywayTest(invokeCleanDB = true)
-	public void testUpdateConfigPvs() {
-		Node rootNode = nodeDAO.getRootNode();
-		ConfigPv configPv = ConfigPv.builder().pvName("pvName").readbackPvName("").build();
-		Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("My config").userName("username").build();
-
-		Node newConfig = nodeDAO.createNode(rootNode.getUniqueId(), config);
-		nodeDAO.updateConfiguration(newConfig, Arrays.asList(configPv));
-
-		int configPvId = nodeDAO.getConfigPvs(newConfig.getUniqueId()).get(0).getId();
-
-		// Call update config with same PV name -> config pv id should be the same
-		nodeDAO.updateConfiguration(newConfig, Arrays.asList(configPv));
-		int updatedConfigPvId = nodeDAO.getConfigPvs(newConfig.getUniqueId()).get(0).getId();
-		assertEquals(configPvId, updatedConfigPvId);
-
-		// This basically verifies the equality of ConfigPv objects
-		ConfigPv configPv2 = ConfigPv.builder().pvName("pvName").build();
-		nodeDAO.updateConfiguration(newConfig, Arrays.asList(configPv, configPv2));
-		assertTrue(nodeDAO.getConfigPvs(newConfig.getUniqueId()).size() == 2);
-
-		// Different PV name should be stored as separate config pv
-		configPv2 = ConfigPv.builder().pvName("pvName2").build();
-		nodeDAO.updateConfiguration(newConfig, Arrays.asList(configPv, configPv2));
-		assertTrue(nodeDAO.getConfigPvs(newConfig.getUniqueId()).size() == 2);
-
-		// Repeat tests with a read-back PV name
-		ConfigPv configPv3 = ConfigPv.builder().pvName("pvName").readbackPvName("r").build();
-		nodeDAO.updateConfiguration(newConfig, Arrays.asList(configPv, configPv3));
-		assertTrue(nodeDAO.getConfigPvs(newConfig.getUniqueId()).size() == 2);
-
-		configPv3 = ConfigPv.builder().pvName("pvName1").readbackPvName("r").build();
-		nodeDAO.updateConfiguration(newConfig, Arrays.asList(configPv, configPv2, configPv3));
-		assertTrue(nodeDAO.getConfigPvs(newConfig.getUniqueId()).size() == 3);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
