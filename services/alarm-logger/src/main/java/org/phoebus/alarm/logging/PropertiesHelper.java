@@ -14,7 +14,7 @@ public class PropertiesHelper {
      * load the default properties from the properties file packaged with the jar
      */
     static {
-        String filename = "alarm_logging_service.properties";
+        String filename = "alarm_logger.properties";
         try (InputStream input = PropertiesHelper.class.getClassLoader().getResourceAsStream(filename);) {
             if (input != null) {
                 // load a properties file from class path, inside static method
