@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,9 +7,11 @@
  ******************************************************************************/
 package org.epics.pva.data;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -257,5 +259,46 @@ public class StructureTest
         expected.clear();
         expected.set(8);
         assertThat(changes, equalTo(expected));
+    }
+
+    /** Test 'locate(path)' */
+    @Test
+    public void testLocateElement() throws Exception
+    {
+        final PVAInt value = new PVAInt("value", 42);
+        final PVAStructure inner = new PVAStructure("a", "A", value);
+        final PVAStructure outer = new PVAStructure("b", "B", inner);
+        final PVAStructure data = new PVAStructure("demo", "NTBogus", outer);
+        System.out.println(data);
+
+        // 'get' only performs direct lookup
+        assertThat(data.get("b"), sameInstance(outer));
+        assertThat(data.get("b.a"), nullValue());
+
+        // 'locate' finds sub-elements along a dot-path
+        assertThat(data.locate("b"), sameInstance(outer));
+        assertThat(data.locate("b.a"), sameInstance(inner));
+        assertThat(data.locate("b.a.value"), sameInstance(value));
+
+        assertThat(data.get("b.x"), nullValue());
+        try
+        {
+            data.locate("b.a.value.bogus");
+            fail("There is nothing below b.a.value");
+        }
+        catch (Exception ex)
+        {
+            assertThat(ex.getMessage(), containsString("not a structure"));
+        }
+
+        try
+        {
+            data.locate("b.x.value.bogus");
+            fail("There is no b.x.*");
+        }
+        catch (Exception ex)
+        {
+            assertThat(ex.getMessage(), containsString("Cannot locate 'x'"));
+        }
     }
 }

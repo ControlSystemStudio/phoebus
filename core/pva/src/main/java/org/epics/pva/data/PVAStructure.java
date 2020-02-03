@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -308,6 +308,43 @@ public class PVAStructure extends PVADataWithID
         return null;
     }
 
+    /** Get structure element by path
+    *
+    *  <p>Performs descending search of this structure
+    *
+    *  @param dot_path "element.sub-element.sub-sub-element.final"
+    *  @return Located "final" element or <code>null</code>
+    *  @param <PVA> PVAData or subclass
+     * @throws Exception on error, for example a sub-element
+     *         that is not a structure and prevents further descent.
+    */
+    public <PVA extends PVAData> PVA locate(final String dot_path) throws Exception
+    {
+        PVAStructure sub = this;
+        int start = 0;
+        while (start < dot_path.length())
+        {
+            final int dot = dot_path.indexOf('.', start);
+            if (dot < 0)
+            {   // No more dot, get last (or maybe only) path element
+                final String element = dot_path.substring(start);
+                return sub.get(element);
+            }
+            final String element = dot_path.substring(start, dot);
+            if (element.isEmpty())
+                throw new Exception("Empty path element in '" + dot_path + "'");
+            final PVAData sub_element = sub.get(element);
+            if (sub_element == null)
+                throw new Exception("Cannot locate '" + element + "' for '" + dot_path + "'");
+            if (! (sub_element instanceof PVAStructure))
+                throw new Exception("Element '" + element + "' of '" + dot_path + "' is not a structure");
+            sub = (PVAStructure) sub_element;
+
+            start = dot + 1;
+        }
+        throw new Exception("Cannot locate '" + dot_path + "'");
+    }
+
     /** Get structure element by index
      *
      *  <p>Starting at a top-level structure, index 0
@@ -562,4 +599,3 @@ public class PVAStructure extends PVADataWithID
         }
     }
 }
-
