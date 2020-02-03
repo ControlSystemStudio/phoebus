@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -302,6 +302,7 @@ public class ChoiceButtonRepresentation extends JFXBaseRepresentation<TilePane, 
             final Font font = JFXUtil.convert(model_widget.propFont().getValue());
             final Color fg = JFXUtil.convert(model_widget.propForegroundColor().getValue());
             final String background = JFXUtil.shadedStyle(model_widget.propBackgroundColor().getValue());
+            final String selected = JFXUtil.shadedStyle(model_widget.propSelectedColor().getValue());
             // Don't disable the widget, because that would also remove the
             // context menu etc.
             // Just apply a style that matches the disabled look.
@@ -314,7 +315,10 @@ public class ChoiceButtonRepresentation extends JFXBaseRepresentation<TilePane, 
                 final ButtonBase b = (ButtonBase) node;
                 b.setTextFill(fg);
                 b.setFont(font);
-                b.setStyle(background);
+                if (((Toggle)b).isSelected())
+                    b.setStyle(selected);
+                else
+                    b.setStyle(background);
             }
         }
     }

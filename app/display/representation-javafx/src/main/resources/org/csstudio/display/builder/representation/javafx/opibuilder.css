@@ -6,7 +6,7 @@
 {
     -fx-stroke-width: 2.345;
     -fx-stroke-type: inside;
-	/* LEDRepresentation overrides this, but BoolButton still uses this stroke color */
+    /* LEDRepresentation overrides this, but BoolButton still uses this stroke color */
     -fx-stroke: rgba(50, 50, 50, 0.7);
 }
 .led_label
@@ -235,17 +235,17 @@
  */
 .root
 {
-	-db-toggle-switch-off: #f5f5f5;
-	-db-toggle-switch-on: #0b99c9;
+    -db-toggle-switch-off: #f5f5f5;
+    -db-toggle-switch-on: #0b99c9;
 }
 .toggle-switch .thumb-area
 {
     -fx-background-radius: 1em;
     -fx-background-color: linear-gradient(
-			to bottom,
-			derive(-fx-text-box-border, -20%),
-			derive(-fx-text-box-border, -30%)
-		),
+            to bottom,
+            derive(-fx-text-box-border, -20%),
+            derive(-fx-text-box-border, -30%)
+        ),
         -db-toggle-switch-off;
     -fx-background-insets: 0, 1;
 }
@@ -253,15 +253,15 @@
 .toggle-switch:selected .thumb-area
 {
     -fx-background-color: linear-gradient(
-			to bottom,
-			derive(-fx-text-box-border, -20%),
-			derive(-fx-text-box-border, -30%)
-		),
-		linear-gradient(
-			to bottom,
-			derive(-db-toggle-switch-on, 30%),
-			-db-toggle-switch-on
-		);
+            to bottom,
+            derive(-fx-text-box-border, -20%),
+            derive(-fx-text-box-border, -30%)
+        ),
+        linear-gradient(
+            to bottom,
+            derive(-db-toggle-switch-on, 30%),
+            -db-toggle-switch-on
+        );
     -fx-background-insets: 0, 1;
 }
 .toggle-switch .thumb-area
@@ -269,3 +269,26 @@
     -fx-padding: 0.75em 1.416661em 0.75em 1.416661em; /* 7 17 7 17 */
 }
 
+/* Progress bar option for small widget to still show the bar.
+ * In modena.css, the .track nests a highlight, border and shaded background.
+ * The .bar insets are 3 3 4 3 for the default, horizontal orientation,
+ * i.e. 3 pixel inset around with 4 on bottom, so bar size = widget_height - 3 - 4.
+ * 'Small' version keeps only the track's shaded background,
+ * and the bar has no insets to use the full widget height.
+ */
+.SmallBar.progress-bar .bar
+{
+    -fx-padding: 1px; 
+    -fx-background-insets: 0; 
+}
+
+.SmallBar.progress-bar .track
+{
+    -fx-background-color: linear-gradient(to bottom,
+                                          derive(-fx-control-inner-background, -7%),
+                                          derive(-fx-control-inner-background, 0%),
+                                          derive(-fx-control-inner-background, -3%),
+                                          derive(-fx-control-inner-background, -9%));
+    -fx-background-insets: 0;
+    -fx-background-radius: 2;
+}

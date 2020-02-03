@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,6 +16,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontal;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propItemsFromPV;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPassword;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propSelectedColor;
 import static org.csstudio.display.builder.model.widgets.ComboWidget.propItem;
 import static org.csstudio.display.builder.model.widgets.ComboWidget.propItems;
 
@@ -59,6 +60,7 @@ public class ChoiceButtonWidget extends WritablePVWidget
     private volatile WidgetProperty<WidgetFont> font;
     private volatile WidgetProperty<WidgetColor> foreground;
     private volatile WidgetProperty<WidgetColor> background;
+    private volatile WidgetProperty<WidgetColor> selected;
     private volatile WidgetProperty<List<WidgetProperty<String>>> items;
     private volatile WidgetProperty<Boolean> items_from_pv;
     private volatile WidgetProperty<Boolean> horizontal;
@@ -79,6 +81,7 @@ public class ChoiceButtonWidget extends WritablePVWidget
         properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BUTTON_BACKGROUND)));
+        properties.add(selected = propSelectedColor.createProperty(this, new WidgetColor(200, 200, 200)));
         properties.add(items = propItems.createProperty(this, Arrays.asList(propItem.createProperty(this, "Item 1"), propItem.createProperty(this, "Item 2"))));
         properties.add(items_from_pv = propItemsFromPV.createProperty(this, true));
         properties.add(horizontal = propHorizontal.createProperty(this, true));
@@ -98,6 +101,12 @@ public class ChoiceButtonWidget extends WritablePVWidget
     public WidgetProperty<WidgetColor> propBackgroundColor()
     {
         return background;
+    }
+
+    /** @return 'selected_color' property */
+    public WidgetProperty<WidgetColor> propSelectedColor()
+    {
+        return selected;
     }
 
     /** @return 'font' property */

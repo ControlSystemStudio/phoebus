@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -27,8 +27,17 @@ public class Convert_ByteClass extends ConverterBase<ByteMonitorWidget>
         widget.propSquare().setValue(true);
         widget.propHorizontal().setValue(r.getW() > r.getH());
         convertColor(r.getLineColor(), widget.propForegroundColor());
-        convertColor(r.getOnColor(), widget.propOnColor());
-        convertColor(r.getOffColor(), widget.propOffColor());
+
+        if (r.getOnColor().isDynamic())
+        {   // Dynamic 'on' color provides both the 'off' and 'on' color, using values 0, 1
+            widget.propOffColor().setValue(evaluateDynamicColor(r.getOnColor(), 0));
+            widget.propOnColor().setValue(evaluateDynamicColor(r.getOnColor(), 1));
+        }
+        else
+        {   // Static colors
+            convertColor(r.getOffColor(), widget.propOffColor());
+            convertColor(r.getOnColor(), widget.propOnColor());
+        }
         widget.propPVName().setValue(convertPVName(r.getControlPv()));
         widget.propBitReverse().setValue("little".equals(r.getEndian()));
         widget.propNumBits().setValue(r.getNumBits()==0?16:r.getNumBits());

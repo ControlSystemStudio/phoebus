@@ -1,16 +1,15 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.representation.javafx;
-
-import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
+package org.csstudio.display.fonts;
 
 import java.io.InputStream;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javafx.scene.text.Font;
 
@@ -42,8 +41,9 @@ public class CommonFonts
     };
 
     /** Install common fonts */
-    public static void install() throws Exception
+    public static void install()
     {
+        final Logger logger = Logger.getLogger(CommonFonts.class.getPackageName());
         for (String name : fonts)
         {
             try

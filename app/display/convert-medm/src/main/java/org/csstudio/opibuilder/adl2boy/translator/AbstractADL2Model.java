@@ -395,9 +395,7 @@ public abstract class AbstractADL2Model<WM extends Widget>
         try
         {
             String resArgs = removeParentMacros(args);
-            Macros macIn = null;
-            macIn = Macros.fromSimpleSpec(resArgs);
-            return macIn;
+            return Macros.fromSimpleSpec(resArgs);
         }
         catch (Throwable ex)
         {
@@ -418,15 +416,27 @@ public abstract class AbstractADL2Model<WM extends Widget>
         StringBuffer strBuff = new StringBuffer();
         for (int ii = 0; ii < argList.length; ii++) {
             String[] argParts = argList[ii].split("=");
-            if (argParts.length != 2)
-                logger.log(Level.WARNING, "Erroneous macro setting in " + args);
-            else
+            if (argParts.length == 1)
+            {
+                if (! argParts[0].isEmpty())
+                {   // Pass X=""
+                    if (strBuff.length() != 0)
+                        strBuff.append(", ");
+                    strBuff.append(argParts[0]).append("=\"\"");
+                }
+                // else: Empty
+            }
+            else if (argParts.length == 2)
+            {
                 if (!argParts[1].replaceAll(" ", "").equals(
                         "$(" + argParts[0].trim() + ")")) {
                     if (strBuff.length() != 0)
                         strBuff.append(", ");
                     strBuff.append(argList[ii]);
                 }
+            }
+            else
+                logger.log(Level.WARNING, "Erroneous macro setting in " + args);
         }
         String resArgs = strBuff.toString();
         return resArgs;

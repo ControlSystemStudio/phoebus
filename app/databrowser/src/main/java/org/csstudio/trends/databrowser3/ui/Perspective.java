@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -35,8 +35,10 @@ import org.csstudio.trends.databrowser3.ui.search.SearchView;
 import org.csstudio.trends.databrowser3.ui.waveformview.WaveformView;
 import org.phoebus.applications.email.actions.SendEmailAction;
 import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.email.EmailPreferences;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.logbook.ui.LogbookUiPreferences;
 import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.docking.DockPane;
@@ -192,8 +194,10 @@ public class Perspective extends SplitPane
             items.add(new SeparatorMenuItem());
             items.add(new PrintAction(plot.getPlot()));
             items.add(new SaveSnapshotAction(plot.getPlot()));
-            items.add(new SendEmailAction(this, Messages.ActionEmailTitle, Messages.ActionEmailBody, () ->  plot.getPlot().getImage()));
-            items.add(new SendLogbookAction(DockPane.getActiveDockPane(), Messages.ActionLogbookTitle, Messages.ActionLogbookBody, () ->  plot.getPlot().getImage()));
+            if (EmailPreferences.isEmailSupported())
+                items.add(new SendEmailAction(this, Messages.ActionEmailTitle, Messages.ActionEmailBody, () ->  plot.getPlot().getImage()));
+            if (LogbookUiPreferences.is_supported)
+                items.add(new SendLogbookAction(DockPane.getActiveDockPane(), Messages.ActionLogbookTitle, Messages.ActionLogbookBody, () ->  plot.getPlot().getImage()));
 
             if (model.getEmptyAxis().isPresent())
             {

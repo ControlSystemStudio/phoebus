@@ -74,8 +74,11 @@ public final class ParserADL {
                     }else if(line.contains("{") && !line.contains("textix=")){ //$NON-NLS-1$
                         children = new ADLWidget(line,children, lineNr++);
                     }else if (line.contains("}")&& !line.contains("textix=")){ //$NON-NLS-1$
-                        children.getParent().addObject(children);
-                        children = children.getParent();
+                        if (children.getParent() != null)
+                        {
+                            children.getParent().addObject(children);
+                            children = children.getParent();
+                        }
                     }else{
                         boolean dirtyLine = (line.length()-line.replaceAll("\"", "").length())%2==1;
                         if(storeDirtyLine!=null&&dirtyLine && lineNumber==(lastDirtyLine+1)){
