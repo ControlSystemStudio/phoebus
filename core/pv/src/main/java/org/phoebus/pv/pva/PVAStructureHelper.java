@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -55,8 +55,8 @@ public class PVAStructureHelper
         final Optional<Integer> elementIndex = name_helper.getElementIndex();
 
         if (! name_helper.getField().equals("value"))
-        {   // Fetch data from a sub-field
-            final PVAData field = struct.get(name_helper.getField());
+        {   // Fetch data from a sub-(sub-sub-)field
+            final PVAData field = struct.locate(name_helper.getField());
             if (field instanceof PVAStructure)
                 actual = (PVAStructure) field;
             else if (field instanceof PVANumber)
@@ -66,7 +66,7 @@ public class PVAStructureHelper
         }
 
         // Handle element references in arrays
-        if(elementIndex.isPresent())
+        if (elementIndex.isPresent())
         {
             final PVAData field = struct.get(name_helper.getField());
             if (field instanceof PVAStructureArray)
@@ -228,7 +228,8 @@ public class PVAStructureHelper
      * @return {@link VType}
      * @throws Exception
      */
-    private static VType decodeNTArray(PVAStructure struct, Integer index) throws Exception {
+    private static VType decodeNTArray(PVAStructure struct, Integer index) throws Exception
+    {
         final PVAData field = struct.get("value");
         if (field instanceof PVADoubleArray)
         {
