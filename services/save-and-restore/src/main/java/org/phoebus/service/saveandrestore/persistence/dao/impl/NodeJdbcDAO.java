@@ -535,7 +535,6 @@ public class NodeJdbcDAO implements NodeDAO {
 
 		for (SnapshotItem snapshotItem : snapshotItems) {
 			params.put("config_pv_id", snapshotItem.getConfigPv().getId());
-
 			// Should not happen, but if the snapshot value has not been set, continue...
 			if(snapshotItem.getValue() == null){
 				continue;
