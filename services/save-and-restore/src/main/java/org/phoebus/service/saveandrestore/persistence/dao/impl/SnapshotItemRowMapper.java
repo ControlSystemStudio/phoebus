@@ -52,7 +52,7 @@ public class SnapshotItemRowMapper implements RowMapper<SnapshotItem> {
 		SnapshotPv readbackPvValue = null;
 		String readbackValue = resultSet.getString("readback_value");
 
-		if(readbackPvValue != null){
+		if(readbackValue != null){
 			readbackPvValue = SnapshotPv.builder()
 					.alarmSeverity(resultSet.getString("readback_severity") == null ? null : AlarmSeverity.valueOf(resultSet.getString("readback_severity")))
 					.alarmStatus(resultSet.getString("readback_status") ==  null ? null : AlarmStatus.valueOf(resultSet.getString("readback_status")))
