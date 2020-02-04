@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app</artifactId>
-    <version>4.6.1-SNAPSHOT</version>
+    <version>4.6.1</version>
   </parent>
   <artifactId>app-databrowser</artifactId>
   <dependencies>
@@ -27,42 +27,42 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-framework</artifactId>
-      <version>4.6.1-SNAPSHOT</version>
+      <version>4.6.1</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-ui</artifactId>
-      <version>4.6.1-SNAPSHOT</version>
+      <version>4.6.1</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-pv</artifactId>
-      <version>4.6.1-SNAPSHOT</version>
+      <version>4.6.1</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-formula</artifactId>
-      <version>4.6.1-SNAPSHOT</version>
+      <version>4.6.1</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-types</artifactId>
-      <version>4.6.1-SNAPSHOT</version>
+      <version>4.6.1</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-rtplot</artifactId>
-      <version>4.6.1-SNAPSHOT</version>
+      <version>4.6.1</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-email</artifactId>
-      <version>4.6.1-SNAPSHOT</version>
+      <version>4.6.1</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-logbook-ui</artifactId>
-      <version>4.6.1-SNAPSHOT</version>
+      <version>4.6.1</version>
     </dependency>
     <dependency>
       <groupId>com.google.protobuf</groupId>

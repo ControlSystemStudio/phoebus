@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.phoebus</groupId>
 		<artifactId>app-save-and-restore</artifactId>
-		<version>4.6.1-SNAPSHOT</version>
+		<version>4.6.1</version>
 	</parent>
 
 	<artifactId>app-save-and-restore-model</artifactId>

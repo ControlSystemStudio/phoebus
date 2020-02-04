@@ -3,24 +3,24 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>core</artifactId>
-    <version>4.6.1-SNAPSHOT</version>
+    <version>4.6.1</version>
   </parent>
   <artifactId>core-logbook</artifactId>
   <dependencies>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-framework</artifactId>
-      <version>4.6.1-SNAPSHOT</version>
+      <version>4.6.1</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-ui</artifactId>
-      <version>4.6.1-SNAPSHOT</version>
+      <version>4.6.1</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-types</artifactId>
-      <version>4.6.1-SNAPSHOT</version>
+      <version>4.6.1</version>
     </dependency>
   </dependencies>
 </project>
