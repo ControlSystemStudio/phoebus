@@ -10,127 +10,127 @@
     <dependency>
      <groupId>org.phoebus</groupId>
      <artifactId>core-launcher</artifactId>
-     <version>4.6.1</version>
+     <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-diag</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-filebrowser</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-probe</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-logbook-inmemory</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-pvtable</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-pvtree</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-log-configuration</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-email</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-errlog</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-rtplot</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-databrowser</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-display-representation-javafx</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-display-fonts</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-display-runtime</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-display-editor</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-display-convert-medm</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-display-convert-edm</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-scan-ui</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-alarm-ui</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-alarm-logging-ui</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-update</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-3d-viewer</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-perfmon</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-console</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
 
     <!-- diirt
@@ -163,17 +163,17 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-channel-views</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-channel-channelfinder</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-save-and-restore-ui</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -279,6 +279,6 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>parent</artifactId>
-    <version>4.6.1</version>
+    <version>4.6.2-SNAPSHOT</version>
   </parent>
 </project>

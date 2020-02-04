@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app-display</artifactId>
-    <version>4.6.1</version>
+    <version>4.6.2-SNAPSHOT</version>
   </parent>
   <artifactId>app-display-runtime</artifactId>
   <dependencies>
@@ -32,27 +32,27 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-types</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-ui</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-pv</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-display-representation-javafx</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-logbook-ui</artifactId>
-      <version>4.6.1</version>
+      <version>4.6.2-SNAPSHOT</version>
     </dependency>
   </dependencies>
 </project>
