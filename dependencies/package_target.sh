@@ -5,5 +5,5 @@
 # the maven.repo.local option 
 
 mvn clean install -Dmaven.repo.local=targetRepository -P packageTarget,docs
-tar -cf phoebus-target.tar targetRpository/
-rm -rf targetRpository
+tar -cf phoebus-target.tar targetRepository/
+rm -rf targetRepository
