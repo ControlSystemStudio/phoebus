@@ -110,7 +110,6 @@ public class SnapshotController implements NodeChangedListener {
     private final BooleanProperty snapshotSaveableProperty = new SimpleBooleanProperty(false);
     private final BooleanProperty showLiveReadbackProperty = new SimpleBooleanProperty(false);
 
-    //private boolean showLiveReadbacks = false;
     private boolean showStoredReadbacks = false;
     private boolean hideEqualItems;
 
@@ -134,7 +133,6 @@ public class SnapshotController implements NodeChangedListener {
         createdBy.textProperty().bind(createdByTextProperty);
         createdDate.textProperty().bind(createdDateTextProperty);
         snapshotName.textProperty().bindBidirectional(snapshotNameProperty);
-
 
         snapshotTable = new SnapshotTable(this);
         borderPane.setCenter(snapshotTable);
@@ -376,7 +374,11 @@ public class SnapshotController implements NodeChangedListener {
                 Node savedSnapshot = saveAndRestoreService.saveSnapshot(config, snapshotItems, snapshotNameProperty.get(), snapshotCommentProperty.get());
                 loadSnapshot(savedSnapshot);
             } catch (Exception e) {
-                e.printStackTrace();
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle(Messages.errorActionFailed);
+                alert.setContentText(e.getMessage());
+                alert.setHeaderText(Messages.saveSnapshotErrorContent);
+                alert.showAndWait();
             }
         }
         else{ // Only snapshot name and/or comment have changed
@@ -389,7 +391,11 @@ public class SnapshotController implements NodeChangedListener {
                 snapshotNode = saveAndRestoreService.updateNode(snapshotNode);
                 loadSnapshot(snapshotNode);
             } catch (Exception e) {
-                e.printStackTrace();
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle(Messages.errorActionFailed);
+                alert.setContentText(e.getMessage());
+                alert.setHeaderText(Messages.saveSnapshotErrorContent);
+                alert.showAndWait();
             }
         }
 
