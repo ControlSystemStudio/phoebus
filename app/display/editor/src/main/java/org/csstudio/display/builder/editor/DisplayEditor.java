@@ -222,7 +222,10 @@ public class DisplayEditor
         toolkit.setZoomListener(zl);
         zoom_levels.setOnAction(event ->
         {
-            final String actual = requestZoom(zoom_levels.getValue());
+            final String before = zoom_levels.getValue();
+            if (before == null)
+                return;
+            final String actual = requestZoom(before);
             // Java 9 results in IndexOutOfBoundException
             // when combo is updated within the action handler,
             // so defer to another UI tick
@@ -297,6 +300,7 @@ public class DisplayEditor
         @Override
         public void accept(String zoom_level)
         {
+            zoom_levels.getSelectionModel().clearSelection();
             zoom_levels.getEditor().setText(zoom_level);
             edit_tools.getTransforms().setAll(widget_parent.getTransforms());
         }
