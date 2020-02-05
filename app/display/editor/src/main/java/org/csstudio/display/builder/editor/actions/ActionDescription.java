@@ -24,6 +24,8 @@ import org.phoebus.ui.javafx.PlatformInfo;
 import org.phoebus.ui.undo.CompoundUndoableAction;
 import org.phoebus.ui.undo.UndoableActionManager;
 
+import javafx.geometry.Point2D;
+
 /** Description of an action
  *
  *  Wraps the functionality, i.e. icon, tool tip, and what to execute,
@@ -352,6 +354,29 @@ public abstract class ActionDescription
             for (Widget w : widgets)
                 undo.execute(new SetWidgetPropertyAction<>(w.propY(),
                                                            max - w.propHeight().getValue()));
+        }
+    };
+
+    /** Align widgets on the grid constraint */
+    public static final ActionDescription ALIGN_GRID =
+        new ActionDescription("icons/grid.png", Messages.AlignGrid)
+    {
+        @Override
+        public void run(final DisplayEditor editor, final boolean selected)
+        {
+            final List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
+            final UndoableActionManager undo = editor.getUndoableActionManager();
+            for (Widget w : widgets)
+            {
+                int x = w.propX().getValue();
+                int y = w.propY().getValue();
+                Point2D constr = editor.getSelectedWidgetUITracker().gridConstrain(x, y);
+                x = (int)constr.getX();
+                y = (int)constr.getY();
+                // Keeping it simple, two actions (possible enhancement use one action for both coordinates)
+                undo.execute(new SetWidgetPropertyAction<>(w.propX(), x));
+                undo.execute(new SetWidgetPropertyAction<>(w.propY(), y));
+            }
         }
     };
 
