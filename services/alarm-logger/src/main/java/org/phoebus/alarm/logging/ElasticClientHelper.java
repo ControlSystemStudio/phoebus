@@ -79,9 +79,8 @@ public class ElasticClientHelper {
      * Check if an index exists with the given name 
      * Note: this is an synchronous call
      *
-     * @param indexName
+     * @param indexName elastic index name / pattern
      * @return true if index exists
-     * @throws IOException
      */
     public boolean indexExists(String indexName) {
         GetIndexRequest request = new GetIndexRequest();

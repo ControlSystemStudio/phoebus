@@ -44,8 +44,8 @@ public class AlarmCmdLogger implements Runnable {
     /**
      * Create a alarm command message logger for the given topic. 
      * This runnable will create the kafka streams for the given alarm messages which match the format 'topicCommand'
-     * @param topic
-     * @throws Exception
+     * @param topic the alarm topic
+     * @throws Exception - parsing the alarm command messages
      */
     public AlarmCmdLogger(String topic) throws Exception {
         super();
