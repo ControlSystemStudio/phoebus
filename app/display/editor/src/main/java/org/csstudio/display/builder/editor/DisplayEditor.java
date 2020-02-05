@@ -657,6 +657,9 @@ public class DisplayEditor
             final List<Widget> widgets = model.getChildren();
             logger.log(Level.FINE, "Pasted {0} widgets", widgets.size());
 
+            Point2D constr = selection_tracker.gridConstrain(x, y);
+            x = (int)constr.getX();
+            y = (int)constr.getY();
             GeometryTools.moveWidgets(x, y, widgets);
             final Rectangle2D bounds = GeometryTools.getBounds(widgets);
             // Potentially activate group at drop point
