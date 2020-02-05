@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.phoebus</groupId>
 		<artifactId>app-save-and-restore</artifactId>
-		<version>4.6.1-SNAPSHOT</version>
+		<version>4.6.2-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>app-save-and-restore-ui</artifactId>
@@ -25,17 +25,17 @@
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>core-util</artifactId>
-			<version>4.6.1-SNAPSHOT</version>
+			<version>4.6.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>core-ui</artifactId>
-			<version>4.6.1-SNAPSHOT</version>
+			<version>4.6.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 		  <groupId>org.phoebus</groupId>
 		  <artifactId>app-save-and-restore-model</artifactId>
-		  <version>4.6.1-SNAPSHOT</version>
+		  <version>4.6.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.epics</groupId>
