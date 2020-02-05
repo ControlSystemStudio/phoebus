@@ -20,6 +20,7 @@ public class Messages
     public static String Align;
     public static String AlignBottom;
     public static String AlignCenter;
+    public static String AlignGrid;
     public static String AlignLeft;
     public static String AlignMiddle;
     public static String AlignRight;

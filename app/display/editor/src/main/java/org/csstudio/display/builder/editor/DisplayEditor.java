@@ -246,7 +246,8 @@ public class DisplayEditor
             createMenuItem(ActionDescription.ALIGN_RIGHT),
             createMenuItem(ActionDescription.ALIGN_TOP),
             createMenuItem(ActionDescription.ALIGN_MIDDLE),
-            createMenuItem(ActionDescription.ALIGN_BOTTOM));
+            createMenuItem(ActionDescription.ALIGN_BOTTOM),
+            createMenuItem(ActionDescription.ALIGN_GRID));
         align.setTooltip(new Tooltip(Messages.Align));
 
         final MenuButton size = new MenuButton(null, null,
