@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.epics.pva.data.PVAArray;
+import org.epics.pva.data.PVABool;
 import org.epics.pva.data.PVAByteArray;
 import org.epics.pva.data.PVAData;
 import org.epics.pva.data.PVADoubleArray;
@@ -38,6 +39,7 @@ import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
+import org.epics.vtype.VBoolean;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VString;
@@ -112,6 +114,11 @@ public class PVAStructureHelper
                 return decodeScalarField(struct, union_field);
             else if (union_field instanceof PVAArray)
                 return decodeNTArrayField(struct, union_field);
+        }
+        else if (field instanceof PVABool)
+        {
+            final PVABool bool = (PVABool) field;
+            return VBoolean.of(bool.get(), Alarm.none(), Time.now());
         }
         // TODO: not really sure how to handle arbitrary structures -- no solid use cases yet...
 

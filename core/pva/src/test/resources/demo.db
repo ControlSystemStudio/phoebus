@@ -39,4 +39,12 @@ record(compress, "waveform$(N)")
   field(ALG, "Circular Buffer")
 }
 
-
+# "Boolean" i.e. binary records use NTEnum,
+# i.e. a structure with type name 'enum_t' and int index,
+# not a 'boolean' data type
+record(bi, "bool$(N)")
+{
+  field(ZNAM, "false")
+  field(ONAM, "true")
+  field(PINI, "YES")
+}

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 
 import org.epics.util.array.ListNumber;
 import org.epics.vtype.Display;
+import org.epics.vtype.VBoolean;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VEnumArray;
@@ -147,6 +148,8 @@ public class FormatOptionHandler
         }
         else if (value instanceof VTable)
             return formatTable((VTable) value);
+        else if (value instanceof VBoolean)
+            return Boolean.toString(((VBoolean)value).getValue());
 
         return "<" + value.getClass().getName() + ">";
     }
