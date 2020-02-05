@@ -52,6 +52,4 @@ public class SnapshotPv {
 	private ConfigPv configPv;
 	private SnapshotPvDataType dataType;
 	private String sizes;
-	@Builder.Default
-	private boolean readback = false;
 }

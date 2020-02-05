@@ -135,14 +135,6 @@ public class Services implements IServices {
 	}
 
 	@Override
-	public ConfigPv updateSingleConfigPv(String currentPvName, String newPvName, String currentReadbackPvName,
-			String newReadbackPvName) {
-		logger.info("Updating config pv, old name: {}, new name: {}, old readback name: {}, new readback name: {}",
-				currentPvName, newPvName, currentReadbackPvName, newReadbackPvName);
-		return nodeDAO.updateSingleConfigPv(currentPvName, newPvName, currentReadbackPvName, newReadbackPvName);
-	}
-
-	@Override
 	public Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName,
 			String userName, String comment) {
 

@@ -270,14 +270,7 @@ public class ServicesTest {
 		
 		assertNotNull(services.getSnapshotItems("a"));
 	}
-	
-	@Test
-	public void testUpdateSingeConfigPv() {
-		when(nodeDAO.updateSingleConfigPv(anyString(), anyString(), anyString(), anyString())).thenReturn(configPvList.get(0));
-		
-		assertNotNull(services.updateSingleConfigPv("a", "b", "c", "d"));
-	}
-	
+
 	@Test
 	public void testgetParentNode() {
 		Node parentNode = Node.builder().name("a").uniqueId("u").build();

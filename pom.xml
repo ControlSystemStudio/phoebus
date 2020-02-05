@@ -18,6 +18,7 @@
     <jackson.version>2.10.1</jackson.version>
     <batik.version>1.12</batik.version>
     <mockito.version>2.23.4</mockito.version>
+    <postgresql.driver.version>42.2.9</postgresql.driver.version>
     <!--<maven.repo.local>${project.build.directory}/.m2</maven.repo.local> -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

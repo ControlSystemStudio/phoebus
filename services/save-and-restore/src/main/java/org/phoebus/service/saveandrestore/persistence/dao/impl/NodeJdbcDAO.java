@@ -18,6 +18,7 @@
 
 package org.phoebus.service.saveandrestore.persistence.dao.impl;
 
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -65,9 +66,14 @@ public class NodeJdbcDAO implements NodeDAO {
 	private SimpleJdbcInsert nodeInsert;
 
 	@Autowired
+	private SimpleJdbcInsert pvInsert;
+
+	@Autowired
 	private SimpleJdbcInsert snapshotPvInsert;
-	
-	
+
+	private static final int NO_ID = -1;
+
+
 	private Node getParentNode(int nodeId) {
 
 		// Root folder is its own parent
@@ -84,7 +90,7 @@ public class NodeJdbcDAO implements NodeDAO {
 			return null;
 		}
 	}
-	
+
 	@Override
 	public Node getParentNode(String uniqueNodeId) {
 		int nodeId;
@@ -94,12 +100,12 @@ public class NodeJdbcDAO implements NodeDAO {
 		} catch (DataAccessException e) {
 			return null;
 		}
-	
+
 	}
-	
+
 	/**
-	 * Retrieves a {@link Node} associated with the specified node id. 
-	 * 
+	 * Retrieves a {@link Node} associated with the specified node id.
+	 *
 	 * @param nodeId The node id.
 	 * @return <code>null</code> if the node id is not found, otherwise either a
 	 *         {@link Node} object.
@@ -115,10 +121,10 @@ public class NodeJdbcDAO implements NodeDAO {
 			return null;
 		}
 	}
-	
+
 	/**
-	 * Retrieves a {@link Node} associated with the specified node id. 
-	 * 
+	 * Retrieves a {@link Node} associated with the specified node id.
+	 *
 	 * @param uniqueNodeId The node id.
 	 * @return <code>null</code> if the node id is not found, otherwise either a
 	 *         {@link Node} object.
@@ -147,20 +153,20 @@ public class NodeJdbcDAO implements NodeDAO {
 		}
 		return getChildNodes(parentNode.getId());
 	}
-	
+
 	private List<Node> getChildNodes(int nodeId){
 		List<Node> childNodes = jdbcTemplate.query("select n.* from node as n join node_closure as nc on n.id=nc.descendant where "
 				+ "nc.ancestor=? and nc.depth=1", new Object[] { nodeId }, new NodeRowMapper());
 		childNodes.forEach(childNode -> childNode.setProperties(getProperties(childNode.getId())));
-		
+
 		return childNodes;
-		
+
 	}
 
 	@Transactional
 	@Override
 	public void deleteNode(String uniqueNodeId) {
-		
+
 		if(uniqueNodeId == null || uniqueNodeId.isEmpty()) {
 			throw new IllegalArgumentException(String.format("Cannot delete node, invalid unique node id specified:%s", uniqueNodeId));
 		}
@@ -172,13 +178,13 @@ public class NodeJdbcDAO implements NodeDAO {
 		if (nodeToDelete.getId() == Node.ROOT_NODE_ID) {
 			throw new IllegalArgumentException("Root node cannot be deleted");
 		}
-		
+
 		Node parent = getParentNode(nodeToDelete.getId());
-		
+
 		if(parent == null) {
 			throw new IllegalArgumentException(String.format("Parent node of node id=%d cannot be found. Should not happen!", nodeToDelete.getId()));
 		}
-		
+
 		if (nodeToDelete.getNodeType().equals(NodeType.CONFIGURATION)) {
 			List<Integer> configPvIds = jdbcTemplate.queryForList(
 					"select config_pv_id from config_pv_relation where config_id=?", new Object[] { nodeToDelete.getId() },
@@ -196,9 +202,9 @@ public class NodeJdbcDAO implements NodeDAO {
 		}
 
 		jdbcTemplate.update("delete from node where unique_id=?", uniqueNodeId);
-		
-		
-		
+
+
+
 		// Update last modified date of the parent node
 		jdbcTemplate.update("update node set last_modified=? where id=?", Timestamp.from(Instant.now()), parent.getId());
 	}
@@ -240,7 +246,7 @@ public class NodeJdbcDAO implements NodeDAO {
 		// The node to be created cannot have same name and type as any of the parent's
 		// child nodes
 		List<Node> parentsChildNodes = getChildNodes(parentNode.getUniqueId());
-		
+
 		if (!isNodeNameValid(node, parentsChildNodes)) {
 			throw new IllegalArgumentException("Node of same name and type already exists in parent node.");
 		}
@@ -269,7 +275,7 @@ public class NodeJdbcDAO implements NodeDAO {
 		// Update the last modified date of the parent folder
 		jdbcTemplate.update("update node set last_modified=? where id=?", Timestamp.from(Instant.now()),
 				parentNode.getId());
-		
+
 		updateProperties(newNodeId, node.getProperties());
 
 		return getNode(uniqueId);
@@ -278,16 +284,19 @@ public class NodeJdbcDAO implements NodeDAO {
 	@Override
 	@Transactional
 	public List<ConfigPv> getConfigPvs(String configUniqueNodeId){
-		return jdbcTemplate.query("select * from config_pv "
-				+ "join config_pv_relation on config_pv.id=config_pv_relation.config_pv_id "
-				+ "join node on node.id=config_pv_relation.config_id "
-				+ "where config_pv_relation.config_id=(select id from node where unique_id=?)",
+
+		return jdbcTemplate.query("select cp.id, pv1.name as name, pv2.name as readback_name, cp.readonly from config_pv as cp " +
+						"join config_pv_relation as cpr on cp.id=cpr.config_pv_id " +
+						"join node as n on n.id=cpr.config_id " +
+						"left join pv pv1 on cp.pv_id=pv1.id " +
+						"left join pv pv2 on cp.readback_pv_id=pv2.id " +
+						"where cpr.config_id=(select id from node where unique_id=?)",
 				new Object[] { configUniqueNodeId }, new ConfigPvRowMapper());
 	}
 
 	private boolean isNodeNameValid(Node nodeToCheck, List<Node> parentsChildNodes) {
 		for (Node node : parentsChildNodes) {
-			if (node.getName().equals(nodeToCheck.getName()) && 
+			if (node.getName().equals(nodeToCheck.getName()) &&
 					node.getNodeType().equals(nodeToCheck.getNodeType())) {
 				return false;
 			}
@@ -302,17 +311,24 @@ public class NodeJdbcDAO implements NodeDAO {
 
 
 	private void saveConfigPv(int nodeId, ConfigPv configPv) {
-		
+
 		List<Integer> list;
-		
-		if(configPv.getReadbackPvName() == null) { 
-			list = jdbcTemplate.queryForList("select id from config_pv where name=? and readback_name is NULL", 
+
+		if(configPv.getReadbackPvName() == null) {
+			list = jdbcTemplate.queryForList("select cp.id from config_pv as cp " +
+							"left join pv pv1 on cp.pv_id=pv1.id " +
+							"left join pv pv2 on cp.readback_pv_id=pv2.id " +
+							"where pv1.name=? and pv2.name is NULL",
 					new Object[] { configPv.getPvName() }, Integer.class);
 		}
 		else {
-			list = jdbcTemplate.queryForList("select id from config_pv where name=? and readback_name=?", 
+			list = jdbcTemplate.queryForList("select cp.id from config_pv as cp " +
+							"left join pv pv1 on cp.pv_id=pv1.id " +
+							"left join pv pv2 on cp.readback_pv_id=pv2.id " +
+							"where pv1.name=? and pv2.name=?",
 					new Object[] { configPv.getPvName(), configPv.getReadbackPvName()}, Integer.class);
 		}
+
 
 		int configPvId = 0;
 
@@ -320,8 +336,11 @@ public class NodeJdbcDAO implements NodeDAO {
 			configPvId = list.get(0);
 		} else {
 			Map<String, Object> params = new HashMap<>(4);
-			params.put("name", configPv.getPvName().trim());
-			params.put("readback_name", configPv.getReadbackPvName());
+			params.put("pv_id", getOrInsertPvName(configPv.getPvName().trim()));
+			int readbackPvId = getOrInsertPvName(configPv.getReadbackPvName());
+			if(readbackPvId != NO_ID) {
+				params.put("readback_pv_id", readbackPvId);
+			}
 			params.put("readonly", configPv.isReadOnly());
 			configPvId = configurationEntryInsert.executeAndReturnKey(params).intValue();
 		}
@@ -331,6 +350,44 @@ public class NodeJdbcDAO implements NodeDAO {
 		params.put("config_pv_id", configPvId);
 
 		configurationEntryRelationInsert.execute(params);
+	}
+
+	private int getOrInsertPvName(String pvName){
+		if(pvName == null || pvName.isEmpty()){
+			return NO_ID;
+		}
+		int pvId = getPvId(pvName);
+		if(pvId == NO_ID){
+			pvId = addPvName(pvName);
+		}
+		return pvId;
+	}
+
+	private int getPvId(String pvName){
+		try {
+			return jdbcTemplate.queryForObject("select id from pv where name=?",
+					new Object[] { pvName }, Integer.class);
+		} catch (DataAccessException e) {
+			return NO_ID;
+		}
+	}
+
+	private int addPvName(String pvName){
+		Timestamp time = new Timestamp(System.currentTimeMillis());
+		Map<String, Object> params = new HashMap<>(3);
+		params.put("name", pvName);
+		params.put("created", time);
+		params.put("last_modified", time);
+
+		return pvInsert.executeAndReturnKey(params).intValue();
+	}
+
+	private void updatePvName(String oldName, String newName){
+		int pvId = getPvId(oldName);
+		if(pvId == NO_ID){
+			throw new IllegalArgumentException(String.format("Cannot update PV name %s as no such PV exists", oldName));
+		}
+		jdbcTemplate.update("update pv set name=? where id=?", new Object[]{newName, pvId});
 	}
 
 
@@ -354,7 +411,7 @@ public class NodeJdbcDAO implements NodeDAO {
 		if (sourceNode == null) {
 			throw new NodeNotFoundException(String.format("Source node with unqiue id=%s not found", uniqueNodeId));
 		}
-		
+
 		if(!sourceNode.getNodeType().equals(NodeType.FOLDER) && !sourceNode.getNodeType().equals(NodeType.CONFIGURATION)) {
 			throw new IllegalArgumentException(String.format("Moving node of type %s not supported", NodeType.SNAPSHOT.toString()));
 		}
@@ -363,15 +420,15 @@ public class NodeJdbcDAO implements NodeDAO {
 		if(targetNode == null || !targetNode.getNodeType().equals(NodeType.FOLDER)) {
 			throw new IllegalArgumentException("Target node does not exist or is not a folder");
 		}
-		
+
 		List<Node> parentsChildNodes = getChildNodes(targetNode.getId());
 		if (!isNodeNameValid(sourceNode, parentsChildNodes)) {
 			throw new IllegalArgumentException("Node of same name and type already exists in target node.");
 		}
 
 		jdbcTemplate.update("delete from node_closure where "
-				+ "descendant in (select descendant from node_closure where ancestor=?) "
-				+ "and ancestor in (select ancestor from node_closure where descendant=? and ancestor != descendant)",
+						+ "descendant in (select descendant from node_closure where ancestor=?) "
+						+ "and ancestor in (select ancestor from node_closure where descendant=? and ancestor != descendant)",
 				sourceNode.getId(), sourceNode.getId());
 
 		jdbcTemplate.update("insert into node_closure (ancestor, descendant, depth) "
@@ -391,20 +448,20 @@ public class NodeJdbcDAO implements NodeDAO {
 	public Node updateConfiguration(Node configToUpdate, List<ConfigPv> updatedConfigPvList) {
 
 		Node configNode = getNode(configToUpdate.getUniqueId());
-		
+
 		if(configNode == null || !configNode.getNodeType().equals(NodeType.CONFIGURATION)) {
 			throw new IllegalArgumentException(String.format("Config node with unique id=%s not found or is wrong type", configToUpdate.getUniqueId()));
 		}
 
 		List<ConfigPv> existingConfigPvList = getConfigPvs(configToUpdate.getUniqueId());
-		
+
 		Collection<ConfigPv> pvsToRemove = CollectionUtils.removeAll(existingConfigPvList,
 				updatedConfigPvList);
 		Collection<Integer> pvIdsToRemove = CollectionUtils.collect(pvsToRemove, ConfigPv::getId);
 
 		// Remove PVs from relation table
 		pvIdsToRemove.stream().forEach(id -> jdbcTemplate.update(
-				"delete from config_pv_relation where config_id=? and config_pv_id=?", 
+				"delete from config_pv_relation where config_id=? and config_pv_id=?",
 				configNode.getId(), id));
 
 		// Check if any of the PVs is orphaned
@@ -417,8 +474,8 @@ public class NodeJdbcDAO implements NodeDAO {
 		pvsToAdd.stream().forEach(configPv -> saveConfigPv(configNode.getId(), configPv));
 
 		updateProperties(configNode.getId(), configToUpdate.getProperties());
-		
-		jdbcTemplate.update("update node set username=?, last_modified=? where id=?", 
+
+		jdbcTemplate.update("update node set username=?, last_modified=? where id=?",
 				configToUpdate.getUserName(), Timestamp.from(Instant.now()), configNode.getId());
 
 		return getNode(configNode.getId());
@@ -427,9 +484,9 @@ public class NodeJdbcDAO implements NodeDAO {
 	@Transactional
 	@Override
 	public Node updateNode(Node nodeToUpdate) {
-		
+
 		Node persistedNode = getNode(nodeToUpdate.getUniqueId());
-		
+
 		if(persistedNode == null) {
 			throw new IllegalArgumentException(String.format("Node with unique id=%s not found", nodeToUpdate.getUniqueId()));
 		}
@@ -437,34 +494,34 @@ public class NodeJdbcDAO implements NodeDAO {
 		if (persistedNode.getId() == Node.ROOT_NODE_ID) {
 			throw new IllegalArgumentException("Cannot update root node");
 		}
-		
+
 		if(!persistedNode.getNodeType().equals(nodeToUpdate.getNodeType())) {
 			throw new IllegalArgumentException("Changing node type is not supported");
 		}
-		
+
 		Node parentNode = getParentNode(persistedNode.getId());
-		
+
 		if(parentNode == null) {
 			throw new IllegalArgumentException(
 					String.format("Cannot update node id=%d as its parent node is not found. Should not happen!", persistedNode.getId()));
 		}
-		
+
 		List<Node> parentsChildNodes = getChildNodes(parentNode.getId());
-		
+
 		if(!nodeToUpdate.getName().equals(persistedNode.getName()) && !isNodeNameValid(nodeToUpdate, parentsChildNodes)) {
 			throw new IllegalArgumentException(String.format("A node with same type and name (%s) already exists in the same folder", nodeToUpdate.getName()));
 		}
-		
-		jdbcTemplate.update("update node set name=?, last_modified=?, username=? where id=?", 
+
+		jdbcTemplate.update("update node set name=?, last_modified=?, username=? where id=?",
 				nodeToUpdate.getName(), Timestamp.from(Instant.now()), nodeToUpdate.getUserName(), persistedNode.getId());
-		
-	
+
+
 		updateProperties(persistedNode.getId(), nodeToUpdate.getProperties());
-		
+
 		return getNode(persistedNode.getId());
 	}
 
-	
+
 	@Transactional
 	@Override
 	public Node saveSnapshot(String parentsUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment, String userName) {
@@ -478,32 +535,31 @@ public class NodeJdbcDAO implements NodeDAO {
 
 		for (SnapshotItem snapshotItem : snapshotItems) {
 			params.put("config_pv_id", snapshotItem.getConfigPv().getId());
-			params.put("readback", 0);
-			if (snapshotItem.getValue() != null) {
-				SnapshotPv snapshotPv = SnapshotDataConverter.fromVType(snapshotItem.getValue());
-				params.put("severity", snapshotPv.getAlarmSeverity().toString());
-				params.put("status", snapshotPv.getAlarmStatus().toString());
-				params.put("time", snapshotPv.getTime());
-				params.put("timens", snapshotPv.getTimens());
-				params.put("sizes", snapshotPv.getSizes());
-				params.put("data_type", snapshotPv.getDataType().toString());
-				params.put("value", snapshotPv.getValue());
+			// Should not happen, but if the snapshot value has not been set, continue...
+			if(snapshotItem.getValue() == null){
+				continue;
 			}
 
-			snapshotPvInsert.execute(params);
+			SnapshotPv snapshotPv = SnapshotDataConverter.fromVType(snapshotItem.getValue());
+			params.put("severity", snapshotPv.getAlarmSeverity().toString());
+			params.put("status", snapshotPv.getAlarmStatus().toString());
+			params.put("time", snapshotPv.getTime());
+			params.put("timens", snapshotPv.getTimens());
+			params.put("sizes", snapshotPv.getSizes());
+			params.put("data_type", snapshotPv.getDataType().toString());
+			params.put("value", snapshotPv.getValue());
 
 			if (snapshotItem.getReadbackValue() != null) {
-				SnapshotPv snapshotPv = SnapshotDataConverter.fromVType(snapshotItem.getReadbackValue());
-				params.put("severity", snapshotPv.getAlarmSeverity().toString());
-				params.put("status", snapshotPv.getAlarmStatus().toString());
-				params.put("time", snapshotPv.getTime());
-				params.put("timens", snapshotPv.getTimens());
-				params.put("sizes", snapshotPv.getSizes());
-				params.put("data_type", snapshotPv.getDataType().toString());
-				params.put("value", snapshotPv.getValue());
-				params.put("readback", 1);
-				snapshotPvInsert.execute(params);
+				SnapshotPv snapshotReadbackPv = SnapshotDataConverter.fromVType(snapshotItem.getReadbackValue());
+				params.put("readback_severity", snapshotReadbackPv.getAlarmSeverity().toString());
+				params.put("readback_status", snapshotReadbackPv.getAlarmStatus().toString());
+				params.put("readback_time", snapshotReadbackPv.getTime());
+				params.put("readback_timens", snapshotReadbackPv.getTimens());
+				params.put("readback_sizes", snapshotReadbackPv.getSizes());
+				params.put("readback_data_type", snapshotReadbackPv.getDataType().toString());
+				params.put("readback_value", snapshotReadbackPv.getValue());
 			}
+			snapshotPvInsert.execute(params);
 		}
 
 		jdbcTemplate.update("update node set name=?, username=?, last_modified=? where unique_id=?", snapshotName, userName, Timestamp.from(Instant.now()), snapshotNode.getUniqueId());
@@ -518,39 +574,31 @@ public class NodeJdbcDAO implements NodeDAO {
 	 */
 	@Override
 	public List<Node> getSnapshots(String uniqueNodeId) {
-		
+
 		List<Node> snapshots = jdbcTemplate.query("select n.*, nc.ancestor from node as n " +
-				"join node_closure as nc on n.id=nc.descendant " +
-				"where n.username is not NULL and nc.ancestor=(select id from node where unique_id=?) and nc.depth=1", new Object[] { uniqueNodeId }, 
+						"join node_closure as nc on n.id=nc.descendant " +
+						"where n.username is not NULL and nc.ancestor=(select id from node where unique_id=?) and nc.depth=1", new Object[] { uniqueNodeId },
 				new NodeRowMapper());
-		
+
 		for(Node snapshot : snapshots) {
 			snapshot.setProperties(getProperties(snapshot.getId()));
 		}
-		
+
 		return snapshots;
-		
+
 	}
-	
+
 	@Override
 	public List<SnapshotItem> getSnapshotItems(String snapshotUniqueId){
-		
-		List<SnapshotItem> snapshotItems = new ArrayList<>();
-		
-		List<SnapshotPv> snapshotPVs = jdbcTemplate.query("select * from snapshot_node_pv join config_pv on snapshot_node_pv.config_pv_id=config_pv.id "
-				+ "where readback=false and snapshot_node_id=(select id from node where unique_id=?)",
-				new Object[] {snapshotUniqueId}, 
-				new SnapshotPvRowMapper());
-		
-		for(SnapshotPv snapshotPv : snapshotPVs) {
-			// Should return zero or one element.
-			List<SnapshotPv> readbacks = jdbcTemplate.query("select * from snapshot_node_pv join config_pv on snapshot_node_pv.config_pv_id=config_pv.id "
-						+ "where readback=true and snapshot_node_id=(select id from node where unique_id=?)", 
-						new Object[] {snapshotUniqueId}, 
-						new SnapshotPvRowMapper());
-			snapshotItems.add(SnapshotDataConverter.fromSnapshotPv(snapshotPv, readbacks.isEmpty() ? null : readbacks.get(0)));
-		}
-		
+
+		List<SnapshotItem> snapshotItems = jdbcTemplate.query("select snp.*, pv1.name, pv2.name as readback_name, cp.readonly, cp.id as id from snapshot_node_pv as snp " +
+			"join config_pv as cp on snp.config_pv_id=cp.id " +
+			"left join pv pv1 on cp.pv_id=pv1.id " +
+			"left join pv pv2 on cp.readback_pv_id=pv2.id " +
+				"where snapshot_node_id=(select id from node where unique_id=?)",
+				new Object[] {snapshotUniqueId},
+				new SnapshotItemRowMapper());
+
 		return snapshotItems;
 	}
 
@@ -561,35 +609,35 @@ public class NodeJdbcDAO implements NodeDAO {
 		if(snapshotNode == null || !snapshotNode.getNodeType().equals(NodeType.SNAPSHOT)) {
 			return null;
 		}
-		
+
 		return snapshotNode;
 	}
-	
+
 	/**
 	 * Deletes all properties for the specified node id, and then inserts the properties
 	 * as specified in the <code>properties</code> parameter. The client hence must make sure
 	 * that any existing properties that should not be deleted are present in the map.
-	 * 
+	 *
 	 * Keys and values of the map must all be non-null and non-empty in order to
 	 * be inserted.
-	 * 
+	 *
 	 * Specifying a <code>null<code> map of properties will delete all existing.
 	 * @param nodeId The id of the {@link Node}
 	 * @param properties Map of properties to insert.
 	 */
 	private void updateProperties(int nodeId, Map<String, String> properties) {
-		
+
 		jdbcTemplate.update("delete from property where node_id=?", nodeId);
-		
+
 		if(properties == null || properties.isEmpty()) {
 			return;
 		}
-		
+
 		for(Map.Entry<String, String> entry : properties.entrySet()) {
 			insertOrUpdateProperty(nodeId, entry);
 		}
 	}
-	
+
 	/**
 	 * This method is intentionally not using "on duplicate key" insert since that
 	 * is tricky to set up for the H2 database used in unit testing.
@@ -605,7 +653,7 @@ public class NodeJdbcDAO implements NodeDAO {
 			return;
 		}
 		// First check if there is an existing property for the combination of node id and key
-		int numberOfHits = jdbcTemplate.queryForObject("select count(*) from property where node_id=? and property_name=?", 
+		int numberOfHits = jdbcTemplate.queryForObject("select count(*) from property where node_id=? and property_name=?",
 				new Object[] {nodeId, entry.getKey()},
 				Integer.class);
 		if(numberOfHits == 0) {
@@ -615,32 +663,9 @@ public class NodeJdbcDAO implements NodeDAO {
 			jdbcTemplate.update("update property set value=? where node_id=? and property_name=?", entry.getValue(), nodeId, entry.getKey());
 		}
 	}
-	
+
 	private Map<String, String> getProperties(int nodeId){
 		return jdbcTemplate.query("select * from property where node_id=?",
 				new Object[] {nodeId}, new PropertiesRowMapper());
-	}
-	
-	@Override
-	public ConfigPv updateSingleConfigPv(String currentPVName, String newPVName, String currentReadbackPVName, String newReadbackPVName) {
-		
-		List<Integer> list;
-		
-		if(currentReadbackPVName == null || currentReadbackPVName.isEmpty()) {
-			list = jdbcTemplate.queryForList("select id from config_pv where name=? and (readback_name is NULL or readback_name='')", 
-					new Object[] { currentPVName }, Integer.class);
-		}
-		else {
-			list = jdbcTemplate.queryForList("select id from config_pv where name=? and readback_name=?", 
-					new Object[] { currentPVName, currentReadbackPVName}, Integer.class);
-		}
-		
-		if(list.isEmpty()) {
-			throw new IllegalArgumentException(String.format("Config pv with PV name=%s and read-back PV name=%s does not exist", currentPVName, currentReadbackPVName));
-		}
-
-		jdbcTemplate.update("update config_pv set name=?, readback_name=? where id=?", newPVName, newReadbackPVName, list.get(0));
-		
-		return jdbcTemplate.query("select * from config_pv where id=?", new Object[] {list.get(0)}, new ConfigPvRowMapper()).get(0);
 	}
 }

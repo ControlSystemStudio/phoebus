@@ -17,26 +17,27 @@
  */
 package org.phoebus.service.saveandrestore.persistence.dao.impl;
 
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmStatus;
+import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.service.saveandrestore.model.internal.SnapshotPv;
+import org.phoebus.service.saveandrestore.persistence.dao.SnapshotDataConverter;
+import org.phoebus.service.saveandrestore.persistence.dao.SnapshotPvDataType;
+import org.springframework.jdbc.core.RowMapper;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.epics.vtype.AlarmSeverity;
-import org.epics.vtype.AlarmStatus;
-import org.springframework.jdbc.core.RowMapper;
-
-import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.service.saveandrestore.model.internal.SnapshotPv;
-import org.phoebus.service.saveandrestore.persistence.dao.SnapshotPvDataType;
-
-public class SnapshotPvRowMapper implements RowMapper<SnapshotPv> {
+public class SnapshotItemRowMapper implements RowMapper<SnapshotItem> {
 	
 	
 	@Override
-	public SnapshotPv mapRow(ResultSet resultSet, int rowIndex) throws SQLException {
+	public SnapshotItem mapRow(ResultSet resultSet, int rowIndex) throws SQLException {
 		
 		ConfigPv configPv = new ConfigPvRowMapper().mapRow(resultSet, rowIndex);
 		
-		return SnapshotPv.builder()
+		SnapshotPv pvValue = SnapshotPv.builder()
 				.configPv(configPv)
 				.snapshotId(resultSet.getInt("snapshot_node_id"))
 				.alarmSeverity(resultSet.getString("severity") == null ? null : AlarmSeverity.valueOf(resultSet.getString("severity")))
@@ -48,5 +49,21 @@ public class SnapshotPvRowMapper implements RowMapper<SnapshotPv> {
 				.dataType(resultSet.getString("data_type") == null ? null : SnapshotPvDataType.valueOf(resultSet.getString("data_type")))
 				.build();
 
+		SnapshotPv readbackPvValue = null;
+		String readbackValue = resultSet.getString("readback_value");
+
+		if(readbackValue != null){
+			readbackPvValue = SnapshotPv.builder()
+					.alarmSeverity(resultSet.getString("readback_severity") == null ? null : AlarmSeverity.valueOf(resultSet.getString("readback_severity")))
+					.alarmStatus(resultSet.getString("readback_status") ==  null ? null : AlarmStatus.valueOf(resultSet.getString("readback_status")))
+					.time(resultSet.getLong("readback_time"))
+					.timens(resultSet.getInt("readback_timens"))
+					.value(readbackValue)
+					.sizes(resultSet.getString("readback_sizes"))
+					.dataType(resultSet.getString("readback_data_type") == null ? null : SnapshotPvDataType.valueOf(resultSet.getString("readback_data_type")))
+					.build();
+		}
+
+		return SnapshotDataConverter.fromSnapshotPv(pvValue, readbackPvValue);
 	}
 }

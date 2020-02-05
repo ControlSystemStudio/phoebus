@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS pv(
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  created TIMESTAMP NOT NULL,
+  last_modified TIMESTAMP NOT NULL
+);
+
+ALTER TABLE config_pv ADD pv_id INTEGER REFERENCES pv(id);
+ALTER TABLE config_pv ADD readback_pv_id INTEGER REFERENCES pv(id);

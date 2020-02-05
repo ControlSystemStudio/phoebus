@@ -483,32 +483,4 @@ public class ConfigurationControllerTest {
 		objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<List<ConfigPv>>() {
 		});
 	}
-	
-	@Test
-	public void testUpdateSingleConfigPv() throws Exception{
-		
-		ConfigPv configPv = ConfigPv.builder()
-				.id(1)
-				.pvName("pvname")
-				.build();
-		
-		when(services.updateSingleConfigPv("pvname", "newpvname", null, null)).thenReturn(configPv);
-		MockHttpServletRequestBuilder request = post("/configpv/pvname").param("newPvName", "newpvname");
-		
-		MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
-				.andReturn();
-		
-		// Make sure response contains expected data
-		objectMapper.readValue(result.getResponse().getContentAsString(), ConfigPv.class);
-	}
-	
-	@Test
-	public void testUpdateSingleConfigPvIvalidRequest() throws Exception{
-			
-		MockHttpServletRequestBuilder request = post("/configpv/pvname");
-		
-		mockMvc.perform(request).andExpect(status().isBadRequest());
-	
-	}
-
 }

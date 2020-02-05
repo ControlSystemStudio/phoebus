@@ -138,16 +138,5 @@ public interface NodeDAO {
 	 * @return The {@link Node} object as read from the persistence implementation.
 	 */
 	public Node updateNode(Node nodeToUpdate);
-	
-	/**
-	 * Renames a {@link ConfigPv} whereby replacing the current PV name and optionally 
-	 * the read-back PV name.
-	 * @param currentPvName Identity of the PV name subject to change
-	 * @param newPvName New PV name
-	 * @param currentReadbackPvName Identity of the read-back PV name. Optional, i.e. may be null.
-	 * @param newReadbackPvName New read-back PV name. Optional, i.e. may be null.
-	 * @return The updated {@link ConfigPv} object.
-	 */
-	public ConfigPv updateSingleConfigPv(String currentPvName, String newPvName, String currentReadbackPvName, String newReadbackPvName);
 
 }
