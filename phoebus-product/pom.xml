@@ -283,6 +283,7 @@
           <descriptors>
             <descriptor>src/assembly/package.xml</descriptor>
           </descriptors>
+          <tarLongFileMode>posix</tarLongFileMode>
           <appendAssemblyId>false</appendAssemblyId>
         </configuration>
         <executions>
