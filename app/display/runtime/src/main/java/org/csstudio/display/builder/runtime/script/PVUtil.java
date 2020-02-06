@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -61,7 +61,7 @@ public class PVUtil
 
     /** Try to get an integer from the PV.
      *  @param pv PV
-     *  @return Current value as int
+     *  @return Current value as int.  Boolean will turn into 0, 1.
      *  @throws NullPointerException if the PV has no value
      */
     public static int getInt(final RuntimePV pv) throws NullPointerException
@@ -81,7 +81,7 @@ public class PVUtil
 
     /** Get value of PV as string.
      *  @param pv PV
-     *  @return Current value as string
+     *  @return Current value as string. Boolean will turn into "false"/"true"
      *  @throws NullPointerException if the PV has no value
      */
     public static String getString(final RuntimePV pv) throws NullPointerException

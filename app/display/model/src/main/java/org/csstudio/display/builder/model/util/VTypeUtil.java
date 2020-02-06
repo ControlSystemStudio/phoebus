@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,6 +8,7 @@
 package org.csstudio.display.builder.model.util;
 
 import org.epics.util.array.ListNumber;
+import org.epics.vtype.VBoolean;
 import org.epics.vtype.VByteArray;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VEnumArray;
@@ -52,6 +53,8 @@ public class VTypeUtil
         }
         if (value instanceof VEnum)
             return ((VEnum)value).getIndex();
+        if (value instanceof VBoolean)
+            return ((VBoolean)value).getValue() ? 1 : 0;
         // For arrays, return first element
         if (value instanceof VNumberArray)
         {
