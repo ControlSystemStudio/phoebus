@@ -868,13 +868,12 @@ public class WidgetTransfer {
         try {
 
             final String filename = ModelResourceUtil.resolveResource(widget.getTopDisplayModel(), imageFile);
-            final Image image;
-            if(filename.toLowerCase().endsWith("svg")){
-                image = SVGHelper.loadSVG(ModelResourceUtil.openResourceStream(filename), widget.propWidth().getValue(), widget.propHeight().getValue());
+            if(filename.toLowerCase().endsWith("svg")) {
+                // When loaded SVG resource is set to the size of containing widget
+                return;
             }
-            else{
-                image = new Image(ModelResourceUtil.openResourceStream(filename));
-            }
+
+            final Image image  = new Image(ModelResourceUtil.openResourceStream(filename));
 
             widget.propWidth().setValue((int) Math.round(image.getWidth()));
             widget.propHeight().setValue((int) Math.round(image.getHeight()));
