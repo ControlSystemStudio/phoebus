@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.epics.util.array.ArrayDouble;
 import org.epics.vtype.Alarm;
@@ -22,6 +23,7 @@ import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
 import org.epics.vtype.EnumDisplay;
 import org.epics.vtype.Time;
+import org.epics.vtype.VBoolean;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VEnum;
@@ -193,6 +195,19 @@ public class ValueHelper
         return values;
     }
 
+    /**
+     * 
+     * @param items Items from <code>splitInitialItems</code>
+     * @return Boolean list of all items
+     */
+    private static List<Boolean> getInitialBooleans(List<String> items) {
+        if (items == null)
+            return Arrays.asList(Boolean.FALSE);
+        return items.stream().map(item -> {
+            return Boolean.parseBoolean(item);
+        }).collect(Collectors.toList());
+    }
+
     /** @param items Items from <code>splitInitialItems</code>, i.e. strings are quoted
      *  @param type Desired VType
      *  @return VType for initial value
@@ -226,6 +241,13 @@ public class ValueHelper
                 throw new Exception("Expected one number, got " + items);
         }
 
+        if (type == VBoolean.class)
+        {
+            if (items == null  ||  items.size() == 1)
+                return VBoolean.of(getInitialBooleans(items).get(0), Alarm.none(), Time.now());
+            else
+                throw new Exception("Expected one boolean, got " + items);
+        }
 
         if (type == VString.class)
         {
@@ -238,8 +260,12 @@ public class ValueHelper
         if (type == VDoubleArray.class)
             return VDoubleArray.of(ArrayDouble.of(getInitialDoubles(items)), Alarm.none(), Time.now(), Display.none());
 
+//        if (type == VBooleanArray.class)
+//            return VBooleanArray.of(ArrayBoolean.of(getInitialBooleans(items)), Alarm.none(), Time.now());
+
         if (type == VStringArray.class)
             return VStringArray.of(getInitialStrings(items), Alarm.none(), Time.now());
+
 
         if (type == VEnum.class)
         {
@@ -276,6 +302,7 @@ public class ValueHelper
         }
         throw new Exception("Cannot obtain type " + type.getSimpleName() + " from " + items);
     }
+
 
     /** Adapt new value to desired type
      *
@@ -372,6 +399,30 @@ public class ValueHelper
             catch (NumberFormatException ex)
             {
                 throw new Exception("Cannot parse number from '" + new_value + "'");
+            }
+        }
+
+        if (type == VBoolean.class) {
+            if (new_value instanceof Boolean)
+                return VBoolean.of((Boolean) new_value, Alarm.none(), Time.now());
+            if (new_value instanceof Number)
+            {
+                try {
+                    int value = Integer.parseInt(Objects.toString(new_value));
+                    if (value == 0)
+                    {
+                        return VBoolean.of(Boolean.FALSE, Alarm.none(), Time.now());
+                    } else
+                    {
+                        return VBoolean.of(Boolean.TRUE, Alarm.none(), Time.now());
+                    }
+                } catch (NumberFormatException ex) {
+                    throw new Exception("Cannot parse boolean from '" + new_value + "'");
+                }
+            }
+            if (new_value instanceof String)
+            {
+                return VBoolean.of(Boolean.parseBoolean(String.valueOf(new_value)), Alarm.none(), Time.now());
             }
         }
 
