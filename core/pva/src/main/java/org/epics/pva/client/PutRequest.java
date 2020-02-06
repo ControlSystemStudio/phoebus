@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,7 +26,11 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
 {
     private final PVAChannel channel;
 
+    /** Request "field(value)" or "field(struct.sub.value)" */
     private final String request;
+
+    /** Just the element path "value" or "struct.sub.value" */
+    private final String request_path;
 
     private final int request_id;
 
@@ -48,6 +52,10 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
     {
         this.channel = channel;
         this.request = request;
+        if (request.startsWith("field(")  &&  request.endsWith(")"))
+            request_path = request.substring(6, request.length()-1);
+        else
+            request_path = request;
         this.request_id = channel.getClient().allocateRequestID();
         this.new_value = new_value;
         try
@@ -101,9 +109,15 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
             buffer.put(PVAHeader.CMD_SUB_DESTROY);
 
             // Locate the 'value' field
-            PVAData field = data.get("value");
-            if (field == null)
-                fail(new Exception("Cannot locate 'value' to write in " + data));
+            PVAData field = null;
+            try
+            {
+                field = data.locate(request_path);
+            }
+            catch (Exception ex)
+            {
+                fail(ex);
+            }
 
             if (field instanceof PVAStructure)
             {

@@ -313,7 +313,7 @@ public class PVAStructure extends PVADataWithID
     *  <p>Performs descending search of this structure
     *
     *  @param dot_path "element.sub-element.sub-sub-element.final"
-    *  @return Located "final" element or <code>null</code>
+    *  @return Located "final" element
     *  @param <PVA> PVAData or subclass
      * @throws Exception on error, for example a sub-element
      *         that is not a structure and prevents further descent.
@@ -328,7 +328,10 @@ public class PVAStructure extends PVADataWithID
             if (dot < 0)
             {   // No more dot, get last (or maybe only) path element
                 final String element = dot_path.substring(start);
-                return sub.get(element);
+                final PVA found = sub.get(element);
+                if (found == null)
+                    throw new Exception("Cannot locate '" + element + "' for '" + dot_path + "'");
+                return found;
             }
             final String element = dot_path.substring(start, dot);
             if (element.isEmpty())
