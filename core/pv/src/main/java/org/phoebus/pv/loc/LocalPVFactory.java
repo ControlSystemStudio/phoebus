@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.epics.vtype.VBoolean;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VEnum;
@@ -123,6 +124,8 @@ public class LocalPVFactory implements PVFactory
             return VLong.class;
         if (lower.contains("int"))
             return VInt.class;
+        if (lower.contains("boolean"))
+            return VBoolean.class;
         if (lower.contains("table"))
             return VTable.class;
         throw new Exception("Local PV cannot handle type '" + type + "'");

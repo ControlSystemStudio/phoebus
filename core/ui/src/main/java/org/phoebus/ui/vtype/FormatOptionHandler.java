@@ -101,6 +101,8 @@ public class FormatOptionHandler
         }
         else if (value instanceof VString)
             return ((VString)value).getValue();
+        else if (value instanceof VBoolean)
+            return formatBoolean((VBoolean)value);
         else if (value instanceof VEnum)
             return formatEnum((VEnum) value, option);
         else if (value instanceof VNumberArray)
@@ -153,6 +155,7 @@ public class FormatOptionHandler
 
         return "<" + value.getClass().getName() + ">";
     }
+
 
     private static NumberFormat getDecimalFormat(final int precision)
     {
@@ -262,6 +265,15 @@ public class FormatOptionHandler
         return Integer.toString(value.getIndex());
     }
 
+    /**
+     * @param value {@link VBoolean}
+     * @return String representation for the VBoolean value
+     */
+    private static String formatBoolean(VBoolean value)
+    {
+        return value.getValue().toString();
+    }
+    
     /** Format table as text
      *
      *  <p>A single-row table is formatted as "Col1: value, Col2: value, ...".
