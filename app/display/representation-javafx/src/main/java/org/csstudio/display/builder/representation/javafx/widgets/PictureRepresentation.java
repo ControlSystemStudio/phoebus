@@ -148,15 +148,7 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
             }
 
             if(img_path.toLowerCase().endsWith("svg")){
-                String imageFileName = resolveImageFile(img_path);
-                Dimension2D size = getViewboxSize(imageFileName);
-                if(size != null){
-                    img_loaded = loadSVG(img_path, size.getWidth(), size.getHeight());
-                }
-                else{
-                    img_loaded = loadSVG(img_path, model_widget.propWidth().getValue(), model_widget.propHeight().getValue());
-                }
-
+                img_loaded = loadSVG(img_path, model_widget.propWidth().getValue(), model_widget.propHeight().getValue());
             }
             else{
                 img_loaded = ImageCache.cache(img_path, () ->
@@ -303,35 +295,5 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
     }
 
 
-    /**
-     * Attempts to determine the size of the SVG by locating and parsing the viewBox attribute in the svg
-     * root element.
-     * @param fileName Absolute path to SVG resource
-     * @return A {@link Dimension2D} object, or <code>null</code> if the viewBox attribute is not available or cannot be parsed.
-     */
-    protected Dimension2D getViewboxSize(String fileName){
-        String parser = XMLResourceDescriptor.getXMLParserClassName();
-        SAXSVGDocumentFactory factory = new SAXSVGDocumentFactory(parser);
-        SVGDocument svgDocument = null;
-        try {
-            svgDocument = factory.createSVGDocument(fileName);
-            SVGElement element = svgDocument.getRootElement();
-            NamedNodeMap attributes = element.getAttributes();
-            String viewBoxAttr = null;
-            for(int i = 0; i < attributes.getLength(); i++){
-                if(attributes.item(i).getNodeName().equalsIgnoreCase("viewBox")){
-                    viewBoxAttr = attributes.item(i).getNodeValue();
-                }
-            }
-            // viewBox attribute may not be available
-            if(viewBoxAttr == null || viewBoxAttr.isEmpty()){
-                return null;
-            }
-            String[] viewBoxAttrSplit = viewBoxAttr.split("\\s");
-            return new Dimension2D(Double.parseDouble(viewBoxAttrSplit[2]), Double.parseDouble(viewBoxAttrSplit[3]));
-        } catch (IOException e) {
-            // Unable to determine size...
-            return null;
-        }
-    }
+
 }

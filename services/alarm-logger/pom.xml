@@ -104,6 +104,7 @@
           <descriptors>
             <descriptor>src/assembly/src.xml</descriptor>
           </descriptors>
+          <tarLongFileMode>posix</tarLongFileMode>
           <appendAssemblyId>false</appendAssemblyId>
         </configuration>
         <executions>
