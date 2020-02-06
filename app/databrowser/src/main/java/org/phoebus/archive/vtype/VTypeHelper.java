@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,6 +14,7 @@ import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
+import org.epics.vtype.VBoolean;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VEnumArray;
 import org.epics.vtype.VNumber;
@@ -40,6 +41,8 @@ public class VTypeHelper
             return ((VNumber)value).getValue().doubleValue();
         if (value instanceof VEnum)
             return ((VEnum)value).getIndex();
+        if (value instanceof VBoolean)
+            return ((VBoolean)value).getValue() ? 1.0 : 0.0;
         if (value instanceof VStatistics)
             return ((VStatistics)value).getAverage();
         if (value instanceof VNumberArray)
