@@ -36,6 +36,7 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
+import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableView;
 import javafx.util.Callback;
 import javafx.scene.input.KeyCode;
@@ -89,6 +90,8 @@ public class AlarmLogTableController {
     TextField startTime;
     @FXML
     TextField endTime;
+    TableColumn<AlarmLogTableType, String> sortTableCol = null;
+    SortType sortColType = null;
     // Search parameters
     ObservableMap<Keys, String> searchParameters = FXCollections.<Keys, String>observableHashMap();
     // The search string
@@ -269,6 +272,12 @@ public class AlarmLogTableController {
             if (alarmLogSearchJob != null) {
                 alarmLogSearchJob.cancel();
             }
+	    sortTableCol = null;
+	    sortColType = null;
+	    if (!tableView.getSortOrder().isEmpty()) {
+               sortTableCol = (TableColumn) tableView.getSortOrder().get(0);
+               sortColType = sortTableCol.getSortType();
+            }
             alarmLogSearchJob = AlarmLogSearchJob.submit(searchClient, searchString, isNodeTable, searchParameters,
                     result -> Platform.runLater(() -> setAlarmMessages(result)), (url, ex) -> {
                         logger.log(Level.WARNING, "Shutting down alarm log message scheduler.", ex);
@@ -301,8 +310,6 @@ public class AlarmLogTableController {
         query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
             return e.getKey().getName().trim() + "=" + e.getValue().trim();
         }).collect(Collectors.joining("&")));
-
-        peroidicSearch();
     }
 
     public List<AlarmLogTableType> getAlarmMessages() {
@@ -312,6 +319,11 @@ public class AlarmLogTableController {
     public void setAlarmMessages(List<AlarmLogTableType> alarmMessages) {
         this.alarmMessages = alarmMessages;
         tableView.setItems(FXCollections.observableArrayList(this.alarmMessages));
+	if (sortTableCol != null) {
+            tableView.getSortOrder().add(sortTableCol);
+            sortTableCol.setSortType(sortColType);
+            sortTableCol.setSortable(true);
+        }
     }
 
     public void setClient(RestHighLevelClient client) {
@@ -331,8 +343,8 @@ public class AlarmLogTableController {
 
     @FXML
     public void search() {
+	tableView.getSortOrder().clear();
         updateQuery();
-        peroidicSearch();
     }
 	
     public void shutdown() {
