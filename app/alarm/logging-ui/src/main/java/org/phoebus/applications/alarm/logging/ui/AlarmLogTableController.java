@@ -233,7 +233,7 @@ public class AlarmLogTableController {
                 });
         tableView.getColumns().add(hostCol);
 
-        searchParameters.put(Keys.PV, "*");
+        searchParameters.put(Keys.PV, this.searchString);
         searchParameters.put(Keys.MESSAGE, "*");
         searchParameters.put(Keys.SEVERITY, "*");
         searchParameters.put(Keys.CURRENTSEVERITY, "*");
