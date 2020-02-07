@@ -14,6 +14,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
+import javafx.event.EventHandler;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -37,6 +38,8 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.util.Callback;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -241,6 +244,15 @@ public class AlarmLogTableController {
         query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
             return e.getKey().getName().trim() + "=" + e.getValue().trim();
         }).collect(Collectors.joining("&")));
+
+	query.setOnKeyPressed(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent keyEvent) {
+                if (keyEvent.getCode() == KeyCode.ENTER)  {
+                    search();
+                }
+            }
+        });
 
         peroidicSearch();
     }
