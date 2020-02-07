@@ -14,6 +14,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
+import javafx.event.EventHandler;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -35,8 +36,11 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
+import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableView;
 import javafx.util.Callback;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -86,6 +90,8 @@ public class AlarmLogTableController {
     TextField startTime;
     @FXML
     TextField endTime;
+    TableColumn<AlarmLogTableType, String> sortTableCol = null;
+    SortType sortColType = null;
     // Search parameters
     ObservableMap<Keys, String> searchParameters = FXCollections.<Keys, String>observableHashMap();
     // The search string
@@ -227,7 +233,7 @@ public class AlarmLogTableController {
                 });
         tableView.getColumns().add(hostCol);
 
-        searchParameters.put(Keys.PV, "*");
+        searchParameters.put(Keys.PV, this.searchString);
         searchParameters.put(Keys.MESSAGE, "*");
         searchParameters.put(Keys.SEVERITY, "*");
         searchParameters.put(Keys.CURRENTSEVERITY, "*");
@@ -241,6 +247,15 @@ public class AlarmLogTableController {
         query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
             return e.getKey().getName().trim() + "=" + e.getValue().trim();
         }).collect(Collectors.joining("&")));
+
+	query.setOnKeyPressed(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent keyEvent) {
+                if (keyEvent.getCode() == KeyCode.ENTER)  {
+                    search();
+                }
+            }
+        });
 
         peroidicSearch();
     }
@@ -256,6 +271,12 @@ public class AlarmLogTableController {
         runningTask = executor.scheduleAtFixedRate(() -> {
             if (alarmLogSearchJob != null) {
                 alarmLogSearchJob.cancel();
+            }
+	    sortTableCol = null;
+	    sortColType = null;
+	    if (!tableView.getSortOrder().isEmpty()) {
+               sortTableCol = (TableColumn) tableView.getSortOrder().get(0);
+               sortColType = sortTableCol.getSortType();
             }
             alarmLogSearchJob = AlarmLogSearchJob.submit(searchClient, searchString, isNodeTable, searchParameters,
                     result -> Platform.runLater(() -> setAlarmMessages(result)), (url, ex) -> {
@@ -289,8 +310,6 @@ public class AlarmLogTableController {
         query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
             return e.getKey().getName().trim() + "=" + e.getValue().trim();
         }).collect(Collectors.joining("&")));
-
-        peroidicSearch();
     }
 
     public List<AlarmLogTableType> getAlarmMessages() {
@@ -300,6 +319,11 @@ public class AlarmLogTableController {
     public void setAlarmMessages(List<AlarmLogTableType> alarmMessages) {
         this.alarmMessages = alarmMessages;
         tableView.setItems(FXCollections.observableArrayList(this.alarmMessages));
+	if (sortTableCol != null) {
+            tableView.getSortOrder().add(sortTableCol);
+            sortTableCol.setSortType(sortColType);
+            sortTableCol.setSortable(true);
+        }
     }
 
     public void setClient(RestHighLevelClient client) {
@@ -319,8 +343,8 @@ public class AlarmLogTableController {
 
     @FXML
     public void search() {
+	tableView.getSortOrder().clear();
         updateQuery();
-        peroidicSearch();
     }
 	
     public void shutdown() {
