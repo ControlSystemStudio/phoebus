@@ -1,6 +1,8 @@
 package org.csstudio.apputil.formula.areadetector;
 
 
+import java.util.List;
+
 import org.csstudio.apputil.formula.VTypeHelper;
 import org.csstudio.apputil.formula.spi.FormulaFunction;
 import org.epics.util.array.ArrayUInteger;
@@ -8,7 +10,6 @@ import org.epics.util.array.ArrayULong;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
-import org.epics.vtype.VEnum;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
 /**
@@ -29,8 +30,8 @@ public class ADDataTypeMappingFunction implements FormulaFunction {
     }
 
     @Override
-    public int getArgumentCount() {
-        return 2;
+    public List<String> getArguments() {
+        return List.of("data", "type");
     }
 
     @Override
