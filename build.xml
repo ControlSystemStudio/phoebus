@@ -6,10 +6,10 @@
 <project name="Phoebus" default="services">
 
   <target name="clean" description="Remove all artifacts">
+    <ant target="clean" dir="core/formula"/>
     <ant target="clean" dir="core/framework"/>
     <ant target="clean" dir="core/util"/>
     <ant target="clean" dir="core/email"/>
-    <ant target="clean" dir="core/formula"/>
     <ant target="clean" dir="core/pva"/>
     <ant target="clean" dir="core/pv"/>
     <ant target="clean" dir="core/security"/>
@@ -72,10 +72,10 @@
     <!--
     <echo message="App classpath: ${toString:app-classpath}"/>
     -->
+    <ant dir="core/formula"/>
     <ant dir="core/framework"/>
     <ant dir="core/util"/>
     <ant dir="core/email"/>
-    <ant dir="core/formula"/>
     <ant dir="core/pva"/>
     <ant dir="core/pv"/>
     <ant dir="core/security"/>
