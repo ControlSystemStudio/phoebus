@@ -44,7 +44,7 @@ Connect to mysql as root::
 
 and then paste the commands shown in ``services/archive-engine/dbd/MySQL.dbd``
 (available online as 
-https://github.com/shroffk/phoebus/blob/master/services/archive-engine/dbd/MySQL.dbd )
+https://github.com/ControlSystemStudio/phoebus/blob/master/services/archive-engine/dbd/MySQL.dbd )
 to create the table setup for archiving PV samples.
 
 
