@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -106,7 +106,7 @@ public class Formula implements Node
         // Locate SPI-provided functions
         for (FormulaFunction func : ServiceLoader.load(FormulaFunction.class))
         {
-            logger.log(Level.FINE, () -> "SPI FormulaFunction '" + func.getName() + "', " + func.getArgumentCount() + " arguments");
+            logger.log(Level.FINE, () -> "SPI FormulaFunction " + func.getSignature());
             spi_functions.put(func.getName(), func);
         }
     }
@@ -315,9 +315,9 @@ public class Formula implements Node
         final FormulaFunction function = spi_functions.get(name);
         if (function != null)
         {
-            if (args.length != function.getArgumentCount())
-                throw new Exception("Function '" + function.getName() + "' takes " +
-                                    function.getArgumentCount() + " arguments but received " + Arrays.toString(args));
+            if (args.length != function.getArguments().size())
+                throw new Exception("Function " + function.getSignature() + " takes " +
+                                    function.getArguments().size() + " arguments but received " + Arrays.toString(args));
             return new SPIFuncNode(function, args);
         }
         // ... oddballs
