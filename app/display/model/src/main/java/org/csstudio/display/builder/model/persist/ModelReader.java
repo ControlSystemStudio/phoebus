@@ -87,7 +87,7 @@ public class ModelReader
      */
     public static DisplayModel parseXML(final String xml) throws Exception
     {
-        final ByteArrayInputStream stream = new ByteArrayInputStream(xml.getBytes());
+        final ByteArrayInputStream stream = new ByteArrayInputStream(xml.getBytes(XMLUtil.ENCODING));
         final ModelReader reader = new ModelReader(stream);
         return reader.readModel();
     }
