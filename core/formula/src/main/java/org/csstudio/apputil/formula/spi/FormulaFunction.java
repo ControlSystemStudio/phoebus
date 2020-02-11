@@ -18,8 +18,12 @@ import org.epics.vtype.VType;
 @SuppressWarnings("nls")
 public interface FormulaFunction
 {
+    /** Special argument to indicate that zero or more may follow */
     public static final String VAR_ARG = "...";
 
+    /** @return Name of the Category the function belongs to*/
+    public String getCategory();
+    
     /** @return Name of the function as used in the formula */
     public String getName();
 

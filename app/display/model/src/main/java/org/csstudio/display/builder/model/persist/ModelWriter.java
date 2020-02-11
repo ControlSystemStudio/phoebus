@@ -61,7 +61,7 @@ public class ModelWriter implements Closeable
         {
             writer.writeWidgets(widgets);
         }
-        return xml.toString();
+        return xml.toString(XMLUtil.ENCODING);
     }
 
     /** Create writer.

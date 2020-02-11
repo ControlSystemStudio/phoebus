@@ -41,6 +41,11 @@ class TwoArgMathFunction implements FormulaFunction
     }
 
     @Override
+    public String getCategory() {
+        return "math";
+    }
+
+    @Override
     public String getName()
     {
         return name;
