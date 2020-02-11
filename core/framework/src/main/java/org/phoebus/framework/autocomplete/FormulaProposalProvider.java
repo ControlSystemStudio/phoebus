@@ -49,10 +49,7 @@ public class FormulaProposalProvider implements PVProposalProvider
     {
         // User is not entering a formula: Just hint that they exist
         if (! text.startsWith("="))
-        {
-            System.err.println("Generic for " + text);
             return generic;
-        }
 
         // User is typing a formula
         // Find all functions where the text results in a match
