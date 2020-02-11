@@ -49,8 +49,9 @@ public class PathTest
     }
 
     @Test
-    public void testCombine() throws Exception
+    public void testCombineNotWindows() throws Exception
     {
+        assumeThat(PlatformInfo.isWindows, equalTo(false));
         String path;
 
         path = ModelResourceUtil.combineDisplayPaths(null, "example.opi");
@@ -67,6 +68,28 @@ public class PathTest
 
         path = ModelResourceUtil.combineDisplayPaths("https://webopi.sns.gov/webopi/opi/Instruments.opi", "/home/beamline/main.bob");
         assertThat(path, equalTo("/home/beamline/main.bob"));
+    }
+
+    @Test
+    public void testCombineWindows() throws Exception
+    {
+        assumeThat(PlatformInfo.isWindows, equalTo(true));
+        String path;
+
+        path = ModelResourceUtil.combineDisplayPaths(null, "example.opi");
+        assertThat(path, equalTo("example.opi"));
+
+        path = ModelResourceUtil.combineDisplayPaths("examples/dummy.opi", "example.opi");
+        assertThat(path, equalTo("examples/example.opi"));
+
+        path = ModelResourceUtil.combineDisplayPaths("examples/dummy.opi", "scripts/test.py");
+        assertThat(path, equalTo("examples/scripts/test.py"));
+
+        path = ModelResourceUtil.combineDisplayPaths("https://webopi.sns.gov/webopi/opi/Instruments.bob", "../../share/opi/Motors/motor.opi");
+        assertThat(path, equalTo("https://webopi.sns.gov/share/opi/Motors/motor.opi"));
+
+        path = ModelResourceUtil.combineDisplayPaths("https://webopi.sns.gov/webopi/opi/Instruments.opi", "C:\\home\\beamline\\main.bob");
+        assertThat(path, equalTo("C:/home/beamline/main.bob"));
     }
 
     @Test
