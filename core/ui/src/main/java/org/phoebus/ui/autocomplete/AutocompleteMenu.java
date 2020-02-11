@@ -10,6 +10,7 @@ package org.phoebus.ui.autocomplete;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -230,6 +231,11 @@ public class AutocompleteMenu
         proposal_service.lookup(text, (name, priority, proposals) -> handleLookupResult(field, text, name, priority, proposals));
     }
 
+    /** Latest list of menu items to show.
+     *  Used to schedule only one 'RunLater'
+     */
+    private final AtomicReference<List<AutocompleteItem>> menu_items = new AtomicReference<>();
+
     private void handleLookupResult(final TextInputControl field, final String text, final String name, final int priority, final List<Proposal> proposals)
     {
         final List<AutocompleteItem> items = new ArrayList<>();
@@ -251,12 +257,15 @@ public class AutocompleteMenu
         }
 
         // Update and show menu on UI thread
-        Platform.runLater(() ->
-        {
-            menu.setItems(items);
-            if (! menu.isShowing())
-                showMenuForField(field);
-        });
+        if (menu_items.getAndSet(items) == null)
+            Platform.runLater(() ->
+            {
+                final List<AutocompleteItem> current_items = menu_items.getAndSet(null);
+                menu.setItems(current_items);
+                if (! menu.isShowing())
+                    showMenuForField(field);
+            });
+        // else: already pending, will use the updated 'menu_items'
     }
 
     /** @param field Field where user entered text
