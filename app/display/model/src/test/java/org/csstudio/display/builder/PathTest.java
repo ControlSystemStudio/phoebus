@@ -9,9 +9,11 @@ package org.csstudio.display.builder;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assume.assumeThat;
 
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.junit.Test;
+import org.phoebus.ui.javafx.PlatformInfo;
 
 /** JUnit test of path handling
  *  @author Kay Kasemir
@@ -68,8 +70,9 @@ public class PathTest
     }
 
     @Test
-    public void testRelative() throws Exception
+    public void testRelativeNotWindows() throws Exception
     {
+        assumeThat(PlatformInfo.isWindows, equalTo(false));
         String parent = "/one/of/my/directories/parent.bob";
 
         // Same dir
@@ -108,6 +111,51 @@ public class PathTest
         // .. and in local file system
         parent = "/main/file.bob";
         path = ModelResourceUtil.getRelativePath(parent, "/share/common.bob");
+        assertThat(path, equalTo("../share/common.bob"));
+    }
+
+    @Test
+    public void testRelativeWindows() throws Exception
+    {
+        assumeThat(PlatformInfo.isWindows, equalTo(true));
+        String parent = "C:\\one\\of\\my\\directories\\parent.bob";
+
+        // Same dir
+        String path = ModelResourceUtil.getRelativePath(parent, "C:\\one\\of\\my\\directories\\other.bob");
+        assertThat(path, equalTo("other.bob"));
+
+        // Other dirs, made relative
+        path = ModelResourceUtil.getRelativePath(parent, "C:\\one\\of\\my\\alternate_dirs\\example.bob");
+        assertThat(path, equalTo("../alternate_dirs/example.bob"));
+
+        path = ModelResourceUtil.getRelativePath(parent, "C:\\one\\main.bob");
+        assertThat(path, equalTo("../../../main.bob"));
+
+        path = ModelResourceUtil.getRelativePath(parent, "C:\\other\\of\\my\\directories\\file.bob");
+        assertThat(path, equalTo("../../../../other/of/my/directories/file.bob"));
+
+        // Entered with "..", will be normalized and then made relative
+        path = ModelResourceUtil.getRelativePath(parent, "C:\\elsewhere\\b\\..\\file.txt");
+        assertThat(path, equalTo("../../../../elsewhere/file.txt"));
+
+        // File to make relative is already relative
+        path = ModelResourceUtil.getRelativePath(parent, "file.bob");
+        assertThat(path, equalTo("file.bob"));
+
+        path = ModelResourceUtil.getRelativePath(parent, "..\\c\\d\\file.bob");
+        assertThat(path, equalTo("../c/d/file.bob"));
+
+        // Same relative layout of file.bob and other.bob, once via http ..
+        parent = "http://server/folder/main/file.bob";
+        path = ModelResourceUtil.getRelativePath(parent, "http://server/folder/main/other.bob");
+        assertThat(path, equalTo("other.bob"));
+
+        path = ModelResourceUtil.getRelativePath(parent, "http://server/folder/share/common.bob");
+        assertThat(path, equalTo("../share/common.bob"));
+
+        // .. and in local file system
+        parent = "C:\\main\\file.bob";
+        path = ModelResourceUtil.getRelativePath(parent, "C:\\share\\common.bob");
         assertThat(path, equalTo("../share/common.bob"));
 
     }
