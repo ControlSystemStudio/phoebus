@@ -1044,7 +1044,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
 
             // AWT API has  Desktop.getDesktop().open(File),
             // but that results in hangup
-            // https://github.com/shroffk/phoebus/issues/433
+            // https://github.com/ControlSystemStudio/phoebus/issues/433
         });
     }
 
