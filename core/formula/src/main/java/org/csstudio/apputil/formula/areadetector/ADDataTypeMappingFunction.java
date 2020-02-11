@@ -19,6 +19,11 @@ import org.epics.vtype.VType;
 public class ADDataTypeMappingFunction implements FormulaFunction {
 
     @Override
+    public String getCategory() {
+        return "areaDetector";
+    }
+
+    @Override
     public String getName() {
         return "adData";
     }

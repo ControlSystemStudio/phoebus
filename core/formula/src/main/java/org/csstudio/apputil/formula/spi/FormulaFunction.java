@@ -18,6 +18,10 @@ import org.epics.vtype.VType;
 @SuppressWarnings("nls")
 public interface FormulaFunction
 {
+
+    /** @return Name of the Category the function belongs to*/
+    public String getCategory();
+
     /** @return Name of the function as used in the formula */
     public String getName();
 
