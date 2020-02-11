@@ -94,7 +94,7 @@ public class SimProposal extends Proposal
 
     /** Locate end of parameter, i.e. next ',' or ')'
      *
-     *  Skips quoted text
+     *  Skips quoted text and nested parentheses
      *
      *  @param text Text
      *  @param start Offset where to start looking
@@ -121,9 +121,24 @@ public class SimProposal extends Proposal
                 if (pos >= N)
                     return -1;
             }
+            else if (c == '(')
+            {   // Skip to closing parenthesis
+                int open = 1;
+                while (++pos < N)
+                {
+                    c = text.charAt(pos);
+                    if (c == '(')
+                        ++open;
+                    else if (c == ')')
+                        --open;
+                    if (open <= 0)
+                        break;
+                }
+            }
         }
         return -1;
     }
+
 
     static boolean hasOpeningBacket(final String text)
     {
