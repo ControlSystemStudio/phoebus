@@ -41,6 +41,11 @@ class OneArgMathFunction implements FormulaFunction
     }
 
     @Override
+    public String getCategory() {
+        return "math";
+    }
+
+    @Override
     public String getName()
     {
         return name;
@@ -65,4 +70,5 @@ class OneArgMathFunction implements FormulaFunction
         final double value = function.calc(arg);
         return VDouble.of(value, Alarm.none(), Time.now(), Display.none());
     }
+
 }

@@ -23,6 +23,12 @@ import org.epics.vtype.VType;
 @SuppressWarnings("nls")
 public class Factorial implements FormulaFunction
 {
+
+    @Override
+    public String getCategory() {
+        return "math";
+    }
+
     @Override
     public String getName()
     {
