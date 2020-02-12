@@ -21,6 +21,8 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
@@ -91,58 +93,39 @@ public class ModelResourceUtil
                isURL(path);
     }
 
-    private static String[] splitPath(final String path)
-    {
-        // If path starts with "/",
-        // this would result in a list initial empty element.
-        if (path.startsWith("/"))
-            return path.substring(1).split("/");
-        return path.split("/");
-    }
-
-    /** Obtain a relative path
+    /** Creates a relative path between two file path strings.
      *
-     *  <p>Returns original 'path' if it cannot be expressed
-     *  relative to the 'parent'.
      *  @param parent Parent file, for example "/one/of/my/directories/parent.bob"
      *  @param path Path to make relative, for example "/one/of/my/alternate_dirs/example.bob"
      *  @return Relative path, e.d. "../alternate_dirs/example.bob"
      */
-    public static String getRelativePath(final String parent, String path)
-    {
-        // If path already appears to be relative, leave it that way
+    private static String relativizePaths(String parent, String path) {
+        Path parentDirectory = Paths.get(parent).getParent();
+        Path searchPath = Paths.get(path);
+        String relativePath = parentDirectory.relativize(searchPath).toString();
+        return normalize(relativePath);
+    }
+
+    /** Obtain a relative path for both filepaths or URLs.
+     *
+     *  <p>Returns original 'path' if it cannot be expressed
+     *  relative to the 'parent'.
+     *  @param parent Parent file, for example "/directory/parent.bob" or "http://server/directory/common.bob"
+     *  @param path Path to make relative, for example "/alternate_dirs/example.bob" or "http://server/alternate_dirs/example.bob"
+     *  @return Relative path, e.g. "../alternate_dirs/example.bob"
+     */
+    public static String getRelativePath(final String parent, String path) {
         path = normalize(path);
-        if (! isAbsolute(path))
+        if (!isAbsolute(path)) {
             return path;
-
-        // Locate common path elements
-        final String[] parent_elements = splitPath(getDirectory(parent));
-        final String[] path_elements = splitPath(path);
-        final int len = Math.min(parent_elements.length, path_elements.length);
-        int common;
-        for (common=0; common<len; ++common)
-            if (! parent_elements[common].equals(path_elements[common]))
-                break;
-        final int difference = parent_elements.length - common;
-
-        // Go 'up' from the parent directory to the common directory
-        final StringBuilder relative = new StringBuilder();
-        for (int up = difference; up > 0; --up)
-        {
-            if (relative.length() > 0)
-                relative.append("/");
-            relative.append("..");
         }
-
-        // Go down from common directory
-        for (/**/; common<path_elements.length; ++common)
-        {
-            if (relative.length() > 0)
-                relative.append("/");
-            relative.append(path_elements[common]);
+        if(isURL(parent)) {
+            URI parentURI = URI.create(parent);
+            URI pathURI = URI.create(path);
+            return relativizePaths(parentURI.getPath(), pathURI.getPath());
+        } else {
+            return relativizePaths(parent, path);
         }
-
-        return relative.toString();
     }
 
     /** Normalize path
