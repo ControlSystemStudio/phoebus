@@ -12,7 +12,7 @@ jobs:
     - os: windows
       language: bash
       before_script:
-        - choco install openjdk
+        - choco install openjdk11
         - choco install maven
   
 script:
