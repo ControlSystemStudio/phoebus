@@ -12,11 +12,9 @@ jobs:
     - os: windows
       language: bash
       before_script:
-        - choco install openjdk11
-        - choco install maven
-        - echo ${PATH}
-        - refreshenv
-        - echo ${PATH}
+        - choco install openjdk11 -ia INSTALLDIR="c:\jdk"
+        - choco install maven -ia INSTALLDIR="c:\mvn"
+        - export PATH=$PATH:"/c/jdk":"/c/mvn"
   
 script:
   - MAVEN_OPTS="-Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.text=t2k -Dtestfx.setup.timeout=2500"
