@@ -14,9 +14,13 @@ jobs:
       before_script:
         - choco install openjdk11
         - choco install maven
+        - echo ${PATH}
+        - refreshenv
+        - echo ${PATH}
   
 script:
   - MAVEN_OPTS="-Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.text=t2k -Dtestfx.setup.timeout=2500"
+  - echo ${PATH}
   - mvn clean install
 
 after_failure:
