@@ -106,10 +106,10 @@ public class ModelResourceUtil
         return normalize(relativePath);
     }
 
-    /** Obtain a relative path for both filepaths or URLs.
+    /** Obtain a relative path for both filepaths or URLs. Also normalizes paths such that they always conform to unix.
      *
      *  <p>Returns original 'path' if it cannot be expressed
-     *  relative to the 'parent'.
+     *  relative to the 'parent'. (But normalized to unix)
      *  @param parent Parent file, for example "/directory/parent.bob" or "http://server/directory/common.bob"
      *  @param path Path to make relative, for example "/alternate_dirs/example.bob" or "http://server/alternate_dirs/example.bob"
      *  @return Relative path, e.g. "../alternate_dirs/example.bob"
@@ -120,9 +120,9 @@ public class ModelResourceUtil
             return path;
         }
         if(isURL(parent)) {
-            URI parentURI = URI.create(parent);
-            URI pathURI = URI.create(path);
-            return relativizePaths(parentURI.getPath(), pathURI.getPath());
+            String parentNoProtocol = parent.split("://")[1];
+            String pathNoProtocol = path.split("://")[1];
+            return relativizePaths(parentNoProtocol, pathNoProtocol);
         } else {
             return relativizePaths(parent, path);
         }
