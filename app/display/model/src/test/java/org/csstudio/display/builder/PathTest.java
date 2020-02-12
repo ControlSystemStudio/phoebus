@@ -92,7 +92,7 @@ public class PathTest
         assertThat(path, equalTo("C:/home/beamline/main.bob"));
     }
 
-    public void checkRelativePath(String parent, String path, String expectedResult)
+    public void checkRelativePath(String parent, String path, String expectedResult) throws Exception
     {
         String resultingPath = ModelResourceUtil.getRelativePath(parent, path);
         assertThat(resultingPath, equalTo(expectedResult));
@@ -124,6 +124,12 @@ public class PathTest
 
         // .. and in local file system
         checkRelativePath("/main/file.bob", "/share/common.bob", "../share/common.bob");
+
+        // File contains spaces
+        parent = "/path with spaces/parent.bob";
+        checkRelativePath(parent, "/path with spaces/other.bob", "other.bob");
+
+        checkRelativePath(parent, "/path with spaces/spaces file.bob", "spaces file.bob");
     }
 
     @Test
@@ -158,14 +164,22 @@ public class PathTest
 
         // .. and in local file system
         checkRelativePath("C:\\main\\file.bob", "C:\\share\\common.bob", "../share/common.bob");
+
+        // File contains spaces
+        parent = "C:\\path with spaces\\parent.bob";
+        checkRelativePath(parent, "C:\\path with spaces\\other.bob", "other.bob");
+
+        checkRelativePath(parent, "C:\\path with spaces\\spaces file.bob", "spaces file.bob");
     }
 
     @Test
-    public void testRelativePathForURL() {
+    public void testRelativePathForURL() throws Exception {
         // Same relative layout of file.bob and other.bob, via http ..
         String parent = "http://server/folder/main/file.bob";
         checkRelativePath(parent, "http://server/folder/main/other.bob", "other.bob");
 
         checkRelativePath(parent, "http://server/folder/share/common.bob", "../share/common.bob");
+
+        checkRelativePath(parent, "http://server/folder/main/path+with+plus.bob", "path+with+plus.bob");
     }
 }
