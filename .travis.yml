@@ -14,7 +14,7 @@ jobs:
       before_script:
         - choco install openjdk11
         - choco install maven
-        - export PATH=$PATH:"/c/Program Files/OpenJDK/openjdk-11.0.5_10/bin":"/C:/ProgramData/chocolatey/lib/maven/bin"
+        - export PATH=$PATH:"/c/Program Files/OpenJDK/openjdk-11.0.5_10/bin":"/c/ProgramData/chocolatey/lib/maven/bin"
   
 script:
   - MAVEN_OPTS="-Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.text=t2k -Dtestfx.setup.timeout=2500"
