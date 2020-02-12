@@ -139,22 +139,20 @@ public class ModelResourceUtil
      */
     public static String normalize(String path)
     {
+        String protocol = "";
+        if(isURL(path)) {
+            String[] splitPath = path.split("://");
+            protocol = splitPath[0] + "://";
+            path = splitPath[1];
+        }
+
+        // Collapse "something/../" into "something/"
+        path = Paths.get(path).normalize().toString();
+
         // Pattern: '\(?!\)', i.e. backslash _not_ followed by another one.
         // Each \ is doubled as \\ to get one '\' into the string,
         // then doubled once more to tell regex that we want a '\'
-        path = path.replaceAll("\\\\(?!\\\\)", "/");
-        // Collapse "something/../" into "something/"
-        int up = path.indexOf("/../");
-        while (up >=0)
-        {
-            final int prev = path.lastIndexOf('/', up-1);
-            if (prev >= 0)
-                path = path.substring(0, prev) + path.substring(up+3);
-            else
-                break;
-            up = path.indexOf("/../");
-        }
-        return path;
+        return protocol + path.replaceAll("\\\\(?!\\\\)", "/");
     }
 
     /** Obtain directory of file. For URL, this is the path up to the last element
