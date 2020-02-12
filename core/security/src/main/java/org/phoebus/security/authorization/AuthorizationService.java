@@ -79,8 +79,19 @@ public class AuthorizationService
                     }
                 }
             }
-            instance.set(new FileBasedAuthorization(stream, System.getProperty(USER_PROPERTY)));
+            if (instance.getAndSet(new FileBasedAuthorization(stream, System.getProperty(USER_PROPERTY))) !=null)
+                logger.log(Level.SEVERE, "Authorization is initialized more than once (FileBasedAuthorization)");
         });
+    }
+
+    /** Initialize service with an existing instance of a custom class
+     *  implementing Authorization interface 
+     *  @param auth custom Authorization object
+     */
+    public static void init(Authorization auth)
+    {
+        if (instance.getAndSet(auth) != null)
+            logger.log(Level.SEVERE, "Authorization is initialized more than once (" + auth.toString() + ")");
     }
 
     /** Check if current user is authorized to do something
