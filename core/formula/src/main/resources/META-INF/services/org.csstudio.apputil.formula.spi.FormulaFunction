@@ -33,3 +33,6 @@ org.csstudio.apputil.formula.string.StringFunction
 
 # Array functions
 org.csstudio.apputil.formula.array.RescaleArrayFormulaFunction
+
+# Alarm
+org.csstudio.apputil.formula.array.alarm.HighestSeverityFunction
