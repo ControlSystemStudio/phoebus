@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -58,8 +58,8 @@ public class SimProposal extends Proposal
 
     /** Split complete PV into base name and each argument
      *
-     *  @param text
-     *  @return
+     *  @param text "name(a, b, c)"
+     *  @return [ name, a, b, c ]
      */
     static List<String> splitNameAndParameters(final String text)
     {
@@ -92,13 +92,21 @@ public class SimProposal extends Proposal
         return result;
     }
 
+    /** Locate end of parameter, i.e. next ',' or ')'
+     *
+     *  Skips quoted text and nested parentheses
+     *
+     *  @param text Text
+     *  @param start Offset where to start looking
+     *  @return Next separator or -1
+     */
     static int nextSep(final String text, final int start)
     {
         final int N = text.length();
         for (int pos = start;  pos < N;  ++pos)
         {
             char c = text.charAt(pos);
-            if (c == ',')
+            if (c == ','  ||  c == ')')
                 return pos;
             // Skip "text, quoted"
             if (c == '"'  &&   (pos <= 0  ||  text.charAt(pos-1) != '\\'))
@@ -113,9 +121,24 @@ public class SimProposal extends Proposal
                 if (pos >= N)
                     return -1;
             }
+            else if (c == '(')
+            {   // Skip to closing parenthesis
+                int open = 1;
+                while (++pos < N)
+                {
+                    c = text.charAt(pos);
+                    if (c == '(')
+                        ++open;
+                    else if (c == ')')
+                        --open;
+                    if (open <= 0)
+                        break;
+                }
+            }
         }
         return -1;
     }
+
 
     static boolean hasOpeningBacket(final String text)
     {

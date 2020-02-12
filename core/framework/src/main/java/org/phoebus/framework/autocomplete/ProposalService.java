@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.phoebus.framework.jobs.NamedThreadFactory;
@@ -118,6 +119,15 @@ public class ProposalService
     {
         final List<Proposal> entries = provider.lookup(text);
         if (entries.size() > 0  &&  ! Thread.currentThread().isInterrupted())
-            response_handler.handleProposals(provider.getName(), priority, entries);
+        {
+            try
+            {
+                response_handler.handleProposals(provider.getName(), priority, entries);
+            }
+            catch (Throwable ex)
+            {
+                logger.log(Level.WARNING, "Proposal handling failed", ex);
+            }
+        }
     }
 }

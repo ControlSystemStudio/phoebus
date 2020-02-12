@@ -18,17 +18,25 @@ import org.epics.vtype.VType;
 @SuppressWarnings("nls")
 public interface FormulaFunction
 {
+    /** Special argument to indicate that zero or more may follow */
+    public static final String VAR_ARG = "...";
 
     /** @return Name of the Category the function belongs to*/
     public String getCategory();
-
+    
     /** @return Name of the function as used in the formula */
     public String getName();
 
     /** @return A description on the function performed by the formula */
     public String getDescription();
 
-    /** @return Description of arguments, for example `[ "base", "exponent" ]` */
+    /** Describe arguments
+     *
+     *  Special argument "..." is used to indicate that a variable
+     *  number of arguments may follow.
+     *  If it is used, it must be the last one in the list.
+     *
+     *  @return Description of arguments, for example `[ "base", "exponent" ]` */
     public List<String> getArguments();
 
     /** Compute the function's value

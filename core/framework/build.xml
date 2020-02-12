@@ -9,9 +9,10 @@
         <fileset dir="${dependencies}/phoebus-target/target/lib">
           <include name="*.jar"/>
         </fileset>
+        <pathelement path="../formula/${build}/core-formula-${version}.jar"/>
       </classpath>
     </javac>
-  	<jar destfile="${build}/core-framework-${version}.jar">
+    <jar destfile="${build}/core-framework-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>
