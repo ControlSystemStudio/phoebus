@@ -16,7 +16,7 @@ import org.epics.vtype.VType;
  * Retrieves the highest alarm from the values.
  *
  */
-public abstract class HighestSeverityFunction implements FormulaFunction {
+public class HighestSeverityFunction implements FormulaFunction {
 
     @Override
     public String getCategory() {
