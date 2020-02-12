@@ -108,13 +108,15 @@ public class MacroHierarchyUnitTest
         assertThat(value, not(nullValue()));
 
         // Check fall back to environment variables
-        value = macros.getValue("HOME");
-        System.out.println("Environment variable $HOME: " + value);
+        String testVariable;
         if(System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) {
-            assertThat(value, nullValue());
+            testVariable = "HOMEPATH";
         }else {
-            assertThat(value, not(nullValue()));
+            testVariable = "HOME";
         }
+        value = macros.getValue(testVariable);
+        System.out.println("Environment variable $" + testVariable + ": " + value);
+        assertThat(value, not(nullValue()));
     }
 
     /** Test when macros get expanded
