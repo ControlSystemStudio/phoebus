@@ -29,8 +29,14 @@ public class PathTest
         path = ModelResourceUtil.normalize("C:\\some path\\subdir\\file.opi");
         assertThat(path, equalTo("C:/some path/subdir/file.opi"));
 
+        path = ModelResourceUtil.normalize("C:\\some path\\subdir\\..\\file.opi");
+        assertThat(path, equalTo("C:/some path/file.opi"));
+
         path = ModelResourceUtil.normalize("/old/../new/path/../dir/file.opi");
         assertThat(path, equalTo("/new/dir/file.opi"));
+
+        path = ModelResourceUtil.normalize("https://old/../new/path/../dir/file.opi");
+        assertThat(path, equalTo("https://new/dir/file.opi"));
     }
 
     @Test
@@ -181,5 +187,7 @@ public class PathTest
         checkRelativePath(parent, "http://server/folder/share/common.bob", "../share/common.bob");
 
         checkRelativePath(parent, "http://server/folder/main/path+with+plus.bob", "path+with+plus.bob");
+
+        checkRelativePath(parent, "http://server/folder/main/path with spaces.bob", "path with spaces.bob");
     }
 }
