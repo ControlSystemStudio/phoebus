@@ -35,4 +35,4 @@ org.csstudio.apputil.formula.string.StringFunction
 org.csstudio.apputil.formula.array.RescaleArrayFormulaFunction
 
 # Alarm
-org.csstudio.apputil.formula.array.alarm.HighestSeverityFunction
+org.csstudio.apputil.formula.alarm.HighestSeverityFunction
