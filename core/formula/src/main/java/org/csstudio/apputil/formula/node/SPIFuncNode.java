@@ -38,8 +38,15 @@ public class SPIFuncNode implements Node
         this.function = function;
         this.args = args;
         // Should be called with the correct number of arguments
-        if (args.length != function.getArguments().size())
-            throw new IllegalStateException("Wrong number of arguments for " + function.getSignature());
+        final int expected = function.getArguments().size();
+        if (expected > 0  &&  FormulaFunction.VAR_ARG.equals(function.getArguments().get(expected-1)))
+        {   // Need at least the fixed args, maybe more
+            if (args.length < expected-1)
+                throw new IllegalStateException("Wrong number of arguments for " + function.getSignature());
+        }
+        else
+            if (args.length != expected)
+                throw new IllegalStateException("Wrong number of arguments for " + function.getSignature());
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,12 +7,15 @@
  ******************************************************************************/
 package org.phoebus.pv;
 
+import static org.phoebus.pv.PV.logger;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 
 /** Map that keeps reference count for its objects
  *
@@ -102,9 +105,10 @@ public class RefCountMap<K, E>
         final ReferencedEntry<E> updated_entry = map.compute(key, (the_key, entry) ->
         {
             if (entry == null)
-                throw new IllegalStateException("No reference found for " + key);
-            if (entry.decRef() <= 0)
-                return null;
+                logger.log(Level.WARNING, "No reference found for " + key, new Exception("Call stack"));
+            else
+                if (entry.decRef() <= 0)
+                    return null;
             return entry;
         });
 
