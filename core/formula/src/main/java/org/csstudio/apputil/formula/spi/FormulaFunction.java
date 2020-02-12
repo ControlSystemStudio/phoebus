@@ -44,4 +44,13 @@ public interface FormulaFunction
     {
         return getName() + "(" + getArguments().stream().collect(Collectors.joining(",")) + ")";
     }
+
+    /**
+     * Flag to indicate if the formula function uses a variable list of arguments
+     * @return true if the function can handle variable list of args
+     */
+    public default boolean isVarArgs()
+    {
+        return false;
+    }
 }

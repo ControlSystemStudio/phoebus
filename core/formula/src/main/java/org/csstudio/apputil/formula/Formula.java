@@ -315,7 +315,8 @@ public class Formula implements Node
         final FormulaFunction function = spi_functions.get(name);
         if (function != null)
         {
-            if (args.length != function.getArguments().size())
+            if (args.length != function.getArguments().size() &&
+                !function.isVarArgs())
                 throw new Exception("Function " + function.getSignature() + " takes " +
                                     function.getArguments().size() + " arguments but received " + Arrays.toString(args));
             return new SPIFuncNode(function, args);
