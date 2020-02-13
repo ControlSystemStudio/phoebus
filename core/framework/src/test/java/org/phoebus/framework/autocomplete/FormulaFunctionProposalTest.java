@@ -13,6 +13,7 @@ import static org.junit.Assert.assertThat;
 import java.util.List;
 
 import org.csstudio.apputil.formula.math.Sin;
+import org.csstudio.apputil.formula.string.StringFunction;
 import org.junit.Test;
 
 /** JUnit test of {@link FormulaFunctionProposal}
@@ -25,7 +26,6 @@ public class FormulaFunctionProposalTest
     public void testMatch()
     {
         Proposal proposal = new FormulaFunctionProposal(new Sin());
-
 
         List<MatchSegment> match = proposal.getMatch("=sin(");
         assertThat(match, equalTo(List.of(MatchSegment.normal("="),
@@ -47,5 +47,24 @@ public class FormulaFunctionProposalTest
                                           MatchSegment.match("1-1", "angle"),
                                           MatchSegment.match(")"),
                                           MatchSegment.normal(" + 3"))));
+    }
+
+    @Test
+    public void testVarArg()
+    {
+        Proposal proposal = new FormulaFunctionProposal(new StringFunction());
+
+        List<MatchSegment> match = proposal.getMatch("=concat(a, b) + 2");
+        assertThat(match, equalTo(List.of(MatchSegment.normal("="),
+                                          MatchSegment.match("concat"),
+                                          MatchSegment.match("(a, b)"),
+                                          MatchSegment.normal(" + 2"))));
+
+        match = proposal.getMatch("=concat(a, b + 2");
+        assertThat(match, equalTo(List.of(MatchSegment.normal("="),
+                                          MatchSegment.match("concat"),
+                                          MatchSegment.match("(a, b + 2"),
+                                          MatchSegment.comment(")"))));
+
     }
 }
