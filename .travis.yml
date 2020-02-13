@@ -19,9 +19,9 @@ jobs:
         - export PATH=$PATH:$JAVA_HOME/bin:"/c/ProgramData/chocolatey/lib/maven/apache-maven-3.6.3/bin"
   
 script:
-  #- MAVEN_OPTS="-Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.text=t2k -Dtestfx.setup.timeout=2500"
-  #- mvn clean install
-  - ps -ef
+  - MAVEN_OPTS="-Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.text=t2k -Dtestfx.setup.timeout=2500"
+  - mvn clean install
+  - ps -Wla
 
 after_failure:
  - find ./ -type d -name "surefire-reports" -print0 | xargs -0 -I {} find {} -iname "*.txt" -type f | xargs cat
