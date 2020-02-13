@@ -160,6 +160,24 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-project-info-reports-plugin</artifactId>
             <version>3.0.0</version>
+          </plugin>          
+          <!-- Generate the documentation for the Phoebus -->
+          <plugin>
+            <groupId>kr.motd.maven</groupId>
+            <artifactId>sphinx-maven-plugin</artifactId>
+            <version>2.6.0</version>
+            <configuration>
+              <sourceDirectory>${basedir}/docs/source</sourceDirectory>
+              <outputDirectory>${project.build.directory}/docs/test</outputDirectory>
+            </configuration>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>generate</goal>
+                </goals>
+              </execution>
+            </executions>
           </plugin>
         </plugins>
       </build>
