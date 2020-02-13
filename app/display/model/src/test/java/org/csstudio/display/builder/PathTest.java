@@ -136,6 +136,13 @@ public class PathTest
         checkRelativePath(parent, "/path with spaces/other.bob", "other.bob");
 
         checkRelativePath(parent, "/path with spaces/spaces file.bob", "spaces file.bob");
+
+        // Mix of files and URLs give origina path
+        checkRelativePath("/a/path/test.bob", "http://server/folder/main/other.bob", "http://server/folder/main/other.bob");
+
+        checkRelativePath("http://server/folder/main/other.bob", "/a/path/test.bob", "/a/path/test.bob");
+
+        checkRelativePath("http://server/folder/main/other.bob", "../relative_path/file.bob", "../relative_path/file.bob");
     }
 
     @Test
@@ -176,6 +183,14 @@ public class PathTest
         checkRelativePath(parent, "C:\\path with spaces\\other.bob", "other.bob");
 
         checkRelativePath(parent, "C:\\path with spaces\\spaces file.bob", "spaces file.bob");
+
+        // Mix of files and URLs give origina path
+        checkRelativePath("C:\\a\\path\\test.bob", "http://server/folder/main/other.bob", "http://server/folder/main/other.bob");
+
+        checkRelativePath("http://server/folder/main/other.bob", "C:\\a\\path\\test.bob", "C:/a/path/test.bob");
+
+        checkRelativePath("http://server/folder/main/other.bob", "..\\relative_path\\file.bob", "../relative_path/file.bob");
+
     }
 
     @Test

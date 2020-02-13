@@ -119,6 +119,9 @@ public class ModelResourceUtil
         if (!isAbsolute(path)) {
             return path;
         }
+        if(isURL(parent) != isURL(path)) {
+            return path;
+        }
         if(isURL(parent)) {
             String parentNoProtocol = parent.split("://")[1];
             String pathNoProtocol = path.split("://")[1];
