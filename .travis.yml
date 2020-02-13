@@ -14,13 +14,12 @@ jobs:
       before_script:
         - choco install openjdk11
         - choco install maven --version 3.6.3
-        # Need to explicitly set PATH in wondows until https://github.com/chocolatey/choco/issues/1851 is sorted
+        # Need to explicitly set PATH in windows until https://github.com/chocolatey/choco/issues/1851 is sorted
         - export JAVA_HOME="/c/Program Files/OpenJDK/openjdk-11.0.5_10"
         - export PATH=$PATH:$JAVA_HOME/bin:"/c/ProgramData/chocolatey/lib/maven/apache-maven-3.6.3/bin"
   
 script:
   - MAVEN_OPTS="-Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.text=t2k -Dtestfx.setup.timeout=2500"
-  - echo ${PATH}
   - mvn clean install
 
 after_failure:
