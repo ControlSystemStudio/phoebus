@@ -28,10 +28,6 @@ public class FormulaTree implements AppInstance {
             loader.setLocation(this.getClass().getResource("ui/FormulaTree.fxml"));
             tab = new DockItem(this, loader.load());
             controller = loader.getController();
-//            controller.setClient(app.getClient());
-            tab.addClosedNotification(() -> {
-                controller.dispose();
-            });
             DockPane.getActiveDockPane().addTab(tab);
         } catch (IOException e) {
             Logger.getLogger(getClass().getName()).log(Level.WARNING, "Cannot load UI", e);

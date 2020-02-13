@@ -15,7 +15,7 @@
     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
   </rowConstraints>
   <children>
-      <TreeTableView fx:id="treeTableView" onContextMenuRequested="#createContextMenu" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="5">
+      <TreeTableView fx:id="treeTableView" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="5">
         <columns>
             <TreeTableColumn fx:id="signature" minWidth="100.0" prefWidth="100.0" />
             <TreeTableColumn fx:id="description" minWidth="100.0" prefWidth="100.0" />

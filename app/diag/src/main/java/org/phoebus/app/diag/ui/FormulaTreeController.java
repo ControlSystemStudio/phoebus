@@ -1,8 +1,11 @@
 package org.phoebus.app.diag.ui;
 
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import org.csstudio.apputil.formula.Formula;
 import org.csstudio.apputil.formula.spi.FormulaFunction;
 
 import java.util.*;
@@ -22,35 +25,15 @@ public class FormulaTreeController {
     @FXML
     TreeTableView<FormulaTreeByCategoryNode> treeTableView;
 
-    private Collection<FormulaFunction> formulas = Collections.emptyList();
-
     @FXML
     public void initialize() {
         signature.setCellValueFactory(cellValue -> new ReadOnlyStringWrapper(cellValue.getValue().getValue().getSignature()));
-
         description.setCellValueFactory(cellValue -> new ReadOnlyStringWrapper(cellValue.getValue().getValue().getDescription()));
 
-        TreeItem root = new TreeItem(new FormulaTreeByCategoryNode("TEST", "TEST_DESC"));
+        FormulaTreeRootNode root = new FormulaTreeRootNode();
+        ServiceLoader.load(FormulaFunction.class).forEach(func -> root.addChild(func));
 
-        ArrayList<TreeItem<FormulaTreeByCategoryNode>> children = new ArrayList<>();
-        for (FormulaFunction func : ServiceLoader.load(FormulaFunction.class))
-        {
-            children.add(new TreeItem(new FormulaTreeByCategoryNode(func)));
-        }
-        root.getChildren().setAll(children);
         treeTableView.setRoot(root);
         treeTableView.setShowRoot(false);
-        dispose();
     }
-
-    @FXML
-    public void dispose() {
-
-    }
-
-    @FXML
-    public void createContextMenu() {
-
-    }
-
 }

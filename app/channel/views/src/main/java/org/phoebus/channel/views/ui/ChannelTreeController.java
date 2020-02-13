@@ -67,20 +67,8 @@ public class ChannelTreeController extends ChannelFinderController {
     public void initialize() {
         dispose();
 
-        node.setCellValueFactory(new Callback<TreeTableColumn.CellDataFeatures<ChannelTreeByPropertyNode,String>, ObservableValue<String>>() {
-            
-            @Override
-            public ObservableValue<String> call(CellDataFeatures<ChannelTreeByPropertyNode, String> cellValue) {
-                return new ReadOnlyStringWrapper(cellValue.getValue().getValue().getDisplayName());
-            }
-        });
-        value.setCellValueFactory(new Callback<TreeTableColumn.CellDataFeatures<ChannelTreeByPropertyNode,String>, ObservableValue<String>>() {
-            
-            @Override
-            public ObservableValue<String> call(CellDataFeatures<ChannelTreeByPropertyNode, String> cellValue) {
-                return new ReadOnlyStringWrapper(cellValue.getValue().getValue().getDisplayValue());
-            }
-        });
+        node.setCellValueFactory(cellValue -> new ReadOnlyStringWrapper(cellValue.getValue().getValue().getDisplayName()));
+        value.setCellValueFactory(cellValue -> new ReadOnlyStringWrapper(cellValue.getValue().getValue().getDisplayValue()));
 
         treeTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         treeTableView.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
