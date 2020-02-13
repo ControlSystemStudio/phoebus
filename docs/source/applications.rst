@@ -7,5 +7,5 @@ The following sections describe details of specific application features.
 .. toctree::
    :maxdepth: 1
 
-   link
+   applications_links
 
