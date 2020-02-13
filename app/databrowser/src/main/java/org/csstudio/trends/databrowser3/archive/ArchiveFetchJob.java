@@ -76,7 +76,7 @@ public class ArchiveFetchJob implements JobRunnable
      */
     class WorkerThread implements Runnable
     {
-        private volatile String message = "";
+        private volatile String message = "Queued";
         private volatile boolean cancelled = false;
 
         /** Archive reader that's currently queried */

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -133,7 +133,7 @@ public class WaveformView extends VBox
             if (pending_move != null)
                 pending_move.cancel(false);
 
-            pending_move = Activator.thread_pool.schedule(WaveformView.this::userMovedAnnotation, 500, TimeUnit.MILLISECONDS);
+            pending_move = Activator.timer.schedule(WaveformView.this::userMovedAnnotation, 500, TimeUnit.MILLISECONDS);
         }
 
         @Override

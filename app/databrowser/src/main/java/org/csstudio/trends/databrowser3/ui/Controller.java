@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -522,7 +522,7 @@ public class Controller
         // Compiler error "schedule(Runnable, long, TimeUnit) is ambiguous"
         // unless specifically casting getArchivedData to Runnable.
         final Runnable fetch = this::getArchivedData;
-        archive_fetch_delay_task = Activator.thread_pool.schedule(fetch, archive_fetch_delay, TimeUnit.MILLISECONDS);
+        archive_fetch_delay_task = Activator.timer.schedule(fetch, archive_fetch_delay, TimeUnit.MILLISECONDS);
     }
 
     /** Start model items and initiate scrolling/updates
