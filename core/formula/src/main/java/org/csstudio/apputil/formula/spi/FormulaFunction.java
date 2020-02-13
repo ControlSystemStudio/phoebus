@@ -18,9 +18,6 @@ import org.epics.vtype.VType;
 @SuppressWarnings("nls")
 public interface FormulaFunction
 {
-
-    public static final String VAR_ARG = "...";
-
     /** @return Name of the Category the function belongs to*/
     public String getCategory();
 
@@ -32,17 +29,19 @@ public interface FormulaFunction
 
     /** Describe arguments
      *
-     *  If an argument ends with VAR_ARG, this indicates that a variable
-     *  number of arguments may follow.
-     *  If it is used, it must be the last one in the list.
+     *  When combined with <code>isVarArgs()</code>,
+     *  this defines the minimum argument count.
+     *
+     *  When using variable argument counts, the last
+     *  argument should indicate that by ending in "..."
      *
      *  Examples:
      *  <ul>
-     *  <li> [ "number" ]
-     *  <li> [ "base", "exponent" ]`
-     *  <li> [ "string" ]
-     *  <li> [ "number..." ] to expect zero or more arguments
-     *  <li> [ "number", "number..." ] to expect at least one numeric argument, maybe more
+     *  <li> <code>isVarArgs() == false, [ "number" ]</code>
+     *  <li> <code>isVarArgs() == false, [ "base", "exponent" ]`</code>
+     *  <li> <code>isVarArgs() == false, [ "string" ]</code>
+     *  <li> <code>isVarArgs() == true,  [ "number..." ]</code> to expect zero or more arguments
+     *  <li> <code>isVarArgs() == true,  [ "number", "number..." ]</code> to expect at least one numeric argument, maybe more
      *  </ul>
      *
      *  @return Description of arguments
