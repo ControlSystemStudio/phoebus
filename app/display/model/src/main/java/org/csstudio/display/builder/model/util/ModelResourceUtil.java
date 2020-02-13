@@ -149,6 +149,8 @@ public class ModelResourceUtil
             path = splitPath[1];
         }
 
+        path = path.replaceAll("\\\\(?!\\\\)", "/");
+
         // Collapse "something/../" into "something/"
         path = Paths.get(path).normalize().toString();
 
