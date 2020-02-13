@@ -21,7 +21,7 @@ jobs:
 script:
   - MAVEN_OPTS="-Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.text=t2k -Dtestfx.setup.timeout=2500"
   - mvn clean install
-  - ps -Wla
+  - if [ $TRAVIS_OS_NAME = 'windows' ]; then taskkill -IM "java.exe" -F; fi
 
 after_failure:
  - find ./ -type d -name "surefire-reports" -print0 | xargs -0 -I {} find {} -iname "*.txt" -type f | xargs cat
