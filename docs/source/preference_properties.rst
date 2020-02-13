@@ -12,7 +12,7 @@ To use them in your settings file, remember to prefix each setting with the pack
 alarm
 -----
 
-File phoebus\app\alarm\model\src\main\resources\alarm_preferences.properties::
+File ../../app/alarm/model/src/main/resources/alarm_preferences.properties::
 
    # --------------------------------------
    # Package org.phoebus.applications.alarm
@@ -105,7 +105,7 @@ File phoebus\app\alarm\model\src\main\resources\alarm_preferences.properties::
 alarm.logging.ui
 ----------------
 
-File phoebus\app\alarm\logging-ui\src\main\resources\alarm_logging_preferences.properties::
+File ../../app/alarm/logging-ui/src/main/resources/alarm_logging_preferences.properties::
 
    # -------------------------------------------------
    # Package org.phoebus.applications.alarm.logging.ui
@@ -122,7 +122,7 @@ File phoebus\app\alarm\logging-ui\src\main\resources\alarm_logging_preferences.p
 archive
 -------
 
-File phoebus\services\archive-engine\src\main\resources\archive_preferences.properties::
+File ../../services/archive-engine/src/main/resources/archive_preferences.properties::
 
    # ----------------------------
    # Package org.csstudio.archive
@@ -205,7 +205,7 @@ File phoebus\services\archive-engine\src\main\resources\archive_preferences.prop
 archive.reader.appliance
 ------------------------
 
-File phoebus\app\databrowser\src\main\resources\appliance_preferences.properties::
+File ../../app/databrowser/src/main/resources/appliance_preferences.properties::
 
    # ----------------------------------------
    # Package org.phoebus.archive.reader.appliance
@@ -218,7 +218,7 @@ File phoebus\app\databrowser\src\main\resources\appliance_preferences.properties
 archive.reader.rdb
 ------------------
 
-File phoebus\app\databrowser\src\main\resources\archive_reader_rdb_preferences.properties::
+File ../../app/databrowser/src/main/resources/archive_reader_rdb_preferences.properties::
 
    ---------------------------------------
    # Package org.phoebus.archive.reader.rdb
@@ -283,7 +283,7 @@ File phoebus\app\databrowser\src\main\resources\archive_reader_rdb_preferences.p
 console
 -------
 
-File phoebus\app\console\src\main\resources\console_preferences.properties::
+File ../../app/console/src/main/resources/console_preferences.properties::
 
    # ----------------------------------------
    # Package org.phoebus.applications.console
@@ -326,7 +326,7 @@ File phoebus\app\console\src\main\resources\console_preferences.properties::
 display.builder.editor
 ----------------------
 
-File phoebus\app\display\editor\src\main\resources\display_editor_preferences.properties::
+File ../../app/display/editor/src/main/resources/display_editor_preferences.properties::
 
    # ----------------------------------------
    # Package org.csstudio.display.builder.editor
@@ -351,7 +351,7 @@ File phoebus\app\display\editor\src\main\resources\display_editor_preferences.pr
 display.builder.model
 ---------------------
 
-File phoebus\app\display\model\src\main\resources\display_model_preferences.properties::
+File ../../app/display/model/src/main/resources/display_model_preferences.properties::
 
    # ----------------------------------------
    # Package org.csstudio.display.builder.model
@@ -442,7 +442,7 @@ File phoebus\app\display\model\src\main\resources\display_model_preferences.prop
 display.builder.representation
 ------------------------------
 
-File phoebus\app\display\representation\src\main\resources\display_representation_preferences.properties::
+File ../../app/display/representation/src/main/resources/display_representation_preferences.properties::
 
    # ---------------------------------------------------
    # Package org.csstudio.display.builder.representation
@@ -489,7 +489,7 @@ File phoebus\app\display\representation\src\main\resources\display_representatio
 display.builder.representation.javafx
 -------------------------------------
 
-File phoebus\app\display\representation-javafx\src\main\resources\jfx_repr_preferences.properties::
+File ../../app/display/representation-javafx/src/main/resources/jfx_repr_preferences.properties::
 
    # ----------------------------------------------------------
    # Package org.csstudio.display.builder.representation.javafx
@@ -505,7 +505,7 @@ File phoebus\app\display\representation-javafx\src\main\resources\jfx_repr_prefe
 display.builder.runtime
 -----------------------
 
-File phoebus\app\display\runtime\src\main\resources\display_runtime_preferences.properties::
+File ../../app/display/runtime/src/main/resources/display_runtime_preferences.properties::
 
    # --------------------------------------------
    # Package org.csstudio.display.builder.runtime
@@ -560,7 +560,7 @@ File phoebus\app\display\runtime\src\main\resources\display_runtime_preferences.
 display.converter.edm
 ---------------------
 
-File phoebus\app\display\convert-edm\src\main\resources\edm_converter_preferences.properties::
+File ../../app/display/convert-edm/src/main/resources/edm_converter_preferences.properties::
 
    # ------------------------------------------
    # Package org.csstudio.display.converter.edm
@@ -607,7 +607,7 @@ File phoebus\app\display\convert-edm\src\main\resources\edm_converter_preference
 email
 -----
 
-File phoebus\core\email\src\main\resources\email_preferences.properties::
+File ../../core/email/src/main/resources/email_preferences.properties::
 
    # -------------------------
    # Package org.phoebus.email
@@ -628,7 +628,7 @@ File phoebus\core\email\src\main\resources\email_preferences.properties::
 errlog
 ------
 
-File phoebus\app\errlog\src\main\resources\errlog_preferences.properties::
+File ../../app/errlog/src/main/resources/errlog_preferences.properties::
 
    # ---------------------------------------
    # Package org.phoebus.applications.errlog
@@ -641,7 +641,7 @@ File phoebus\app\errlog\src\main\resources\errlog_preferences.properties::
 filebrowser
 -----------
 
-File phoebus\app\filebrowser\src\main\resources\filebrowser_preferences.properties::
+File ../../app/filebrowser/src/main/resources/filebrowser_preferences.properties::
 
    # --------------------------------------------
    # Package org.phoebus.applications.filebrowser
@@ -660,7 +660,7 @@ File phoebus\app\filebrowser\src\main\resources\filebrowser_preferences.properti
 framework.autocomplete
 ----------------------
 
-File phoebus\core\framework\src\main\resources\autocomplete_preferences.properties::
+File ../../core/framework/src/main/resources/autocomplete_preferences.properties::
 
    # ------------------------------------------
    # Package org.phoebus.framework.autocomplete
@@ -680,7 +680,7 @@ File phoebus\core\framework\src\main\resources\autocomplete_preferences.properti
 framework.workbench
 -------------------
 
-File phoebus\core\framework\src\main\resources\workbench_preferences.properties::
+File ../../core/framework/src/main/resources/workbench_preferences.properties::
 
    # ---------------------------------------
    # Package org.phoebus.framework.workbench
@@ -723,7 +723,7 @@ File phoebus\core\framework\src\main\resources\workbench_preferences.properties:
 javafx.rtplot
 -------------
 
-File phoebus\app\rtplot\src\main\resources\rt_plot_preferences.properties::
+File ../../app/rtplot/src/main/resources/rt_plot_preferences.properties::
 
    # ----------------------------------
    # Package org.csstudio.javafx.rtplot
@@ -747,7 +747,7 @@ File phoebus\app\rtplot\src\main\resources\rt_plot_preferences.properties::
 logbook.ui
 ----------
 
-File phoebus\app\logbook\ui\src\main\resources\log_ui_preferences.properties::
+File ../../app/logbook/ui/src/main/resources/log_ui_preferences.properties::
 
    # ------------------------------
    # Package org.phoebus.logbook.ui
@@ -767,7 +767,7 @@ File phoebus\app\logbook\ui\src\main\resources\log_ui_preferences.properties::
 pv
 --
 
-File phoebus\core\pv\src\main\resources\pv_preferences.properties::
+File ../../core/pv/src/main/resources/pv_preferences.properties::
 
    # ----------------------
    # Package org.phoebus.pv
@@ -781,7 +781,7 @@ File phoebus\core\pv\src\main\resources\pv_preferences.properties::
 pv.ca
 -----
 
-File phoebus\core\pv\src\main\resources\pv_ca_preferences.properties::
+File ../../core/pv/src/main/resources/pv_ca_preferences.properties::
 
    # -------------------------
    # Package org.phoebus.pv.ca
@@ -825,7 +825,7 @@ File phoebus\core\pv\src\main\resources\pv_ca_preferences.properties::
 pv.formula
 ----------
 
-File phoebus\core\pv\src\main\resources\pv_formula_preferences.properties::
+File ../../core/pv/src/main/resources/pv_formula_preferences.properties::
 
    # ------------------------------
    # Package org.phoebus.pv.formula
@@ -838,7 +838,7 @@ File phoebus\core\pv\src\main\resources\pv_formula_preferences.properties::
 pv.mqtt
 -------
 
-File phoebus\core\pv\src\main\resources\pv_mqtt_preferences.properties::
+File ../../core/pv/src/main/resources/pv_mqtt_preferences.properties::
 
    # ---------------------------
    # Package org.phoebus.pv.mqtt
@@ -852,7 +852,7 @@ File phoebus\core\pv\src\main\resources\pv_mqtt_preferences.properties::
 pvtable
 -------
 
-File phoebus\app\pvtable\src\main\resources\pv_table_preferences.properties::
+File ../../app/pvtable/src/main/resources/pv_table_preferences.properties::
 
    # ----------------------------------------
    # Package org.phoebus.applications.pvtable
@@ -877,7 +877,7 @@ File phoebus\app\pvtable\src\main\resources\pv_table_preferences.properties::
 pvtree
 ------
 
-File phoebus\app\pvtree\src\main\resources\pv_tree_preferences.properties::
+File ../../app/pvtree/src/main/resources/pv_tree_preferences.properties::
 
    # ---------------------------------------
    # Package org.phoebus.applications.pvtree
@@ -919,7 +919,7 @@ File phoebus\app\pvtree\src\main\resources\pv_tree_preferences.properties::
 saveandrestore
 --------------
 
-File phoebus\app\save-and-restore\ui\src\main\resources\save_and_restore_preferences.properties::
+File ../../app/save-and-restore/ui/src/main/resources/save_and_restore_preferences.properties::
 
    # -----------------------------------------------
    # Package org.phoebus.applications.saveandrestore
@@ -938,7 +938,7 @@ File phoebus\app\save-and-restore\ui\src\main\resources\save_and_restore_prefere
 scan.client
 -----------
 
-File phoebus\app\scan\client\src\main\resources\scan_client_preferences.properties::
+File ../../app/scan/client/src/main/resources/scan_client_preferences.properties::
 
    # ----------------------------------------
    # Package org.csstudio.scan.client
@@ -957,7 +957,7 @@ File phoebus\app\scan\client\src\main\resources\scan_client_preferences.properti
 scan.ui
 -------
 
-File phoebus\app\scan\ui\src\main\resources\scan_ui_preferences.properties::
+File ../../app/scan/ui/src/main/resources/scan_ui_preferences.properties::
 
    # ----------------------------
    # Package org.csstudio.scan.ui
@@ -970,7 +970,7 @@ File phoebus\app\scan\ui\src\main\resources\scan_ui_preferences.properties::
 security
 --------
 
-File phoebus\core\security\src\main\resources\phoebus_security_preferences.properties::
+File ../../core/security/src/main/resources/phoebus_security_preferences.properties::
 
    # ----------------------------
    # Package org.phoebus.security
@@ -1002,7 +1002,7 @@ File phoebus\core\security\src\main\resources\phoebus_security_preferences.prope
 trends.databrowser3
 -------------------
 
-File phoebus\app\databrowser\src\main\resources\databrowser_preferences.properties::
+File ../../app/databrowser/src/main/resources/databrowser_preferences.properties::
 
    # ----------------------------------------
    # Package org.csstudio.trends.databrowser3
@@ -1141,7 +1141,7 @@ File phoebus\app\databrowser\src\main\resources\databrowser_preferences.properti
 ui
 --
 
-File phoebus\core\ui\src\main\resources\phoebus_ui_preferences.properties::
+File ../../core/ui/src/main/resources/phoebus_ui_preferences.properties::
 
    # ----------------------
    # Package org.phoebus.ui
@@ -1204,7 +1204,7 @@ File phoebus\core\ui\src\main\resources\phoebus_ui_preferences.properties::
 update
 ------
 
-File phoebus\app\update\src\main\resources\update_preferences.properties::
+File ../../app/update/src/main/resources/update_preferences.properties::
 
    # ----------------------------------------
    # Package org.phoebus.applications.update
@@ -1289,7 +1289,7 @@ File phoebus\app\update\src\main\resources\update_preferences.properties::
 viewer3d
 --------
 
-File phoebus\app\3d-viewer\src\main\resources\3d_viewer_preferences.properties::
+File ../../app/3d-viewer/src/main/resources/3d_viewer_preferences.properties::
 
    # --------------------------------
    # Package org.phoebus.app.viewer3d
