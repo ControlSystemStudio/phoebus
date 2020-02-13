@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,11 +9,13 @@ package org.phoebus.framework.rdb;
 
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,13 +37,20 @@ public class RDBConnectionPool
     /** Logger for the package */
     public static final Logger logger = Logger.getLogger(RDBConnectionPool.class.getPackageName());
 
-    private static final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(target ->
+    /** Total connection count handled by all pools */
+    private static final AtomicInteger total_connections = new AtomicInteger();
+
+    /** Pool instance counter to get unique instance number to each pool */
+    private static final AtomicInteger instances = new AtomicInteger();
+
+    private static final ScheduledExecutorService clear_timer = Executors.newSingleThreadScheduledExecutor(target ->
     {
-        final Thread thread = new Thread(target, "RDBConnectionPool");
+        final Thread thread = new Thread(target, "RDBConnectionPool Cleanup");
         thread.setDaemon(true);
         return thread;
     });
 
+    private final int instance;
     private final RDBInfo info;
     private final List<Connection> pool = new ArrayList<>();
 
@@ -68,7 +77,9 @@ public class RDBConnectionPool
      */
     public RDBConnectionPool(final String url, final String user, final String password) throws Exception
     {
+        instance = instances.incrementAndGet();
         this.info = new RDBInfo(url, user, password);
+        logger.log(Level.INFO, "New " + this);
     }
 
     /** @return Database dialect */
@@ -104,7 +115,10 @@ public class RDBConnectionPool
         while (connection != null)
         {   // Is existing connection still good?
             if (connection.isValid(5))
+            {
+                logger.log(Level.FINER, "Reusing " + connection.getMetaData().getDatabaseProductName() + ", pool retains " + pool.size());
                 return connection;
+            }
             // Close it
             close(connection);
             // Check next existing connection
@@ -112,14 +126,18 @@ public class RDBConnectionPool
         }
 
         // No suitable existing connection, create new one
-        return info.connect();
+        connection = info.connect();
+        final int t = total_connections.incrementAndGet();
+        logger.log(Level.FINE, "New total connection count: " + t);
+        return connection;
     }
 
     /** @param connection Connection that is released to the pool for re-use (or time out) */
     public void releaseConnection(final Connection connection)
     {
         push(connection);
-        final Future<?> previous = cleanup.getAndSet(timer.schedule(this::clear, timeout, TimeUnit.SECONDS));
+        logger.log(Level.FINER, "Released connection into " + this);
+        final Future<?> previous = cleanup.getAndSet(clear_timer.schedule(this::clear, timeout, TimeUnit.SECONDS));
         if (previous != null)
             previous.cancel(false);
     }
@@ -138,18 +156,32 @@ public class RDBConnectionPool
     }
 
     /** Clear the pool, close all connections */
-    public synchronized void clear()
+    public void clear()
     {
-        for (Connection connection : pool)
-            close(connection);
-        pool.clear();
+        synchronized (this)
+        {
+            final Iterator<Connection> iterator = pool.iterator();
+            while (iterator.hasNext())
+            {
+                final Connection connection = iterator.next();
+                iterator.remove();
+                close(connection);
+            }
+            pool.clear();
+        }
+        logger.log(Level.FINE, "Cleared " + this);
+
+        // In case a timer was running, cancel
+        final Future<?> previous = cleanup.getAndSet(null);
+        if (previous != null)
+            previous.cancel(false);
     }
 
     private void close(final Connection connection)
     {
         try
         {
-            logger.log(Level.FINE, "Closing " + connection.getMetaData().getDatabaseProductName());
+            logger.log(Level.FINE, "Closing " + connection.getMetaData().getDatabaseProductName() + ", pool retains " + pool.size());
             connection.close();
         }
         catch (Exception ex)
@@ -157,5 +189,14 @@ public class RDBConnectionPool
             // Ignore, closing anyway?
             logger.log(Level.FINE, "Error closing RDB connection", ex);
         }
+
+        final int t = total_connections.decrementAndGet();
+        logger.log(Level.FINE, "Remaining total connection count: " + t);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "RDBConnectionPool-" + info.getUser() + "-" + info.getDialect() + "-" + instance + ", size " + pool.size();
     }
 }
