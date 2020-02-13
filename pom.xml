@@ -114,43 +114,50 @@
         </plugins>
       </build>
     </profile>
-    <!-- a profile for generating javadocs and the website from the .rst
-      files -->
-    <profile>
-      <id>docs</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <version>3.1.1</version>
-            <executions>
-              <execution>
-                <id>attach-javadocs</id>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-                <configuration>
-                  <!-- add this to disable checking -->
-                  <doclint>none</doclint>
-                  <source>11</source>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <!-- Attach sources -->
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-source-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>attach-sources</id>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
+  <!-- a profile for generating javadocs and sources -->
+  <profile>
+    <id>docs</id>
+    <build>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>3.1.1</version>
+          <executions>
+            <execution>
+              <id>attach-javadocs</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+              <configuration>
+                <!-- add this to disable checking -->
+                <doclint>none</doclint>
+                <source>11</source>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+        <!-- Attach sources -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>attach-sources</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </build>
+  </profile>
+  <!-- profile for and the website from the .rst files -->
+  <profile>
+    <id>sphinx</id>
+    <build>
+      <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-site-plugin</artifactId>
