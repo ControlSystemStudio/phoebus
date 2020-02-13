@@ -18,8 +18,6 @@ import org.epics.vtype.VType;
 @SuppressWarnings("nls")
 public interface FormulaFunction
 {
-    /** Special argument to indicate that zero or more may follow */
-    public static final String VAR_ARG = "...";
 
     /** @return Name of the Category the function belongs to*/
     public String getCategory();
@@ -51,5 +49,14 @@ public interface FormulaFunction
     public default String getSignature()
     {
         return getName() + "(" + getArguments().stream().collect(Collectors.joining(",")) + ")";
+    }
+
+    /**
+     * Flag to indicate if the formula function uses a variable list of arguments
+     * @return true if the function can handle variable list of args
+     */
+    public default boolean isVarArgs()
+    {
+        return false;
     }
 }

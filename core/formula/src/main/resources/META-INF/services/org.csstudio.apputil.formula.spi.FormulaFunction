@@ -27,3 +27,12 @@ org.csstudio.apputil.formula.math.Pow
 # Other functions
 org.csstudio.apputil.formula.demo.Factorial
 org.csstudio.apputil.formula.areadetector.ADDataTypeMappingFunction
+
+# String
+org.csstudio.apputil.formula.string.StringFunction
+
+# Array functions
+org.csstudio.apputil.formula.array.RescaleArrayFormulaFunction
+
+# Alarm
+org.csstudio.apputil.formula.alarm.HighestSeverityFunction

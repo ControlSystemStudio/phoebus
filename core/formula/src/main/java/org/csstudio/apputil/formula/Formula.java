@@ -315,16 +315,10 @@ public class Formula implements Node
         final FormulaFunction function = spi_functions.get(name);
         if (function != null)
         {
-            final int expected = function.getArguments().size();
-            if (expected > 0  &&  FormulaFunction.VAR_ARG.equals(function.getArguments().get(expected-1)))
-            {   // Need at least the fixed args, maybe more
-                if (args.length < expected-1)
-                    throw new Exception("Function " + function.getSignature() + " takes at least " +
-                                        expected + " arguments but received " + Arrays.toString(args));
-            }
-            else if (args.length != expected)
+            if (args.length != function.getArguments().size() &&
+                !function.isVarArgs())
                 throw new Exception("Function " + function.getSignature() + " takes " +
-                                    expected + " arguments but received " + Arrays.toString(args));
+                                    function.getArguments().size() + " arguments but received " + Arrays.toString(args));
             return new SPIFuncNode(function, args);
         }
         // ... oddballs
