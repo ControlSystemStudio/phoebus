@@ -21,14 +21,20 @@ public interface FormulaFunction
 
     /** @return Name of the Category the function belongs to*/
     public String getCategory();
-
+    
     /** @return Name of the function as used in the formula */
     public String getName();
 
     /** @return A description on the function performed by the formula */
     public String getDescription();
 
-    /** @return Description of arguments, for example `[ "base", "exponent" ]` */
+    /** Describe arguments
+     *
+     *  Special argument "..." is used to indicate that a variable
+     *  number of arguments may follow.
+     *  If it is used, it must be the last one in the list.
+     *
+     *  @return Description of arguments, for example `[ "base", "exponent" ]` */
     public List<String> getArguments();
 
     /** Compute the function's value
@@ -43,5 +49,14 @@ public interface FormulaFunction
     public default String getSignature()
     {
         return getName() + "(" + getArguments().stream().collect(Collectors.joining(",")) + ")";
+    }
+
+    /**
+     * Flag to indicate if the formula function uses a variable list of arguments
+     * @return true if the function can handle variable list of args
+     */
+    public default boolean isVarArgs()
+    {
+        return false;
     }
 }

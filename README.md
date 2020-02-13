@@ -1,5 +1,5 @@
 # phoebus 
-[![Travis Status](https://travis-ci.org/shroffk/phoebus.svg?branch=master)](https://travis-ci.org/shroffk/phoebus)
+[![Travis Status](https://travis-ci.org/ControlSystemStudio/phoebus.svg?branch=master)](https://travis-ci.org/ControlSystemStudio/phoebus)
 [![Appveyor Status](https://ci.appveyor.com/api/projects/status/kwktt0vf955aged1/branch/master?svg=true)](https://ci.appveyor.com/project/mattclarke/phoebus-o58ne/branch/master)
 
 Phoebus is a framework and a collections of tools to monitor and operate large scale control systems, such as the ones in the accelerator community. Phoebus is an update of the Control System Studio toolset that removes dependencies on Eclipse RCP and SWT.
@@ -180,7 +180,7 @@ To run the Phoebus application:
 
     # Obtain sources for Documentation and Product
     git clone https://github.com/kasemir/phoebus-doc.git
-    git clone https://github.com/shroffk/phoebus.git
+    git clone https://github.com/ControlSystemStudio/phoebus.git
 
     # Build the Javadoc, i.e. html files to be included in the manual
     ( cd phoebus/app/display/editor; ant -f javadoc.xml clean all )

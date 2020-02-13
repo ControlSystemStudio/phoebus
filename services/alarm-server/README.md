@@ -28,7 +28,7 @@ ant clean build
 ```
 ### Start Alarm server
 
-Before starting the alarm server you will need to ensure that you have set up the kafka cluster as described here https://github.com/shroffk/phoebus/tree/master/app/alarm
+Before starting the alarm server you will need to ensure that you have set up the kafka cluster as described here https://github.com/ControlSystemStudio/phoebus/tree/master/app/alarm
 
 With the Kafka cluster running you can start the alarm server using the provided script
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -74,9 +74,7 @@ public class LocProposalTest
 
         match = proposal.getMatch("");
         assertThat(match, equalTo(List.of(
-                MatchSegment.normal("loc://x"),
-                MatchSegment.comment("<VType>"),
-                MatchSegment.comment("(initial value)"))));
+                MatchSegment.normal("loc://x<Type>(initial value)"))));
 
         match = proposal.getMatch("loc://x<VLong>");
         assertThat(match, equalTo(List.of(
