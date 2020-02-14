@@ -10,7 +10,7 @@ import java.util.ArrayList;
  * In this case the node contains a child list of {@link FormulaTreeCategoryNode} children.
  */
 public class FormulaTreeRootNode extends TreeItem<FormulaTreeByCategoryNode> {
-    ArrayList<FormulaTreeCategoryNode> categories = new ArrayList<>();
+    private ArrayList<FormulaTreeCategoryNode> categories = new ArrayList<>();
 
     /**
      * Creates the root node with a dummy signature and description as it will not be visible to the user.
