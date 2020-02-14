@@ -267,14 +267,14 @@ public class AutomatedActionTest
             System.out.println("WARNING: Email not found right away");
         } else {
             assertTrue(testPassed);
+
+            passed = System.currentTimeMillis() - start;
+            checkActionDelay(passed, 0);
+
+            // When the alarm then clears, there's NOT another update, already had the follow-up
+            auto_action.handleSeverityUpdate(SeverityLevel.OK);
+            assertThat(action_performed.poll(2*DELAY_MS, TimeUnit.MILLISECONDS), nullValue());
         }
-        passed = System.currentTimeMillis() - start;
-        checkActionDelay(passed, 0);
-
-        // When the alarm then clears, there's NOT another update, already had the follow-up
-        auto_action.handleSeverityUpdate(SeverityLevel.OK);
-        assertThat(action_performed.poll(2*DELAY_MS, TimeUnit.MILLISECONDS), nullValue());
-
         auto_action.cancel();
     }
 }
