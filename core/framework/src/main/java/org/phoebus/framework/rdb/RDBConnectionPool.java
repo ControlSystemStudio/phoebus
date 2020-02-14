@@ -157,7 +157,7 @@ public class RDBConnectionPool
             {
                 // Ignore, closing anyway
             }
-            logger.log(Level.WARNING, this + " is closed", new Exception("Call stack"));
+            logger.log(Level.INFO, this + " is closed", new Exception("Call stack"));
         }
         push(connection);
         logger.log(Level.FINER, "Released connection into " + this);
