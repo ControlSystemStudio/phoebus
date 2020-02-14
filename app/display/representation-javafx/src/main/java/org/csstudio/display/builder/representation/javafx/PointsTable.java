@@ -9,6 +9,7 @@ package org.csstudio.display.builder.representation.javafx;
 
 import org.csstudio.display.builder.model.properties.Point;
 import org.csstudio.display.builder.model.properties.Points;
+import org.phoebus.ui.javafx.EditCell;
 import org.phoebus.ui.javafx.TableHelper;
 
 import javafx.beans.property.SimpleDoubleProperty;
@@ -21,7 +22,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
-import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -111,7 +111,7 @@ public class PointsTable
                 return new SimpleDoubleProperty(param.getValue().getX());
             }
         });
-        x_col.setCellFactory(TextFieldTableCell.<Point, Number>forTableColumn(new NumberStringConverter()));
+        x_col.setCellFactory(tableColumn -> new EditCell<>(new NumberStringConverter()));
         x_col.setOnEditCommit(event ->
         {
             final int row = event.getTablePosition().getRow();
@@ -127,7 +127,7 @@ public class PointsTable
                 return new SimpleDoubleProperty(param.getValue().getY());
             }
         });
-        y_col.setCellFactory(TextFieldTableCell.<Point, Number>forTableColumn(new NumberStringConverter()));
+        y_col.setCellFactory(tableColumn -> new EditCell<>(new NumberStringConverter()));
         y_col.setOnEditCommit(event ->
         {
             final int row = event.getTablePosition().getRow();
