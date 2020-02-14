@@ -264,15 +264,18 @@ def createDocListing(rst_file, header, roots):
                     continue
                 if dirpath.endswith("html"):
                     dest = path.join("../build/html", dirpath)
-                    print("Adding static content from: " + dirpath + " to " + dest)
                     # build/html/phoebus/app/display/editor/doc
                     shutil.copytree(dirpath, dest)
                 if dirpath.endswith("doc"):
                     for filename in filenames:
                         if filename == 'index.rst':
-                            print("Adding to applications.rst: " + dirpath + "/index.rst")
                             file = path.join(dirpath, filename)
                             out.write(".. include:: " + file + "\n")
+                        if filename.endswith('png'):
+                            src = path.join(dirpath, filename)
+                            dst = path.join("../source")
+                            print('copying image', src, dst)
+                            shutil.copy(src, dst)
 
 # Given a *_preferences.properties file,
 # look for "# Package xxx" to get the package name.

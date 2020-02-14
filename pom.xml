@@ -175,7 +175,7 @@
             <version>2.6.0</version>
             <configuration>
               <sourceDirectory>${basedir}/docs/source</sourceDirectory>
-              <outputDirectory>${project.build.directory}/docs/test</outputDirectory>
+              <outputDirectory>${basedir}/docs/build/html</outputDirectory>
             </configuration>
             <executions>
               <execution>
