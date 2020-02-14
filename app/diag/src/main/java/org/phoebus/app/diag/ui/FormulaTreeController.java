@@ -1,20 +1,14 @@
 package org.phoebus.app.diag.ui;
 
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import org.csstudio.apputil.formula.Formula;
 import org.csstudio.apputil.formula.spi.FormulaFunction;
 
 import java.util.*;
 
 /**
- * Controller for the Tree view of Channels based on a set of selected properties
- * 
- * @author Dominic Oram
- *
+ * Controller for the Tree view of Formulas.
  */
 public class FormulaTreeController {
     @FXML

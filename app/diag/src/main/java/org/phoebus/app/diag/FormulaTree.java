@@ -12,9 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * An instance of the FormulaTree application to display formula queries.
- * @author Dominic Oram
- *
+ * An instance of the FormulaTree application to display available formulas.
  */
 public class FormulaTree implements AppInstance {
     private final FormulaTreeApp app;

@@ -12,9 +12,7 @@ import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.spi.MenuEntry;
 
 /**
- * Menu entry that starts Channel Tree
- *
- * @author Dominic Oram
+ * Menu entry that starts Formula Tree.
  */
 public class FormulaTreeMenuEntry implements MenuEntry {
 
