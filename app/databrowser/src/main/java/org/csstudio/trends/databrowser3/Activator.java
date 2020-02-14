@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -30,30 +31,27 @@ public class Activator
 
     /** Dedicated timer for scrolling/updating plots.
      *
-     *  <p>The {@link #thread_pool} can be used to <code>schedule</code> tasks,
-     *  but long running tasks may be scheduled on the same thread and thus delay each other.
-     *
      *  <p>This timer is to be used for short-running tasks.
      */
     public static final ScheduledExecutorService timer;
 
 
-    /** Thread pool, mostly for fetching archived data
+    /** Thread pool, mostly for long running tasks like fetching archived data.
      *
      *  <p>No upper limit for threads.
      *  Removes all threads after 10 seconds
      */
-    public static final ScheduledExecutorService thread_pool;
+    public static final ExecutorService thread_pool;
 
     static
     {
         // Up to 1 timer thread, delete when more than 10 seconds idle
-        timer = Executors.newScheduledThreadPool(0, new NamedThreadFactory("DataBrowserScroll"));
+        timer = Executors.newScheduledThreadPool(0, new NamedThreadFactory("DataBrowserTimer"));
         ((ThreadPoolExecutor)timer).setKeepAliveTime(10, TimeUnit.SECONDS);
         ((ThreadPoolExecutor)timer).setMaximumPoolSize(1);
 
         // After 10 seconds, delete all idle threads
-        thread_pool = Executors.newScheduledThreadPool(0, new NamedThreadFactory("DataBrowser"));
+        thread_pool = Executors.newCachedThreadPool(new NamedThreadFactory("DataBrowserPool"));
        ((ThreadPoolExecutor)thread_pool).setKeepAliveTime(10, TimeUnit.SECONDS);
     }
 

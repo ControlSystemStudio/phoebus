@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -67,7 +67,17 @@ public class StoredProcedureValueIterator extends AbstractRDBValueIterator
     {
         super(reader, channel_id);
         this.stored_procedure = stored_procedure;
-        executeProcedure(start, end, count);
+
+        try
+        {
+            executeProcedure(start, end, count);
+        }
+        catch (Exception ex)
+        {
+            // Caller won't get a valid iterator, so close here
+            super.close();
+            throw ex;
+        }
     }
 
     /** Invoke stored procedure
