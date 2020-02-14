@@ -132,30 +132,30 @@ public class ArchiveFetchJob implements JobRunnable
                 )
                 {
                     reader.set(the_reader);
-                    final ValueIterator value_iter;
                     try
+                    (
+                        final ValueIterator value_iter = (item.getRequestType() == RequestType.RAW)
+                                            ? the_reader.getRawValues(item.getResolvedName(), start, end)
+                                            : the_reader.getOptimizedValues(item.getResolvedName(), start, end, bins)
+                    )
                     {
-                        if (item.getRequestType() == RequestType.RAW)
-                            value_iter = the_reader.getRawValues(item.getResolvedName(), start, end);
-                        else
-                            value_iter = the_reader.getOptimizedValues(item.getResolvedName(), start, end, bins);
+                        // Get samples into array
+                        final List<VType> result = new ArrayList<>();
+                        while (value_iter.hasNext())
+                            result.add(value_iter.next());
+                        samples += result.size();
+                        item.mergeArchivedSamples(archive.getName(), result);
                     }
                     catch (UnknownChannelException e)
                     {
                         // Do not immediately notify about unknown channels. First search for the data in all archive
                         // sources and only report this kind of errors at the end
                         archives_without_channel.add(archive);
-                        continue;
                     }
-                    // Get samples into array
-                    final List<VType> result = new ArrayList<>();
-                    while (value_iter.hasNext())
-                        result.add(value_iter.next());
-                    value_iter.close();
-                    samples += result.size();
-                    item.mergeArchivedSamples(archive.getName(), result);
-                    if (cancelled)
-                        break;
+                    finally
+                    {
+                        reader.set(null);
+                    }
                 }
                 catch (Exception ex)
                 {   // Tell listener unless it's the result of a 'cancel'?
@@ -164,7 +164,6 @@ public class ArchiveFetchJob implements JobRunnable
                     // Continue with the next data source
                 }
             }
-            reader.set(null);
             final long end_time = System.currentTimeMillis();
             logger.log(Level.FINE,
                     "Ended {0} with {1} samples in {2} secs",
@@ -230,6 +229,10 @@ public class ArchiveFetchJob implements JobRunnable
         try
         {
             monitor.beginTask(Messages.ArchiveFetchStart);
+
+            // Cancelled before even started the worker?
+            if (monitor.isCanceled())
+                return;
 
             final WorkerThread worker = new WorkerThread();
             final Future<?> done = Activator.thread_pool.submit(worker);
