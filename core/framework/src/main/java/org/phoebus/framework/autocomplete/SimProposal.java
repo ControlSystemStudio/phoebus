@@ -117,28 +117,38 @@ public class SimProposal extends Proposal
                     if (c == '"'  &&   (pos <= 0  ||  text.charAt(pos-1) != '\\'))
                         break;
                 }
-                // Unterminated quote?
-                if (pos >= N)
-                    return -1;
+                // Unterminated quote? pos >= N
             }
             else if (c == '(')
-            {   // Skip to closing parenthesis
-                int open = 1;
-                while (++pos < N)
-                {
-                    c = text.charAt(pos);
-                    if (c == '(')
-                        ++open;
-                    else if (c == ')')
-                        --open;
-                    if (open <= 0)
-                        break;
-                }
+            {   // Skip to closing parenthesis or N
+                pos = findClosingParenthesis(text, pos);
             }
         }
         return -1;
     }
 
+    /** Locate matching closing parenthesis
+     *
+     *  @param text Text
+     *  @param start Start offset, should be on opening parenthesis
+     *  @return Position of closing parenthesis or <code>text.length()</code>
+     */
+    static int findClosingParenthesis(final String text, final int start)
+    {
+        final int N = text.length();
+        int open = 0;
+        for (int pos=start; pos < N; ++pos)
+        {
+            char c = text.charAt(pos);
+            if (c == '(')
+                ++open;
+            else if (c == ')')
+                --open;
+            if (open <= 0)
+                return pos;
+        }
+        return N;
+    }
 
     static boolean hasOpeningBacket(final String text)
     {

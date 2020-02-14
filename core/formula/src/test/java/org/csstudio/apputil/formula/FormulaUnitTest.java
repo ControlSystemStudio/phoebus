@@ -21,6 +21,14 @@ import java.util.logging.Logger;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.EnumDisplay;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VString;
+import org.epics.vtype.Time;
+
 /** Formula tests.
  *  @author Kay Kasemir
  */
@@ -373,5 +381,24 @@ public class FormulaUnitTest
 
         f = new Formula("\"Hello, \" + \"World\"");
         assertEquals("Hello, World", VTypeHelper.getString(f.eval()));
+    }
+
+    @Test
+    public void testAlarms() throws Exception
+    {
+	VString dataA = VString.of("a", Alarm.none(), Time.now());
+        VString dataB = VString.of("b", Alarm.of(AlarmSeverity.MINOR, AlarmStatus.RECORD, "LOLO"), Time.now());
+        VString dataC = VString.of("c", Alarm.of(AlarmSeverity.MAJOR, AlarmStatus.RECORD, "HIHI"), Time.now());
+	VariableNode v[] = new VariableNode[3];
+
+        v[0] = new VariableNode("dataA");
+        v[1] = new VariableNode("dataB");
+	v[2] = new VariableNode("dataC");
+        v[0].setValue(dataA);
+        v[1].setValue(dataB);
+	v[2].setValue(dataC);
+
+	Formula f = new Formula("highestSeverity(dataA, dataB, dataC)", v);
+	assertEquals("MAJOR", VTypeHelper.getString(f.eval()));
     }
 }

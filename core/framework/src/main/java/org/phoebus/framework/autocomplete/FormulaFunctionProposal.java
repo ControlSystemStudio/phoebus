@@ -54,42 +54,60 @@ class FormulaFunctionProposal extends Proposal
         int pos = match  + function.getName().length();
         if (pos < len  &&  text.charAt(pos) == '(')
         {
-            // Match provided arguments with arg. name as description
-            segs.add(MatchSegment.match("("));
-            ++pos;
-            int end = SimProposal.nextSep(text, pos);
-            for (int i=0;  i<function.getArguments().size();  ++i)
+            if (function.isVarArgs())
             {
-                if (i > 0)
-                    segs.add(MatchSegment.normal(","));
-                if (pos > 0)
+                int end = SimProposal.findClosingParenthesis(text, pos);
+                if (end < len)
+                {   // Located end, match complete arguments
+                    segs.add(MatchSegment.match(text.substring(pos, end+1)));
+                    pos = end+1;
+                }
+                else
+                {   // Match opening '(' and args, suggest ')'
+                    segs.add(MatchSegment.match(text.substring(pos, end)));
+                    segs.add(MatchSegment.comment(")"));
+                    pos = end;
+                }
+            }
+            else
+            {
+                // Match provided arguments with arg. name as description
+                segs.add(MatchSegment.match("("));
+                ++pos;
+                int end = SimProposal.nextSep(text, pos);
+                for (int i=0;  i<function.getArguments().size();  ++i)
                 {
-                    if (end > pos)
+                    if (i > 0)
+                        segs.add(MatchSegment.normal(","));
+                    if (pos > 0)
                     {
-                        // Have text for this argument.
-                        segs.add(MatchSegment.match(text.substring(pos, end),
-                                                    function.getArguments().get(i)));
-                        if (text.charAt(end) == ')')
+                        if (end > pos)
                         {
-                            segs.add(MatchSegment.match(")"));
-                            pos = end + 1;
-                            break;
+                            // Have text for this argument.
+                            segs.add(MatchSegment.match(text.substring(pos, end),
+                                                        function.getArguments().get(i)));
+                            if (text.charAt(end) == ')')
+                            {
+                                segs.add(MatchSegment.match(")"));
+                                pos = end + 1;
+                                break;
+                            }
+                            else
+                            {
+                                pos = end + 1;
+                                end = SimProposal.nextSep(text, pos);
+                            }
                         }
                         else
                         {
-                            pos = end + 1;
-                            end = SimProposal.nextSep(text, pos);
+                            segs.add(MatchSegment.comment(text.substring(pos),
+                                                          function.getArguments().get(i)));
+                            pos = end = -1;
                         }
                     }
                     else
-                    {
-                        segs.add(MatchSegment.comment(text.substring(pos),
-                                                      function.getArguments().get(i)));
-                        pos = end = -1;
-                    }
+                        segs.add(MatchSegment.comment(function.getArguments().get(i)));
                 }
-                else
-                    segs.add(MatchSegment.comment(function.getArguments().get(i)));
             }
         }
         else

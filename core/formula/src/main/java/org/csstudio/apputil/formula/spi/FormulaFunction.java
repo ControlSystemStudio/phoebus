@@ -18,10 +18,9 @@ import org.epics.vtype.VType;
 @SuppressWarnings("nls")
 public interface FormulaFunction
 {
-
     /** @return Name of the Category the function belongs to*/
     public String getCategory();
-    
+
     /** @return Name of the function as used in the formula */
     public String getName();
 
@@ -30,11 +29,23 @@ public interface FormulaFunction
 
     /** Describe arguments
      *
-     *  Special argument "..." is used to indicate that a variable
-     *  number of arguments may follow.
-     *  If it is used, it must be the last one in the list.
+     *  When combined with <code>isVarArgs()</code>,
+     *  this defines the minimum argument count.
      *
-     *  @return Description of arguments, for example `[ "base", "exponent" ]` */
+     *  When using variable argument counts, the last
+     *  argument should indicate that by ending in "..."
+     *
+     *  Examples:
+     *  <ul>
+     *  <li> <code>isVarArgs() == false, [ "number" ]</code>
+     *  <li> <code>isVarArgs() == false, [ "base", "exponent" ]`</code>
+     *  <li> <code>isVarArgs() == false, [ "string" ]</code>
+     *  <li> <code>isVarArgs() == true,  [ "number..." ]</code> to expect zero or more arguments
+     *  <li> <code>isVarArgs() == true,  [ "number", "number..." ]</code> to expect at least one numeric argument, maybe more
+     *  </ul>
+     *
+     *  @return Description of arguments
+     */
     public List<String> getArguments();
 
     /** Compute the function's value
