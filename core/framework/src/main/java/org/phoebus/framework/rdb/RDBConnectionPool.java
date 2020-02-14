@@ -8,9 +8,11 @@
 package org.phoebus.framework.rdb;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -38,7 +40,8 @@ public class RDBConnectionPool
     public static final Logger logger = Logger.getLogger(RDBConnectionPool.class.getPackageName());
 
     /** Total connection count handled by all pools */
-    private static final AtomicInteger total_connections = new AtomicInteger();
+    private static final ConcurrentHashMap<Connection, Exception> total_connections =
+            logger.isLoggable(Level.FINE) ? new ConcurrentHashMap<>() : null;
 
     /** Pool instance counter to get unique instance number to each pool */
     private static final AtomicInteger instances = new AtomicInteger();
@@ -50,6 +53,7 @@ public class RDBConnectionPool
         return thread;
     });
 
+    private volatile boolean closed = false;
     private final int instance;
     private final RDBInfo info;
     private final List<Connection> pool = new ArrayList<>();
@@ -111,12 +115,16 @@ public class RDBConnectionPool
      */
     public Connection getConnection() throws Exception
     {
+        if (closed)
+            throw new Exception(this + " is closed");
         Connection connection = pop();
         while (connection != null)
         {   // Is existing connection still good?
             if (connection.isValid(5))
             {
-                logger.log(Level.FINER, "Reusing " + connection.getMetaData().getDatabaseProductName() + ", pool retains " + pool.size());
+                logger.log(Level.FINER, () -> "Reusing connection of " + this);
+                if (total_connections != null)
+                    total_connections.put(connection, new Exception("Reuse connection " + this));
                 return connection;
             }
             // Close it
@@ -127,14 +135,30 @@ public class RDBConnectionPool
 
         // No suitable existing connection, create new one
         connection = info.connect();
-        final int t = total_connections.incrementAndGet();
-        logger.log(Level.FINE, "New total connection count: " + t);
+        if (total_connections != null)
+        {
+            total_connections.put(connection, new Exception("Open connection " + this));
+            final int t = total_connections.size();
+            logger.log(Level.FINE, "New total connection count: " + t);
+        }
         return connection;
     }
 
     /** @param connection Connection that is released to the pool for re-use (or time out) */
     public void releaseConnection(final Connection connection)
     {
+        if (closed)
+        {
+            try
+            {
+                connection.close();
+            }
+            catch (SQLException e)
+            {
+                // Ignore, closing anyway
+            }
+            logger.log(Level.WARNING, this + " is closed", new Exception("Call stack"));
+        }
         push(connection);
         logger.log(Level.FINER, "Released connection into " + this);
         final Future<?> previous = cleanup.getAndSet(clear_timer.schedule(this::clear, timeout, TimeUnit.SECONDS));
@@ -155,9 +179,12 @@ public class RDBConnectionPool
         return null;
     }
 
-    /** Clear the pool, close all connections */
+    /** Close the pool, close all connections.
+     *  Pool can not be used after calling this.
+     */
     public void clear()
     {
+        closed = true;
         synchronized (this)
         {
             final Iterator<Connection> iterator = pool.iterator();
@@ -169,7 +196,7 @@ public class RDBConnectionPool
             }
             pool.clear();
         }
-        logger.log(Level.FINE, "Cleared " + this);
+        logger.log(Level.FINE, () -> "Cleared " + this);
 
         // In case a timer was running, cancel
         final Future<?> previous = cleanup.getAndSet(null);
@@ -181,7 +208,7 @@ public class RDBConnectionPool
     {
         try
         {
-            logger.log(Level.FINE, "Closing " + connection.getMetaData().getDatabaseProductName() + ", pool retains " + pool.size());
+            logger.log(Level.FINE, () -> "Closing connection of " + this);
             connection.close();
         }
         catch (Exception ex)
@@ -190,8 +217,14 @@ public class RDBConnectionPool
             logger.log(Level.FINE, "Error closing RDB connection", ex);
         }
 
-        final int t = total_connections.decrementAndGet();
-        logger.log(Level.FINE, "Remaining total connection count: " + t);
+        if (total_connections != null)
+        {
+            total_connections.remove(connection);
+            for (Exception ex : total_connections.values())
+                ex.printStackTrace();
+            final int t = total_connections.size();
+            logger.log(Level.FINE, "Remaining total connection count: " + t);
+        }
     }
 
     @Override
