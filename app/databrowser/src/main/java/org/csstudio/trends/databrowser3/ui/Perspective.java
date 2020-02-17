@@ -180,6 +180,8 @@ public class Perspective extends SplitPane
             createWaveformTab();
             showBottomTab(waveform_tab);
         });
+        final MenuItem refresh = new MenuItem(Messages.Refresh, Activator.getIcon("refresh_remote"));
+        refresh.setOnAction(event -> controller.scheduleArchiveRetrieval());
 
         final ContextMenu menu = new ContextMenu();
         final ObservableList<MenuItem> items = menu.getItems();
@@ -204,7 +206,7 @@ public class Perspective extends SplitPane
                 items.add(new SeparatorMenuItem());
                 items.add(new RemoveUnusedAxes(model, undo));
             }
-            items.addAll(new SeparatorMenuItem(), show_search, show_properties, show_export, show_samples, show_waveform);
+            items.addAll(new SeparatorMenuItem(), show_search, show_properties, show_export, show_samples, show_waveform, refresh);
 
             menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });

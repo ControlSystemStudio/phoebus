@@ -186,6 +186,10 @@ public class XMLRPCArchiveReader implements ArchiveReader
         int secs = (int) (Duration.between(start, end).getSeconds() / count);
         if (secs < 1)
             secs = 1;
-        return new ValueRequestIterator(this, name, start, end, method_optimized, secs);
+        // Does the XMLRPC data server take 'secs' or 'counts'?
+        // thomas.birke@helmholtz-berlin.de suggests counts.
+        // Might depend on version of data server.
+        final int optimized_parm = count;
+        return new ValueRequestIterator(this, name, start, end, method_optimized, optimized_parm);
     }
 }
