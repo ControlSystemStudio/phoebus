@@ -32,7 +32,17 @@ org.csstudio.apputil.formula.areadetector.ADDataTypeMappingFunction
 org.csstudio.apputil.formula.string.StringFunction
 
 # Array functions
-org.csstudio.apputil.formula.array.RescaleArrayFormulaFunction
+org.csstudio.apputil.formula.array.ScaleArrayFormulaFunction
+org.csstudio.apputil.formula.array.SubArrayFunction
+org.csstudio.apputil.formula.array.ElementAtNumberFunction
+org.csstudio.apputil.formula.array.ArraySumFunction
+org.csstudio.apputil.formula.array.ArrayPowFunction
+org.csstudio.apputil.formula.array.ArrayMultiplicationFunction
+org.csstudio.apputil.formula.array.ArrayDivisionFunction
+org.csstudio.apputil.formula.array.ArrayScalarDivisionFunction
+org.csstudio.apputil.formula.array.ArrayInverseScalarDivisionFunction
+org.csstudio.apputil.formula.array.ArrayOfFunction
+org.csstudio.apputil.formula.array.ArrayRangeOfFunction
 
 # Alarm
 org.csstudio.apputil.formula.alarm.HighestSeverityFunction

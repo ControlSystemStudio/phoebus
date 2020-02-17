@@ -20,44 +20,53 @@
 package org.csstudio.apputil.formula.array;
 
 import org.epics.util.array.ListMath;
-import org.epics.vtype.*;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VType;
 
-import java.util.Arrays;
 import java.util.List;
 
-public class RescaleArrayFormulaFunction extends BaseArrayFunction {
+public class ArrayDivisionFunction extends BaseArrayFunction{
 
     @Override
     public String getName() {
-        return "rescale";
+        return "arrayDiv";
     }
 
     @Override
     public String getDescription() {
-        return "Rescale an array using the factor and offset ";
+        return "Result[x] = array1[x] / array2[x].";
     }
 
     @Override
     public List<String> getArguments() {
-        return List.of("VNumberArray", "VNumber", "VNumber");
+        return List.of("VNumberArray", "VNumberArray");
+    }
+
+    @Override
+    public String getSignature(){
+        return "(VNumberArray array1, VNumberArray array2)";
     }
 
     @Override
     public VType compute(VType... args) throws Exception {
-        for(VType arg : args){
-            if(arg == null){
-                throw new Exception(String.format("Function %s encountered a null arugment", getName()));
+        if(args[0] instanceof VNumberArray && args[1] instanceof VNumberArray){
+            VNumberArray array1 = (VNumberArray)args[0];
+            VNumberArray array2 = (VNumberArray)args[1];
+            if(array1.getData().size() != array2.getData().size()){
+                throw new Exception(String.format("Function %s cannot compute as specified arrays are of different length",
+                        getName()));
             }
+            return VNumberArray.of(
+                    ListMath.divide(array1.getData(), array2.getData()),
+                    Alarm.none(),
+                    Time.now(),
+                    Display.none());
         }
-
-        VNumberArray arg1 = (VNumberArray) args[0];
-        VNumber arg2 = (VNumber) args[1];
-        VNumber arg3 = (VNumber) args[2];
-
-        return VNumberArray.of(
-                ListMath.rescale(arg1.getData(), arg2.getValue().doubleValue(), arg3.getValue().doubleValue()),
-                Alarm.highestAlarmOf(Arrays.asList(args), false),
-                Time.now(),
-                Display.none());
+        else{
+            return DEFAULT_NAN_DOUBLE_ARRAY;
+        }
     }
 }
