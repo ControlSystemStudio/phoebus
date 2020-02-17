@@ -41,7 +41,7 @@ public class SubArrayFunctionTest {
         SubArrayFunction subArrayFunction = new SubArrayFunction();
 
         assertEquals("subArray", subArrayFunction.getName());
-
+        assertEquals("array", subArrayFunction.getCategory());
 
         VType array = VNumberArray.of(ArrayDouble.of(1.0, 2.0, 3.0, 4.0, 5.0), Alarm.none(), Time.now(), Display.none());
         VType from = VDouble.of(1.0, Alarm.none(), Time.now(), Display.none());

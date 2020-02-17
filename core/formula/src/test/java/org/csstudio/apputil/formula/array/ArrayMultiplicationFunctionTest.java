@@ -40,6 +40,7 @@ public class ArrayMultiplicationFunctionTest {
                 new ArrayMultiplicationFunction();
 
         assertEquals("arrayMult", arrayMultiplicationFunction.getName());
+        assertEquals("array", arrayMultiplicationFunction.getCategory());
 
         VType array1 = VNumberArray.of(ArrayDouble.of(1.0, 2.0, 3.0),
                 Alarm.of(AlarmSeverity.MAJOR, AlarmStatus.NONE, ""), Time.now(), Display.none());

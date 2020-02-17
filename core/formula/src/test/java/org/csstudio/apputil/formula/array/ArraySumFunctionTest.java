@@ -38,6 +38,7 @@ public class ArraySumFunctionTest {
         ArraySumFunction scaleArrayFunction = new ArraySumFunction();
 
         assertEquals("arraySum", scaleArrayFunction.getName());
+        assertEquals("array", scaleArrayFunction.getCategory());
 
         VType offset = VDouble.of(2.0, Alarm.none(), Time.now(), Display.none());
         VType array = VNumberArray.of(ArrayDouble.of(1.0, 2.0, 3.0), Alarm.none(), Time.now(), Display.none());

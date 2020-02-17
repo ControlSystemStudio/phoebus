@@ -19,6 +19,7 @@
 
 package org.csstudio.apputil.formula.array;
 
+import org.csstudio.apputil.formula.VTypeHelper;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
@@ -30,7 +31,8 @@ import org.epics.vtype.VType;
 import java.util.List;
 
 /**
- * Constructs a sub-array of the input array.
+ * Constructs a sub-array of the input array and the specified
+ * from-index and to-index.
  */
 public class SubArrayFunction extends BaseArrayFunction {
 
@@ -68,7 +70,7 @@ public class SubArrayFunction extends BaseArrayFunction {
         VNumber fromIndex = (VNumber) args[1];
         VNumber toIndex = (VNumber) args[2];
 
-        if(args[0] instanceof VNumberArray){
+        if(VTypeHelper.isNumericArray(args[0])){
             VNumberArray array = (VNumberArray)args[0];
             if(fromIndex.getValue().intValue() < 0 ||
                     (fromIndex.getValue().intValue() > toIndex.getValue().intValue()) ||

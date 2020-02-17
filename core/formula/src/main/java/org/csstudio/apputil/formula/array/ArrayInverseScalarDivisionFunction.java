@@ -19,6 +19,7 @@
 
 package org.csstudio.apputil.formula.array;
 
+import org.csstudio.apputil.formula.VTypeHelper;
 import org.epics.util.array.ListMath;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
@@ -65,7 +66,7 @@ public class ArrayInverseScalarDivisionFunction extends BaseArrayFunction{
      */
     @Override
     public VType compute(VType... args) {
-        if(args[0] instanceof VNumber && args[1] instanceof VNumberArray){
+        if(args[0] instanceof VNumber && VTypeHelper.isNumericArray(args[1])){
             VNumberArray array = (VNumberArray)args[1];
             VNumber factor = (VNumber) args[0];
 

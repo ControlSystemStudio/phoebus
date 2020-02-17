@@ -19,6 +19,7 @@
 
 package org.csstudio.apputil.formula.array;
 
+import org.csstudio.apputil.formula.VTypeHelper;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
@@ -67,7 +68,7 @@ public class ElementAtNumberFunction extends BaseArrayFunction {
     @Override
     public VType compute(VType... args) throws Exception {
         boolean isStringArray = args[0] instanceof VStringArray;
-        if(args[0] instanceof VNumberArray && args[1] instanceof VNumber){
+        if(VTypeHelper.isNumericArray(args[0]) && args[1] instanceof VNumber){
             VNumberArray numberArray = (VNumberArray)args[0];
             int index = ((VNumber)args[1]).getValue().intValue();
             if(index < 0 || index > numberArray.getData().size() - 1){

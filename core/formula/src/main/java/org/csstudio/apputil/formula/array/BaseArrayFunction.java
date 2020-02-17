@@ -28,6 +28,10 @@ import org.epics.vtype.VDouble;
 import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VString;
 
+/**
+ * Abstract base class taking care of returning the category identifier for
+ * all sub-classes.
+ */
 public abstract class BaseArrayFunction implements FormulaFunction {
 
     protected static VDouble DEFAULT_NAN_DOUBLE = VDouble.of(Double.NaN,

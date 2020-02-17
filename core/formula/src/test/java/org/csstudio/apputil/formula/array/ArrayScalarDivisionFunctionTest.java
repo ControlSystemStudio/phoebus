@@ -41,6 +41,7 @@ public class ArrayScalarDivisionFunctionTest {
                 new ArrayScalarDivisionFunction();
 
         assertEquals("arrayDivScalar", arrayScalarDivisionFunction.getName());
+        assertEquals("array", arrayScalarDivisionFunction.getCategory());
 
         VType array = VNumberArray.of(ArrayDouble.of(2.0, 10.0, 30.0),
                 Alarm.of(AlarmSeverity.MAJOR, AlarmStatus.NONE, ""), Time.now(), Display.none());

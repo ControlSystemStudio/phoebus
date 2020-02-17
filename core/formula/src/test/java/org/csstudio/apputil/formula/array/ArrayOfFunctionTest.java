@@ -40,6 +40,7 @@ public class ArrayOfFunctionTest {
         ArrayOfFunction arrayOfFunction = new ArrayOfFunction();
 
         assertEquals("arrayOf", arrayOfFunction.getName());
+        assertEquals("array", arrayOfFunction.getCategory());
 
         VString a = VString.of("a", Alarm.none(), Time.now());
         VString b = VString.of("b", Alarm.none(), Time.now());

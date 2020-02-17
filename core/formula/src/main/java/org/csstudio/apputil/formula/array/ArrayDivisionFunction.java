@@ -19,6 +19,7 @@
 
 package org.csstudio.apputil.formula.array;
 
+import org.csstudio.apputil.formula.VTypeHelper;
 import org.epics.util.array.ListMath;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
@@ -28,6 +29,10 @@ import org.epics.vtype.VType;
 
 import java.util.List;
 
+/**
+ * Computes an output array where each element is the quotient
+ * between elements in the input arrays, which must be of equal length.
+ */
 public class ArrayDivisionFunction extends BaseArrayFunction{
 
     @Override
@@ -50,9 +55,18 @@ public class ArrayDivisionFunction extends BaseArrayFunction{
         return "(VNumberArray array1, VNumberArray array2)";
     }
 
+    /**
+     *
+     * @param args Arguments, count will match <code>getArgumentCount()</code>
+     * @return An array where each element is the quotient between the elements
+     * in the input arrays, which must be of equal length. If the input arrays
+     * are not numerical, {@link BaseArrayFunction#DEFAULT_NAN_DOUBLE_ARRAY} is
+     * returned.
+     * @throws Exception If the input arrays are not of equal length.
+     */
     @Override
     public VType compute(VType... args) throws Exception {
-        if(args[0] instanceof VNumberArray && args[1] instanceof VNumberArray){
+        if(VTypeHelper.isNumericArray(args[0]) && VTypeHelper.isNumericArray(args[1])){
             VNumberArray array1 = (VNumberArray)args[0];
             VNumberArray array2 = (VNumberArray)args[1];
             if(array1.getData().size() != array2.getData().size()){

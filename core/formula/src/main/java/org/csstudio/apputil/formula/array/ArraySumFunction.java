@@ -19,6 +19,7 @@
 
 package org.csstudio.apputil.formula.array;
 
+import org.csstudio.apputil.formula.VTypeHelper;
 import org.epics.util.array.ListMath;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
@@ -57,7 +58,7 @@ public class ArraySumFunction extends BaseArrayFunction {
 
     @Override
     public VType compute(VType... args)  {
-        if(args[0] instanceof VNumberArray && args[1] instanceof VNumber){
+        if(VTypeHelper.isNumericArray(args[0]) && args[1] instanceof VNumber){
             VNumberArray array = (VNumberArray)args[0];
             VNumber offset = (VNumber)args[1];
             return VNumberArray.of(

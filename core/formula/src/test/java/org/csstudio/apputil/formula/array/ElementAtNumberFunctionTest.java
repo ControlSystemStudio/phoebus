@@ -42,6 +42,9 @@ public class ElementAtNumberFunctionTest {
         ElementAtNumberFunction elementAtNumberFunction =
                 new ElementAtNumberFunction();
 
+        assertEquals("elementAt", elementAtNumberFunction.getName());
+        assertEquals("array", elementAtNumberFunction.getCategory());
+
         VType index = VDouble.of(2.0, Alarm.none(), Time.now(), Display.none());
         VType array = VNumberArray.of(ArrayDouble.of(1.0, 2.0, 3.0), Alarm.none(), Time.now(), Display.none());
 

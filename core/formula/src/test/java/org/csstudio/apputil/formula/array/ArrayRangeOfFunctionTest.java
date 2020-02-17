@@ -39,6 +39,7 @@ public class ArrayRangeOfFunctionTest {
         ArrayRangeOfFunction arrayRangeOfFunction = new ArrayRangeOfFunction();
 
         assertEquals("arrayRangeOf", arrayRangeOfFunction.getName());
+        assertEquals("array", arrayRangeOfFunction.getCategory());
 
         Display display =
                 Display.of(Range.of(1d, 10d), Range.of(10d, 20d), Range.of(20d, 30d), Range.of(30d, 40d), "N", new DecimalFormat(""));

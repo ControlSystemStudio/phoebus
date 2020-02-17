@@ -37,6 +37,7 @@ public class ArrayPowFunctionTest {
         ArrayPowFunction arrayPowFunction = new ArrayPowFunction();
 
         assertEquals("arrayPow", arrayPowFunction.getName());
+        assertEquals("array", arrayPowFunction.getCategory());
 
         VType exponent = VDouble.of(2.0, Alarm.none(), Time.now(), Display.none());
         VType array = VNumberArray.of(ArrayDouble.of(1.0, 2.0, 3.0), Alarm.none(), Time.now(), Display.none());

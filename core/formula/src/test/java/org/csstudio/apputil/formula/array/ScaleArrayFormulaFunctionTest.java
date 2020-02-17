@@ -38,7 +38,8 @@ public class ScaleArrayFormulaFunctionTest {
       ScaleArrayFormulaFunction scaleArray =
               new ScaleArrayFormulaFunction();
 
-      assertEquals("rescale", scaleArray.getName());
+      assertEquals("scale", scaleArray.getName());
+      assertEquals("array", scaleArray.getCategory());
 
       VType factor = VDouble.of(2.0, Alarm.none(), Time.now(), Display.none());
       VType array = VNumberArray.of(ArrayDouble.of(1.0, 2.0, 3.0), Alarm.none(), Time.now(), Display.none());

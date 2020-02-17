@@ -19,6 +19,7 @@
 
 package org.csstudio.apputil.formula.array;
 
+import org.csstudio.apputil.formula.VTypeHelper;
 import org.epics.util.array.ListMath;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
@@ -29,6 +30,9 @@ import org.epics.vtype.VType;
 
 import java.util.List;
 
+/**
+ * Computes scaled elements of an input array, with optinal offset.
+ */
 public class ScaleArrayFormulaFunction extends BaseArrayFunction {
 
     @Override
@@ -56,12 +60,21 @@ public class ScaleArrayFormulaFunction extends BaseArrayFunction {
         return true;
     }
 
+    /**
+     *
+     * @param args Arguments, count will match <code>getArgumentCount()</code>
+     * @return A {@link VNumberArray} where each element is multiplied by the
+     * factor specified as the second argument. Optionally the result is offset by
+     * the third argument, which may be positive or negative. If the input array is
+     * not numerical, {@link BaseArrayFunction#DEFAULT_NAN_DOUBLE_ARRAY} is returned.
+     * @throws Exception
+     */
     @Override
     public VType compute(VType... args) throws Exception{
         if(args.length != 2 && args.length != 3){
             throw new Exception(String.format("Function %s takes 2 or 3 aruments, got %d", getName(), args.length));
         }
-        if(args[0] instanceof VNumberArray){
+        if(VTypeHelper.isNumericArray(args[0])){
             VNumberArray array = (VNumberArray)args[0];
             VNumber factor = (VNumber) args[1];
             double offset = args.length == 3 ? ((VNumber)args[2]).getValue().doubleValue() : 0.0;

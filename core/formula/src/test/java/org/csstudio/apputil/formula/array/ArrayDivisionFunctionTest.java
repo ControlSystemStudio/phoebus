@@ -41,6 +41,7 @@ public class ArrayDivisionFunctionTest {
                 new ArrayDivisionFunction();
 
         assertEquals("arrayDiv", arrayDivisionFunction.getName());
+        assertEquals("array", arrayDivisionFunction.getCategory());
 
         VType array1 = VNumberArray.of(ArrayDouble.of(2.0, 10.0, 30.0),
                 Alarm.none(), Time.now(), Display.none());

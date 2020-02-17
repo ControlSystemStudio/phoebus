@@ -23,12 +23,15 @@ import org.epics.util.array.ListMath;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
-import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
 
 import java.util.List;
 
+/**
+ * Computes an output array where each element is the product
+ * of elements in the input arrays, which must be of equal length.
+ */
 public class ArrayMultiplicationFunction extends BaseArrayFunction{
 
     @Override
@@ -51,6 +54,15 @@ public class ArrayMultiplicationFunction extends BaseArrayFunction{
         return "(VNumberArray array1, VNumberArray exponent2)";
     }
 
+    /**
+     *
+     * @param args Arguments, count will match <code>getArgumentCount()</code>
+     * @return An array where each element is the product of the elements
+     * in the input arrays, which must be of equal length. If the input arrays
+     * are not numerical, {@link BaseArrayFunction#DEFAULT_NAN_DOUBLE_ARRAY} is
+     * returned.
+     * @throws Exception If the input arrays are not of equal length.
+     */
     @Override
     public VType compute(VType... args) throws Exception {
         if(args[0] instanceof VNumberArray && args[1] instanceof VNumberArray){
