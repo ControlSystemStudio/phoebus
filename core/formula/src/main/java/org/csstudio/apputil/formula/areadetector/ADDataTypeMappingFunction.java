@@ -4,7 +4,6 @@ package org.csstudio.apputil.formula.areadetector;
 import java.util.Arrays;
 import java.util.List;
 
-import org.csstudio.apputil.formula.VTypeHelper;
 import org.csstudio.apputil.formula.spi.FormulaFunction;
 import org.epics.util.array.ArrayUInteger;
 import org.epics.util.array.ArrayULong;
@@ -13,6 +12,8 @@ import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
+
 /**
  * A formula function for handling images from area detector where the image data type is unsigned.
  * @author Kunal Shroff

@@ -21,6 +21,8 @@ import java.util.logging.Logger;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import org.phoebus.core.vtypes.VTypeHelper;
+
 /** Formula tests.
  *  @author Kay Kasemir
  */

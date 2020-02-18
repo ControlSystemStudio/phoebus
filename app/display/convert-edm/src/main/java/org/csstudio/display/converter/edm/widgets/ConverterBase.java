@@ -18,7 +18,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.csstudio.apputil.formula.Formula;
-import org.csstudio.apputil.formula.VTypeHelper;
 import org.csstudio.apputil.formula.VariableNode;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
@@ -40,6 +39,7 @@ import org.csstudio.opibuilder.converter.model.EdmColor;
 import org.csstudio.opibuilder.converter.model.EdmFont;
 import org.csstudio.opibuilder.converter.model.EdmModel;
 import org.csstudio.opibuilder.converter.model.EdmWidget;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 /** Base for each converter
  *

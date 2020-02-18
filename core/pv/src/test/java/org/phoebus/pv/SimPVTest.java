@@ -11,10 +11,10 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.concurrent.CountDownLatch;
 
-import org.csstudio.apputil.formula.VTypeHelper;
 import org.junit.Test;
 
 import io.reactivex.disposables.Disposable;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 /** @author Kay Kasemir */
 @SuppressWarnings("nls")
