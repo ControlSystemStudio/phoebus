@@ -21,6 +21,7 @@ import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VStatistics;
 import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
+import org.epics.vtype.VTable;
 import org.epics.vtype.VType;
 
 import java.time.Instant;
@@ -55,17 +56,21 @@ public class VTypeHelper
         return Double.NaN;
     }
 
-    /** Read string from a {@link VType}
-     *  @param value Value
-     *  @return double or NaN
+    /** @param value {@link VType}
+     *  @return Value as String
      */
-    public static String getString(VType value)
+    public static String getString(final VType value)
     {
-        if (value instanceof VString)
-            return ((VString)value).getValue();
+        if (isDisconnected(value))
+            return null;
+        if (value instanceof VNumber)
+            return ((VNumber)value).getValue().toString();
         if (value instanceof VEnum)
             return ((VEnum)value).getValue();
-        return Double.toString(getDouble(value));
+        else if (value instanceof VString)
+            return ((VString)value).getValue();
+        // Else: Hope that value somehow represents itself
+        return value.toString();
     }
 
     /** Read number by array index from array {@link VType}
@@ -140,12 +145,25 @@ public class VTypeHelper
      */
     final public static double toDouble(final VType value)
     {
-        if (value instanceof VNumber)
-            return ((VNumber)value).getValue().doubleValue();
-        if (value instanceof VEnum)
-            return ((VEnum)value).getIndex();
-        if (value instanceof VStatistics)
-            return ((VStatistics)value).getAverage();
+        if (value instanceof VNumber) {
+            return ((VNumber) value).getValue().doubleValue();
+        }
+        if (value instanceof VString){
+            try
+            {
+                return Double.parseDouble(((VString) value).getValue());
+            }
+            catch (NumberFormatException ex)
+            {
+                // Ignore
+            }
+        }
+        if (value instanceof VEnum) {
+            return ((VEnum) value).getIndex();
+        }
+        if (value instanceof VStatistics) {
+            return ((VStatistics) value).getAverage();
+        }
         if (value instanceof VNumberArray)
         {
             final ListNumber data = ((VNumberArray) value).getData();
@@ -159,6 +177,25 @@ public class VTypeHelper
                 return data.getDouble(0);
         }
         return Double.NaN;
+    }
+
+    /** Get VType as double[]; empty array if not possible
+     *  @param value {@link VType}
+     *  @return double[]
+     */
+    public static double[] toDoubles(final VType value)
+    {
+        final double[] array;
+        if (value instanceof VNumberArray)
+        {
+            final ListNumber list = ((VNumberArray) value).getData();
+            array = new double[list.size()];
+            for (int i=0; i<array.length; ++i)
+                array[i] = list.getDouble(i);
+        }
+        else
+            array = new double[0];
+        return array;
     }
 
     /** Decode a {@link VType}'s time stamp
@@ -215,10 +252,42 @@ public class VTypeHelper
         return transformTimestamp(value, Instant.now());
     }
 
-    public static String toString(final VType value)
+    /** Format value as string
+     *  @param value {@link VType}
+     *  @return String representation
+     */
+    final public static String toString(final VType value)
     {
-        // XXX Tends to be poorly formatted...
-        return Objects.toString(value);
+        if (value instanceof VNumber)
+            return ((VNumber)value).getValue().toString();
+        if (value instanceof VEnum)
+        {
+            try
+            {
+                return ((VEnum)value).getValue();
+            }
+            catch (ArrayIndexOutOfBoundsException ex)
+            {    // PVManager doesn't handle enums that have no label
+                return "<enum " + ((VEnum)value).getIndex() + ">";
+            }
+        }
+        if (value instanceof VString)
+            return ((VString)value).getValue();
+        if (value == null)
+            return "null";
+        return value.toString();
     }
 
+    public static boolean isDisconnected(final VType value)
+    {
+        if (value == null)
+            return true;
+
+        // VTable does not implement alarm,
+        // but receiving a table means we're not disconnected
+        if (value instanceof VTable)
+            return false;
+        final Alarm alarm = Alarm.alarmOf(value);
+        return Alarm.disconnected().equals(alarm);
+    }
 }

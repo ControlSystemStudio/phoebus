@@ -20,7 +20,6 @@ import java.time.Instant;
 
 import org.csstudio.scan.command.Comparison;
 import org.csstudio.scan.command.WaitCommand;
-import org.csstudio.scan.device.VTypeHelper;
 import org.csstudio.scan.server.MacroContext;
 import org.csstudio.scan.server.ScanCommandImpl;
 import org.csstudio.scan.server.ScanContext;
@@ -31,6 +30,7 @@ import org.csstudio.scan.server.condition.TextValueCondition;
 import org.csstudio.scan.server.device.Device;
 import org.csstudio.scan.server.device.SimulatedDevice;
 import org.csstudio.scan.server.internal.JythonSupport;
+import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.util.time.SecondsParser;
 import org.phoebus.util.time.TimeDuration;
 

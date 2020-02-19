@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 
 import org.csstudio.display.pace.model.Cell;
 import org.csstudio.display.pace.model.Model;
-import org.csstudio.display.pace.model.VTypeHelper;
+import org.phoebus.core.vtypes.VTypeHelper;
 import org.junit.Test;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;

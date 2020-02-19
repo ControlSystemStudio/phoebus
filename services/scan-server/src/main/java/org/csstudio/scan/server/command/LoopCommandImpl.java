@@ -24,7 +24,7 @@ import java.util.logging.Level;
 
 import org.csstudio.scan.command.Comparison;
 import org.csstudio.scan.command.LoopCommand;
-import org.csstudio.scan.device.VTypeHelper;
+import org.csstudio.scan.device.ScanSampleHelper;
 import org.csstudio.scan.server.MacroContext;
 import org.csstudio.scan.server.ScanCommandImpl;
 import org.csstudio.scan.server.ScanCommandImplTool;
@@ -35,7 +35,9 @@ import org.csstudio.scan.server.device.Device;
 import org.csstudio.scan.server.device.SimulatedDevice;
 import org.csstudio.scan.server.internal.JythonSupport;
 import org.csstudio.scan.server.log.DataLog;
+import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.util.time.TimeDuration;
+
 
 /** Command that performs a loop
  *  @author Kay Kasemir
@@ -262,7 +264,7 @@ public class LoopCommandImpl extends ScanCommandImpl<LoopCommand>
             {
                 final DataLog log = context.getDataLog().get();
                 final long serial = log.getNextScanDataSerial();
-                log.log(readback.getAlias(), VTypeHelper.createSample(serial, readback.read()));
+                log.log(readback.getAlias(), ScanSampleHelper.createSample(serial, readback.read()));
             }
         }
         catch (InterruptedException ex)

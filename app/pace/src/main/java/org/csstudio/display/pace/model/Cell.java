@@ -18,6 +18,7 @@ import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.util.time.TimestampFormats;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 import io.reactivex.disposables.Disposable;
 import javafx.beans.property.SimpleStringProperty;
