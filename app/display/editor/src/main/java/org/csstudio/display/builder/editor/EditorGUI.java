@@ -27,6 +27,8 @@ import org.csstudio.display.builder.editor.app.DisplayEditorInstance;
 import org.csstudio.display.builder.editor.app.PasteWidgets;
 import org.csstudio.display.builder.editor.app.RemoveGroupAction;
 import org.csstudio.display.builder.editor.properties.PropertyPanel;
+import org.csstudio.display.builder.editor.tree.CollapseTreeAction;
+import org.csstudio.display.builder.editor.tree.ExpandTreeAction;
 import org.csstudio.display.builder.editor.tree.FindWidgetAction;
 import org.csstudio.display.builder.editor.tree.WidgetTree;
 import org.csstudio.display.builder.model.DisplayModel;
@@ -424,6 +426,8 @@ public class EditorGUI
                                    copy,
                                    new PasteWidgets(this),
                                    new FindWidgetAction(node, editor),
+                                   new ExpandTreeAction(tree),
+                                   new CollapseTreeAction(tree),
                                    new SeparatorMenuItem(),
                                    group,
                                    ungroup,
