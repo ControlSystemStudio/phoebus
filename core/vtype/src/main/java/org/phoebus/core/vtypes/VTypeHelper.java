@@ -25,7 +25,6 @@ import org.epics.vtype.VTable;
 import org.epics.vtype.VType;
 
 import java.time.Instant;
-import java.util.Objects;
 
 public class VTypeHelper
 {
@@ -33,27 +32,59 @@ public class VTypeHelper
      *  @param value Value
      *  @return double or NaN
      */
-    final public static double getDouble(final VType value)
+    final public static double toDouble(final VType value)
     {
         if (value instanceof VNumber)
-            return ((VNumber)value).getValue().doubleValue();
-        if (value instanceof VEnum)
-            return ((VEnum)value).getIndex();
-        if (value instanceof VStatistics)
-            return ((VStatistics)value).getAverage();
+        {
+            return ((VNumber) value).getValue().doubleValue();
+        }
+        if (value instanceof VString){
+            try
+            {
+                return Double.parseDouble(((VString) value).getValue());
+            }
+            catch (NumberFormatException ex)
+            {
+                // Ignore
+                return Double.NaN;
+            }
+        }
+        if (value instanceof VEnum) {
+            return ((VEnum) value).getIndex();
+        }
+        if (value instanceof VStatistics) {
+            return ((VStatistics) value).getAverage();
+        }
         if (value instanceof VNumberArray)
         {
-            final ListNumber data = ((VNumberArray) value).getData();
-            if (data.size() > 0)
-                return data.getDouble(0);
+            return toDouble(value, 0);
         }
         if (value instanceof VEnumArray)
         {
-            final ListNumber data = ((VEnumArray) value).getIndexes();
-            if (data.size() > 0)
-                return data.getDouble(0);
+           return toDouble(value, 0);
         }
         return Double.NaN;
+    }
+
+
+    /** Get VType as double[]; empty array if not possible
+     *  @param value {@link VType}
+     *  @return double[]
+     */
+    public static double[] toDoubles(final VType value)
+    {
+        final double[] array;
+        if (value instanceof VNumberArray)
+        {
+            final ListNumber list = ((VNumberArray) value).getData();
+            array = new double[list.size()];
+            for (int i=0; i<array.length; ++i) {
+                array[i] = list.getDouble(i);
+            }
+        }
+        else
+            array = new double[0];
+        return array;
     }
 
     /** @param value {@link VType}
@@ -61,14 +92,18 @@ public class VTypeHelper
      */
     public static String getString(final VType value)
     {
-        if (isDisconnected(value))
+        if (isDisconnected(value)) {
             return null;
-        if (value instanceof VNumber)
-            return ((VNumber)value).getValue().toString();
-        if (value instanceof VEnum)
-            return ((VEnum)value).getValue();
-        else if (value instanceof VString)
-            return ((VString)value).getValue();
+        }
+        if (value instanceof VNumber) {
+            return ((VNumber) value).getValue().toString();
+        }
+        if (value instanceof VEnum) {
+            return ((VEnum) value).getValue();
+        }
+        else if (value instanceof VString) {
+            return ((VString) value).getValue();
+        }
         // Else: Hope that value somehow represents itself
         return value.toString();
     }
@@ -80,12 +115,15 @@ public class VTypeHelper
      *  @return double or NaN
      *  @throws IndexOutOfBoundsException for invalid index
      */
-    public static double getDouble(final VType value, final int i)
+    public static double toDouble(final VType value, final int i)
     {
         if (value instanceof VNumberArray)
-            return ((VNumberArray)value).getData().getDouble(i);
-        if (value instanceof VEnumArray)
-            return ((VNumberArray)value).getData().getDouble(i);
+        {
+            return ((VNumberArray) value).getData().getDouble(i);
+        }
+        if (value instanceof VEnumArray) {
+            return ((VEnumArray) value).getIndexes().getDouble(i);
+        }
         return Double.NaN;
     }
 
@@ -105,13 +143,21 @@ public class VTypeHelper
     {
         final ListInteger sizes;
         if (value instanceof VNumberArray)
-            sizes = ((VNumberArray)value).getSizes();
+        {
+            sizes = ((VNumberArray) value).getSizes();
+        }
         else if (value instanceof VEnumArray)
-            sizes = ((VEnumArray)value).getSizes();
+        {
+            sizes = ((VEnumArray) value).getSizes();
+        }
         else if (value instanceof VStringArray)
-            sizes = ((VStringArray)value).getSizes();
+        {
+            sizes = ((VStringArray) value).getSizes();
+        }
         else
+        {
             return 0;
+        }
         return sizes.size() > 0 ? sizes.getInt(0) : 0;
     }
 
@@ -135,67 +181,10 @@ public class VTypeHelper
         final Time ta = Time.timeOf(a);
         final Time tb = Time.timeOf(b);
         if (ta.getTimestamp().isAfter(tb.getTimestamp()))
+        {
             return ta;
+        }
         return tb;
-    }
-
-    /** Read number from a {@link VType}
-     *  @param value Value
-     *  @return double or NaN
-     */
-    final public static double toDouble(final VType value)
-    {
-        if (value instanceof VNumber) {
-            return ((VNumber) value).getValue().doubleValue();
-        }
-        if (value instanceof VString){
-            try
-            {
-                return Double.parseDouble(((VString) value).getValue());
-            }
-            catch (NumberFormatException ex)
-            {
-                // Ignore
-            }
-        }
-        if (value instanceof VEnum) {
-            return ((VEnum) value).getIndex();
-        }
-        if (value instanceof VStatistics) {
-            return ((VStatistics) value).getAverage();
-        }
-        if (value instanceof VNumberArray)
-        {
-            final ListNumber data = ((VNumberArray) value).getData();
-            if (data.size() > 0)
-                return data.getDouble(0);
-        }
-        if (value instanceof VEnumArray)
-        {
-            final ListNumber data = ((VEnumArray) value).getIndexes();
-            if (data.size() > 0)
-                return data.getDouble(0);
-        }
-        return Double.NaN;
-    }
-
-    /** Get VType as double[]; empty array if not possible
-     *  @param value {@link VType}
-     *  @return double[]
-     */
-    public static double[] toDoubles(final VType value)
-    {
-        final double[] array;
-        if (value instanceof VNumberArray)
-        {
-            final ListNumber list = ((VNumberArray) value).getData();
-            array = new double[list.size()];
-            for (int i=0; i<array.length; ++i)
-                array[i] = list.getDouble(i);
-        }
-        else
-            array = new double[0];
-        return array;
     }
 
     /** Decode a {@link VType}'s time stamp
@@ -206,7 +195,9 @@ public class VTypeHelper
     {
         final Time time = Time.timeOf(value);
         if (time != null  &&  time.isValid())
+        {
             return time.getTimestamp();
+        }
         return Instant.now();
     }
 

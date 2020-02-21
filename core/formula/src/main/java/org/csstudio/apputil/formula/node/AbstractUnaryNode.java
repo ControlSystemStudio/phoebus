@@ -37,11 +37,11 @@ abstract class AbstractUnaryNode implements Node
         {
             final double[] result = new double[VTypeHelper.getArraySize(a)];
             for (int i=0; i<result.length; ++i)
-                result[i] = calc(VTypeHelper.getDouble(a, i));
+                result[i] = calc(VTypeHelper.toDouble(a, i));
             return VNumberArray.of(ArrayDouble.of(result), Alarm.alarmOf(a), Time.timeOf(a), Display.displayOf(a));
         }
         else
-            return VDouble.of(calc(VTypeHelper.getDouble(a)), Alarm.alarmOf(a), Time.timeOf(a), Display.displayOf(a));
+            return VDouble.of(calc(VTypeHelper.toDouble(a)), Alarm.alarmOf(a), Time.timeOf(a), Display.displayOf(a));
     }
 
     abstract protected double calc(double a);

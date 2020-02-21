@@ -42,7 +42,7 @@ public class SimPVTest
     public void demoConst() throws Exception
     {
         final PV pv = PVPool.getPV("sim://const(3.14)");
-        assertEquals(3.14, VTypeHelper.getDouble(pv.read()), 0.001);
+        assertEquals(3.14, VTypeHelper.toDouble(pv.read()), 0.001);
         PVPool.releasePV(pv);
     }
 }

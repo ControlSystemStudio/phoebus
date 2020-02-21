@@ -60,14 +60,14 @@ abstract class AbstractBinaryNode implements Node
                                    VTypeHelper.getArraySize(b));
             final double[] result = new double[n];
             for (int i=0; i<n; ++i)
-                result[i] = calc(VTypeHelper.getDouble(a, i),
-                                 VTypeHelper.getDouble(b, i));
+                result[i] = calc(VTypeHelper.toDouble(a, i),
+                                 VTypeHelper.toDouble(b, i));
             return VDoubleArray.of(ArrayDouble.of(result), alarm, time, Display.displayOf(a));
         }
         else
         {
-            final double result = calc(VTypeHelper.getDouble(a),
-                                       VTypeHelper.getDouble(b));
+            final double result = calc(VTypeHelper.toDouble(a),
+                                       VTypeHelper.toDouble(b));
             return VDouble.of(result, alarm, time, Display.displayOf(a));
         }
     }

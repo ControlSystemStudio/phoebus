@@ -60,6 +60,6 @@ public class ConstantNode implements Node
         if (value instanceof VString)
             return "\"" + VTypeHelper.getString(value).replace("\"", "\\\"") + "\"";
         else
-            return Double.toString(VTypeHelper.getDouble(value));
+            return Double.toString(VTypeHelper.toDouble(value));
     }
 }

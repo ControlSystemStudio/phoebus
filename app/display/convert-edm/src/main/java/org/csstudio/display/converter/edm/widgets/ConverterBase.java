@@ -183,7 +183,7 @@ public abstract class ConverterBase<W extends Widget>
             try
             {
                 final Formula formula = new Formula(expression, variables);
-                if (VTypeHelper.getDouble(formula.eval()) != 0.0)
+                if (VTypeHelper.toDouble(formula.eval()) != 0.0)
                 {
                     final EdmColor color = EdmModel.getColorsList().getColor(entry.getValue());
                     return convertStaticColor(color);

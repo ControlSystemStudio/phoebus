@@ -66,7 +66,7 @@ class OneArgMathFunction implements FormulaFunction
     @Override
     public VType compute(final VType... args) throws Exception
     {
-        final double arg = VTypeHelper.getDouble(args[0]);
+        final double arg = VTypeHelper.toDouble(args[0]);
         final double value = function.calc(arg);
         return VDouble.of(value, Alarm.none(), Time.now(), Display.none());
     }

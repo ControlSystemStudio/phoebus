@@ -66,8 +66,8 @@ class TwoArgMathFunction implements FormulaFunction
     @Override
     public VType compute(final VType... args) throws Exception
     {
-        final double a = VTypeHelper.getDouble(args[0]);
-        final double b = VTypeHelper.getDouble(args[1]);
+        final double a = VTypeHelper.toDouble(args[0]);
+        final double b = VTypeHelper.toDouble(args[1]);
         final double value = function.calc(a, b);
         return VDouble.of(value, Alarm.none(), Time.now(), Display.none());
     }

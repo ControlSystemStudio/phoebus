@@ -50,7 +50,7 @@ public class Factorial implements FormulaFunction
     @Override
     public VType compute(final VType... args) throws Exception
     {
-        final int n = (int) VTypeHelper.getDouble(args[0]);
+        final int n = (int) VTypeHelper.toDouble(args[0]);
         return VInt.of(fac(n), Alarm.none(), Time.now(), Display.displayOf(args[0]));
     }
 
