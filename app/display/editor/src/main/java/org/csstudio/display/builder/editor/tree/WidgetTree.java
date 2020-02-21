@@ -509,8 +509,7 @@ public class WidgetTree
      */
     public void expandAllTreeItems()
     {
-        for(TreeItem<?> child: tree_view.getRoot().getChildren())
-            expandTreeView(child);
+        TreeHelper.setExpandedEx(tree_view, true);
     }
 
     /**
@@ -518,34 +517,6 @@ public class WidgetTree
      */
     public void collapseAllTreeItems()
     {
-        for(TreeItem<?> child: tree_view.getRoot().getChildren())
-            collapseTreeView(child);
-    }
-
-    /**
-     * Recursive expand branch items
-     * @param item Tree item for branches expansion
-     */
-    private void expandTreeView(TreeItem<?> item)
-    {
-        if(item != null && !item.isLeaf()){
-            item.setExpanded(true);
-            for(TreeItem<?> child:item.getChildren()){
-                expandTreeView(child);
-            }
-        }
-    }
-
-    /**
-     * Recursive collapse branch items
-     * @param item Tree item for branches collapse
-     */
-    private void collapseTreeView(TreeItem<?> item){
-        if(item != null && !item.isLeaf()){
-            item.setExpanded(false);
-            for(TreeItem<?> child:item.getChildren()){
-                collapseTreeView(child);
-            }
-        }
+        TreeHelper.setExpandedEx(tree_view, false);
     }
 }

@@ -55,6 +55,19 @@ public class TreeHelper
             setExpanded(root, expand);
     }
 
+    /** Expand or collapse complete tree, but not the Root item
+    *
+    *  @param tree {@link TreeView}
+    *  @param expand Expand or collapse?
+    */
+   public static void setExpandedEx(final TreeView<?> tree, final boolean expand)
+   {
+       final TreeItem<?> root = tree.getRoot();
+       if (root != null)
+           for (TreeItem<?> item : root.getChildren())
+               setExpanded(item, expand);
+   }
+
     /** Expand or collapse complete sub tree
      *
      *  @param node Node from which on to expand
