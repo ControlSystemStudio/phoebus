@@ -13,8 +13,8 @@ import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.control.MenuItem;
 
-/** Menu entry for selecting widgets by name
- *  @author Kay Kasemir
+/** Menu entry for collapsing tree items
+ *  @author Pavel Charvat
  */
 @SuppressWarnings("nls")
 public class CollapseTreeAction extends MenuItem
