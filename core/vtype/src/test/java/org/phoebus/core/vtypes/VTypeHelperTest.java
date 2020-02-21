@@ -4,9 +4,8 @@ import static org.junit.Assert.*;
 
 import org.epics.util.array.ArrayDouble;
 import org.epics.util.array.ArrayInteger;
-import org.epics.util.array.IteratorNumber;
-import org.epics.util.array.ListNumber;
 import org.epics.vtype.EnumDisplay;
+import org.epics.vtype.VBoolean;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VEnum;
@@ -23,7 +22,6 @@ import org.epics.vtype.Display;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import javax.print.DocFlavor.STRING;
 import java.time.Instant;
 import java.util.Arrays;
 
@@ -63,6 +61,11 @@ public class VTypeHelperTest {
 
         result = VTypeHelper.toDouble(enumArray);
         assertEquals(0.0, result, 0);
+
+        VBoolean booleanValue = VBoolean.of(true, Alarm.none(), Time.now());
+        assertEquals(1.0, VTypeHelper.toDouble(booleanValue), 0);
+        booleanValue = VBoolean.of(false, Alarm.none(), Time.now());
+        assertEquals(0.0, VTypeHelper.toDouble(booleanValue), 0);
     }
 
     @Test
@@ -85,18 +88,28 @@ public class VTypeHelperTest {
         assertEquals(Double.NaN, result, 0);
     }
 
-    @Test(expected = ArrayIndexOutOfBoundsException.class)
+    @Test
     public void testArrayToDoubleWithInvalidIndex1(){
         VDoubleArray doubleArray =
                 VDoubleArray.of(ArrayDouble.of(7.7, 8.8), Alarm.none(), Time.now(), Display.none());
-        VTypeHelper.toDouble(doubleArray, 7);
+        double result = VTypeHelper.toDouble(doubleArray, 7);
+        assertEquals(result, Double.NaN, 0);
     }
 
-    @Test(expected = ArrayIndexOutOfBoundsException.class)
+    @Test
     public void testArrayToDoubleWithInvalidIndex2(){
         VEnumArray enumArray =
                 VEnumArray.of(ArrayInteger.of(0, 1), EnumDisplay.of("a", "b"), Alarm.none(), Time.now());
-        VTypeHelper.toDouble(enumArray, 7);
+        double result = VTypeHelper.toDouble(enumArray, 7);
+        assertEquals(result, Double.NaN, 0);
+    }
+
+    @Test
+    public void testArrayToDoubleWithInvalidIndex3(){
+        VDoubleArray doubleArray =
+                VDoubleArray.of(ArrayDouble.of(7.7, 8.8), Alarm.none(), Time.now(), Display.none());
+        double result = VTypeHelper.toDouble(doubleArray, -1);
+        assertEquals(result, Double.NaN, 0);
     }
 
     @Test
@@ -116,22 +129,22 @@ public class VTypeHelperTest {
 
     @Test
     public void testGetString(){
-        assertNull(VTypeHelper.getString(null));
+        assertEquals("null", VTypeHelper.toString(null));
 
         VTable table = VTable.of(Arrays.asList(VDouble.class),
                 Arrays.asList("name"),
                 Arrays.asList(ArrayDouble.of(7.7)));
-        assertNotNull(VTypeHelper.getString(table));
+        assertNotNull(VTypeHelper.toString(table));
 
         VDouble vDouble = VDouble.of(7.7, Alarm.disconnected(), Time.now(), Display.none());
-        assertNull(VTypeHelper.getString(vDouble));
+        assertNull(VTypeHelper.toString(vDouble));
         vDouble = VDouble.of(7.7, Alarm.none(), Time.now(), Display.none());
-        assertEquals("7.7", VTypeHelper.getString(vDouble));
+        assertEquals("7.7", VTypeHelper.toString(vDouble));
 
         VEnum enumValue = VEnum.of(0, EnumDisplay.of("a", "b"), Alarm.none(), Time.now());
-        assertEquals("a", VTypeHelper.getString(enumValue));
+        assertEquals("a", VTypeHelper.toString(enumValue));
 
-        assertEquals("b", VTypeHelper.getString(VString.of("b", Alarm.none(), Time.now())));
+        assertEquals("b", VTypeHelper.toString(VString.of("b", Alarm.none(), Time.now())));
     }
 
     @Test
@@ -194,13 +207,52 @@ public class VTypeHelperTest {
     }
 
     @Test
-    @Ignore
+    public void testTransformTimestamp(){
+        Instant instant = Instant.now();
+
+        VInt intValue =
+                VInt.of(7, Alarm.none(), Time.of(Instant.EPOCH), Display.none());
+        intValue = (VInt)VTypeHelper.transformTimestamp(intValue, instant);
+        assertEquals(instant, intValue.getTime().getTimestamp());
+
+        VDouble doubleValue = VDouble.of(7.7, Alarm.none(), Time.of(Instant.EPOCH), Display.none());
+        doubleValue = (VDouble)VTypeHelper.transformTimestamp(doubleValue, instant);
+        assertEquals(instant, doubleValue.getTime().getTimestamp());
+
+        VString stringValue = VString.of("test", Alarm.none(), Time.of(Instant.EPOCH));
+        stringValue = (VString)VTypeHelper.transformTimestamp(stringValue, instant);
+        assertEquals(instant, stringValue.getTime().getTimestamp());
+
+        VEnum enumValue = VEnum.of(7, EnumDisplay.of("a", "b"), Alarm.none(), Time.now());
+        enumValue = (VEnum)VTypeHelper.transformTimestamp(enumValue, instant);
+        assertEquals(instant, enumValue.getTime().getTimestamp());
+
+        VDoubleArray doubleArray =
+                VDoubleArray.of(ArrayDouble.of(7.7, 8.8), Alarm.none(), Time.now(), Display.none());
+        doubleArray = (VDoubleArray)VTypeHelper.transformTimestamp(doubleArray, instant);
+        assertEquals(instant, doubleArray.getTime().getTimestamp());
+
+        VEnumArray enumArray =
+                VEnumArray.of(ArrayInteger.of(0, 1), EnumDisplay.of("a", "b"), Alarm.none(), Time.now());
+
+        assertNull(VTypeHelper.transformTimestamp(enumArray, instant));
+    }
+
+
+    @Test
     public void highestAlarmOf() {
         VType arg1 = VInt.of(0, Alarm.none(), Time.now(), Display.none());
         VType arg2 = VInt.of(0, Alarm.lolo(), Time.now(), Display.none());
 
-        assertTrue("Failed to correctly calculate highest alarm expected LOLO, got : " + VTypeHelper.highestAlarmOf(arg1, arg2),
-                Alarm.lolo().equals(VTypeHelper.highestAlarmOf(arg1, arg2)));
+        Alarm alarm =  VTypeHelper.highestAlarmOf(arg1, arg2);
+
+        assertTrue("Failed to correctly calculate highest alarm expected LOLO, got : " + alarm,
+                Alarm.lolo().equals(alarm));
+
+    }
+
+    @Test
+    public void testGetSeverity(){
 
     }
 }

@@ -29,7 +29,7 @@ public class AddNode extends AbstractBinaryNode
     {
         if (a instanceof VString  ||  b instanceof VString)
         {
-            final String result = VTypeHelper.getString(a) + VTypeHelper.getString(b);
+            final String result = VTypeHelper.toString(a) + VTypeHelper.toString(b);
             return VString.of(result, alarm, time);
         }
         return super.calc(a, b, alarm, time);

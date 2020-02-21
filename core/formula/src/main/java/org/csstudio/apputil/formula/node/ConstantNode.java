@@ -58,7 +58,7 @@ public class ConstantNode implements Node
     public String toString()
     {
         if (value instanceof VString)
-            return "\"" + VTypeHelper.getString(value).replace("\"", "\\\"") + "\"";
+            return "\"" + VTypeHelper.toString(value).replace("\"", "\\\"") + "\"";
         else
             return Double.toString(VTypeHelper.toDouble(value));
     }

@@ -10,7 +10,9 @@ package org.phoebus.core.vtypes;
 import org.epics.util.array.ListInteger;
 import org.epics.util.array.ListNumber;
 import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.Time;
+import org.epics.vtype.VBoolean;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VEnum;
@@ -48,6 +50,9 @@ public class VTypeHelper
                 // Ignore
                 return Double.NaN;
             }
+        }
+        if (value instanceof VBoolean) {
+            return ((VBoolean) value).getValue() ? 1.0 : 0.0;
         }
         if (value instanceof VEnum) {
             return ((VEnum) value).getIndex();
@@ -90,8 +95,11 @@ public class VTypeHelper
     /** @param value {@link VType}
      *  @return Value as String
      */
-    public static String getString(final VType value)
+    public static String toString(final VType value)
     {
+        if (value == null) {
+            return "null";
+        }
         if (isDisconnected(value)) {
             return null;
         }
@@ -101,7 +109,7 @@ public class VTypeHelper
         if (value instanceof VEnum) {
             return ((VEnum) value).getValue();
         }
-        else if (value instanceof VString) {
+        if (value instanceof VString) {
             return ((VString) value).getValue();
         }
         // Else: Hope that value somehow represents itself
@@ -111,18 +119,27 @@ public class VTypeHelper
     /** Read number by array index from array {@link VType}
      *
      *  @param value Value
-     *  @param i Array index
-     *  @return double or NaN
-     *  @throws IndexOutOfBoundsException for invalid index
+     *  @param index Array index
+     *  @return The double value at the specified index, or NaN if the index is invalid.
      */
-    public static double toDouble(final VType value, final int i)
+    public static double toDouble(final VType value, final int index)
     {
+        if(index < 0){
+            return Double.NaN;
+        }
         if (value instanceof VNumberArray)
         {
-            return ((VNumberArray) value).getData().getDouble(i);
+            final ListNumber data = ((VNumberArray) value).getData();
+            if (index < data.size()) {
+                return data.getDouble(index);
+            }
         }
-        if (value instanceof VEnumArray) {
-            return ((VEnumArray) value).getIndexes().getDouble(i);
+        if (value instanceof VEnumArray)
+        {
+            final ListNumber data = ((VEnumArray) value).getIndexes();
+            if (index < data.size()) {
+                return data.getDouble(index);
+            }
         }
         return Double.NaN;
     }
@@ -167,9 +184,7 @@ public class VTypeHelper
      */
     public static Alarm highestAlarmOf(final VType a, VType b)
     {
-        return Alarm.highestAlarmOf(java.util.List.of(Alarm.alarmOf(a),
-                                            Alarm.alarmOf(b)),
-                                    false);
+        return Alarm.highestAlarmOf(java.util.List.of(a, b), false);
     }
 
     /** @param a {@link VType}
@@ -243,42 +258,28 @@ public class VTypeHelper
         return transformTimestamp(value, Instant.now());
     }
 
-    /** Format value as string
-     *  @param value {@link VType}
-     *  @return String representation
-     */
-    final public static String toString(final VType value)
-    {
-        if (value instanceof VNumber)
-            return ((VNumber)value).getValue().toString();
-        if (value instanceof VEnum)
-        {
-            try
-            {
-                return ((VEnum)value).getValue();
-            }
-            catch (ArrayIndexOutOfBoundsException ex)
-            {    // PVManager doesn't handle enums that have no label
-                return "<enum " + ((VEnum)value).getIndex() + ">";
-            }
-        }
-        if (value instanceof VString)
-            return ((VString)value).getValue();
-        if (value == null)
-            return "null";
-        return value.toString();
-    }
-
     public static boolean isDisconnected(final VType value)
     {
         if (value == null)
+        {
             return true;
+        }
 
         // VTable does not implement alarm,
         // but receiving a table means we're not disconnected
         if (value instanceof VTable)
+        {
             return false;
+        }
         final Alarm alarm = Alarm.alarmOf(value);
         return Alarm.disconnected().equals(alarm);
+    }
+
+    public static AlarmSeverity getSeverity(final VType value)
+    {
+        final Alarm alarm = Alarm.alarmOf(value);
+        if (alarm == null)
+            return AlarmSeverity.UNDEFINED;
+        return alarm.getSeverity();
     }
 }

@@ -22,8 +22,8 @@ import org.phoebus.applications.pvtable.Settings;
 import org.phoebus.applications.pvtable.model.PVTableItem;
 import org.phoebus.applications.pvtable.model.PVTableModel;
 import org.phoebus.applications.pvtable.model.PVTableModelListener;
-import org.phoebus.applications.pvtable.model.VTypeHelper;
 import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.security.authorization.AuthorizationService;
@@ -77,6 +77,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.converter.DefaultStringConverter;
+
 
 /** PV Table and its toolbar
  *  @author Kay Kasemir

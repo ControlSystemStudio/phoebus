@@ -346,13 +346,13 @@ public class WaveformView extends VBox
                     final int size = value instanceof VNumberArray ? ((VNumberArray)value).getData().size() : 1;
                     if (size > max_size)
                         max_size = size;
-                    timestampText = TimestampFormats.MILLI_FORMAT.format(VTypeHelper.getTimestamp(value));
-                    statusText = MessageFormat.format(Messages.SeverityStatusFmt, VTypeHelper.getSeverity(value).toString(), VTypeHelper.getMessage(value));
+                    timestampText = TimestampFormats.MILLI_FORMAT.format(org.phoebus.core.vtypes.VTypeHelper.getTimestamp(value));
+                    statusText = MessageFormat.format(Messages.SeverityStatusFmt, org.phoebus.core.vtypes.VTypeHelper.getSeverity(value).toString(), VTypeHelper.getMessage(value));
                 }
                 else
                 {
-                    timestampText += "; " + TimestampFormats.MILLI_FORMAT.format(VTypeHelper.getTimestamp(value));
-                    statusText += "; " + MessageFormat.format(Messages.SeverityStatusFmt, VTypeHelper.getSeverity(value).toString(), VTypeHelper.getMessage(value));
+                    timestampText += "; " + TimestampFormats.MILLI_FORMAT.format(org.phoebus.core.vtypes.VTypeHelper.getTimestamp(value));
+                    statusText += "; " + MessageFormat.format(Messages.SeverityStatusFmt, org.phoebus.core.vtypes.VTypeHelper.getSeverity(value).toString(), VTypeHelper.getMessage(value));
                 }
             }
 

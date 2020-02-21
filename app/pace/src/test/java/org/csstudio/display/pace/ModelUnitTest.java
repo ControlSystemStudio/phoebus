@@ -179,7 +179,7 @@ public class ModelUnitTest
         final Semaphore have_pv_update = new Semaphore(0);
         final Disposable subscription = pv.onValueEvent().subscribe(value ->
         {
-            System.out.println("PV: " + VTypeHelper.getString(value));
+            System.out.println("PV: " + VTypeHelper.toString(value));
             have_pv_update.release();
         });
 
@@ -203,7 +203,7 @@ public class ModelUnitTest
         model.getInstances().get(0).getCell(0).setUserValue("6.28");
         assertTrue(model.isEdited());
         // PV and original value are unchanged, but cell shows the user data
-        assertThat(VTypeHelper.getString(pv.read()), equalTo("3.14"));
+        assertThat(VTypeHelper.toString(pv.read()), equalTo("3.14"));
         assertThat(model.getInstances().get(0).getCell(0).getCurrentValue(), equalTo("3.14"));
         assertThat(model.getInstances().get(0).getCell(0).getObservable().getValue(), equalTo("6.28"));
 
@@ -211,7 +211,7 @@ public class ModelUnitTest
         have_pv_update.drainPermits();
         model.saveUserValues("test");
         assertTrue(have_pv_update.tryAcquire(2, TimeUnit.SECONDS));
-        assertThat(VTypeHelper.getString(pv.read()), equalTo("6.28"));
+        assertThat(VTypeHelper.toString(pv.read()), equalTo("6.28"));
         // Model is still 'edited' because we didn't revert nor clear
         assertTrue(model.isEdited());
 
@@ -220,7 +220,7 @@ public class ModelUnitTest
         have_pv_update.drainPermits();
         model.revertOriginalValues();
         assertTrue(have_pv_update.tryAcquire(2, TimeUnit.SECONDS));
-        assertThat(VTypeHelper.getString(pv.read()), equalTo("3.14"));
+        assertThat(VTypeHelper.toString(pv.read()), equalTo("3.14"));
 
         // Reverting PVs to the original values means
         // the model receives these updates,
@@ -243,12 +243,12 @@ public class ModelUnitTest
         assertTrue(model.isEdited());
 
         // Write model to PVs, submit
-        assertThat(VTypeHelper.getString(pv.read()), equalTo("3.14"));
+        assertThat(VTypeHelper.toString(pv.read()), equalTo("3.14"));
         model.saveUserValues("test");
         model.clearUserValues();
         assertFalse(model.isEdited());
         assertTrue(have_pv_update.tryAcquire(2, TimeUnit.SECONDS));
-        assertThat(VTypeHelper.getString(pv.read()), equalTo("10.0"));
+        assertThat(VTypeHelper.toString(pv.read()), equalTo("10.0"));
 
         model.stop();
 

@@ -91,7 +91,7 @@ public class PVSamples extends PlotSamples
         if (raw <= 0)
             return raw;
         final PlotSample last = get(raw-1);
-        if (VTypeHelper.getSeverity(last.getVType()) == AlarmSeverity.UNDEFINED)
+        if (org.phoebus.core.vtypes.VTypeHelper.getSeverity(last.getVType()) == AlarmSeverity.UNDEFINED)
             return raw;
         // Last sample is valid, so it should still apply 'now'
         return raw+1;
@@ -197,7 +197,7 @@ public class PVSamples extends PlotSamples
     }
 
     /** Add another 'live' sample
-     *  @param value 'Live' sample
+     *  @param sample 'Live' sample
      */
     public void addLiveSample(final PlotSample sample)
     {
@@ -207,7 +207,7 @@ public class PVSamples extends PlotSamples
         {
             // Skip the initial UNDEFINED/Disconnected sample sent by PVManager
             if (live.size() == 0  &&
-                VTypeHelper.getSeverity(sample.getVType()) == AlarmSeverity.UNDEFINED)
+                org.phoebus.core.vtypes.VTypeHelper.getSeverity(sample.getVType()) == AlarmSeverity.UNDEFINED)
                 return;
             live.add(sample);
             // History ends before the start of 'live' samples.

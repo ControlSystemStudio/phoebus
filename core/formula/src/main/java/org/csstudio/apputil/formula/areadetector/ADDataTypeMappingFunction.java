@@ -46,7 +46,7 @@ public class ADDataTypeMappingFunction implements FormulaFunction {
 
         if (VTypeHelper.isNumericArray(args[0])) {
             VNumberArray data = (VNumberArray) args[0];
-            String dataType = VTypeHelper.getString(args[1]);
+            String dataType = VTypeHelper.toString(args[1]);
             switch (dataType) {
             case "UInt8":
                 int[] newUInt8Data = new int[data.getData().size()];

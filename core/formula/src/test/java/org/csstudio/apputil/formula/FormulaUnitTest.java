@@ -360,7 +360,7 @@ public class FormulaUnitTest
     {
         // String with escaped quotes: ``Hello, "Dolly!"``
         Formula f = new Formula("\"Hello, \\\"Dolly!\\\"\"");
-        assertEquals("Hello, \"Dolly!\"", VTypeHelper.getString(f.eval()));
+        assertEquals("Hello, \"Dolly!\"", VTypeHelper.toString(f.eval()));
 
         try
         {
@@ -374,6 +374,6 @@ public class FormulaUnitTest
 
 
         f = new Formula("\"Hello, \" + \"World\"");
-        assertEquals("Hello, World", VTypeHelper.getString(f.eval()));
+        assertEquals("Hello, World", VTypeHelper.toString(f.eval()));
     }
 }

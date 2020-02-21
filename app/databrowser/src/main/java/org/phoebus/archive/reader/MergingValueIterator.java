@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.time.Instant;
 
 import org.epics.vtype.VType;
-import org.phoebus.archive.vtype.VTypeHelper;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 /** Merge values from several <code>ValueIterator</code> based on time stamps
  *  @author Kay Kasemir

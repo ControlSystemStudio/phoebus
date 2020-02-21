@@ -319,25 +319,25 @@ public class Cell
 
     private void updateValue(final VType value)
     {
-        current_value = VTypeHelper.getString(value);
+        current_value = VTypeHelper.toString(value);
         instance.getModel().fireCellUpdate(this);
     }
 
     private void updateLastName(final VType value)
     {
-        last_name = VTypeHelper.getString(value);
+        last_name = VTypeHelper.toString(value);
         instance.getModel().fireCellUpdate(this);
     }
 
     private void updateLastDate(final VType value)
     {
-        last_date = VTypeHelper.getString(value);
+        last_date = VTypeHelper.toString(value);
         instance.getModel().fireCellUpdate(this);
     }
 
     private void updateLastComment(final VType value)
     {
-        last_comment = VTypeHelper.getString(value);
+        last_comment = VTypeHelper.toString(value);
         instance.getModel().fireCellUpdate(this);
     }
 

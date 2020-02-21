@@ -35,6 +35,8 @@ import org.phoebus.applications.alarm.server.actions.AutomatedActionsHelper;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 
+import org.phoebus.core.vtypes.VTypeHelper;
+
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.disposables.Disposable;
 
@@ -396,8 +398,8 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         }
         // Inspect alarm state of received value
         is_connected = true;
-        final SeverityLevel new_severity = VTypeHelper.decodeSeverity(value);
-        final String new_message = VTypeHelper.getStatusMessage(value);
+        final SeverityLevel new_severity = SeverityLevelHelper.decodeSeverity(value);
+        final String new_message = SeverityLevelHelper.getStatusMessage(value);
         final AlarmState received = new AlarmState(new_severity, new_message,
                                                    VTypeHelper.toString(value),
                                                    VTypeHelper.getTimestamp(value));
