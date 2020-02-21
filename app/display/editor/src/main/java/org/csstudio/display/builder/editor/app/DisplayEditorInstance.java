@@ -140,6 +140,7 @@ public class DisplayEditorInstance implements AppInstance
         final ActionWapper delete = new ActionWapper(ActionDescription.DELETE);
         final ActionWapper cut = new ActionWapper(ActionDescription.CUT);
         final ActionWapper copy = new ActionWapper(ActionDescription.COPY);
+        final ActionWapper duplicate = new ActionWapper(ActionDescription.DUPLICATE);
         final MenuItem copy_properties = new CopyPropertiesAction(editor_gui.getDisplayEditor(), selection);
         final MenuItem paste_properties = new PastePropertiesAction(editor_gui.getDisplayEditor(), selection);
         final MenuItem group = new CreateGroupAction(editor_gui.getDisplayEditor(), selection);
@@ -151,6 +152,7 @@ public class DisplayEditorInstance implements AppInstance
             delete.setDisable(true);
             cut.setDisable(true);
             copy.setDisable(true);
+            duplicate.setDisable(true);
             // OK to create (resp. 'start') a group with just one widget.
             // Even better when there's more than one widget.
             group.setDisable(true);
@@ -201,6 +203,7 @@ public class DisplayEditorInstance implements AppInstance
         menu.getItems().setAll(delete,
                                cut,
                                copy,
+                               duplicate,
                                new PasteWidgets(getEditorGUI()),
                                copy_properties,
                                paste_properties,
