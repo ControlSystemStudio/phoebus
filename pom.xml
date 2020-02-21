@@ -7,7 +7,7 @@
   <name>phoebus (parent)</name>
 
   <scm>
-    <developerConnection>scm:git:https://github.com/shroffk/phoebus</developerConnection>
+    <developerConnection>scm:git:https://github.com/ControlSystemStudio/phoebus</developerConnection>
     <tag>HEAD</tag>
   </scm>
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -35,6 +35,8 @@ public class PVProposalService extends ProposalService
             providers.add(PvaProposalProvider.INSTANCE);
         if (prefs.getBoolean("enable_mqtt_pv_proposals"))
             providers.add(MqttProposalProvider.INSTANCE);
+        if (prefs.getBoolean("enable_formula_proposals"))
+            providers.add(FormulaProposalProvider.INSTANCE);
 
         // Use SPI to add site-specific PV name providers
         for (PVProposalProvider add : ServiceLoader.load(PVProposalProvider.class))

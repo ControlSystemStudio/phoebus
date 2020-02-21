@@ -30,3 +30,9 @@ org.csstudio.apputil.formula.areadetector.ADDataTypeMappingFunction
 
 # String
 org.csstudio.apputil.formula.string.StringFunction
+
+# Array functions
+org.csstudio.apputil.formula.array.RescaleArrayFormulaFunction
+
+# Alarm
+org.csstudio.apputil.formula.alarm.HighestSeverityFunction

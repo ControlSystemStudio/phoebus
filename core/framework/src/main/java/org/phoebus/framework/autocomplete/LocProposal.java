@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -144,6 +144,10 @@ public class LocProposal extends Proposal
     @Override
     public List<MatchSegment> getMatch(final String text)
     {
+        // Don't bother looking for '<type>' or '(initial)' when it's not a loc:// PV
+        if (! text.startsWith("loc"))
+            return List.of(MatchSegment.normal(getDescription()));
+
         // Does text contain parameters?
         final List<String> split = splitNameTypeAndInitialValues(text);
         if (split.size() < 1)

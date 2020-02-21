@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -73,6 +73,12 @@ public class RDBInfo
         return dialect;
     }
 
+    /** @return user */
+    public String getUser()
+    {
+        return user;
+    }
+
     /** Create a new {@link Connection} */
     public Connection connect() throws Exception
     {
@@ -118,7 +124,16 @@ public class RDBInfo
         // Unless connection was created by dialect-specific code,
         // use generic driver manager
         if (connection == null)
-            connection = DriverManager.getConnection(url, prop);
+        {
+            try
+            {
+                connection = DriverManager.getConnection(url, prop);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Cannot connect to " + url + " as " + user, ex);
+            }
+        }
 
         // Basic database info
         if (logger.isLoggable(Level.FINE))

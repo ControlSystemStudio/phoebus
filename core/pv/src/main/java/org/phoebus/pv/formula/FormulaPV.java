@@ -83,12 +83,11 @@ public class FormulaPV extends PV
     protected void close()
     {
         // Close variable PVs
-        for (FormulaInput input : inputs)
-        {
-            // Input may be null for formulas that failed to initialize
-            if (input != null)
-                input.close();
-        }
+        // Inputs or individual input may be null for formulas that failed to initialize
+        if (inputs != null)
+            for (FormulaInput input : inputs)
+                if (input != null)
+                    input.close();
         inputs = null;
     }
 }

@@ -40,7 +40,7 @@ public class DirectChoiceBoxTableCell<S, T> extends TableCell<S, T>
         // but that resulted in high CPU usage deep inside JFX code
         // when choices were added or removed while the choice box is
         // in a table cell.
-        // https://github.com/shroffk/phoebus/issues/1015
+        // https://github.com/ControlSystemStudio/phoebus/issues/1015
         //
         // ComboBox doesn't have that problem,
         // and with transparent background it looks like the choice box
