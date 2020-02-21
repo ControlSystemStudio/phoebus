@@ -503,4 +503,20 @@ public class WidgetTree
     {
         return tree_view.editingItemProperty().get() != null;
     }
+
+    /**
+     * Expand all levels of the view
+     */
+    public void expandAllTreeItems()
+    {
+        TreeHelper.setExpandedEx(tree_view, true);
+    }
+
+    /**
+     * Collapse all levels of the view
+     */
+    public void collapseAllTreeItems()
+    {
+        TreeHelper.setExpandedEx(tree_view, false);
+    }
 }

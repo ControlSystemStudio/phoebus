@@ -25,6 +25,7 @@ public class Messages
     public static String AlignMiddle;
     public static String AlignRight;
     public static String AlignTop;
+    public static String CollapseTree;
     public static String Copy;
     public static String CreateGroup;
     public static String Cut;
@@ -35,9 +36,11 @@ public class Messages
     public static String Distribute;
     public static String DistributeHorizontally;
     public static String DistributeVertically;
+    public static String Duplicate;
     public static String DownloadPromptFMT;
     public static String DownloadTitle;
     public static String EditEmbededDisplay;
+    public static String ExpandTree;
     public static String FileChangedHdr;
     public static String FileChangedDlg;
     public static String FindWidget;

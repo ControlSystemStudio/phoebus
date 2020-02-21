@@ -47,6 +47,17 @@ public abstract class ActionDescription
         }
     };
 
+    /** Duplicate selected widgets */
+    public static final ActionDescription DUPLICATE =
+        new ActionDescription("icons/duplicate.png", Messages.Duplicate + " [" + PlatformInfo.SHORTCUT + "-D]")
+    {
+        @Override
+        public void run(final DisplayEditor editor, final boolean selected)
+        {
+            editor.duplicateWidgets();
+        }
+    };
+
     /** Delete selected widgets */
     public static final ActionDescription DELETE =
         new ActionDescription("icons/delete.png", Messages.Delete + " [Delete]")
