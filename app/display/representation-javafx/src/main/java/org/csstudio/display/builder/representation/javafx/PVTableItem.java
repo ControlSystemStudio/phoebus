@@ -10,6 +10,10 @@ package org.csstudio.display.builder.representation.javafx;
 
 import javafx.event.Event;
 import javafx.scene.control.*;
+import javafx.scene.control.TableColumn.CellEditEvent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+
 import org.csstudio.display.builder.model.properties.ScriptPV;
 import org.phoebus.ui.autocomplete.AutocompleteMenu;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
@@ -73,6 +77,15 @@ public class PVTableItem {
             this.focusedOnCommit = focusedOnCommit;
 
             setAlignment(Pos.CENTER_LEFT);
+            
+            this.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+                if (event.getCode() == KeyCode.ESCAPE) {
+                    System.out.println("ESC in EditCell calling cancelEdit");
+                    textField.setText(getItem());
+                    cancelEdit();
+                    event.consume();
+                }
+            });
         }
 
         @Override
@@ -85,11 +98,11 @@ public class PVTableItem {
         @Override
         public void commitEdit ( String newValue ) {
             if (!isEditing() && !newValue.equals(getItem())) {
-                TableView table = getTableView();
+                TableView<PVTableItem> table = getTableView();
                 if (table != null) {
-                    TableColumn column = getTableColumn();
-                    TableColumn.CellEditEvent event = new TableColumn.CellEditEvent(table,
-                            new TablePosition(table, getIndex(), column),
+                    TableColumn<PVTableItem, String> column = getTableColumn();
+                    TableColumn.CellEditEvent<PVTableItem, String> event = new CellEditEvent<PVTableItem, String>(table,
+                            new TablePosition<PVTableItem, String>(table, getIndex(), column),
                             TableColumn.editCommitEvent(), newValue);
                     Event.fireEvent(column, event);
                 }
