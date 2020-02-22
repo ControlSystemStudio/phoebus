@@ -24,7 +24,7 @@
 
 @java -version
 
-@set V=4.6.0
+@set V=4.6.1
 
 @IF EXIST product-%V%.jar (
   SET JAR=product-%V%.jar
