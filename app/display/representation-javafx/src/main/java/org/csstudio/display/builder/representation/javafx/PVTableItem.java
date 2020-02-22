@@ -80,7 +80,6 @@ public class PVTableItem {
             
             this.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
                 if (event.getCode() == KeyCode.ESCAPE) {
-                    System.out.println("ESC in EditCell calling cancelEdit");
                     textField.setText(getItem());
                     cancelEdit();
                     event.consume();
