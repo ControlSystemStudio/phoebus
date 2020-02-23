@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -580,6 +580,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
                 {
                     getDevice(device_status.get()).write("");
                     ScanCommandUtil.write(this, device_state.get(), getScanState().ordinal(), true, true, device_state.get(), 0.1, timeout);
+                    logger.log(Level.INFO, this + " sets "  + device_state.get() + " = " + getScanState());
                     getDevice(device_finish.get()).write(TimestampFormats.MILLI_FORMAT.format(Instant.now()));
                     ScanCommandUtil.write(this, device_progress.get(), Double.valueOf(100.0));
                     // Update to "anything else running?"
