@@ -97,7 +97,7 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         {
             // Try display range from PV
             final org.epics.vtype.Display display_info = Display.displayOf(vtype);
-            if (display_info != null)
+            if (display_info != null && display_info.getDisplayRange().isFinite())
             {
                 min_val = display_info.getDisplayRange().getMinimum();
                 max_val = display_info.getDisplayRange().getMaximum();
