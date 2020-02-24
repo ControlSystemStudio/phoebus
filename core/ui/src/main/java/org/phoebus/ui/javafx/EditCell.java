@@ -11,6 +11,8 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.util.StringConverter;
 import javafx.scene.control.TableColumn.CellEditEvent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 
 public class EditCell<S, T> extends TableCell<S, T> {
     private final TextField textField = new TextField();
@@ -42,6 +44,14 @@ public class EditCell<S, T> extends TableCell<S, T> {
         this.textField.focusedProperty().addListener((o, b, n) -> {
             if (!n) {
                 commitEdit(this.converter.fromString(this.textField.getText()));
+            }
+        });
+        
+        this.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.ESCAPE) {
+                textField.setText(converter.toString(getItem()));
+                cancelEdit();
+                event.consume();
             }
         });
     }
