@@ -18,7 +18,7 @@ Historic Data
     samples to obtain data for time ranges 'before' the live sample
     buffer. You can configure one or more archive data source for each PV.
 
-.. image:: databrowser.png
+.. image:: images/databrowser.png
    :width: 80%
    :align: center
 
@@ -32,8 +32,8 @@ To create a new plot:
     invoke |add| ``Add PV``.
  3. Enter the desired PV name, press "OK".
 
-.. |databrowser| image:: icon_databrowser.png
-.. |add| image:: icon_add.png
+.. |databrowser| image:: images/icon_databrowser.png
+.. |add| image:: images/icon_add.png
 
 
 
@@ -44,7 +44,7 @@ Toolbar
 Open the plot's tool bar by right-clicking into the plot,
 then invoke |toolbar| ``Show Toolbar``.
 
-.. |toolbar| image:: icon_toolbar.png
+.. |toolbar| image:: images/icon_toolbar.png
 
 Stagger
 ^^^^^^^
@@ -55,7 +55,7 @@ In other words, all the traces of the first value axis will appear on top,
 followed by the traces on the second axis below,
 the traces on the third axis below the second axis and so on.
 
-.. |stagger| image:: icon_stagger.png
+.. |stagger| image:: images/icon_stagger.png
 
 
 Zooming
@@ -94,8 +94,8 @@ Finally, while the mouse pointer is within an axis or the plot,
 you can hold the ``Control`` key and then use the scroll wheel
 to zoom in or out of an axis or the plot.
 
-.. |zoom_in| image:: icon_zoom_in.png
-.. |zoom_out| image:: icon_zoom_out.png
+.. |zoom_in| image:: images/icon_zoom_in.png
+.. |zoom_out| image:: images/icon_zoom_out.png
 
 
 
@@ -105,7 +105,7 @@ Property Panel
 Open the plot's property panel by right-clicking into the plot,
 then invoke |properties| ``Open Properties Panel``.
 
-.. |properties| image:: icon_properties.png
+.. |properties| image:: images/icon_properties.png
 
 The panel allows you to configure each trace, the time axis, the value axes,
 and miscellaneous settings.
@@ -144,7 +144,7 @@ Some archive data sources may also provide the standard deviation,
 which will be represented as a pair of thinner lines,
 one above and one below the thicker average line.
 
-.. image:: optimized.png
+.. image:: images/optimized.png
    :width: 80%
    :align: center
 
@@ -163,7 +163,7 @@ data for a long time range your computer will eventually ran out of
 memory. The 'Raw Data' requests should therefore only be used when
 necessary because of shortcomings in the 'Optimized' algorithm.
 
-.. image:: raw.png
+.. image:: images/raw.png
    :width: 80%
    :align: center
 
@@ -187,8 +187,8 @@ until a new sample arrives.
 This reflects our assumption that the signal has not significantly changed
 until we receive a new sample.
 
- .. image:: stair.png
- .. image:: direct.png 
+ .. image:: images/stair.png
+ .. image:: images/direct.png 
 
 The alternate "Area (direct)" and "Single Line (direct)" Trace Types,
 shown to the right,
@@ -204,7 +204,7 @@ for spreadsheet programs or Matlab.
 Open the export panel by right-clicking into the plot,
 then invoke |export| ``Open Data Export Panel``.
 
-.. |export| image:: icon_export.png
+.. |export| image:: images/icon_export.png
 
 
 Time Range
