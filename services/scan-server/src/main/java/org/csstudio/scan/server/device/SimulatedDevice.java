@@ -13,7 +13,6 @@ import java.time.Duration;
 import java.util.logging.Level;
 
 import org.csstudio.scan.device.DeviceInfo;
-import org.csstudio.scan.device.VTypeHelper;
 import org.csstudio.scan.server.ScanServerInstance;
 import org.csstudio.scan.server.config.ScanConfig;
 import org.epics.vtype.Alarm;
@@ -21,6 +20,7 @@ import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 /** Simulated device
  *  @author Kay Kasemir
@@ -67,7 +67,6 @@ public class SimulatedDevice extends Device
     }
 
     /** Estimate how long a device will need to reach a desired value
-     *  @param device Device where change in value should be simulated
      *  @param desired_value Desired value of the device
      *  @return Estimated time in seconds for changing the device
      *  @throws Exception on error getting current value from the device

@@ -199,7 +199,7 @@ public class FormulaItem extends ModelItem
                 {
                     if (values[i] == null)
                         continue;
-                    final Instant sample_time = VTypeHelper.getTimestamp(values[i]);
+                    final Instant sample_time = org.phoebus.core.vtypes.VTypeHelper.getTimestamp(values[i]);
                     if (time == null  ||  sample_time.compareTo(time) < 0)
                         time = sample_time;
                 }
@@ -221,7 +221,7 @@ public class FormulaItem extends ModelItem
                         min[i] = val[i] = max[i] = Double.NaN;
                         have_min_max = false;
                     }
-                    else if (VTypeHelper.getTimestamp(values[i]).compareTo(time) <= 0)
+                    else if (org.phoebus.core.vtypes.VTypeHelper.getTimestamp(values[i]).compareTo(time) <= 0)
                     {   // Input is valid before-and-up-to 'time'
                         if (values[i] instanceof VStatistics)
                         {

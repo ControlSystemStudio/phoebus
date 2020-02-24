@@ -8,13 +8,13 @@
 package org.csstudio.apputil.formula.node;
 
 import org.csstudio.apputil.formula.Node;
-import org.csstudio.apputil.formula.VTypeHelper;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 /** One computational node.
  *  @author Kay Kasemir
@@ -58,8 +58,8 @@ public class ConstantNode implements Node
     public String toString()
     {
         if (value instanceof VString)
-            return "\"" + VTypeHelper.getString(value).replace("\"", "\\\"") + "\"";
+            return "\"" + VTypeHelper.toString(value).replace("\"", "\\\"") + "\"";
         else
-            return Double.toString(VTypeHelper.getDouble(value));
+            return Double.toString(VTypeHelper.toDouble(value));
     }
 }

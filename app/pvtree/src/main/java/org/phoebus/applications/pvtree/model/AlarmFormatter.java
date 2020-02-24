@@ -18,15 +18,8 @@ import org.phoebus.ui.vtype.FormatOptionHandler;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class VTypeHelper
+public class AlarmFormatter
 {
-    public static AlarmSeverity getSeverity(final VType value)
-    {
-        final Alarm alarm = Alarm.alarmOf(value);
-        if (alarm == null)
-            return AlarmSeverity.UNDEFINED;
-        return alarm.getSeverity();
-    }
 
     public static void appendAlarm(final StringBuilder buf, final VType value)
     {

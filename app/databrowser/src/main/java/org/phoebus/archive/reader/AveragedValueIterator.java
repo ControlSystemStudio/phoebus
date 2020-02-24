@@ -101,17 +101,17 @@ public class AveragedValueIterator implements ValueIterator
         if (base_value == null)
             return null;
         // Determine next multiple of averaging period
-        final Instant average_window_start = VTypeHelper.getTimestamp(base_value);
+        final Instant average_window_start = org.phoebus.core.vtypes.VTypeHelper.getTimestamp(base_value);
         final Instant average_window_end = TimestampHelper.roundUp(average_window_start, seconds);
         if (debug)
             System.out.println("Average until " + TimestampFormats.FULL_FORMAT.format(average_window_end));
         // Determine average over values within the window
         final StatisticsAccumulator stats = new StatisticsAccumulator();
         VType last_value = null;
-        AlarmSeverity severity = VTypeHelper.getSeverity(base_value);
+        AlarmSeverity severity = org.phoebus.core.vtypes.VTypeHelper.getSeverity(base_value);
         String status = VTypeHelper.getMessage(base_value);
         while (base_value != null &&
-               VTypeHelper.getTimestamp(base_value).compareTo(average_window_end) < 0)
+               org.phoebus.core.vtypes.VTypeHelper.getTimestamp(base_value).compareTo(average_window_end) < 0)
         {
             final Number num = getNumericValue(base_value);
             if (num != null)
@@ -124,9 +124,9 @@ public class AveragedValueIterator implements ValueIterator
                 // Value average
                 stats.add(num.doubleValue());
                 // Maximize the severity
-                if (isHigherSeverity(severity, VTypeHelper.getSeverity(base_value)))
+                if (isHigherSeverity(severity, org.phoebus.core.vtypes.VTypeHelper.getSeverity(base_value)))
                 {
-                    severity = VTypeHelper.getSeverity(base_value);
+                    severity = org.phoebus.core.vtypes.VTypeHelper.getSeverity(base_value);
                     status = VTypeHelper.getMessage(base_value);
                 }
                 // Load next base value

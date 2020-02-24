@@ -23,6 +23,8 @@ import org.phoebus.framework.jobs.NamedThreadFactory;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 
+import org.phoebus.core.vtypes.VTypeHelper;
+
 import io.reactivex.disposables.Disposable;
 
 /** Filter that computes alarm enablement from expression.

@@ -17,9 +17,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.csstudio.archive.engine.model.ArchiveChannel;
 import org.csstudio.archive.engine.model.BufferStats;
 import org.csstudio.archive.engine.model.SampleBuffer;
-import org.csstudio.archive.engine.model.VTypeHelper;
 import org.csstudio.archive.writer.rdb.TimestampHelper;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -1,26 +1,20 @@
 package org.csstudio.apputil.formula.string;
 
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.csstudio.apputil.formula.VTypeHelper;
 import org.csstudio.apputil.formula.spi.FormulaFunction;
-import org.epics.util.array.ArrayUInteger;
-import org.epics.util.array.ArrayULong;
 import org.epics.util.array.ListNumber;
 import org.epics.vtype.Alarm;
-import org.epics.vtype.Display;
 import org.epics.vtype.Time;
-import org.epics.vtype.VEnumArray;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 /**
  * A list of formula functions for string manipulations
  * @author Kunal Shroff
