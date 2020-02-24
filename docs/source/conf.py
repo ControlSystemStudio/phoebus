@@ -251,6 +251,7 @@ highlight_language = 'none'
 from os import walk, path
 import subprocess, shutil
 import sys, traceback
+from distutils.dir_util import copy_tree
 
 def createDocListing(rst_file, header, roots):
     area = rst_file.replace('.rst', '')
@@ -270,10 +271,13 @@ def createDocListing(rst_file, header, roots):
                         if filename == 'index.rst':
                             file = path.join(dirpath, filename)
                             out.write(".. include:: " + file + "\n")
-                        if filename.endswith('png') or filename.endswith('gif'):
-                            src = path.join(dirpath, filename)
-                            dst = path.join("../source")
-                            shutil.copy(src, dst)
+                    for dirname in dirnames:
+                        if dirname.endswith("images"):
+                            src = path.join(dirpath,dirname)
+                            dst = path.join("../source/images/")
+                            if(not os.path.isdir(dst)):
+                                os.mkdir(dst)
+                            copy_tree(src, dst)
 
 # Given a *_preferences.properties file,
 # look for "# Package xxx" to get the package name.
