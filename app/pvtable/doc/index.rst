@@ -9,7 +9,7 @@ where the current value differs from the snapshot.
 The configuration (PV names, saved value, saved date) can be saved and later re-loaded,
 see details on the file format described below.
 
-.. figure:: pv_table.png
+.. figure:: images/pv_table.png
    
     PV Table
 

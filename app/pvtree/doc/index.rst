@@ -46,11 +46,11 @@ Tool Bar Buttons
 |tree|
   Expand all sub-sections of the tree.
 
-.. |run| image:: icon_run.png
-.. |pause| image:: icon_pause_on_alarm.png
-.. |collapse| image:: icon_collapse.gif
-.. |alarmtree| image:: icon_alarmtree.png
-.. |tree| image:: icon_pvtree.png
+.. |run| image:: images/icon_run.png
+.. |pause| image:: images/icon_pause_on_alarm.png
+.. |collapse| image:: images/icon_collapse.gif
+.. |alarmtree| image:: images/icon_alarmtree.png
+.. |tree| image:: images/icon_pvtree.png
 
 
 Limitations
