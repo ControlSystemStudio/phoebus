@@ -252,8 +252,6 @@ from os import walk, path
 import subprocess, shutil
 import sys, traceback
 
-temporary_resources = []
-
 def createDocListing(rst_file, header, roots):
     area = rst_file.replace('.rst', '')
     with open('{}_links.rst'.format(area), 'w') as out:
@@ -275,8 +273,6 @@ def createDocListing(rst_file, header, roots):
                         if filename.endswith('png') or filename.endswith('gif'):
                             src = path.join(dirpath, filename)
                             dst = path.join("../source")
-                            print('copying image', src, dst)
-                            temporary_resources.append(filename)
                             shutil.copy(src, dst)
 
 # Given a *_preferences.properties file,
@@ -337,7 +333,6 @@ To use them in your settings file, remember to prefix each setting with the pack
 
         out.write("\n")
 
-print(os.getcwd())
 root = '../..'
 
 createDocListing('applications.rst', """Applications
@@ -356,6 +351,3 @@ The following sections describe available services.
 
 createPreferenceAppendix(root)
 
-# Remove the temporary resources that were moved into the sources for generating the build output
-for file in temporary_resources:
-    os.remove(file)
