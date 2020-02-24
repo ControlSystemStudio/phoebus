@@ -32,8 +32,8 @@ To create a new plot:
     invoke |add| ``Add PV``.
  3. Enter the desired PV name, press "OK".
 
-.. |databrowser| image:: ../src/main/resources/icons/databrowser.png
-.. |add| image:: ../src/main/resources/icons/add.png
+.. |databrowser| image:: icon_databrowser.png
+.. |add| image:: icon_add.png
 
 
 
@@ -44,7 +44,7 @@ Toolbar
 Open the plot's tool bar by right-clicking into the plot,
 then invoke |toolbar| ``Show Toolbar``.
 
-.. |toolbar| image:: ../../rtplot/src/main/resources/icons/toolbar.png
+.. |toolbar| image:: icon_toolbar.png
 
 Stagger
 ^^^^^^^
@@ -55,7 +55,7 @@ In other words, all the traces of the first value axis will appear on top,
 followed by the traces on the second axis below,
 the traces on the third axis below the second axis and so on.
 
-.. |stagger| image:: ../../rtplot/src/main/resources/icons/stagger.png
+.. |stagger| image:: icon_stagger.png
 
 
 Zooming
@@ -94,8 +94,8 @@ Finally, while the mouse pointer is within an axis or the plot,
 you can hold the ``Control`` key and then use the scroll wheel
 to zoom in or out of an axis or the plot.
 
-.. |zoom_in| image:: ../../rtplot/src/main/resources/icons/zoom_in.png
-.. |zoom_out| image:: ../../rtplot/src/main/resources/icons/zoom_out.png
+.. |zoom_in| image:: icon_zoom_in.png
+.. |zoom_out| image:: icon_zoom_out.png
 
 
 
@@ -105,7 +105,7 @@ Property Panel
 Open the plot's property panel by right-clicking into the plot,
 then invoke |properties| ``Open Properties Panel``.
 
-.. |properties| image:: ../src/main/resources/icons/properties.png
+.. |properties| image:: icon_properties.png
 
 The panel allows you to configure each trace, the time axis, the value axes,
 and miscellaneous settings.
@@ -204,7 +204,7 @@ for spreadsheet programs or Matlab.
 Open the export panel by right-clicking into the plot,
 then invoke |export| ``Open Data Export Panel``.
 
-.. |export| image:: ../src/main/resources/icons/export.png
+.. |export| image:: icon_export.png
 
 
 Time Range
