@@ -10,6 +10,8 @@
         <fileset dir="${dependencies}/phoebus-target/target/lib">
           <include name="*.jar"/>
         </fileset>
+        <pathelement path="../framework/${build}/core-framework-${version}.jar"/>
+        <pathelement path="../vtype/${build}/core-vtype-${version}.jar"/>
       </classpath>
     </javac>
     <jar destfile="${build}/core-formula-${version}.jar">
