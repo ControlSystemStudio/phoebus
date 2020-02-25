@@ -36,39 +36,7 @@ public class VTypeHelper
      */
     final public static double toDouble(final VType value)
     {
-        if (value instanceof VNumber)
-        {
-            return ((VNumber) value).getValue().doubleValue();
-        }
-        if (value instanceof VString){
-            try
-            {
-                return Double.parseDouble(((VString) value).getValue());
-            }
-            catch (NumberFormatException ex)
-            {
-                // Ignore
-                return Double.NaN;
-            }
-        }
-        if (value instanceof VBoolean) {
-            return ((VBoolean) value).getValue() ? 1.0 : 0.0;
-        }
-        if (value instanceof VEnum) {
-            return ((VEnum) value).getIndex();
-        }
-        if (value instanceof VStatistics) {
-            return ((VStatistics) value).getAverage();
-        }
-        if (value instanceof VNumberArray)
-        {
-            return toDouble(value, 0);
-        }
-        if (value instanceof VEnumArray)
-        {
-           return toDouble(value, 0);
-        }
-        return Double.NaN;
+        return toDouble(value, 0);
     }
 
 
@@ -119,22 +87,45 @@ public class VTypeHelper
     /** Read number by array index from array {@link VType}
      *
      *  @param value Value
-     *  @param index Array index
-     *  @return The double value at the specified index, or NaN if the index is invalid.
+     *  @param index Array index, must be >= 0 for array types.
+     *  @return The double value at the specified index, or NaN if the index is invalid. If the value is not of
+     *  array type, {@link #toDouble(VType)} is called;
+     *
      */
     public static double toDouble(final VType value, final int index)
     {
-        if(index < 0){
-            return Double.NaN;
+        if (value instanceof VNumber)
+        {
+            return ((VNumber) value).getValue().doubleValue();
         }
-        if (value instanceof VNumberArray)
+        if (value instanceof VString){
+            try
+            {
+                return Double.parseDouble(((VString) value).getValue());
+            }
+            catch (NumberFormatException ex)
+            {
+                // Ignore
+                return Double.NaN;
+            }
+        }
+        if (value instanceof VBoolean) {
+            return ((VBoolean) value).getValue() ? 1.0 : 0.0;
+        }
+        if (value instanceof VEnum) {
+            return ((VEnum) value).getIndex();
+        }
+        if (value instanceof VStatistics) {
+            return ((VStatistics) value).getAverage();
+        }
+        if (value instanceof VNumberArray && index >= 0)
         {
             final ListNumber data = ((VNumberArray) value).getData();
             if (index < data.size()) {
                 return data.getDouble(index);
             }
         }
-        if (value instanceof VEnumArray)
+        if (value instanceof VEnumArray && index >= 0)
         {
             final ListNumber data = ((VEnumArray) value).getIndexes();
             if (index < data.size()) {

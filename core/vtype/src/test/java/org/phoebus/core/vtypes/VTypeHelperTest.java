@@ -85,7 +85,7 @@ public class VTypeHelperTest {
 
         VDouble doubleValue = VDouble.of(7.7, Alarm.none(), Time.now(), Display.none());
         result = VTypeHelper.toDouble(doubleValue, 0);
-        assertEquals(Double.NaN, result, 0);
+        assertEquals(7.7, result, 0);
     }
 
     @Test
