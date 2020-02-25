@@ -1,4 +1,4 @@
-<project default="core-types">
+<project default="core-vtype">
   <import file="../../dependencies/ant_settings.xml"/>
 
   <target name="core-vtype">
@@ -8,7 +8,6 @@
         <fileset dir="${dependencies}/phoebus-target/target/lib">
           <include name="*.jar"/>
         </fileset>
-        <pathelement path="../framework/${build}/core-framework-${version}.jar"/>
       </classpath>
     </javac>
   	<jar destfile="${build}/core-vtype-${version}.jar">

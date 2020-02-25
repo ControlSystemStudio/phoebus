@@ -3,8 +3,5 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="src" output="target/classes" path="src/main/java"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/phoebus-target"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/core-framework"/>
-	<classpathentry exported="true" kind="lib" path="/phoebus-target/target/lib/epics-util-1.0.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="/phoebus-target/target/lib/vtype-1.0.1.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
