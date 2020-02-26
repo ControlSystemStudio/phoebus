@@ -137,6 +137,7 @@ public class FXTree
             menu.getItems().add(new SaveSnapshotAction(tree_view));
             menu.getItems().add(new SendEmailAction(tree_view, "PV Snapshot", () -> "See attached screenshot.", () -> Screenshot.imageFromNode(tree_view)));
             menu.getItems().add(new SendLogbookAction(tree_view, "PV Snapshot", () -> "See attached screenshot.", () -> Screenshot.imageFromNode(tree_view)));
+            menu.show(tree_view.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
         tree_view.setContextMenu(menu);
     }
