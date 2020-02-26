@@ -1,11 +1,14 @@
 Phoebus Documentation
 =====================
 
-Documentation for https://github.com/shroffk/phoebus
+Documentation for https://github.com/ControlSystemStudio/phoebus
 
-View latest snapshot at http://phoebus-doc.readthedocs.io
+View latest snapshot at https://control-system-studio.readthedocs.io
 
-To build local copy, you need to install sphinx
+You can build a local copy using a local installation of sphinx or with maven
+
+Option 1.
+You need to install sphinx
 ```
    # Standard way
    pip install Sphinx
@@ -19,21 +22,25 @@ Then build the web version:
    make clean html
 ```
 
-which creates document tree starting with `build/html/index.html`.
+Option 2.
+```
+   mvn verify -P sphinx -N
+```
+
+The above creates a document tree starting with `build/html/index.html`.
 
 As detailed below, the documentation includes components from the phoebus source code tree,
 which in turn may include generated HTML content.
 The complete documentation build process therefore is:
 ```
 # Obtain sources for Documentation and Product
-git clone https://github.com/kasemir/phoebus-doc.git
-git clone https://github.com/shroffk/phoebus.git
+git clone https://github.com/ControlSystemStudio/phoebus.git
 
 # Build the Javadoc, i.e. html files to be included in the manual
 ( cd phoebus/app/display/editor; ant -f javadoc.xml clean all )
 
 # Building the documentation
-( cd phoebus-doc; make clean html )
+( cd phoebus/doc; make clean html )
 ```
 
 When then building the Phoebus UI product, it will incude the document tree
@@ -45,7 +52,7 @@ Documentation Components
 
 1) Top-Level Documentation
 
-   The files in this repository, i.e. the files in `phoebus-doc/source`, starting with `index.rst`,
+   The files in this repository, i.e. the files in `phoebus/doc/source`, starting with `index.rst`,
    form the basis of the documentation tree, meant to provide the top-level documentation.
    
    For details on the `*.rst` file format, refer to the
