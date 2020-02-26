@@ -16,7 +16,7 @@ how the connection will be set up (ca or pva), but user may explicitly select pr
 ca:// or pva://, e.g. ca://my_PV.
 
 Object types
-____________
+------------
 
 There are three object types managed by the save-and-restore service through the application:
 
@@ -33,5 +33,5 @@ is prompted to confirm delete actions.
 
 Below screen shot shows the tree structure and a save set editor.
 
-.. image:: screenshot1.png
+.. image:: images/screenshot1.png
    :width: 80%

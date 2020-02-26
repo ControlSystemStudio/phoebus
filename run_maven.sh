@@ -1,3 +1,4 @@
+#!/bin/bash
 # To include Oracle:
 # mkdir -p dependencies/install-jars/lib/ojdbc
 # cp /path/to/ojdbc8-12.2.0.1.jar dependencies/install-jars/lib/ojdbc
