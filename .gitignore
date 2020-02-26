@@ -1,6 +1,10 @@
 *~
 target/
 
+## Generated Documentation ##
+docs/build/
+
+
 ### release files ###
 
 release.log
@@ -108,3 +112,4 @@ buildNumber.properties
 
 
 # End of https://www.gitignore.io/api/maven,eclipse
+/.gitignore

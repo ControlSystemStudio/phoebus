@@ -8,8 +8,8 @@
 package org.csstudio.apputil.formula.node;
 
 import org.csstudio.apputil.formula.Node;
-import org.csstudio.apputil.formula.VTypeHelper;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 /** One computational node.
  *  @author Kay Kasemir
@@ -30,7 +30,7 @@ public class IfNode implements Node
     @Override
     public VType eval()
     {
-        final double c = VTypeHelper.getDouble(cond.eval());
+        final double c = VTypeHelper.toDouble(cond.eval());
         if (c != 0.0)
             return yes.eval();
         else

@@ -24,7 +24,7 @@ import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.pv.TimeHelper;
 
 /** Data Sample from control system ({@link VType})
- *  with interface for XYGraph ({@link ISample})
+ *  with interface for XYGraph
  *  @author Kay Kasemir
  *  @author Takashi Nakamoto changed PlotSample to handle waveform index.
  */
@@ -159,7 +159,7 @@ public class PlotSample implements PlotDataItem<Instant>
     @Override
     public double getValue()
     {
-        return VTypeHelper.toDouble(value, waveform_index.get());
+        return org.phoebus.core.vtypes.VTypeHelper.toDouble(value, waveform_index.get());
     }
 
     /** @return {@link VStatistics} or <code>null</code> */

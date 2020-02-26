@@ -8,7 +8,6 @@
 package org.csstudio.apputil.formula.node;
 
 import org.csstudio.apputil.formula.Node;
-import org.csstudio.apputil.formula.VTypeHelper;
 import org.epics.util.array.ArrayDouble;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
@@ -16,6 +15,7 @@ import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 /** Abstract base for binary nodes.
  *  @author Kay Kasemir
@@ -60,14 +60,14 @@ abstract class AbstractBinaryNode implements Node
                                    VTypeHelper.getArraySize(b));
             final double[] result = new double[n];
             for (int i=0; i<n; ++i)
-                result[i] = calc(VTypeHelper.getDouble(a, i),
-                                 VTypeHelper.getDouble(b, i));
+                result[i] = calc(VTypeHelper.toDouble(a, i),
+                                 VTypeHelper.toDouble(b, i));
             return VDoubleArray.of(ArrayDouble.of(result), alarm, time, Display.displayOf(a));
         }
         else
         {
-            final double result = calc(VTypeHelper.getDouble(a),
-                                       VTypeHelper.getDouble(b));
+            final double result = calc(VTypeHelper.toDouble(a),
+                                       VTypeHelper.toDouble(b));
             return VDouble.of(result, alarm, time, Display.displayOf(a));
         }
     }

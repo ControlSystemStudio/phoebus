@@ -15,7 +15,6 @@ import org.csstudio.scan.command.ScanScriptContext;
 import org.csstudio.scan.data.ScanData;
 import org.csstudio.scan.data.ScanSample;
 import org.csstudio.scan.data.ScanSampleFactory;
-import org.csstudio.scan.device.VTypeHelper;
 import org.csstudio.scan.server.ScanCommandUtil;
 import org.csstudio.scan.server.ScanContext;
 import org.csstudio.scan.server.ScanServerInstance;
@@ -24,6 +23,7 @@ import org.epics.util.array.IteratorNumber;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 /** Implementation of the {@link ScanScriptContext}
  *

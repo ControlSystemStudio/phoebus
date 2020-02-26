@@ -32,32 +32,8 @@ import org.phoebus.applications.pvtable.Settings;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class VTypeHelper
+public class VTypeFormatter
 {
-    /** Decode a {@link VType}'s time stamp
-     *
-     *  @param value Value to decode
-     *  @return {@link Instant}
-     */
-    final public static Instant getTimestamp(final VType value)
-    {
-        final Time time = Time.timeOf(value);
-        if (time != null  &&  time.isValid())
-                return time.getTimestamp();
-        return Instant.now();
-    }
-
-    /** @param value {@link VType} value
-     *  @return {@link AlarmSeverity}
-     */
-    final public static AlarmSeverity getSeverity(final VType value)
-    {
-        final Alarm alarm = Alarm.alarmOf(value);
-        if (alarm == null)
-            return AlarmSeverity.NONE;
-        return alarm.getSeverity();
-    }
-
     /** @param value {@link VType}
      *  @return Alarm text or ""
      */

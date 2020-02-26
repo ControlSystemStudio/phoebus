@@ -112,9 +112,9 @@ public class LinearValueIterator implements ValueIterator
 
         // Have one, initial value
         final StatisticsAccumulator accumulator = new StatisticsAccumulator();
-        Instant t0, t1 = VTypeHelper.getTimestamp(base_value);
+        Instant t0, t1 = org.phoebus.core.vtypes.VTypeHelper.getTimestamp(base_value);
         double v0, v1 = VTypeHelper.toDouble(base_value);
-        AlarmSeverity severity = VTypeHelper.getSeverity(base_value);
+        AlarmSeverity severity = org.phoebus.core.vtypes.VTypeHelper.getSeverity(base_value);
         accumulator.add(v1);
 
         // Most severe alarm
@@ -148,11 +148,11 @@ public class LinearValueIterator implements ValueIterator
 
             // Get next value
             base_value = base.next();
-            t1 = VTypeHelper.getTimestamp(base_value);
+            t1 = org.phoebus.core.vtypes.VTypeHelper.getTimestamp(base_value);
             v1 = VTypeHelper.toDouble(base_value);
             // 'Maximize' the severity and track the most
             // recent status message for that severity level
-            severity = VTypeHelper.getSeverity(base_value);
+            severity = org.phoebus.core.vtypes.VTypeHelper.getSeverity(base_value);
             if (severity.compareTo(max_severity) >= 0)
             {
                 max_severity = severity;

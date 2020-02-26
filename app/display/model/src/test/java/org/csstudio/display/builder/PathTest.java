@@ -29,8 +29,14 @@ public class PathTest
         path = ModelResourceUtil.normalize("C:\\some path\\subdir\\file.opi");
         assertThat(path, equalTo("C:/some path/subdir/file.opi"));
 
+        path = ModelResourceUtil.normalize("C:\\some path\\subdir\\..\\file.opi");
+        assertThat(path, equalTo("C:/some path/file.opi"));
+
         path = ModelResourceUtil.normalize("/old/../new/path/../dir/file.opi");
         assertThat(path, equalTo("/new/dir/file.opi"));
+
+        path = ModelResourceUtil.normalize("https://old/../new/path/../dir/file.opi");
+        assertThat(path, equalTo("https://new/dir/file.opi"));
     }
 
     @Test
@@ -92,6 +98,12 @@ public class PathTest
         assertThat(path, equalTo("C:/home/beamline/main.bob"));
     }
 
+    public void checkRelativePath(String parent, String path, String expectedResult) throws Exception
+    {
+        String resultingPath = ModelResourceUtil.getRelativePath(parent, path);
+        assertThat(resultingPath, equalTo(expectedResult));
+    }
+
     @Test
     public void testRelativeNotWindows() throws Exception
     {
@@ -99,42 +111,38 @@ public class PathTest
         String parent = "/one/of/my/directories/parent.bob";
 
         // Same dir
-        String path = ModelResourceUtil.getRelativePath(parent, "/one/of/my/directories/other.bob");
-        assertThat(path, equalTo("other.bob"));
+        checkRelativePath(parent, "/one/of/my/directories/other.bob", "other.bob");
 
         // Other dirs, made relative
-        path = ModelResourceUtil.getRelativePath(parent, "/one/of/my/alternate_dirs/example.bob");
-        assertThat(path, equalTo("../alternate_dirs/example.bob"));
+        checkRelativePath(parent, "/one/of/my/alternate_dirs/example.bob", "../alternate_dirs/example.bob");
 
-        path = ModelResourceUtil.getRelativePath(parent, "/one/main.bob");
-        assertThat(path, equalTo("../../../main.bob"));
+        checkRelativePath(parent, "/one/main.bob","../../../main.bob");
 
-        path = ModelResourceUtil.getRelativePath(parent, "/other/of/my/directories/file.bob");
-        assertThat(path, equalTo("../../../../other/of/my/directories/file.bob"));
+        checkRelativePath(parent, "/other/of/my/directories/file.bob", "../../../../other/of/my/directories/file.bob");
 
         // Entered with "..", will be normalized and then made relative
-        path = ModelResourceUtil.getRelativePath(parent, "/elsewhere/b/../file.txt");
-        assertThat(path, equalTo("../../../../elsewhere/file.txt"));
+        checkRelativePath(parent, "/elsewhere/b/../file.txt", "../../../../elsewhere/file.txt");
 
         // File to make relative is already relative
-        path = ModelResourceUtil.getRelativePath(parent, "file.bob");
-        assertThat(path, equalTo("file.bob"));
+        checkRelativePath(parent, "file.bob", "file.bob");
 
-        path = ModelResourceUtil.getRelativePath(parent, "../c/d/file.bob");
-        assertThat(path, equalTo("../c/d/file.bob"));
-
-        // Same relative layout of file.bob and other.bob, once via http ..
-        parent = "http://server/folder/main/file.bob";
-        path = ModelResourceUtil.getRelativePath(parent, "http://server/folder/main/other.bob");
-        assertThat(path, equalTo("other.bob"));
-
-        path = ModelResourceUtil.getRelativePath(parent, "http://server/folder/share/common.bob");
-        assertThat(path, equalTo("../share/common.bob"));
+        checkRelativePath(parent, "../c/d/file.bob", "../c/d/file.bob");
 
         // .. and in local file system
-        parent = "/main/file.bob";
-        path = ModelResourceUtil.getRelativePath(parent, "/share/common.bob");
-        assertThat(path, equalTo("../share/common.bob"));
+        checkRelativePath("/main/file.bob", "/share/common.bob", "../share/common.bob");
+
+        // File contains spaces
+        parent = "/path with spaces/parent.bob";
+        checkRelativePath(parent, "/path with spaces/other.bob", "other.bob");
+
+        checkRelativePath(parent, "/path with spaces/spaces file.bob", "spaces file.bob");
+
+        // Mix of files and URLs give origina path
+        checkRelativePath("/a/path/test.bob", "http://server/folder/main/other.bob", "http://server/folder/main/other.bob");
+
+        checkRelativePath("http://server/folder/main/other.bob", "/a/path/test.bob", "/a/path/test.bob");
+
+        checkRelativePath("http://server/folder/main/other.bob", "../relative_path/file.bob", "../relative_path/file.bob");
     }
 
     @Test
@@ -144,42 +152,57 @@ public class PathTest
         String parent = "C:\\one\\of\\my\\directories\\parent.bob";
 
         // Same dir
-        String path = ModelResourceUtil.getRelativePath(parent, "C:\\one\\of\\my\\directories\\other.bob");
-        assertThat(path, equalTo("other.bob"));
+        checkRelativePath(parent, "C:\\one\\of\\my\\directories\\other.bob", "other.bob");
 
         // Other dirs, made relative
-        path = ModelResourceUtil.getRelativePath(parent, "C:\\one\\of\\my\\alternate_dirs\\example.bob");
-        assertThat(path, equalTo("../alternate_dirs/example.bob"));
+        checkRelativePath(parent, "C:\\one\\of\\my\\alternate_dirs\\example.bob",
+                "../alternate_dirs/example.bob");
 
-        path = ModelResourceUtil.getRelativePath(parent, "C:\\one\\main.bob");
-        assertThat(path, equalTo("../../../main.bob"));
+        checkRelativePath(parent, "C:\\one\\of\\my\\alternate_dirs\\example.bob",
+                "../alternate_dirs/example.bob");
 
-        path = ModelResourceUtil.getRelativePath(parent, "C:\\other\\of\\my\\directories\\file.bob");
-        assertThat(path, equalTo("../../../../other/of/my/directories/file.bob"));
+        checkRelativePath(parent, "C:\\one\\main.bob", "../../../main.bob");
+
+        checkRelativePath(parent, "C:\\other\\of\\my\\directories\\file.bob",
+                "../../../../other/of/my/directories/file.bob");
 
         // Entered with "..", will be normalized and then made relative
-        path = ModelResourceUtil.getRelativePath(parent, "C:\\elsewhere\\b\\..\\file.txt");
-        assertThat(path, equalTo("../../../../elsewhere/file.txt"));
+        checkRelativePath(parent, "C:\\elsewhere\\b\\..\\file.txt",
+                "../../../../elsewhere/file.txt");
 
         // File to make relative is already relative
-        path = ModelResourceUtil.getRelativePath(parent, "file.bob");
-        assertThat(path, equalTo("file.bob"));
+        checkRelativePath(parent, "file.bob", "file.bob");
 
-        path = ModelResourceUtil.getRelativePath(parent, "..\\c\\d\\file.bob");
-        assertThat(path, equalTo("../c/d/file.bob"));
-
-        // Same relative layout of file.bob and other.bob, once via http ..
-        parent = "http://server/folder/main/file.bob";
-        path = ModelResourceUtil.getRelativePath(parent, "http://server/folder/main/other.bob");
-        assertThat(path, equalTo("other.bob"));
-
-        path = ModelResourceUtil.getRelativePath(parent, "http://server/folder/share/common.bob");
-        assertThat(path, equalTo("../share/common.bob"));
+        checkRelativePath(parent, "..\\c\\d\\file.bob", "../c/d/file.bob");
 
         // .. and in local file system
-        parent = "C:\\main\\file.bob";
-        path = ModelResourceUtil.getRelativePath(parent, "C:\\share\\common.bob");
-        assertThat(path, equalTo("../share/common.bob"));
+        checkRelativePath("C:\\main\\file.bob", "C:\\share\\common.bob", "../share/common.bob");
 
+        // File contains spaces
+        parent = "C:\\path with spaces\\parent.bob";
+        checkRelativePath(parent, "C:\\path with spaces\\other.bob", "other.bob");
+
+        checkRelativePath(parent, "C:\\path with spaces\\spaces file.bob", "spaces file.bob");
+
+        // Mix of files and URLs give origina path
+        checkRelativePath("C:\\a\\path\\test.bob", "http://server/folder/main/other.bob", "http://server/folder/main/other.bob");
+
+        checkRelativePath("http://server/folder/main/other.bob", "C:\\a\\path\\test.bob", "C:/a/path/test.bob");
+
+        checkRelativePath("http://server/folder/main/other.bob", "..\\relative_path\\file.bob", "../relative_path/file.bob");
+
+    }
+
+    @Test
+    public void testRelativePathForURL() throws Exception {
+        // Same relative layout of file.bob and other.bob, via http ..
+        String parent = "http://server/folder/main/file.bob";
+        checkRelativePath(parent, "http://server/folder/main/other.bob", "other.bob");
+
+        checkRelativePath(parent, "http://server/folder/share/common.bob", "../share/common.bob");
+
+        checkRelativePath(parent, "http://server/folder/main/path+with+plus.bob", "path+with+plus.bob");
+
+        checkRelativePath(parent, "http://server/folder/main/path with spaces.bob", "path with spaces.bob");
     }
 }

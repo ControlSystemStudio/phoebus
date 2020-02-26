@@ -13,7 +13,7 @@ import org.epics.vtype.VType;
 import org.phoebus.applications.pvtable.model.PVTableItem;
 import org.phoebus.applications.pvtable.model.SavedValue;
 import org.phoebus.applications.pvtable.model.TimestampHelper;
-import org.phoebus.applications.pvtable.model.VTypeHelper;
+import org.phoebus.applications.pvtable.model.VTypeFormatter;
 
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
@@ -108,9 +108,9 @@ class TableItemProxy
         }
         else
         {
-            time.set(TimestampHelper.format(VTypeHelper.getTimestamp(item_value)));
-            value.set(VTypeHelper.toString(item_value));
-            alarm.set(VTypeHelper.formatAlarm(item_value));
+            time.set(TimestampHelper.format(org.phoebus.core.vtypes.VTypeHelper.getTimestamp(item_value)));
+            value.set(VTypeFormatter.toString(item_value));
+            alarm.set(VTypeFormatter.formatAlarm(item_value));
         }
 
         desc_value.set(item.getDescription());

@@ -21,7 +21,7 @@ import java.time.Duration;
 import java.util.logging.Level;
 
 import org.csstudio.scan.command.LogCommand;
-import org.csstudio.scan.device.VTypeHelper;
+import org.csstudio.scan.device.ScanSampleHelper;
 import org.csstudio.scan.server.MacroContext;
 import org.csstudio.scan.server.ScanCommandImpl;
 import org.csstudio.scan.server.ScanContext;
@@ -75,7 +75,7 @@ public class LogCommandImpl extends ScanCommandImpl<LogCommand>
             final Device device = context.getDevice(context.getMacros().resolveMacros(device_name));
             final VType value = device.read(timeout);
             logger.log(Level.FINER, "Log: {0} = {1}", new Object[] { device, value });
-            log.log(device.getAlias(), VTypeHelper.createSample(serial, value));
+            log.log(device.getAlias(), ScanSampleHelper.createSample(serial, value));
         }
         log.flush();
         context.workPerformed(1);

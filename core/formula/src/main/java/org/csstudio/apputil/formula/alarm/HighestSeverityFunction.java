@@ -3,7 +3,6 @@ package org.csstudio.apputil.formula.alarm;
 import java.util.Arrays;
 import java.util.List;
 
-import org.csstudio.apputil.formula.VTypeHelper;
 import org.csstudio.apputil.formula.spi.FormulaFunction;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;

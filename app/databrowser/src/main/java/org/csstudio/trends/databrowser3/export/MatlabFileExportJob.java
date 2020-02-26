@@ -66,9 +66,9 @@ public class MatlabFileExportJob extends ExportJob
             while (iter.hasNext()  &&  !monitor.isCanceled())
             {
                 final VType value = iter.next();
-                times.add(VTypeHelper.getTimestamp(value));
+                times.add(org.phoebus.core.vtypes.VTypeHelper.getTimestamp(value));
                 values.add(VTypeHelper.toDouble(value));
-                severities.add(VTypeHelper.getSeverity(value));
+                severities.add(org.phoebus.core.vtypes.VTypeHelper.getSeverity(value));
                 if (values.size() % PROGRESS_UPDATE_LINES == 0)
                     monitor.beginTask(MessageFormat.format("{0}: Obtained {1} samples", item.getName(), values.size()));
             }

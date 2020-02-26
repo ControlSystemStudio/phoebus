@@ -30,6 +30,8 @@ import org.phoebus.applications.pvtable.Settings;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 
+import org.phoebus.core.vtypes.VTypeHelper;
+
 import io.reactivex.disposables.Disposable;
 
 /** One item (row) in the PV table.
@@ -81,7 +83,6 @@ public class PVTableItem
      *
      *  @param name
      *  @param tolerance
-     *  @param saved
      *  @param listener
      */
     PVTableItem(final String name, final double tolerance, final PVTableItemListener listener)
