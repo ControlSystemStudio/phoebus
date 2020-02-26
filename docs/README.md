@@ -58,6 +58,10 @@ Documentation Components
    This allows Phoebus source code to contribute to the documentation.
    For example, application modules will be added
    to the "Applications" section of the top-level documentation.
+   
+   Additionally, the folders are also checked for `doc/images/` folders.
+   Resources used by the `index.rst` files should be places in this folder to 
+   ensure they are available to sphinx to generate the documenation.
 
 3) Preference Descriptions
 
