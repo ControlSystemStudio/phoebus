@@ -224,7 +224,9 @@ public class PVItem extends ModelItem
         fireItemDataConfigChanged();
     }
 
-    /** @param archive Archives to add as a source to this item. Duplicates are ignored */
+    /**
+     * @param archs Archives to add as a source to this item. Duplicates are ignored
+     */
     public void addArchiveDataSource(final ArchiveDataSource archs[])
     {
         boolean change = false;
@@ -245,7 +247,7 @@ public class PVItem extends ModelItem
             fireItemDataConfigChanged();
     }
 
-    /** @param archive Archives to remove as a source from this item. Ignored when not used. */
+    /** @param archs Archives to remove as a source from this item. Ignored when not used. */
     public void removeArchiveDataSource(final List<ArchiveDataSource> archs)
     {
         boolean change = false;
@@ -460,6 +462,7 @@ public class PVItem extends ModelItem
             writer.writeStartElement(XMLPersistence.TAG_REQUEST);
             writer.writeCharacters(getRequestType().name());
             writer.writeEndElement();
+            int key = 1;
             for (ArchiveDataSource archive : archives)
             {
                 writer.writeStartElement(XMLPersistence.TAG_ARCHIVE);
@@ -469,6 +472,9 @@ public class PVItem extends ModelItem
                     writer.writeEndElement();
                     writer.writeStartElement(XMLPersistence.TAG_URL);
                     writer.writeCharacters(archive.getUrl());
+                    writer.writeEndElement();
+                    writer.writeStartElement(XMLPersistence.TAG_KEY);
+                    writer.writeCharacters(Integer.toString(key++));
                     writer.writeEndElement();
                 }
                 writer.writeEndElement();
