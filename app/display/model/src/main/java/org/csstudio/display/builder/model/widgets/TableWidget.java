@@ -75,7 +75,8 @@ public class TableWidget extends VisibleWidget
             "Table",
             "/icons/table.png",
             "A table",
-            Arrays.asList("org.csstudio.opibuilder.widgets.table"))
+            Arrays.asList("org.csstudio.opibuilder.widgets.table",
+                          "org.csstudio.opibuilder.widgets.VTableDisplay"))
     {
         @Override
         public Widget createWidget()
