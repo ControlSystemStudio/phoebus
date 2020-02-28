@@ -27,14 +27,21 @@ public class ChannelInfoTreeDemo extends Application {
         loader.load();
 
         ChannelInfoTreeController controller = loader.getController();
-        Channel testChannel = Channel.Builder.channel("testChannel").owner("testOwner")
+        Channel testChannel1 = Channel.Builder.channel("testChannel1").owner("testOwner")
                 .with(property("testProperty1", "value1"))
                 .with(property("testProperty2", "value2"))
                 .with(property("testProperty3", "value3"))
                 .with(tag("testTag1"))
                 .with(tag("testTag2"))
                 .build();
-        controller.setChannel(testChannel);
+        Channel testChannel2 = Channel.Builder.channel("testChannel2").owner("testOwner")
+                .with(property("testProperty1", "value1"))
+                .with(property("testProperty2", "value2"))
+                .with(property("testProperty3", "value3"))
+                .with(tag("testTag1"))
+                .with(tag("testTag2"))
+                .build();
+        controller.setChannels(Arrays.asList(testChannel1, testChannel2));
 
         Parent root = loader.getRoot();
         primaryStage.setScene(new Scene(root, 400, 400));

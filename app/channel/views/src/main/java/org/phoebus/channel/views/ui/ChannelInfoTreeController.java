@@ -9,13 +9,16 @@ import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.Property;
 import org.phoebus.channelfinder.Tag;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Controller for ChannelInfoTree.fxml
  */
 public class ChannelInfoTreeController {
 
     // Model
-    Channel channel;
+    List<Channel> channels;
     TreeItem<Attribute> root;
 
     @FXML
@@ -25,14 +28,19 @@ public class ChannelInfoTreeController {
     @FXML
     TreeTableColumn<Attribute, String> value;
 
-    public Channel getChannel()
+    public List<Channel> getChannels()
     {
-        return channel;
+        return channels;
     }
 
-    public void setChannel(Channel channel)
+    public synchronized void setChannels(List<Channel> channels)
     {
-        this.channel = channel;
+        this.channels = channels;
+        refresh();
+    }
+
+    public synchronized void addChannels(Collection<Channel> channels) {
+        getChannels().addAll(channels);
         refresh();
     }
 
@@ -53,27 +61,32 @@ public class ChannelInfoTreeController {
 
     private void updateModel() {
         root = new TreeItem<>();
-        root.getChildren().add(new TreeItem<>(new Attribute("name", channel.getName())));
-        root.getChildren().add(new TreeItem<>(new Attribute("owner", channel.getOwner())));
-        if(!channel.getProperties().isEmpty())
-        {
-            TreeItem<Attribute> properties = new TreeItem<>(new Attribute("properties", " "));
-            for (Property property : channel.getProperties())
+
+        getChannels().forEach(channel -> {
+            TreeItem<Attribute> channelNode = new TreeItem<>(new Attribute("channel:", channel.getName()));
+            channelNode.getChildren().add(new TreeItem<>(new Attribute("owner:", channel.getOwner())));
+            if(!channel.getProperties().isEmpty())
             {
-                properties.getChildren().add(new TreeItem<>(new Attribute(property.getName(), property.getValue())));
+                TreeItem<Attribute> properties = new TreeItem<>(new Attribute("properties:", " "));
+                for (Property property : channel.getProperties())
+                {
+                    properties.getChildren().add(new TreeItem<>(new Attribute(property.getName(), property.getValue())));
+                }
+                channelNode.getChildren().add(properties);
             }
-            root.getChildren().add(properties);
-        }
-        if(!channel.getTags().isEmpty())
-        {
-            TreeItem<Attribute> tags = new TreeItem<>(new Attribute("tags", " "));
-            for (Tag tag : channel.getTags())
+            if(!channel.getTags().isEmpty())
             {
-                tags.getChildren().add(new TreeItem<>(new Attribute(" ", tag.getName())));
+                TreeItem<Attribute> tags = new TreeItem<>(new Attribute("tags:", " "));
+                for (Tag tag : channel.getTags())
+                {
+                    tags.getChildren().add(new TreeItem<>(new Attribute(" ", tag.getName())));
+                }
+                channelNode.getChildren().add(tags);
             }
-            root.getChildren().add(tags);
-        }
+            root.getChildren().add(channelNode);
+        });
     }
+
 
     /**
      * A class to simplify the representation of a {@link Channel} in a tree view
