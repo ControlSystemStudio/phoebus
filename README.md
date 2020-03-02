@@ -178,8 +178,7 @@ To run the Phoebus application:
 
 ## Complete Distribution, including manual and self-update
 
-    # Obtain sources for Documentation and Product
-    git clone https://github.com/kasemir/phoebus-doc.git
+    # Obtain sources
     git clone https://github.com/ControlSystemStudio/phoebus.git
 
     # Build the Javadoc, i.e. html files to be included in the manual
@@ -187,7 +186,7 @@ To run the Phoebus application:
 
     # Building the manual will locate and include
     # all ../phoebus/**/doc/index.rst and ../phoebus/**/doc/html
-	( cd phoebus-doc; make clean html )
+	( cd phoebus/docs; make clean html )
     # Windows: Use make.bat html
 
     # Build Product
