@@ -153,6 +153,7 @@ public class PVList extends BorderPane
         {
             menu.getItems().clear();
             ContextMenuHelper.addSupportedEntries(table, menu);
+            menu.show(table.getScene().getWindow());
         });
         table.setContextMenu(menu);
     }
