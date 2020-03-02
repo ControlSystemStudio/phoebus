@@ -5,7 +5,7 @@
 Phoebus is a framework and a collections of tools to monitor and operate large scale control systems, such as the ones in the accelerator community. Phoebus is an update of the Control System Studio toolset that removes dependencies on Eclipse RCP and SWT.
 
 More information:
-http://phoebus-doc.readthedocs.io
+https://control-system-studio.readthedocs.io
 
 
 ## Requirements
