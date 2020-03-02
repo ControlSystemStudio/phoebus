@@ -263,7 +263,8 @@ def createDocListing(rst_file, header, roots):
                 if "/target/" in dirpath:
                     continue
                 if dirpath.endswith("html"):
-                    dest = path.join("../build/html", dirpath)
+                    dest = path.join("../build/html/raw_html", path.relpath(dirpath, root))
+                    print("Adding static content from: " + dirpath + " to " + dest)
                     # build/html/phoebus/app/display/editor/doc
                     shutil.copytree(dirpath, dest)
                 if dirpath.endswith("doc"):
