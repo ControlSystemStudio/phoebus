@@ -80,9 +80,9 @@ Download Eclipse Oxygen 4.7.1a or later from http://download.eclipse.org/eclipse
 
 Start Eclipse like this:
 
-	export JAVA_HOME=/path/to/your/jdk-9-or-later
-	export PATH="$JAVA_HOME/bin:$PATH"
-	eclipse/eclipse -consoleLog
+    export JAVA_HOME=/path/to/your/jdk-9-or-later
+    export PATH="$JAVA_HOME/bin:$PATH"
+    eclipse/eclipse -consoleLog
 
 Check Eclipse Preferences:
 
@@ -186,13 +186,13 @@ To run the Phoebus application:
 
     # Building the manual will locate and include
     # all ../phoebus/**/doc/index.rst and ../phoebus/**/doc/html
-	( cd phoebus/docs; make clean html )
+    ( cd phoebus/docs; make clean html )
     # Windows: Use make.bat html
 
     # Build Product
 
     # Fetch dependencies
-	( cd phoebus; mvn clean verify -f dependencies/pom.xml )
+    ( cd phoebus; mvn clean verify -f dependencies/pom.xml )
 
     # Create settings.ini for the product with current date
     # and URL of your update site.
@@ -225,13 +225,13 @@ When building as described above, the result will be an executable for the build
 To build for a different platform, create the `dependencies` in one of these ways:
 
     # Either create the build platform for Linux..
-	( cd phoebus; mvn clean verify  -Djavafx.platform=linux  -f dependencies/pom.xml )
+    ( cd phoebus; mvn clean verify  -Djavafx.platform=linux  -f dependencies/pom.xml )
 
-	# or Mac OS X ..
-	( cd phoebus; mvn clean verify  -Djavafx.platform=mac    -f dependencies/pom.xml )
+    # or Mac OS X ..
+    ( cd phoebus; mvn clean verify  -Djavafx.platform=mac    -f dependencies/pom.xml )
 
-	# or Windows:
-	( cd phoebus; mvn clean verify  -Djavafx.platform=win    -f dependencies/pom.xml )
+    # or Windows:
+    ( cd phoebus; mvn clean verify  -Djavafx.platform=win    -f dependencies/pom.xml )
 
 The remaining build is the same, for example `ant clean dist` to build the distribution.
 
