@@ -255,7 +255,15 @@ from distutils.dir_util import copy_tree
 
 def createDocListing(rst_file, header, roots):
     area = rst_file.replace('.rst', '')
-    with open('{}_links.rst'.format(area), 'w') as out:
+    with open('{}.rst'.format(area), 'w') as out:
+        out.write(header)
+        # Locate index.rst files (presumably under core/*/doc/index.rst or app/*/doc/index.rst)
+        # as well as existing html folders
+        out.write("""
+.. toctree::
+   :maxdepth: 1
+   
+""")
         for root in roots:
             for (dirpath, dirnames, filenames) in walk(root):
                 # Consider only 'original' files, not those
@@ -263,15 +271,18 @@ def createDocListing(rst_file, header, roots):
                 if "/target/" in dirpath:
                     continue
                 if dirpath.endswith("html"):
-                    dest = path.join("../build/html/raw_html", path.relpath(dirpath, root))
+                    dest = path.join("../build/html/", path.basename(root), path.relpath(dirpath, root))
                     print("Adding static content from: " + dirpath + " to " + dest)
                     # build/html/phoebus/app/display/editor/doc
-                    shutil.copytree(dirpath, dest)
+                    copy_tree(dirpath, dest)
                 if dirpath.endswith("doc"):
+                    dst = path.join(path.basename(root), path.relpath(dirpath, root))
+                    copy_tree(dirpath, dst)
                     for filename in filenames:
                         if filename == 'index.rst':
-                            file = path.join(dirpath, filename)
-                            out.write(".. include:: " + file + "\n")
+                            file = path.join(dst, filename.replace(".rst", ""))
+                            print("Adding to applications.rst: " + file.replace(os.sep, '/'))
+                            out.write("   " + file.replace(os.sep, '/') + "\n")
                     for dirname in dirnames:
                         if dirname.endswith("images"):
                             src = path.join(dirpath,dirname)
