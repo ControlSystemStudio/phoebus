@@ -14,7 +14,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 import org.csstudio.scan.command.Comparison;
-import org.csstudio.scan.device.VTypeHelper;
+import org.csstudio.scan.device.ScanSampleHelper;
 import org.csstudio.scan.server.condition.DeviceCondition;
 import org.csstudio.scan.server.condition.NumericValueCondition;
 import org.csstudio.scan.server.condition.TextValueCondition;
@@ -154,7 +154,7 @@ public class WriteHelper
             final VType log_value = readback.read();
             final DataLog log = context.getDataLog().get();
             final long serial = log.getNextScanDataSerial();
-            log.log(readback.getAlias(), VTypeHelper.createSample(serial, log_value));
+            log.log(readback.getAlias(), ScanSampleHelper.createSample(serial, log_value));
         }
     }
 

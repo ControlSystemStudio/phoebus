@@ -8,11 +8,11 @@
 package org.csstudio.apputil.formula.node;
 
 import org.csstudio.apputil.formula.Node;
-import org.csstudio.apputil.formula.VTypeHelper;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Time;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 /** One computational node.
  *  @author Kay Kasemir
@@ -29,7 +29,7 @@ public class AddNode extends AbstractBinaryNode
     {
         if (a instanceof VString  ||  b instanceof VString)
         {
-            final String result = VTypeHelper.getString(a) + VTypeHelper.getString(b);
+            final String result = VTypeHelper.toString(a) + VTypeHelper.toString(b);
             return VString.of(result, alarm, time);
         }
         return super.calc(a, b, alarm, time);

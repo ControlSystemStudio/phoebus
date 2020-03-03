@@ -24,6 +24,7 @@ import org.epics.vtype.VNumber;
 import org.epics.vtype.VType;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.disposables.Disposable;

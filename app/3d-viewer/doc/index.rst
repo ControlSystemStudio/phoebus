@@ -109,7 +109,7 @@ Example Shape File
     
 **Resulting Structure**
 
-.. image:: example_struct.png
+.. image:: images/example_struct.png
    :width: 50%
 
 Transparency
@@ -127,7 +127,7 @@ Transparency
             box(0, 0, 0, 100, 100, 100, 0, 0, 255, 0.1)
             sphere(50, 50, 50, 10, 255, 0, 0, 1)
         
-        .. image:: bad_transparency.png
+        .. image:: images/bad_transparency.png
            :width: 50%
 
     Here, the box is added second and the sphere is drawn correctly.
@@ -137,7 +137,7 @@ Transparency
             sphere(50, 50, 50, 10, 255, 0, 0, 1)
             box(0, 0, 0, 100, 100, 100, 0, 0, 255, 0.1)
             
-        .. image:: good_transparency.png
+        .. image:: images/good_transparency.png
            :width: 50%
            
 

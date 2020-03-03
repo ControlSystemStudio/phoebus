@@ -16,7 +16,7 @@ The PV changes and the associated logbook entry are as much as possible treated 
 PV writes are only attempted after a successful logbook entry.
 If the logbook entry fails, PVs are restored to their original value.
 
-.. figure:: pace1.png
+.. figure:: images/pace1.png
    
     PACE
 

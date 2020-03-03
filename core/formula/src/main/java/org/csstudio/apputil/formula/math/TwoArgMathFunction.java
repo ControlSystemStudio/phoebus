@@ -9,13 +9,13 @@ package org.csstudio.apputil.formula.math;
 
 import java.util.List;
 
-import org.csstudio.apputil.formula.VTypeHelper;
 import org.csstudio.apputil.formula.spi.FormulaFunction;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 /** Helper for SPI-provided `double function(double, double)`
  *  @author Kay Kasemir
@@ -66,8 +66,8 @@ class TwoArgMathFunction implements FormulaFunction
     @Override
     public VType compute(final VType... args) throws Exception
     {
-        final double a = VTypeHelper.getDouble(args[0]);
-        final double b = VTypeHelper.getDouble(args[1]);
+        final double a = VTypeHelper.toDouble(args[0]);
+        final double b = VTypeHelper.toDouble(args[1]);
         final double value = function.calc(a, b);
         return VDouble.of(value, Alarm.none(), Time.now(), Display.none());
     }

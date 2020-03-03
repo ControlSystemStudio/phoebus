@@ -37,67 +37,13 @@ public class VTypeHelper
      */
     final public static double toDouble(final VType value)
     {
-        if (value instanceof VNumber)
-            return ((VNumber)value).getValue().doubleValue();
-        if (value instanceof VEnum)
-            return ((VEnum)value).getIndex();
-        if (value instanceof VBoolean)
-            return ((VBoolean)value).getValue() ? 1.0 : 0.0;
-        if (value instanceof VStatistics)
-            return ((VStatistics)value).getAverage();
-        if (value instanceof VNumberArray)
-        {
-            final ListNumber data = ((VNumberArray) value).getData();
-            if (data.size() > 0)
-                return data.getDouble(0);
-        }
-        if (value instanceof VEnumArray)
-        {
-            final ListNumber data = ((VEnumArray) value).getIndexes();
-            if (data.size() > 0)
-                return data.getDouble(0);
-        }
         // Display string PVs at 0
-        if (value instanceof VString)
+        if (value instanceof VString) {
             return 0.0;
-        return Double.NaN;
-    }
-
-    /** Read number from a {@link VType}
-     *  @param value Value
-     *  @param index Waveform index
-     *  @return double or NaN
-     */
-    final public static double toDouble(final VType value, final int index)
-    {
-        if (index == 0)
-            return toDouble(value);
-        if (value instanceof VNumberArray)
-        {
-            final ListNumber data = ((VNumberArray) value).getData();
-            if (index < data.size())
-                return data.getDouble(index);
         }
-        if (value instanceof VEnumArray)
-        {
-            final ListNumber data = ((VEnumArray) value).getIndexes();
-            if (index < data.size())
-                return data.getDouble(index);
+        else{
+            return org.phoebus.core.vtypes.VTypeHelper.toDouble(value);
         }
-        return Double.NaN;
-    }
-
-
-    /** Decode a {@link VType}'s time stamp
-     *  @param value Value to decode
-     *  @return {@link Timestamp}
-     */
-    final public static Instant getTimestamp(final VType value)
-    {
-        final Time time = Time.timeOf(value);
-        if (time != null  &&  time.isValid())
-            return time.getTimestamp();
-        return Instant.now();
     }
 
     /** @return Copy of given value with timestamp set to 'now',
@@ -143,19 +89,8 @@ public class VTypeHelper
      */
     final public static void addTimestamp(final StringBuilder buf, final VType value)
     {
-        final Instant stamp = getTimestamp(value);
+        final Instant stamp = org.phoebus.core.vtypes.VTypeHelper.getTimestamp(value);
         buf.append(TimestampFormats.FULL_FORMAT.format(stamp));
-    }
-
-    /** @param value {@link VType} value
-     *  @return {@link AlarmSeverity}
-     */
-    final public static AlarmSeverity getSeverity(final VType value)
-    {
-        final Alarm alarm = Alarm.alarmOf(value);
-        if (alarm == null)
-            return AlarmSeverity.NONE;
-        return alarm.getSeverity();
     }
 
     /** @param value {@link VType} value

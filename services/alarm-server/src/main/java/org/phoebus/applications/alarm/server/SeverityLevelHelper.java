@@ -21,33 +21,8 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class VTypeHelper
+public class SeverityLevelHelper
 {
-    /** Format value as string
-     *  @param value Value
-     *  @return String representation
-     */
-    final public static String toString(final VType value)
-    {
-        if (value instanceof VNumber)
-            return ((VNumber)value).getValue().toString();
-        if (value instanceof VEnum)
-        {
-            try
-            {
-                return ((VEnum)value).getValue();
-            }
-            catch (ArrayIndexOutOfBoundsException ex)
-            {    // PVManager doesn't handle enums that have no label
-                return "<enum " + ((VEnum)value).getIndex() + ">";
-            }
-        }
-        if (value instanceof VString)
-            return ((VString)value).getValue();
-        if (value == null)
-            return "null";
-        return value.toString();
-    }
 
     /** Decode a {@link VType}'s severity
      *  @param value Value to decode
@@ -56,7 +31,7 @@ public class VTypeHelper
     final public static SeverityLevel decodeSeverity(final VType value)
     {
         final Alarm alarm = Alarm.alarmOf(value);
-        if (alarm == null)
+        if (alarm == null) // Can this really happen?
             return SeverityLevel.OK;
         switch (alarm.getSeverity())
         {
@@ -83,30 +58,5 @@ public class VTypeHelper
         if (alarm != null)
             return alarm.getName();
         return SeverityLevel.OK.toString();
-    }
-
-    /** Decode a {@link VType}'s time stamp
-     *  @param value Value to decode
-     *  @return {@link Instant}
-     */
-    final public static Instant getTimestamp(final VType value)
-    {
-        final Time time = Time.timeOf(value);
-        if (time != null  &&  time.isValid())
-            return time.getTimestamp();
-        return Instant.now();
-    }
-
-    /** Read number from a {@link VType}
-     *  @param value Value
-     *  @return double or NaN
-     */
-    final public static double toDouble(final VType value)
-    {
-        if (value instanceof VNumber)
-            return ((VNumber)value).getValue().doubleValue();
-        if (value instanceof VEnum)
-            return ((VEnum)value).getIndex();
-        return Double.NaN;
     }
 }

@@ -9,13 +9,13 @@ package org.csstudio.apputil.formula.demo;
 
 import java.util.List;
 
-import org.csstudio.apputil.formula.VTypeHelper;
 import org.csstudio.apputil.formula.spi.FormulaFunction;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VInt;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 /** Example for SPI-provided function
  *  @author Kay Kasemir
@@ -50,7 +50,7 @@ public class Factorial implements FormulaFunction
     @Override
     public VType compute(final VType... args) throws Exception
     {
-        final int n = (int) VTypeHelper.getDouble(args[0]);
+        final int n = (int) VTypeHelper.toDouble(args[0]);
         return VInt.of(fac(n), Alarm.none(), Time.now(), Display.displayOf(args[0]));
     }
 

@@ -126,7 +126,7 @@ public class TreeModelItem
                 logger.log(Level.WARNING, "Unexpected link update " + getPVName() + " = " + value);
                 return;
             }
-            String text = VTypeHelper.formatValue(value);
+            String text = AlarmFormatter.formatValue(value);
             logger.log(TRACE, "Link " + record_name + "." + field + " -> " + text);
             disposeLinkPV();
 
@@ -200,8 +200,8 @@ public class TreeModelItem
                     .throttleLatest(ms, TimeUnit.MILLISECONDS)
                     .subscribe(value ->
                 {
-                    current_value = VTypeHelper.format(value);
-                    current_severity = VTypeHelper.getSeverity(value);
+                    current_value = AlarmFormatter.format(value);
+                    current_severity = org.phoebus.core.vtypes.VTypeHelper.getSeverity(value);
                     updateValue();
                 });
                 value_pv.set(pv);
@@ -240,7 +240,7 @@ public class TreeModelItem
             final PV pv = PVPool.getPV(record_name + ".RTYP");
             type_flow = pv.onValueEvent().firstOrError().subscribe(value ->
             {
-                type = VTypeHelper.formatValue(value);
+                type = AlarmFormatter.formatValue(value);
                 logger.log(TRACE, "Type " + type);
                 disposeTypePV();
                 // Notify model to redraw this PV

@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javafx.scene.input.MouseEvent;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VType;
 import org.phoebus.applications.email.actions.SendEmailAction;
@@ -22,8 +23,8 @@ import org.phoebus.applications.pvtable.Settings;
 import org.phoebus.applications.pvtable.model.PVTableItem;
 import org.phoebus.applications.pvtable.model.PVTableModel;
 import org.phoebus.applications.pvtable.model.PVTableModelListener;
-import org.phoebus.applications.pvtable.model.VTypeHelper;
 import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.security.authorization.AuthorizationService;
@@ -77,6 +78,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.converter.DefaultStringConverter;
+
 
 /** PV Table and its toolbar
  *  @author Kay Kasemir
@@ -648,6 +650,7 @@ public class PVTable extends VBox
 
         table.setOnContextMenuRequested(event ->
         {
+
             // Start with fixed entries
             menu.getItems().clear();
             menu.getItems().addAll(info, new SeparatorMenuItem());
@@ -686,6 +689,9 @@ public class PVTable extends VBox
             menu.getItems().add(new SaveSnapshotAction(table));
             menu.getItems().add(new SendEmailAction(table, "PV Snapshot", () -> "See attached screenshot.", () -> Screenshot.imageFromNode(this)));
             menu.getItems().add(new SendLogbookAction(table, "PV Snapshot", () -> "See attached screenshot.", () -> Screenshot.imageFromNode(this)));
+
+            menu.show(table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+
         });
 
         table.setContextMenu(menu);

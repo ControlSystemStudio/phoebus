@@ -137,7 +137,7 @@ public class SpreadsheetIterator implements Iterator<VType[]>, Closeable
         {
             if (raw_data[i] == null)
                 continue;
-            final Instant sample_time = VTypeHelper.getTimestamp(raw_data[i]);
+            final Instant sample_time = org.phoebus.core.vtypes.VTypeHelper.getTimestamp(raw_data[i]);
             if (time == null  ||  sample_time.compareTo(time) < 0)
                 time = sample_time;
         }
@@ -157,7 +157,7 @@ public class SpreadsheetIterator implements Iterator<VType[]>, Closeable
             if (raw_data[i] == null)
                 continue;
             // Channel has data.
-            if (VTypeHelper.getTimestamp(raw_data[i]).compareTo(time) <= 0)
+            if (org.phoebus.core.vtypes.VTypeHelper.getTimestamp(raw_data[i]).compareTo(time) <= 0)
             {   // 'raw_data' is still valid, so use it ....
                 values[i] = raw_data[i];
                 // and get next sample in preparation for next()
