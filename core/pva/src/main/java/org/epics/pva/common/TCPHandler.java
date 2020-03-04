@@ -362,7 +362,7 @@ abstract public class TCPHandler
      *  to contain a valid protocol version and a complete
      *  message has been received.
      *
-     *  @param buffer Buffer positioned at start of header
+     *  @param buffer Buffer positioned at start of header, limit set to size of message
      *  @throws Exception on error
      */
     private void handleMessage(final ByteBuffer buffer) throws Exception
@@ -479,7 +479,7 @@ abstract public class TCPHandler
     /** Handle a received control message
      *
      *  @param command Control command
-     *  @param buffer Buffer positioned at start of header
+     *  @param buffer Buffer with complete message, positioned at start of payload
      *  @throws Exception on error
      */
     protected void handleControlMessage(final byte command, final ByteBuffer buffer) throws Exception
@@ -490,7 +490,7 @@ abstract public class TCPHandler
     /** Handle a received application message
      *
      *  @param command Application command
-     *  @param buffer Buffer positioned at start of header
+     *  @param buffer Buffer with complete message, positioned at start of payload
      *  @throws Exception on error
      */
     protected void handleApplicationMessage(final byte command, final ByteBuffer buffer) throws Exception
