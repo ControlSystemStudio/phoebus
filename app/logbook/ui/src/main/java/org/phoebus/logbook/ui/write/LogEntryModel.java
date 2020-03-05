@@ -61,13 +61,18 @@ public class LogEntryModel
     private final LogService logService;
     private final LogFactory logFactory;
 
-    private Node    node;
-    private String  username, password;
+    private Node node;
+    private String username;
+    private String password;
     private Instant date;
-    private String  level;
-    private String  title, text;
+    private String level;
+    private String title;
+    private String text;
 
-    private final ObservableList<String> logbooks, tags, selectedLogbooks, selectedTags;
+    private final ObservableList<String> logbooks;
+    private final ObservableList<String> tags;
+    private final ObservableList<String> selectedLogbooks;
+    private final ObservableList<String> selectedTags;
     private final ObservableList<String> levels;
     private final ObservableList<Image>  images;
     private final ObservableList<File>   files;
@@ -222,8 +227,7 @@ public class LogEntryModel
     }
 
     /**
-     * Get the text.
-     * @param text
+     * Get the title.
      */
     public String getTitle()
     {
@@ -242,7 +246,6 @@ public class LogEntryModel
 
     /**
      * Get the text.
-     * @param text
      */
     public String getText()
     {

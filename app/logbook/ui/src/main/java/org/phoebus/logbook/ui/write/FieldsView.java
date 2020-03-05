@@ -37,17 +37,20 @@ public class FieldsView extends VBox
     private final LogEntryModel    model;
     
     // Credentials of user making entry.
-    private final Label            userFieldLabel, passwordFieldLabel;
+    private final Label            userFieldLabel;
+    private final Label            passwordFieldLabel;
     private final TextField        userField;
     private final PasswordField    passwordField;
     
     // Date and priority level of log entry.
-    private final Label                  dateLabel, levelLabel;
+    private final Label                  dateLabel;
+    private final Label                  levelLabel;
     private final TextField              dateField;
     private final ComboBox<String>       levelSelector;
 
     // Title and body of log entry
-    private final Label            titleLabel, textLabel;
+    private final Label            titleLabel;
+    private final Label            textLabel;
     private final TextField        titleField;
     private final LogbooksTagsView logbooksAndTags;
     private final TextArea         textArea;
@@ -79,7 +82,7 @@ public class FieldsView extends VBox
         setSelectorAction();
 
         titleLabel = new Label(Messages.Title);
-        titleField = new TextField(model.getTitle());
+        titleField = new TextField();
         titleField.textProperty().addListener((changeListener, oldVal, newVal) ->
         {
             if (newVal.trim().isEmpty())
@@ -144,6 +147,8 @@ public class FieldsView extends VBox
         }
         
         formatView();
+
+        titleField.textProperty().setValue(model.getTitle());
     }
     
     private void formatView()
