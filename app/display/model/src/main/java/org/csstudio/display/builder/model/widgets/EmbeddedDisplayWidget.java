@@ -282,10 +282,6 @@ public class EmbeddedDisplayWidget extends VisibleWidget
         properties.add(embedded_model = runtimeModel.createProperty(this, null));
         properties.add(transparent = propTransparent.createProperty(this, false));
         BorderSupport.addBorderProperties(this, properties);
-
-        // Initial size
-        propWidth().setValue(300);
-        propHeight().setValue(200);
     }
 
     /** @return 'macros' property */
