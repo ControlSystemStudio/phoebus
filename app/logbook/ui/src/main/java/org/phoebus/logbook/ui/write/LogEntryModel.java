@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
@@ -88,6 +89,8 @@ public class LogEntryModel
     /** onSubmitAction runnable - runnable to be executed after the submit action completes. */
     private Runnable onSubmitAction;
 
+    private static final Logger LOGGER = Logger.getLogger(LogEntryModel.class.getName());
+
     public LogEntryModel(final Node callingNode)
     {
         username = "";
@@ -122,8 +125,10 @@ public class LogEntryModel
 
         // Set default logbooks
         // Get rid of leading and trailing whitespace and add the default to the selected list.
-        for (String logbook : LogbookUiPreferences.default_logbooks)
+        for (String logbook : LogbookUiPreferences.default_logbooks) {
+            LOGGER.log(Level.INFO, String.format("Adding default logbook \"%s\"", logbook));
             addSelectedLogbook(logbook.trim());
+        }
     }
 
     public void fetchStoredUserCredentials()
