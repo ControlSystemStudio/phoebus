@@ -30,6 +30,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget;
+import org.csstudio.display.builder.model.widgets.VisibleWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget.TabItemProperty;
 import org.phoebus.ui.javafx.TreeHelper;
 
@@ -76,11 +77,21 @@ public class WidgetTree
     /** Listener to changes in Widget's children */
     private final WidgetPropertyListener<List<Widget>> children_listener;
 
-    /** Listener to changes in Widget's children */
+    /** Listener to change of Widget's name */
     private final WidgetPropertyListener<String> name_listener = (property, old, new_name) ->
     {
         final Widget widget = property.getWidget();
         logger.log(Level.FINE, "{0} changed name", widget);
+
+        final TreeItem<WidgetOrTab> item = Objects.requireNonNull(widget2tree.get(widget));
+        Platform.runLater(() -> TreeHelper.triggerTreeItemRefresh(item));
+    };
+
+    /** Listener to changes of Widget's visibility */
+    private final WidgetPropertyListener<Boolean> visible_listener = (property, old, new_name) ->
+    {
+        final Widget widget = property.getWidget();
+        logger.log(Level.FINE, "{0} changed visibility", widget);
 
         final TreeItem<WidgetOrTab> item = Objects.requireNonNull(widget2tree.get(widget));
         Platform.runLater(() -> TreeHelper.triggerTreeItemRefresh(item));
@@ -398,6 +409,8 @@ public class WidgetTree
             item_parent.getChildren().add(item);
 
         added_widget.propName().addPropertyListener(name_listener);
+        if (added_widget instanceof VisibleWidget)
+            ((VisibleWidget)added_widget).propVisible().addPropertyListener(visible_listener);
 
         if (added_widget instanceof TabsWidget)
         {
@@ -459,6 +472,8 @@ public class WidgetTree
         }
 
         removed_widget.propName().removePropertyListener(name_listener);
+        if (removed_widget instanceof VisibleWidget)
+            ((VisibleWidget)removed_widget).propVisible().removePropertyListener(visible_listener);
 
         final ChildrenProperty children = ChildrenProperty.getChildren(removed_widget);
         if (children != null)
@@ -489,6 +504,8 @@ public class WidgetTree
         }
 
         widget.propName().removePropertyListener(name_listener);
+        if (widget instanceof VisibleWidget)
+            ((VisibleWidget)widget).propVisible().removePropertyListener(visible_listener);
         final ChildrenProperty children = ChildrenProperty.getChildren(widget);
         if (children != null)
         {
