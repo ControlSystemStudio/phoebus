@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
@@ -61,13 +62,18 @@ public class LogEntryModel
     private final LogService logService;
     private final LogFactory logFactory;
 
-    private Node    node;
-    private String  username, password;
+    private Node node;
+    private String username;
+    private String password;
     private Instant date;
-    private String  level;
-    private String  title, text;
+    private String level;
+    private String title;
+    private String text;
 
-    private final ObservableList<String> logbooks, tags, selectedLogbooks, selectedTags;
+    private final ObservableList<String> logbooks;
+    private final ObservableList<String> tags;
+    private final ObservableList<String> selectedLogbooks;
+    private final ObservableList<String> selectedTags;
     private final ObservableList<String> levels;
     private final ObservableList<Image>  images;
     private final ObservableList<File>   files;
@@ -82,6 +88,8 @@ public class LogEntryModel
 
     /** onSubmitAction runnable - runnable to be executed after the submit action completes. */
     private Runnable onSubmitAction;
+
+    private static final Logger LOGGER = Logger.getLogger(LogEntryModel.class.getName());
 
     public LogEntryModel(final Node callingNode)
     {
@@ -117,8 +125,10 @@ public class LogEntryModel
 
         // Set default logbooks
         // Get rid of leading and trailing whitespace and add the default to the selected list.
-        for (String logbook : LogbookUiPreferences.default_logbooks)
+        for (String logbook : LogbookUiPreferences.default_logbooks) {
+            LOGGER.log(Level.INFO, String.format("Adding default logbook \"%s\"", logbook));
             addSelectedLogbook(logbook.trim());
+        }
     }
 
     public void fetchStoredUserCredentials()
@@ -222,8 +232,7 @@ public class LogEntryModel
     }
 
     /**
-     * Get the text.
-     * @param text
+     * Get the title.
      */
     public String getTitle()
     {
@@ -242,7 +251,6 @@ public class LogEntryModel
 
     /**
      * Get the text.
-     * @param text
      */
     public String getText()
     {
