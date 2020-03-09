@@ -17,7 +17,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import javafx.event.Event;
 import javafx.scene.input.ContextMenuEvent;
 import org.csstudio.display.builder.editor.DisplayEditor;
 import org.csstudio.display.builder.editor.EditorGUI;
@@ -75,7 +74,7 @@ public class DisplayEditorInstance implements AppInstance
     private final EditorGUI editor_gui;
 
     private final WidgetPropertyListener<String> model_name_listener = (property, old_value, new_value) ->
-        Platform.runLater(() -> dock_item.setLabel(property.getValue()));
+        Platform.runLater(() -> dock_item.setLabel("[Edit] " + property.getValue()));
 
     /** Last time the file was modified */
     private volatile long modification_marker = 0;
