@@ -299,4 +299,38 @@ widget.setPropertyValue("rotation_step", PVUtil.getDouble(pvs[0]))]]></text>
       </script>
     </scripts>
   </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_16</name>
+    <text>Special Characters</text>
+    <x>660</x>
+    <y>40</y>
+    <width>400</width>
+    <height>30</height>
+    <font>
+      <font family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_17</name>
+    <text>The label's text can contain 'unicode' characters:
+
+Umlaut a &#0228;, Omega &#x03A9;, Euro sign &#8364;, ...
+
+On most systems you can simply type these characters.
+The display files persist them in a portable UTF-8 encoding, which allows you to for example edit a file on Windows and then use it on Linux.
+
+When you edit display files in a generic text editor or create them by other means outside of the display editor, beware to use UTF-8 encoding and unicode.
+
+If you cannot directly enter special characters, you can escape then in the XML in this notation:
+
+Umlaut a &amp;#0228;
+Omega &amp;#x03A9;
+Euro &amp;#8364;, ...
+</text>
+    <x>660</x>
+    <y>70</y>
+    <width>400</width>
+    <height>360</height>
+  </widget>
 </display>
