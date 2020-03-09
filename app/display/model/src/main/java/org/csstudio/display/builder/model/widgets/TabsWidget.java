@@ -200,10 +200,6 @@ public class TabsWidget extends VisibleWidget
         properties.add(direction = propDirection.createProperty(this, Direction.HORIZONTAL));
         properties.add(tab_height = propTabHeight.createProperty(this, 30));
         properties.add(insets = runtimePropInsets.createProperty(this, new int[] { 0, 0 }));
-
-        // Initial size
-        propWidth().setValue(300);
-        propHeight().setValue(200);
     }
 
     private static String createTabText(final int index)
