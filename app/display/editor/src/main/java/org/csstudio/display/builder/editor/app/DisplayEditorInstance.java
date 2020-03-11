@@ -17,7 +17,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import javafx.scene.input.ContextMenuEvent;
 import org.csstudio.display.builder.editor.DisplayEditor;
 import org.csstudio.display.builder.editor.EditorGUI;
 import org.csstudio.display.builder.editor.EditorUtil;
@@ -58,6 +57,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Control;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.input.ContextMenuEvent;
 
 /** Display Editor Instance
  *  @author Kay Kasemir
@@ -176,7 +176,9 @@ public class DisplayEditorInstance implements AppInstance
             if (selection.size() == 1)
             {
                 final Optional<WidgetProperty<String>> pfile = selection.get(0).checkProperty(propFile);
-                if (pfile.isPresent() && pfile.get().getValue().endsWith(DisplayModel.FILE_EXTENSION))
+                if (pfile.isPresent() &&
+                    (pfile.get().getValue().endsWith(DisplayModel.FILE_EXTENSION) ||
+                     pfile.get().getValue().endsWith(DisplayModel.LEGACY_FILE_EXTENSION)))
                     embedded = new EditEmbeddedDisplayAction(app, selection.get(0), pfile.get().getValue());
                 else
                 {
