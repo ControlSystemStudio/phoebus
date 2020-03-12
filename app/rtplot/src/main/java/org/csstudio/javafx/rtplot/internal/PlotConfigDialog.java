@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -98,13 +98,13 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
         layout.add(label, 0, row++);
 
         for (Axis<?> axis : plot.getYAxes())
-            row = addAxisContent(layout, row, axis);
+            row = addAxisContent(layout, row, axis, true);
 
         label = new Label(Messages.PlotConfigHorAx);
         label.setFont(section_font);
         layout.add(label, 0, row++);
 
-        row = addAxisContent(layout, row, plot.getXAxis());
+        row = addAxisContent(layout, row, plot.getXAxis(), false);
 
         label = new Label(Messages.PlotConfigPlot);
         label.setFont(section_font);
@@ -164,12 +164,10 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
         return row;
     }
 
-    private int addAxisContent(final GridPane layout, int row, final Axis<?> axis)
+    private int addAxisContent(final GridPane layout, int row, final Axis<?> axis, final boolean edit_visibility)
     {
         layout.add(new Label(Messages.PlotConfigAxName), 0, row);
-        final TextField axis_name = new TextField(axis.getName());
-        axis_name.setOnAction(event -> axis.setName(axis_name.getText()));
-        axis_name.focusedProperty().addListener((prop, old, focus) -> { if (!focus) axis.setName(axis_name.getText());});
+        final Label axis_name = new Label(axis.getName());
         layout.add(axis_name, 1, row++, 2, 1);
 
         // Don't support auto-scale for time axis
@@ -261,10 +259,13 @@ public class PlotConfigDialog<XTYPE extends Comparable<XTYPE>>  extends Dialog<V
         }
         ++row;
 
-        final CheckBox visible = new CheckBox(Messages.PlotConfigVisible);
-        visible.setSelected(axis.isVisible());
-        visible.setOnAction(event -> axis.setVisible(visible.isSelected()));
-        layout.add(visible, 1, row++);
+        if (edit_visibility)
+        {
+            final CheckBox visible = new CheckBox(Messages.PlotConfigVisible);
+            visible.setSelected(axis.isVisible());
+            visible.setOnAction(event -> axis.setVisible(visible.isSelected()));
+            layout.add(visible, 1, row++);
+        }
 
         layout.add(new Separator(), 1, row++, 2, 1);
 
