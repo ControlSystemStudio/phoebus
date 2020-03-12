@@ -176,6 +176,10 @@ public class RuleToScript
             }
             else if (text.charAt(i) == '=' && i > 0 && !(text.charAt(i-1)=='<' || text.charAt(i-1)=='>')) // and neither "==" nor "!=" nor "<=", ">="
                 result.append("==");
+	    else if (matches(text, i, "Math."))
+            {
+		i += 4;
+            }
             else
                 result.append(text.charAt(i));
         }
