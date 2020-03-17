@@ -32,6 +32,7 @@
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-representation-javafx"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-representation"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-model"/>
+    <classpathentry combineaccessrules="false" kind="src" path="/app-display-navigation"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-convert-medm"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-convert-edm"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-databrowser"/>
