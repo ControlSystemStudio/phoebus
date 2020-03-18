@@ -112,7 +112,9 @@ public class OpenAbout implements MenuEntry
 
         // Table with Name, Value columns
         final ObservableList<List<String>> infos = FXCollections.observableArrayList();
-        // Start with most user-specific to most generic: User location, install, JDK, ...
+        // Start with app version
+        infos.add(Arrays.asList(Messages.AppVersionHeader, Messages.AppVersion));
+        // Continue with most user-specific to most generic: User location, install, JDK, ...
         // Note that OpenFileBrowserCell is hard-coded to add a "..." button for the first few rows.
         infos.add(Arrays.asList(Messages.HelpAboutUser, Locations.user().toString()));
         infos.add(Arrays.asList(Messages.HelpAboutInst, Locations.install().toString()));
