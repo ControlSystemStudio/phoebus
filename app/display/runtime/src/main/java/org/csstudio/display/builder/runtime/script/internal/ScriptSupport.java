@@ -120,7 +120,33 @@ public class ScriptSupport
                     warned = true;
                 }
                 line = line.replace("org.csstudio.opibuilder.scriptUtil", "org.csstudio.display.builder.runtime.script");
+		if (line.contains("ConsoleUtil"))
+		{
+		    // Handle "from org.csstudio.opibuilder.scriptUtil.ConsoleUtil import writeInfo"
+		    if (line.contains("org.csstudio.display.builder.runtime.script.ConsoleUtil") && line.contains("writeInfo"))
+		    {
+			line.replace("writeInfo", "ScriptUtil");
+			line.replace("org.csstudio.display.builder.runtime.script.ConsoleUtil", "org.csstudio.display.builder.runtime.script");
+		    }
+		    else
+		    {
+			// Handle "from org.csstudio.opibuilder.scriptUtil import ConsoleUtil"
+		        line = line.replace("ConsoleUtil", "ScriptUtil");
+		    }
+		}
             }
+	    if (line.contains("ConsoleUtil.writeInfo"))
+	    {
+		line.replace("ConsoleUtil.writeInfo", "ScriptUtil.getLogger().info");
+	    }
+	    if (line.contains("writeInfo"))
+	    {
+		line.replace("writeInfo", "ScriptUtil.getLogger().info");
+	    }
+	    if (line.contains("ConsoleUtil.writeString"))
+	    {
+		line.replace("ConsoleUtil.writeString", "ScriptUtil.getLogger().info");
+	    }	
             buf.append(line).append('\n');
         }
         stream.close();
