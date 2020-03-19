@@ -10,6 +10,7 @@ package org.phoebus.framework.macros;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -332,5 +333,36 @@ public class Macros implements MacroValueProvider
                                    .collect(Collectors.joining(", ")) +
                    "]";
         }
+    }
+
+    public String getAsSortedQueryParameters(){
+        StringBuilder stringBuilder = new StringBuilder();
+        Map<String, String> sorted = new HashMap(macros.size());
+        macros
+            .entrySet()
+            .stream()
+            .sorted(Map.Entry.comparingByKey())
+            .forEachOrdered(x -> sorted.put(x.getKey(), x.getValue()));
+
+        sorted
+                .entrySet()
+                .stream()
+                .forEach(macro -> stringBuilder.append(macro.getKey()).append("=").append(macro.getValue()).append("&"));
+
+        String queryString = stringBuilder.toString();
+
+        return queryString.substring(0, queryString.length() - 1);
+    }
+
+    public String toQueryParameters(){
+        StringBuilder stringBuilder = new StringBuilder();
+        macros
+                .entrySet()
+                .stream()
+                .forEach(macro -> stringBuilder.append(macro.getKey()).append("=").append(macro.getValue()).append("&"));
+
+        String queryString = stringBuilder.toString();
+
+        return queryString.substring(0, queryString.length() - 1);
     }
 }

@@ -7,12 +7,16 @@
  ******************************************************************************/
 package org.csstudio.display.builder.runtime.app;
 
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.List;
 
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.ModelPlugin;
+import org.csstudio.display.builder.model.persist.ModelReader;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.docking.DockItemWithInput;
@@ -77,6 +81,17 @@ public class DisplayRuntimeApplication implements AppResourceDescriptor
 
         // Check for existing instance with that input, i.e. path & macros
         final DisplayRuntimeInstance instance;
+        String s = "";
+        try(InputStream inputStream = input.toURL().openStream()){
+            ModelReader modelReader = new ModelReader(inputStream, input.toURL().getFile());
+            final DisplayModel model = modelReader.readModel();
+
+            System.out.println();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+
         final DockItemWithInput existing = DockStage.getDockItemWithInput(NAME, input);
         if (existing != null)
         {   // Found one, raise it
