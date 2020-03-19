@@ -195,13 +195,15 @@ public class DisplayInfo
         {
             buf.append("file:");
             // Windows platform tweak
-            if (path.contains(":"))
+            if (path.contains(":/"))
+                buf.append("//");
+            else if (path.contains(":"))
                 buf.append("///");
         }
 
         // In path, keep ':' and '/', but replace spaces
         // Windows platform tweak replace \ with /
-        buf.append(path.replace(' ', '+').replace('\\', '/'));
+        buf.append(path.replace(" ", "%20").replace('\\', '/'));
 
         // Add macros as path parameters
         boolean first = true;
