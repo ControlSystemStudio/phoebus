@@ -109,25 +109,25 @@ public class AlarmConfigLoggingService {
                     if (!iter.hasNext())
                         throw new Exception("Missing -repo.location local checkout location for alarm confing repo");
                     iter.remove();
-                    properties.put("location", iter.next());
+                    properties.put("local.location", iter.next());
                     iter.remove();
                 } else if (cmd.equals("-remote.location")) {
                     if (!iter.hasNext())
                         throw new Exception("Missing -remote.location URL to remote git repo");
                     iter.remove();
-                    properties.put("location", iter.next());
+                    properties.put("remote.location", iter.next());
                     iter.remove();
                 } else if (cmd.equals("-username")) {
                     if (!iter.hasNext())
                         throw new Exception("Missing -username username for remote git repo");
                     iter.remove();
-                    properties.put("location", iter.next());
+                    properties.put("username", iter.next());
                     iter.remove();
                 } else if (cmd.equals("-password")) {
                     if (!iter.hasNext())
                         throw new Exception("Missing -paassword password for remote git repo");
                     iter.remove();
-                    properties.put("location", iter.next());
+                    properties.put("password", iter.next());
                     iter.remove();
                 } else if (cmd.equals("-logging")) {
                     if (!iter.hasNext())
