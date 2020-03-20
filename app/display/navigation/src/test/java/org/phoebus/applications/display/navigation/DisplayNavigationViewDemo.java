@@ -9,10 +9,12 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.net.URL;
 
-public class DisplayNavigationViewDemo extends Application {
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
+public class DisplayNavigationViewDemo extends ApplicationWrapper {
 
     public static void main(String[] args) {
-        launch(args);
+        launch(DisplayNavigationViewDemo.class, args);
     }
 
     @Override
@@ -24,7 +26,7 @@ public class DisplayNavigationViewDemo extends Application {
 
         DisplayNavigationViewController controller = loader.getController();
 
-        URL url = this.getClass().getResource("test_root.opi");
+        URL url = getClass().getClassLoader().getResource("bob/root.bob");
         File rootFile = new File(url.getPath());
 
         controller.setRootFile(rootFile);

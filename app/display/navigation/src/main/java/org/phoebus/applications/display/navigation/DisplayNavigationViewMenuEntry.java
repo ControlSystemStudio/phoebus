@@ -1,5 +1,6 @@
 package org.phoebus.applications.display.navigation;
 
+import javafx.scene.image.Image;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.spi.MenuEntry;
 
@@ -19,5 +20,10 @@ public class DisplayNavigationViewMenuEntry implements MenuEntry {
     public Void call() throws Exception {
         ApplicationService.findApplication(DisplayNavigationViewApp.NAME).create();
         return null;
+    }
+
+    @Override
+    public Image getIcon() {
+        return DisplayNavigationViewApp.icon;
     }
 }
