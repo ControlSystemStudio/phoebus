@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -138,16 +138,29 @@ public class ActionUtil
                 // The DockItemRepresentation starts the runtime for new tabs or windows,
                 // but if we update an existing representation, we need to stop & start the runtime.
                 RuntimeUtil.stopRuntime(top_model);
-                final Future<Object> wait_for_ui = toolkit.submit(() ->
-                {   // Close old representation
-                    final Object parent = toolkit.disposeRepresentation(top_model);
-                    // Tell toolkit about new model to represent
-                    toolkit.representModel(parent, new_model);
-                    return null;
+
+                // Update UI on toolkit thread, check for success
+                final Future<Boolean> wait_for_ui = toolkit.submit(() ->
+                {
+                    try
+                    {
+                        // Close old representation
+                        final Object parent = toolkit.disposeRepresentation(top_model);
+                        // Tell toolkit about new model to represent
+                        toolkit.representModel(parent, new_model);
+                    }
+                    catch (Throwable ex)
+                    {
+                        return false;
+                    }
+                    return true;
                 });
-                wait_for_ui.get();
-                // Back in background thread, start runtime
-                RuntimeUtil.startRuntime(new_model);
+
+                if (wait_for_ui.get())
+                {
+                    // Back in background thread, start runtime
+                    RuntimeUtil.startRuntime(new_model);
+                }
             }
         }
         catch (final Exception ex)
@@ -362,3 +375,4 @@ public class ActionUtil
         return ModelResourceUtil.resolveResource(parent_file, expanded_path);
     }
 }
+
