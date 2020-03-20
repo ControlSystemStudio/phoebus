@@ -200,8 +200,6 @@ public class WidgetRuntime<MW extends Widget>
      */
     public void start()
     {
-        logger.log(Level.INFO, () -> "Runtime startup for " + widget + " ...");
-
         // Update "value" property from primary PV, if defined
         final Optional<WidgetProperty<String>> name = widget.checkProperty(propPVName);
         final Optional<WidgetProperty<VType>> value = widget.checkProperty(runtimePropPVValue);
@@ -237,8 +235,6 @@ public class WidgetRuntime<MW extends Widget>
         }
 
         widget.propClass().addPropertyListener(update_widget_class);
-
-        logger.log(Level.INFO, () -> "Runtime startup for " + widget + " ......");
 
         // Start scripts in pool because Jython setup is expensive
         RuntimeUtil.getExecutor().execute(this::startScripts);
@@ -345,8 +341,6 @@ public class WidgetRuntime<MW extends Widget>
 
         // Signal that start() has completed
         started.countDown();
-
-        logger.log(Level.INFO, () -> "Runtime startup for " + widget + " completed.");
     }
 
     /** Wait for start() and related operations to complete.
