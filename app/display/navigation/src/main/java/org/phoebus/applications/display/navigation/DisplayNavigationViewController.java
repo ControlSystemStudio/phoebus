@@ -15,6 +15,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.stage.Stage;
 import org.phoebus.framework.spi.AppResourceDescriptor;
@@ -49,6 +51,7 @@ public class DisplayNavigationViewController {
 
     // Trying to replicate the context menu similar to the one in file browser
     private final MenuItem open = new MenuItem(Messages.Open, ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
+    private final MenuItem copy = new MenuItem("Copy File Names", ImageCache.getImageView(PhoebusApplication.class, "/icons/copy.png"));
     private final Menu openWith = new Menu(Messages.OpenWith, ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
     private final ContextMenu contextMenu = new ContextMenu();
 
@@ -169,6 +172,16 @@ public class DisplayNavigationViewController {
                     openResource(item, null);
                 });
             });
+            copy.setOnAction(event -> {
+                final ClipboardContent content = new ClipboardContent();
+                content.putString(selectedItems.stream()
+                        .map(f -> {
+                            return f.getPath();
+                        })
+                        .collect(Collectors.joining(System.getProperty("line.separator"))));
+                Clipboard.getSystemClipboard().setContent(content);
+            });
+            contextMenu.getItems().add(copy);
             contextMenu.getItems().add(open);
         }
         // If just one entry selected, check if there are multiple apps from which to select
