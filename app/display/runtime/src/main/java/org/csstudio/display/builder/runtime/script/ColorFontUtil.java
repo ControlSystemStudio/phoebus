@@ -50,6 +50,11 @@ public class ColorFontUtil {
     /** the color of yellow */
     final static public WidgetColor YELLOW = new WidgetColor(255, 255, 0);
 
+    static
+    {
+	logger.log(Level.INFO, "Script accessed ColorFontUtil. Update to use org.csstudio.display.builder.model.properties.WigetColor/WidgetFont.");
+    }
+
     /**
      * Get a color with the given
      * red, green and blue values.
@@ -81,7 +86,6 @@ public class ColorFontUtil {
      * </ul>
      */
     public final static WidgetFont getFont(String name, int height, int style){
-	logger.log(Level.INFO, "Script accessed ColorFontUtil. Update to use org.csstudio.display.builder.model.properties.WigetColor/WidgetFont.");
 	WidgetFontStyle style_str;
 	if (style == 1)
 	{
@@ -97,5 +101,4 @@ public class ColorFontUtil {
 	}
         return new WidgetFont(name, style_str, height);
     }
-
 }
