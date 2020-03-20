@@ -3,6 +3,10 @@ package org.csstudio.display.builder.runtime.script;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.csstudio.display.builder.model.properties.WidgetFontStyle;
+import static org.csstudio.display.builder.model.ModelPlugin.logger;
+
+import java.util.logging.Level;
+
 
 
 public class ColorFontUtil {
@@ -77,6 +81,7 @@ public class ColorFontUtil {
      * </ul>
      */
     public final static WidgetFont getFont(String name, int height, int style){
+	logger.log(Level.INFO, "Script accessed ColorFontUtil. Update to use org.csstudio.display.builder.model.properties.WigetColor/WidgetFont.");
 	WidgetFontStyle style_str;
 	if (style == 1)
 	{
