@@ -6,6 +6,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Control;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
@@ -31,6 +32,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 public class DisplayNavigationViewController {
 
@@ -142,15 +144,26 @@ public class DisplayNavigationViewController {
     @FXML
     public void createTreeContextMenu(ContextMenuEvent e) {
         final ObservableList<TreeItem<File>> selectedItems = treeView.selectionModelProperty().getValue().getSelectedItems();
-        contextMenu.getItems().clear();
+        List<File> selectedFiles = selectedItems.stream().map(item -> {
+            return item.getValue();
+        }).collect(Collectors.toList());
 
+        createContextMenu(e, selectedFiles, treeView);
     }
 
     @FXML
     public void createListContextMenu(ContextMenuEvent e) {
+
         final ObservableList<File> selectedItems = listView.selectionModelProperty().getValue().getSelectedItems();
+
+        createContextMenu(e, selectedItems, listView);
+    }
+
+    private void createContextMenu(ContextMenuEvent e,
+                                   final List<File> selectedItems,
+                                   Control control) {
         contextMenu.getItems().clear();
-        if (!selectedItems.isEmpty()){
+        if (!selectedItems.isEmpty()) {
             open.setOnAction(event -> {
                 selectedItems.forEach(item -> {
                     openResource(item, null);
@@ -159,16 +172,13 @@ public class DisplayNavigationViewController {
             contextMenu.getItems().add(open);
         }
         // If just one entry selected, check if there are multiple apps from which to select
-        if (selectedItems.size() == 1)
-        {
+        if (selectedItems.size() == 1) {
             final File file = selectedItems.get(0);
             final URI resource = ResourceParser.getURI(file);
             final List<AppResourceDescriptor> applications = ApplicationService.getApplications(resource);
-            if (applications.size() > 0)
-            {
+            if (applications.size() > 0) {
                 openWith.getItems().clear();
-                for (AppResourceDescriptor app : applications)
-                {
+                for (AppResourceDescriptor app : applications) {
                     final MenuItem open_app = new MenuItem(app.getDisplayName());
                     final URL icon_url = app.getIconURL();
                     if (icon_url != null)
@@ -179,7 +189,6 @@ public class DisplayNavigationViewController {
                 contextMenu.getItems().add(openWith);
             }
         }
-        contextMenu.show(listView.getScene().getWindow(), e.getScreenX(), e.getScreenY());
+        contextMenu.show(control.getScene().getWindow(), e.getScreenX(), e.getScreenY());
     }
-
 }
