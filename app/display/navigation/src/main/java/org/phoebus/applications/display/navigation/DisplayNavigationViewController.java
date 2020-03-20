@@ -3,13 +3,30 @@ package org.phoebus.applications.display.navigation;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListView;
-import javafx.scene.control.TableView;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.ContextMenuEvent;
+import javafx.stage.Stage;
+import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.framework.util.ResourceParser;
+import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.application.ApplicationLauncherService;
+import org.phoebus.ui.application.Messages;
+import org.phoebus.ui.application.PhoebusApplication;
+import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.javafx.ImageCache;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URL;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -27,12 +44,19 @@ public class DisplayNavigationViewController {
     @FXML
     TreeView<File> treeView;
 
+    // Trying to replicate the context menu similar to the one in file browser
+    private final MenuItem open = new MenuItem(Messages.Open, ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
+    private final Menu openWith = new Menu(Messages.OpenWith, ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
+    private final ContextMenu contextMenu = new ContextMenu();
+
     @FXML
     public void initialize() {
     }
+
     /**
      * The Root file for which the navigation path needs to be displayed.
      * The file must be an .opi or .bob
+     *
      * @param rootFile the display files whose navigation path is to be displayed
      */
     public void setRootFile(File rootFile) {
@@ -45,6 +69,8 @@ public class DisplayNavigationViewController {
         rootFileLabel.setText(rootFile.getPath());
         listView.setItems(FXCollections.observableArrayList(model.process()));
         reconstructTree();
+
+        contextMenu.getItems().addAll(open, openWith);
     }
 
     /**
@@ -68,7 +94,7 @@ public class DisplayNavigationViewController {
 
         @Override
         public ObservableList<TreeItem<File>> getChildren() {
-            if(isFirstTimeChildren.getAndSet(false)){
+            if (isFirstTimeChildren.getAndSet(false)) {
                 super.getChildren().setAll(buildChildren(this));
             }
             return super.getChildren();
@@ -76,8 +102,7 @@ public class DisplayNavigationViewController {
 
         @Override
         public boolean isLeaf() {
-            if (isFirstTimeLeaf.getAndSet(false))
-            {
+            if (isFirstTimeLeaf.getAndSet(false)) {
                 isLeaf = getChildren().isEmpty();
             }
             return isLeaf;
@@ -93,4 +118,65 @@ public class DisplayNavigationViewController {
             return children;
         }
     }
+
+
+    /**
+     * Try to open resource, show error dialog on failure
+     *
+     * @param file  Resource to open
+     * @param stage Stage to use to prompt for specific app.
+     *              Otherwise <code>null</code> to use default app.
+     */
+    private void openResource(final File file, final Stage stage) {
+        if (!ApplicationLauncherService.openFile(file, stage != null, stage)) {
+            final Alert alert = new Alert(AlertType.ERROR);
+            alert.setHeaderText("Failed to open file: " + file);
+            DialogHelper.positionDialog(alert, treeView, -300, -200);
+            alert.showAndWait();
+        }
+    }
+
+    @FXML
+    public void createTreeContextMenu(ContextMenuEvent e) {
+        final ObservableList<TreeItem<File>> selectedItems = treeView.selectionModelProperty().getValue().getSelectedItems();
+        contextMenu.getItems().clear();
+
+    }
+
+    @FXML
+    public void createListContextMenu(ContextMenuEvent e) {
+        final ObservableList<File> selectedItems = listView.selectionModelProperty().getValue().getSelectedItems();
+        contextMenu.getItems().clear();
+        if (!selectedItems.isEmpty()){
+            open.setOnAction(event -> {
+                selectedItems.forEach(item -> {
+                    openResource(item, null);
+                });
+            });
+            contextMenu.getItems().add(open);
+        }
+        // If just one entry selected, check if there are multiple apps from which to select
+        if (selectedItems.size() == 1)
+        {
+            final File file = selectedItems.get(0);
+            final URI resource = ResourceParser.getURI(file);
+            final List<AppResourceDescriptor> applications = ApplicationService.getApplications(resource);
+            if (applications.size() > 0)
+            {
+                openWith.getItems().clear();
+                for (AppResourceDescriptor app : applications)
+                {
+                    final MenuItem open_app = new MenuItem(app.getDisplayName());
+                    final URL icon_url = app.getIconURL();
+                    if (icon_url != null)
+                        open_app.setGraphic(new ImageView(icon_url.toExternalForm()));
+                    open_app.setOnAction(event -> app.create(resource));
+                    openWith.getItems().add(open_app);
+                }
+                contextMenu.getItems().add(openWith);
+            }
+        }
+        contextMenu.show(listView.getScene().getWindow(), e.getScreenX(), e.getScreenY());
+    }
+
 }
