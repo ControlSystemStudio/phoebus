@@ -1,6 +1,5 @@
 package org.phoebus.applications.display.navigation;
 
-import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
