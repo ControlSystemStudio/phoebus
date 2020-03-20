@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Display</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>550</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <scripts>
+      <script file="load_other.py">
+        <pv_name>doit</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>In this display, TWO scripts (the same one, twice) will be triggered by writing a PV, and both will then replace this display with another one.
+
+This resulted in a runtime error because the runtime for this display was stopped twice, since both scripts and then the runtime shutdown run mostly in parallel.
+
+Note that this happens only with 'real' PVs from `softIoc -d first.db`.
+With local PVs, the first script would already reset the PV.
+With 'real' PVs, the update caused by the first script invocation can reach the second script too late.</text>
+    <y>31</y>
+    <width>500</width>
+    <height>189</height>
+    <scripts>
+      <script file="load_other.py">
+        <pv_name>doit</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button</name>
+    <actions>
+      <action type="write_pv">
+        <pv_name>$(pv_name)</pv_name>
+        <value>1</value>
+        <description>Do it</description>
+      </action>
+    </actions>
+    <pv_name>doit</pv_name>
+    <x>40</x>
+    <y>230</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+</display>
