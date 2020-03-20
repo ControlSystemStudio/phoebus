@@ -59,7 +59,7 @@ public class ProcessOPI {
     private synchronized void getAllLinkedFiles(File file)
     {
         System.out.println("Calculating linked files for " + file.getName());
-        List<File> linkedFiles = getLinkedFiles(file);
+        Set<File> linkedFiles = getLinkedFiles(file);
         linkedFiles.stream().forEach(f -> {
             if (allLinkedFiles.contains(f) || f.equals(rootFile)){
                 // Already handled skip it
@@ -71,9 +71,9 @@ public class ProcessOPI {
         });
     }
 
-    private synchronized List<File> getLinkedFiles(File file)
+    public static synchronized Set<File> getLinkedFiles(File file)
     {
-        List<File> result = new ArrayList<>();
+        Set<File> result = new HashSet<>();
         try {
             ModelReader reader = new ModelReader(new FileInputStream(file));
             DisplayModel model = reader.readModel();
