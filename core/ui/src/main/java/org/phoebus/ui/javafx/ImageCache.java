@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -31,6 +31,21 @@ import javafx.scene.image.ImageView;
  *  if available,
  *  on high resolution displays.
  *
+ *  <p>Note that if phoebus modules are (eventually) built
+ *  as actual Java modules, an image lookup will indeed be
+ *  based on the provided class name, locating only resources
+ *  available to that class.
+ *  On the other hand, when phoebus 'modules' are simply
+ *  jar files, and all jar files are placed on the classpath,
+ *  the content of all `/icons/*` resources appear as just
+ *  one large `/icons` resource folder.
+ *
+ *  <p>To prevent conflicts, icon names should thus be unique.
+ *  If the exact same icon is used by several 'modules',
+ *  it should be placed in a common module,
+ *  or the same icon needs to be copied into each module
+ *  to assert that it is available even if phoebus is
+ *  eventually strictly modularized.
  *
  *  @author Kay Kasemir
  */

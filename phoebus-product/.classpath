@@ -27,6 +27,7 @@
     <classpathentry combineaccessrules="false" kind="src" path="/app-channel-channelfinder"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-channel-views"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-console"/>
+    <classpathentry combineaccessrules="false" kind="src" path="/app-display-fonts"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-editor"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-runtime"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-representation-javafx"/>

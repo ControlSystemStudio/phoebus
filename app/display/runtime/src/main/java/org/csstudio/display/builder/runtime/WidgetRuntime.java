@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -352,7 +352,7 @@ public class WidgetRuntime<MW extends Widget>
         try
         {
             if (! started.await(10, TimeUnit.SECONDS))
-                logger.log(Level.WARNING, "Runtime startup not completed for " + widget);
+                logger.log(Level.WARNING, "Runtime startup not completed for " + widget, new Exception("Stack trace"));
         }
         catch (InterruptedException ex)
         {
