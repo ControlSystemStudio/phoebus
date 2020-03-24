@@ -21,6 +21,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.ContextMenuEvent;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
@@ -34,6 +36,7 @@ import org.phoebus.ui.javafx.ImageCache;
 import java.io.File;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -51,7 +54,7 @@ public class DisplayNavigationViewController {
     private ExecutorService service = Executors.newCachedThreadPool();
 
     @FXML
-    TextField rootFileLabel;
+    TextField rootFileTextField;
     @FXML
     ListView<File> listView;
     @FXML
@@ -81,8 +84,21 @@ public class DisplayNavigationViewController {
         refresh();
     }
 
+
+    @FXML
+    public void browseNewRoot() {
+        FileChooser fileChooser = new FileChooser();
+        if (Paths.get(rootFileTextField.getText()).toFile().getParent() != null) {
+            fileChooser.setInitialDirectory(Paths.get(rootFileTextField.getText()).toFile().getParentFile());
+        }
+
+        File newRootFile = fileChooser.showOpenDialog(treeView.getParent().getScene().getWindow());
+        if (newRootFile != null)
+            setRootFile(newRootFile);
+    }
+
     public void refresh() {
-        rootFileLabel.setText(rootFile.getPath());
+        rootFileTextField.setText(rootFile.getPath());
 
         // update the list view
         allLinks = new ProcessOPIAllLinksTask(rootFile);
