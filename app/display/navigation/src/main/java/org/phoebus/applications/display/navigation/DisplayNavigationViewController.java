@@ -2,6 +2,9 @@ package org.phoebus.applications.display.navigation;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -33,6 +36,8 @@ import java.net.URI;
 import java.net.URL;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -41,6 +46,9 @@ public class DisplayNavigationViewController {
     private File rootFile;
     // Model
     private ProcessOPI model;
+    private Task<Set<File>> allLinks;
+
+    private ExecutorService service = Executors.newCachedThreadPool();
 
     @FXML
     TextField rootFileLabel;
@@ -75,7 +83,18 @@ public class DisplayNavigationViewController {
 
     public void refresh() {
         rootFileLabel.setText(rootFile.getPath());
-        listView.setItems(FXCollections.observableArrayList(model.process()));
+
+        // update the list view
+        allLinks = new ProcessOPIAllLinksTask(rootFile);
+        allLinks.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+            @Override
+            public void handle(WorkerStateEvent event) {
+                listView.setItems(FXCollections.observableArrayList(allLinks.getValue()));
+            }
+        });
+        service.submit(allLinks);
+
+        // update the tree view
         reconstructTree();
 
         contextMenu.getItems().addAll(open, openWith);
