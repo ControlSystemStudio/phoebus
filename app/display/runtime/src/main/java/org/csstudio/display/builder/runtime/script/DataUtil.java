@@ -73,7 +73,7 @@ public class DataUtil {
      * New macro can be added or replaced by
      * <code>MacrosInput.put(String macroName, String macroValue);</code>
      * @param include_parent_macros If parent macros should be included.
-     * @return a new created MacrosInput.
+     * @return a new created LinkedHashMap.
      */
     public final static LinkedHashMap<String, String> createMacrosInput(boolean include_parent_macros)
     {
