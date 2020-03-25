@@ -299,6 +299,8 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     private void doWheelZoom(final double delta, final double x, final double y)
     {
         final double zoom = getZoom();
+	if (delta == 0)
+	    return;
         if (zoom >= ZOOM_MAX && delta > 0)
             return;
         if (zoom <= ZOOM_MIN && delta < 0)

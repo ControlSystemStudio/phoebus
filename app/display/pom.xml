@@ -16,5 +16,6 @@
     <module>editor</module>
     <module>convert-medm</module>
     <module>convert-edm</module>
+    <module>navigation</module>
   </modules>
 </project>

@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import org.phoebus.channelfinder.Channel;
@@ -190,8 +191,8 @@ public class ChannelTreeController extends ChannelFinderController {
      */
     private final class ChannelTreeItem extends TreeItem<ChannelTreeByPropertyNode> {
 
-        private boolean isFirstTimeLeaf = true;
-        private boolean isFirstTimeChildren = true;
+        private AtomicBoolean isFirstTimeLeaf = new AtomicBoolean(true);
+        private AtomicBoolean isFirstTimeChildren = new AtomicBoolean(true);
         private boolean isLeaf;
 
         public ChannelTreeItem(ChannelTreeByPropertyNode node) {
@@ -200,8 +201,7 @@ public class ChannelTreeController extends ChannelFinderController {
 
         @Override
         public ObservableList<TreeItem<ChannelTreeByPropertyNode>> getChildren() {
-            if (isFirstTimeChildren) {
-                isFirstTimeChildren = false;
+            if (isFirstTimeChildren.getAndSet(false)) {
                 super.getChildren().setAll(buildChildren(this));
             }
             return super.getChildren();
@@ -209,8 +209,7 @@ public class ChannelTreeController extends ChannelFinderController {
 
         @Override
         public boolean isLeaf() {
-            if (isFirstTimeLeaf) {
-                isFirstTimeLeaf = false;
+            if (isFirstTimeLeaf.getAndSet(false)) {
                 if (getValue().getParentNode() == null) {
                     isLeaf = false;
                 } else {
