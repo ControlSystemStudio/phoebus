@@ -153,7 +153,6 @@ public class DisplayNavigationViewController {
 
         private ObservableList<TreeItem<File>> buildChildren(TreeItem<File> treeItem) {
             File item = treeItem.getValue();
-            Set<File> childrens = ProcessOPI.getLinkedFiles(item);
             ObservableList<TreeItem<File>> children = FXCollections.observableArrayList();
             for (File child : ProcessOPI.getLinkedFiles(item)) {
                 children.add(new DisplayNavigationTreeItem(child));
