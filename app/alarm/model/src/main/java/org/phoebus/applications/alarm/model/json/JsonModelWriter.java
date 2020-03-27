@@ -44,7 +44,7 @@ public class JsonModelWriter
      *  @return Byte array for JSON text
      *  @throws Exception on error
      */
-    public static byte[] toJsonBytes(final BasicState state, final boolean maintenance_mode) throws Exception
+    public static byte[] toJsonBytes(final BasicState state, final boolean maintenance_mode, final boolean disable_notify) throws Exception
     {
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         try
@@ -77,6 +77,10 @@ public class JsonModelWriter
             if (maintenance_mode)
             {
                 jg.writeStringField(JsonTags.MODE, JsonTags.MAINTENANCE);
+            }
+	    if (disable_notify)
+            {
+                jg.writeStringField(JsonTags.NOTIFY, JsonTags.DISABLE);
             }
             jg.writeEndObject();
         }

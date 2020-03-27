@@ -51,6 +51,7 @@ public class AlarmClient
     private final AlarmClientNode root;
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final AtomicBoolean maintenance_mode = new AtomicBoolean(false);
+    private final AtomicBoolean disable_notify = new AtomicBoolean(false);
     private final Consumer<String, String> consumer;
     private final Producer<String, String> producer;
     private final Thread thread;
@@ -114,6 +115,12 @@ public class AlarmClient
     public boolean isMaintenanceMode()
     {
         return maintenance_mode.get();
+    }
+
+    /** @return Is alarm server in disable notify mode? */
+    public boolean isDisableNotify()
+    {
+        return disable_notify.get();
     }
 
     /** @param maintenance Select maintenance mode? */

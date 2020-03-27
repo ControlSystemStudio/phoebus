@@ -45,6 +45,9 @@ public class AlarmLogic // implements GlobalAlarmListener
     /** @see #getMaintenanceMode() */
     private static volatile boolean maintenance_mode = false;
 
+    /** @see #getDisableNotify() */
+    private static volatile boolean disable_notify = false;
+
     /** Listener to notify on alarm state changes */
     final private AlarmLogicListener listener;
 
@@ -151,6 +154,25 @@ public class AlarmLogic // implements GlobalAlarmListener
     public static boolean getMaintenanceMode()
     {
         return maintenance_mode;
+    }
+
+    /** Set disable notify.
+     *  @param disable_notify
+     *  @see #getDisableNotify()
+     */
+    @SuppressWarnings("nls")
+    public static void setDisableNotify(final boolean disable_notify)
+    {
+        AlarmLogic.disable_notify = disable_notify;
+        logger.config("Disable Notify: " + disable_notify);
+    }
+
+    /** If disable_notify is true, email notifications are disabled
+     *  @return <code>true</code> disable notify
+     */
+    public static boolean getDisableNotify()
+    {
+        return disable_notify;
     }
 
     /** @param enable Enable or disable the logic?

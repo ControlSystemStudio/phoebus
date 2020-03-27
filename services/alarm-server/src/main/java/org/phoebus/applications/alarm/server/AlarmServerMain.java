@@ -405,6 +405,15 @@ public class AlarmServerMain implements ServerModelListener
         }
     }
 
+    private void setDisableNotify(final boolean disable_notify)
+    {
+        // Any change?
+        if (disable_notify == AlarmLogic.getDisableNotify())
+            return;
+        // Configure alarm logic
+        AlarmLogic.setDisableNotify(disable_notify);
+    }
+
     private void setMaintenanceMode(final boolean maintenance_mode)
     {
         // Any change?

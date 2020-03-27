@@ -20,6 +20,9 @@ public interface AlarmClientListener
     /** @param maintenance_mode Is the server in 'maintenance' mode? Else 'normal' */
     void serverModeChanged(boolean maintenance_mode);
 
+    /** @param disable_notify Should email notifications be disabled? */
+    void serverDisableNotifyChanged(boolean disable_notify);
+
     /** @param item Item that has been added */
     void itemAdded(AlarmTreeItem<?> item);
 

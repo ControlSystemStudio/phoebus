@@ -46,6 +46,12 @@ public class AlarmClientModelDemo
                 System.out.println(maintenance_mode ? "MAINTENANCE mode" : "NORMAL mode");
             }
 
+	     @Override
+            public void serverDisableNotifyChanged(final boolean disable_notify)
+            {
+                System.out.println(disable_notify ? "DISABLED notify" : "ENABLED notify");
+            }
+
             @Override
             public void itemAdded(final AlarmTreeItem<?> item)
             {
