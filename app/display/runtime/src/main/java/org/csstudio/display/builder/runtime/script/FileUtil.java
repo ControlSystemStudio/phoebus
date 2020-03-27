@@ -33,7 +33,8 @@ public class FileUtil {
      * @return root element of the XML file.
      * @throws Exception if the file does not exist or is not a correct XML file.
      */
-    public static Element loadXMLFile(String filePath) throws Exception{
+    public static Element loadXMLFile(String filePath) throws Exception
+    {
         return loadXMLFile(filePath, null);
     }
     
@@ -61,7 +62,8 @@ public class FileUtil {
      * @return a string of the text.
      * @throws Exception if the file does not exist or is not a correct text file.
      */
-    public static List<String> readTextFile(String filePath) throws Exception{
+    public static List<String> readTextFile(String filePath) throws Exception
+    {
         return readTextFile(filePath, null);
     }
 
@@ -76,7 +78,8 @@ public class FileUtil {
      * @return a string of the text.
      * @throws Exception if the file does not exist or is not a correct text file.
      */
-    public static List<String> readTextFile(String filePath, Widget widget) throws Exception{
+    public static List<String> readTextFile(String filePath, Widget widget) throws Exception
+    {
         return ScriptUtil.readTextFile(widget, filePath);
     }
 
@@ -91,7 +94,8 @@ public class FileUtil {
      * @throws Exception if error happens.
      */
     public static void writeTextFile(String filePath, boolean inWorkspace,
-            String text, boolean append) throws Exception{
+            String text, boolean append) throws Exception
+    {
         writeTextFile(filePath, inWorkspace, null, text, append);
     }
 
@@ -130,7 +134,8 @@ public class FileUtil {
      * @param widget a widget in the OPI, which is used to provide relative path reference. It
      * can be null if the path is an absolute path.
      */
-    public static void openFile(String filePath, Widget widget){
+    public static void openFile(String filePath, Widget widget)
+    {
 	try
 	{
 	    ScriptUtil.openFile(widget, filePath);
@@ -146,7 +151,8 @@ public class FileUtil {
      * file system file dialog.
      * @return the full file path. Or null if it is cancelled.
      */
-    public static String openFileDialog(boolean inWorkspace){
+    public static String openFileDialog(boolean inWorkspace)
+    {
 	final Window window = null;
         File selected = new OpenFileDialog().promptForFile(window, "Open File", null, null);
         if (selected == null)
@@ -170,7 +176,8 @@ public class FileUtil {
      * @param workspacePath path in workspace.
      * @return the system path on OS. Return an empty string if the path doesn't exist.
      */
-    public static String workspacePathToSysPath(String workspacePath) throws RuntimeException{
+    public static String workspacePathToSysPath(String workspacePath) throws RuntimeException
+    {
         return ScriptUtil.workspacePathToSysPath(workspacePath);
     }
 
