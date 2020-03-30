@@ -37,17 +37,27 @@ public class LogbookAvailabilityChecker{
     public static boolean isLogbookAvailable(){
         String logBookProviderId = LogbookUiPreferences.logbook_factory;
         Collection<Logbook> logbooks =
-                LogService.getInstance().getLogFactories(logBookProviderId).getLogClient().listLogbooks();
+                null;
+        try {
+            logbooks = LogService.getInstance().getLogFactories(logBookProviderId).getLogClient().listLogbooks();
+        } catch (Exception e) {
+            showAlert(logBookProviderId);
+            return false;
+        }
         if(logbooks == null || logbooks.isEmpty()){
-            Platform.runLater(() -> {
-                Alert alert = new Alert(AlertType.ERROR);
-                alert.setTitle(Messages.LogbookServiceUnavailableTitle);
-                alert.setHeaderText(
-                        MessageFormat.format(Messages.LogbookServiceHasNoLogbooks, logBookProviderId));
-                alert.showAndWait();
-            });
+            showAlert(logBookProviderId);
             return false;
         }
         return true;
+    }
+
+    private static void showAlert(String logBookProviderId){
+        Platform.runLater(() -> {
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle(Messages.LogbookServiceUnavailableTitle);
+            alert.setHeaderText(
+                    MessageFormat.format(Messages.LogbookServiceHasNoLogbooks, logBookProviderId));
+            alert.showAndWait();
+        });
     }
 }
