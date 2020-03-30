@@ -9,10 +9,8 @@ package org.phoebus.logbook.ui.write;
 
 import java.io.File;
 import java.time.Instant;
-import java.util.List;
 
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
 import javafx.scene.web.HTMLEditor;
 import org.phoebus.logbook.ui.LogbookUiPreferences;
 import org.phoebus.logbook.ui.Messages;
@@ -58,9 +56,8 @@ public class FieldsView extends VBox
     private final Label            textLabel;
     private final TextField        titleField;
     private final LogbooksTagsView logbooksAndTags;
-    //private final TextArea         textArea;
-    private final HTMLEditor textArea;
-    
+    private final TextArea         textArea;
+
     public FieldsView(LogEntryModel model)
     {
         this.model = model;
@@ -101,16 +98,7 @@ public class FieldsView extends VBox
         logbooksAndTags =  new LogbooksTagsView(model);
         
         textLabel  = new Label(Messages.Text);
-        textArea   = new HTMLEditor(); //new TextArea(model.getText());
-        ContextMenu cm = textArea.getContextMenu();
-        System.out.println(new File(".").getAbsolutePath());
-        textArea.setHtmlText("<table style='border-collapse: collapse; border: 1px solid black;'><tr><td style='border: 1px solid black;'>This is a table...</td><td style='border: 1px solid black;'>...in HTML, with in-lined CSS styling</td></tr></table>" +
-                "<br>" +
-                "And here is an inline image:<br>" +
-                "<img src='file:///Users/georgweiss/projects/phoebus/img.jpg'/>");
-
-
-
+        textArea   = new TextArea(model.getText());
         userFieldLabel     = new Label(Messages.Username);       
         passwordFieldLabel = new Label(Messages.Password);
 
@@ -279,7 +267,7 @@ public class FieldsView extends VBox
         
         textArea.setOnKeyReleased(event -> 
         {
-            model.setText(textArea.getHtmlText());
+            model.setText(textArea.getText());
         });   
     }
 
