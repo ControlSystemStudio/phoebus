@@ -69,7 +69,7 @@ public class RuleToScript
         case BOOLEAN:
             return (Boolean) prop.getValue() ? "True" : "False";
         case STRING:
-            return "\"" + escapeString(prop.getValue().toString()) + "\"";
+            return "u\"" + escapeString(prop.getValue().toString()) + "\"";
         case COLOR:
             if (exprIDX >= 0)
                 return "colorVal" + String.valueOf(exprIDX);
