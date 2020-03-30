@@ -56,7 +56,7 @@ public class LogService {
 
     /**
      * Get a registered log factory for creating logbook clients to the specified type of logbook service
-     * @param logbook_factory A string identifying the logbook service type
+     * @param logbookServiceId A string identifying the logbook service type
      * @return logbookFactory for creating clients to logbookServiceId
      */
     public LogFactory getLogFactories(String logbookServiceId) {
@@ -74,7 +74,7 @@ public class LogService {
     /**
      * Create a log entry in all registered LogFactory
      * 
-     * @param adaptedSelections
+     * @param logEntry
      * @param authToken
      *            - Authentication Token
      */
@@ -89,7 +89,8 @@ public class LogService {
     /**
      * Create a log entry in all registered LogFactory TODO change to Log type
      * 
-     * @param adaptedSelections
+     * @param logEntries
+     * @param authToken
      */
     public void createLogEntry(List<LogEntry> logEntries, Object authToken) {
         executor.submit(() -> {
@@ -105,7 +106,8 @@ public class LogService {
      * Create a log entry in the specified LogFactory TODO change to Log type
      * 
      * @param id
-     * @param log
+     * @param logEntry
+     * @param authToken
      */
     public void createLogEntry(String id, LogEntry logEntry, Object authToken) {
         executor.submit(() -> {
