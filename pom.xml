@@ -11,6 +11,19 @@
     <tag>HEAD</tag>
   </scm>
 
+  <distributionManagement>
+    <snapshotRepository>
+      <id>artifactory</id>
+      <name>ESS Artifactory Snapshot repository</name>
+      <url>https://artifactory.esss.lu.se/artifactory/libs-snapshot-local</url>
+    </snapshotRepository>
+    <repository>
+      <id>artifactory</id>
+      <name>ESS Artifactory Release repository</name>
+      <url>https://artifactory.esss.lu.se/artifactory/libs-release-local</url>
+    </repository>
+  </distributionManagement>
+
   <properties>
     <epics.version>7.0.4</epics.version>
     <vtype.version>1.0.1</vtype.version>
