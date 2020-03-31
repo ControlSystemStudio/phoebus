@@ -25,6 +25,8 @@ public class Messages
                          High,
                          Level,
                          Logbooks,
+                         LogbookServiceUnavailableTitle,
+                         LogbookServiceHasNoLogbooks,
                          LogbooksTitle,
                          LogbooksTooltip,
                          Normal,

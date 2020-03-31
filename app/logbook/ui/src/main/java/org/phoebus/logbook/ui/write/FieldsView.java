@@ -7,8 +7,11 @@
  *******************************************************************************/
 package org.phoebus.logbook.ui.write;
 
+import java.io.File;
 import java.time.Instant;
 
+import javafx.scene.control.ContextMenu;
+import javafx.scene.web.HTMLEditor;
 import org.phoebus.logbook.ui.LogbookUiPreferences;
 import org.phoebus.logbook.ui.Messages;
 import org.phoebus.util.time.TimestampFormats;
@@ -54,7 +57,7 @@ public class FieldsView extends VBox
     private final TextField        titleField;
     private final LogbooksTagsView logbooksAndTags;
     private final TextArea         textArea;
-    
+
     public FieldsView(LogEntryModel model)
     {
         this.model = model;
@@ -96,7 +99,6 @@ public class FieldsView extends VBox
         
         textLabel  = new Label(Messages.Text);
         textArea   = new TextArea(model.getText());
-      
         userFieldLabel     = new Label(Messages.Username);       
         passwordFieldLabel = new Label(Messages.Password);
 

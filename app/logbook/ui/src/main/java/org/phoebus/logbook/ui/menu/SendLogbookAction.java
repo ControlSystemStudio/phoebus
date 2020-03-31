@@ -12,6 +12,7 @@ import static org.phoebus.logbook.LogService.logger;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
@@ -20,6 +21,7 @@ import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.AttachmentImpl;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
+import org.phoebus.logbook.ui.LogbookAvailabilityChecker;
 import org.phoebus.logbook.ui.LogbookUiPreferences;
 import org.phoebus.logbook.ui.write.LogEntryDialog;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -71,6 +73,9 @@ public class SendLogbookAction extends MenuItem
                 // Save to file in background thread
                 JobManager.schedule(MESSAGE, monitor ->
                 {
+                    if(!LogbookAvailabilityChecker.isLogbookAvailable()){
+                        return;
+                    }
                     final File image_file = image == null ? null : new Screenshot(image).writeToTempfile("image");
 
                     // Create log entry via dialog on UI thread
@@ -105,6 +110,7 @@ public class SendLogbookAction extends MenuItem
         final LogEntry template = logEntryBuilder.createdDate(Instant.now()).build();
 
         final LogEntryDialog logEntryDialog = new LogEntryDialog(parent, template);
+
         DialogHelper.positionDialog(logEntryDialog, parent, -200, -400);
         // Set the on submit action to clean up the temporary file after log entry submission.
         if (image_file != null)
