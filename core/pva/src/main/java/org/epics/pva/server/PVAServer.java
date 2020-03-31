@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -63,6 +63,36 @@ public class PVAServer implements AutoCloseable
         tcp = new ServerTCPListener(this);
     }
 
+    /** Create PVA Server with custom search handler
+     *
+     *  <p>Search requests will be passed to the search handler.
+     *  If that search handler returns <code>true</code>,
+     *  the request is considered handled.
+     *  If the {@link SearchHandler} returns <code>false</code>,
+     *  the default handler will then reply as usual,
+     *  i.e. report served PVs.
+     *
+     *  @param search_handler Search handler
+     *  @throws Exception on error
+     */
+    public PVAServer(final SearchHandler search_handler) throws Exception
+    {
+        logger.log(Level.CONFIG, "PVA Server " + guid);
+
+        final SearchHandler combined_handler = (seq, cid, name, addr) ->
+        {
+            // Does custom handler consume the search request?
+            if (search_handler.handleSearchRequest(seq, cid, name, addr))
+                return true;
+            // Fall back to default handler
+            return handleSearchRequest(seq, cid, name, addr);
+        };
+
+        udp = new ServerUDPHandler(combined_handler);
+        tcp = new ServerTCPListener(this);
+    }
+
+
     /** Create a read-only PV which serves data to clients
      *
      *  <p>Creates a thread-safe copy of the initial value.
@@ -123,11 +153,12 @@ public class PVAServer implements AutoCloseable
         return pv_by_sid.get(sid);
     }
 
-    private void handleSearchRequest(final int seq, final int cid, final String name, final InetSocketAddress addr)
+    private boolean handleSearchRequest(final int seq, final int cid, final String name, final InetSocketAddress addr)
     {
         if (cid < 0)
         {   // 'List servers' search, no specific name
             POOL.execute(() -> udp.sendSearchReply(guid, 0, -1, tcp, addr));
+            return true;
         }
         else
         {
@@ -138,8 +169,10 @@ public class PVAServer implements AutoCloseable
                 // Reply with TCP connection info
                 logger.log(Level.FINE, "Received Search for known PV " + pv);
                 POOL.execute(() -> udp.sendSearchReply(guid, seq, cid, tcp, addr));
+                return true;
             }
         }
+        return false;
     }
 
     /** @param tcp_connection Newly created {@link ServerTCPHandler} */

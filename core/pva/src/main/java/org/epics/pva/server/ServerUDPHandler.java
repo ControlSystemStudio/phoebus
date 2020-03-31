@@ -31,20 +31,6 @@ import org.epics.pva.data.PVAString;
 @SuppressWarnings("nls")
 class ServerUDPHandler extends UDPHandler
 {
-    /** Invoked when client sends a generic 'list servers'
-     *  as well as a specific PV name search
-     */
-    @FunctionalInterface
-    public interface SearchHandler
-    {
-        /** @param seq Client's search sequence
-         *  @param cid Client channel ID or -1
-         *  @param name Channel name or <code>null</code>
-         *  @param addr Client's address and TCP port
-         */
-        public void handleSearchRequest(int seq, int cid, String name, InetSocketAddress addr);
-    }
-
     private final SearchHandler search_handler;
 
     /** UDP channel on which we listen to name search
