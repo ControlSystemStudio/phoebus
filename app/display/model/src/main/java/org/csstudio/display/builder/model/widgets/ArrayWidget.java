@@ -106,7 +106,7 @@ public class ArrayWidget extends PVWidget
         return Macros.merge(base, my_macros);
     }
 
-     /** @return 'macros' property */
+    /** @return 'macros' property */
     public WidgetProperty<Macros> propMacros()
     {
         return macros;
