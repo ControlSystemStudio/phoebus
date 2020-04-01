@@ -11,8 +11,12 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 
 import java.util.List;
 
+import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.persist.ModelReader;
 import org.phoebus.framework.macros.Macros;
+import org.phoebus.framework.persistence.XMLUtil;
+import org.w3c.dom.Element;
 
 /** Base for widget with 'macros'
  *  @author Kay Kasemir
@@ -20,6 +24,25 @@ import org.phoebus.framework.macros.Macros;
 public class MacroWidget extends VisibleWidget
 {
     private volatile WidgetProperty<Macros> macros;
+
+    /** Helper for WidgetConfigurator that imports 'pv_name' as macro
+     *
+     *  <p>Legacy displays had a 'pv_name' property on static widgets
+     *  even though those widgets didn't have an actual PV.
+     *  The 'pv_name' property was simply treated as a macro,
+     *  allowing for example scripts to then refer to '$(pv_name)'.
+     *  
+     *  <p>This imports it as an actual macro.
+     */
+    public static void importPVName(final ModelReader model_reader, final Widget widget, final Element widget_xml)
+    {
+        XMLUtil.getChildString(widget_xml, "pv_name")
+               .ifPresent(value ->
+        {
+            final MacroWidget mw = (MacroWidget) widget;
+            mw.propMacros().getValue().add("pv_name", value);
+        });
+    }
 
     /** Widget constructor.
      *  @param type Widget type
