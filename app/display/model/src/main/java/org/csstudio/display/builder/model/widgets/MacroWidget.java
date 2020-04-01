@@ -11,7 +11,9 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 
 import java.util.List;
 
+import org.csstudio.display.builder.model.Version;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.WidgetConfigurator;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.phoebus.framework.macros.Macros;
@@ -21,6 +23,7 @@ import org.w3c.dom.Element;
 /** Base for widget with 'macros'
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class MacroWidget extends VisibleWidget
 {
     private volatile WidgetProperty<Macros> macros;
@@ -31,7 +34,7 @@ public class MacroWidget extends VisibleWidget
      *  even though those widgets didn't have an actual PV.
      *  The 'pv_name' property was simply treated as a macro,
      *  allowing for example scripts to then refer to '$(pv_name)'.
-     *  
+     *
      *  <p>This imports it as an actual macro.
      */
     public static void importPVName(final ModelReader model_reader, final Widget widget, final Element widget_xml)
@@ -42,6 +45,23 @@ public class MacroWidget extends VisibleWidget
             final MacroWidget mw = (MacroWidget) widget;
             mw.propMacros().getValue().add("pv_name", value);
         });
+    }
+
+    /** Handle legacy XML format: Import 'pv_name' */
+    static class LegacyWidgetConfigurator extends WidgetConfigurator
+    {
+        public LegacyWidgetConfigurator(final Version xml_version)
+        {
+            super(xml_version);
+        }
+
+        @Override
+        public boolean configureFromXML(final ModelReader model_reader, final Widget widget, final Element widget_xml) throws Exception
+        {
+            if (xml_version.getMajor() < 2)
+                MacroWidget.importPVName(model_reader, widget, widget_xml);
+            return super.configureFromXML(model_reader, widget, widget_xml);
+        }
     }
 
     /** Widget constructor.

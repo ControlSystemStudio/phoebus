@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,8 +16,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.csstudio.display.builder.model.Messages;
+import org.csstudio.display.builder.model.Version;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetCategory;
+import org.csstudio.display.builder.model.WidgetConfigurator;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
@@ -29,7 +31,7 @@ import org.csstudio.display.builder.model.properties.WidgetColor;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class RectangleWidget extends VisibleWidget
+public class RectangleWidget extends MacroWidget
 {
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
@@ -75,6 +77,13 @@ public class RectangleWidget extends VisibleWidget
         properties.add(transparent = propTransparent.createProperty(this, false));
         properties.add(corner_width = propCornerWidth.createProperty(this, 0));
         properties.add(corner_height = propCornerHeight.createProperty(this, 0));
+    }
+
+    @Override
+    public WidgetConfigurator getConfigurator(final Version persisted_version)
+            throws Exception
+    {
+        return new MacroWidget.LegacyWidgetConfigurator(persisted_version);
     }
 
     /** @return 'background_color' property */
