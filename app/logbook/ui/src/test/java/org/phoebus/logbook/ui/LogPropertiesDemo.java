@@ -44,6 +44,15 @@ public class LogPropertiesDemo extends ApplicationWrapper {
         Parent root = loader.getRoot();
         primaryStage.setScene(new Scene(root, 400, 400));
         primaryStage.show();
+
+        primaryStage.setOnCloseRequest(v -> {
+            controller.getProperties().stream().forEach(p -> {
+                System.out.println(p.getName());
+                p.getAttributes().entrySet().stream().forEach(e -> {
+                    System.out.println("     " + e.getKey() + " : " + e.getValue());
+                });
+            });
+        });
     }
 
 }

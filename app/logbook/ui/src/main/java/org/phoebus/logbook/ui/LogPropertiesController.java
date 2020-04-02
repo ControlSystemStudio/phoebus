@@ -5,22 +5,22 @@ import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableCell;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.util.Callback;
-import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Property;
+import org.phoebus.logbook.PropertyImpl;
 
-import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-
-import static org.phoebus.util.time.TimestampFormats.SECONDS_FORMAT;
 
 public class LogPropertiesController {
 
@@ -31,9 +31,6 @@ public class LogPropertiesController {
     TreeTableColumn name;
     @FXML
     TreeTableColumn value;
-
-    // Model for the properties view is a list of properties.
-    List<Property> properties;
 
     @FXML
     public void initialize()
@@ -53,12 +50,35 @@ public class LogPropertiesController {
                         return p.getValue().getValue().valueProperty();
                     }
                 });
+        value.setEditable(true);
         value.setCellFactory(new Callback<TreeTableColumn<PropertyTreeNode, String>,
                                           TreeTableCell<PropertyTreeNode, String>>() {
 
             @Override
             public TreeTableCell<PropertyTreeNode, String> call(TreeTableColumn<PropertyTreeNode, String> param) {
                 return new TreeTableCell<PropertyTreeNode, String> () {
+
+                    private TextField textField;
+
+                    @Override
+                    public void startEdit() {
+                        super.startEdit();
+
+                        if (textField == null) {
+                            createTextField();
+                        }
+                        setText(null);
+                        setGraphic(textField);
+                        textField.selectAll();
+                    }
+
+                    @Override
+                    public void cancelEdit() {
+                        super.cancelEdit();
+                        setText((String) getItem());
+                        setGraphic(getTreeTableRow().getGraphic());
+                    }
+
                     @Override
                     public void updateItem(String item, boolean empty){
                         super.updateItem(item, empty);
@@ -74,17 +94,27 @@ public class LogPropertiesController {
                             }
                         }
                     }
+
+                    private void createTextField() {
+                        textField = new TextField(getString());
+                        textField.setOnKeyReleased((KeyEvent t) -> {
+                            if (t.getCode() == KeyCode.ENTER) {
+                                commitEdit(textField.getText());
+                            } else if (t.getCode() == KeyCode.ESCAPE) {
+                                cancelEdit();
+                            }
+                        });
+                    }
+                    private String getString() {
+                        return getItem() == null ? "" : getItem().toString();
+                    }
                 };
             }
         });
-
-
-        constructTree();
-
     }
 
-    private void constructTree() {
-        if (this.properties != null && !this.properties.isEmpty())
+    private void constructTree(List<Property> properties) {
+        if (properties != null && !properties.isEmpty())
         {
             TreeItem root = new TreeItem(new PropertyTreeNode("properties", " "));
             root.getChildren().setAll(properties.stream().map(property -> {
@@ -107,8 +137,7 @@ public class LogPropertiesController {
      */
     public void setProperties(List<Property> properties)
     {
-        this.properties = properties;
-        constructTree();
+        constructTree(properties);
     }
 
     /**
@@ -116,7 +145,15 @@ public class LogPropertiesController {
      */
     public List<Property> getProperties()
     {
-        return properties;
+        List<Property> treeProperties = new ArrayList<>();
+        treeTableView.getRoot().getChildren().stream().forEach(node -> {
+            Map<String, String> att = node.getChildren().stream()
+                    .map(TreeItem::getValue)
+                    .collect(Collectors.toMap(PropertyTreeNode::getName, PropertyTreeNode::getValue));
+            Property property = PropertyImpl.of(node.getValue().getName(), att);
+            treeProperties.add(property);
+        });
+        return treeProperties;
     }
 
     private static class PropertyTreeNode
@@ -141,6 +178,19 @@ public class LogPropertiesController {
         private PropertyTreeNode(String name, String value) {
             this.name = new SimpleStringProperty(name);
             this.value = new SimpleStringProperty(value);
+        }
+
+        public String getName() {
+            return name.get();
+        }
+        public void setName(String name) {
+            this.name.set(name);
+        }
+        public String getValue() {
+            return value.get();
+        }
+        public void setValue(String value) {
+            this.value.set(value);
         }
     }
 }
