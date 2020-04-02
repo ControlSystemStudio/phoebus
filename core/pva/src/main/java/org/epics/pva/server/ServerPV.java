@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -127,6 +127,12 @@ public class ServerPV
                 subscriptions.remove(subscription);
                 break;
             }
+    }
+
+    /** @return Does the PV have client subscriptions? */
+    public boolean isSubscribed()
+    {
+        return ! subscriptions.isEmpty();
     }
 
     /** Update the PV's data

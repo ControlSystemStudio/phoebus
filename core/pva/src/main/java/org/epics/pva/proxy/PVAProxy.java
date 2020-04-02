@@ -129,6 +129,12 @@ public class PVAProxy
             if (server_pv == null)
                 server_pv = server.createPV(channel.getName(), data);
             else
+            {
+                // TODO Periodically check how many clients the ServerPV has, close if unused for a while
+
+                if (! server_pv.isSubscribed())
+                    System.out.println("****** UNUSED Proxy " + channel.getName());
+
                 try
                 {
                     server_pv.update(data);
@@ -137,6 +143,7 @@ public class PVAProxy
                 {
                     logger.log(Level.WARNING, "Cannot publish update to " + server_pv, ex);
                 }
+            }
         }
 
         @Override
@@ -154,7 +161,7 @@ public class PVAProxy
             }
             if (server_pv != null)
             {
-                // TODO Implement  server_pv.close();
+                // TODO Implement  server_pv.close();  Needs to close client connections
                 server_pv = null;
             }
         }
