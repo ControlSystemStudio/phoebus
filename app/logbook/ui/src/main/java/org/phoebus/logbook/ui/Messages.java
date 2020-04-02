@@ -16,6 +16,7 @@ public class Messages
                          Apply,
                          Attachments,
                          Available,
+                         Cancel,
                          CancelTooltip,
                          Clear,                                
                          Clear_Tooltip,

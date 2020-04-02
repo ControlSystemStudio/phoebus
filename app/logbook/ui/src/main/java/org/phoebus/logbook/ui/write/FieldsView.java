@@ -164,7 +164,7 @@ public class FieldsView extends VBox
         HBox credentialBox = new HBox();
 
         setFieldActions();
-        userFieldLabel.setPrefWidth(LogEntryDialog.labelWidth);
+        userFieldLabel.setPrefWidth(LogEntryEditorStage.labelWidth);
         
         userFieldLabel.setTextFill(Color.RED);
         passwordFieldLabel.setTextFill(Color.RED);
@@ -189,7 +189,7 @@ public class FieldsView extends VBox
         HBox dateLevelBox = new HBox();
         dateField.setEditable(false);
         dateField.setTooltip(new Tooltip(Messages.CurrentDate));
-        dateLabel.setPrefWidth(LogEntryDialog.labelWidth);
+        dateLabel.setPrefWidth(LogEntryEditorStage.labelWidth);
         levelLabel.setAlignment(Pos.CENTER_RIGHT);
         levelSelector.setMinHeight(26); // When opened from phoebus, not the demo, the selector gets squeezed down to 10 pixels tall.
         levelSelector.setTooltip(new Tooltip(Messages.SelectLevelTooltip));
@@ -216,8 +216,8 @@ public class FieldsView extends VBox
         // title label and title field.
         HBox titleBox = new HBox();
         titleBox.setAlignment(Pos.CENTER);
-        titleLabel.setPrefWidth(LogEntryDialog.labelWidth);
-        textLabel.setPrefWidth(LogEntryDialog.labelWidth);
+        titleLabel.setPrefWidth(LogEntryEditorStage.labelWidth);
+        textLabel.setPrefWidth(LogEntryEditorStage.labelWidth);
         
         titleLabel.setTextFill(Color.RED);
 

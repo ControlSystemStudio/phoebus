@@ -12,7 +12,6 @@ import static org.phoebus.logbook.LogService.logger;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.Instant;
-import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
@@ -23,8 +22,8 @@ import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
 import org.phoebus.logbook.ui.LogbookAvailabilityChecker;
 import org.phoebus.logbook.ui.LogbookUiPreferences;
-import org.phoebus.logbook.ui.write.LogEntryDialog;
-import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.logbook.ui.write.LogEntryEditorStage;
+import org.phoebus.logbook.ui.write.LogEntryModel;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Screenshot;
 
@@ -107,14 +106,9 @@ public class SendLogbookAction extends MenuItem
             }
         }
 
-        final LogEntry template = logEntryBuilder.createdDate(Instant.now()).build();
+        final LogEntryModel model = new LogEntryModel(logEntryBuilder.createdDate(Instant.now()).build());
 
-        final LogEntryDialog logEntryDialog = new LogEntryDialog(parent, template);
+        new LogEntryEditorStage(parent, model, null).show();
 
-        DialogHelper.positionDialog(logEntryDialog, parent, -200, -400);
-        // Set the on submit action to clean up the temporary file after log entry submission.
-        if (image_file != null)
-            logEntryDialog.setOnSubmitAction(() -> image_file.delete());
-        logEntryDialog.showAndWait();
     }
 }

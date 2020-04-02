@@ -13,10 +13,18 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 /**
- * Demonstrate the LogEntryDialog
+ * Demonstrate the {@link LogEntryEditorStage}
  * @author Evan Smith
+ *
+ * <b>NOTE</b> On Java 11+ the run configuration must include JVM options for the JavaFX modules, e.g.
+ * --module-path
+ * /Users/georgweiss/.m2/repository/org/openjfx/javafx-base/14:/Users/georgweiss/.m2/repository/org/openjfx/javafx-graphics/14:/Users/georgweiss/.m2/repository/org/openjfx/javafx-fxml/14:/Users/georgweiss/.m2/repository/org/openjfx/javafx-controls/14
+ * --add-modules=javafx.base
+ * --add-modules=javafx.graphics
+ * --add-modules=javafx.fxml
+ * --add-modules=javafx.controls
  */
-public class DemoLogEntryDialog extends Application
+public class DemoLogEntryEditorStage extends Application
 {
 
     @Override
@@ -25,8 +33,8 @@ public class DemoLogEntryDialog extends Application
         StackPane root = new StackPane();
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
-        LogEntryDialog logEntryDialog = new LogEntryDialog(root, null);
-        logEntryDialog.showAndWait();
+
+        new LogEntryEditorStage(root, new LogEntryModel(), null).show();
     }
 
     public static void main(String[] args)
