@@ -10,12 +10,6 @@
    <!-- epics-util -->
    <dependency>
       <groupId>org.epics</groupId>
-      <artifactId>epics-core</artifactId>
-      <version>${epics.version}</version>
-      <type>pom</type>
-   </dependency>
-   <dependency>
-      <groupId>org.epics</groupId>
       <artifactId>vtype</artifactId>
       <version>${vtype.version}</version>
    </dependency>
