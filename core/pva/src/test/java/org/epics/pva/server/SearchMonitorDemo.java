@@ -21,8 +21,8 @@ public class SearchMonitorDemo
 {
     public static void main(String[] args) throws Exception
     {
-        System.setProperty("EPICS_PVAS_BROADCAST_PORT", "5077");
-        System.setProperty("EPICS_PVA_SERVER_PORT", "5077");
+        System.setProperty("EPICS_PVAS_BROADCAST_PORT", "5076");
+        System.setProperty("EPICS_PVA_SERVER_PORT", "5076");
 
         LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/pva_logging.properties"));
 
