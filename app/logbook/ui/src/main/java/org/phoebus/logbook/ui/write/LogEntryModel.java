@@ -10,9 +10,12 @@ package org.phoebus.logbook.ui.write;
 import static org.phoebus.ui.application.PhoebusApplication.logger;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -23,6 +26,7 @@ import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.AttachmentImpl;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
@@ -62,7 +66,7 @@ public class LogEntryModel
     private final LogService logService;
     private final LogFactory logFactory;
 
-    private Node node;
+    //private Node node;
     private String username;
     private String password;
     private Instant date;
@@ -91,7 +95,7 @@ public class LogEntryModel
 
     private static final Logger LOGGER = Logger.getLogger(LogEntryModel.class.getName());
 
-    public LogEntryModel(final Node callingNode)
+    public LogEntryModel()
     {
         username = "";
         password = "";
@@ -118,7 +122,7 @@ public class LogEntryModel
         images = FXCollections.observableArrayList();
         files  = FXCollections.observableArrayList();
 
-        node = callingNode;
+        //node = callingNode;
 
         readyToSubmit = new SimpleBooleanProperty(false);
         readyToSubmitProperty = readyToSubmit;
@@ -129,6 +133,52 @@ public class LogEntryModel
             LOGGER.log(Level.INFO, String.format("Adding default logbook \"%s\"", logbook));
             addSelectedLogbook(logbook.trim());
         }
+    }
+
+    public LogEntryModel(LogEntry template){
+        this();
+        if(template == null){
+            return;
+        }
+
+        setTitle(template.getTitle());
+        setText(template.getDescription());
+        Collection<Logbook> logbooks = template.getLogbooks();
+        logbooks.forEach(logbook->
+        {
+            addSelectedLogbook(logbook.getName());
+        });
+
+        Collection<Tag> tags = template.getTags();
+        tags.forEach(tag->
+        {
+            addSelectedTag(tag.getName());
+        });
+
+        final List<Image> images = new ArrayList<>();
+        final List<File> files = new ArrayList<>();
+        for (Attachment attachment : template.getAttachments())
+        {
+            final File file = attachment.getFile();
+
+            // Add image to model if attachment is image.
+            if (attachment.getContentType().equals(Attachment.CONTENT_IMAGE))
+            {
+                try
+                {
+                    images.add(new Image(new FileInputStream(file)));
+                }
+                catch (FileNotFoundException ex)
+                {
+                    logger.log(Level.WARNING, "Log entry template attachment file not found: '" + file.getName() + "'", ex);
+                }
+            }
+            // Add file to model if attachment is file.
+            else if (attachment.getContentType().equals(Attachment.CONTENT_FILE))
+                files.add(file);
+        }
+        setImages(images);
+        setFiles(files);
     }
 
     public void fetchStoredUserCredentials()
@@ -164,15 +214,6 @@ public class LogEntryModel
     public ReadOnlyBooleanProperty getUpdateCredentialsProperty()
     {
         return updateCredentialsProperty;
-    }
-
-    /**
-     * Gets the JavaFX Scene graph.
-     * @return Scene
-     */
-    public Scene getScene()
-    {
-        return node.getScene();
     }
 
     /**
