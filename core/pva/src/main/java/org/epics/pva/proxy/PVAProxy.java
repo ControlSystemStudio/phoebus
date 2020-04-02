@@ -8,6 +8,7 @@
 package org.epics.pva.proxy;
 
 import java.net.InetSocketAddress;
+import java.time.Instant;
 import java.util.BitSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -21,20 +22,23 @@ import org.epics.pva.PVASettings;
 import org.epics.pva.client.ClientChannelState;
 import org.epics.pva.client.PVAChannel;
 import org.epics.pva.client.PVAClient;
+import org.epics.pva.data.PVAInt;
 import org.epics.pva.data.PVAStructure;
+import org.epics.pva.data.nt.PVATimeStamp;
 import org.epics.pva.server.PVAServer;
 import org.epics.pva.server.ServerPV;
 
 /** PVA proxy that forwards search requests and data
  *
- *  <p>Configuration:
+ *  <p>Environment variables or Java properties:
  *
- *  Set environment variables or Java properties for the following:
  *  EPICS_PVA_ADDR_LIST - Where proxy searches for PVs
+ *
  *  EPICS_PVAS_BROADCAST_PORT, EPICS_PVA_SERVER_PORT - Where proxy makes those PVs available
  *
- *  For a 'local' test, set both
- *  EPICS_PVAS_BROADCAST_PORT and EPICS_PVA_SERVER_PORT to 5077.
+ *  PREFIX - Prefix for internal PVs
+ *
+ *  For a 'local' test, set both EPICS_PVAS_BROADCAST_PORT and EPICS_PVA_SERVER_PORT to 5077.
  *  The proxy will then listen to search requests on this non-standard port,
  *  and locate PVs via the default port (5076).
  *
@@ -42,11 +46,13 @@ import org.epics.pva.server.ServerPV;
  *  Check direct access:
  *  EPICS_PVA_BROADCAST_PORT=5076 pvget ramp saw rnd
  *
- *  Then run bottleneck, and try
+ *  Then run proxy, and try
  *  EPICS_PVA_BROADCAST_PORT=5077 pvget -m ramp saw rnd
  *
- *  To stop,
- *  EPICS_PVA_BROADCAST_PORT=5077 pvget QUIT
+ *  The following internal PVs are supported:
+ *
+ *  $(PREFIX)count - Number of proxied PVs
+ *  $(PREFIX)QUIT - Reading this will stop the proxy
  *
  *  @author Kay Kasemir
  */
@@ -54,6 +60,13 @@ import org.epics.pva.server.ServerPV;
 public class PVAProxy
 {
     public static Logger logger = Logger.getLogger(PVAProxy.class.getPackageName());
+
+    // Developed to test if the PVA server and client API
+    // provides what is necessary to implement a basic 'gateway'.
+    // Compared to a full featured 'gateway', however,
+    // this may be more of a 'bottleneck'.
+
+    private String prefix = "";
 
     private PVAServer server;
     private PVAClient client;
@@ -64,7 +77,13 @@ public class PVAProxy
     /** Executor for background jobs */
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
-    private class ProxyChannel
+    private PVATimeStamp count_time = new PVATimeStamp();
+    private PVAStructure count_value = new PVAStructure("count", "",
+                                                        new PVAInt("value", 0),
+                                                        count_time);
+    private ServerPV count_channel;
+
+    private class ProxyChannel implements AutoCloseable
     {
         private PVAChannel client_pv;
         private ServerPV server_pv;
@@ -79,6 +98,8 @@ public class PVAProxy
         {
             logger.log(Level.INFO, "********* SEARCH FOR " + name);
             client_pv = client.getChannel(name, this::channelStateChanged);
+
+            updateChannelCount();
         }
 
         private void channelStateChanged(final PVAChannel channel, final ClientChannelState state)
@@ -118,13 +139,34 @@ public class PVAProxy
                 }
         }
 
-        //  subscription.close();
-        //  pv.close();
+        @Override
+        public void close() throws Exception
+        {
+            if (subscription != null)
+            {
+                subscription.close();
+                subscription = null;
+            }
+            if (client_pv != null)
+            {
+                client_pv.close();
+                client_pv = null;
+            }
+            if (server_pv != null)
+            {
+                // TODO Implement  server_pv.close();
+                server_pv = null;
+            }
+        }
     }
 
     /** Map of PV name to proxy */
     private final ConcurrentHashMap<String, ProxyChannel> proxies = new ConcurrentHashMap<>();
 
+    public PVAProxy()
+    {
+        prefix = PVASettings.get("PREFIX", prefix);
+    }
 
     /** @param seq Client's search sequence
      *  @param cid Client channel ID or -1
@@ -135,22 +177,41 @@ public class PVAProxy
     private boolean handleSearchRequest(int seq, int cid, String name, InetSocketAddress addr)
     {
         System.out.println(addr + " searches for " + name + " (seq " + seq + ")");
-        if (name.equals("QUIT"))
+        if (name.equals(prefix+"QUIT"))
         {
             quit.countDown();
             return true;
         }
 
-        proxies.computeIfAbsent(name, ProxyChannel::new);
+        // Unless it's an internal PV, setup proxy
+        if (!count_channel.getName().equals(name))
+            proxies.computeIfAbsent(name, ProxyChannel::new);
 
         // Proceed with default search handler
         return false;
+    }
+
+    private void updateChannelCount()
+    {
+        try
+        {
+            count_value.get("value").setValue(proxies.size());
+            count_time.set(Instant.now());
+            count_channel.update(count_value);
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot update channel count", ex);
+        }
     }
 
     public void run() throws Exception
     {
         client = new PVAClient();
         server = new PVAServer(this::handleSearchRequest);
+
+        count_channel = server.createPV(prefix + "count", count_value);
+
         try
         {
             quit.await();

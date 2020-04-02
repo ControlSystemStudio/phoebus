@@ -85,17 +85,22 @@ public class PVASettings
 
     static
     {
-        EPICS_PVA_ADDR_LIST = set("EPICS_PVA_ADDR_LIST", EPICS_PVA_ADDR_LIST);
-        EPICS_PVA_AUTO_ADDR_LIST = set("EPICS_PVA_AUTO_ADDR_LIST", EPICS_PVA_AUTO_ADDR_LIST);
-        EPICS_PVA_SERVER_PORT = set("EPICS_PVA_SERVER_PORT", EPICS_PVA_SERVER_PORT);
-        EPICS_PVA_BROADCAST_PORT = set("EPICS_PVA_BROADCAST_PORT", EPICS_PVA_BROADCAST_PORT);
-        EPICS_PVAS_BROADCAST_PORT = set("EPICS_PVAS_BROADCAST_PORT", EPICS_PVAS_BROADCAST_PORT);
-        EPICS_CA_CONN_TMO = set("EPICS_CA_CONN_TMO", EPICS_CA_CONN_TMO);
-        EPICS_PVA_MAX_ARRAY_FORMATTING = set("EPICS_PVA_MAX_ARRAY_FORMATTING", EPICS_PVA_MAX_ARRAY_FORMATTING);
-        EPICS_PVA_SEND_BUFFER_SIZE = set("EPICS_PVA_SEND_BUFFER_SIZE", EPICS_PVA_SEND_BUFFER_SIZE);
+        EPICS_PVA_ADDR_LIST = get("EPICS_PVA_ADDR_LIST", EPICS_PVA_ADDR_LIST);
+        EPICS_PVA_AUTO_ADDR_LIST = get("EPICS_PVA_AUTO_ADDR_LIST", EPICS_PVA_AUTO_ADDR_LIST);
+        EPICS_PVA_SERVER_PORT = get("EPICS_PVA_SERVER_PORT", EPICS_PVA_SERVER_PORT);
+        EPICS_PVA_BROADCAST_PORT = get("EPICS_PVA_BROADCAST_PORT", EPICS_PVA_BROADCAST_PORT);
+        EPICS_PVAS_BROADCAST_PORT = get("EPICS_PVAS_BROADCAST_PORT", EPICS_PVAS_BROADCAST_PORT);
+        EPICS_CA_CONN_TMO = get("EPICS_CA_CONN_TMO", EPICS_CA_CONN_TMO);
+        EPICS_PVA_MAX_ARRAY_FORMATTING = get("EPICS_PVA_MAX_ARRAY_FORMATTING", EPICS_PVA_MAX_ARRAY_FORMATTING);
+        EPICS_PVA_SEND_BUFFER_SIZE = get("EPICS_PVA_SEND_BUFFER_SIZE", EPICS_PVA_SEND_BUFFER_SIZE);
     }
 
-    private static String set(final String name, final String default_value)
+    /** Get setting from property, environment or default
+     *  @param name Name of setting
+     *  @param default_value Default value
+     *  @return Effective value
+     */
+    public static String get(final String name, final String default_value)
     {
         String value = System.getProperty(name);
         if (value != null)
@@ -113,14 +118,24 @@ public class PVASettings
         return default_value;
     }
 
-    private static boolean set(final String name, final boolean default_value)
+    /** Get setting from property, environment or default
+     *  @param name Name of setting
+     *  @param default_value Default value
+     *  @return Effective value
+     */
+    public static boolean get(final String name, final boolean default_value)
     {
-        String text = set(name, default_value ? "YES" : "NO").toLowerCase();
+        String text = get(name, default_value ? "YES" : "NO").toLowerCase();
         return Boolean.parseBoolean(text)  ||  "yes".equals(text);
     }
 
-    private static int set(final String name, final int default_value)
+    /** Get setting from property, environment or default
+     *  @param name Name of setting
+     *  @param default_value Default value
+     *  @return Effective value
+     */
+    public static int get(final String name, final int default_value)
     {
-        return Integer.parseInt(set(name, Integer.toString(default_value)));
+        return Integer.parseInt(get(name, Integer.toString(default_value)));
     }
 }
