@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -30,11 +30,14 @@ public class PVASettings
     /** Add local broadcast addresses to addr list? */
     public static boolean EPICS_PVA_AUTO_ADDR_LIST = true;
 
-    /** First PVA port */
+    /** PVA client port for name searches and beacons */
+    public static int EPICS_PVA_BROADCAST_PORT = 5076;
+
+    /** First PVA port used by server */
     public static int EPICS_PVA_SERVER_PORT = 5075;
 
-    /** PVA port for name searches and beacons */
-    public static int EPICS_PVA_BROADCAST_PORT = 5076;
+    /** PVA server port for name searches and beacons */
+    public static int EPICS_PVAS_BROADCAST_PORT = EPICS_PVA_BROADCAST_PORT;
 
     /** Multicast address */
     public static String EPICS_PVA_MULTICAST_GROUP = "224.0.0.128";
@@ -86,6 +89,7 @@ public class PVASettings
         EPICS_PVA_AUTO_ADDR_LIST = set("EPICS_PVA_AUTO_ADDR_LIST", EPICS_PVA_AUTO_ADDR_LIST);
         EPICS_PVA_SERVER_PORT = set("EPICS_PVA_SERVER_PORT", EPICS_PVA_SERVER_PORT);
         EPICS_PVA_BROADCAST_PORT = set("EPICS_PVA_BROADCAST_PORT", EPICS_PVA_BROADCAST_PORT);
+        EPICS_PVAS_BROADCAST_PORT = set("EPICS_PVAS_BROADCAST_PORT", EPICS_PVAS_BROADCAST_PORT);
         EPICS_CA_CONN_TMO = set("EPICS_CA_CONN_TMO", EPICS_CA_CONN_TMO);
         EPICS_PVA_MAX_ARRAY_FORMATTING = set("EPICS_PVA_MAX_ARRAY_FORMATTING", EPICS_PVA_MAX_ARRAY_FORMATTING);
         EPICS_PVA_SEND_BUFFER_SIZE = set("EPICS_PVA_SEND_BUFFER_SIZE", EPICS_PVA_SEND_BUFFER_SIZE);

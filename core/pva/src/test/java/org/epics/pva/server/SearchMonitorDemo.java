@@ -21,6 +21,9 @@ public class SearchMonitorDemo
 {
     public static void main(String[] args) throws Exception
     {
+        System.setProperty("EPICS_PVAS_BROADCAST_PORT", "5077");
+        System.setProperty("EPICS_PVA_SERVER_PORT", "5077");
+
         LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/pva_logging.properties"));
 
         final CountDownLatch done = new CountDownLatch(1);
@@ -33,6 +36,10 @@ public class SearchMonitorDemo
             // Proceed with default search handler
             return false;
         };
+
+        System.out.println("Run 'pvget' with");
+        System.out.println("EPICS_PVA_BROADCAST_PORT=" + PVASettings.EPICS_PVAS_BROADCAST_PORT);
+        System.out.println("Run 'pvget QUIT' to stop");
 
         try
         (
