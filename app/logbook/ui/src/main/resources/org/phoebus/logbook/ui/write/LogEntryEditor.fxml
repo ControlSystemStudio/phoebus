@@ -29,6 +29,7 @@
     </padding>
 
     <VBox fx:id="fields" alignment="CENTER" VBox.vgrow="ALWAYS">
+        <fx:include source="FieldsView.fxml"/>
       <VBox.margin>
          <Insets bottom="10.0" />
       </VBox.margin></VBox>
