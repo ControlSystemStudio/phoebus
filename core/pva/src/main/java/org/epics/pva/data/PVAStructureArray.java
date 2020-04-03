@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -43,16 +43,11 @@ public class PVAStructureArray extends PVADataWithID implements PVAArray
      */
     private volatile PVAStructure[] elements;
 
-    public PVAStructureArray(final String name, final PVAStructure element_type, final PVAStructure[] elements)
+    public PVAStructureArray(final String name, final PVAStructure element_type, final PVAStructure... elements)
     {
         super(name);
         this.element_type = element_type;
         this.elements = elements;
-    }
-
-    public PVAStructureArray(final String name, final PVAStructure element_type)
-    {
-        this(name, element_type, new PVAStructure[0]);
     }
 
     /** @return Element type (no value) */
@@ -153,7 +148,18 @@ public class PVAStructureArray extends PVADataWithID implements PVAArray
     @Override
     public void encode(final ByteBuffer buffer) throws Exception
     {
-        throw new Exception("TODO");
+        final PVAStructure[] copy = elements;
+        PVASize.encodeSize(copy.length, buffer);
+        for (int i=0; i<copy.length; ++i)
+        {
+            if (copy[i] == null)
+                PVABool.encodeBoolean(false, buffer);
+            else
+            {
+                PVABool.encodeBoolean(true, buffer);
+                copy[i].encode(buffer);
+            }
+        }
     }
 
     @Override
