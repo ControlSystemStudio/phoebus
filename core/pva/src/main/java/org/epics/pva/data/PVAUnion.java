@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -214,7 +214,7 @@ public class PVAUnion extends PVADataWithID
                     throw new Exception("Incompatible unions");
                 selected = other.selected;
                 if (selected > 0)
-                    elements.set(selected, other.get().cloneData());
+                    elements.get(selected).setValue(other.get());
                 changes.set(index);
             }
         }
