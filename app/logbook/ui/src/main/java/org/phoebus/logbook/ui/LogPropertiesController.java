@@ -1,5 +1,7 @@
 package org.phoebus.logbook.ui;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
@@ -33,6 +35,9 @@ public class LogPropertiesController {
     TreeTableColumn value;
 
     @FXML
+    BooleanProperty editable = new SimpleBooleanProperty(false);
+
+    @FXML
     public void initialize()
     {
         name.setMaxWidth(1f * Integer.MAX_VALUE * 40);
@@ -50,7 +55,7 @@ public class LogPropertiesController {
                         return p.getValue().getValue().valueProperty();
                     }
                 });
-        value.setEditable(true);
+        value.setEditable(editable.getValue());
         value.setCellFactory(new Callback<TreeTableColumn<PropertyTreeNode, String>,
                                           TreeTableCell<PropertyTreeNode, String>>() {
 
@@ -111,6 +116,10 @@ public class LogPropertiesController {
                 };
             }
         });
+
+        editable.addListener((observable, oldValue, newValue) -> {
+            value.setEditable(newValue);
+        });
     }
 
     private void constructTree(List<Property> properties) {
@@ -154,6 +163,10 @@ public class LogPropertiesController {
             treeProperties.add(property);
         });
         return treeProperties;
+    }
+
+    public void setEditable(boolean editable) {
+        this.editable.set(editable);
     }
 
     private static class PropertyTreeNode

@@ -1,8 +1,16 @@
 package org.phoebus.logbook.ui;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableBooleanValue;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.CheckBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.PropertyImpl;
@@ -22,11 +30,6 @@ public class LogPropertiesDemo extends ApplicationWrapper {
 
     @Override
     public void start(Stage primaryStage) throws IOException {
-        FXMLLoader loader = new FXMLLoader();
-
-        loader.setLocation(this.getClass().getResource("LogProperties.fxml"));
-        loader.load();
-        LogPropertiesController controller = loader.getController();
 
         Map<String, String> tracAttributes = new HashMap<>();
         tracAttributes.put("id", "1234");
@@ -39,10 +42,26 @@ public class LogPropertiesDemo extends ApplicationWrapper {
         experimentAttributes.put("scan-id", "6789");
         Property experimentProperty = PropertyImpl.of("Experiment", experimentAttributes);
 
-        controller.setProperties(Arrays.asList(track, experimentProperty));
+        FXMLLoader loader = new FXMLLoader();
 
-        Parent root = loader.getRoot();
-        primaryStage.setScene(new Scene(root, 400, 400));
+        loader.setLocation(this.getClass().getResource("LogProperties.fxml"));
+        loader.load();
+        final LogPropertiesController controller = loader.getController();
+        Node tree = loader.getRoot();
+
+        CheckBox checkBox = new CheckBox();
+        BooleanProperty editable = new SimpleBooleanProperty();
+        checkBox.selectedProperty().bindBidirectional(editable);
+
+        controller.setProperties(Arrays.asList(track, experimentProperty));
+        editable.addListener((observable, oldValue, newValue) -> {
+            controller.setEditable(newValue);
+        });
+
+        VBox vbox = new VBox();
+        vbox.getChildren().add(checkBox);
+        vbox.getChildren().add(tree);
+        primaryStage.setScene(new Scene(vbox, 400, 400));
         primaryStage.show();
 
         primaryStage.setOnCloseRequest(v -> {
