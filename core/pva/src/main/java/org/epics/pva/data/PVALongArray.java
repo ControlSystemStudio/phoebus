@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -56,7 +56,12 @@ public class PVALongArray extends PVAData implements PVAArray
     @Override
     public void setValue(final Object new_value) throws Exception
     {
-        if (new_value instanceof long[])
+        if (new_value instanceof PVALongArray)
+        {
+            final long[] other = ((PVALongArray) new_value).value;
+            value = Arrays.copyOf(other, other.length);
+        }
+        else if (new_value instanceof long[])
             set(((long[]) new_value));
         else if (new_value instanceof List)
         {
