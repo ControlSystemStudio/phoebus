@@ -19,11 +19,14 @@ import org.epics.pva.data.PVADoubleArray;
 import org.epics.pva.data.PVAFloatArray;
 import org.epics.pva.data.PVAInt;
 import org.epics.pva.data.PVAIntArray;
+import org.epics.pva.data.PVALong;
 import org.epics.pva.data.PVALongArray;
 import org.epics.pva.data.PVAShortArray;
+import org.epics.pva.data.PVAString;
 import org.epics.pva.data.PVAStructure;
 import org.epics.pva.data.PVAStructureArray;
 import org.epics.pva.data.PVAUnion;
+import org.epics.pva.data.PVAny;
 import org.epics.pva.data.nt.PVATimeStamp;
 
 /** 'pva://IMAGE' Server Demo
@@ -62,16 +65,17 @@ public class ImageDemo
             final PVATimeStamp datatime = new PVATimeStamp("dataTimeStamp");
             final PVATimeStamp time = new PVATimeStamp();
 
+            final int width = 10, height = 10;
             final PVAStructure dim1 = new PVAStructure("", "dimension_t",
-                                                       new PVAInt("size", 10),
+                                                       new PVAInt("size", width),
                                                        new PVAInt("offset", 0),
-                                                       new PVAInt("fullSize", 10),
+                                                       new PVAInt("fullSize", width),
                                                        new PVAInt("binning", 1),
                                                        new PVABool("reverse", false));
             final PVAStructure dim2 = new PVAStructure("", "dimension_t",
-                                                       new PVAInt("size", 10),
+                                                       new PVAInt("size", height),
                                                        new PVAInt("offset", 0),
-                                                       new PVAInt("fullSize", 10),
+                                                       new PVAInt("fullSize", height),
                                                        new PVAInt("binning", 1),
                                                        new PVABool("reverse", false));
 
@@ -88,11 +92,18 @@ public class ImageDemo
                                                 new PVALongArray("ulongValue", true),
                                                 new PVAFloatArray("floatValue"),
                                                 new PVADoubleArray("doubleValue"));
-
+            final PVAInt id = new PVAInt("uniqueId", false, 0);
             final PVAStructure image = new PVAStructure("", "epics:nt/NTNDArray:1.0",
                                                         value,
+                                                        new PVAStructure("codec", "codec_t",
+                                                                         new PVAString("name", "test"),
+                                                                         new PVAny("parameters", new PVAInt("", false, 42))),
+                                                        new PVALong("compressedSize", false, width * height),
+                                                        new PVALong("uncompressedSize", false, width * height),
                                                         new PVAStructureArray("dimension", dim1, dim1, dim2),
+                                                        id,
                                                         datatime,
+                                                        // TODO PVAStructureArray(attribute)
                                                         time);
 
             // Create read-only PV
@@ -108,7 +119,7 @@ public class ImageDemo
                 for (int p=0; p<pixel.length; ++p)
                     if (pixel[p] != 1)
                         pixel[p] = v;
-
+                id.set(i);
                 datatime.set(Instant.now());
                 time.set(Instant.now());
 

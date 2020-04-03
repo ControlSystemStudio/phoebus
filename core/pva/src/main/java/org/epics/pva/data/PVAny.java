@@ -92,7 +92,14 @@ public class PVAny extends PVAData
     @Override
     public void encode(final ByteBuffer buffer) throws Exception
     {
-        throw new Exception("TODO: Implement encoding 'any'");
+        if (value == null)
+            buffer.put(PVAFieldDesc.NULL_TYPE_CODE);
+        else
+        {
+            final BitSet described = new BitSet();
+            value.encodeType(buffer, described);
+            value.encode(buffer);
+        }
     }
 
     @Override
