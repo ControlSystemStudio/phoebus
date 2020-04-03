@@ -44,7 +44,7 @@ public class PVAUnion extends PVADataWithID
             values.add(value);
         }
 
-        return new PVAUnion(name, union_name, values);
+        return new PVAUnion(name, union_name, -1, values);
     }
 
     /** Union type name */
@@ -57,17 +57,37 @@ public class PVAUnion extends PVADataWithID
      */
     private final List<PVAData> elements;
 
-    private volatile int selected = -1;
+    private volatile int selected;
 
+    /** @param name Variable name
+     *  @param struct_name Type name
+     *  @param elements Element definitions (typically without data)
+     */
     public PVAUnion(final String name, final String struct_name, final PVAData... elements)
     {
-        this(name, struct_name, Arrays.asList(elements));
+        this(name, struct_name, -1, Arrays.asList(elements));
     }
 
-    public PVAUnion(final String name, final String struct_name, final List<PVAData> elements)
+    /** @param name Variable name
+     *  @param struct_name Type name
+     *  @param selected Selected union element
+     *  @param elements Element definitions (typically without data except for 'selected' entry)
+     */
+    public PVAUnion(final String name, final String struct_name, int selected, final PVAData... elements)
+    {
+        this(name, struct_name, selected, Arrays.asList(elements));
+    }
+
+    /** @param name Variable name
+     *  @param struct_name Type name
+     *  @param selected Selected union element
+     *  @param elements Element definitions (typically without data except for 'selected' entry)
+     */
+    public PVAUnion(final String name, final String struct_name, int selected, final List<PVAData> elements)
     {
         super(name);
         this.union_name = struct_name;
+        this.selected = selected;
         this.elements = Collections.unmodifiableList(elements);
     }
 
@@ -124,7 +144,7 @@ public class PVAUnion extends PVADataWithID
         final List<PVAData> copy = new ArrayList<>(elements.size());
         for (PVAData element : elements)
             copy.add(element.cloneType(element.getName()));
-        final PVAUnion clone = new PVAUnion(name, union_name, copy);
+        final PVAUnion clone = new PVAUnion(name, union_name, -1, copy);
         clone.type_id = type_id;
         return clone;
     }
@@ -136,9 +156,8 @@ public class PVAUnion extends PVADataWithID
         // Deep copy
         for (PVAData element : elements)
             copy.add(element.cloneData());
-        final PVAUnion clone = new PVAUnion(name, union_name, copy);
+        final PVAUnion clone = new PVAUnion(name, union_name, selected, copy);
         clone.type_id = type_id;
-        clone.selected = selected;
         return clone;
     }
 
@@ -196,8 +215,11 @@ public class PVAUnion extends PVADataWithID
     @Override
     public void encode(final ByteBuffer buffer) throws Exception
     {
-        PVASize.encodeSize(selected, buffer);
-        elements.get(selected).encode(buffer);
+        final int safe_sel = selected;
+        // What's selected might now change, we encode what was in safe_sel
+        PVASize.encodeSize(safe_sel, buffer);
+        if (safe_sel >= 0)
+            elements.get(safe_sel).encode(buffer);
     }
 
     @Override
