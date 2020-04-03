@@ -14,6 +14,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -77,34 +79,64 @@ public class PVAProxy
     /** Executor for background jobs */
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
+    /** Timer for checking timeouts etc. */
+    private final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor();
+
+    /** Timestamp of 'count' PV */
     private PVATimeStamp count_time = new PVATimeStamp();
+    /** Value of 'count' PV */
     private PVAStructure count_value = new PVAStructure("count", "",
                                                         new PVAInt("value", 0),
                                                         count_time);
+    /** 'count' PV */
     private ServerPV count_channel;
 
+    /** Handler for one proxied PV */
     private class ProxyChannel implements AutoCloseable
     {
-        private PVAChannel client_pv;
-        private ServerPV server_pv;
-        private AutoCloseable subscription  = null;
+        // client_pv etc. also have a name reference, but they're null in some lifecycle states
+        private final String name;
+        private volatile PVAChannel client_pv;
+        private volatile ServerPV server_pv;
+        private volatile AutoCloseable subscription  = null;
 
         ProxyChannel(final String name)
         {
+            this.name = name;
             executor.submit(() -> connect(name));
         }
 
         private void connect(final String name)
         {
-            logger.log(Level.INFO, "********* SEARCH FOR " + name);
+            logger.log(Level.INFO, () -> "Search for " + name);
             client_pv = client.getChannel(name, this::channelStateChanged);
+            timer.schedule(this::connectionTimeout, 5000, TimeUnit.MILLISECONDS);
 
             updateChannelCount();
         }
 
+        private void connectionTimeout()
+        {
+            if (subscription != null)
+            {
+                logger.log(Level.INFO, () -> "Found " + name + " connected");
+                return;
+            }
+
+            logger.log(Level.INFO, () -> "Connection timeout for " + name);
+            try
+            {
+                close();
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Failed to cancel search for " + name, ex);
+            }
+        }
+
         private void channelStateChanged(final PVAChannel channel, final ClientChannelState state)
         {
-            logger.log(Level.INFO, "********* STATE UPDATE FOR " + channel);
+            logger.log(Level.INFO, () -> "State update for " + channel);
             if (channel.isConnected()  &&  subscription == null)
             {
                 try
@@ -113,7 +145,7 @@ public class PVAProxy
                 }
                 catch (Exception ex)
                 {
-                    logger.log(Level.WARNING, "Cannot subscribe to " + channel, ex);
+                    logger.log(Level.WARNING, "Cannot subscribe to " + name, ex);
                 }
             }
             // TODO Indicate if proxy is disconnected
@@ -124,14 +156,16 @@ public class PVAProxy
                                   final BitSet overruns,
                                   final PVAStructure data)
         {
-            logger.log(Level.INFO, "********* " + channel.getName() + " = " + data);
+            if (logger.isLoggable(Level.FINE))
+                logger.log(Level.FINE, "Value update for " + name + " = " + data);
+            else
+                logger.log(Level.INFO, () -> "Value update for " + name);
 
             if (server_pv == null)
                 server_pv = server.createPV(channel.getName(), data);
             else
             {
                 // TODO Periodically check how many clients the ServerPV has, close if unused for a while
-
                 if (! server_pv.isSubscribed())
                     System.out.println("****** UNUSED Proxy " + channel.getName());
 
@@ -164,6 +198,10 @@ public class PVAProxy
                 // TODO Implement  server_pv.close();  Needs to close client connections
                 server_pv = null;
             }
+
+            // Remove proxy. A new client search for this name will re-create a proxy
+            proxies.remove(name, this);
+            updateChannelCount();
         }
     }
 
@@ -181,9 +219,9 @@ public class PVAProxy
      *  @param addr Client's address and TCP port
      *  @return <code>true</code> if the search request was handled
      */
-    private boolean handleSearchRequest(int seq, int cid, String name, InetSocketAddress addr)
+    private boolean handleSearchRequest(final int seq, final int cid, final String name, final InetSocketAddress addr)
     {
-        System.out.println(addr + " searches for " + name + " (seq " + seq + ")");
+        logger.log(Level.INFO, () -> addr + " searches for " + name + " (seq " + seq + ")");
         if (name.equals(prefix+"QUIT"))
         {
             quit.countDown();
@@ -225,6 +263,8 @@ public class PVAProxy
         }
         finally
         {
+            timer.shutdownNow();
+            executor.shutdownNow();
             server.close();
             client.close();
         }
@@ -235,7 +275,5 @@ public class PVAProxy
         LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/pva_logging.properties"));
 
         new PVAProxy().run();
-
-        System.out.println("Done.");
     }
 }
