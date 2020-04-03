@@ -164,8 +164,6 @@ public class PVAUnion extends PVADataWithID
             }
         }
 
-        buffer.put((byte) 0x10000001);
-
         // Encode 'UNION' type, name
         buffer.put((byte) (PVAComplex.FIELD_DESC_TYPE | PVAComplex.UNION));
         PVAString.encodeString(union_name, buffer);
