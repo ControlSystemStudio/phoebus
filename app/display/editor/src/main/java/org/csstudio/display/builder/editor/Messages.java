@@ -15,6 +15,7 @@ import org.phoebus.framework.nls.NLS;
 public class Messages
 {
     // Keep in alphabetical order, synchronized with messages.properties
+    public static String AbortSave;
     public static String AddElement;
     public static String AddWidget;
     public static String Align;
