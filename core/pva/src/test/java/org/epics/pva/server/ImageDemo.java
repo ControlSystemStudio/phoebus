@@ -93,6 +93,14 @@ public class ImageDemo
                                                 new PVAFloatArray("floatValue"),
                                                 new PVADoubleArray("doubleValue"));
             final PVAInt id = new PVAInt("uniqueId", false, 0);
+
+            final PVAStructure attr = new PVAStructure("", "epics:nt/NTAttribute:1.0",
+                                                       new PVAString("name"),
+                                                       new PVAny("value"),
+                                                       new PVAString("descriptor"),
+                                                       new PVAInt("sourceType"),
+                                                       new PVAString("source"));
+
             final PVAStructure image = new PVAStructure("", "epics:nt/NTNDArray:1.0",
                                                         value,
                                                         new PVAStructure("codec", "codec_t",
@@ -103,7 +111,7 @@ public class ImageDemo
                                                         new PVAStructureArray("dimension", dim1, dim1, dim2),
                                                         id,
                                                         datatime,
-                                                        // TODO PVAStructureArray(attribute)
+                                                        new PVAStructureArray("attribute", attr),
                                                         time);
 
             // Create read-only PV
