@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,7 +9,6 @@ package org.csstudio.display.builder.model.widgets;
 
 import static org.csstudio.display.builder.model.ModelPlugin.logger;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFile;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMacros;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propTransparent;
 
 import java.util.Arrays;
@@ -34,7 +33,6 @@ import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
 import org.csstudio.display.builder.model.widgets.GroupWidget.Style;
-import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -44,7 +42,7 @@ import org.w3c.dom.Node;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class EmbeddedDisplayWidget extends VisibleWidget
+public class EmbeddedDisplayWidget extends MacroWidget
 {
     public static final int DEFAULT_WIDTH = 400,
                             DEFAULT_HEIGHT = 300;
@@ -184,7 +182,7 @@ public class EmbeddedDisplayWidget extends VisibleWidget
                     final Style style = GroupWidget.convertLegacyStyle(border_style);
                     createGroupWrapper(widget, xml, style);
                     // Trigger re-parsing the XML from the parent down
-                    throw new ParseAgainException();
+                    throw new ParseAgainException("Wrap embedded display in group");
                 }
                 else
                     BorderSupport.handleLegacyBorder(widget, xml);
@@ -259,7 +257,6 @@ public class EmbeddedDisplayWidget extends VisibleWidget
         }
     }
 
-    private volatile WidgetProperty<Macros> macros;
     private volatile WidgetProperty<String> file;
     private volatile WidgetProperty<Resize> resize;
     private volatile WidgetProperty<String> group_name;
@@ -276,22 +273,11 @@ public class EmbeddedDisplayWidget extends VisibleWidget
     {
         super.defineProperties(properties);
         properties.add(file = propFile.createProperty(this, ""));
-        properties.add(macros = propMacros.createProperty(this, new Macros()));
         properties.add(resize = propResize.createProperty(this, Resize.None));
         properties.add(group_name = propGroupName.createProperty(this, ""));
         properties.add(embedded_model = runtimeModel.createProperty(this, null));
         properties.add(transparent = propTransparent.createProperty(this, false));
         BorderSupport.addBorderProperties(this, properties);
-
-        // Initial size
-        propWidth().setValue(300);
-        propHeight().setValue(200);
-    }
-
-    /** @return 'macros' property */
-    public WidgetProperty<Macros> propMacros()
-    {
-        return macros;
     }
 
     /** @return 'file' property */
@@ -329,16 +315,5 @@ public class EmbeddedDisplayWidget extends VisibleWidget
             throws Exception
     {
         return new EmbeddedDisplayWidgetConfigurator(persisted_version);
-    }
-
-    /** Embedded widget adds/replaces parent macros
-     *  @return {@link Macros}
-     */
-    @Override
-    public Macros getEffectiveMacros()
-    {
-        final Macros base = super.getEffectiveMacros();
-        final Macros my_macros = propMacros().getValue();
-        return base == null ? my_macros : Macros.merge(base, my_macros);
     }
 }

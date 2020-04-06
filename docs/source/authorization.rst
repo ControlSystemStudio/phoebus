@@ -5,7 +5,7 @@ Authentication vs Authorization
 -------------------------------
 
 Phoebus depends on the operating system to authenticate the user.
-The currenly logged in user is who we expect to be interating with Phoebus.
+The currently logged in user is who we expect to be interacting with Phoebus.
 
 Phoebus does add basic authorization to control if the current user may
 configure details of the window layout (lock and unlock panes)
@@ -14,14 +14,14 @@ or alarm system (add, remove, acknowledge alarms).
 Configuring Authorization
 -------------------------
 
-A preference setting selects a more detailed autorization configuration file::
+A preference setting selects a more detailed authorization configuration file::
 
         org.phoebus.ui/authorization_file=/path/to/authorization.conf
 
 See details of the ``org.phoebus.ui`` preferences for the possible locations
 of that file.
 
-Example autorization configuration file::
+Example authorization configuration file::
 
         # Authorization Settings
         #

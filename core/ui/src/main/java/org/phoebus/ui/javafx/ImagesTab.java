@@ -22,7 +22,6 @@ public class ImagesTab extends Tab
 {
     private ImageList images = new ImageList();
 
-    /** @param root_node Node that will be used to obtain a screenshot */
     public ImagesTab()
     {
         setText(Messages.Images);

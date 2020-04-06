@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -142,7 +142,7 @@ public class ExampleInstaller implements Callable<Boolean>
                 // Open file system for jar
                 try
                 (
-                    final FileSystem fs = FileSystems.newFileSystem(jar, null);
+                    final FileSystem fs = FileSystems.newFileSystem(jar, (ClassLoader) null);
                 )
                 {
                     copy(1, fs.getPath(jar_folder), examples, monitor);

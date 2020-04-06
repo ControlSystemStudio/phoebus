@@ -116,6 +116,15 @@ class ServerTCPHandler extends TCPHandler
     }
 
     @Override
+    protected void handleControlMessage(final byte command, final ByteBuffer buffer) throws Exception
+    {
+        if (command == PVAHeader.CTRL_SET_BYTE_ORDER)
+            logger.log(Level.WARNING, "Client sent SET_BYTE_ORDER command?");
+        else
+            super.handleControlMessage(command, buffer);
+    }
+
+    @Override
     protected void handleApplicationMessage(final byte command, final ByteBuffer buffer) throws Exception
     {
         if (!handlers.handleCommand(command, this, buffer))

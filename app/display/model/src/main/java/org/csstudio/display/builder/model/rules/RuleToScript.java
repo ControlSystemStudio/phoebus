@@ -69,7 +69,7 @@ public class RuleToScript
         case BOOLEAN:
             return (Boolean) prop.getValue() ? "True" : "False";
         case STRING:
-            return "\"" + escapeString(prop.getValue().toString()) + "\"";
+            return "u\"" + escapeString(prop.getValue().toString()) + "\"";
         case COLOR:
             if (exprIDX >= 0)
                 return "colorVal" + String.valueOf(exprIDX);
@@ -176,6 +176,10 @@ public class RuleToScript
             }
             else if (text.charAt(i) == '=' && i > 0 && !(text.charAt(i-1)=='<' || text.charAt(i-1)=='>')) // and neither "==" nor "!=" nor "<=", ">="
                 result.append("==");
+	    else if (matches(text, i, "Math."))
+            {
+		i += 4;
+            }
             else
                 result.append(text.charAt(i));
         }

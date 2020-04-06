@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,8 +15,10 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import java.util.Arrays;
 import java.util.List;
 
+import org.csstudio.display.builder.model.Version;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetCategory;
+import org.csstudio.display.builder.model.WidgetConfigurator;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.WidgetColor;
@@ -25,7 +27,7 @@ import org.csstudio.display.builder.model.properties.WidgetColor;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class EllipseWidget extends VisibleWidget
+public class EllipseWidget extends MacroWidget
 {
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
@@ -60,6 +62,13 @@ public class EllipseWidget extends VisibleWidget
         properties.add(line_color = propLineColor.createProperty(this, new WidgetColor(0, 0, 255)));
         properties.add(background = propBackgroundColor.createProperty(this, new WidgetColor(30, 144, 255)));
         properties.add(transparent = propTransparent.createProperty(this, false));
+    }
+
+    @Override
+    public WidgetConfigurator getConfigurator(final Version persisted_version)
+            throws Exception
+    {
+        return new MacroWidget.LegacyWidgetConfigurator(persisted_version);
     }
 
     /** @return 'background_color' property */

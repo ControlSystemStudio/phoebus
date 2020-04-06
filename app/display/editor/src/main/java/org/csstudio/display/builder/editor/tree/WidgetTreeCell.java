@@ -12,6 +12,7 @@ import org.csstudio.display.builder.editor.undo.SetMacroizedWidgetPropertyAction
 import org.csstudio.display.builder.editor.util.WidgetIcons;
 import org.csstudio.display.builder.model.MacroizedWidgetProperty;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.widgets.VisibleWidget;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.undo.UndoableAction;
 import org.phoebus.ui.undo.UndoableActionManager;
@@ -19,6 +20,9 @@ import org.phoebus.ui.undo.UndoableActionManager;
 import javafx.scene.control.cell.TextFieldTreeCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
 import javafx.util.StringConverter;
 
 /** Tree cell that displays {@link WidgetOrTab} (name, icon, ..)
@@ -85,7 +89,29 @@ class WidgetTreeCell extends TextFieldTreeCell<WidgetOrTab>
             setText(widget.getName());
             final Image icon = WidgetIcons.getIcon(type);
             if (icon != null)
-                setGraphic(new ImageView(icon));
+            {
+                if (widget instanceof VisibleWidget)
+                {
+                    final boolean visible = ((VisibleWidget)widget).propVisible().getValue();
+                    if (!visible)
+                    {
+                        final double w = icon.getWidth();
+                        final double h = icon.getHeight();
+                        final Line l1 = new Line(0, 0, w, h);
+                        final Line l2 = new Line(0, h, w, 0);
+                        l1.setStroke(Color.RED);
+                        l2.setStroke(Color.RED);
+                        l1.setStrokeWidth(2);
+                        l2.setStrokeWidth(2);
+                        final StackPane pane = new StackPane(new ImageView(icon), l1, l2);
+                        setGraphic(pane);
+                    }
+                    else
+                        setGraphic(new ImageView(icon));
+                }
+                else
+                    setGraphic(new ImageView(icon));
+            }
             else
                 setGraphic(null);
         }

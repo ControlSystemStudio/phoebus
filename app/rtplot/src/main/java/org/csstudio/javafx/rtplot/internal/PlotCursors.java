@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,7 @@ import static org.csstudio.javafx.rtplot.Activator.logger;
 import java.util.logging.Level;
 
 import org.csstudio.javafx.rtplot.Activator;
+import org.phoebus.ui.javafx.PlatformInfo;
 
 import javafx.scene.Cursor;
 import javafx.scene.ImageCursor;
@@ -75,10 +76,21 @@ public class PlotCursors
      *  @param node {@link Node} on which to set the cursor
      *  @param cursor {@link Cursor}
      */
-    public static void setCursor(final Node node, final Cursor cursor)
+    public static void setCursor(final Node node, Cursor cursor)
     {
-        if (cursor == node.getCursor())
+        final Cursor current = node.getCursor();
+        if (cursor == current)
             return;
+
+        // On Mac OS X, custom cursors turn into random noise after some time.
+        // Details unclear, but creating a new ImageCursor seems to
+        // avoid the issue.
+        if (PlatformInfo.is_mac_os_x  &&  cursor instanceof ImageCursor)
+        {
+            final ImageCursor orig = (ImageCursor) cursor;
+            cursor = new ImageCursor(orig.getImage(), orig.getHotspotX(), orig.getHotspotY());
+        }
+
         node.setCursor(cursor);
         final Scene scene = node.getScene();
         if (scene != null)
@@ -106,3 +118,5 @@ public class PlotCursors
         }
     }
 }
+
+

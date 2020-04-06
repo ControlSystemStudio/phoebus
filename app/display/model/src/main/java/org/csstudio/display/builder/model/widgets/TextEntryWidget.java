@@ -127,7 +127,7 @@ public class TextEntryWidget extends WritablePVWidget
                         xml.setAttribute("typeId", "org.csstudio.opibuilder.widgets.Label");
                         xml.setAttribute("version", "1.0.0");
                         // XMLUtil.dump(xml);
-                        throw new ParseAgainException();
+                        throw new ParseAgainException("Replace text entry with label");
                     }
                 }
 

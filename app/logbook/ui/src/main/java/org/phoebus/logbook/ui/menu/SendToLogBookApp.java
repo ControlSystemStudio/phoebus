@@ -9,7 +9,9 @@ package org.phoebus.logbook.ui.menu;
 
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
-import org.phoebus.logbook.ui.write.LogEntryDialog;
+import org.phoebus.logbook.ui.LogbookAvailabilityChecker;
+import org.phoebus.logbook.ui.write.LogEntryEditorStage;
+import org.phoebus.logbook.ui.write.LogEntryModel;
 import org.phoebus.ui.docking.DockPane;
 
 /**
@@ -36,8 +38,10 @@ public class SendToLogBookApp implements AppDescriptor
     @Override
     public AppInstance create()
     {
-        LogEntryDialog logEntryDialog = new LogEntryDialog(DockPane.getActiveDockPane(), null);
-        logEntryDialog.show();
+        if(!LogbookAvailabilityChecker.isLogbookAvailable()){
+            return null;
+        }
+        new LogEntryEditorStage(DockPane.getActiveDockPane(), new LogEntryModel(), null).show();
         return null;
     }
 
