@@ -31,6 +31,8 @@ import org.epics.pva.data.nt.PVATimeStamp;
 
 /** 'pva://IMAGE' Server Demo
  *
+ *  <p>Display with fixed value range of 0..10, not 'auto scaling'.
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -40,19 +42,19 @@ public class ImageDemo
     {
         LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/pva_logging.properties"));
 
-        // A 10x10 'C' type shape
+        // A 10x10 shape
         final short[] pixel =
         {
             1, 1, 1, 1, 9, 9, 1, 1, 1, 1,
             1, 1, 1, 9, 1, 1, 9, 1, 1, 1,
             1, 1, 9, 1, 1, 1, 1, 1, 1, 1,
-            1, 1, 9, 1, 1, 1, 1, 1, 1, 1,
+            1, 9, 9, 1, 1, 1, 1, 9, 9, 1,
             1, 9, 9, 1, 1, 1, 1, 1, 1, 1,
-            1, 9, 9, 1, 1, 1, 1, 1, 1, 1,
-            1, 1, 9, 1, 1, 1, 1, 1, 1, 1,
+            1, 9, 9, 1, 1, 1, 1, 9, 9, 1,
             1, 1, 9, 1, 1, 1, 1, 1, 1, 1,
             1, 1, 1, 9, 1, 1, 9, 1, 1, 1,
             1, 1, 1, 1, 9, 9, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1
         };
 
         try
@@ -78,12 +80,13 @@ public class ImageDemo
                                                        new PVAInt("fullSize", height),
                                                        new PVAInt("binning", 1),
                                                        new PVABool("reverse", false));
+            final PVAShortArray val_pix = new PVAShortArray("shortValue", false, pixel);
 
             final PVAUnion value = new PVAUnion("value", "",
                                                 2,
                                                 new PVABoolArray("booleanValue"),
                                                 new PVAByteArray("byteValue", false),
-                                                new PVAShortArray("shortValue", false, pixel),
+                                                val_pix,
                                                 new PVAIntArray("intValue", false),
                                                 new PVALongArray("longValue", false),
                                                 new PVAByteArray("ubyteValue", true),
@@ -118,15 +121,34 @@ public class ImageDemo
             final ServerPV pv = server.createPV("IMAGE", image);
 
             // Update PVs
-            for (int i=0; i<30000; ++i)
+            for (int i=0; true; ++i)
             {
                 TimeUnit.SECONDS.sleep(1);
 
                 // Cycle value ('color') of pixels that are not '1' to 2..10
+                final short[] new_pixel = new short[pixel.length];
                 short v = (short) (2+(i % 10));
+                // Rotate using int pixels, no interpolation between adjacent pixels,
+                // so only multiples of 90deg look reasonable
+                double angle = Math.toRadians(90*i);
+                double cos = Math.cos(angle);
+                double sin = Math.sin(angle);
                 for (int p=0; p<pixel.length; ++p)
-                    if (pixel[p] != 1)
-                        pixel[p] = v;
+                {
+                    double sx = p % width - width/2;
+                    double sy = p / width - height/2;
+                    int dx = (int) Math.round(cos*sx - sin*sy) + width/2;
+                    int dy = (int) Math.round(sin*sx + cos*sy) + height/2;
+                    int dp = dx + width * dy;
+                    if (dp < 0  ||  dp >= (width*height))
+                        new_pixel[p] = 1;
+                    else if (pixel[dp] == 1)
+                        new_pixel[p] = 1;
+                    else
+                        new_pixel[p] = v;
+                }
+
+                val_pix.set(new_pixel);
                 id.set(i);
                 datatime.set(Instant.now());
                 time.set(Instant.now());
