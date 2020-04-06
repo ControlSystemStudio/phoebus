@@ -34,34 +34,36 @@ import org.epics.pva.server.ServerPV;
  *
  *  <p>Environment variables or Java properties:
  *
- *  EPICS_PVA_ADDR_LIST - Where proxy searches for PVs
+ *  <ul>
+ *  <li>EPICS_PVA_ADDR_LIST, EPICS_PVA_BROADCAST_PORT - Where proxy searches for PVs
+ *  <li>EPICS_PVAS_BROADCAST_PORT, EPICS_PVA_SERVER_PORT - Where proxy makes those PVs available
+ *  <li>PREFIX - Prefix for internal PVs
+ *  </ul>
  *
- *  EPICS_PVAS_BROADCAST_PORT, EPICS_PVA_SERVER_PORT - Where proxy makes those PVs available
- *
- *  PREFIX - Prefix for internal PVs
- *
- *  For a 'local' test, set both EPICS_PVAS_BROADCAST_PORT and EPICS_PVA_SERVER_PORT to 5077.
+ *  <p>For a 'local' test, set both EPICS_PVAS_BROADCAST_PORT and EPICS_PVA_SERVER_PORT to 5077.
  *  The proxy will then listen to search requests on this non-standard port,
  *  and locate PVs via the default port (5076).
  *
- *  Run  `softIocPVA -m N='' -d demo.db`
+ *  <p>Run  `softIocPVA -m N='' -d demo.db`
  *  Check direct access:
  *  EPICS_PVA_BROADCAST_PORT=5076 pvget ramp saw rnd
  *
- *  Then run proxy, and try
+ *  <p>Then run PVAProxy, and try
  *  EPICS_PVA_BROADCAST_PORT=5077 pvget -m ramp saw rnd
  *
- *  The following internal PVs are supported:
+ *  <p>The following internal PVs are supported:
  *
- *  $(PREFIX)count - Number of proxied PVs
- *  $(PREFIX)QUIT - Reading this will stop the proxy
+ *  <ul>
+ *  <li>$(PREFIX)count - Number of proxied PVs
+ *  <li>$(PREFIX)QUIT - Reading this will stop the proxy
+ *  </ul>
  *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class PVAProxy
 {
-    public static Logger logger = Logger.getLogger(PVAProxy.class.getPackageName());
+    public static Logger logger = Logger.getLogger(PVAProxy.class.getPackage().getName());
 
     // Developed to test if the PVA server and client API
     // provides what is necessary to implement a basic 'gateway'.
@@ -156,10 +158,10 @@ public class PVAProxy
                                   final BitSet overruns,
                                   final PVAStructure data)
         {
-            if (logger.isLoggable(Level.FINE))
-                logger.log(Level.FINE, "Value update for " + name + " = " + data);
+            if (logger.isLoggable(Level.FINER))
+                logger.log(Level.FINER, "Value update for " + name + " = " + data);
             else
-                logger.log(Level.INFO, () -> "Value update for " + name);
+                logger.log(Level.FINE, () -> "Value update for " + name);
 
             if (server_pv == null)
                 server_pv = server.createPV(channel.getName(), data);
@@ -252,10 +254,25 @@ public class PVAProxy
 
     public void run() throws Exception
     {
+        System.out.println("PVA Proxy");
+        System.out.println("");
+
+        System.out.println("Client config:");
+        System.out.println("EPICS_PVA_ADDR_LIST=" + PVASettings.EPICS_PVA_ADDR_LIST);
+        System.out.println("EPICS_PVA_AUTO_ADDR_LIST=" + PVASettings.EPICS_PVA_AUTO_ADDR_LIST);
+        System.out.println("EPICS_PVA_BROADCAST_PORT=" + PVASettings.EPICS_PVA_BROADCAST_PORT);
         client = new PVAClient();
+
+        System.out.println("");
+        System.out.println("Server config:");
+        System.out.println("EPICS_PVAS_BROADCAST_PORT=" + PVASettings.EPICS_PVAS_BROADCAST_PORT);
+        System.out.println("EPICS_PVA_SERVER_PORT=" + PVASettings.EPICS_PVA_SERVER_PORT);
         server = new PVAServer(this::handleSearchRequest);
 
+        System.out.println("");
+        System.out.println("Info PVs:");
         count_channel = server.createPV(prefix + "count", count_value);
+        System.out.println(count_channel.getName());
 
         try
         {

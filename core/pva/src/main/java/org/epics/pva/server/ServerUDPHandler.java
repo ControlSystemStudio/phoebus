@@ -55,7 +55,7 @@ class ServerUDPHandler extends UDPHandler
     {
         this.search_handler = search_handler;
         udp = Network.createUDP(false, PVASettings.EPICS_PVAS_BROADCAST_PORT);
-        local_multicast = Network.configureMulticast(udp);
+        local_multicast = Network.configureMulticast(udp, PVASettings.EPICS_PVAS_BROADCAST_PORT);
         local_address = (InetSocketAddress) udp.getLocalAddress();
         logger.log(Level.FINE, "Awaiting searches and sending beacons on UDP " + local_address);
 

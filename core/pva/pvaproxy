@@ -1,0 +1,11 @@
+#!/bin/sh
+
+JAR=`echo target/core-pva*.jar`
+if [ -r "$JAR" ]
+then
+    # Echo use jar file
+    java -cp $JAR org.epics.pva.proxy.PVAProxy "$@"
+else
+    # Use build output
+    java -cp target/classes org.epics.pva.proxy.PVAProxy "$@"
+fi

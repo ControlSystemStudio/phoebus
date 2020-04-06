@@ -24,13 +24,18 @@ public class PVASettings
     /** Common logger */
     public static final Logger logger = Logger.getLogger(PVASettings.class.getPackage().getName());
 
-    /** Address list. When empty, local subnet is used */
+    /** Address list.
+     *
+     *  <p>May contain space-separated host names or IP addresses.
+     *  Each may be followed by ":port", otherwise defaulting to EPICS_PVA_BROADCAST_PORT.
+     *  When empty, local subnet is used.
+     */
     public static String EPICS_PVA_ADDR_LIST = "";
 
     /** Add local broadcast addresses to addr list? */
     public static boolean EPICS_PVA_AUTO_ADDR_LIST = true;
 
-    /** PVA client port for name searches and beacons */
+    /** PVA client port for sending name searches and receiving beacons */
     public static int EPICS_PVA_BROADCAST_PORT = 5076;
 
     /** First PVA port used by server */

@@ -143,9 +143,10 @@ public class Network
 
     /** Try to listen to multicast messages
      *  @param udp UDP channel that should listen to multicast messages
+     *  @param port Port to use
      *  @return Local multicast address, or <code>null</code> if no multicast support
      */
-    public static InetSocketAddress configureMulticast(final DatagramChannel udp)
+    public static InetSocketAddress configureMulticast(final DatagramChannel udp, final int port)
     {
         try
         {
@@ -153,7 +154,7 @@ public class Network
             if (loopback != null)
             {
                 final InetAddress group = InetAddress.getByName(PVASettings.EPICS_PVA_MULTICAST_GROUP);
-                final InetSocketAddress local_broadcast = new InetSocketAddress(group, PVASettings.EPICS_PVAS_BROADCAST_PORT);
+                final InetSocketAddress local_broadcast = new InetSocketAddress(group, port);
                 udp.join(group, loopback);
 
                 logger.log(Level.CONFIG, "Multicast group " + local_broadcast + " using network interface " + loopback.getDisplayName());
