@@ -7,6 +7,9 @@ import org.phoebus.logbook.LogEntry;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.VBox;
 
+/**
+ * A control to display a single log entry, this control can be embedded in trees, tables, or other views.
+ */
 public class LogEntryControl extends VBox {
 
     private final LogEntryController controller;

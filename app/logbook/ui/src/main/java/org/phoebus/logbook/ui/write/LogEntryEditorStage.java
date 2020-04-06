@@ -24,8 +24,12 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class LogEntryEditorStage extends Stage
 {
@@ -44,7 +48,24 @@ public class LogEntryEditorStage extends Stage
     {
         initModality(Modality.APPLICATION_MODAL);
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("LogEntryEditor.fxml"));
-        fxmlLoader.setController(new LogEntryEditorController(parent, logEntryModel, completionHandler));
+        fxmlLoader.setControllerFactory(clazz -> {
+            try {
+                if(clazz.isAssignableFrom(LogEntryEditorController.class)){
+                    LogEntryEditorController logEntryEditorController = (LogEntryEditorController)clazz.getConstructor(Node.class, LogEntryModel.class, LogEntryCompletionHandler.class)
+                            .newInstance(parent, logEntryModel, completionHandler);
+                    return logEntryEditorController;
+                }
+                else if(clazz.isAssignableFrom(FieldsViewController.class)){
+                    FieldsViewController fieldsViewController =(FieldsViewController)clazz.getConstructor(LogEntryModel.class)
+                            .newInstance(logEntryModel);
+                    return fieldsViewController;
+                }
+            } catch (Exception e) {
+                Logger.getLogger(LogEntryEditorStage.class.getName()).log(Level.SEVERE, "Failed to contruct controller for log editor UI", e);
+            }
+            return null;
+        });
+
         try {
             fxmlLoader.load();
         } catch (

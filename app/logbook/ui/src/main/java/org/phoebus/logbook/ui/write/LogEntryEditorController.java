@@ -19,13 +19,12 @@
 
 package org.phoebus.logbook.ui.write;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.phoebus.logbook.LogEntry;
@@ -38,47 +37,38 @@ import java.util.ResourceBundle;
 /**
  * Controller for the {@link LogEntryEditorStage}.
  */
-public class LogEntryEditorController implements Initializable {
+public class LogEntryEditorController {
 
     private Node parent;
     private LogEntryModel model;
     private AttachmentsView attachmentsView;
     private LogEntryCompletionHandler completionHandler;
 
-    public LogEntryEditorController(Node parent, LogEntryModel model, LogEntryCompletionHandler completionHandler){
-        this.parent = parent;
-        this.model = model;
-        this.completionHandler = completionHandler;
-    }
 
     @FXML
     private VBox fields;
-
     @FXML
     private VBox attachments;
-
     @FXML
     private Button cancel;
-
     @FXML
     private Button submit;
 
+    public LogEntryEditorController(Node parent, LogEntryModel model, LogEntryCompletionHandler logEntryCompletionHandler){
+        this.parent = parent;
+        this.model = model;
+        this.completionHandler = logEntryCompletionHandler;
+    }
+
     @FXML
-    public void initialize(URL url, ResourceBundle resourceBundle){
+    public void initialize(){
 
-        submit.setText(Messages.Submit);
-        submit.setTooltip(new Tooltip(Messages.SubmitTooltip));
-        cancel.setText(Messages.Cancel);
-        cancel.setTooltip(new Tooltip(Messages.CancelTooltip));
-
+        localize();
         submit.disableProperty().bind(model.getReadyToSubmitProperty().not());
 
-        FieldsView fieldsView = new FieldsView(model);
-        VBox.setVgrow(fieldsView,  Priority.ALWAYS);
-        VBox.setMargin(fieldsView, new Insets(0, 0, 10, 0));
-        fields.getChildren().add(fieldsView);
         attachmentsView = new AttachmentsView(parent, model);
         attachments.getChildren().add(attachmentsView);
+
     }
 
     /**
@@ -106,5 +96,12 @@ public class LogEntryEditorController implements Initializable {
             completionHandler.handleResult(logEntry);
         }
         cancel();
+    }
+
+    private void localize(){
+        submit.setText(Messages.Submit);
+        submit.setTooltip(new Tooltip(Messages.SubmitTooltip));
+        cancel.setText(Messages.Cancel);
+        cancel.setTooltip(new Tooltip(Messages.CancelTooltip));
     }
 }
