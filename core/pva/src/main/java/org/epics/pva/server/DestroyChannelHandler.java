@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -40,9 +40,9 @@ class DestroyChannelHandler implements CommandHandler<ServerTCPHandler>
         }
 
         logger.log(Level.FINE, "Received destroy channel request for " + pv);
-        // Nothing to do to remove channel,
-        // since this doesn't delete the PV on the server,
+        // Doesn't delete the PV on the server,
         // only the client's idea of the channel connection
+        pv.removeClient(tcp, cid);
         sendChannelDetroyed(tcp, cid, sid);
     }
 

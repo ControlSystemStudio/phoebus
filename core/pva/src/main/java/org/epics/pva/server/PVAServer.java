@@ -119,7 +119,7 @@ public class PVAServer implements AutoCloseable
      */
     public ServerPV createPV(final String name, final PVAStructure data, final WriteEventHandler write_handler)
     {
-        final ServerPV pv = new ServerPV(name, data, write_handler);
+        final ServerPV pv = new ServerPV(this, name, data, write_handler);
         pv_by_name.put(name, pv);
         pv_by_sid.put(pv.getSID(), pv);
         return pv;
@@ -133,7 +133,7 @@ public class PVAServer implements AutoCloseable
      */
     public ServerPV createPV(final String name, final RPCService rpc)
     {
-        final ServerPV pv = new ServerPV(name, rpc);
+        final ServerPV pv = new ServerPV(this, name, rpc);
         pv_by_name.put(name, pv);
         pv_by_sid.put(pv.getSID(), pv);
         return pv;
@@ -184,12 +184,27 @@ public class PVAServer implements AutoCloseable
     /** @param tcp_connection {@link ServerTCPHandler} that experienced error or client closed it */
     void shutdownConnection(final ServerTCPHandler tcp_connection)
     {
+        for (ServerPV pv : pv_by_name.values())
+        {
+            pv.removeClient(tcp_connection, -1);
+            pv.unregisterSubscription(tcp_connection, -1);
+        }
+
         // If this is still a known handler, close it, but don't wait
         if (tcp_handlers.remove(tcp_connection))
             tcp_connection.close(false);
+    }
 
-        for (ServerPV pv : pv_by_name.values())
-            pv.unregister(tcp_connection, -1);
+    void deletePV(final ServerPV pv)
+    {
+        System.out.println("TODO Delete PV");
+
+        // TODO Send destroy message...
+        // for (ServerTCPHandler tcp : handlers_of_that_pv)
+        //        tcp.send(
+        //                 PVAHeader.CMD_DESTROY_CHANNEL;
+        //                 pv.getSID();
+        //                 pv.getCID(tcp);
     }
 
     /** Close all connections */
