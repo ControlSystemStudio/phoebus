@@ -252,12 +252,11 @@ public class ServerPV implements AutoCloseable
             final int cid = client.getValue();
             tcp.submit( (version, buffer) ->
             {
-                logger.log(Level.FINE, () -> "Sending destroy channel command for SID " + sid + ", cid " + cid);
+                logger.log(Level.FINE, () -> "Sending destroy channel command for SID " + sid + ", CID " + cid);
                 PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_SERVER, PVAHeader.CMD_DESTROY_CHANNEL, 4+4);
-                // TODO Order??
-                // 'pvget' only reacts when sending CID, SID
-                buffer.putInt(cid);
+                // TODO Order is SID, CID, but 'pvget' only reacts when sending CID, SID
                 buffer.putInt(sid);
+                buffer.putInt(cid);
             });
         }
 
