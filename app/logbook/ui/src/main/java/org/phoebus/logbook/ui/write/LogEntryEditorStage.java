@@ -60,6 +60,10 @@ public class LogEntryEditorStage extends Stage
                             .newInstance(logEntryModel);
                     return fieldsViewController;
                 }
+                else if(clazz.isAssignableFrom(AttachmentsViewController.class)){
+                    AttachmentsViewController attachmentsViewController = (AttachmentsViewController)clazz.getConstructor().newInstance();
+                    return attachmentsViewController;
+                }
             } catch (Exception e) {
                 Logger.getLogger(LogEntryEditorStage.class.getName()).log(Level.SEVERE, "Failed to contruct controller for log editor UI", e);
             }

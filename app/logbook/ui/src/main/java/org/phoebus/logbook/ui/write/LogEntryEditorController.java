@@ -19,9 +19,7 @@
 
 package org.phoebus.logbook.ui.write;
 
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
@@ -31,8 +29,6 @@ import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.ui.Messages;
 
 import java.io.IOException;
-import java.net.URL;
-import java.util.ResourceBundle;
 
 /**
  * Controller for the {@link LogEntryEditorStage}.
@@ -66,8 +62,8 @@ public class LogEntryEditorController {
         localize();
         submit.disableProperty().bind(model.getReadyToSubmitProperty().not());
 
-        attachmentsView = new AttachmentsView(parent, model);
-        attachments.getChildren().add(attachmentsView);
+        //attachmentsView = new AttachmentsView(parent, model);
+        //attachments.getChildren().add(attachmentsView);
 
     }
 

@@ -39,6 +39,7 @@
       </VBox>
 
     <VBox fx:id="attachments" alignment="CENTER">
+        <fx:include source="AttachmentsView.fxml"/>
     </VBox>
 
     <HBox alignment="BOTTOM_CENTER" fillHeight="false">
