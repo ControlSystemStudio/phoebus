@@ -195,16 +195,11 @@ public class PVAServer implements AutoCloseable
             tcp_connection.close(false);
     }
 
+    /** @param pv PV to remove from server */
     void deletePV(final ServerPV pv)
     {
-        System.out.println("TODO Delete PV");
-
-        // TODO Send destroy message...
-        // for (ServerTCPHandler tcp : handlers_of_that_pv)
-        //        tcp.send(
-        //                 PVAHeader.CMD_DESTROY_CHANNEL;
-        //                 pv.getSID();
-        //                 pv.getCID(tcp);
+        pv_by_name.remove(pv.getName());
+        pv_by_sid.remove(pv.getSID());
     }
 
     /** Close all connections */

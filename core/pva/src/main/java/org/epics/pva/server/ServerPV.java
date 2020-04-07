@@ -10,11 +10,13 @@ package org.epics.pva.server;
 import static org.epics.pva.PVASettings.logger;
 
 import java.util.BitSet;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentHashMap.KeySetView;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
+import org.epics.pva.common.PVAHeader;
 import org.epics.pva.data.PVAString;
 import org.epics.pva.data.PVAStructure;
 
@@ -77,7 +79,7 @@ public class ServerPV implements AutoCloseable
      *  by client ID
      */
     private final ConcurrentHashMap<ServerTCPHandler, Integer> cid_by_client = new ConcurrentHashMap<>();
-    
+
     /** All the 'monitor' subscriptions to this PV */
     private final KeySetView<MonitorSubscription, Boolean> subscriptions = ConcurrentHashMap.newKeySet();
 
@@ -244,6 +246,21 @@ public class ServerPV implements AutoCloseable
     @Override
     public void close()
     {
+        for (Entry<ServerTCPHandler, Integer> client : cid_by_client.entrySet())
+        {
+            final ServerTCPHandler tcp = client.getKey();
+            final int cid = client.getValue();
+            tcp.submit( (version, buffer) ->
+            {
+                logger.log(Level.FINE, () -> "Sending destroy channel command for SID " + sid + ", cid " + cid);
+                PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_SERVER, PVAHeader.CMD_DESTROY_CHANNEL, 4+4);
+                // TODO Order??
+                // 'pvget' only reacts when sending CID, SID
+                buffer.putInt(cid);
+                buffer.putInt(sid);
+            });
+        }
+
         server.deletePV(this);
     }
 

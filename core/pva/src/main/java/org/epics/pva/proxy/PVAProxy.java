@@ -150,7 +150,16 @@ public class PVAProxy
                     logger.log(Level.WARNING, "Cannot subscribe to " + name, ex);
                 }
             }
-            // TODO Indicate if proxy is disconnected
+            else if (state == ClientChannelState.INIT)
+            {
+                // TODO Indicate if proxy is disconnected
+                if (server_pv != null)
+                {
+                    System.out.println("TODO: Close server PV for " + name);
+                    server_pv.close();
+                    server_pv = null;
+                }
+            }
         }
 
         private void valueChanged(final PVAChannel channel,
