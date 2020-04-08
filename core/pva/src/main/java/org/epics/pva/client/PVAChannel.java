@@ -10,6 +10,7 @@ package org.epics.pva.client;
 import static org.epics.pva.PVASettings.logger;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -68,6 +69,8 @@ public class PVAChannel implements AutoCloseable
 
     /** TCP Handler, set by PVAClient */
     final AtomicReference<ClientTCPHandler> tcp = new AtomicReference<>();
+
+    private final CopyOnWriteArrayList<MonitorRequest> subscriptions = new CopyOnWriteArrayList<>();
 
     PVAChannel(final PVAClient client, final String name, final ClientChannelListener listener)
     {
@@ -284,7 +287,9 @@ public class PVAChannel implements AutoCloseable
         // MonitorRequest submits itself to TCPHandler
         // and registers as response handler,
         // so we can later retrieve it via its requestID
-        return new MonitorRequest(this, request, pipeline, listener);
+        final MonitorRequest subscription = new MonitorRequest(this, request, pipeline, listener);
+        subscriptions.add(subscription);
+        return subscription;
     }
 
     /** Invoke remote procedure call (RPC)
@@ -316,6 +321,7 @@ public class PVAChannel implements AutoCloseable
             }
             logger.log(Level.FINE, () -> "Server confirmed destroying channel " + this);
             listener.channelStateChanged(this, ClientChannelState.CLOSED);
+            clearSubscriptions();
             client.forgetChannel(this);
         }
         else
@@ -323,8 +329,21 @@ public class PVAChannel implements AutoCloseable
             // Server closed the channel.
             // Keep in client, revert to SEARCHING
             logger.log(Level.FINE, () -> "Server destroyed channel " + this);
+            clearSubscriptions();
             client.search.register(this, true);
         }
+    }
+
+    /** Remove all MonitorRequests for this channel from TCP handler,
+     *  since we are not expecting any more updates.
+     */
+    private void clearSubscriptions()
+    {
+        final ClientTCPHandler copy = tcp.get();
+        if (copy != null)
+            for (MonitorRequest subscription : subscriptions)
+                copy.removeResponseHandler(subscription.getRequestID());
+        subscriptions.clear();
     }
 
     /** Close the channel */

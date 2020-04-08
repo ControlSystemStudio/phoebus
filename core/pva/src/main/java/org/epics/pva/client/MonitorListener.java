@@ -27,6 +27,10 @@ public interface MonitorListener
      *  <p>When the server cancels the subscription,
      *  the changes, overruns and data will be <code>null</code>.
      *
+     *  <p>When either the client or the server closes the channel,
+     *  subscription updates will simply end,
+     *  and the channel state will indicate the changed state.
+     *
      *  @param channel Channel that received an update
      *  @param changes Elements of the structure that changed
      *  @param overruns Elements of the structure with skipped updates
