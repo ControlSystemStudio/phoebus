@@ -287,7 +287,7 @@ public class PVAChannel implements AutoCloseable
         return new MonitorRequest(this, request, pipeline, listener);
     }
 
-    /** Invoke remote procecure call (RPC)
+    /** Invoke remote procedure call (RPC)
      *  @param request Request, i.e. parameters sent to the RPC call
      *  @return {@link Future} for fetching the result returned by the RPC call
      */
@@ -301,15 +301,30 @@ public class PVAChannel implements AutoCloseable
      */
     void channelDestroyed(final int sid)
     {
-        // Channel closure confirmed by server
-        setState(ClientChannelState.CLOSED);
+        if (sid != this.sid)
+        {
+            logger.log(Level.WARNING, "Server destroyed " + this + " with unexpected SID " + sid);
+            return;
+        }
 
-        if (sid == this.sid)
-            logger.log(Level.FINE, () -> "Received destroy channel reply " + this);
+        // If client is CLOSING this channel, then move to CLOSED and be done.
+        if (state.compareAndSet(ClientChannelState.CLOSING, ClientChannelState.CLOSED))
+        {
+            synchronized (state)
+            {
+                state.notifyAll();
+            }
+            logger.log(Level.FINE, () -> "Server confirmed destroying channel " + this);
+            listener.channelStateChanged(this, ClientChannelState.CLOSED);
+            client.forgetChannel(this);
+        }
         else
-            logger.log(Level.WARNING, this + " destroyed with SID " + sid +" instead of expected " + this.sid);
-
-        client.forgetChannel(this);
+        {
+            // Server closed the channel.
+            // Keep in client, revert to SEARCHING
+            logger.log(Level.FINE, () -> "Server destroyed channel " + this);
+            client.search.register(this, true);
+        }
     }
 
     /** Close the channel */

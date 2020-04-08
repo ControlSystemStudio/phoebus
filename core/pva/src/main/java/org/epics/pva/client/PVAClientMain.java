@@ -167,6 +167,8 @@ public class PVAClientMain
                             ex.printStackTrace(System.err);
                         }
                     }
+                    else
+                        System.out.println(ch.getName() + " " + state);
                 });
 
             // Wait forever unless server closes the subscription
