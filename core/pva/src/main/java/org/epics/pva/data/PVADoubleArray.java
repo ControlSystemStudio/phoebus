@@ -87,8 +87,11 @@ public class PVADoubleArray extends PVAData implements PVAArray
     }
 
     @Override
-    public void encodeType(ByteBuffer buffer, BitSet described) throws Exception
+    public void encodeType(final ByteBuffer buffer, final BitSet described) throws Exception
     {
+        // 010 floating-point            PVAFloat.FIELD_DESC_TYPE
+        // 01  variable-size array flag  PVAFieldDesc.Array.VARIABLE_SIZE
+        // 011 double binary64
         buffer.put((byte) 0b01001011);
     }
 
