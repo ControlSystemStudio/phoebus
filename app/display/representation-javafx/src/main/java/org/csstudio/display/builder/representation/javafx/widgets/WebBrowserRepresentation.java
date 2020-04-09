@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -53,7 +53,7 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<Region, W
 
     private static final String[] downloads = new String[] { "zip", "csv", "cif", "tgz" };
 
-    class Browser extends Region
+    private class Browser extends Region
     {
         //================
         //--fields
@@ -98,11 +98,14 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<Region, W
         //--protected methods
         protected void goToURL(String url)
         {
-            if (!url.startsWith("http://") && !url.startsWith("https://"))
-                if (url.equals(""))
-                    url = "about:blank";
-                else
-                    url = "http://" + url;
+            // Special handling of empty URLs
+            if (url == null  ||  url.isBlank())
+                url = "about:blank";
+            // Original implementation enforced "http://".
+            // Now also allow "file://" or other "xxx://",
+            // still defaulting to "http://".
+            else if (url.indexOf("://") < 0)
+                url = "http://" + url;
             webEngine.load(url);
         }
 
@@ -141,7 +144,7 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<Region, W
         }
     }
 
-    class BrowserWithToolbar extends Browser
+    private class BrowserWithToolbar extends Browser
     {
         //================
         //--fields
