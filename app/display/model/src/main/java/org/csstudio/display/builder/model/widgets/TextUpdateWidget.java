@@ -114,12 +114,11 @@ public class TextUpdateWidget extends PVWidget
 			 }
 		    }
 
-                    logger.log(Level.WARNING, "Replacing TextUpdate " + text_widget + " with 'text' but no 'pv_name' with a Label");
-
                     // Replace the widget type with "label"
                     final String type = xml.getAttribute("typeId");
                     if (type != null  &&  type.endsWith("TextUpdate") && pv_rule == false)
                     {
+			logger.log(Level.WARNING, "Replacing TextUpdate " + text_widget + " with 'text' but no 'pv_name' with a Label");
                         xml.setAttribute("typeId", "org.csstudio.opibuilder.widgets.Label");
                         // XMLUtil.dump(xml);
                         throw new ParseAgainException("Replace text update with label");
