@@ -203,6 +203,15 @@ public class GroupWidget extends MacroWidget
     }
 
     @Override
+    public WidgetProperty<?> getProperty(String name) throws IllegalArgumentException, IndexOutOfBoundsException
+    {
+        // Support legacy scripts that access border color
+        if (name.equals("border_color"))
+            return foreground;
+        return super.getProperty(name);
+    }
+
+    @Override
     public WidgetConfigurator getConfigurator(final Version persisted_version)
             throws Exception
     {
