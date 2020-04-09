@@ -57,39 +57,40 @@ public class PVAClientMain
      */
     private static void info(final List<String> names) throws Exception
     {
-        final PVAClient pva = new PVAClient();
-        final List<PVAChannel> pvs = new ArrayList<>();
-        for (String name : names)
-            pvs.add(pva.getChannel(name, (ch, state) -> {}));
-
-        final long timeout_ms = Math.round(seconds*1000);
-        final long end = System.currentTimeMillis() + timeout_ms;
-        while (! pvs.isEmpty())
+        try (final PVAClient pva = new PVAClient())
         {
-            final Iterator<PVAChannel> iter = pvs.iterator();
-            while (iter.hasNext())
-            {
-                final PVAChannel pv = iter.next();
-                if (pv.getState() == ClientChannelState.CONNECTED)
-                {
-                    final PVAData data = pv.info(request).get(timeout_ms, TimeUnit.MILLISECONDS);
-                    System.out.println(pv.getName() + " = " + data.formatType());
-                    pv.close();
-                    iter.remove();
-                }
-                else
-                    TimeUnit.MILLISECONDS.sleep(100);
-            }
+            final List<PVAChannel> pvs = new ArrayList<>();
+            for (String name : names)
+                pvs.add(pva.getChannel(name, (ch, state) -> {}));
 
-            if (System.currentTimeMillis() > end)
+            final long timeout_ms = Math.round(seconds*1000);
+            final long end = System.currentTimeMillis() + timeout_ms;
+            while (! pvs.isEmpty())
             {
-                System.err.println("Timeout waiting for " + pvs);
-                return;
+                final Iterator<PVAChannel> iter = pvs.iterator();
+                while (iter.hasNext())
+                {
+                    final PVAChannel pv = iter.next();
+                    if (pv.getState() == ClientChannelState.CONNECTED)
+                    {
+                        final PVAData data = pv.info(request).get(timeout_ms, TimeUnit.MILLISECONDS);
+                        System.out.println(pv.getName() + " = " + data.formatType());
+                        pv.close();
+                        iter.remove();
+                    }
+                    else
+                        TimeUnit.MILLISECONDS.sleep(100);
+                }
+
+                if (System.currentTimeMillis() > end)
+                {
+                    System.err.println("Timeout waiting for " + pvs);
+                    return;
+                }
             }
+            for (PVAChannel pv : pvs)
+                pv.close();
         }
-        for (PVAChannel pv : pvs)
-            pv.close();
-        pva.close();
     }
 
     /** Get value for each PV on the list, then close PV
@@ -98,39 +99,40 @@ public class PVAClientMain
      */
     private static void get(final List<String> names) throws Exception
     {
-        final PVAClient pva = new PVAClient();
-        final List<PVAChannel> pvs = new ArrayList<>();
-        for (String name : names)
-            pvs.add(pva.getChannel(name, (ch, state) -> {}));
-
-        final long timeout_ms = Math.round(seconds*1000);
-        final long end = System.currentTimeMillis() + timeout_ms;
-        while (! pvs.isEmpty())
+        try (final PVAClient pva = new PVAClient())
         {
-            final Iterator<PVAChannel> iter = pvs.iterator();
-            while (iter.hasNext())
-            {
-                final PVAChannel pv = iter.next();
-                if (pv.getState() == ClientChannelState.CONNECTED)
-                {
-                    final PVAData data = pv.read(request).get(timeout_ms, TimeUnit.MILLISECONDS);
-                    System.out.println(pv.getName() + " = " + data);
-                    pv.close();
-                    iter.remove();
-                }
-                else
-                    TimeUnit.MILLISECONDS.sleep(100);
-            }
+            final List<PVAChannel> pvs = new ArrayList<>();
+            for (String name : names)
+                pvs.add(pva.getChannel(name, (ch, state) -> {}));
 
-            if (System.currentTimeMillis() > end)
+            final long timeout_ms = Math.round(seconds*1000);
+            final long end = System.currentTimeMillis() + timeout_ms;
+            while (! pvs.isEmpty())
             {
-                System.err.println("Timeout waiting for " + pvs);
-                return;
+                final Iterator<PVAChannel> iter = pvs.iterator();
+                while (iter.hasNext())
+                {
+                    final PVAChannel pv = iter.next();
+                    if (pv.getState() == ClientChannelState.CONNECTED)
+                    {
+                        final PVAData data = pv.read(request).get(timeout_ms, TimeUnit.MILLISECONDS);
+                        System.out.println(pv.getName() + " = " + data);
+                        pv.close();
+                        iter.remove();
+                    }
+                    else
+                        TimeUnit.MILLISECONDS.sleep(100);
+                }
+
+                if (System.currentTimeMillis() > end)
+                {
+                    System.err.println("Timeout waiting for " + pvs);
+                    return;
+                }
             }
+            for (PVAChannel pv : pvs)
+                pv.close();
         }
-        for (PVAChannel pv : pvs)
-            pv.close();
-        pva.close();
     }
 
     /** Monitor value for each PV on the list
@@ -139,36 +141,39 @@ public class PVAClientMain
      */
     private static void monitor(final List<String> names) throws Exception
     {
-        final PVAClient pva = new PVAClient();
-        final CountDownLatch done = new CountDownLatch(1);
-        final MonitorListener listener = (ch, changes, overruns, data) ->
+        try (final PVAClient pva = new PVAClient())
         {
-            if (data == null)
-                done.countDown();
-            else
-                System.out.println(ch.getName() + " = " + data);
-        };
-        for (String name : names)
-            pva.getChannel(name, (ch, state) ->
+            final CountDownLatch done = new CountDownLatch(1);
+            final MonitorListener listener = (ch, changes, overruns, data) ->
             {
-                if (state == ClientChannelState.CONNECTED)
+                if (data == null)
+                    done.countDown();
+                else
+                    System.out.println(ch.getName() + " = " + data);
+            };
+            for (String name : names)
+                pva.getChannel(name, (ch, state) ->
                 {
-                    try
+                    if (state == ClientChannelState.CONNECTED)
                     {
-                        ch.subscribe(request, listener);
-                    }
-                    catch (Exception ex)
-                    {
+                        try
+                        {
+                            ch.subscribe(request, listener);
+                        }
+                        catch (Exception ex)
+                        {
 
-                        System.err.println("Cannot subscribe to '" + ch.getName() + "'");
-                        ex.printStackTrace(System.err);
+                            System.err.println("Cannot subscribe to '" + ch.getName() + "'");
+                            ex.printStackTrace(System.err);
+                        }
                     }
-                }
-            });
+                    else
+                        System.out.println(ch.getName() + " " + state);
+                });
 
-        // Wait forever unless server closes the subscription
-        done.await();
-        pva.close();
+            // Wait forever unless server closes the subscription
+            done.await();
+        }
     }
 
     /** Get value for each PV on the list, then close PV
@@ -178,33 +183,34 @@ public class PVAClientMain
      */
     private static void put(final String name, final String value) throws Exception
     {
-        final PVAClient pva = new PVAClient();
-        final CountDownLatch connected = new CountDownLatch(1);
-        final PVAChannel pv = pva.getChannel(name, (ch, state) ->
+        try (final PVAClient pva = new PVAClient())
         {
-            if (state == ClientChannelState.CONNECTED)
-                connected.countDown();
-        });
-        final long timeout_ms = Math.round(seconds*1000);
-        if (! connected.await(timeout_ms, TimeUnit.MILLISECONDS))
-        {
-            System.err.println("Timeout waiting for " + name);
-            return;
-        }
+            final CountDownLatch connected = new CountDownLatch(1);
+            final PVAChannel pv = pva.getChannel(name, (ch, state) ->
+            {
+                if (state == ClientChannelState.CONNECTED)
+                    connected.countDown();
+            });
+            final long timeout_ms = Math.round(seconds*1000);
+            if (! connected.await(timeout_ms, TimeUnit.MILLISECONDS))
+            {
+                System.err.println("Timeout waiting for " + name);
+                return;
+            }
 
-        // Try to write number, falling back to string
-        Object new_value;
-        try
-        {
-            new_value = Double.parseDouble(value);
+            // Try to write number, falling back to string
+            Object new_value;
+            try
+            {
+                new_value = Double.parseDouble(value);
+            }
+            catch (Throwable ex)
+            {
+                new_value = value;
+            }
+            pv.write(name, new_value).get(timeout_ms, TimeUnit.MILLISECONDS);
+            pv.close();
         }
-        catch (Throwable ex)
-        {
-            new_value = value;
-        }
-        pv.write(name, new_value).get(timeout_ms, TimeUnit.MILLISECONDS);
-        pv.close();
-        pva.close();
     }
 
     public static void main(final String[] args) throws Exception

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -48,7 +48,12 @@ public class PVADoubleArray extends PVAData implements PVAArray
     @Override
     public void setValue(final Object new_value) throws Exception
     {
-        if (new_value instanceof double[])
+        if (new_value instanceof PVADoubleArray)
+        {
+            final double[] other = ((PVADoubleArray) new_value).value;
+            value = Arrays.copyOf(other, other.length);
+        }
+        else if (new_value instanceof double[])
             set(((double[]) new_value));
         else if (new_value instanceof List)
         {
@@ -82,8 +87,11 @@ public class PVADoubleArray extends PVAData implements PVAArray
     }
 
     @Override
-    public void encodeType(ByteBuffer buffer, BitSet described) throws Exception
+    public void encodeType(final ByteBuffer buffer, final BitSet described) throws Exception
     {
+        // 010 floating-point            PVAFloat.FIELD_DESC_TYPE
+        // 01  variable-size array flag  PVAFieldDesc.Array.VARIABLE_SIZE
+        // 011 double binary64
         buffer.put((byte) 0b01001011);
     }
 

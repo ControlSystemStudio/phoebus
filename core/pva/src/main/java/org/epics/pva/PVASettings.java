@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -24,17 +24,25 @@ public class PVASettings
     /** Common logger */
     public static final Logger logger = Logger.getLogger(PVASettings.class.getPackage().getName());
 
-    /** Address list. When empty, local subnet is used */
+    /** Address list.
+     *
+     *  <p>May contain space-separated host names or IP addresses.
+     *  Each may be followed by ":port", otherwise defaulting to EPICS_PVA_BROADCAST_PORT.
+     *  When empty, local subnet is used.
+     */
     public static String EPICS_PVA_ADDR_LIST = "";
 
     /** Add local broadcast addresses to addr list? */
     public static boolean EPICS_PVA_AUTO_ADDR_LIST = true;
 
-    /** First PVA port */
+    /** PVA client port for sending name searches and receiving beacons */
+    public static int EPICS_PVA_BROADCAST_PORT = 5076;
+
+    /** First PVA port used by server */
     public static int EPICS_PVA_SERVER_PORT = 5075;
 
-    /** PVA port for name searches and beacons */
-    public static int EPICS_PVA_BROADCAST_PORT = 5076;
+    /** PVA server port for name searches and beacons */
+    public static int EPICS_PVAS_BROADCAST_PORT = EPICS_PVA_BROADCAST_PORT;
 
     /** Multicast address */
     public static String EPICS_PVA_MULTICAST_GROUP = "224.0.0.128";
@@ -82,16 +90,22 @@ public class PVASettings
 
     static
     {
-        EPICS_PVA_ADDR_LIST = set("EPICS_PVA_ADDR_LIST", EPICS_PVA_ADDR_LIST);
-        EPICS_PVA_AUTO_ADDR_LIST = set("EPICS_PVA_AUTO_ADDR_LIST", EPICS_PVA_AUTO_ADDR_LIST);
-        EPICS_PVA_SERVER_PORT = set("EPICS_PVA_SERVER_PORT", EPICS_PVA_SERVER_PORT);
-        EPICS_PVA_BROADCAST_PORT = set("EPICS_PVA_BROADCAST_PORT", EPICS_PVA_BROADCAST_PORT);
-        EPICS_CA_CONN_TMO = set("EPICS_CA_CONN_TMO", EPICS_CA_CONN_TMO);
-        EPICS_PVA_MAX_ARRAY_FORMATTING = set("EPICS_PVA_MAX_ARRAY_FORMATTING", EPICS_PVA_MAX_ARRAY_FORMATTING);
-        EPICS_PVA_SEND_BUFFER_SIZE = set("EPICS_PVA_SEND_BUFFER_SIZE", EPICS_PVA_SEND_BUFFER_SIZE);
+        EPICS_PVA_ADDR_LIST = get("EPICS_PVA_ADDR_LIST", EPICS_PVA_ADDR_LIST);
+        EPICS_PVA_AUTO_ADDR_LIST = get("EPICS_PVA_AUTO_ADDR_LIST", EPICS_PVA_AUTO_ADDR_LIST);
+        EPICS_PVA_SERVER_PORT = get("EPICS_PVA_SERVER_PORT", EPICS_PVA_SERVER_PORT);
+        EPICS_PVA_BROADCAST_PORT = get("EPICS_PVA_BROADCAST_PORT", EPICS_PVA_BROADCAST_PORT);
+        EPICS_PVAS_BROADCAST_PORT = get("EPICS_PVAS_BROADCAST_PORT", EPICS_PVAS_BROADCAST_PORT);
+        EPICS_CA_CONN_TMO = get("EPICS_CA_CONN_TMO", EPICS_CA_CONN_TMO);
+        EPICS_PVA_MAX_ARRAY_FORMATTING = get("EPICS_PVA_MAX_ARRAY_FORMATTING", EPICS_PVA_MAX_ARRAY_FORMATTING);
+        EPICS_PVA_SEND_BUFFER_SIZE = get("EPICS_PVA_SEND_BUFFER_SIZE", EPICS_PVA_SEND_BUFFER_SIZE);
     }
 
-    private static String set(final String name, final String default_value)
+    /** Get setting from property, environment or default
+     *  @param name Name of setting
+     *  @param default_value Default value
+     *  @return Effective value
+     */
+    public static String get(final String name, final String default_value)
     {
         String value = System.getProperty(name);
         if (value != null)
@@ -109,14 +123,24 @@ public class PVASettings
         return default_value;
     }
 
-    private static boolean set(final String name, final boolean default_value)
+    /** Get setting from property, environment or default
+     *  @param name Name of setting
+     *  @param default_value Default value
+     *  @return Effective value
+     */
+    public static boolean get(final String name, final boolean default_value)
     {
-        String text = set(name, default_value ? "YES" : "NO").toLowerCase();
+        String text = get(name, default_value ? "YES" : "NO").toLowerCase();
         return Boolean.parseBoolean(text)  ||  "yes".equals(text);
     }
 
-    private static int set(final String name, final int default_value)
+    /** Get setting from property, environment or default
+     *  @param name Name of setting
+     *  @param default_value Default value
+     *  @return Effective value
+     */
+    public static int get(final String name, final int default_value)
     {
-        return Integer.parseInt(set(name, Integer.toString(default_value)));
+        return Integer.parseInt(get(name, Integer.toString(default_value)));
     }
 }

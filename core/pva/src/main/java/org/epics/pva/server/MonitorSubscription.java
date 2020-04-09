@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -101,7 +101,7 @@ class MonitorSubscription
         if (pending.compareAndSet(false, true))
             tcp.submit(this::encodeMonitor);
         else
-            logger.log(Level.WARNING, "Skipping " + this);
+            logger.log(Level.WARNING, "Skipping already submitted " + this);
     }
 
     private void encodeMonitor(final byte version, final ByteBuffer buffer) throws Exception
