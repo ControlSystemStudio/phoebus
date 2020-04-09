@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox alignment="CENTER" prefHeight="400.0" prefWidth="600.0" spacing="10.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.ui.write.FieldsViewController">
+<VBox alignment="CENTER" spacing="10.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.ui.write.FieldsViewController">
    <children>
       <HBox alignment="CENTER" spacing="5.0">
          <children>
@@ -20,7 +20,7 @@
       <HBox alignment="CENTER_RIGHT" spacing="5.0">
          <children>
             <Label fx:id="dateLabel" prefWidth="80" text="Date:" />
-            <TextField fx:id="dateField" editable="false" prefWidth="100.0"/>
+            <TextField fx:id="dateField" editable="false" prefWidth="100.0" />
             <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
                <children>
                   <Label fx:id="levelLabel" alignment="CENTER_RIGHT" text="Level:">
