@@ -99,11 +99,26 @@ public class TextUpdateWidget extends PVWidget
                 if (text.isPresent()  &&  text.get().length() > 0  &&
                     ((MacroizedWidgetProperty<String>) text_widget.propPVName()).getSpecification().isEmpty())
                 {
+		    // Skip replacing legacy textupdate to label where pv_name is set as a rule
+		    boolean pv_rule = false;
+		    for (final Element xmlrl : XMLUtil.getChildElements(xml, "rules"))
+		    {
+			 for (final Element xmlr : XMLUtil.getChildElements(xmlrl))
+			 {
+		    	     String prop_id = xmlr.getAttribute("prop_id");
+		    	     if (prop_id.contains("pv_name"))
+		    	     {
+		    		 pv_rule = true;
+		    		 break;
+		    	     }
+			 }
+		    }
+
                     logger.log(Level.WARNING, "Replacing TextUpdate " + text_widget + " with 'text' but no 'pv_name' with a Label");
 
                     // Replace the widget type with "label"
                     final String type = xml.getAttribute("typeId");
-                    if (type != null  &&  type.endsWith("TextUpdate"))
+                    if (type != null  &&  type.endsWith("TextUpdate") && pv_rule == false)
                     {
                         xml.setAttribute("typeId", "org.csstudio.opibuilder.widgets.Label");
                         // XMLUtil.dump(xml);
@@ -226,6 +241,15 @@ public class TextUpdateWidget extends PVWidget
         properties.add(rotation_step = propRotationStep.createProperty(this, RotationStep.NONE));
         properties.add(interactive = propInteractive.createProperty(this, false));
         BorderSupport.addBorderProperties(this, properties);
+    }
+
+    @Override
+    public WidgetProperty<?> getProperty(String name) throws IllegalArgumentException, IndexOutOfBoundsException
+    {
+        // Support legacy scripts that access enabled
+        if (name.equals("enabled"))
+            return propVisible();
+        return super.getProperty(name);
     }
 
     /** @return 'foreground_color' property */
