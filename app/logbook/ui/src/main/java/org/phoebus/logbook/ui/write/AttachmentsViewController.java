@@ -44,10 +44,17 @@ public class AttachmentsViewController {
     private FilesTab filesTab;
     private LogEntryModel model;
     private Node parent;
+    private boolean autoExpand = true;
 
     public AttachmentsViewController(Node parent, LogEntryModel logEntryModel){
         this.model = logEntryModel;
         this.parent = parent;
+    }
+
+    public AttachmentsViewController(Node parent, LogEntryModel logEntryModel, Boolean autoExpand){
+        this.model = logEntryModel;
+        this.parent = parent;
+        this.autoExpand = autoExpand;
     }
 
     @FXML
@@ -68,11 +75,13 @@ public class AttachmentsViewController {
         tabPane.getSelectionModel().selectFirst();
 
         // Open/close the attachments pane if there's something to see resp. not
-        Platform.runLater(() ->
-        {
-            final boolean anything = !model.getImages().isEmpty()  ||  !model.getFiles().isEmpty();
-            titledPane.setExpanded(anything);
-        });
+        if(autoExpand){
+            Platform.runLater(() ->
+            {
+                final boolean anything = !model.getImages().isEmpty()  ||  !model.getFiles().isEmpty();
+                titledPane.setExpanded(anything);
+            });
+        }
     }
 
     private void localize(){

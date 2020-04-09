@@ -18,7 +18,6 @@ import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.TagImpl;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -33,14 +32,11 @@ public class LogEntryTableDemo extends ApplicationWrapper {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        // TODO Auto-generated method stub
 
-        VBox vbox = new VBox();
         FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(this.getClass().getResource("LogEntryTable.fxml"));
-        loader.setRoot(vbox);
+        loader.setLocation(this.getClass().getResource("LogEntryTableView.fxml"));
         loader.load();
-        LogEntryTableController controller = loader.getController();
+        LogEntryTableViewController controller = loader.getController();
         Parent root = loader.getRoot();
 
         primaryStage.setScene(new Scene(root, 400, 400));
@@ -56,9 +52,10 @@ public class LogEntryTableDemo extends ApplicationWrapper {
         logbooks.add(LogbookImpl.of("logbook1", "active"));
         logbooks.add(LogbookImpl.of("logbook2", "active"));
 
-        String path = "C:\\Users\\Kunal Shroff\\Pictures\\screenshot-git\\log-att";
-        File folder = new File(path);
-        List<File> listOfFiles = Arrays.asList(folder.listFiles());
+        File imageFile = new File(this.getClass().getClassLoader().getResource("image_1.png").toURI());
+        File textFile = new File(this.getClass().getClassLoader().getResource("file_phoebus.txt").toURI());
+
+        List<File> listOfFiles = Arrays.asList(imageFile, textFile);
 
         for (int i = 0; i < 10; i++) {
             LogEntryBuilder lb = LogEntryBuilder.log()
@@ -81,6 +78,7 @@ public class LogEntryTableDemo extends ApplicationWrapper {
                 }
             });
             logs.add(lb.build());
+
         }
 
         controller.setLogs(logs);

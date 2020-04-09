@@ -13,13 +13,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javafx.scene.Node;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.ui.LogbookQueryUtil.Keys;
+import org.phoebus.logbook.ui.write.AttachmentsViewController;
+import org.phoebus.logbook.ui.write.FieldsViewController;
+import org.phoebus.logbook.ui.write.LogEntryCompletionHandler;
+import org.phoebus.logbook.ui.write.LogEntryEditorController;
+import org.phoebus.logbook.ui.write.LogEntryEditorStage;
+import org.phoebus.logbook.ui.write.LogEntryModel;
 import org.phoebus.logbook.ui.write.PropertiesTab;
 import org.phoebus.ui.dialog.PopOver;
 import org.phoebus.ui.javafx.FilesTab;
@@ -117,6 +125,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
     TableColumn<LogEntry, LogEntry> descriptionCol;
     @FXML
     TableColumn<LogEntry, LogEntry> metaCol;
+
+    @FXML
+    private Node topLevelNode;
 
     // Model
     List<LogEntry> logEntries;
@@ -356,16 +367,16 @@ public class LogEntryTableViewController extends LogbookSearchController {
             final Text descriptionText = new Text();
             descriptionText.wrappingWidthProperty().bind(descriptionCol.widthProperty());
 
-            TabPane tabPane = new TabPane();
-            ImagesTab imagesTab = new ImagesTab();
-            FilesTab filesTab = new FilesTab();
-            PropertiesTab propertiesTab = new PropertiesTab();
-            tabPane.getTabs().addAll(imagesTab, filesTab, propertiesTab);
-            TitledPane tPane = new TitledPane(Messages.Attachments, tabPane);
-            Accordion imageGallery = new Accordion();
-            imageGallery.getPanes().add(tPane);
+            //TabPane tabPane = new TabPane();
+            //ImagesTab imagesTab = new ImagesTab();
+            //FilesTab filesTab = new FilesTab();
+            //PropertiesTab propertiesTab = new PropertiesTab();
+            //tabPane.getTabs().addAll(imagesTab, filesTab, propertiesTab);
+            //TitledPane tPane = new TitledPane(Messages.Attachments, tabPane);
+            //Accordion imageGallery = new Accordion();
+            //imageGallery.getPanes().add(tPane);
 
-            pane.addColumn(0, titleText, descriptionText, imageGallery);
+            //pane.addColumn(0, titleText, descriptionText, imageGallery);
             ColumnConstraints cc = new ColumnConstraints();
             cc.setHgrow(Priority.ALWAYS);
             pane.getColumnConstraints().add(cc);
@@ -377,6 +388,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
                     if (empty) {
                         setGraphic(null);
                     } else {
+
                         if (logEntry.getTitle() == null || logEntry.getTitle().isEmpty()) {
                             titleText.setVisible(false);
                         } else {
@@ -384,6 +396,33 @@ public class LogEntryTableViewController extends LogbookSearchController {
                             titleText.setText(logEntry.getTitle());
                         }
 
+                        descriptionText.setText(logEntry.getDescription());
+
+                        Node parent = topLevelNode.getScene().getRoot();
+                        LogEntryModel logEntryModel = new LogEntryModel(logEntry);
+                        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("write/AttachmentsView.fxml"));
+                        fxmlLoader.setControllerFactory(clazz -> {
+                            try {
+                                if(clazz.isAssignableFrom(AttachmentsViewController.class)){
+                                    AttachmentsViewController attachmentsViewController =
+                                            (AttachmentsViewController)clazz.getConstructor(Node.class, LogEntryModel.class, Boolean.class)
+                                                    .newInstance(parent, logEntryModel, false);
+                                    return attachmentsViewController;
+                                }
+                            } catch (Exception e) {
+                                Logger.getLogger(LogEntryTableViewController.class.getName()).log(Level.SEVERE, "Failed to contruct controller for attachments view", e);
+                            }
+                            return null;
+                        });
+                        try {
+                            Node node = fxmlLoader.load();
+                            pane.addColumn(0, titleText, descriptionText, node);
+                            setGraphic(pane);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        /*
                         final List<Image> images = new ArrayList<>();
                         final List<File> files = new ArrayList<>();
                         logEntry.getAttachments().stream().forEach(attachment -> {
@@ -404,6 +443,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
                         }
                         descriptionText.setText(logEntry.getDescription());
                         setGraphic(pane);
+
+                         */
                     }
                 }
             };
