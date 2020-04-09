@@ -239,7 +239,11 @@ class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
     @Override
     public void close() throws Exception
     {
-        final ClientTCPHandler tcp = channel.getTCP();
+        final ClientTCPHandler tcp = channel.tcp.get();
+        // If TCP connection is already closed, no need nor way to cancel the subscription
+        if (tcp == null)
+            return;
+
         if (state == PVAHeader.CMD_SUB_DESTROY)
             logger.log(Level.FINE, () -> "Omitting monitor DESTROY, server canceled request #" + request_id + " for " + channel);
         else

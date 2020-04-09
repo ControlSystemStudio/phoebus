@@ -40,16 +40,28 @@ import org.epics.pva.server.ServerPV;
  *  <li>PREFIX - Prefix for internal PVs
  *  </ul>
  *
- *  <p>For a 'local' test, set both EPICS_PVAS_BROADCAST_PORT and EPICS_PVA_SERVER_PORT to 5077.
- *  The proxy will then listen to search requests on this non-standard port,
- *  and locate PVs via the default port (5076).
+ *  <p>For a 'local' test and to debug, assert that IOC, proxy and client each use unique ports.
  *
  *  <p>Run  `softIocPVA -m N='' -d demo.db`
+ *
+ *  It will default to UDP 5076
  *  Check direct access:
  *  EPICS_PVA_BROADCAST_PORT=5076 pvget ramp saw rnd
  *
- *  <p>Then run PVAProxy, and try
- *  EPICS_PVA_BROADCAST_PORT=5077 pvget -m ramp saw rnd
+ *  <p>Then run PVAProxy with
+ *  EPICS_PVA_BROADCAST_PORT=5076
+ *  EPICS_PVAS_BROADCAST_PORT=5077
+ *  EPICS_PVA_SERVER_PORT=5077
+ *  so it connects to the soft IOC and serves on UDP 5077.
+ *
+ *  <p>For a client to use the proxy, use
+ *  EPICS_PVA_BROADCAST_PORT=5078
+ *  EPICS_PVA_ADDR_LIST=<correct IP>:5077
+ *  pvget monitor ramp saw rnd
+ *
+ *  The ADDR_LIST tells the client to read via the proxy.
+ *  The BROADCAST_PORT makes the client send search requests from 5078,
+ *  so that it can receive replies.
  *
  *  <p>The following internal PVs are supported:
  *
@@ -104,6 +116,7 @@ public class PVAProxy
 
         ProxyChannel(final String name)
         {
+            logger.log(Level.INFO, () -> "++++ New Server Proxy " + name);
             this.name = name;
             executor.submit(() -> connect(name));
         }
@@ -121,7 +134,9 @@ public class PVAProxy
         {
             if (subscription != null)
             {
-                logger.log(Level.INFO, () -> "Found " + name + " connected");
+                // Channel connected and then subscribed OK.
+                // XXXX We could cancel the connection check when subscribing...
+                logger.log(Level.INFO, () -> "Successful connection check for " + name);
                 return;
             }
 
@@ -152,13 +167,9 @@ public class PVAProxy
             }
             else if (state == ClientChannelState.INIT)
             {
-                // TODO Indicate if proxy is disconnected
-                if (server_pv != null)
-                {
-                    System.out.println("TODO: Close server PV for " + name);
-                    server_pv.close();
-                    server_pv = null;
-                }
+                // If proxy is disconnected, close the proxy so our clients also see a disconnect
+                logger.log(Level.INFO, () -> "PV " + name + " disconnected, closing proxy");
+                close();
             }
         }
 
@@ -173,7 +184,10 @@ public class PVAProxy
                 logger.log(Level.FINE, () -> "Value update for " + name);
 
             if (server_pv == null)
+            {
                 server_pv = server.createPV(channel.getName(), data);
+                logger.log(Level.INFO, () -> "Now serving " + server_pv);
+            }
             else
             {
                 // TODO Periodically check how many clients the ServerPV has, close if unused for a while
@@ -192,11 +206,18 @@ public class PVAProxy
         }
 
         @Override
-        public void close() throws Exception
+        public void close()
         {
             if (subscription != null)
             {
-                subscription.close();
+                try
+                {
+                    subscription.close();
+                }
+                catch (Exception ex)
+                {
+                    logger.log(Level.WARNING, "Cannot close subscription of " + name, ex);
+                }
                 subscription = null;
             }
             if (client_pv != null)
@@ -206,13 +227,14 @@ public class PVAProxy
             }
             if (server_pv != null)
             {
-                // TODO Implement  server_pv.close();  Needs to close client connections
+                server_pv.close();
                 server_pv = null;
             }
 
             // Remove proxy. A new client search for this name will re-create a proxy
             proxies.remove(name, this);
             updateChannelCount();
+            logger.log(Level.INFO, () -> "++++ Closed Server Proxy " + name);
         }
     }
 
@@ -232,7 +254,7 @@ public class PVAProxy
      */
     private boolean handleSearchRequest(final int seq, final int cid, final String name, final InetSocketAddress addr)
     {
-        logger.log(Level.INFO, () -> addr + " searches for " + name + " (seq " + seq + ")");
+        logger.log(Level.INFO, () -> addr + " searches for " + name + " (CID " + cid + ", seq " + seq + ")");
         if (name.equals(prefix+"QUIT"))
         {
             quit.countDown();
