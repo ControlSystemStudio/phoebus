@@ -37,7 +37,6 @@ public class LogEntryEditorController {
 
     private Node parent;
     private LogEntryModel model;
-    private AttachmentsView attachmentsView;
     private LogEntryCompletionHandler completionHandler;
 
 
@@ -50,6 +49,9 @@ public class LogEntryEditorController {
     @FXML
     private Button submit;
 
+    @FXML
+    private AttachmentsViewController attachmentsViewController;
+
     public LogEntryEditorController(Node parent, LogEntryModel model, LogEntryCompletionHandler logEntryCompletionHandler){
         this.parent = parent;
         this.model = model;
@@ -61,9 +63,6 @@ public class LogEntryEditorController {
 
         localize();
         submit.disableProperty().bind(model.getReadyToSubmitProperty().not());
-
-        //attachmentsView = new AttachmentsView(parent, model);
-        //attachments.getChildren().add(attachmentsView);
 
     }
 
@@ -80,8 +79,8 @@ public class LogEntryEditorController {
      */
     @FXML
     public void submit(){
-        model.setImages(attachmentsView.getImages());
-        model.setFiles(attachmentsView.getFiles());
+        model.setImages(attachmentsViewController.getImages());
+        model.setFiles(attachmentsViewController.getFiles());
         LogEntry logEntry = null;
         try {
             logEntry = model.submitEntry();

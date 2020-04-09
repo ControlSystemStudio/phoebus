@@ -38,18 +38,18 @@
         </VBox.margin>
       </VBox>
 
-    <VBox fx:id="attachments" alignment="CENTER">
-        <fx:include source="AttachmentsView.fxml"/>
+    <VBox fx:id="attachments" alignment="CENTER" VBox.vgrow="NEVER">
+        <fx:include source="AttachmentsView.fxml" fx:id="attachmentsView"/>
     </VBox>
 
     <HBox alignment="BOTTOM_CENTER" fillHeight="false">
       <children>
          <Pane HBox.hgrow="ALWAYS" />
-         <Button fx:id="cancel" alignment="CENTER_RIGHT" onAction="#cancel" mnemonicParsing="false" text="Cancel">
+         <Button fx:id="cancel" alignment="CENTER_RIGHT" mnemonicParsing="false" onAction="#cancel" text="Cancel">
             <HBox.margin>
                <Insets left="5.0" right="5.0" />
             </HBox.margin></Button>
-         <Button fx:id="submit" alignment="CENTER_RIGHT" onAction="#submit" mnemonicParsing="false" text="Submit">
+         <Button fx:id="submit" alignment="CENTER_RIGHT" mnemonicParsing="false" onAction="#submit" text="Submit">
             <HBox.margin>
                <Insets left="5.0" />
             </HBox.margin></Button>

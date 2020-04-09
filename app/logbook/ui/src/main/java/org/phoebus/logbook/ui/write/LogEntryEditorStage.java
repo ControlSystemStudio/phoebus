@@ -51,17 +51,20 @@ public class LogEntryEditorStage extends Stage
         fxmlLoader.setControllerFactory(clazz -> {
             try {
                 if(clazz.isAssignableFrom(LogEntryEditorController.class)){
-                    LogEntryEditorController logEntryEditorController = (LogEntryEditorController)clazz.getConstructor(Node.class, LogEntryModel.class, LogEntryCompletionHandler.class)
+                    LogEntryEditorController logEntryEditorController =
+                            (LogEntryEditorController)clazz.getConstructor(Node.class, LogEntryModel.class, LogEntryCompletionHandler.class)
                             .newInstance(parent, logEntryModel, completionHandler);
                     return logEntryEditorController;
                 }
                 else if(clazz.isAssignableFrom(FieldsViewController.class)){
-                    FieldsViewController fieldsViewController =(FieldsViewController)clazz.getConstructor(LogEntryModel.class)
+                    FieldsViewController fieldsViewController = (FieldsViewController)clazz.getConstructor(LogEntryModel.class)
                             .newInstance(logEntryModel);
                     return fieldsViewController;
                 }
                 else if(clazz.isAssignableFrom(AttachmentsViewController.class)){
-                    AttachmentsViewController attachmentsViewController = (AttachmentsViewController)clazz.getConstructor().newInstance();
+                    AttachmentsViewController attachmentsViewController =
+                            (AttachmentsViewController)clazz.getConstructor(Node.class, LogEntryModel.class)
+                                    .newInstance(parent, logEntryModel);
                     return attachmentsViewController;
                 }
             } catch (Exception e) {

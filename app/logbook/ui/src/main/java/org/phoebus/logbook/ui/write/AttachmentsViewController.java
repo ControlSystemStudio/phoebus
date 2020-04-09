@@ -19,21 +19,74 @@
 
 package org.phoebus.logbook.ui.write;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TitledPane;
+import javafx.scene.image.Image;
+import org.phoebus.logbook.ui.Messages;
 import org.phoebus.ui.javafx.FilesTab;
 import org.phoebus.ui.javafx.ImagesTab;
+
+import java.io.File;
+import java.util.List;
 
 public class AttachmentsViewController {
 
     @FXML
+    private TitledPane titledPane;
+
+    @FXML
     private TabPane tabPane;
+
+    private ImagesTab imagesTab;
+    private FilesTab filesTab;
+    private LogEntryModel model;
+    private Node parent;
+
+    public AttachmentsViewController(Node parent, LogEntryModel logEntryModel){
+        this.model = logEntryModel;
+        this.parent = parent;
+    }
 
     @FXML
     public void initialize(){
-        tabPane.getTabs().add(0, new ImagesTab());
-        tabPane.getTabs().add(1, new FilesTab());
+
+        localize();
+
+        imagesTab = new ImagesTab();
+        imagesTab.setSnapshotNode(parent.getScene().getRoot());
+        imagesTab.setImages(model.getImages());
+
+        filesTab = new FilesTab();
+        filesTab.setFiles(model.getFiles());
+
+        tabPane.getTabs().add(0, imagesTab);
+        tabPane.getTabs().add(1, filesTab);
 
         tabPane.getSelectionModel().selectFirst();
+
+        // Open/close the attachments pane if there's something to see resp. not
+        Platform.runLater(() ->
+        {
+            final boolean anything = !model.getImages().isEmpty()  ||  !model.getFiles().isEmpty();
+            titledPane.setExpanded(anything);
+        });
     }
+
+    private void localize(){
+        titledPane.setText(Messages.Attachments);
+    }
+
+    public List<Image> getImages()
+    {
+        return imagesTab.getImages();
+    }
+
+    public List<File> getFiles()
+    {
+        return filesTab.getFiles();
+    }
+
 }
