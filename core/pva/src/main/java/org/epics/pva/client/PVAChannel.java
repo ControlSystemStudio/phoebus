@@ -201,6 +201,7 @@ public class PVAChannel implements AutoCloseable
      */
     boolean resetConnection()
     {
+        clearSubscriptions();
         final ClientTCPHandler old = tcp.getAndSet(null);
         if (old != null)
             old.removeChannel(this);
@@ -327,10 +328,10 @@ public class PVAChannel implements AutoCloseable
         else
         {
             // Server closed the channel.
-            // Keep in client, revert to SEARCHING
             logger.log(Level.FINE, () -> "Server destroyed channel " + this);
-            clearSubscriptions();
-            client.search.register(this, true);
+            resetConnection();
+            // Keep in client, revert to SEARCHING soon
+            client.search.register(this, false);
         }
     }
 
