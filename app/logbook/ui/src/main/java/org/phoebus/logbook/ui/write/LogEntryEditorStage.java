@@ -77,7 +77,7 @@ public class LogEntryEditorStage extends Stage
             fxmlLoader.load();
         } catch (
                 IOException exception) {
-            throw new RuntimeException(exception);
+            Logger.getLogger(LogEntryEditorStage.class.getName()).log(Level.WARNING, "Unable to load fxml for log entry editor", exception);
         }
 
         Scene scene = new Scene(fxmlLoader.getRoot());

@@ -367,16 +367,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
             final Text descriptionText = new Text();
             descriptionText.wrappingWidthProperty().bind(descriptionCol.widthProperty());
 
-            //TabPane tabPane = new TabPane();
-            //ImagesTab imagesTab = new ImagesTab();
-            //FilesTab filesTab = new FilesTab();
-            //PropertiesTab propertiesTab = new PropertiesTab();
-            //tabPane.getTabs().addAll(imagesTab, filesTab, propertiesTab);
-            //TitledPane tPane = new TitledPane(Messages.Attachments, tabPane);
-            //Accordion imageGallery = new Accordion();
-            //imageGallery.getPanes().add(tPane);
-
-            //pane.addColumn(0, titleText, descriptionText, imageGallery);
             ColumnConstraints cc = new ColumnConstraints();
             cc.setHgrow(Priority.ALWAYS);
             pane.getColumnConstraints().add(cc);
@@ -419,32 +409,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
                             pane.addColumn(0, titleText, descriptionText, node);
                             setGraphic(pane);
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            Logger.getLogger(LogEntryTableViewController.class.getName()).log(Level.WARNING, "Unable to load fxml for attachments view", e);
                         }
-
-                        /*
-                        final List<Image> images = new ArrayList<>();
-                        final List<File> files = new ArrayList<>();
-                        logEntry.getAttachments().stream().forEach(attachment -> {
-                            if (attachment.getContentType().startsWith(Attachment.CONTENT_IMAGE)) {
-                                images.add(createImage(attachment.getFile()));
-                            } else {
-                                files.add(attachment.getFile());
-                            }
-                        });
-                        filesTab.setFiles(files);
-                        imagesTab.setImages(images);
-                        if(!files.isEmpty() || !images.isEmpty()) {
-                            tPane.setVisible(true);
-                            tPane.setExpanded(true);
-                        } else {
-                            tPane.setExpanded(false);
-                            tPane.setVisible(false);
-                        }
-                        descriptionText.setText(logEntry.getDescription());
-                        setGraphic(pane);
-
-                         */
                     }
                 }
             };
