@@ -33,8 +33,10 @@ public interface JsonTags
     public static final String DESCRIPTION = "description";
     public static final String DETAILS = "details";
     public static final String DISABLE = "disable";
+    public static final String DISABLE_NOTIFY = "disable_notify";
     public static final String DISPLAYS = "displays";
     public static final String ENABLED = "enabled";
+    public static final String ENABLE_NOTIFY = "enable_notify";
     public static final String FILTER = "filter";
     public static final String GUIDANCE = "guidance";
     public static final String HOST = "host";

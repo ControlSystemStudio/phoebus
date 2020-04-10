@@ -139,6 +139,22 @@ public class AlarmClient
         }
     }
 
+    /** @param notify Select notify disable  ? */
+    public void setNotify(final boolean disable_notify)
+    {
+        final String cmd = disable_notify ? JsonTags.DISABLE_NOTIFY : JsonTags.ENABLE_NOTIFY;
+        try
+        {
+            final String json = new String (JsonModelWriter.commandToBytes(cmd));
+            final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, AlarmSystem.COMMAND_PREFIX + root.getPathName(), json);
+            producer.send(record);
+        }
+        catch (final Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot set mode for " + root + " to " + cmd, ex);
+        }
+    }
+
     /** Background thread loop that checks for alarm tree updates */
     private void run()
     {

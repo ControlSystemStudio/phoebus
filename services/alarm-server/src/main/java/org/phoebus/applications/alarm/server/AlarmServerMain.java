@@ -353,6 +353,10 @@ public class AlarmServerMain implements ServerModelListener
                 setMaintenanceMode(true);
             else if (JsonTags.NORMAL.equals(command))
                 setMaintenanceMode(false);
+	     else if (JsonTags.DISABLE_NOTIFY.equals(command))
+                setDisableNotify(true);
+            else if (JsonTags.ENABLE_NOTIFY.equals(command))
+                setDisableNotify(false);
             else if (command.equalsIgnoreCase("dump"))
             {
                 final AlarmTreeItem<?> node;
