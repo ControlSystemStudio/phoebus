@@ -48,10 +48,6 @@ import java.util.logging.Level;
 @SuppressWarnings("nls")
 public class PVAStructure extends PVADataWithID
 {
-    static
-    {
-    }
-
     static PVAStructure decodeType(final PVATypeRegistry types, final String name, final ByteBuffer buffer) throws Exception
     {
         final String struct_name = PVAString.decodeString(buffer);

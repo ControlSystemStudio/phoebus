@@ -48,3 +48,8 @@ record(bi, "bool$(N)")
   field(ONAM, "true")
   field(PINI, "YES")
 }
+
+record(ao, "ao$(N)")
+{
+  field(PINI, "YES")
+}

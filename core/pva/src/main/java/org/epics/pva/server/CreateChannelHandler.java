@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -39,14 +39,18 @@ class CreateChannelHandler implements CommandHandler<ServerTCPHandler>
         {
             final int cid = buffer.getInt();
             final String name = PVAString.decodeString(buffer);
-            
-            logger.log(Level.FINE, () ->  "Channel create request '" + name + "', cid " + cid);
             final ServerPV pv = tcp.getServer().getPV(name);
-            if (pv != null)
+            if (pv == null)
+                logger.log(Level.WARNING, () ->  "Channel create request for unknown PV '" + name + "'");
+            else
+            {
+                logger.log(Level.FINE, () ->  "Channel create request '" + name + "', cid " + cid);
+                pv.addClient(tcp, cid);
                 sendChannelCreated(tcp, pv, cid);
+            }
         }
     }
-        
+
     private void sendChannelCreated(final ServerTCPHandler tcp, final ServerPV pv, int cid) throws Exception
     {
         tcp.submit((version, buffer) ->
@@ -55,7 +59,7 @@ class CreateChannelHandler implements CommandHandler<ServerTCPHandler>
             PVAHeader.encodeMessageHeader(buffer,
                     PVAHeader.FLAG_SERVER,
                     PVAHeader.CMD_CREATE_CHANNEL, 4+4+1);
-            
+
             // int cid
             buffer.putInt(cid);
             // int sid

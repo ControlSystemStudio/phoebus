@@ -10,6 +10,7 @@ package org.epics.pva.client;
 import static org.epics.pva.PVASettings.logger;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -68,6 +69,8 @@ public class PVAChannel implements AutoCloseable
 
     /** TCP Handler, set by PVAClient */
     final AtomicReference<ClientTCPHandler> tcp = new AtomicReference<>();
+
+    private final CopyOnWriteArrayList<MonitorRequest> subscriptions = new CopyOnWriteArrayList<>();
 
     PVAChannel(final PVAClient client, final String name, final ClientChannelListener listener)
     {
@@ -198,6 +201,7 @@ public class PVAChannel implements AutoCloseable
      */
     boolean resetConnection()
     {
+        clearSubscriptions();
         final ClientTCPHandler old = tcp.getAndSet(null);
         if (old != null)
             old.removeChannel(this);
@@ -284,10 +288,12 @@ public class PVAChannel implements AutoCloseable
         // MonitorRequest submits itself to TCPHandler
         // and registers as response handler,
         // so we can later retrieve it via its requestID
-        return new MonitorRequest(this, request, pipeline, listener);
+        final MonitorRequest subscription = new MonitorRequest(this, request, pipeline, listener);
+        subscriptions.add(subscription);
+        return subscription;
     }
 
-    /** Invoke remote procecure call (RPC)
+    /** Invoke remote procedure call (RPC)
      *  @param request Request, i.e. parameters sent to the RPC call
      *  @return {@link Future} for fetching the result returned by the RPC call
      */
@@ -301,15 +307,44 @@ public class PVAChannel implements AutoCloseable
      */
     void channelDestroyed(final int sid)
     {
-        // Channel closure confirmed by server
-        setState(ClientChannelState.CLOSED);
+        if (sid != this.sid)
+        {
+            logger.log(Level.WARNING, "Server destroyed " + this + " with unexpected SID " + sid);
+            return;
+        }
 
-        if (sid == this.sid)
-            logger.log(Level.FINE, () -> "Received destroy channel reply " + this);
+        // If client is CLOSING this channel, then move to CLOSED and be done.
+        if (state.compareAndSet(ClientChannelState.CLOSING, ClientChannelState.CLOSED))
+        {
+            synchronized (state)
+            {
+                state.notifyAll();
+            }
+            logger.log(Level.FINE, () -> "Server confirmed destroying channel " + this);
+            listener.channelStateChanged(this, ClientChannelState.CLOSED);
+            clearSubscriptions();
+            client.forgetChannel(this);
+        }
         else
-            logger.log(Level.WARNING, this + " destroyed with SID " + sid +" instead of expected " + this.sid);
+        {
+            // Server closed the channel.
+            logger.log(Level.FINE, () -> "Server destroyed channel " + this);
+            resetConnection();
+            // Keep in client, revert to SEARCHING soon
+            client.search.register(this, false);
+        }
+    }
 
-        client.forgetChannel(this);
+    /** Remove all MonitorRequests for this channel from TCP handler,
+     *  since we are not expecting any more updates.
+     */
+    private void clearSubscriptions()
+    {
+        final ClientTCPHandler copy = tcp.get();
+        if (copy != null)
+            for (MonitorRequest subscription : subscriptions)
+                copy.removeResponseHandler(subscription.getRequestID());
+        subscriptions.clear();
     }
 
     /** Close the channel */
