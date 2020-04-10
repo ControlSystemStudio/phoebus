@@ -25,7 +25,7 @@
 <VBox xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.ui.write.AttachmentsViewController">
     <Accordion>
         <panes>
-            <TitledPane fx:id="titledPane" animated="true" text="Attachments">
+            <TitledPane expanded="false" fx:id="titledPane" animated="true" text="Attachments">
                 <content>
                     <TabPane fx:id="tabPane">
                         <Tab fx:id="propertiesTab" text="Properties">

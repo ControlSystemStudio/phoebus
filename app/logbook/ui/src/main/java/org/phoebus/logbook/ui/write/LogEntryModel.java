@@ -162,7 +162,7 @@ public class LogEntryModel
             final File file = attachment.getFile();
 
             // Add image to model if attachment is image.
-            if (attachment.getContentType().equals(Attachment.CONTENT_IMAGE))
+            if (attachment.getContentType().toLowerCase().startsWith("image"))
             {
                 try
                 {
@@ -174,7 +174,7 @@ public class LogEntryModel
                 }
             }
             // Add file to model if attachment is file.
-            else if (attachment.getContentType().equals(Attachment.CONTENT_FILE))
+            else //if (attachment.getContentType().toLowerCase().startsWith("image"))
                 files.add(file);
         }
         setImages(images);
