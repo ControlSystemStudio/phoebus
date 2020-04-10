@@ -37,7 +37,6 @@ import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.Tag;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
@@ -62,6 +61,7 @@ import com.sun.jersey.multipart.impl.MultiPartWriter;
 public class OlogClient implements LogClient {
     private final WebResource service;
 
+    private Logger logger = Logger.getLogger(OlogClient.class.getPackageName());
     /**
      * Builder Class to help create a olog client.
      *
@@ -82,6 +82,7 @@ public class OlogClient implements LogClient {
         private String protocol = null;
         private String username = null;
         private String password = null;
+        private String connectTimeoutAsString = null;
 
         private OlogProperties properties = new OlogProperties();
 
@@ -212,6 +213,15 @@ public class OlogClient implements LogClient {
             }
             this.username = ifNullReturnPreferenceValue(this.username, "username");
             this.password = ifNullReturnPreferenceValue(this.password, "password");
+            this.connectTimeoutAsString = ifNullReturnPreferenceValue(this.connectTimeoutAsString, "connectTimeout");
+            Integer connectTimeout = 0;
+            try {
+                connectTimeout = Integer.parseInt(connectTimeoutAsString);
+            } catch (NumberFormatException e) {
+                Logger.getLogger(OlogClientBuilder.class.getPackageName())
+                        .warning("connectTimeout preference not set or invalid, using 0 (=infinite)");
+            }
+            this.clientConfig.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, connectTimeout);
             return new OlogClient(this.ologURI, this.clientConfig, this.withHTTPAuthentication, this.username, this.password);
         }
 
@@ -222,7 +232,6 @@ public class OlogClient implements LogClient {
                 return value;
             }
         }
-
     }
 
     private OlogClient(URI ologURI, ClientConfig config, boolean withHTTPBasicAuthFilter, String username, String password) {
@@ -235,6 +244,7 @@ public class OlogClient implements LogClient {
             client.addFilter(new RawLoggingFilter(Logger.getLogger(OlogClient.class.getName())));
         }
         client.setFollowRedirects(true);
+        client.setConnectTimeout(3000);
         this.service = client.resource(UriBuilder.fromUri(ologURI).build());
     }
 
@@ -620,7 +630,7 @@ public class OlogClient implements LogClient {
             });
             return logbooks;
         } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Unable to get logbooks from service", e);
             return Collections.emptySet();
         }
     }

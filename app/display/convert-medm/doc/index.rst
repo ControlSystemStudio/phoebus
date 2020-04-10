@@ -79,11 +79,11 @@ the converter will create a ``*.bob`` file and then open it.
 For bulk conversions, you can use this command line invocation,
 which can convert a list of files, including complete directories::
 
-    Usage: -main org.csstudio.display.converter.edm.Converter [options] <files>");
+    Usage: -main org.csstudio.display.converter.edm.Converter [options] <files>
 
     Converts EDM *.edl files to Display Builder *.bob format.
 
-    Options:");
+    Options:
     -help                        - Help
     -colors /path/to/colors.list - EDM colors.list file to use
     -paths /path/to/paths.list   - File that lists paths

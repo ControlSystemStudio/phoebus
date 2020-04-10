@@ -80,6 +80,7 @@ public class OlogClient implements LogClient {
         private String protocol = null;
         private String username = null;
         private String password = null;
+        private String connectTimeoutAsString = null;
 
         private ExecutorService executor = Executors.newSingleThreadExecutor();
 
@@ -225,8 +226,18 @@ public class OlogClient implements LogClient {
                             }, sslContext));
                 }
             }
-            this.username = ifNullReturnPreferenceValue(this.username, "username", "username");
-            this.password = ifNullReturnPreferenceValue(this.password, "password", "password");
+
+            this.username = ifNullReturnPreferenceValue(this.username, "username");
+            this.password = ifNullReturnPreferenceValue(this.password, "password");
+            this.connectTimeoutAsString = ifNullReturnPreferenceValue(this.connectTimeoutAsString, "connectTimeout");
+            Integer connectTimeout = 0;
+            try {
+                connectTimeout = Integer.parseInt(connectTimeoutAsString);
+            } catch (NumberFormatException e) {
+                Logger.getLogger(OlogClientBuilder.class.getPackageName())
+                        .warning("connectTimeout preference not set or invalid, using 0 (=infinite)");
+            }
+            this.clientConfig.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, connectTimeout);
 
             this.withRawFilter = Boolean.valueOf(this.properties.getPreferenceValue("debug"));
             return new OlogClient(this.ologURI,
@@ -238,7 +249,7 @@ public class OlogClient implements LogClient {
                     this.withRawFilter);
         }
 
-        private String ifNullReturnPreferenceValue(String value, String key, String Default) {
+        private String ifNullReturnPreferenceValue(String value, String key) {
             if (value == null) {
                 return this.properties.getPreferenceValue(key);
             } else {

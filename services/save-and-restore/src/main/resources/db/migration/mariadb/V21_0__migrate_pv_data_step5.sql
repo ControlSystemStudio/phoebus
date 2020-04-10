@@ -1,0 +1,1 @@
+ALTER TABLE snapshot_node_pv DROP COLUMN readback;

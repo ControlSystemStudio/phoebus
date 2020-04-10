@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,7 +11,6 @@ import static org.csstudio.display.builder.model.ModelPlugin.logger;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propDirection;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMacros;
 import static org.csstudio.display.builder.model.properties.InsetsWidgetProperty.runtimePropInsets;
 
 import java.text.MessageFormat;
@@ -41,7 +40,6 @@ import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.Direction;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
-import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 
@@ -56,7 +54,7 @@ import org.w3c.dom.Element;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class TabsWidget extends VisibleWidget
+public class TabsWidget extends MacroWidget
 {
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
@@ -97,7 +95,7 @@ public class TabsWidget extends VisibleWidget
             final WidgetProperty<List<Widget>> c = getElement(1);
             return (ChildrenProperty)c;
         }
-    };
+    }
 
     private static final ArrayWidgetProperty.Descriptor<TabItemProperty> propTabs =
         new ArrayWidgetProperty.Descriptor<>(WidgetPropertyCategory.WIDGET, "tabs", Messages.TabsWidget_Name,
@@ -173,7 +171,6 @@ public class TabsWidget extends VisibleWidget
         }
     }
 
-    private volatile WidgetProperty<Macros> macros;
     private volatile WidgetProperty<WidgetColor> background;
     private volatile WidgetProperty<WidgetFont> font;
     private volatile WidgetProperty<Integer> active;
@@ -191,7 +188,6 @@ public class TabsWidget extends VisibleWidget
     protected void defineProperties(final List<WidgetProperty<?>> properties)
     {
         super.defineProperties(properties);
-        properties.add(macros = propMacros.createProperty(this, new Macros()));
         properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)));
         properties.add(active = propActiveTab.createProperty(this, 0));
@@ -212,23 +208,6 @@ public class TabsWidget extends VisibleWidget
             throws Exception
     {
         return new TabsWidgetConfigurator(persisted_version);
-    }
-
-    /** @return Widget 'macros' */
-    public WidgetProperty<Macros> widgetMacros()
-    {
-        return macros;
-    }
-
-    /** Group widget extends parent macros
-     *  @return {@link Macros}
-     */
-    @Override
-    public Macros getEffectiveMacros()
-    {
-        final Macros base = super.getEffectiveMacros();
-        final Macros my_macros = widgetMacros().getValue();
-        return Macros.merge(base, my_macros);
     }
 
     /** @return 'background_color' property */

@@ -79,6 +79,10 @@ public class DisplayEditorInstance implements AppInstance
     /** Last time the file was modified */
     private volatile long modification_marker = 0;
 
+    /** Job that's currently saving the file, or <code>null</code> */
+    private volatile JobMonitor save_job = null;
+
+
     DisplayEditorInstance(final DisplayEditorApplication app)
     {
         this.app = app;
@@ -107,6 +111,7 @@ public class DisplayEditorInstance implements AppInstance
         menu_node.setOnContextMenuRequested(event -> handleContextMenu(menu, event));
         menu_node.setContextMenu(menu);
 
+        dock_item.addCloseCheck(this::okToClose);
         dock_item.addClosedNotification(this::dispose);
     }
 
@@ -362,58 +367,83 @@ public class DisplayEditorInstance implements AppInstance
 
     void doSave(final JobMonitor monitor) throws Exception
     {
-        final URI orig_input = dock_item.getInput();
-        final File file = Objects.requireNonNull(ResourceParser.getFile(orig_input));
+        save_job = monitor;
 
-        final DisplayModel model = editor_gui.getDisplayEditor().getModel();
+        try
+        {
+            final URI orig_input = dock_item.getInput();
+            final File file = Objects.requireNonNull(ResourceParser.getFile(orig_input));
 
-        // Check if it's a class file (*.bcf)
-        File proper;
-        if(model.isClassModel())
-        {
-            proper = ModelResourceUtil.enforceFileExtension(file, WidgetClassSupport.FILE_EXTENSION);
-        }
-        else
-        {
-            proper = ModelResourceUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
-        }
+            final DisplayModel model = editor_gui.getDisplayEditor().getModel();
 
-        if (file.equals(proper))
-        {
-            // Check if file has been changed outside of this editor
-            final long as_loaded = modification_marker;
-            if (as_loaded != 0  &&  file.exists()  &&  file.canRead())
+            // Check if it's a class file (*.bcf)
+            File proper;
+            if(model.isClassModel())
             {
-                final long current = file.lastModified();
-                if (current != as_loaded)
-                {
-                    final CompletableFuture<ButtonType> response = new CompletableFuture<>();
-                    // Prompt on UI thread
-                    Platform.runLater(() ->
-                    {
-                        final Alert prompt = new Alert(AlertType.CONFIRMATION);
-                        prompt.setTitle(Messages.FileChangedHdr);
-                        prompt.setResizable(true);
-                        prompt.setHeaderText(MessageFormat.format(Messages.FileChangedDlg, file.toString()));
-                        DialogHelper.positionDialog(prompt, dock_item.getTabPane(), -200, -200);
-                        response.complete(prompt.showAndWait().orElse(ButtonType.CANCEL));
-                    });
-
-                    // If user doesn't want to overwrite, abort the save
-                    if (response.get() != ButtonType.OK)
-                        return;
-                }
+                proper = ModelResourceUtil.enforceFileExtension(file, WidgetClassSupport.FILE_EXTENSION);
+            }
+            else
+            {
+                proper = ModelResourceUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
             }
 
-            editor_gui.saveModelAs(file);
-            modification_marker = file.lastModified();
+            if (file.equals(proper))
+            {
+                // Check if file has been changed outside of this editor
+                final long as_loaded = modification_marker;
+                if (as_loaded != 0  &&  file.exists()  &&  file.canRead())
+                {
+                    final long current = file.lastModified();
+                    if (current != as_loaded)
+                    {
+                        final CompletableFuture<ButtonType> response = new CompletableFuture<>();
+                        // Prompt on UI thread
+                        Platform.runLater(() ->
+                        {
+                            final Alert prompt = new Alert(AlertType.CONFIRMATION);
+                            prompt.setTitle(Messages.FileChangedHdr);
+                            prompt.setResizable(true);
+                            prompt.setHeaderText(MessageFormat.format(Messages.FileChangedDlg, file.toString()));
+                            DialogHelper.positionDialog(prompt, dock_item.getTabPane(), -200, -200);
+                            response.complete(prompt.showAndWait().orElse(ButtonType.CANCEL));
+                        });
+
+                        // If user doesn't want to overwrite, abort the save
+                        if (response.get() != ButtonType.OK)
+                            return;
+                    }
+                }
+
+                editor_gui.saveModelAs(file);
+                modification_marker = file.lastModified();
+            }
+            else
+            {   // Save-As with proper file name
+                dock_item.setInput(proper.toURI());
+                if (! dock_item.save_as(monitor))
+                    dock_item.setInput(orig_input);
+            }
         }
-        else
-        {   // Save-As with proper file name
-            dock_item.setInput(proper.toURI());
-            if (! dock_item.save_as(monitor))
-                dock_item.setInput(orig_input);
+        finally
+        {
+            save_job = null;
         }
+    }
+
+    private boolean okToClose()
+    {
+        if (save_job != null)
+        {
+            final Alert prompt = new Alert(AlertType.CONFIRMATION);
+            prompt.setTitle(Messages.FileChangedHdr);
+            prompt.setResizable(true);
+            prompt.setHeaderText(Messages.AbortSave);
+            DialogHelper.positionDialog(prompt, dock_item.getTabPane(), -200, -200);
+            if (prompt.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK)
+                return false;
+        }
+
+        return true;
     }
 
     private void dispose()
