@@ -265,6 +265,10 @@ public class AlarmClient
                             if (maintenance_mode.getAndSet(maint) != maint)
                                 for (final AlarmClientListener listener : listeners)
                                     listener.serverModeChanged(maint);
+			    final boolean disnot = JsonModelReader.isDisableNotify(json);
+                            if (disable_notify.getAndSet(disnot) != disnot)
+                                for (final AlarmClientListener listener : listeners)
+                                    listener.serverDisableNotifyChanged(disnot);
                             if (JsonModelReader.updateAlarmState(node, json))
                                 changed_node = node;
                             last_state_update = System.currentTimeMillis();

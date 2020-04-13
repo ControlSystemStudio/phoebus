@@ -233,6 +233,20 @@ public class JsonModelReader
         return false;
     }
 
+    /** Check for 'notify' mode indicator,
+     *  included in alarm state updates
+     *  @param json
+     *  @return <code>true</code> if in disable_notify mode
+     */
+    public static boolean isDisableNotify(final Object json)
+    {
+        final JsonNode actual = (JsonNode) json;
+        JsonNode jn = actual.get(JsonTags.NOTIFY);
+        if (jn != null)
+            return JsonTags.DISABLE.equals(jn.asText());
+        return false;
+    }
+
     public static boolean updateAlarmState(final AlarmTreeItem<?> node, final Object json)
     {
         final JsonNode actual = (JsonNode) json;
