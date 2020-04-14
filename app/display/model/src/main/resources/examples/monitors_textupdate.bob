@@ -2,7 +2,7 @@
 <display version="2.0.0">
   <name>Text Update</name>
   <width>1060</width>
-  <height>960</height>
+  <height>1000</height>
   <widget type="label" version="2.0.0">
     <name>Label</name>
     <class>TITLE</class>
@@ -355,13 +355,14 @@ while the DMS specialization maps 2 pi to 360 degrees.
     <text>By default, Text Update widgets simply display the value of a PV.
 They allow no interaction.
 
-When you set the  'interactive' property to true, the widget allows selecting the current value so users and 'copy' it.
+When you set the  'interactive' property to true, the widget allows selecting the current value so users can 'copy' it.
 In addition, a scrollbar appears when the text exceeds the widget area.
+With vertical alignment set to 'bottom', the scrollbar will default to the bottom as well.
 </text>
     <x>450</x>
     <y>800</y>
     <width>350</width>
-    <height>160</height>
+    <height>200</height>
     <font>
       <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
       </font>
