@@ -355,7 +355,7 @@ while the DMS specialization maps 2 pi to 360 degrees.
     <text>By default, Text Update widgets simply display the value of a PV.
 They allow no interaction.
 
-When you set the  'interactive' property to true, the widget allows selecting the current value so users and 'copy' it.
+When you set the  'interactive' property to true, the widget allows selecting the current value so users can 'copy' it.
 In addition, a scrollbar appears when the text exceeds the widget area.
 </text>
     <x>450</x>

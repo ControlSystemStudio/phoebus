@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,6 +14,7 @@ import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.RotationStep;
+import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
@@ -82,12 +83,12 @@ public class TextUpdateRepresentation extends RegionBaseRepresentation<Control, 
         {
             final Label label = new Label();
             label.getStyleClass().add("text_update");
-    
+
             // This code manages layout,
             // because otherwise for example border changes would trigger
             // expensive Node.notifyParentOfBoundsChange() recursing up the scene graph
             label.setManaged(false);
-    
+
             return label;
         }
     }
@@ -275,7 +276,16 @@ public class TextUpdateRepresentation extends RegionBaseRepresentation<Control, 
             if (jfx_node instanceof Label)
                 ((Label)jfx_node).setText(value_text);
             else
-                ((TextArea)jfx_node).setText(value_text);
+            {
+                final TextArea area = (TextArea)jfx_node;
+                area.setText(value_text);
+                if (model_widget.propVerticalAlignment().getValue() == VerticalAlignment.BOTTOM)
+                {
+                    // For bottom-aligned widget, scroll to bottom
+                    area.selectPositionCaret(area.getLength());
+                    area.deselect(); //re
+                }
+            }
             if (! jfx_node.isManaged())
                 jfx_node.layout();
         }
