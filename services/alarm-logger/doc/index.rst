@@ -11,3 +11,24 @@ This historical data can be used to:
 3. Debug the alarm system
 
 .. image:: /images/alarm_kibana.png
+
+
+*********************
+Logged Alarm Messages
+*********************
+
+The alarm logging service creates kafka streams which can be configured to monitor one or more alarm topics. All associated with state change or configuration change are filtered, time stamped and added to an elastic index.
+
+Examples:
+
+* **Configuration changes** 
+
+ e.g. when new alarm nodes or pvs are added or removed or existing ones are enabled/disabled 
+
+* **State changes** 
+
+ e.g. alarm state changes from OK to MAJOR
+
+* **Commands** 
+
+ e.g. a user actions to *Acknowledge* an alarm
