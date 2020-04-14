@@ -283,7 +283,7 @@ public class TextUpdateRepresentation extends RegionBaseRepresentation<Control, 
                 {
                     // For bottom-aligned widget, scroll to bottom
                     area.selectPositionCaret(area.getLength());
-                    area.deselect(); //re
+                    area.deselect();
                 }
             }
             if (! jfx_node.isManaged())
