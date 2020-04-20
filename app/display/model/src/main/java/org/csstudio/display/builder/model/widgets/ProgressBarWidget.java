@@ -87,30 +87,30 @@ public class ProgressBarWidget extends PVWidget
                 final Element el = XMLUtil.getChildElement(xml, "color_fillbackground");
                 if (el != null)
                     bar.propBackgroundColor().readFromXML(model_reader, el);
-            }
 
-            // Create text update for the value indicator
-            if (XMLUtil.getChildBoolean(xml, "show_label").orElse(true))
-            {
-                final Document doc = xml.getOwnerDocument();
-                final Element text = doc.createElement(XMLTags.WIDGET);
-                text.setAttribute(XMLTags.TYPE, TextUpdateWidget.WIDGET_DESCRIPTOR.getType());
-                XMLUtil.updateTag(text, XMLTags.NAME, widget.getName() + " Label");
-                text.appendChild(doc.importNode(XMLUtil.getChildElement(xml, XMLTags.X), true));
-                text.appendChild(doc.importNode(XMLUtil.getChildElement(xml, XMLTags.Y), true));
-                text.appendChild(doc.importNode(XMLUtil.getChildElement(xml, XMLTags.WIDTH), true));
-                text.appendChild(doc.importNode(XMLUtil.getChildElement(xml, XMLTags.HEIGHT), true));
-                text.appendChild(doc.importNode(XMLUtil.getChildElement(xml, XMLTags.PV_NAME), true));
+                // Create text update for the value indicator
+                if (XMLUtil.getChildBoolean(xml, "show_label").orElse(true))
+                {
+                    final Document doc = xml.getOwnerDocument();
+                    final Element text = doc.createElement(XMLTags.WIDGET);
+                    text.setAttribute(XMLTags.TYPE, TextUpdateWidget.WIDGET_DESCRIPTOR.getType());
+                    XMLUtil.updateTag(text, XMLTags.NAME, widget.getName() + " Label");
+                    text.appendChild(doc.importNode(XMLUtil.getChildElement(xml, XMLTags.X), true));
+                    text.appendChild(doc.importNode(XMLUtil.getChildElement(xml, XMLTags.Y), true));
+                    text.appendChild(doc.importNode(XMLUtil.getChildElement(xml, XMLTags.WIDTH), true));
+                    text.appendChild(doc.importNode(XMLUtil.getChildElement(xml, XMLTags.HEIGHT), true));
+                    text.appendChild(doc.importNode(XMLUtil.getChildElement(xml, XMLTags.PV_NAME), true));
 
-                Element e = doc.createElement(CommonWidgetProperties.propTransparent.getName());
-                e.appendChild(doc.createTextNode(Boolean.TRUE.toString()));
-                text.appendChild(e);
+                    Element e = doc.createElement(CommonWidgetProperties.propTransparent.getName());
+                    e.appendChild(doc.createTextNode(Boolean.TRUE.toString()));
+                    text.appendChild(e);
 
-                e = doc.createElement(CommonWidgetProperties.propHorizontalAlignment.getName());
-                e.appendChild(doc.createTextNode(Integer.toString(HorizontalAlignment.CENTER.ordinal())));
-                text.appendChild(e);
+                    e = doc.createElement(CommonWidgetProperties.propHorizontalAlignment.getName());
+                    e.appendChild(doc.createTextNode(Integer.toString(HorizontalAlignment.CENTER.ordinal())));
+                    text.appendChild(e);
 
-                xml.getParentNode().appendChild(text);
+                    xml.getParentNode().appendChild(text);
+                }
             }
 
             return true;
