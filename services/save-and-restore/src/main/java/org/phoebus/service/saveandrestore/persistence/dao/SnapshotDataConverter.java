@@ -21,6 +21,7 @@ package org.phoebus.service.saveandrestore.persistence.dao;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.epics.util.array.ArrayByte;
@@ -53,11 +54,13 @@ import org.epics.util.number.ULong;
 import org.epics.util.number.UShort;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
+import org.epics.vtype.EnumDisplay;
 import org.epics.vtype.Time;
 import org.epics.vtype.VByte;
 import org.epics.vtype.VByteArray;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VDoubleArray;
+import org.epics.vtype.VEnum;
 import org.epics.vtype.VFloat;
 import org.epics.vtype.VFloatArray;
 import org.epics.vtype.VInt;
@@ -69,6 +72,7 @@ import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VShort;
 import org.epics.vtype.VShortArray;
 import org.epics.vtype.VString;
+import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
 import org.epics.vtype.VUByte;
 import org.epics.vtype.VUByteArray;
@@ -127,7 +131,7 @@ public class SnapshotDataConverter {
 	public static SnapshotPv fromVType(VType vType) {
 			
 		SnapshotPvDataType dataType = getDataType(vType);
-		
+
 		if(vType instanceof VNumber) {
 			VNumber vNumber = (VNumber)vType;
 			Alarm alarm = vNumber.getAlarm();
@@ -158,7 +162,52 @@ public class SnapshotDataConverter {
 					.sizes(getDimensionString(vNumberArray))
 					.build();
 		}
-		
+		else if(vType instanceof VString){
+			VString vString = (VString)vType;
+			Alarm alarm = vString.getAlarm();
+			Instant instant = vString.getTime().getTimestamp();
+			return SnapshotPv.builder()
+					.alarmSeverity(alarm.getSeverity())
+					.alarmName(alarm.getName())
+					.alarmStatus(alarm.getStatus())
+					.time(instant.getEpochSecond())
+					.timens(instant.getNano())
+					.value(getScalarValueString(vString.getValue()))
+					.dataType(dataType)
+					.sizes(SCALAR_AS_JSON)
+					.build();
+		}
+		else if(vType instanceof VStringArray){
+			VStringArray vStringArray = (VStringArray) vType;
+			Alarm alarm = vStringArray.getAlarm();
+			Instant instant = vStringArray.getTime().getTimestamp();
+			return SnapshotPv.builder()
+					.alarmSeverity(alarm.getSeverity())
+					.alarmName(alarm.getName())
+					.alarmStatus(alarm.getStatus())
+					.time(instant.getEpochSecond())
+					.timens(instant.getNano())
+					.value(getStringArrayValueString(vStringArray))
+					.dataType(dataType)
+					.sizes(getDimensionString(vStringArray))
+					.build();
+		}
+		else if(vType instanceof VEnum){
+			VEnum vEnum = (VEnum)vType;
+			Alarm alarm = vEnum.getAlarm();
+			Instant instant = vEnum.getTime().getTimestamp();
+			return SnapshotPv.builder()
+					.alarmSeverity(alarm.getSeverity())
+					.alarmName(alarm.getName())
+					.alarmStatus(alarm.getStatus())
+					.time(instant.getEpochSecond())
+					.timens(instant.getNano())
+					.value(getScalarValueString(vEnum.getValue()))
+					.dataType(dataType)
+					.sizes(SCALAR_AS_JSON)
+					.build();
+		}
+
 		throw new PVConversionException(String.format("VType \"%s\" not supported", vType.getClass().getCanonicalName()));
 	}
 	
@@ -275,8 +324,16 @@ public class SnapshotDataConverter {
 						return VString.of(values[0], alarm, time);
 					}
 					else {
-						// TODO When VStringArray is supported in vtype
-						throw new PVConversionException("VStringArray not supported yet");
+						return VStringArray.of(Arrays.asList(values), sizes, alarm, time);
+					}
+				}
+				case ENUM:{
+					String[] values = objectMapper.readValue(snapshotPv.getValue(), String[].class);
+					if(isScalar) {
+						return VEnum.of(0, EnumDisplay.of(values), alarm, time);
+					}
+					else {
+						throw new PVConversionException("VEnumArray not supported");
 					}
 				}
 			}
@@ -370,6 +427,12 @@ public class SnapshotDataConverter {
 		else if(vType instanceof VString) {
 			return SnapshotPvDataType.STRING;
 		}
+		else if(vType instanceof VEnum){
+			return SnapshotPvDataType.ENUM;
+		}
+		else if(vType instanceof VStringArray){
+			return SnapshotPvDataType.STRING;
+		}
 		
 		throw new PVConversionException(String.format("Unable to perform data conversion on type %s", vType.getClass().getCanonicalName()));
 	}
@@ -383,6 +446,16 @@ public class SnapshotDataConverter {
 			return objectMapper.writeValueAsString(valueArray);
 		} catch (JsonProcessingException e) {
 			throw new PVConversionException(String.format("Unable to write scalar value \"%s\" as JSON string", value.toString()));
+		}
+	}
+
+	protected static String getStringArrayValueString(VStringArray vStringArray){
+		ObjectMapper objectMapper = new ObjectMapper();
+
+		try {
+			return objectMapper.writeValueAsString(vStringArray.getData());
+		} catch (JsonProcessingException e) {
+			throw new PVConversionException("Unable to write string array values as JSON string");
 		}
 	}
 	
@@ -438,6 +511,23 @@ public class SnapshotDataConverter {
 		
 		ObjectMapper objectMapper = new ObjectMapper();
 		
+		try {
+			return objectMapper.writeValueAsString(sizesAsIntList);
+		} catch (JsonProcessingException e) {
+			throw new PVConversionException("Unable to write sizes of number array as JSON string");
+		}
+	}
+
+	protected static String getDimensionString(VStringArray vStringArray) {
+		ListInteger sizes = vStringArray.getSizes();
+
+		List<Integer> sizesAsIntList = new ArrayList<>();
+		for(int i = 0; i < sizes.size(); i++) {
+			sizesAsIntList.add(sizes.getInt(i));
+		}
+
+		ObjectMapper objectMapper = new ObjectMapper();
+
 		try {
 			return objectMapper.writeValueAsString(sizesAsIntList);
 		} catch (JsonProcessingException e) {

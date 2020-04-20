@@ -28,9 +28,11 @@ import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
+import org.epics.vtype.EnumDisplay;
 import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VDoubleArray;
+import org.epics.vtype.VEnum;
 import org.epics.vtype.VType;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,7 +66,6 @@ public class JsonSerializationTest {
 	@Test
 	public void testSerializationAndDeserialzation() throws Exception {
 		SnapshotItem snapshotItem = SnapshotItem.builder().configPv(ConfigPv.builder().pvName("a").build())
-				//.fetchStatus(true)
 				.snapshotId(2)
 				.value(vDouble)
 				.readbackValue(vDouble)
@@ -100,5 +101,53 @@ public class JsonSerializationTest {
 		assertEquals(1.1, vDoubleArray.getData().getDouble(0), 0.01);
 		assertTrue(item.getConfigPv().getPvName().equals("a"));
 		
+	}
+
+	@Test
+	public void testNaN() throws Exception{
+		SnapshotItem snapshotItem = SnapshotItem.builder().configPv(ConfigPv.builder().pvName("a").build())
+				.snapshotId(2)
+				.value(VDouble.of(Double.NaN, Alarm.none(), Time.now(), Display.none()))
+				.build();
+		String json = objectMapper.writeValueAsString(snapshotItem);
+		SnapshotItem item = objectMapper.readValue(json, SnapshotItem.class);
+		VDouble vType = (VDouble)item.getValue();
+		assertEquals(vType.getValue(), Double.NaN, 0);
+	}
+
+	@Test
+	public void testPositiveInfinity() throws Exception{
+		SnapshotItem snapshotItem = SnapshotItem.builder().configPv(ConfigPv.builder().pvName("a").build())
+				.snapshotId(2)
+				.value(VDouble.of(Double.POSITIVE_INFINITY, Alarm.none(), Time.now(), Display.none()))
+				.build();
+		String json = objectMapper.writeValueAsString(snapshotItem);
+		SnapshotItem item = objectMapper.readValue(json, SnapshotItem.class);
+		VDouble vType = (VDouble)item.getValue();
+		assertEquals(vType.getValue(), Double.POSITIVE_INFINITY, 0);
+	}
+
+	@Test
+	public void testNegativeInfinity() throws Exception{
+		SnapshotItem snapshotItem = SnapshotItem.builder().configPv(ConfigPv.builder().pvName("a").build())
+				.snapshotId(2)
+				.value(VDouble.of(Double.NEGATIVE_INFINITY, Alarm.none(), Time.now(), Display.none()))
+				.build();
+		String json = objectMapper.writeValueAsString(snapshotItem);
+		SnapshotItem item = objectMapper.readValue(json, SnapshotItem.class);
+		VDouble vType = (VDouble)item.getValue();
+		assertEquals(vType.getValue(), Double.NEGATIVE_INFINITY, 0);
+	}
+
+	@Test
+	public void testEnum() throws Exception{
+		SnapshotItem snapshotItem = SnapshotItem.builder().configPv(ConfigPv.builder().pvName("a").build())
+				.snapshotId(2)
+				.value(VEnum.of(0, EnumDisplay.of("a", "b"), Alarm.none(), Time.now()))
+				.build();
+		String json = objectMapper.writeValueAsString(snapshotItem);
+		SnapshotItem item = objectMapper.readValue(json, SnapshotItem.class);
+		VEnum vType = (VEnum) item.getValue();
+		assertEquals("a", vType.getValue());
 	}
 }
