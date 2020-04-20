@@ -322,13 +322,13 @@ public class AlarmTableUI extends BorderPane
     {
         if (disable_notify)
         {
-            server_notify.setGraphic(ImageCache.getImageView(AlarmUI.class, "/icons/maintenance_mode.png"));
-            server_notify.setTooltip(new Tooltip("Disable Email Notifications\nEmail notifications will be disabled for alarms.\nPress to enable the email notifications."));
+            server_notify.setGraphic(ImageCache.getImageView(AlarmUI.class, "/icons/disable_notify.png"));
+            server_notify.setTooltip(new Tooltip("Disable Email Notifications\nEmail notifications are disabled for alarms.\nPress to re-enable the email notifications."));
         }
         else
         {
-            server_notify.setGraphic(ImageCache.getImageView(AlarmUI.class, "/icons/normal_mode.png"));
-            server_notify.setTooltip(new Tooltip("Disable Email notifications for alarms?"));
+            server_notify.setGraphic(ImageCache.getImageView(AlarmUI.class, "/icons/enable_notify.png"));
+            server_notify.setTooltip(new Tooltip("Disable Email notifications for alarms?\n\nEmail notifications for alarms will be disabled."));
 
         }
     }
