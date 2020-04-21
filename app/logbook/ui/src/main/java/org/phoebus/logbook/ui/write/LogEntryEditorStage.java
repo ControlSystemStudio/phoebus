@@ -22,12 +22,14 @@ package org.phoebus.logbook.ui.write;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -63,8 +65,8 @@ public class LogEntryEditorStage extends Stage
                 }
                 else if(clazz.isAssignableFrom(AttachmentsViewController.class)){
                     AttachmentsViewController attachmentsViewController =
-                            (AttachmentsViewController)clazz.getConstructor(Node.class, LogEntryModel.class)
-                                    .newInstance(parent, logEntryModel);
+                            (AttachmentsViewController)clazz.getConstructor(Node.class, List.class, List.class, Boolean.class)
+                                    .newInstance(parent, logEntryModel.getImages(), logEntryModel.getFiles(), true);
                     return attachmentsViewController;
                 }
             } catch (Exception e) {
