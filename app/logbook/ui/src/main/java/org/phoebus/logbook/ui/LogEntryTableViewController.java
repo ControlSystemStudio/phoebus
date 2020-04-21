@@ -367,6 +367,29 @@ public class LogEntryTableViewController extends LogbookSearchController {
             final Text descriptionText = new Text();
             descriptionText.wrappingWidthProperty().bind(descriptionCol.widthProperty());
 
+            Node parent = topLevelNode.getScene().getRoot();
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("write/AttachmentsView.fxml"));
+            fxmlLoader.setControllerFactory(clazz -> {
+                try {
+                    if(clazz.isAssignableFrom(AttachmentsViewController.class)){
+                        AttachmentsViewController attachmentsViewController =
+                                (AttachmentsViewController)clazz.getConstructor(Node.class, Boolean.class)
+                                        .newInstance(parent, false);
+                        return attachmentsViewController;
+                    }
+                } catch (Exception e) {
+                    Logger.getLogger(LogEntryTableViewController.class.getName()).log(Level.SEVERE, "Failed to contruct controller for attachments view", e);
+                }
+                return null;
+            });
+            try {
+                Node node = fxmlLoader.load();
+
+                pane.addColumn(0, titleText, descriptionText, node);
+            } catch (IOException e) {
+                Logger.getLogger(LogEntryTableViewController.class.getName()).log(Level.WARNING, "Unable to load fxml for attachments view", e);
+            }
+
             ColumnConstraints cc = new ColumnConstraints();
             cc.setHgrow(Priority.ALWAYS);
             pane.getColumnConstraints().add(cc);
@@ -385,32 +408,14 @@ public class LogEntryTableViewController extends LogbookSearchController {
                             titleText.setVisible(true);
                             titleText.setText(logEntry.getTitle());
                         }
-
                         descriptionText.setText(logEntry.getDescription());
 
-                        Node parent = topLevelNode.getScene().getRoot();
-                        LogEntryModel logEntryModel = new LogEntryModel(logEntry);
-                        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("write/AttachmentsView.fxml"));
-                        fxmlLoader.setControllerFactory(clazz -> {
-                            try {
-                                if(clazz.isAssignableFrom(AttachmentsViewController.class)){
-                                    AttachmentsViewController attachmentsViewController =
-                                            (AttachmentsViewController)clazz.getConstructor(Node.class, LogEntryModel.class, Boolean.class)
-                                                    .newInstance(parent, logEntryModel, false);
-                                    return attachmentsViewController;
-                                }
-                            } catch (Exception e) {
-                                Logger.getLogger(LogEntryTableViewController.class.getName()).log(Level.SEVERE, "Failed to contruct controller for attachments view", e);
-                            }
-                            return null;
-                        });
-                        try {
-                            Node node = fxmlLoader.load();
-                            pane.addColumn(0, titleText, descriptionText, node);
-                            setGraphic(pane);
-                        } catch (IOException e) {
-                            Logger.getLogger(LogEntryTableViewController.class.getName()).log(Level.WARNING, "Unable to load fxml for attachments view", e);
-                        }
+                        AttachmentsViewController controller = fxmlLoader.getController();
+                        LogEntryModel model = new LogEntryModel(logEntry);
+
+                        controller.setImages(model.getImages());
+                        controller.setFiles(model.getFiles());
+                        setGraphic(pane);
                     }
                 }
             };
