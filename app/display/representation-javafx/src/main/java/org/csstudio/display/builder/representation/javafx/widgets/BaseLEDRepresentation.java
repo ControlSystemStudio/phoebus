@@ -247,32 +247,36 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
         }
         if (dirty_content.checkAndClear())
         {
-            led.setFill(value_color);
+            // Only change text when it's actually different
             if (! value_label.equals(label.getText()))
             {
                 label.setText(value_label);
                 label.layout();
+            }
 
-                // In edit mode, the color is a gradient of all options
-                if (! toolkit.isEditMode())
-                {
-                    // In runtime mode, it's an actual color.
-                    // Compare brightness of LED with text.
-                    final Color color = (Color) value_color;
-                    Color text_color = JFXUtil.convert(model_widget.propForegroundColor().getValue());
-                    final double text_brightness = getBrightness(text_color),
-                                 brightness      = getBrightness(color);
-                    if (Math.abs(text_brightness - brightness) < SIMILARITY_THRESHOLD)
-                    {   // Colors of text and LED are very close in brightness.
-                        // Make text visible by forcing black resp. white
-                        if (brightness > BRIGHT_THRESHOLD)
-                            label.setTextFill(Color.BLACK);
-                        else
-                            label.setTextFill(Color.WHITE);
-                    }
+            // Change colors: Background.
+            led.setFill(value_color);
+
+            // In edit mode, background is gradient of all options,
+            // and foreground stays constant.
+            if (! toolkit.isEditMode())
+            {
+                // In runtime mode, background is a specific color.
+                // Compare brightness of LED with text.
+                final Color color = (Color) value_color;
+                Color text_color = JFXUtil.convert(model_widget.propForegroundColor().getValue());
+                final double text_brightness = getBrightness(text_color),
+                             brightness      = getBrightness(color);
+                if (Math.abs(text_brightness - brightness) < SIMILARITY_THRESHOLD)
+                {   // Colors of text and LED are very close in brightness.
+                    // Make text visible by forcing black resp. white
+                    if (brightness > BRIGHT_THRESHOLD)
+                        label.setTextFill(Color.BLACK);
                     else
-                        label.setTextFill(text_color);
+                        label.setTextFill(Color.WHITE);
                 }
+                else
+                    label.setTextFill(text_color);
             }
         }
     }

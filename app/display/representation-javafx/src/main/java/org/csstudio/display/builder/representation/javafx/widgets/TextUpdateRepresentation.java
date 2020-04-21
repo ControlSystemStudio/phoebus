@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,12 +8,14 @@
 package org.csstudio.display.builder.representation.javafx.widgets;
 
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.RotationStep;
+import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
@@ -60,6 +62,8 @@ public class TextUpdateRepresentation extends RegionBaseRepresentation<Control, 
      */
     private boolean was_ever_transformed = false;
 
+    /** Scroll delay, initially long, then set to shorter delay */
+    private long scroll_delay = 1000;
 
     @Override
     public Control createJFXNode() throws Exception
@@ -82,12 +86,12 @@ public class TextUpdateRepresentation extends RegionBaseRepresentation<Control, 
         {
             final Label label = new Label();
             label.getStyleClass().add("text_update");
-    
+
             // This code manages layout,
             // because otherwise for example border changes would trigger
             // expensive Node.notifyParentOfBoundsChange() recursing up the scene graph
             label.setManaged(false);
-    
+
             return label;
         }
     }
@@ -275,7 +279,37 @@ public class TextUpdateRepresentation extends RegionBaseRepresentation<Control, 
             if (jfx_node instanceof Label)
                 ((Label)jfx_node).setText(value_text);
             else
-                ((TextArea)jfx_node).setText(value_text);
+            {   // Implies 'interactive' mode
+                final TextArea area = (TextArea)jfx_node;
+                area.setText(value_text);
+                if (model_widget.propVerticalAlignment().getValue() == VerticalAlignment.BOTTOM)
+                {
+                    // For bottom-aligned widget, scroll to bottom,
+                    // but area.setScrollTop(Double.MAX_VALUE) has no effect.
+                    // area.appendText("") might trigger a scroll-to-bottom,
+                    // see https://stackoverflow.com/questions/17799160/javafx-textarea-and-autoscroll,
+                    // but didn't with Linux and JFX 14.
+                    //
+                    // area.selectPositionCaret(end); area.deselect(); works intermittently.
+                    // selectRange(end, end) is the same.
+                    // Invoking it some time after setting the text gets consistent results.
+                    // Calling it too soon gives intermittent results,
+                    // while calling later results in 'jump' as text is first shown scrolled to top,
+                    // then to bottom.
+                    // When display is first opened, a long delay is used to increase likelyhood
+                    // of waiting 'long enough'.
+
+                    // Just in case, reset selection to 'start' so that later setting it to 'end'
+                    // is indeed a change.
+                    area.selectRange(0, 1);
+                    toolkit.schedule(() ->
+                    {
+                        area.selectRange(value_text.length(), value_text.length());
+                        // Reduce delay to minimize 'jump' in subsequent updates
+                        scroll_delay = 500;
+                    }, scroll_delay, TimeUnit.MILLISECONDS);
+                }
+            }
             if (! jfx_node.isManaged())
                 jfx_node.layout();
         }
