@@ -38,6 +38,8 @@ public class PastePropertiesAction extends MenuItem
         super("Paste Properties", ImageCache.getImageView(ImageCache.class, "/icons/paste.png"));
         if (selection.size() >= 1  &&  clipboardHasProperties())
             setOnAction(event -> pasteProperties(editor, selection));
+        else if (selection.size() == 0  &&  clipboardHasProperties())
+            setOnAction(event -> pasteProperties(editor, List.of(editor.getModel())));
         else
             setDisable(true);
     }
