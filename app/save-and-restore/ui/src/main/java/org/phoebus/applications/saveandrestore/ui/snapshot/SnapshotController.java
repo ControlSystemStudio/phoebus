@@ -34,6 +34,7 @@ import org.epics.vtype.VEnum;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.Utilities;
 import org.phoebus.applications.saveandrestore.data.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.model.SnapshotEntry;
@@ -267,19 +268,7 @@ public class SnapshotController implements NodeChangedListener {
                     if (e.selectedProperty().get() && !e.readOnlyProperty().get()) {
                         final PV pv = pvs.get(e.getConfigPv().getPvName());
                         if (entry.getValue() != null) {
-                            VType vType = entry.getValue();
-                            // For string and enum PVs we need to send the string value only.
-                            if(vType instanceof VString){
-                                String stringValue = ((VString)vType).getValue();
-                                pv.pv.write(stringValue);
-                            }
-                            else if(vType instanceof VEnum){
-                                String stringValue = ((VEnum)vType).getValue();
-                                pv.pv.write(stringValue);
-                            }
-                            else{
-                                pv.pv.write(vType);
-                            }
+                            pv.pv.write(Utilities.toRawValue(entry.getValue()));
                         }
                     }
                 }
