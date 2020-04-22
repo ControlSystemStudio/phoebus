@@ -416,6 +416,9 @@ public class AlarmServerMain implements ServerModelListener
             return;
         // Configure alarm logic
         AlarmLogic.setDisableNotify(disable_notify);
+
+	// Force state update of root to publish the updated server mode
+        model.sendStateUpdate(model.getRoot().getPathName(), model.getRoot().getState());
     }
 
     private void setMaintenanceMode(final boolean maintenance_mode)

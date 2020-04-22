@@ -164,7 +164,7 @@ public class AlarmLogic // implements GlobalAlarmListener
     public static void setDisableNotify(final boolean disable_notify)
     {
         AlarmLogic.disable_notify = disable_notify;
-        logger.config("Disable Notify: " + disable_notify);
+        logger.info("Disable Notify: " + disable_notify);
     }
 
     /** If disable_notify is true, email notifications are disabled
