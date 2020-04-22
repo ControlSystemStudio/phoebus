@@ -30,6 +30,7 @@ public class AlarmStateMessage {
     private String current_severity;
     private String current_message;
     private String mode;
+    private String notify;
 
     // The following fields are for logging purposes
     private Instant message_time;
@@ -119,6 +120,14 @@ public class AlarmStateMessage {
         this.mode = mode;
     }
 
+    public String getNotify() {
+        return notify;
+    }
+
+    public void setNotify(String notify) {
+        this.notify = notify;
+    }
+
     public Instant getMessage_time() {
         return message_time;
     }
@@ -158,6 +167,7 @@ public class AlarmStateMessage {
         map.put("current_severity", getCurrent_severity());
         map.put("current_message", getCurrent_message());
         map.put("mode", getMode());
+	map.put("notify", getNotify());
         return map;
     }
 
@@ -165,7 +175,7 @@ public class AlarmStateMessage {
     public String toString() {
         return "AlarmStateMessage [severity=" + severity + ", message=" + message + ", value=" + value + ", time="
                 + time + ", current_severity=" + current_severity + ", current_message=" + current_message + ", mode="
-                + mode + "]";
+                + mode + ", notify=" + notify + "]";
     }
 
     @Override
@@ -176,6 +186,7 @@ public class AlarmStateMessage {
         result = prime * result + ((current_severity == null) ? 0 : current_severity.hashCode());
         result = prime * result + ((message == null) ? 0 : message.hashCode());
         result = prime * result + ((mode == null) ? 0 : mode.hashCode());
+	result = prime * result + ((notify == null) ? 0 : notify.hashCode());
         result = prime * result + ((severity == null) ? 0 : severity.hashCode());
         result = prime * result + ((time == null) ? 0 : time.hashCode());
         result = prime * result + ((value == null) ? 0 : value.hashCode());
@@ -210,6 +221,11 @@ public class AlarmStateMessage {
             if (other.mode != null)
                 return false;
         } else if (!mode.equals(other.mode))
+            return false;
+	if (notify == null) {
+            if (other.notify != null)
+                return false;
+        } else if (!notify.equals(other.notify))
             return false;
         if (severity == null) {
             if (other.severity != null)
