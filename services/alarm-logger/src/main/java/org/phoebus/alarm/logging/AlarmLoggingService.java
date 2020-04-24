@@ -28,7 +28,7 @@ public class AlarmLoggingService {
 
     /** Alarm system logger */
     public static final Logger logger = Logger.getLogger(AlarmLoggingService.class.getPackageName());
-    private static final ExecutorService Scheduler = Executors.newScheduledThreadPool(4);
+    private static ExecutorService Scheduler;
 
     private static ConfigurableApplicationContext context;
 
@@ -167,7 +167,22 @@ public class AlarmLoggingService {
                     final String filename = iter.next();
                     iter.remove();
                     LogManager.getLogManager().readConfiguration(new FileInputStream(filename));
-                } else
+                }
+                else if(cmd.equals("-thread_pool_size")){
+                    if (! iter.hasNext()){
+                        throw new Exception("Missing -thread_pool_size value");
+                    }
+                    iter.remove();
+                    try {
+                        String size = iter.next();
+                        Integer threadPoolSize = Integer.valueOf(size);
+                        properties.put("thread_pool_size", size);
+                    } catch (NumberFormatException e) {
+                        logger.warning("Specified thread pool size is not a number, will use value from properties or default value");
+                    }
+                    iter.remove();
+                }
+                else
                     throw new Exception("Unknown option " + cmd);
             }
         } catch (Exception ex) {
@@ -179,6 +194,16 @@ public class AlarmLoggingService {
         }
 
         logger.info("Alarm Logging Service (PID " + ProcessHandle.current().pid() + ")");
+
+        // Create scheduler with configured or default thread pool size
+        Integer threadPoolSize;
+        try {
+            threadPoolSize = Integer.valueOf(properties.getProperty("thread_pool_size"));
+        } catch (NumberFormatException e) {
+            logger.info("Specified thread pool size is not a number, will default to 4");
+            threadPoolSize = 4;
+        }
+        Scheduler = Executors.newScheduledThreadPool(threadPoolSize);
 
         logger.info("Properties:");
         properties.forEach((k, v) -> { logger.info(k + ":" + v); });
