@@ -19,9 +19,12 @@
 
 package org.phoebus.logbook.ui.write;
 
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -39,7 +42,6 @@ public class LogEntryEditorController {
     private LogEntryModel model;
     private LogEntryCompletionHandler completionHandler;
 
-
     @FXML
     private VBox fields;
     @FXML
@@ -48,9 +50,16 @@ public class LogEntryEditorController {
     private Button cancel;
     @FXML
     private Button submit;
-
+    @FXML
+    private ProgressIndicator progressIndicator;
+    @FXML
+    private Label completionMessageLabel;
     @FXML
     private AttachmentsViewController attachmentsViewController;
+
+    private SimpleBooleanProperty progressIndicatorVisibility =
+            new SimpleBooleanProperty(false);
+
 
     public LogEntryEditorController(Node parent, LogEntryModel model, LogEntryCompletionHandler logEntryCompletionHandler){
         this.parent = parent;
@@ -60,10 +69,10 @@ public class LogEntryEditorController {
 
     @FXML
     public void initialize(){
-
         localize();
         submit.disableProperty().bind(model.getReadyToSubmitProperty().not());
-
+        completionMessageLabel.visibleProperty().bind(completionMessageLabel.textProperty().isNotEmpty());
+        progressIndicator.visibleProperty().bind(progressIndicatorVisibility);
     }
 
     /**
@@ -79,18 +88,26 @@ public class LogEntryEditorController {
      */
     @FXML
     public void submit(){
+        progressIndicatorVisibility.setValue(true);
+        completionMessageLabel.textProperty().setValue("");
         model.setImages(attachmentsViewController.getImages());
         model.setFiles(attachmentsViewController.getFiles());
         LogEntry logEntry = null;
         try {
             logEntry = model.submitEntry();
         } catch (IOException e) {
-            e.printStackTrace();
+            StringBuffer stringBuffer = new StringBuffer();
+            stringBuffer.append("Failed to submit logbook entry");
+            if(e.getMessage() != null){
+                stringBuffer.append(", cause: " + e.getMessage());
+            }
+            completionMessageLabel.textProperty().setValue(stringBuffer.toString());
         }
+        progressIndicatorVisibility.setValue(false);
         if(completionHandler != null){
             completionHandler.handleResult(logEntry);
         }
-        cancel();
+        //cancel();
     }
 
     private void localize(){
