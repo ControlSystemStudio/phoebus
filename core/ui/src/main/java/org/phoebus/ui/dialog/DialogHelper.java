@@ -59,6 +59,7 @@ public class DialogHelper
      */
     public static void positionDialog(final Dialog<?> dialog, final Node node, final int x_offset, final int y_offset)
     {
+        dialog.initOwner(node.getScene().getWindow());
         // Must runLater due to dialog Width/Height are initialized after dialog shows up
         Platform.runLater(new Runnable() {
             @Override
