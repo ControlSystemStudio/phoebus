@@ -14,6 +14,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
@@ -77,7 +79,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
 
     // elements associated with the various search
     @FXML
-    AnchorPane ViewSearchPane;
+    GridPane ViewSearchPane;
     @FXML
     TextField searchText;
     @FXML
@@ -121,6 +123,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
     
     @FXML
     public void initialize() {
+
         // initialize the list of searchable parameters like logbooks, tags, etc...
 
         // initially set the search pane collapsed
@@ -163,7 +166,8 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
         // find the css file
 
         try {
-            agenda.getStylesheets().add(this.getClass().getResource("/Agenda.css").toString());
+            String styleSheetResource = LogbookUiPreferences.calendarViewItemStylesheet;
+            agenda.getStylesheets().add(this.getClass().getResource(styleSheetResource).toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -344,6 +348,13 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                         timeSearchpopover.hide();
                     }
                 });
+
+        // Bind ENTER key press to search
+        query.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                search();
+            }
+        });
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored
