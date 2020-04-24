@@ -9,6 +9,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -17,6 +19,8 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import javafx.scene.Node;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
@@ -96,7 +100,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     // elements associated with the various search
     @FXML
-    AnchorPane ViewSearchPane;
+    GridPane ViewSearchPane;
     @FXML
     TextField searchText;
     @FXML
@@ -455,6 +459,13 @@ public class LogEntryTableViewController extends LogbookSearchController {
         tableView.getColumns().add(timeOwnerCol);
         tableView.getColumns().add(descriptionCol);
         tableView.getColumns().add(metaCol);
+
+        // Bind ENTER key press to search
+        query.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                search();
+            }
+        });
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored
@@ -548,7 +559,13 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     @Override
     public void setLogs(List<LogEntry> logs) {
-        this.logEntries = logs;
+        List<LogEntry> copy = logs.stream()
+                .collect(Collectors.toList());
+        Collections.sort(copy, (one, two) -> {
+            return two.getCreatedDate().compareTo(one.getCreatedDate());
+        });
+
+        this.logEntries = copy;
         refresh();
     }
 
