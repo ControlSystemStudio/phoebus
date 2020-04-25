@@ -78,6 +78,8 @@ import org.epics.vtype.VULong;
 import org.epics.vtype.VULongArray;
 import org.epics.vtype.VUShort;
 import org.epics.vtype.VUShortArray;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.EnumDisplay;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -141,6 +143,21 @@ public class SnapshotDataConverter {
 					.value(getScalarValueString(vNumber.getValue()))
 					.dataType(dataType)
 					.sizes(SCALAR_AS_JSON) // Hard coded as scalar is a 1x1 "matrix"
+					.build();
+		}
+		else if(vType instanceof VEnum) {
+			VEnum vEnum = (VEnum)vType;
+			Alarm alarm = vEnum.getAlarm();
+			Instant instant = vEnum.getTime().getTimestamp();
+			return SnapshotPv.builder()
+					.alarmSeverity(alarm.getSeverity())
+					.alarmName(alarm.getName())
+					.alarmStatus(alarm.getStatus())
+					.time(instant.getEpochSecond())
+					.timens(instant.getNano())
+					.value(getEnumValueString(vEnum))
+					.dataType(dataType)
+					.sizes(SCALAR_AS_JSON)
 					.build();
 		}
 		else if(vType instanceof VNumberArray) {
@@ -279,6 +296,15 @@ public class SnapshotDataConverter {
 						throw new PVConversionException("VStringArray not supported yet");
 					}
 				}
+				case ENUM:{
+					Object[] values = objectMapper.readValue(snapshotPv.getValue(), Object[].class);
+
+					int index = (int) values[0];
+					List<String> choices = (List<String>) values[1];
+					EnumDisplay enumDisplay = EnumDisplay.of(choices);
+
+					return VEnum.of(index, enumDisplay, alarm, time);
+				}
 			}
 		} catch (Exception e) {
 			throw new PVConversionException(String.format("Unable to convert to VType, cause: %s", e.getMessage()));
@@ -370,6 +396,9 @@ public class SnapshotDataConverter {
 		else if(vType instanceof VString) {
 			return SnapshotPvDataType.STRING;
 		}
+		else if(vType instanceof VEnum) {
+			return SnapshotPvDataType.ENUM;
+		}
 		
 		throw new PVConversionException(String.format("Unable to perform data conversion on type %s", vType.getClass().getCanonicalName()));
 	}
@@ -385,7 +414,22 @@ public class SnapshotDataConverter {
 			throw new PVConversionException(String.format("Unable to write scalar value \"%s\" as JSON string", value.toString()));
 		}
 	}
-	
+
+	protected static String getEnumValueString(VEnum vEnum) {
+		ObjectMapper objectMapper = new ObjectMapper();
+
+		List<Object> valueList = new ArrayList<>();
+
+		valueList.add(vEnum.getIndex());
+		valueList.add(vEnum.getDisplay().getChoices());
+
+		try {
+			return objectMapper.writeValueAsString(valueList);
+		} catch (JsonProcessingException e) {
+			throw new PVConversionException("Unable to write VEnum values as JSON string");
+		}
+	}
+
 	protected static String getNumberArrayValueString(VNumberArray vNumberArray) {
 		
 		List<Object> valueList = new ArrayList<>();
