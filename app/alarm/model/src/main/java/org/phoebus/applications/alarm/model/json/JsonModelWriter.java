@@ -80,7 +80,7 @@ public class JsonModelWriter
             }
 	    if (disable_notify)
             {
-                jg.writeStringField(JsonTags.NOTIFY, JsonTags.DISABLE);
+                jg.writeBooleanField(JsonTags.NOTIFY, false);
             }
             jg.writeEndObject();
         }

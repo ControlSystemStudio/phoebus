@@ -113,7 +113,7 @@ public class AlarmSystem
     public static final long nag_period_ms;
 
     /** Disable notify feature */
-    public static final String disable_notify_visible;
+    public static final boolean disable_notify_visible;
 
     static
     {
@@ -136,7 +136,7 @@ public class AlarmSystem
         automated_action_followup = getItems(prefs.get("automated_action_followup"));
         heartbeat_pv = prefs.get("heartbeat_pv");
         heartbeat_ms = prefs.getInt("heartbeat_secs") * 1000L;
-	disable_notify_visible = prefs.get("disable_notify_visible");
+	disable_notify_visible = prefs.getBoolean("disable_notify_visible");
 
         double secs = 0.0;
         try

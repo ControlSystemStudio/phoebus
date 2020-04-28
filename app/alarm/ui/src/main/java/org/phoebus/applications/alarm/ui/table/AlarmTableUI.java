@@ -282,7 +282,7 @@ public class AlarmTableUI extends BorderPane
         search.setTooltip(new Tooltip("Enter pattern ('vac', 'amp*trip')\nfor PV Name or Description,\npress RETURN to select"));
         search.textProperty().addListener(prop -> selectRows());
 
-	if (AlarmSystem.disable_notify_visible.equals("true"))
+	if (AlarmSystem.disable_notify_visible)
 	{
 	    return new ToolBar(active_count,ToolbarHelper.createStrut(), ToolbarHelper.createSpring(), server_mode, server_notify, acknowledge, unacknowledge, search);
 	}

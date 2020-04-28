@@ -242,9 +242,7 @@ public class JsonModelReader
     {
         final JsonNode actual = (JsonNode) json;
         JsonNode jn = actual.get(JsonTags.NOTIFY);
-        if (jn != null)
-            return JsonTags.DISABLE.equals(jn.asText());
-        return false;
+	return jn == null ? false : !jn.asBoolean();
     }
 
     public static boolean updateAlarmState(final AlarmTreeItem<?> node, final Object json)
