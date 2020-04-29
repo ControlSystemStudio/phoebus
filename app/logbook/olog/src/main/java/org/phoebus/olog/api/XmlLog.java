@@ -5,6 +5,7 @@
  */
 package org.phoebus.olog.api;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -99,8 +100,8 @@ public class XmlLog {
         level = log.getLevel();
         md5Entry = "";
         md5Recent = "";
-        createdDate = Date.from(log.getCreatedDate());
-        modifiedDate = Date.from(log.getModifiedDate());
+        createdDate = log.getCreatedDate() != null ? Date.from(log.getCreatedDate()) : null;
+        modifiedDate = log.getModifiedDate() != null ? Date.from(log.getModifiedDate()) : null;
         description = log.getTitle() + System.lineSeparator() +log.getDescription();
 
         tags = log.getTags().stream().map(t -> {return new XmlTag(t);}).collect(Collectors.toList());
