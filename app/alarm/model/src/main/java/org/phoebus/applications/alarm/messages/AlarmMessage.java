@@ -52,6 +52,7 @@ public class AlarmMessage implements Serializable{
     private String current_severity;
     private String current_message;
     private String mode;
+    private boolean notify = true;
     private boolean latch;
 
     // The following fields encapsulate additional information for simplifying processing
@@ -221,6 +222,14 @@ public class AlarmMessage implements Serializable{
         this.mode = mode;
     }
 
+    public boolean getNotify() {
+        return notify;
+    }
+
+    public void setNotify(boolean notify) {
+        this.notify = notify;
+    }
+
     public String getKey() {
         return this.key;
     }
@@ -287,6 +296,7 @@ public class AlarmMessage implements Serializable{
             stateMessage.setCurrent_severity(current_severity);
             stateMessage.setCurrent_message(current_message);
             stateMessage.setMode(mode);
+	    stateMessage.setNotify(notify);
             stateMessage.setLatch(latch);
             return stateMessage;
         } else {
@@ -357,6 +367,8 @@ public class AlarmMessage implements Serializable{
         private String current_message;
         @JsonIgnore
         private String mode;
+	@JsonIgnore
+        private boolean notify;
         @JsonIgnore
         private boolean latch;
     }

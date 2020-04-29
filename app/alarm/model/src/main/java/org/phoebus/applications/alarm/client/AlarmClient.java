@@ -51,6 +51,7 @@ public class AlarmClient
     private final AlarmClientNode root;
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final AtomicBoolean maintenance_mode = new AtomicBoolean(false);
+    private final AtomicBoolean disable_notify = new AtomicBoolean(false);
     private final Consumer<String, String> consumer;
     private final Producer<String, String> producer;
     private final Thread thread;
@@ -116,10 +117,32 @@ public class AlarmClient
         return maintenance_mode.get();
     }
 
+    /** @return Is alarm server in disable notify mode? */
+    public boolean isDisableNotify()
+    {
+        return disable_notify.get();
+    }
+
     /** @param maintenance Select maintenance mode? */
     public void setMode(final boolean maintenance)
     {
         final String cmd = maintenance ? JsonTags.MAINTENANCE : JsonTags.NORMAL;
+        try
+        {
+            final String json = new String (JsonModelWriter.commandToBytes(cmd));
+            final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, AlarmSystem.COMMAND_PREFIX + root.getPathName(), json);
+            producer.send(record);
+        }
+        catch (final Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot set mode for " + root + " to " + cmd, ex);
+        }
+    }
+
+    /** @param notify Select notify disable  ? */
+    public void setNotify(final boolean disable_notify)
+    {
+        final String cmd = disable_notify ? JsonTags.DISABLE_NOTIFY : JsonTags.ENABLE_NOTIFY;
         try
         {
             final String json = new String (JsonModelWriter.commandToBytes(cmd));
@@ -242,6 +265,10 @@ public class AlarmClient
                             if (maintenance_mode.getAndSet(maint) != maint)
                                 for (final AlarmClientListener listener : listeners)
                                     listener.serverModeChanged(maint);
+			    final boolean disnot = JsonModelReader.isDisableNotify(json);
+                            if (disable_notify.getAndSet(disnot) != disnot)
+                                for (final AlarmClientListener listener : listeners)
+                                    listener.serverDisableNotifyChanged(disnot);
                             if (JsonModelReader.updateAlarmState(node, json))
                                 changed_node = node;
                             last_state_update = System.currentTimeMillis();

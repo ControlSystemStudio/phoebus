@@ -353,6 +353,10 @@ public class AlarmServerMain implements ServerModelListener
                 setMaintenanceMode(true);
             else if (JsonTags.NORMAL.equals(command))
                 setMaintenanceMode(false);
+	     else if (JsonTags.DISABLE_NOTIFY.equals(command))
+                setDisableNotify(true);
+            else if (JsonTags.ENABLE_NOTIFY.equals(command))
+                setDisableNotify(false);
             else if (command.equalsIgnoreCase("dump"))
             {
                 final AlarmTreeItem<?> node;
@@ -403,6 +407,18 @@ public class AlarmServerMain implements ServerModelListener
         {
             logger.log(Level.WARNING, "Error for command. path: '" + path + "', JSON: '" + json + "'", ex);
         }
+    }
+
+    private void setDisableNotify(final boolean disable_notify)
+    {
+        // Any change?
+        if (disable_notify == AlarmLogic.getDisableNotify())
+            return;
+        // Configure alarm logic
+        AlarmLogic.setDisableNotify(disable_notify);
+
+	// Force state update of root to publish the updated server mode
+        model.sendStateUpdate(model.getRoot().getPathName(), model.getRoot().getState());
     }
 
     private void setMaintenanceMode(final boolean maintenance_mode)
