@@ -72,21 +72,6 @@ public class LogService {
     }
 
     /**
-     * Create a log entry in all registered LogFactory
-     * 
-     * @param logEntry
-     * @param authToken
-     *            - Authentication Token
-     */
-    public void createLogEntry(LogEntry logEntry, Object authToken) {
-        executor.submit(() -> {
-            logFactories.values().stream().forEach(logFactory -> {
-                logFactory.getLogClient(authToken).set(logEntry);
-            });
-        });
-    }
-
-    /**
      * Create a log entry in all registered LogFactory TODO change to Log type
      * 
      * @param logEntries
@@ -96,22 +81,13 @@ public class LogService {
         executor.submit(() -> {
             logFactories.values().stream().forEach(logFactory -> {
                 logEntries.forEach(logEntry -> {
-                    logFactory.getLogClient(authToken).set(logEntry);
+                    try {
+                        logFactory.getLogClient(authToken).set(logEntry);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 });
             });
-        });
-    }
-
-    /**
-     * Create a log entry in the specified LogFactory TODO change to Log type
-     * 
-     * @param id
-     * @param logEntry
-     * @param authToken
-     */
-    public void createLogEntry(String id, LogEntry logEntry, Object authToken) {
-        executor.submit(() -> {
-            logFactories.get(id).getLogClient(authToken).set(logEntry);
         });
     }
 }

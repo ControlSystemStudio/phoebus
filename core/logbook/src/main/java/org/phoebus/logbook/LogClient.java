@@ -110,18 +110,7 @@ public interface LogClient {
      *            the LogEntry to be added
 
      */
-    public LogEntry set(LogEntry log);
-
-    /**
-     * Set a set of logs Destructive operation.
-     * 
-     * TODO: (shroffk) should anything be returned? and should be returned from
-     * the service?
-     * 
-     * @param logs collection of logs to be added
-     */
-    @Deprecated
-    public Collection<LogEntry> set(Collection<LogEntry> logs);
+    public LogEntrySubmissionResult set(LogEntry log);
 
     /**
      * Set a Tag <tt>tag</tt> with no associated logs to the database.

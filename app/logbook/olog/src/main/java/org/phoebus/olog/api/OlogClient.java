@@ -21,6 +21,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -33,9 +34,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
+import org.epics.pva.data.PVAFieldDesc.Array;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogEntrySubmissionResult;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.Tag;
@@ -418,18 +421,17 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public LogEntry set(LogEntry log) {
-        Collection<LogEntry> result = wrappedSubmit(new SetLogs(log));
-        if (result.size() == 1) {
-            return result.iterator().next();
-        } else {
-            throw new OlogException();
+    public LogEntrySubmissionResult set(LogEntry log) {
+        try {
+            Collection<LogEntry> result = wrappedSubmit(new SetLogs(log));
+            if (result.size() == 1) {
+                return LogEntrySubmissionResult.builder().logEntry(result.iterator().next()).build();
+            } else {
+                return LogEntrySubmissionResult.builder().exception(new OlogException("Failed to submit log entry")).build();
+            }
+        } catch (Exception e) {
+            return LogEntrySubmissionResult.builder().exception(e).build();
         }
-    }
-
-    @Override
-    public Collection<LogEntry> set(Collection<LogEntry> logs) {
-        return wrappedSubmit(new SetLogs(logs));
     }
 
     private class SetLogs implements Callable<Collection<LogEntry>> {

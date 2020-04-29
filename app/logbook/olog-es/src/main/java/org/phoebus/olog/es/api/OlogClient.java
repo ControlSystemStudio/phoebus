@@ -33,6 +33,7 @@ import javax.ws.rs.core.UriBuilder;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogEntrySubmissionResult;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.Tag;
@@ -429,8 +430,9 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public LogEntry set(LogEntry log) {
+    public LogEntrySubmissionResult set(LogEntry log){
         ClientResponse clientResponse;
+
         try {
             clientResponse = service.path("logs")
                     .type(MediaType.APPLICATION_JSON)
@@ -455,6 +457,7 @@ public class OlogClient implements LogClient {
                     if (attachementResponse.getStatus() > 300)
                     {
                         // TODO failed to add attachments
+                        logger.log(Level.SEVERE, "Failed to submit attachment(s), HTTP status: " + attachementResponse.getStatus());
                     }
                 });
 
@@ -462,23 +465,22 @@ public class OlogClient implements LogClient {
                         .type(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .get(ClientResponse.class);
-                return logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), XmlLog.class);
+                return LogEntrySubmissionResult.builder()
+                    .logEntry(logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), XmlLog.class))
+                        .build();
             }
-
-        } catch (UniformInterfaceException | ClientHandlerException | IOException e)
-        {
-            e.printStackTrace();
+            else{
+                logger.log(Level.SEVERE, "Submission of log entry returned HTTP status " + clientResponse.getStatus());
+                return LogEntrySubmissionResult.builder()
+                        .httpStatus(clientResponse.getStatus())
+                        .build();
+            }
+        } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
+            logger.log(Level.SEVERE,"Failed to submit log entry, got client exception", e);
+            return LogEntrySubmissionResult.builder()
+                    .exception(e)
+                    .build();
         }
-        return null;
-    }
-
-    @Override
-    public Collection<LogEntry> set(Collection<LogEntry> xmlLogs) {
-        Collection<LogEntry> createdLogs = new HashSet<>();
-        xmlLogs.stream().forEachOrdered(log -> {
-            createdLogs.add(set(log));
-        });
-        return null;
     }
 
     @Override

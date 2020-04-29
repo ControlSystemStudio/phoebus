@@ -19,6 +19,7 @@
 
 package org.phoebus.logbook.ui.write;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -29,9 +30,19 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogEntrySubmissionResult;
 import org.phoebus.logbook.ui.Messages;
 
 import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Controller for the {@link LogEntryEditorStage}.
@@ -41,6 +52,8 @@ public class LogEntryEditorController {
     private Node parent;
     private LogEntryModel model;
     private LogEntryCompletionHandler completionHandler;
+
+    private Logger logger = Logger.getLogger(LogEntryEditorController.class.getName());
 
     @FXML
     private VBox fields;
@@ -57,6 +70,8 @@ public class LogEntryEditorController {
     @FXML
     private AttachmentsViewController attachmentsViewController;
 
+    private ExecutorService executorService;
+
     private SimpleBooleanProperty progressIndicatorVisibility =
             new SimpleBooleanProperty(false);
 
@@ -65,6 +80,7 @@ public class LogEntryEditorController {
         this.parent = parent;
         this.model = model;
         this.completionHandler = logEntryCompletionHandler;
+        this.executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     }
 
     @FXML
@@ -92,22 +108,25 @@ public class LogEntryEditorController {
         completionMessageLabel.textProperty().setValue("");
         model.setImages(attachmentsViewController.getImages());
         model.setFiles(attachmentsViewController.getFiles());
-        LogEntry logEntry = null;
         try {
-            logEntry = model.submitEntry();
-        } catch (IOException e) {
-            StringBuffer stringBuffer = new StringBuffer();
-            stringBuffer.append("Failed to submit logbook entry");
-            if(e.getMessage() != null){
-                stringBuffer.append(", cause: " + e.getMessage());
+            Future<LogEntrySubmissionResult> future = executorService.submit(() -> model.submitEntry());
+            LogEntrySubmissionResult result = future.get();
+            if(result.getLogEntry() != null){
+                if(completionHandler != null){
+                    completionHandler.handleResult(result.getLogEntry());
+                }
+                cancel();
             }
-            completionMessageLabel.textProperty().setValue(stringBuffer.toString());
+            else{
+                completionMessageLabel.textProperty().setValue(getErrorMessageFromResult(result));
+            }
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Unable to submit log entry", e);
+            completionMessageLabel.textProperty().setValue(Messages.SubmissionFailed);
         }
-        progressIndicatorVisibility.setValue(false);
-        if(completionHandler != null){
-            completionHandler.handleResult(logEntry);
+        finally {
+            progressIndicatorVisibility.setValue(false);
         }
-        //cancel();
     }
 
     private void localize(){
@@ -115,5 +134,19 @@ public class LogEntryEditorController {
         submit.setTooltip(new Tooltip(Messages.SubmitTooltip));
         cancel.setText(Messages.Cancel);
         cancel.setTooltip(new Tooltip(Messages.CancelTooltip));
+    }
+
+    private String getErrorMessageFromResult(LogEntrySubmissionResult result){
+        if(result.getHttpStatus() == 401){
+            return Messages.SubmissionFailedInvalidCredentials;
+        }
+        else if(result.getException() != null){
+            return result.getException().getMessage() != null ?
+                    MessageFormat.format(Messages.SubmissionFailedWithException, result.getException().getMessage()) :
+                    Messages.SubmissionFailed;
+        }
+        else{
+            return Messages.SubmissionFailed;
+        }
     }
 }

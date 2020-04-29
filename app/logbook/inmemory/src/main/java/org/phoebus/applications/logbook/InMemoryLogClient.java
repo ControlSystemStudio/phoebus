@@ -20,6 +20,7 @@ import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogEntryImpl;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
+import org.phoebus.logbook.LogEntrySubmissionResult;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookImpl;
 import org.phoebus.logbook.Property;
@@ -109,8 +110,8 @@ public class InMemoryLogClient implements LogClient{
     }
     String prefix = "phoebus_tmp_file";
     @Override
-    public LogEntry set(LogEntry log) {
-        long id = (long) logIdCounter.incrementAndGet();
+    public LogEntrySubmissionResult set(LogEntry log) {
+        long id = logIdCounter.incrementAndGet();
 
         LogEntryBuilder logBuilder = LogEntryImpl.LogEntryBuilder.log(log);
         logBuilder.id(id);
@@ -135,13 +136,13 @@ public class InMemoryLogClient implements LogClient{
         }).collect(Collectors.toSet());
 
         logBuilder.setAttach(attachmentsBuilder);
-        return LogEntries.put(id, logBuilder.build());
-    }
 
-    @Override
-    public Collection<LogEntry> set(Collection<LogEntry> logs) {
-        // TODO Auto-generated method stub
-        return null;
+        LogEntry logEntry = logBuilder.build();
+        LogEntries.put(id, logEntry);
+
+        return LogEntrySubmissionResult.builder()
+            .logEntry(logEntry)
+                .build();
     }
 
     @Override
