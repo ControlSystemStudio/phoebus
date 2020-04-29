@@ -244,26 +244,7 @@ public class XmlLog {
         this.source = source;
     }
 
-    /**
-     * Getter for log subject.
-     *
-     * @return subject
-     */
-//    @XmlElement(name = "subject")
-//    public String getSubject() {
-//        return subject;
-//    }
-
-    /**
-     * Setter for log subject.
-     *
-     * @param subject the value to set
-     */
-//    public void setSubject(String subject) {
-//        this.subject = subject;
-//    }
-
-    /**
+     /**
      * Getter for log description.
      *
      * @return description
@@ -294,7 +275,7 @@ public class XmlLog {
     /**
      * Setter for MD5 entry.
      *
-     * @param description the value to set
+     * @param md5entry the value to set
      */
     public void setMD5Entry(String md5entry) {
         this.md5Entry = md5entry;
@@ -312,7 +293,7 @@ public class XmlLog {
     /**
      * Setter for Table id.
      *
-     * @param Table id to set
+     * @param tableId id to set
      */
     public void setTableId(Long tableId) {
         this.tableId = tableId;
