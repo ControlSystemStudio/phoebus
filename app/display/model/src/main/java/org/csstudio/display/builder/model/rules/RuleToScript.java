@@ -67,7 +67,7 @@ public class RuleToScript
         switch(pform)
         {
         case BOOLEAN:
-            return (Boolean) prop.getValue() ? "True" : "False";
+            return Boolean.parseBoolean(prop.getValue().toString()) ? "True" : "False";
         case STRING:
             return "u\"" + escapeString(prop.getValue().toString()) + "\"";
         case COLOR:

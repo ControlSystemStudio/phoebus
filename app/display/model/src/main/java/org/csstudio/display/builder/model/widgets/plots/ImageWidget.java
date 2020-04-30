@@ -424,7 +424,22 @@ public class ImageWidget extends PVWidget
     {
         return "$(pv_name)";
     }
+    
+    @Override
+    public WidgetProperty<?> getProperty(final String name)
+    {
+        if (name.equals("x_axis_maximum"))
+            return getProperty("x_axis.maximum");
+	else if (name.equals("x_axis_minimum"))
+	    return getProperty("x_axis.minimum");
+	if (name.equals("y_axis_maximum"))
+            return getProperty("y_axis.maximum");
+	else if (name.equals("y_axis_minimum"))
+	    return getProperty("y_axis.minimum");
 
+        return super.getProperty(name);
+    }
+    
     @Override
     public WidgetConfigurator getConfigurator(final Version persisted_version)
             throws Exception

@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.widgets.plots;
 
+import static org.csstudio.display.builder.model.ModelPlugin.logger;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.runtimePropConfigure;
@@ -22,7 +23,11 @@ import static org.csstudio.display.builder.model.widgets.plots.PlotWidgetPropert
 import static org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.traceYAxis;
 
 import java.util.Arrays;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.csstudio.display.builder.model.ArrayWidgetProperty;
 import org.csstudio.display.builder.model.MacroizedWidgetProperty;
@@ -57,6 +62,9 @@ import org.w3c.dom.Element;
 @SuppressWarnings("nls")
 public class StripchartWidget extends VisibleWidget
 {
+    /** Matcher for detecting legacy property names */
+    private static final Pattern LEGACY_TRACE_PATTERN = Pattern.compile("trace_([0-9]+)_([a-z_]+)");
+    
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("stripchart", WidgetCategory.PLOT,
@@ -237,6 +245,9 @@ public class StripchartWidget extends VisibleWidget
         }
     }
 
+    /** Legacy properties that have already triggered a warning */
+    private final CopyOnWriteArraySet<String> warnings_once = new CopyOnWriteArraySet<>();
+    
     /** Configurator that handles legacy properties */
     private static class Configurator extends WidgetConfigurator
     {
@@ -365,6 +376,9 @@ public class StripchartWidget extends VisibleWidget
                 XMLUtil.getChildInteger(xml, "trace_" + legacy_trace + "_point_style")
                        .ifPresent(style -> trace.tracePointType().setValue(mapPointType(style)));
 
+		XMLUtil.getChildString(xml, "trace_" + legacy_trace + "_visible")
+		       .ifPresent(show -> trace.traceVisible().setValue(Boolean.parseBoolean(show)) );
+
                 // Name
                 String name = XMLUtil.getChildString(xml, "trace_" + legacy_trace + "_name").orElse("");
                 name = name.replace("$(trace_" + legacy_trace + "_y_pv)", "$(traces[" + legacy_trace + "].y_pv)");
@@ -435,6 +449,26 @@ public class StripchartWidget extends VisibleWidget
         return "$(traces[0].y_pv)";
     }
 
+    @Override
+    public WidgetProperty<?> getProperty(final String name)
+    {
+        // Translate legacy property names:
+        // trace_0_y_pv, trace_0_name
+        Matcher matcher = LEGACY_TRACE_PATTERN.matcher(name);
+        if (matcher.matches())
+        {
+            final int index = Integer.parseInt(matcher.group(1));
+            // Check for index 0 (x_axis.*) or 1.. (y_axes[0].*)
+            final String trace = "traces[" + index + "].";
+            final String new_name = trace + matcher.group(2);
+            if (warnings_once.add(name))
+                logger.log(Level.WARNING, "Deprecated access to " + this + " property '" + name + "'. Use '" + new_name + "'");
+            return getProperty(new_name);
+        }
+	
+        return super.getProperty(name);
+    }
+    
     /** @return 'background_color' property */
     public WidgetProperty<WidgetColor> propBackground()
     {
