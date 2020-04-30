@@ -34,12 +34,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
-import org.epics.pva.data.PVAFieldDesc.Array;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.LogEntrySubmissionResult;
 import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.LogbookException;
+import org.phoebus.logbook.Messages;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.Tag;
 
@@ -421,16 +421,16 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public LogEntrySubmissionResult set(LogEntry log) {
+    public LogEntry set(LogEntry log) throws LogbookException {
         try {
             Collection<LogEntry> result = wrappedSubmit(new SetLogs(log));
             if (result.size() == 1) {
-                return LogEntrySubmissionResult.builder().logEntry(result.iterator().next()).build();
+                return result.iterator().next();
             } else {
-                return LogEntrySubmissionResult.builder().exception(new OlogException("Failed to submit log entry")).build();
+                throw new LogbookException(Messages.SubmissionFailed);
             }
         } catch (Exception e) {
-            return LogEntrySubmissionResult.builder().exception(e).build();
+            throw new LogbookException(e.getCause());
         }
     }
 

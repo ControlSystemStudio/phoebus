@@ -21,7 +21,6 @@ import org.phoebus.logbook.AttachmentImpl;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
-import org.phoebus.logbook.LogEntrySubmissionResult;
 import org.phoebus.logbook.LogFactory;
 import org.phoebus.logbook.LogService;
 import org.phoebus.logbook.Logbook;
@@ -483,13 +482,13 @@ public class LogEntryModel {
      *
      * @throws IOException
      */
-    public LogEntrySubmissionResult submitEntry() throws Exception {
+    public LogEntry submitEntry() throws Exception {
         // Create a log entry with the form data.
         LogEntryBuilder logEntryBuilder = new LogEntryBuilder();
         logEntryBuilder.title(title)
                 .description(text)
-//                .createdDate(date)
-//                .modifiedDate(date)
+                .createdDate(date)
+                .modifiedDate(date)
                 .level(level);
 
         for (String selectedLogbook : selectedLogbooks)
@@ -528,7 +527,7 @@ public class LogEntryModel {
                 logger.log(Level.WARNING, "Secure Store file not found.", ex);
             }
         }
-        LogEntrySubmissionResult result = null;
+        LogEntry result = null;
         if (null != logFactory)
             result = logFactory.getLogClient(new SimpleAuthenticationToken(username, password)).set(logEntry);
 

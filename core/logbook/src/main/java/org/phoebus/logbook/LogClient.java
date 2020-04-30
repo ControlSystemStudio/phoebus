@@ -84,7 +84,7 @@ public interface LogClient {
     /**
      * 
      * @param logId
-     * @param attachment
+     * @param attachmentName
      * @return {@link InputStream} to the attachment file
      */
     public InputStream getAttachment(Long logId, String attachmentName);
@@ -110,7 +110,7 @@ public interface LogClient {
      *            the LogEntry to be added
 
      */
-    public LogEntrySubmissionResult set(LogEntry log);
+    public LogEntry set(LogEntry log) throws LogbookException;
 
     /**
      * Set a Tag <tt>tag</tt> with no associated logs to the database.
@@ -309,9 +309,10 @@ public interface LogClient {
      * search for logs with property <tt>property</tt> and optionally value
      * matching pattern<tt>propertyValue</tt>
      * 
-     * @param property
-     * @return
-
+     * @param propertyName
+     * @param attributeName
+     * @param attributeValue
+     * @return List of {@link LogEntry}
      */
     public List<LogEntry> findLogsByProperty(String propertyName, String attributeName, String attributeValue);
 
@@ -340,7 +341,6 @@ public interface LogClient {
     /**
      * 
      * @param logbook
-     * @throws LogFinderException
      */
     public void deleteLogbook(String logbook);
 
@@ -355,7 +355,7 @@ public interface LogClient {
     /**
      * Remove the LogEntry identified by <tt>log</tt>
      * 
-     * @param LogEntry LogEntry to be removed
+     * @param log LogEntry to be removed
 
      */
     public void delete(LogEntry log);
@@ -438,10 +438,8 @@ public interface LogClient {
      * 
      * TODO: sardine delete hangs up, using jersey for delete
      * 
-     * @param String
-     *            fileName
-     * @param Long
-     *            logId
+     * @param fileName
+     * @param logId
      */
     public void delete(String fileName, Long logId);
 

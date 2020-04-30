@@ -19,13 +19,21 @@
 
 package org.phoebus.logbook;
 
-import lombok.Builder;
-import lombok.Data;
+import org.phoebus.framework.nls.NLS;
 
-@Builder
-@Data
-public class LogEntrySubmissionResult {
-    private LogEntry logEntry;
-    private int httpStatus;
-    private Exception exception;
+public class Messages {
+
+    static
+    {
+        // initialize resource bundle
+        NLS.initializeMessages(org.phoebus.logbook.Messages.class);
+    }
+
+    private Messages()
+    {
+    }
+
+    public static String SubmissionFailed;
+    public static String SubmissionFailedInvalidCredentials;
+    public static String SubmissionFailedWithHttpStatus;
 }

@@ -30,7 +30,6 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.LogEntrySubmissionResult;
 import org.phoebus.logbook.ui.Messages;
 
 import java.io.IOException;
@@ -109,20 +108,28 @@ public class LogEntryEditorController {
         model.setImages(attachmentsViewController.getImages());
         model.setFiles(attachmentsViewController.getFiles());
         try {
-            Future<LogEntrySubmissionResult> future = executorService.submit(() -> model.submitEntry());
-            LogEntrySubmissionResult result = future.get();
-            if(result.getLogEntry() != null){
+            Future<LogEntry> future = executorService.submit(() -> model.submitEntry());
+            LogEntry result = future.get();
+            if(result != null){
                 if(completionHandler != null){
-                    completionHandler.handleResult(result.getLogEntry());
+                    completionHandler.handleResult(result);
                 }
                 cancel();
             }
-            else{
-                completionMessageLabel.textProperty().setValue(getErrorMessageFromResult(result));
-            }
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             logger.log(Level.WARNING, "Unable to submit log entry", e);
-            completionMessageLabel.textProperty().setValue(Messages.SubmissionFailed);
+            completionMessageLabel.textProperty().setValue(org.phoebus.logbook.Messages.SubmissionFailed);
+        } catch(ExecutionException e){
+            logger.log(Level.WARNING, "Unable to submit log entry", e);
+            if(e.getCause() != null && e.getCause().getMessage() != null){
+                completionMessageLabel.textProperty().setValue(e.getCause().getMessage());
+            }
+            else if(e.getMessage() != null){
+                completionMessageLabel.textProperty().setValue(e.getMessage());
+            }
+            else{
+                completionMessageLabel.textProperty().setValue(org.phoebus.logbook.Messages.SubmissionFailed);
+            }
         }
         finally {
             progressIndicatorVisibility.setValue(false);
@@ -134,19 +141,5 @@ public class LogEntryEditorController {
         submit.setTooltip(new Tooltip(Messages.SubmitTooltip));
         cancel.setText(Messages.Cancel);
         cancel.setTooltip(new Tooltip(Messages.CancelTooltip));
-    }
-
-    private String getErrorMessageFromResult(LogEntrySubmissionResult result){
-        if(result.getHttpStatus() == 401){
-            return Messages.SubmissionFailedInvalidCredentials;
-        }
-        else if(result.getException() != null){
-            return result.getException().getMessage() != null ?
-                    MessageFormat.format(Messages.SubmissionFailedWithException, result.getException().getMessage()) :
-                    Messages.SubmissionFailed;
-        }
-        else{
-            return Messages.SubmissionFailed;
-        }
     }
 }
