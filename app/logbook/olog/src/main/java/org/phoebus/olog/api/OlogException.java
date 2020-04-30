@@ -30,6 +30,10 @@ public class OlogException extends RuntimeException {
 		super();
 	}
 
+	public OlogException(String message){
+		super(message);
+	}
+
 	public OlogException(UniformInterfaceException cause) {
 		super(parseErrorMsg(cause), cause);
 		this.setStatus(Status.fromStatusCode(cause.getResponse().getStatus()));
@@ -48,37 +52,6 @@ public class OlogException extends RuntimeException {
             }
 	}
 
-	public OlogException(Status status, String message) {
-		super(message);
-		this.setStatus(status);
-	}
-	
-	/**
-	 * 
-	 * @param status - the http error status code
-	 * @param cause - the original UniformInterfaceException 
-	 * @param message - additional error information
-	 */
-	public OlogException(Status status, Throwable cause ,String message) {
-		super(message, cause);
-		this.setStatus(status); 
-	}
-
-        /**
-         *
-         */
-        public OlogException(FileNotFoundException ex){
-                super(ex.getMessage(), ex.getCause());
-		this.setStatus(null);
-        }
-
-        /**
-         *
-         */
-        public OlogException(IOException ex){
-                super(ex.getMessage(), ex.getCause());
-		this.setStatus(null);
-        }
 
 	/**
 	 * @param status the status to set

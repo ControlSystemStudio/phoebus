@@ -21,6 +21,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -37,6 +38,8 @@ import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.LogbookException;
+import org.phoebus.logbook.Messages;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.Tag;
 
@@ -418,18 +421,17 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public LogEntry set(LogEntry log) {
-        Collection<LogEntry> result = wrappedSubmit(new SetLogs(log));
-        if (result.size() == 1) {
-            return result.iterator().next();
-        } else {
-            throw new OlogException();
+    public LogEntry set(LogEntry log) throws LogbookException {
+        try {
+            Collection<LogEntry> result = wrappedSubmit(new SetLogs(log));
+            if (result.size() == 1) {
+                return result.iterator().next();
+            } else {
+                throw new LogbookException(Messages.SubmissionFailed);
+            }
+        } catch (Exception e) {
+            throw new LogbookException(e.getCause());
         }
-    }
-
-    @Override
-    public Collection<LogEntry> set(Collection<LogEntry> logs) {
-        return wrappedSubmit(new SetLogs(logs));
     }
 
     private class SetLogs implements Callable<Collection<LogEntry>> {
