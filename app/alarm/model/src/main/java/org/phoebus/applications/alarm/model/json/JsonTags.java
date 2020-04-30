@@ -32,8 +32,10 @@ public interface JsonTags
     public static final String DELETE = "delete";
     public static final String DESCRIPTION = "description";
     public static final String DETAILS = "details";
+    public static final String DISABLE_NOTIFY = "disable_notify";
     public static final String DISPLAYS = "displays";
     public static final String ENABLED = "enabled";
+    public static final String ENABLE_NOTIFY = "enable_notify";
     public static final String FILTER = "filter";
     public static final String GUIDANCE = "guidance";
     public static final String HOST = "host";
@@ -44,6 +46,7 @@ public interface JsonTags
     public static final String MODE = "mode";
     public static final String NANO = "nano";
     public static final String NORMAL = "normal";
+    public static final String NOTIFY = "notify";
     public static final String SECONDS = "seconds";
     public static final String SEVERITY = "severity";
     public static final String STANDOUT = "standout";

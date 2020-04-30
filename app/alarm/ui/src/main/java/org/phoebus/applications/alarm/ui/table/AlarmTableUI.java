@@ -108,6 +108,8 @@ public class AlarmTableUI extends BorderPane
 
     private final Button server_mode = new Button();
 
+    private final Button server_notify = new Button();
+
     private ToolBar toolbar = createToolbar();
 
     /** Enable dragging the PV name from a table cell.
@@ -258,6 +260,9 @@ public class AlarmTableUI extends BorderPane
         setMaintenanceMode(false);
         server_mode.setOnAction(event ->  client.setMode(! client.isMaintenanceMode()));
 
+	setDisableNotify(false);
+        server_notify.setOnAction(event ->  client.setNotify(! client.isDisableNotify()));
+
         final Button acknowledge = new Button("", ImageCache.getImageView(AlarmUI.class, "/icons/acknowledge.png"));
         acknowledge.disableProperty().bind(Bindings.isEmpty(active.getSelectionModel().getSelectedItems()));
         acknowledge.setOnAction(event ->
@@ -277,7 +282,12 @@ public class AlarmTableUI extends BorderPane
         search.setTooltip(new Tooltip("Enter pattern ('vac', 'amp*trip')\nfor PV Name or Description,\npress RETURN to select"));
         search.textProperty().addListener(prop -> selectRows());
 
-        return new ToolBar(active_count,ToolbarHelper.createStrut(), ToolbarHelper.createSpring(), server_mode, acknowledge, unacknowledge, search);
+	if (AlarmSystem.disable_notify_visible)
+	{
+	    return new ToolBar(active_count,ToolbarHelper.createStrut(), ToolbarHelper.createSpring(), server_mode, server_notify, acknowledge, unacknowledge, search);
+	}
+
+	return new ToolBar(active_count,ToolbarHelper.createStrut(), ToolbarHelper.createSpring(), server_mode, acknowledge, unacknowledge, search);
     }
 
     /** Show if connected to server or not
@@ -308,6 +318,21 @@ public class AlarmTableUI extends BorderPane
         }
     }
 
+    void setDisableNotify(final boolean disable_notify)
+    {
+        if (disable_notify)
+        {
+            server_notify.setGraphic(ImageCache.getImageView(AlarmUI.class, "/icons/disable_notify.png"));
+            server_notify.setTooltip(new Tooltip("Enable email notifications for alarms?\n\nEmail notifications are currently disabled for alarms.\n\nPress to re-enable the email notifications."));
+        }
+        else
+        {
+            server_notify.setGraphic(ImageCache.getImageView(AlarmUI.class, "/icons/enable_notify.png"));
+            server_notify.setTooltip(new Tooltip("Disable Email notifications for alarms?\n\nEmail notifications for alarms will be disabled."));
+
+        }
+    }
+    
     private TableView<AlarmInfoRow> createTable(final ObservableList<AlarmInfoRow> rows,
                                                 final boolean active)
     {
