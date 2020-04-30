@@ -352,7 +352,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
                     if (empty) {
                         setGraphic(null);
                     } else {
-                        timeText.setText(SECONDS_FORMAT.format(logEntry.getCreatedDate()));
+                        if (logEntry.getCreatedDate() != null) {
+                            timeText.setText(SECONDS_FORMAT.format(logEntry.getCreatedDate()));
+                        }
                         ownerText.setText(logEntry.getOwner());
                         setGraphic(pane);
                     }
