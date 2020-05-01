@@ -40,22 +40,22 @@
 		<dependency>
 			<groupId>org.epics</groupId>
 			<artifactId>gpclient-core</artifactId>
-			<version>1.0.1</version>
+			<version>1.0.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.epics</groupId>
 			<artifactId>gpclient-ca</artifactId>
-			<version>1.0.1</version>
+			<version>1.0.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.epics</groupId>
 			<artifactId>gpclient-pva</artifactId>
-			<version>1.0.1</version>
+			<version>1.0.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.epics</groupId>
 			<artifactId>gpclient-sim</artifactId>
-			<version>1.0.1</version>
+			<version>1.0.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jgit</groupId>
