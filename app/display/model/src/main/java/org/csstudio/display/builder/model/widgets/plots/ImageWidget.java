@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.widgets.plots;
 
+import static org.csstudio.display.builder.model.ModelPlugin.logger;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFile;
@@ -20,6 +21,10 @@ import static org.csstudio.display.builder.model.widgets.plots.PlotWidgetPropert
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.csstudio.display.builder.model.ArrayWidgetProperty;
 import org.csstudio.display.builder.model.Messages;
@@ -60,6 +65,9 @@ import org.w3c.dom.Element;
 @SuppressWarnings("nls")
 public class ImageWidget extends PVWidget
 {
+    /** Matcher for detecting legacy property names */
+    private static final Pattern LEGACY_AXIS_PATTERN = Pattern.compile("([xy])_axis_([a-z_]+)");
+    
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
             new WidgetDescriptor("image", WidgetCategory.PLOT,
@@ -311,6 +319,9 @@ public class ImageWidget extends PVWidget
                                              (widget, index) -> new ROIWidgetProperty(widget, "ROI " + index),
                                              0);
 
+    /** Legacy properties that have already triggered a warning */
+    private final CopyOnWriteArraySet<String> warnings_once = new CopyOnWriteArraySet<>();
+    
     /** Configurator for legacy widgets */
     private class CustomWidgetConfigurator extends WidgetConfigurator
     {
@@ -428,15 +439,17 @@ public class ImageWidget extends PVWidget
     @Override
     public WidgetProperty<?> getProperty(final String name)
     {
-        if (name.equals("x_axis_maximum"))
-            return getProperty("x_axis.maximum");
-	else if (name.equals("x_axis_minimum"))
-	    return getProperty("x_axis.minimum");
-	if (name.equals("y_axis_maximum"))
-            return getProperty("y_axis.maximum");
-	else if (name.equals("y_axis_minimum"))
-	    return getProperty("y_axis.minimum");
-
+	Matcher matcher = LEGACY_AXIS_PATTERN.matcher(name);
+        if (matcher.matches())
+        {
+            final String axis_type = matcher.group(1);
+            final String new_name = axis_type + "_axis." + matcher.group(2)
+                                                  .replace("axis_title", "title")
+                                                  .replace("auto_scale", "autoscale");
+            if (warnings_once.add(name))
+                logger.log(Level.WARNING, "Deprecated access to " + this + " property '" + name + "'. Use '" + new_name + "'");
+            return getProperty(new_name);
+        }
         return super.getProperty(name);
     }
     

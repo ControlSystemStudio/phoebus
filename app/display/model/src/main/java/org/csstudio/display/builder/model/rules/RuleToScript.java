@@ -67,6 +67,10 @@ public class RuleToScript
         switch(pform)
         {
         case BOOLEAN:
+	    // Property should be boolean, but in case it's not,
+            // convert property to string, parse as boolean,
+            // then return the 'python' version of true/false
+            // for evaluation in script
             return Boolean.parseBoolean(prop.getValue().toString()) ? "True" : "False";
         case STRING:
             return "u\"" + escapeString(prop.getValue().toString()) + "\"";
