@@ -159,11 +159,6 @@ class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
 
                 // Decode type description from INIT response
                 final PVAData type = channel.getTCP().getTypeRegistry().decodeType("", buffer);
-                byte[] b = new byte[buffer.limit()];
-                for(int i = 0; i < buffer.limit(); i++){
-                    b[i] = buffer.get(i);
-                }
-                System.out.println(new String(b));
                 if (type instanceof PVAStructure)
                 {
                     data = (PVAStructure)type;
