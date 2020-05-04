@@ -245,12 +245,17 @@ public class TableEntry {
             if (val instanceof VNumber) {
                 status.set(((VNumber) val).getAlarm().getStatus().name());
                 severity.set(((VNumber)val).getAlarm().getSeverity().name());
+            } else if (val instanceof VEnum) {
+                status.set(((VEnum) val).getAlarm().getStatus().name());
+                severity.set(((VEnum) val).getAlarm().getSeverity().name());
             } else {
                 severity.set(AlarmSeverity.NONE.name());
                 status.set("---");
             }
             if (val instanceof VNumber) {
                 timestamp.set(((VNumber) val).getTime().getTimestamp());
+            } else if (val instanceof VEnum) {
+                timestamp.set(((VEnum) val).getTime().getTimestamp());
             } else {
                 timestamp.set(null);
             }
@@ -326,6 +331,9 @@ public class TableEntry {
         if (val instanceof VNumber) {
             status.set(((VNumber)val).getAlarm().getStatus().name());
             severity.set(((VNumber)val).getAlarm().getSeverity().name());
+        } else if (val instanceof VEnum) {
+            status.set(((VEnum) val).getAlarm().getStatus().name());
+            severity.set(((VEnum) val).getAlarm().getSeverity().name());
         } else {
             severity.set(AlarmSeverity.NONE.name());
             status.set("---");

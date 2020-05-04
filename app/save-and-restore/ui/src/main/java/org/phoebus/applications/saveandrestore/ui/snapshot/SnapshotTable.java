@@ -114,6 +114,8 @@ class SnapshotTable extends TableView<TableEntry> {
                         return "";
                     } else if (item instanceof VNumber) {
                         return ((VNumber) item).getValue().toString();
+                    } else if (item instanceof VEnum) {
+                        return ((VEnum) item).getValue();
                     } else if (item instanceof VTypePair) {
                         return ((VTypePair)item).value.toString();
                     } else {
