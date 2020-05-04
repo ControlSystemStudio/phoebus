@@ -247,11 +247,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         //    while this code will always use current actions
         final StringWidgetProperty text_prop = (StringWidgetProperty)model_widget.propText();
         if (isLabelValue())
-        {
-            final String text = FormatOptionHandler.format(model_widget.runtimePropValue().getValue(), FormatOption.DEFAULT, -1, true);
-            System.out.println("Button: " + model_widget.runtimePropValue().getValue() + " -> " + text);
-            return text;
-        }
+            return FormatOptionHandler.format(model_widget.runtimePropValue().getValue(), FormatOption.DEFAULT, -1, true);
         else if ("$(actions)".equals(text_prop.getSpecification()))
         {
             final List<ActionInfo> actions = model_widget.propActions().getValue().getActions();
