@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -31,6 +31,8 @@ import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.MacroValueProvider;
 import org.phoebus.ui.javafx.Styles;
 import org.phoebus.ui.javafx.TextUtils;
+import org.phoebus.ui.vtype.FormatOption;
+import org.phoebus.ui.vtype.FormatOptionHandler;
 
 import javafx.application.Platform;
 import javafx.geometry.Dimension2D;
@@ -230,6 +232,13 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         });
     }
 
+    /** @return Should 'label' show the PV's current value? */
+    private boolean isLabelValue()
+    {
+        final StringWidgetProperty text_prop = (StringWidgetProperty)model_widget.propText();
+        return ActionButtonWidget.VALUE_LABEL.equals(text_prop.getSpecification());
+    }
+
     private String makeButtonText()
     {
         // If text is "$(actions)", evaluate the actions ourself because
@@ -237,7 +246,13 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         // b) Macro won't be re-evaluated as actions change,
         //    while this code will always use current actions
         final StringWidgetProperty text_prop = (StringWidgetProperty)model_widget.propText();
-        if ("$(actions)".equals(text_prop.getSpecification()))
+        if (isLabelValue())
+        {
+            final String text = FormatOptionHandler.format(model_widget.runtimePropValue().getValue(), FormatOption.DEFAULT, -1, true);
+            System.out.println("Button: " + model_widget.runtimePropValue().getValue() + " -> " + text);
+            return text;
+        }
+        else if ("$(actions)".equals(text_prop.getSpecification()))
         {
             final List<ActionInfo> actions = model_widget.propActions().getValue().getActions();
             if (actions.size() < 1)
@@ -310,12 +325,17 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         model_widget.propTransparent().addUntypedPropertyListener(buttonChangedListener);
         model_widget.propActions().addUntypedPropertyListener(buttonChangedListener);
 
+        if (! toolkit.isEditMode()  &&  isLabelValue())
+            model_widget.runtimePropValue().addUntypedPropertyListener(representationChangedListener);
+
         enablementChanged(null, null, null);
     }
 
     @Override
     protected void unregisterListeners()
     {
+        if (! toolkit.isEditMode()  &&  isLabelValue())
+            model_widget.runtimePropValue().removePropertyListener(representationChangedListener);
         model_widget.propWidth().removePropertyListener(representationChangedListener);
         model_widget.propHeight().removePropertyListener(representationChangedListener);
         model_widget.propText().removePropertyListener(representationChangedListener);
