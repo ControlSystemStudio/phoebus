@@ -280,6 +280,15 @@ public class EmbeddedDisplayWidget extends MacroWidget
         BorderSupport.addBorderProperties(this, properties);
     }
 
+    @Override
+    public WidgetProperty<?> getProperty(String name) throws IllegalArgumentException, IndexOutOfBoundsException
+    {
+        // Support legacy scripts/rules that access opi_file
+        if (name.equals("opi_file"))
+            return propFile();
+        return super.getProperty(name);
+    }
+
     /** @return 'file' property */
     public WidgetProperty<String> propFile()
     {
