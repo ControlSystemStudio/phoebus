@@ -38,10 +38,10 @@ public class SnapshotItemTest {
 		
 		assertNotNull(item.toString());
 		
-		item.setValue(VType.toVType(new Integer(1)));
+		item.setValue(VType.toVType(1));
 		assertNotNull(item.toString());
 	
-		item.setReadbackValue(VType.toVType(new Double(1.1)));
+		item.setReadbackValue(VType.toVType(1.1));
 		assertNotNull(item.toString());
 		assertFalse(item.toString().contains("READ FAILED"));
 	}

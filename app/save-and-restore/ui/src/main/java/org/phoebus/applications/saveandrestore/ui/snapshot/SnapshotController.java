@@ -29,8 +29,12 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import org.epics.gpclient.*;
+import org.epics.gpclient.PVEvent.Type;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.Utilities;
 import org.phoebus.applications.saveandrestore.data.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.model.SnapshotEntry;
@@ -264,7 +268,7 @@ public class SnapshotController implements NodeChangedListener {
                     if (e.selectedProperty().get() && !e.readOnlyProperty().get()) {
                         final PV pv = pvs.get(e.getConfigPv().getPvName());
                         if (entry.getValue() != null) {
-                            pv.pv.write(entry.getValue());
+                            pv.pv.write(Utilities.toRawValue(entry.getValue()));
                         }
                     }
                 }
@@ -294,11 +298,13 @@ public class SnapshotController implements NodeChangedListener {
                     LOGGER.log(Level.WARNING,
                             "Not all PVs could be restored for {0}: {1}. The following errors occured:\n{2}",
                             new Object[] { s.getSnapshot().get().getName(), s.getSnapshot().get(), sb.toString() });
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle(Messages.restoreErrorTitle);
-                    alert.setContentText(sb.toString());
-                    alert.setHeaderText(Messages.restoreErrorContent);
-                    alert.showAndWait();
+                    Platform.runLater(() -> {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle(Messages.restoreErrorTitle);
+                        alert.setContentText(sb.toString());
+                        alert.setHeaderText(Messages.restoreErrorContent);
+                        alert.showAndWait();
+                    });
                 }
             } finally {
             }
@@ -556,7 +562,7 @@ public class SnapshotController implements NodeChangedListener {
         final String pvName;
         final String readbackPvName;
         CountDownLatch countDownLatch;
-        org.epics.gpclient.PV<VType, VType> pv;
+        org.epics.gpclient.PV<VType, Object> pv;
         PVReader<VType> pvReader;
         PVReader<VType> readbackReader;
         PVEvent.Type writeStatus = PVEvent.Type.WRITE_FAILED;

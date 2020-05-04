@@ -25,8 +25,8 @@
   </distributionManagement>
 
   <properties>
-    <epics.version>7.0.4</epics.version>
-    <vtype.version>1.0.1</vtype.version>
+    <epics.version>7.0.5</epics.version>
+    <vtype.version>1.0.2</vtype.version>
     <openjfx.version>14</openjfx.version>
     <jackson.version>2.10.1</jackson.version>
     <batik.version>1.12</batik.version>
