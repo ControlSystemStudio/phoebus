@@ -10,6 +10,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -34,6 +35,8 @@ import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.LogbookException;
+import org.phoebus.logbook.Messages;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.Tag;
 
@@ -429,8 +432,9 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public LogEntry set(LogEntry log) {
+    public LogEntry set(LogEntry log) throws LogbookException{
         ClientResponse clientResponse;
+
         try {
             clientResponse = service.path("logs")
                     .type(MediaType.APPLICATION_JSON)
@@ -455,6 +459,7 @@ public class OlogClient implements LogClient {
                     if (attachementResponse.getStatus() > 300)
                     {
                         // TODO failed to add attachments
+                        logger.log(Level.SEVERE, "Failed to submit attachment(s), HTTP status: " + attachementResponse.getStatus());
                     }
                 });
 
@@ -464,21 +469,18 @@ public class OlogClient implements LogClient {
                         .get(ClientResponse.class);
                 return logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), XmlLog.class);
             }
-
-        } catch (UniformInterfaceException | ClientHandlerException | IOException e)
-        {
-            e.printStackTrace();
+            else if(clientResponse.getStatus() == 401){
+                logger.log(Level.SEVERE, "Submission of log entry returned HTTP status, invalid credentials");
+                throw new LogbookException(Messages.SubmissionFailedInvalidCredentials);
+            }
+            else{
+                logger.log(Level.SEVERE, "Submission of log entry returned HTTP status" + clientResponse.getStatus() );
+                throw new LogbookException(MessageFormat.format(Messages.SubmissionFailedWithHttpStatus, clientResponse.getStatus()));
+            }
+        } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
+            logger.log(Level.SEVERE,"Failed to submit log entry, got client exception", e);
+            throw new LogbookException(e);
         }
-        return null;
-    }
-
-    @Override
-    public Collection<LogEntry> set(Collection<LogEntry> xmlLogs) {
-        Collection<LogEntry> createdLogs = new HashSet<>();
-        xmlLogs.stream().forEachOrdered(log -> {
-            createdLogs.add(set(log));
-        });
-        return null;
     }
 
     @Override

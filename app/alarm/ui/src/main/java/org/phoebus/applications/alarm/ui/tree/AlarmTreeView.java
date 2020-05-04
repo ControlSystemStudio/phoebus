@@ -247,6 +247,13 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
     // AlarmClientModelListener
     @Override
+    public void serverDisableNotifyChanged(final boolean disable_notify)
+    {
+        // NOP
+    }
+
+    // AlarmClientModelListener
+    @Override
     public void itemAdded(final AlarmTreeItem<?> item)
     {
         // System.out.println("Add " + item.getPathName());

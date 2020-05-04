@@ -69,7 +69,7 @@ public class AlarmStateProducerDemo
             {
                 try
                 {
-                    return JsonModelWriter.toJsonBytes(state, false);
+                    return JsonModelWriter.toJsonBytes(state, false, false);
                 }
                 catch (Exception ex)
                 {

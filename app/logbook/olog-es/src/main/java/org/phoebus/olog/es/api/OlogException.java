@@ -27,4 +27,8 @@ public class OlogException extends RuntimeException {
 	public OlogException() {
 		super();
 	}
+
+	public OlogException(String message) {
+		super(message);
+	}
 }

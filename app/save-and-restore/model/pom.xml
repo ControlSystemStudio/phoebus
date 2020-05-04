@@ -5,18 +5,16 @@
 	<parent>
 		<groupId>org.phoebus</groupId>
 		<artifactId>app-save-and-restore</artifactId>
-		<version>4.6.2-SNAPSHOT</version>
+		<version>4.6.3-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>app-save-and-restore-model</artifactId>
 
 	<dependencies>
-
-		<!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.18.8</version>
+			<version>${lombok.version}</version>
 			<scope>provided</scope>
 		</dependency>
 

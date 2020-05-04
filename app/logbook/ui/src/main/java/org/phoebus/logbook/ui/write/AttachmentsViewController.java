@@ -20,6 +20,7 @@
 package org.phoebus.logbook.ui.write;
 
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.TabPane;
@@ -30,6 +31,7 @@ import org.phoebus.ui.javafx.FilesTab;
 import org.phoebus.ui.javafx.ImagesTab;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class AttachmentsViewController {
@@ -42,19 +44,23 @@ public class AttachmentsViewController {
 
     private ImagesTab imagesTab;
     private FilesTab filesTab;
-    private LogEntryModel model;
     private Node parent;
-    private boolean autoExpand = true;
+    private List<Image> images;
+    private List<File> files;
+    private boolean autoExpand;
 
-    public AttachmentsViewController(Node parent, LogEntryModel logEntryModel){
-        this.model = logEntryModel;
+    public AttachmentsViewController(Node parent, List<Image> images, List<File> files, Boolean autoExpand){
         this.parent = parent;
+        this.images = images;
+        this.files = files;
+        this.autoExpand = autoExpand;
     }
 
-    public AttachmentsViewController(Node parent, LogEntryModel logEntryModel, Boolean autoExpand){
-        this.model = logEntryModel;
+    public AttachmentsViewController(Node parent, Boolean autoExpand){
         this.parent = parent;
         this.autoExpand = autoExpand;
+        this.images = new ArrayList<>();
+        this.files = new ArrayList<>();
     }
 
     @FXML
@@ -64,10 +70,10 @@ public class AttachmentsViewController {
 
         imagesTab = new ImagesTab();
         imagesTab.setSnapshotNode(parent.getScene().getRoot());
-        imagesTab.setImages(model.getImages());
+        imagesTab.setImages(images);
 
         filesTab = new FilesTab();
-        filesTab.setFiles(model.getFiles());
+        filesTab.setFiles(files);
 
         tabPane.getTabs().add(0, imagesTab);
         tabPane.getTabs().add(1, filesTab);
@@ -75,11 +81,30 @@ public class AttachmentsViewController {
         tabPane.getSelectionModel().selectFirst();
 
         // Open/close the attachments pane if there's something to see resp. not
-        if(autoExpand){
+        if(autoExpand && (!this.images.isEmpty() || !this.files.isEmpty())){
             Platform.runLater(() ->
             {
-                final boolean anything = !model.getImages().isEmpty()  ||  !model.getFiles().isEmpty();
-                titledPane.setExpanded(anything);
+                titledPane.setExpanded(true);
+            });
+        }
+    }
+
+    public void setImages(ObservableList<Image> images){
+        imagesTab.setImages(images);
+        if(autoExpand && !images.isEmpty()) {
+            Platform.runLater(() ->
+            {
+                titledPane.setExpanded(true);
+            });
+        }
+    }
+
+    public void setFiles(ObservableList<File> files){
+        filesTab.setFiles(files);
+        if(autoExpand && !files.isEmpty()) {
+            Platform.runLater(() ->
+            {
+                titledPane.setExpanded(true);
             });
         }
     }

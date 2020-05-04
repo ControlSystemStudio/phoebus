@@ -30,6 +30,7 @@ public class AlarmStateMessage {
     private String current_severity;
     private String current_message;
     private String mode;
+    private boolean notify = true;
 
     // The following fields are for logging purposes
     private Instant message_time;
@@ -119,6 +120,14 @@ public class AlarmStateMessage {
         this.mode = mode;
     }
 
+    public boolean getNotify() {
+        return notify;
+    }
+
+    public void setNotify(boolean notify) {
+        this.notify = notify;
+    }
+
     public Instant getMessage_time() {
         return message_time;
     }
@@ -158,6 +167,7 @@ public class AlarmStateMessage {
         map.put("current_severity", getCurrent_severity());
         map.put("current_message", getCurrent_message());
         map.put("mode", getMode());
+	map.put("notify", Boolean.toString(getNotify()));
         return map;
     }
 
@@ -165,7 +175,7 @@ public class AlarmStateMessage {
     public String toString() {
         return "AlarmStateMessage [severity=" + severity + ", message=" + message + ", value=" + value + ", time="
                 + time + ", current_severity=" + current_severity + ", current_message=" + current_message + ", mode="
-                + mode + "]";
+	    + mode + ", notify=" + Boolean.toString(notify) + "]";
     }
 
     @Override

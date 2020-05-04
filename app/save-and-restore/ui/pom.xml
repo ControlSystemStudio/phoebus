@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.phoebus</groupId>
 		<artifactId>app-save-and-restore</artifactId>
-		<version>4.6.2-SNAPSHOT</version>
+		<version>4.6.3-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>app-save-and-restore-ui</artifactId>
@@ -25,17 +25,17 @@
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>core-util</artifactId>
-			<version>4.6.2-SNAPSHOT</version>
+			<version>4.6.3-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>core-ui</artifactId>
-			<version>4.6.2-SNAPSHOT</version>
+			<version>4.6.3-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 		  <groupId>org.phoebus</groupId>
 		  <artifactId>app-save-and-restore-model</artifactId>
-		  <version>4.6.2-SNAPSHOT</version>
+		  <version>4.6.3-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.epics</groupId>
@@ -69,13 +69,7 @@
 			<artifactId>jackson-jaxrs-json-provider</artifactId>
 			<version>${jackson.version}</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<version>1.18.8</version>
-			<scope>provided</scope>
-		</dependency>
+
 		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-collections4 -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
