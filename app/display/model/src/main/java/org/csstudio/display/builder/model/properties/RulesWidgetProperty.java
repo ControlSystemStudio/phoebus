@@ -58,7 +58,7 @@ public class RulesWidgetProperty extends WidgetProperty<List<RuleInfo>>
     public static WidgetProperty<?> propIDToNewProp(final Widget widget,
             final String prop_id, final String dbg_tag)
     {
-	try
+        try
         {
 	    // Check for plain property (including re-mapped legacy properties)
             return widget.getProperty(prop_id).clone();
