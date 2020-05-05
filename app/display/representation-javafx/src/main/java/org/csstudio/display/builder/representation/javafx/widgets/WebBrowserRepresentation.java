@@ -211,14 +211,14 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<BorderPan
             // Buttons often appeared zero-sized when setting the icons right away,
             // maybe because icon needs time to load?
             // No perfect solution, but workaround:
-            // 1) Assert a minimum width
+            // 1) Assert a minimum width to get initial positions
             backButton.setMinWidth(40);
             foreButton.setMinWidth(40);
             stop.setMinWidth(40);
             refresh.setMinWidth(40);
             go.setMinWidth(40);
 
-            // Add icons later
+            // 2) Add icons later, which seems to "work" every time
             toolkit.schedule(() ->
             {
                 backButton.setGraphic(ImageCache.getImageView(ModelPlugin.class, "/icons/browser/arrow_left.png"));
