@@ -27,7 +27,7 @@ import javafx.scene.image.Image;
 @SuppressWarnings("rawtypes")
 public class ContextMenuNodeAlarmHistory implements ContextMenuEntry {
 
-    private static final List<Class<?>> supportedTypes = List.of(AlarmTreeItem.class);
+    private static final Class<?> supportedType = AlarmTreeItem.class;
     private static final String NAME = "Alarm History";
 
     @Override
@@ -49,8 +49,8 @@ public class ContextMenuNodeAlarmHistory implements ContextMenuEntry {
     }
 
     @Override
-    public List<Class<?>> getSupportedTypes() {
-        return supportedTypes;
+    public Class<?> getSupportedType() {
+        return supportedType;
     }
 
     @Override

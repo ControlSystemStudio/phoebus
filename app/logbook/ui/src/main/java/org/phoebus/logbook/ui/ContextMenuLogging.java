@@ -20,7 +20,7 @@ import org.phoebus.ui.spi.ContextMenuEntry;
 public class ContextMenuLogging implements ContextMenuEntry {
 
     private static final String NAME = "Create Log";
-    private static final List<Class<?>> supportedTypes = Arrays.asList(LogEntry.class);
+    private static final Class<?> supportedType = LogEntry.class;
 
     @Override
     public String getName() {
@@ -41,8 +41,8 @@ public class ContextMenuLogging implements ContextMenuEntry {
     }
 
     @Override
-    public List<Class<?>> getSupportedTypes() {
-        return supportedTypes;
+    public Class<?> getSupportedType() {
+        return supportedType;
     }
 
 }
