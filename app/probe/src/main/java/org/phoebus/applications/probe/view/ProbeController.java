@@ -153,7 +153,10 @@ public class ProbeController {
         {
 
             menu.getItems().clear();
-            SelectionService.getInstance().setSelection("Probe", List.of(new ProcessVariable(txtPVName.getText().trim())));
+            if (!txtPVName.getText().isBlank()) {
+                SelectionService.getInstance().setSelection("Probe",
+                        List.of(new ProcessVariable(txtPVName.getText().trim())));
+            }
             ContextMenuHelper.addSupportedEntries(txtPVName, menu);
             menu.show(txtPVName.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });

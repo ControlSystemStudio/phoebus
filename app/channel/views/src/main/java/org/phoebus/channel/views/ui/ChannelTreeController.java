@@ -168,7 +168,7 @@ public class ChannelTreeController extends ChannelFinderController {
 
                     List<Object> supportedTypes = SelectionService.getInstance().getSelection().getSelections().stream()
                             .map(s -> {
-                                return AdapterService.adapt(s, (Class) entry.getSupportedTypes().get(0)).get();
+                                return AdapterService.adapt(s, entry.getSupportedType()).get();
                             }).collect(Collectors.toList());
                     // set the selection
                     SelectionService.getInstance().setSelection(treeTableView, supportedTypes);

@@ -147,6 +147,15 @@ public class TankWidget extends PVWidget
         properties.add(maximum = propMaximum.createProperty(this, 100.0));
     }
 
+    @Override
+    public WidgetProperty<?> getProperty(String name) throws IllegalArgumentException, IndexOutOfBoundsException
+    {
+        // Support legacy scripts/rules that access color_fillbackground
+        if (name.equals("color_fillbackground"))
+            return propEmptyColor();
+        return super.getProperty(name);
+    }
+
     /** @return 'font' property */
     public WidgetProperty<WidgetFont> propFont()
     {
