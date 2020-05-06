@@ -44,9 +44,9 @@ public interface ContextMenuEntry {
     }
 
     /**
-     * @return Selection types for which this entry should be displayed
+     * @return Selection type for which this entry should be displayed
      */
-    public List<Class<?>> getSupportedTypes();
+    public Class<?> getSupportedType();
 
     /**
      * Invoke the context menu
