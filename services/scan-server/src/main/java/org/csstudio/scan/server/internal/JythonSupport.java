@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2012-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -24,6 +24,7 @@ import org.python.core.PyObject;
 import org.python.core.PyString;
 import org.python.core.PySystemState;
 import org.python.core.PyVersionInfo;
+import org.python.core.RegistryKey;
 import org.python.util.PythonInterpreter;
 
 /** Helper for obtaining Jython interpreter
@@ -51,7 +52,7 @@ public class JythonSupport implements AutoCloseable
             // Disable cachedir to avoid creation of cachedir folder.
             // See http://www.jython.org/jythonbook/en/1.0/ModulesPackages.html#java-package-scanning
             // and http://wiki.python.org/jython/PackageScanning
-            props.setProperty(PySystemState.PYTHON_CACHEDIR_SKIP, "true");
+            props.setProperty(RegistryKey.PYTHON_CACHEDIR_SKIP, "true");
 
             // With python.home defined, there is no more
             // "ImportError: Cannot import site module and its dependencies: No module named site"

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,6 +23,7 @@ import java.util.concurrent.Future;
 import org.junit.Test;
 import org.python.core.PyCode;
 import org.python.core.PySystemState;
+import org.python.core.RegistryKey;
 import org.python.util.PythonInterpreter;
 
 /** Jython Demo
@@ -79,7 +80,7 @@ public class JythonTest
 
         props.setProperty("python.home", home);
         // props.setProperty("python.executable", "None");
-        props.setProperty(PySystemState.PYTHON_CACHEDIR_SKIP, "true");
+        props.setProperty(RegistryKey.PYTHON_CACHEDIR_SKIP, "true");
         props.setProperty("python.import.site", "false");
         // props.setProperty("python.console.encoding", "UTF-8");
 
