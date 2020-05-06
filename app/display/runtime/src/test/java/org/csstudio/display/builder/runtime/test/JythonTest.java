@@ -39,7 +39,7 @@ import org.python.util.PythonInterpreter;
 @SuppressWarnings("nls")
 public class JythonTest
 {
-    private final static int RUNTIME_SECONDS = 5;
+    private final static int RUNTIME_SECONDS = 5*60;
 
     // Meant to check for https://github.com/ControlSystemStudio/cs-studio/issues/1687,
     // where presumably the following happened:
@@ -49,7 +49,8 @@ public class JythonTest
     // 3) When that Jython interpreter is later used, occasionally it seems to revert to the
     //    basic path from step 1, ignoring its configuration from step 2.
     //
-    // The problem appears related to usage of ThreadLocal in org.python.core.ThreadStateMapping.
+    // The problem appears related to usage of ThreadLocal in org.python.core.ThreadStateMapping,
+    // also mentioned in https://bugs.jython.org/issue2505 "PySystemState is lost".
     // Setting all path elements once in step 1 seems to fix the problem,
     // but it would be nice to demonstrate the original issue in a unit test.
     //
