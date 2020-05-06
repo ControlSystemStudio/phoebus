@@ -204,7 +204,7 @@ public class ChannelTableController extends ChannelFinderController {
                     ObservableList<Channel> old = tableView.getSelectionModel().getSelectedItems();
 
                     List<Object> pvs = SelectionService.getInstance().getSelection().getSelections().stream().map(s -> {
-                        return AdapterService.adapt(s, (Class)entry.getSupportedTypes().get(0)).get();
+                        return AdapterService.adapt(s, entry.getSupportedType()).get();
                     }).collect(Collectors.toList());
                     // set the selection 
                     SelectionService.getInstance().setSelection(tableView, pvs);

@@ -34,7 +34,7 @@ public class ChannelInfo implements ContextMenuEntry {
     private static final String NAME = "Channel Info";
     private static final Image icon = ImageCache.getImage(ChannelTableApp.class, "/icons/channel_info.png");
 
-    private static final List<Class<?>> supportedTypes = Arrays.asList(ProcessVariable.class, Channel.class);
+    private static final Class<?> supportedTypes = Channel.class;
 
     @Override
     public String getName()
@@ -49,12 +49,11 @@ public class ChannelInfo implements ContextMenuEntry {
     }
 
     @Override
-    public List<Class<?>> getSupportedTypes()
+    public Class<?> getSupportedType()
     {
         return supportedTypes;
     }
 
-    private ExecutorService executor = Executors.newFixedThreadPool(5);
     private ChannelFinderClient client = ChannelFinderService.getInstance().getClient();
 
     @Override
@@ -62,12 +61,9 @@ public class ChannelInfo implements ContextMenuEntry {
     {
         List<ProcessVariable> pvs = new ArrayList<>();
         List<Channel> channels = new ArrayList<>();
-        List<Object> ss = SelectionService.getInstance().getSelection().getSelections();
         SelectionService.getInstance().getSelection().getSelections().stream().forEach(s -> {
-            System.out.println(s);
             if (s instanceof Channel)
             {
-                System.out.println(((Channel)s).toString());
                 channels.add((Channel)s);
             } else if (s instanceof ProcessVariable)
             {

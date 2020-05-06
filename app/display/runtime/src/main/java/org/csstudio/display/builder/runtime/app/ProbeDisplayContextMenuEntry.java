@@ -8,7 +8,6 @@
 package org.csstudio.display.builder.runtime.app;
 
 import java.net.URI;
-import java.util.Collections;
 import java.util.List;
 
 import org.csstudio.display.builder.model.DisplayModel;
@@ -33,14 +32,13 @@ import javafx.scene.image.Image;
 @SuppressWarnings("nls")
 public class ProbeDisplayContextMenuEntry implements ContextMenuEntry
 {
-    private static final List<Class<?>> types;
+    private static final Class<?> type;
 
     static
-    {
-        // Enable/disable the context menu entry by associating it with PV or nothing
-        types = Preferences.probe_display.isBlank()
-              ? Collections.emptyList()
-              : List.of(ProcessVariable.class);
+    {   // Enable/disable the context menu entry by associating it with PV or nothing
+        type = Preferences.probe_display.isBlank()
+              ? null
+              : ProcessVariable.class;
     }
 
     @Override
@@ -50,9 +48,9 @@ public class ProbeDisplayContextMenuEntry implements ContextMenuEntry
     }
 
     @Override
-    public List<Class<?>> getSupportedTypes()
+    public Class<?> getSupportedType()
     {
-        return types;
+        return type;
     }
 
     @Override
