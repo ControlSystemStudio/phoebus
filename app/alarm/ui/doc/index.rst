@@ -4,59 +4,175 @@ Alarms
 Overview
 --------
 
+The alarm system monitors the alarm state for a configurable list of PVs.
+When the alarm severity of any PV changes from `OK` to for example `MAJOR`,
+the alarm system changes to that same alarm severity (transition 1 in the diagram below).
+
+.. image:: images/alarm_states.png
+   :width: 80%
+   :align: center
+
+For the overall alarm to return to `OK`, two things need to happen:
+
+ * The alarm severity of the PV must return to `OK`
+ * The alarm must be acknowledged
+
+Typically, the alarm will persist for a while.
+A user acknowledges the alarm (2) and starts to address the underlying issue.
+Eventually, the reason for the alarm is removed, the severity of the PV recovers to `OK`,
+and the alarm system returns to an overall `OK` state (3).
+
+It is also possible that the underlying issue is short lived, and the 
+PV recovers to `OK` on its own.
+The alarm system latches the alarm, so users can see that there was an
+alarm (4). When the user acknowledges the alarm, the system returns
+to an overall `OK` state (5).
+
+The order of PV recovery and acknowledgement does therefore not matter.
+There are two more details which are not shown in the diagram.
+
+The alarm system maximizes the alarm severity of a PV.
+Assume a PV enters the alarm state (1) because its severity is `MINOR`.
+The alarm state will also be `MINOR`. If the PV severity now changes to `MAJOR`,
+the alarm state will become `MAJOR` as well. Should the PV severity now return to `MINOR`,
+the alarm state will remain `MAJOR` because the alarm system takes note of the highest
+PV severity.
+As already shown in (4), a PV severity clearing to `OK` still leaves the alarm state
+at the highest observed severity until acknowledged.
+
+Finally, while alarms will by default `latch` as described above, an alarm
+can be configured to not latch. When such a non-latching PV enters an alarm state (1),
+once the PV recovers, it will right away return to `OK` via (4) and (5) without
+requiring acknowledgement by an end user.
+
+Note that the alarm system reacts to PVs.
+Details of how PVs generate alarms, for example at which threshold
+an analog reading would enter a `MINOR` alarm state are determined
+in the control system.
+The alarm system can notify users of an alarm, but it cannot explain
+why the alarm happened and what the user should do.
+Each alarm should be configured with at least one "guidance" message
+to explain the alarm and a "display" link to a related control system
+screen.
+
+Components
+----------
+
 The alarm system consists of an alarm server and a user interface.
 
 The Alarm Server monitors a set of PVs, tracking their alarm state.
+The alarm server tracks updates to the PVs received from the control system.
 
 The user interface shows the current alarms, allows acknowledgement,
 and provides guidance, links to related displays.
 
-Fundamentally, the alarm server detects when a PV enters an alarm state.
-Even if the PV should then leave the alarm state, the alarm server
-remembers when the PV first entered the alarm state until the user acknowledges the alarm.
-
-
-Kafka
------
-
 Kafka stores the alarm system configuration, and provides the
 communication bus between the alarm server and user interface.
 
-Refer to `applications/alarm/Readme.md` for setting up Kafka.
+.. image:: images/alarm_components.png
+   :width: 50%
+   :align: center
 
-
-Alarm Server
-------------
-
-Run with ``-help`` to see command line options.
+Refer to `applications/alarm/Readme.md` for setting up Kafka
+and the alarm server.
 
 
 User Interface
 --------------
 
-Alarm Tree: Allows configuration.
+The UI includes the following applications:
 
-Alarm Table: Main runtime interface, shows current alarms.
+ * Alarm Tree: Primarily used to configure the alarm system,
+   i.e. to add PVs and define their alarm details.
 
-Annunciator: Annunciates alarms.
+   The alarm configuration is hierachical,
+   starting from for example a top-level `Accelerator`
+   configuration to components like `Vacuum`, `RF`,
+   with alarm trigger PVs listed below those components.
+   Configuration settings for `Guidance`, `Displays` etc.
+   are inherited along the hierarchy, so that all alarm under
+   `/Accelerator/Vacuum` will see all the guidance and displays
+   configured on `Vacuum`.
 
-Each of the above alarm apps can be launched from the cmd line as follows
+   The alarm system does not enforce how the hierachical configuration
+   is used. The 'components' could be subsystems like `Vacuum`, `RF`,
+   or they could refer to areas of the machine like `Front End`,
+   `Ring`, `Beam Line`. There can be several levels of sub-components,
+   and each site can decide how to arrange their alarm trigger PVs
+   to best re-use guidance and display information so that the configuration
+   of individual PVs is simplified by benefitting from the inherited
+   settings along the hierarchy.
 
-``-resource alarm://localhost/Accelerator?app=alarm_tree``
+ * Alarm Table: Main runtime interface, shows current alarms.
 
-``-resource alarm://localhost/Accelerator?app=alarm_table``
+   Ideally, this table will be empty as the machine is running without issues.
+   Once alarms occur, they are listed in a table that users can sort by PV name,
+   description, alarm time etc.
 
-``-resource alarm://localhost/Accelerator?app=alarm_area``
+   The context menu of selected alarms offers links to guidance messages and
+   related displays.  
+
+   Alarms can be acknowledged, which moves them to a separate table of acknowledged
+   alarms.
+
+ * Alarm Area Panel: Shows summary of top-level alarm hierarchy components.
+
+   Useful as a basic alarm status indicator that can be checked "across the room".
+
+ * Annunciator: Annunciates alarms.
+
+   Optional component for voice annunciation of new alarms.
+
+Each of the above alarm apps can be launched from the menu.
+They can also be opened from the cmd line as follows::
+
+    -resource alarm://localhost/Accelerator?app=alarm_tree
+    -resource alarm://localhost/Accelerator?app=alarm_table
+    -resource alarm://localhost/Accelerator?app=alarm_area
 
 
 Guidance
 --------
 
+Each alarm should have at least one guidance message to explain the meaning
+of an alarm to the user, to list for example contact information for subsystem experts.
+Guidance can be configured on each alarm PV, but it can also be configured on
+parent components of the alarm hierarchy.
+
+Title
+^^^^^
+
+A short title for the guidance that will appear in the context menu of the alarm,
+for example "Contacts" or "What to do".
+
+
+Detail
+^^^^^^
+
+A slightly longer text with the content of the guidance, for example a list of
+telephone numbers, or description of things to try for handling the alarm.
+
 Displays
 --------
 
-Commands
---------
+As with Guidance, each alarm should have at least one link to a control
+system display that shows the actual alarm PV and the surrounding subsystem.
+
+Title
+^^^^^
+
+Short title for the display link that will appear in the context menu,
+for example "Vacuum Display".
+
+Detail
+^^^^^^
+
+The display link.
+
+Examples::
+
+    /path/to/display.bob
+    /path/to/display.bob?MACRO=Value&OTHER=42$NAME=Text+with+spaces
 
 Automated Actions
 -----------------
