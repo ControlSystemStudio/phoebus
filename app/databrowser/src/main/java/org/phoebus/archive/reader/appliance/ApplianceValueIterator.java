@@ -148,7 +148,7 @@ public abstract class ApplianceValueIterator implements ValueIterator {
      */
     protected VType extractData(EpicsMessage dataMessage) {
         PayloadType type = mainStream.getPayLoadInfo().getType();
-        final Alarm alarm = Alarm.of(getSeverity(dataMessage.getSeverity()), AlarmStatus.CLIENT, String.valueOf(dataMessage.getStatus()));
+        final Alarm alarm = Alarm.of(getSeverity(dataMessage.getSeverity()), AlarmStatus.CLIENT, getStatus(dataMessage.getStatus()));
         final Time time = TimeHelper.fromInstant(TimestampHelper.fromSQLTimestamp(dataMessage.getTimestamp()));
 
         if (type == PayloadType.SCALAR_BYTE ||
@@ -311,6 +311,63 @@ public abstract class ApplianceValueIterator implements ValueIterator {
             return AlarmSeverity.INVALID;
         } else {
             return AlarmSeverity.UNDEFINED;
+        }
+    }
+
+    /**
+     * Determines alarm status from the given numerical representation.
+     *
+     * @param status numerical representation of alarm severity
+     *
+     * @return alarm status
+     */
+    protected static String getStatus(int status) {
+        if (status == 0) {
+            return "NO_ALARM";
+        } else if (status == 1) {
+            return "READ_ALARM";
+        } else if (status == 2) {
+            return "WRITE_ALARM";
+        } else if (status == 3) {
+            return "HIHI_ALARM";
+        } else if (status == 4) {
+            return "HIGH_ALARM";
+	} else if (status == 5) {
+            return "LOLO_ALARM";
+	} else if (status == 6) {
+            return "LOW_ALARM";
+	} else if (status == 7) {
+            return "STATE_ALARM";
+	} else if (status == 8) {
+            return "COS_ALARM";
+	} else if (status == 9) {
+            return "COMM_ALARM";
+	} else if (status == 10) {
+            return "TIMEOUT_ALARM";
+	} else if (status == 11) {
+            return "HW_LIMIT_ALARM";
+	} else if (status == 12) {
+            return "CALC_ALARM";
+	} else if (status == 13) {
+            return "SCAN_ALARM";
+	} else if (status == 14) {
+            return "LINK_ALARM";
+	} else if (status == 15) {
+            return "SOFT_ALARM";
+	} else if (status == 16) {
+            return "BAD_SUB_ALARM";
+	} else if (status == 17) {
+            return "UDF_ALARM";
+	} else if (status == 18) {
+            return "DISABLE_ALARM";
+	} else if (status == 19) {
+            return "SIMM_ALARM";
+	} else if (status == 20) {
+            return "READ_ACCESS_ALARM";
+	} else if (status == 21) {
+            return "WRITE_ACCESS_ALARM";
+	} else {
+            return "UNKNOWN_ALARM";
         }
     }
 }
