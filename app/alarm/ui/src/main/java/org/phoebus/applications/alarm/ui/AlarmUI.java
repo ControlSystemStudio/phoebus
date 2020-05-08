@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui;
 
+import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.javafx.ImageCache;
@@ -79,6 +80,10 @@ public class AlarmUI
      */
     public static boolean mayAcknowledge()
     {
+	String authStr = "alarm_ack." + AlarmSystem.config_name;
+	boolean hasAuthRule = AuthorizationService.hasAuthorizationRule(authStr);
+	if (hasAuthRule)
+	    return AuthorizationService.hasAuthorization(authStr);
         return AuthorizationService.hasAuthorization("alarm_ack");
     }
 
@@ -87,7 +92,35 @@ public class AlarmUI
      */
     public static boolean mayConfigure()
     {
+	String authStr = "alarm_config." + AlarmSystem.config_name;
+	boolean hasAuthRule = AuthorizationService.hasAuthorizationRule(authStr);
+	if (hasAuthRule)
+	    return AuthorizationService.hasAuthorization(authStr);
         return AuthorizationService.hasAuthorization("alarm_config");
+    }
+
+    /** Verify modify mode action through authorization service.
+     *  @return <code>true</code> if the user has authorization to modify maintenance/normal mode.
+     */
+    public static boolean mayModifyMode()
+    {
+	String authStr = "alarm_mode." + AlarmSystem.config_name;
+	boolean hasAuthRule = AuthorizationService.hasAuthorizationRule(authStr);
+	if (hasAuthRule)
+	    return AuthorizationService.hasAuthorization(authStr);
+        return AuthorizationService.hasAuthorization("alarm_mode");
+    }
+
+    /** Verify disable_notify action through authorization service.
+     *  @return <code>true</code> if the user has authorization to disable notifications.
+     */
+    public static boolean mayDisableNotify()
+    {
+	String authStr = "alarm_notify." + AlarmSystem.config_name;
+	boolean hasAuthRule = AuthorizationService.hasAuthorizationRule(authStr);
+	if (hasAuthRule)
+	    return AuthorizationService.hasAuthorization(authStr);
+        return AuthorizationService.hasAuthorization("alarm_notify");
     }
 
     /** @return Label that indicates missing server connection */
