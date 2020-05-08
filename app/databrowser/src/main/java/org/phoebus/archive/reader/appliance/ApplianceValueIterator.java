@@ -324,9 +324,6 @@ public abstract class ApplianceValueIterator implements ValueIterator {
      * @return alarm status
      */
     protected static String getStatus(int status) {
-        String stat = String.valueOf(Status.forValue(status));
-        String key = stat.replace("gov.aps.jca.dbr.Status", "").replace("[", "").
-            replace("]", "").replace("=", "").replaceAll("[0-9]", "");
-        return key;
+        return Status.forValue(status).getName();
     }
 }
