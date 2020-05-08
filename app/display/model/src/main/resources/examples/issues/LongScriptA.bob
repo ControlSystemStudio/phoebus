@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Longer Running Script A</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>550</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Widget A</name>
+    <text>Test...</text>
+    <y>50</y>
+    <width>270</width>
+    <scripts>
+      <script file="EmbeddedPy">
+        <text><![CDATA[# Embedded python script
+
+import time
+
+widget.setPropertyValue('text', str(widget) + ' script running...')
+time.sleep(1)
+widget.setPropertyValue('text', str(widget) + ' script done.')
+if not "Widget A" in str(widget):
+    raise Exception("Widget name is " +str(widget) + " instead of ..A..")]]></text>
+        <pv_name>sim://flipflop(2)</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Run concurrently with "LongScriptB".
+
+When scripts are invoked, the 'widget' variable should be set to the respective widget.
+Script then checks if its correct.
+Since both scripts sleep for a while, we should detect if the display runtime erroneously
+shares the same context, i.e. running script 'B' sets widget to 'B' and 'A' then sees that value.</text>
+    <x>10</x>
+    <y>90</y>
+    <width>600</width>
+    <height>140</height>
+  </widget>
+</display>
