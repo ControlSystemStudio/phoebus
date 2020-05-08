@@ -332,41 +332,41 @@ public abstract class ApplianceValueIterator implements ValueIterator {
             return "HIHI_ALARM";
         } else if (status == 4) {
             return "HIGH_ALARM";
-	} else if (status == 5) {
+        } else if (status == 5) {
             return "LOLO_ALARM";
-	} else if (status == 6) {
+        } else if (status == 6) {
             return "LOW_ALARM";
-	} else if (status == 7) {
+        } else if (status == 7) {
             return "STATE_ALARM";
-	} else if (status == 8) {
+        } else if (status == 8) {
             return "COS_ALARM";
-	} else if (status == 9) {
+        } else if (status == 9) {
             return "COMM_ALARM";
-	} else if (status == 10) {
+        } else if (status == 10) {
             return "TIMEOUT_ALARM";
-	} else if (status == 11) {
+        } else if (status == 11) {
             return "HW_LIMIT_ALARM";
-	} else if (status == 12) {
+        } else if (status == 12) {
             return "CALC_ALARM";
-	} else if (status == 13) {
+        } else if (status == 13) {
             return "SCAN_ALARM";
-	} else if (status == 14) {
+        } else if (status == 14) {
             return "LINK_ALARM";
-	} else if (status == 15) {
+        } else if (status == 15) {
             return "SOFT_ALARM";
-	} else if (status == 16) {
+        } else if (status == 16) {
             return "BAD_SUB_ALARM";
-	} else if (status == 17) {
+        } else if (status == 17) {
             return "UDF_ALARM";
-	} else if (status == 18) {
+        } else if (status == 18) {
             return "DISABLE_ALARM";
-	} else if (status == 19) {
+        } else if (status == 19) {
             return "SIMM_ALARM";
-	} else if (status == 20) {
+        } else if (status == 20) {
             return "READ_ACCESS_ALARM";
-	} else if (status == 21) {
+        } else if (status == 21) {
             return "WRITE_ACCESS_ALARM";
-	} else {
+        } else {
             return "UNKNOWN_ALARM";
         }
     }
