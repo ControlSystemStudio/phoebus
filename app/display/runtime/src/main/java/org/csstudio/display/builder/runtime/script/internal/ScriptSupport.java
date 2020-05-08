@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.properties.ScriptInfo;
@@ -39,8 +40,11 @@ import org.phoebus.framework.jobs.NamedThreadFactory;
 @SuppressWarnings("nls")
 public class ScriptSupport
 {
+    /** Increment instance numbers across all script support threads */
+    private static final ThreadFactory thread_factory = new NamedThreadFactory("ScriptSupport");
+
     /** Single thread script executor, shared by Jython and Javascript */
-    private final ExecutorService executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("ScriptSupport"));
+    private final ExecutorService executor = Executors.newSingleThreadExecutor(thread_factory);
 
     /** Futures of submitted scripts to allow cancellation */
     private final Queue<Future<Object>> active_scripts = new ConcurrentLinkedQueue<>();
