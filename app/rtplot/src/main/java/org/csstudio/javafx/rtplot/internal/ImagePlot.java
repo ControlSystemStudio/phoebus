@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -763,18 +763,45 @@ public class ImagePlot extends PlotCanvasBase
         if (! roi.isVisible())
             return;
 
-        gc.setColor(GraphicsUtils.convert(roi.getColor()));
+        final Color color = GraphicsUtils.convert(roi.getColor());
         final java.awt.geom.Rectangle2D rect = roiToScreen(roi);
         final Image image = roi.getImage();
         if (image == null)
-            gc.drawRect((int)rect.getMinX(), (int)rect.getMinY(), (int)rect.getWidth(), (int)rect.getHeight());
+        {
+            gc.setColor(color);
+            gc.drawRect((int)rect.getMinX(), (int)rect.getMinY(), (int)rect.getWidth()-1, (int)rect.getHeight()-1);
+            if (rect.getWidth() > 3  &&  rect.getHeight() > 3)
+            {
+                // Determine contrasting color for outline
+                gc.setColor(getBrightness(color) > BRIGHT_THRESHOLD
+                            ? color.darker()
+                            : color.brighter());
+                // Inside, outside
+                gc.drawRect((int)rect.getMinX()+1, (int)rect.getMinY()+1, (int)rect.getWidth()-3, (int)rect.getHeight()-3);
+                gc.drawRect((int)rect.getMinX()-1, (int)rect.getMinY()-1, (int)rect.getWidth()+1, (int)rect.getHeight()+1);
+            }
+        }
         else
         {
             final BufferedImage awt_image = SwingFXUtils.fromFXImage(image, null);
             gc.drawImage(awt_image, (int)rect.getMinX(), (int)rect.getMinY(), (int)rect.getWidth(), (int)rect.getHeight(), null);
         }
 
-        gc.drawString(roi.getName(), (int)rect.getMinX(), (int)rect.getMinY());
+        gc.setColor(color);
+        gc.drawString(roi.getName(), (int)rect.getMinX(), (int)rect.getMinY()-2);
+    }
+
+    // Brightness weightings from BOY
+    // https://github.com/ControlSystemStudio/cs-studio/blob/master/applications/opibuilder/opibuilder-plugins/org.csstudio.swt.widgets/src/org/csstudio/swt/widgets/figures/LEDFigure.java
+    /** Threshold for considering a color 'bright', suggesting a darker outline */
+    public static final double BRIGHT_THRESHOLD = 105000;
+
+    /** @param color Color
+     *  @return Weighed brightness
+     */
+    public static double getBrightness(final Color color)
+    {
+        return color.getRed() * 299 + color.getGreen() * 587 + color.getBlue() * 114;
     }
 
     /** @param min Value ..
@@ -920,7 +947,7 @@ public class ImagePlot extends PlotCanvasBase
 	        	{
 	        		//red
         			for (int x = 0; x < data_width; ++x)
-        				data[y_times_width + x] = 0xFF000000 | next_rgbs[0].applyAsInt(iter);;
+        				data[y_times_width + x] = 0xFF000000 | next_rgbs[0].applyAsInt(iter);
         			//green
         			for (int x = 0; x < data_width; ++x)
         				data[y_times_width + x] |= next_rgbs[1].applyAsInt(iter);
