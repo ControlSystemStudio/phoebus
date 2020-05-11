@@ -356,7 +356,7 @@ public class SelectedWidgetUITracker extends Tracker
     }
 
     /** Locate widgets that would be 'clicked' by a mouse event's location */
-    private class ClickWidgets extends RecursiveTask<Void>
+    private class ClickWidgets extends RecursiveTask<Boolean>
     {
         private static final long serialVersionUID = 7120422764377430463L;
         private final MouseEvent event;
@@ -369,14 +369,18 @@ public class SelectedWidgetUITracker extends Tracker
         }
 
         @Override
-        protected Void compute()
+        protected Boolean compute()
         {
-            click(widgets);
-            return null;
+            return click(widgets);
         }
 
-        private void click(final List<Widget> widgets)
+        /** @param widgets Widgets to click
+         *  @return Was at least one widget clicked?
+         */
+        private Boolean click(final List<Widget> widgets)
         {
+            boolean clicked = false;
+
             final int N = widgets.size();
             if (N > TrackerSnapConstraint.PARALLEL_THRESHOLD)
             {
@@ -385,15 +389,35 @@ public class SelectedWidgetUITracker extends Tracker
                 final ClickWidgets sub2 = new ClickWidgets(event, widgets.subList(split, N));
                 // Spawn sub1, handle sub2 in this thread
                 sub1.fork();
-                sub2.compute();
+                clicked = sub2.compute();
+                if (sub1.join())
+                    clicked = true;
+
             }
             else
+            {
                 for (Widget widget : widgets)
-                    if (GeometryTools.getDisplayBounds(widget).contains(event.getX(), event.getY()))
-                    {
-                        logger.log(Level.FINE, () -> "Tracker passes click through to " + widget);
-                        toolkit.execute(() -> toolkit.fireClick(widget, event.isShortcutDown()));
-                    }
+                {
+                    // If there are child widgets, first check those.
+                    // If one of them gets clicked, skip checking the parent (e.g. group)
+                    // since 'selecting' a child should not toggle the parent's selection.
+                    final ChildrenProperty children = ChildrenProperty.getChildren(widget);
+                    if (children != null  &&
+                        click(children.getValue()))
+                        clicked = true;
+
+                    // If no child widget got clicked, check widget itself
+                    if (! clicked)
+                        if (GeometryTools.getDisplayBounds(widget).contains(event.getX(), event.getY()))
+                        {
+                            logger.log(Level.FINE, () -> "Tracker passes click through to " + widget);
+                            toolkit.execute(() -> toolkit.fireClick(widget, event.isShortcutDown()));
+                            clicked = true;
+                        }
+                }
+            }
+
+            return clicked;
         }
     }
 
