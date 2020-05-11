@@ -240,6 +240,7 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
                     python.set("widget", widget);
                     python.set("pvs", pvs);
                 }
+                logger.log(Level.INFO, () -> "Exec " + script + " for " + widget + " in " + python + ", locals: " + python.getLocals());
                 // .. but don't want to block for the duration of the script
                 python.exec(script.getCode());
             }
