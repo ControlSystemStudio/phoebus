@@ -131,6 +131,83 @@ They can also be opened from the cmd line as follows::
     -resource alarm://localhost/Accelerator?app=alarm_area
 
 
+Alarm Configuration Options
+---------------------------
+
+The options for an entry in the hierarchical alarm configuration
+always include guidance, display links etc. as described further below.
+In addition, alarm PV entries have the following settings.
+
+Description
+^^^^^^^^^^^
+This text is displayed in the alarm table when the alarm triggers.
+
+The description is also used by the alarm annunciator.
+By default, the annunciator will start the actual message with
+the alarm severity. For example, a description of "Vacuum Problem"
+will be annunciated as for example "Minor Alarm: Vacuum Problem".
+The addition of the alarm severity can be disabled by starting
+the description with a "*" as in "* Vacuum Problem".
+
+When there is a flurry of alarms, the annunciator will summarize
+them to "There are 10 more alarms". To assert that certain alarms
+are always annunciated, even if they occur within a burst of other alarms,
+start the message with "!" (or "*!").
+
+
+Behavior
+^^^^^^^^
+
+ * Enabled:
+   De-select to disable an alarm, i.e. to ignore the value of this alarm trigger PV.
+
+ * Latch:
+   By default, alarms latch to the highest received severity until the alarm is acknowledged
+   and clears. De-select if the alarm should recover without requiring acknowledgement.
+
+ * Annunciate:
+   Should the alarm be annunciated (if the annunciator is running), or should it only
+   be displayed silently?
+
+ * Alarm Delay:
+   Only alarm if the trigger PV remains in alarm for at least this time.
+   
+ * Alarm Count:
+   Used in combination with the alarm delay.
+   If the trigger PVs exhibits a not-OK alarm severity more more than 'count' times
+   within the alarm delay, recognize the alarm.
+
+   For example, an alarm delay of 10 with an alarm count of 5 means:
+   Recognise an alarm if the PV enters a not-OK severity for more than 10 seconds,
+   or more often than 5 times within 10 seconds.
+
+   When the count is zero, only the alarm delay is used.
+
+ * Enabling Filter:
+   An optional expression that can enable the alarm based on other PVs.
+   
+   Example: `'abc' > 10` will only enable this alarm if the PV 'abc' has a value above 10.
+
+
+While the filter, alarm delay and count can be helpful to reduce the number of alarms from 'noisy' PVs,
+ideally all such logic is implemented at the source, i.e. in the IOC that provides the alarm trigger PV.
+This not only simplifies the task of the alarm system, but also makes the behavior more obvious,
+since a PV is used "as is", the alarm server uses the same alarm state that is indicated in a display panel,
+without adding filtering that might not be obvious when later inspecting an alarm.
+
+Note again that the alarm system only reacts to the severity of alarm trigger PVs.
+Why, when and for how long an alarm trigger PV enters an alarm state is configured on the data source,
+and is not immediately obvious from the received alarm severity.
+
+For example, an analog record might enter a MINOR alarm state when its value exceeds the 'HIGH' value.
+Why a certain HIGH threshold was chosen, what the user should do about it, and how the threshold could
+be changed, however, cannot be automatically determined.
+When adding an alarm trigger PV to the alarm system, it is thererfore important to also configure
+guidance and display links which allow the user to figure out:
+
+ * What does this alarm mean? What should I do about it?
+ * What displays allow me to see more, where can I do something about the alarm?
+
 Guidance
 --------
 
@@ -139,18 +216,14 @@ of an alarm to the user, to list for example contact information for subsystem e
 Guidance can be configured on each alarm PV, but it can also be configured on
 parent components of the alarm hierarchy.
 
-Title
-^^^^^
-
-A short title for the guidance that will appear in the context menu of the alarm,
-for example "Contacts" or "What to do".
+ * Title:
+   A short title for the guidance that will appear in the context menu of the alarm,
+   for example "Contacts" or "What to do".
 
 
-Detail
-^^^^^^
-
-A slightly longer text with the content of the guidance, for example a list of
-telephone numbers, or description of things to try for handling the alarm.
+ * Detail:
+   A slightly longer text with the content of the guidance, for example a list of
+   telephone numbers, or description of things to try for handling the alarm.
 
 Displays
 --------
@@ -158,16 +231,12 @@ Displays
 As with Guidance, each alarm should have at least one link to a control
 system display that shows the actual alarm PV and the surrounding subsystem.
 
-Title
-^^^^^
+ * Title:
+   Short title for the display link that will appear in the context menu,
+   for example "Vacuum Display".
 
-Short title for the display link that will appear in the context menu,
-for example "Vacuum Display".
-
-Detail
-^^^^^^
-
-The display link.
+ * Detail:
+   The display link.
 
 Examples::
 
@@ -187,24 +256,18 @@ then this is best handled in the IOC.
 
 The automated action configuration has three parts:
 
-Title
-^^^^^
+ * Title:
+   The "Title" can be set to a short description of the action.
 
-The "Title" can be set to a short description of the action.
-
-
-Delay
-^^^^^
-
-The "Delay", in seconds, determines how long the node needs to be in an active alarm state
-before the automated action is executed.
-A delay of 0 seconds will immediately execute the action, which in practice
-suggests that the action should be implemented on an IOC.
+ * Delay:
+   The "Delay", in seconds, determines how long the node needs to be in an active alarm state
+   before the automated action is executed.
+   A delay of 0 seconds will immediately execute the action, which in practice
+   suggests that the action should be implemented on an IOC.
 
 
-Detail
-^^^^^^
-The "Detail" determines what the automated action will do.
+ * Detail:
+   The "Detail" determines what the automated action will do.
 
 
 ``mailto:user@site.org,another@else.com``:
