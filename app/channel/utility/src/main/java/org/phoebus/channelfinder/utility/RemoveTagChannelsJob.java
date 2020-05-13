@@ -31,7 +31,7 @@ public class RemoveTagChannelsJob implements JobRunnable {
                                 final Collection<String> channelNames,
                                 final Tag tag,
                                 final BiConsumer<String, Exception> error_handler) {
-        return JobManager.schedule("Adding tag : " + tag.getName() + " to " + channelNames.size() + " channels",
+        return JobManager.schedule("Removing tag : " + tag.getName() + " to " + channelNames.size() + " channels",
                 new RemoveTagChannelsJob(client, channelNames, tag, error_handler));
     }
 
@@ -45,7 +45,7 @@ public class RemoveTagChannelsJob implements JobRunnable {
 
     @Override
     public void run(JobMonitor monitor) throws Exception {
-        monitor.beginTask("Adding tag : " + tag.getName() + " to " + channelNames.size() + " channels");
+        monitor.beginTask("Removing tag : " + tag.getName() + " to " + channelNames.size() + " channels");
         client.delete(Tag.Builder.tag(tag), channelNames);
         //schannel_handler.accept(channels);
     }

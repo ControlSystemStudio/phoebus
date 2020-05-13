@@ -39,7 +39,7 @@ public class AddProperty2ChannelsJob implements JobRunnable {
                                 final Collection<String> channelNames,
                                 final Property property,
                                 final BiConsumer<String, Exception> error_handler) {
-        return JobManager.schedule("Adding tag : " + property.getName() + " to " + channelNames.size() + " channels",
+        return JobManager.schedule("Adding property : " + property.getName() + " to " + channelNames.size() + " channels",
                 new AddProperty2ChannelsJob(client, channelNames, property, error_handler));
     }
 
