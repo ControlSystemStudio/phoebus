@@ -237,11 +237,19 @@ system display that shows the actual alarm PV and the surrounding subsystem.
 
  * Detail:
    The display link.
+   This is handled similar to `-resource..` arguments passed on the command line.
+   For plain display files, the complete path to the file will suffice,
+   and the display tool is recognized by the file extension,
+   i.e. `*.bob` for the display runtime, or `*.html` to open a web page.
+   When passing macros, a complete URL is required.
+   
 
 Examples::
 
     /path/to/display.bob
-    /path/to/display.bob?MACRO=Value&OTHER=42$NAME=Text+with+spaces
+    http://server.site/path/to/display.bob
+    http://server.site/path/to/display.bob?MACRO=Value&ANSWER=42
+    file:///path/to/display.bob?MACRO=Value&OTHER=42$NAME=Text+with+spaces
 
 Automated Actions
 -----------------
