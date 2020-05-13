@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 
 /** File Based Authorization Implementation
  *  @author Evan Smith
+ *  @author Tanvi Ashwarya
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -30,7 +31,7 @@ public class FileBasedAuthorization implements Authorization
 {
     private final String user_name;
     private final Authorizations user_authorizations;
-    private List<String> rules = new ArrayList<String>();
+    private final List<String> rules = new ArrayList<>();
 
     public FileBasedAuthorization(final InputStream config_stream, final String user_name) throws Exception
     {
@@ -96,16 +97,16 @@ public class FileBasedAuthorization implements Authorization
     }
 
     @Override
-    public boolean hasAuthorization(String authorization)
+    public boolean isAuthorizationDefined(final String authorization)
+    {
+        return this.rules.contains(authorization);
+    }
+
+    @Override
+    public boolean hasAuthorization(final String authorization)
     {
         if (null == user_authorizations)
             return false;
         return user_authorizations.haveAuthorization(authorization);
-    }
-
-    @Override
-    public boolean hasAuthorizationRule(String auth_rule)
-    {
-        return this.rules.contains(auth_rule);
     }
 }
