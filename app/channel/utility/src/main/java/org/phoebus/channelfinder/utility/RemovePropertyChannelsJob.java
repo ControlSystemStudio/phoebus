@@ -29,11 +29,12 @@ public class RemovePropertyChannelsJob implements JobRunnable {
     /**
      * submit a job to remove a Property from a channel or a group of channels
      *
-     * @param name - job name
-     * @param channelNames - collection of channels to which the tag is to be added
-     * @param propertytag - builder of the the tag to be added
+     * @param client - channelfinder client, which this job be submitted to
+     * @param channelNames - collection of channels to which the property is to be removed
+     * @param property - the property to be removed
+     * @param error_handler 
      */
-    public static Job submit(ChannelFinderClient client,
+     public static Job submit(ChannelFinderClient client,
                                 final Collection<String> channelNames,
                                 final Property property,
                                 final BiConsumer<String, Exception> error_handler) {
