@@ -10,6 +10,7 @@ package org.csstudio.display.builder.representation.javafx;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.phoebus.framework.macros.Macros;
@@ -47,6 +48,8 @@ import javafx.util.converter.DefaultStringConverter;
 @SuppressWarnings("nls")
 public class MacrosTable
 {
+    private static final String EDITING = "editing";
+    private final AtomicBoolean editing = new AtomicBoolean(false);
     /** Java FX type observable property for a macro (name, value) pair */
     public static class MacroItem
     {
@@ -112,13 +115,34 @@ public class MacrosTable
             {
                 final String name = param.getValue().getName();
                 if (name.isEmpty())
+                {
                     return new ReadOnlyStringWrapper(Messages.MacrosTable_NameHint);
+                }
                 return new ReadOnlyStringWrapper(name);
             }
         });
-        name_col.setCellFactory((column) -> new EditCell<>(new DefaultStringConverter()));
+        name_col.setCellFactory((column) -> new EditCell<>(new DefaultStringConverter() {
+            /** {@inheritDoc} */
+            @Override public String toString(String value) {
+                if(editing.get())
+                {
+                    if(value != null && value.equalsIgnoreCase(Messages.MacrosTable_NameHint))
+                        return "";
+                }
+                return (value != null) ? value : "";
+            }
+
+        }));
+        name_col.setOnEditStart(event ->
+        {
+            editing.set(true);
+        });
+        name_col.setOnEditCancel(event -> {
+            editing.set(false);
+        });
         name_col.setOnEditCommit(event ->
         {
+            editing.set(false);
             final int row = event.getTablePosition().getRow();
             final String name = event.getNewValue();
             final String error = Macros.checkMacroName(name);
@@ -167,9 +191,28 @@ public class MacrosTable
                 return new ReadOnlyStringWrapper(name);
             }
         });
-        value_col.setCellFactory((column) -> new EditCell<>(new DefaultStringConverter()));
+        value_col.setCellFactory((column) -> new EditCell<>(new DefaultStringConverter() {
+            /** {@inheritDoc} */
+            @Override public String toString(String value) {
+                if(editing.get())
+                {
+                    if(value != null && value.equalsIgnoreCase(Messages.MacrosTable_ValueHint))
+                        return "";
+                }
+                return (value != null) ? value : "";
+            }
+
+        }));
+        value_col.setOnEditStart(event ->
+        {
+            editing.set(true);
+        });
+        value_col.setOnEditCancel(event -> {
+            editing.set(false);
+        });
         value_col.setOnEditCommit(event ->
         {
+            editing.set(false);
             final int row = event.getTablePosition().getRow();
             data.get(row).setValue(event.getNewValue());
             if (!enterHit)
