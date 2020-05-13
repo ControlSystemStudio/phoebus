@@ -24,6 +24,7 @@ import javafx.scene.paint.Color;
  *
  *  <p>Icons for {@link SeverityLevel}.
  *
+ *  @author Tanvi Ashwarya
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -81,7 +82,7 @@ public class AlarmUI
     public static boolean mayAcknowledge()
     {
         String authStr = "alarm_ack." + AlarmSystem.config_name;
-        boolean hasAuthRule = AuthorizationService.hasAuthorizationRule(authStr);
+        boolean hasAuthRule = AuthorizationService.isAuthorizationDefined(authStr);
         if (hasAuthRule)
             return AuthorizationService.hasAuthorization(authStr);
         return AuthorizationService.hasAuthorization("alarm_ack");
@@ -93,7 +94,7 @@ public class AlarmUI
     public static boolean mayConfigure()
     {
         String authStr = "alarm_config." + AlarmSystem.config_name;
-        boolean hasAuthRule = AuthorizationService.hasAuthorizationRule(authStr);
+        boolean hasAuthRule = AuthorizationService.isAuthorizationDefined(authStr);
         if (hasAuthRule)
             return AuthorizationService.hasAuthorization(authStr);
         return AuthorizationService.hasAuthorization("alarm_config");
@@ -105,7 +106,7 @@ public class AlarmUI
     public static boolean mayModifyMode()
     {
         String authStr = "alarm_mode." + AlarmSystem.config_name;
-        boolean hasAuthRule = AuthorizationService.hasAuthorizationRule(authStr);
+        boolean hasAuthRule = AuthorizationService.isAuthorizationDefined(authStr);
         if (hasAuthRule)
             return AuthorizationService.hasAuthorization(authStr);
         return AuthorizationService.hasAuthorization("alarm_mode");
@@ -117,7 +118,7 @@ public class AlarmUI
     public static boolean mayDisableNotify()
     {
         String authStr = "alarm_notify." + AlarmSystem.config_name;
-        boolean hasAuthRule = AuthorizationService.hasAuthorizationRule(authStr);
+        boolean hasAuthRule = AuthorizationService.isAuthorizationDefined(authStr);
         if (hasAuthRule)
             return AuthorizationService.hasAuthorization(authStr);
         return AuthorizationService.hasAuthorization("alarm_notify");
