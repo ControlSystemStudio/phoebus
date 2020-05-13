@@ -34,6 +34,7 @@ import org.phoebus.util.text.CompareNatural;
 import org.phoebus.util.time.TimestampFormats;
 
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
@@ -259,9 +260,11 @@ public class AlarmTableUI extends BorderPane
     {
         setMaintenanceMode(false);
         server_mode.setOnAction(event ->  client.setMode(! client.isMaintenanceMode()));
+        server_mode.disableProperty().bind(new SimpleBooleanProperty(!AlarmUI.mayModifyMode()));
 
 	setDisableNotify(false);
         server_notify.setOnAction(event ->  client.setNotify(! client.isDisableNotify()));
+        server_notify.disableProperty().bind(new SimpleBooleanProperty(!AlarmUI.mayDisableNotify()));
 
         final Button acknowledge = new Button("", ImageCache.getImageView(AlarmUI.class, "/icons/acknowledge.png"));
         acknowledge.disableProperty().bind(Bindings.isEmpty(active.getSelectionModel().getSelectedItems()));

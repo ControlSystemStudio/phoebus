@@ -17,4 +17,10 @@ public interface Authorization
      *  @return <code>true</code> if user holds that authorization
      */
     public boolean hasAuthorization(final String authorization);
+
+    /** Check if an authorization rule exists
+     *  @param auth_rule Name of the authorization rule
+     *  @return <code>true</code> if auth rule exists
+     */
+    public boolean hasAuthorizationRule(final String auth_rule);
 }

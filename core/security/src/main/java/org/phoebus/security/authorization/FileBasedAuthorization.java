@@ -30,6 +30,7 @@ public class FileBasedAuthorization implements Authorization
 {
     private final String user_name;
     private final Authorizations user_authorizations;
+    private List<String> rules = new ArrayList<String>();
 
     public FileBasedAuthorization(final InputStream config_stream, final String user_name) throws Exception
     {
@@ -48,6 +49,7 @@ public class FileBasedAuthorization implements Authorization
         for(Entry<String, List<Pattern>> rule : rules.entrySet())
         {
             final String permission = rule.getKey();
+            this.rules.add(permission);
             final List<Pattern> patterns = rule.getValue();
             if (userMatchesPattern(patterns))
                 authorizations.add(permission);
@@ -99,5 +101,11 @@ public class FileBasedAuthorization implements Authorization
         if (null == user_authorizations)
             return false;
         return user_authorizations.haveAuthorization(authorization);
+    }
+
+    @Override
+    public boolean hasAuthorizationRule(String auth_rule)
+    {
+        return this.rules.contains(auth_rule);
     }
 }

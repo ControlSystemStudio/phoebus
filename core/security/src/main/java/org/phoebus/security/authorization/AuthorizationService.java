@@ -105,4 +105,16 @@ public class AuthorizationService
             return false;
         return authorizations.hasAuthorization(authorization);
     }
+
+    /** Check if an authorization rule exists
+     *  @param auth_rule Name of the authorization rule
+     *  @return <code>true</code> if authorization rule exists
+     */
+    public static boolean hasAuthorizationRule(final String auth_rule)
+    {
+        final Authorization authorizations = instance.get();
+        if (authorizations == null)
+            return false;
+        return authorizations.hasAuthorizationRule(auth_rule);
+    }
 }
