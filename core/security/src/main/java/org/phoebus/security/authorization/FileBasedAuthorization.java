@@ -49,7 +49,7 @@ public class FileBasedAuthorization implements Authorization
         for(Entry<String, List<Pattern>> rule : rules.entrySet())
         {
             final String permission = rule.getKey();
-	    this.rules.add(permission);
+            this.rules.add(permission);
             final List<Pattern> patterns = rule.getValue();
             if (userMatchesPattern(patterns))
                 authorizations.add(permission);
@@ -103,7 +103,7 @@ public class FileBasedAuthorization implements Authorization
         return user_authorizations.haveAuthorization(authorization);
     }
 
-     @Override
+    @Override
     public boolean hasAuthorizationRule(String auth_rule)
     {
         return this.rules.contains(auth_rule);
