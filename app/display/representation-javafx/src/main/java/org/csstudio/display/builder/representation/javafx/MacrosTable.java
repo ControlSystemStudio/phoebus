@@ -296,8 +296,8 @@ public class MacrosTable
         // Assert one empty row at bottom
         final int len  = data.size();
         if (len <= 0  ||
-                (data.get(len-1).getName().trim().length() > 0  &&
-                        data.get(len-1).getValue().trim().length() > 0) )
+            (data.get(len-1).getName().trim().length() > 0  &&
+             data.get(len-1).getValue().trim().length() > 0) )
             data.add(new MacroItem("", ""));
 
         for (InvalidationListener listener : listeners)
