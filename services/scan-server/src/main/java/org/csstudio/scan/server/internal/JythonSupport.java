@@ -18,6 +18,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import org.csstudio.scan.server.ScanServerInstance;
+import org.python.core.Options;
 import org.python.core.Py;
 import org.python.core.PyException;
 import org.python.core.PyObject;
@@ -53,6 +54,13 @@ public class JythonSupport implements AutoCloseable
             // See http://www.jython.org/jythonbook/en/1.0/ModulesPackages.html#java-package-scanning
             // and http://wiki.python.org/jython/PackageScanning
             props.setProperty(RegistryKey.PYTHON_CACHEDIR_SKIP, "true");
+
+            // By default, Jython compiler creates bytecode files xxx$py.class
+            // adjacent to the *.py source file.
+            // They are owned by the current user, which typically results in
+            // problems for other users, who can either not read them, or not
+            // write updates after *.py changes.
+            Options.dont_write_bytecode = true;
 
             // With python.home defined, there is no more
             // "ImportError: Cannot import site module and its dependencies: No module named site"
