@@ -5,32 +5,31 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.representation.test;
+package org.csstudio.display.builder.representation.javafx;
 
-import org.csstudio.display.builder.representation.javafx.MacrosDialog;
-import org.phoebus.framework.macros.Macros;
+import org.csstudio.display.builder.model.properties.Points;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
 import javafx.stage.Stage;
 
-/** Demo of {@link MacrosDialog}
+/** Demo of {@link PointsDialog}
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
-public class JFXMacrosDialogDemo extends ApplicationWrapper
+public class JFXPointsDialogDemo extends ApplicationWrapper
 {
     public static void main(final String[] args)
     {
-        launch(JFXMacrosDialogDemo.class, args);
+        launch(JFXPointsDialogDemo.class, args);
     }
 
     @Override
     public void start(final Stage stage)
     {
-        final Macros macros = new Macros();
-        macros.add("S", "Test");
-        macros.add("N", "17");
-        final MacrosDialog dialog = new MacrosDialog(macros, null);
+        final Points points = new Points();
+        points.add(1, 10);
+        points.add(2, 20);
+        points.add(3, 30);
+        final PointsDialog dialog = new PointsDialog(points, null);
         System.out.println(dialog.showAndWait());
     }
 }

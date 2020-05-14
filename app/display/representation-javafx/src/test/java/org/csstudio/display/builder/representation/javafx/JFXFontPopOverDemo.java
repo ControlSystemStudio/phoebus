@@ -5,13 +5,12 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.representation.test;
+package org.csstudio.display.builder.representation.javafx;
 
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.FontWidgetProperty;
-import org.csstudio.display.builder.representation.javafx.WidgetFontPopOver;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
 import javafx.scene.Scene;

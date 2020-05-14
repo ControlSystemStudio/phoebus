@@ -5,10 +5,9 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.representation.test;
+package org.csstudio.display.builder.representation.javafx;
 
 import org.csstudio.display.builder.model.properties.PredefinedColorMaps;
-import org.csstudio.display.builder.representation.javafx.ColorMapDialog;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
 import javafx.stage.Stage;

@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.representation.test;
+package org.csstudio.display.builder.representation.javafx;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +14,6 @@ import java.util.Optional;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.properties.ScriptPV;
-import org.csstudio.display.builder.representation.javafx.ScriptsDialog;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
 import javafx.stage.Stage;
