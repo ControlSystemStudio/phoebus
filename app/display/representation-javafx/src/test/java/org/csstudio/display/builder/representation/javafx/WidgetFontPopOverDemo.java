@@ -18,7 +18,7 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
-/** Demo of {@link WidgetFontDialog}
+/** Demo of {@link WidgetFontPopOver}
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
