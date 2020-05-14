@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.representation.test;
+package org.csstudio.display.builder.representation.javafx;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,7 +19,6 @@ import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
 import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo.Target;
 import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.properties.WritePVActionInfo;
-import org.csstudio.display.builder.representation.javafx.ActionsDialog;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
@@ -29,11 +28,11 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class JFXActionsDialogDemo extends ApplicationWrapper
+public class ActionsDialogDemo extends ApplicationWrapper
 {
     public static void main(final String[] args)
     {
-        launch(JFXActionsDialogDemo.class, args);
+        launch(ActionsDialogDemo.class, args);
     }
 
     @Override

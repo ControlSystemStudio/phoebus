@@ -5,32 +5,27 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.representation.test;
+package org.csstudio.display.builder.representation.javafx;
 
-import org.csstudio.display.builder.model.properties.Points;
-import org.csstudio.display.builder.representation.javafx.PointsDialog;
+import org.csstudio.display.builder.model.properties.PredefinedColorMaps;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
 import javafx.stage.Stage;
 
-/** Demo of {@link PointsDialog}
+/** Demo of {@link ColorMapDialog}
  *  @author Kay Kasemir
  */
-public class JFXPointsDialogDemo extends ApplicationWrapper
+public class ColorMapDialogDemo extends ApplicationWrapper
 {
     public static void main(final String[] args)
     {
-        launch(JFXPointsDialogDemo.class, args);
+        launch(ColorMapDialogDemo.class, args);
     }
 
     @Override
     public void start(final Stage stage)
     {
-        final Points points = new Points();
-        points.add(1, 10);
-        points.add(2, 20);
-        points.add(3, 30);
-        final PointsDialog dialog = new PointsDialog(points, null);
+        final ColorMapDialog dialog = new ColorMapDialog(PredefinedColorMaps.VIRIDIS, null);
         System.out.println(dialog.showAndWait());
     }
 }
