@@ -56,8 +56,12 @@ public class AlarmSystem
     /** Kafka Server host:port */
     public static final String server;
 
-    /** Name of alarm tree root */
-    public static final String config_name;
+    /** Name of alarm tree root
+     *
+     *  <p>Initial name from preferences,
+     *  potentially changed via UI to the last selected name.
+     */
+    public static volatile String config_name;
 
     /** Names of selectable alarm configurations */
     public static final List<String> config_names;
