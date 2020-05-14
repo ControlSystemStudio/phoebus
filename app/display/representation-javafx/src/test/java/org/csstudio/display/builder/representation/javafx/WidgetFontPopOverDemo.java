@@ -22,7 +22,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class JFXFontPopOverDemo extends ApplicationWrapper
+public class WidgetFontPopOverDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage)
@@ -49,6 +49,6 @@ public class JFXFontPopOverDemo extends ApplicationWrapper
 
     public static void main(final String[] args)
     {
-        launch(JFXFontPopOverDemo.class, args);
+        launch(WidgetFontPopOverDemo.class, args);
     }
 }

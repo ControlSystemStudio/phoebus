@@ -15,11 +15,11 @@ import javafx.stage.Stage;
 /** Demo of {@link PointsDialog}
  *  @author Kay Kasemir
  */
-public class JFXPointsDialogDemo extends ApplicationWrapper
+public class PointsDialogDemo extends ApplicationWrapper
 {
     public static void main(final String[] args)
     {
-        launch(JFXPointsDialogDemo.class, args);
+        launch(PointsDialogDemo.class, args);
     }
 
     @Override

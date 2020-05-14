@@ -24,11 +24,11 @@ import javafx.stage.Stage;
  */
 @SuppressWarnings("nls")
 
-public class JFXColorPopOverDemo extends ApplicationWrapper
+public class ColorPopOverDemo extends ApplicationWrapper
 {
     public static void main(final String[] args)
     {
-        launch(JFXColorPopOverDemo.class, args);
+        launch(ColorPopOverDemo.class, args);
     }
 
     @Override

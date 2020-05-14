@@ -15,11 +15,11 @@ import javafx.stage.Stage;
 /** Demo of {@link ColorMapDialog}
  *  @author Kay Kasemir
  */
-public class JFXColorMapDialogDemo extends ApplicationWrapper
+public class ColorMapDialogDemo extends ApplicationWrapper
 {
     public static void main(final String[] args)
     {
-        launch(JFXColorMapDialogDemo.class, args);
+        launch(ColorMapDialogDemo.class, args);
     }
 
     @Override

@@ -16,11 +16,11 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class JFXMacrosDialogDemo extends ApplicationWrapper
+public class MacrosDialogDemo extends ApplicationWrapper
 {
     public static void main(final String[] args)
     {
-        launch(JFXMacrosDialogDemo.class, args);
+        launch(MacrosDialogDemo.class, args);
     }
 
     @Override

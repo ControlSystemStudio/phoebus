@@ -28,11 +28,11 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class JFXActionsDialogDemo extends ApplicationWrapper
+public class ActionsDialogDemo extends ApplicationWrapper
 {
     public static void main(final String[] args)
     {
-        launch(JFXActionsDialogDemo.class, args);
+        launch(ActionsDialogDemo.class, args);
     }
 
     @Override
