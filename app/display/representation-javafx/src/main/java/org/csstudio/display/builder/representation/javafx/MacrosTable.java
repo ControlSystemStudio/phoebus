@@ -149,7 +149,8 @@ public class MacrosTable
             // Empty name is an error, but we allow that for deleting a row
             if (name.isEmpty()  ||  error == null)
             {
-                data.get(row).setName(name);
+                if(row < data.size())
+                    data.get(row).setName(name);
                 if (!enterHit)
                 {
                     name_col.setVisible(false);
