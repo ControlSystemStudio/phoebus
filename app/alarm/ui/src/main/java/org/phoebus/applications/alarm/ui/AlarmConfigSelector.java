@@ -30,6 +30,10 @@ public class AlarmConfigSelector extends ChoiceBox<String>
     {
         getItems().setAll(AlarmSystem.config_names);
         setValue(initial_config_name);
-        setOnAction(event -> change_handler.accept(getValue()));
+        setOnAction(event ->
+        {
+            AlarmSystem.config_name = getValue();
+            change_handler.accept(AlarmSystem.config_name);
+        });
     }
 }

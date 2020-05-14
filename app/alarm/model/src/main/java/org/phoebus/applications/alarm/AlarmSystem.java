@@ -57,7 +57,7 @@ public class AlarmSystem
     public static final String server;
 
     /** Name of alarm tree root */
-    public static final String config_name;
+    public static String config_name;
 
     /** Names of selectable alarm configurations */
     public static final List<String> config_names;
