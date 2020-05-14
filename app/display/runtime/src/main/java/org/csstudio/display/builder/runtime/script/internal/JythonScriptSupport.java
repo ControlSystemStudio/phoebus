@@ -21,6 +21,7 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.runtime.Preferences;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
+import org.python.core.Options;
 import org.python.core.Py;
 import org.python.core.PyCode;
 import org.python.core.PyList;
@@ -67,6 +68,21 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
             // See http://www.jython.org/jythonbook/en/1.0/ModulesPackages.html#java-package-scanning
             // and http://wiki.python.org/jython/PackageScanning
             props.setProperty(RegistryKey.PYTHON_CACHEDIR_SKIP, "true");
+
+            // By default, Jython compiler creates bytecode files xxx$py.class
+            // adjacent to the *.py source file.
+            // They are owned by the current user, which typically results in
+            // problems for other users, who can either not read them, or not
+            // write updates after *.py changes.
+            // There is no way to have them be created in a different, per-user directory.
+            // C Python honors an environment variable PYTHONDONTWRITEBYTECODE=true to
+            // disable its bytecode files, but Jython only checks that in its command line launcher.
+            // Use the same environment variable in case it's defined,
+            // and default to disabled bytecode, i.e. the safe alternative.
+            if (System.getenv("PYTHONDONTWRITEBYTECODE") == null)
+                Options.dont_write_bytecode = true;
+            else
+                Options.dont_write_bytecode = Boolean.parseBoolean(System.getenv("PYTHONDONTWRITEBYTECODE"));
 
             // With python.home defined, there is no more
             // "ImportError: Cannot import site module and its dependencies: No module named site"
