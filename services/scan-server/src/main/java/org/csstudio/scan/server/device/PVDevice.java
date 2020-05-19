@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -30,10 +30,10 @@ import org.epics.vtype.Time;
 import org.epics.vtype.VByteArray;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.util.time.TimeDuration;
-import org.phoebus.core.vtypes.VTypeHelper;
 
 import io.reactivex.disposables.Disposable;
 
@@ -124,7 +124,12 @@ public class PVDevice extends Device
         if (pv.get() == null)
             return "no PV";
         else
-            return VTypeHelper.toString(value.get());
+        {
+            final VType v = value.get();
+            if (PV.isDisconnected(v))
+                return Alarm.disconnected().getName();
+            return VTypeHelper.toString(v);
+        }
     }
 
     /** {@inheritDoc} */
