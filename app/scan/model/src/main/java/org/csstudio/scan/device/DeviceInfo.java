@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,7 +23,7 @@ public class DeviceInfo
 {
     final private String name;
     final private String alias;
-    private String status;
+    final private String status;
 
     /** Initialize
      *  @param name Device name as understood by the control system
@@ -66,7 +66,7 @@ public class DeviceInfo
         return alias;
     }
 
-    /** @return Status of the device, for display purpose */
+    /** @return Status of the device, for display purpose. Must not be <code>null</code> */
     public String getStatus()
     {
         return status;
