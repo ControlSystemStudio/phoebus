@@ -143,6 +143,8 @@ public class DisplayEditor
     private ToolBar toolbar;
     private ScrollPane model_root;
     private Palette palette;
+    private Node palette_node;
+    private final SplitPane model_and_palette = new SplitPane();
     private Pane widget_parent;
     private final Group edit_tools = new Group();
     private ToggleButton grid;
@@ -186,10 +188,9 @@ public class DisplayEditor
         scroll_body.getChildren().add(edit_tools);
 
         palette = new Palette(this);
-        final Node palette_node = palette.create();
+        palette_node = palette.create();
 
-        final SplitPane model_and_palette = new SplitPane(model_root, palette_node);
-        model_and_palette.setDividerPositions(1);
+        configureReadonly(false);
 
         SplitPane.setResizableWithParent(palette_node, false);
         edit_tools.getChildren().addAll(selection_tracker);
@@ -538,6 +539,19 @@ public class DisplayEditor
         }
     }
 
+    private void configureReadonly(final boolean read_only)
+    {
+        if (read_only)
+        {
+            model_and_palette.getItems().setAll(model_root);
+        }
+        else
+        {
+            model_and_palette.getItems().setAll(model_root, palette_node);
+            model_and_palette.setDividerPositions(1);
+        }
+    }
+
     /** Set Model
      *  @param model Model to show and edit
      */
@@ -562,6 +576,7 @@ public class DisplayEditor
         // Create representation for model items
         try
         {
+            configureReadonly(EditorUtil.isDisplayReadOnly(model));
             toolkit.representModel(widget_parent, model);
         }
         catch (final Exception ex)
@@ -726,7 +741,6 @@ public class DisplayEditor
             // Potentially activate group at duplicate point
             group_handler.locateParent(bounds.getMinX(), bounds.getMinY(), bounds.getWidth(), bounds.getHeight());
             addWidgets(widgets, false);
-            
         }
         catch (Exception ex)
         {
@@ -829,7 +843,7 @@ public class DisplayEditor
         // Update pref about last show state
         saveCoords(show);
     }
-    
+
     /** @param show Show Coordinates on/off */
     public static void saveCoords(final boolean show)
     {

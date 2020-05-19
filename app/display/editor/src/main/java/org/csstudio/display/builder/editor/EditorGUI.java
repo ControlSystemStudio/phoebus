@@ -469,6 +469,8 @@ public class EditorGUI
                 model.propName().setValue("Empty");
             }
 
+            if (! file.canWrite())
+                model.setUserData(DisplayModel.USER_DATA_READONLY, Boolean.TRUE.toString());
             setModel(model);
             this.file = file;
 
@@ -520,6 +522,7 @@ public class EditorGUI
         }
     }
 
+    /** @param model Display Model */
     private void setModel(final DisplayModel model)
     {
         final CountDownLatch ui_started = new CountDownLatch(1);

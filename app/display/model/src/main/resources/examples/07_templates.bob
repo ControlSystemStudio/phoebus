@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Templates</name>
+  <height>900</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Read-Only Displays as "Templates"</text>
+    <width>570</width>
+    <height>31</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <pv_name>PV</pv_name>
+    <x>70</x>
+    <y>220</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>When a display file is read-only in the file system, the editor opens in a corresponding read-only mode.
+
+Widgets can be copied out of this editor, but not changed.
+
+This can be use as a "template" repository, where for example arrangements of widgets are prepared for being copy/pasted into another editor.</text>
+    <y>31</y>
+    <width>440</width>
+    <height>199</height>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_1</name>
+    <pv_name>sim://sine(0, 10, 0.5)</pv_name>
+    <x>90</x>
+    <y>660</y>
+    <format>3</format>
+    <precision>3</precision>
+    <show_units>false</show_units>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Label:</text>
+    <x>20</x>
+    <y>220</y>
+    <width>60</width>
+  </widget>
+  <widget type="multi_state_led" version="2.0.0">
+    <name>LED (Multi State)</name>
+    <pv_name>PV</pv_name>
+    <x>180</x>
+    <y>220</y>
+    <states>
+      <state>
+        <value>0</value>
+        <label>Off</label>
+        <color>
+          <color name="Off" red="60" green="100" blue="60">
+          </color>
+        </color>
+      </state>
+      <state>
+        <value>1</value>
+        <label>On</label>
+        <color>
+          <color name="On" red="0" green="255" blue="0">
+          </color>
+        </color>
+      </state>
+    </states>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>To change between normal editor mode and r/o mode,
+
+1) Change the file settings in the OS or the File Browser
+2) Close and re-open the editor, or use the context menu to Re-load the display</text>
+    <y>460</y>
+    <width>440</width>
+    <height>110</height>
+  </widget>
+</display>
