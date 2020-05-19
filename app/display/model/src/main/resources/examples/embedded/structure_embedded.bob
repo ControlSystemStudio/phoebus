@@ -4,8 +4,8 @@
   <macros>
     <groupname>MacroGroupName</groupname>
   </macros>
-  <width>1200</width>
-  <height>1000</height>
+  <width>1260</width>
+  <height>980</height>
   <widget type="label" version="2.0.0">
     <name>Label</name>
     <class>TITLE</class>
@@ -39,10 +39,10 @@ are always a compromise that often results in inconsistent widget sizes.</text>
   </widget>
   <widget type="embedded" version="2.0.0">
     <name>Embedded</name>
-    <file>embedded.bob</file>
     <macros>
       <X>No resize</X>
     </macros>
+    <file>embedded.bob</file>
     <x>1</x>
     <y>217</y>
     <width>140</width>
@@ -58,10 +58,10 @@ are always a compromise that often results in inconsistent widget sizes.</text>
   </widget>
   <widget type="embedded" version="2.0.0">
     <name>Embedded</name>
-    <file>embedded.bob</file>
     <macros>
       <X>Content shrinks</X>
     </macros>
+    <file>embedded.bob</file>
     <x>181</x>
     <y>217</y>
     <width>140</width>
@@ -78,10 +78,10 @@ are always a compromise that often results in inconsistent widget sizes.</text>
   </widget>
   <widget type="embedded" version="2.0.0">
     <name>Embedded</name>
-    <file>embedded.bob</file>
     <macros>
       <X>Widget grows</X>
     </macros>
+    <file>embedded.bob</file>
     <x>361</x>
     <y>217</y>
     <width>180</width>
@@ -98,10 +98,10 @@ are always a compromise that often results in inconsistent widget sizes.</text>
   </widget>
   <widget type="embedded" version="2.0.0">
     <name>Embedded_1</name>
-    <file>embedded.bob</file>
     <macros>
       <X>Content gets distorted</X>
     </macros>
+    <file>embedded.bob</file>
     <x>570</x>
     <y>217</y>
     <width>460</width>
@@ -126,20 +126,20 @@ then shows several motors via the Embedded Display Widget:</text>
   </widget>
   <widget type="embedded" version="2.0.0">
     <name>Embedded Display_1</name>
-    <file>motor.bob</file>
     <macros>
       <M>XPos</M>
     </macros>
+    <file>motor.bob</file>
     <y>481</y>
     <width>320</width>
     <height>210</height>
   </widget>
   <widget type="embedded" version="2.0.0">
     <name>Embedded Display_1</name>
-    <file>motor.bob</file>
     <macros>
       <M>YPos</M>
     </macros>
+    <file>motor.bob</file>
     <x>310</x>
     <y>481</y>
     <width>320</width>
@@ -167,10 +167,10 @@ This example updates the display file name from a script.</text>
   </widget>
   <widget type="embedded" version="2.0.0">
     <name>group_name_ex_1</name>
-    <file>template.bob</file>
     <macros>
       <pv_name>sim://sine</pv_name>
     </macros>
+    <file>template.bob</file>
     <x>651</x>
     <y>481</y>
     <width>160</width>
@@ -188,10 +188,10 @@ template or master display, possibly setting different macros.</text>
   </widget>
   <widget type="embedded" version="2.0.0">
     <name>group_name_ex_2</name>
-    <file>template.bob</file>
     <macros>
       <pv_name>sim://sine</pv_name>
     </macros>
+    <file>template.bob</file>
     <x>821</x>
     <y>481</y>
     <width>160</width>
@@ -200,10 +200,10 @@ template or master display, possibly setting different macros.</text>
   </widget>
   <widget type="embedded" version="2.0.0">
     <name>group_name_ex_3</name>
-    <file>template.bob</file>
     <macros>
       <pv_name>sim://ramp(1,5,.5)</pv_name>
     </macros>
+    <file>template.bob</file>
     <x>981</x>
     <y>481</y>
     <width>160</width>
@@ -212,10 +212,10 @@ template or master display, possibly setting different macros.</text>
   </widget>
   <widget type="embedded" version="2.0.0">
     <name>group_name_ex_4</name>
-    <file>template.bob</file>
     <macros>
       <pv_name>sim://ramp(1,5,.5)</pv_name>
     </macros>
+    <file>template.bob</file>
     <x>651</x>
     <y>701</y>
     <width>170</width>
@@ -251,5 +251,25 @@ the display provided in the macro.</text>
     <y>701</y>
     <width>250</width>
     <height>119</height>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>Embedded_2</name>
+    <macros>
+      <X>Content gets cropped</X>
+    </macros>
+    <file>embedded.bob</file>
+    <x>1060</x>
+    <y>217</y>
+    <width>200</width>
+    <height>123</height>
+    <resize>4</resize>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_8</name>
+    <text>Crop</text>
+    <x>1060</x>
+    <y>187</y>
+    <width>180</width>
+    <height>26</height>
   </widget>
 </display>
