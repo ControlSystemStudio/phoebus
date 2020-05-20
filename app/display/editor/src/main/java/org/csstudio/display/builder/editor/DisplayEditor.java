@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -544,11 +544,13 @@ public class DisplayEditor
         if (read_only)
         {
             model_and_palette.getItems().setAll(model_root);
+            selection_tracker.enableChanges(false);
         }
         else
         {
             model_and_palette.getItems().setAll(model_root, palette_node);
             model_and_palette.setDividerPositions(1);
+            selection_tracker.enableChanges(true);
         }
     }
 
