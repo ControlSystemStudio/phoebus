@@ -140,6 +140,7 @@ public class DisplayEditor
     private AutoScrollHandler autoScrollHandler;
     private DisplayModel model;
 
+    private final BorderPane root = new BorderPane();
     private ToolBar toolbar;
     private ScrollPane model_root;
     private Palette palette;
@@ -190,17 +191,15 @@ public class DisplayEditor
         palette = new Palette(this);
         palette_node = palette.create();
 
-        configureReadonly(false);
-
         SplitPane.setResizableWithParent(palette_node, false);
         edit_tools.getChildren().addAll(selection_tracker);
         hookListeners();
 
         toolbar = createToolbar();
 
-        final BorderPane root = new BorderPane(model_and_palette);
-        root.setTop(toolbar);
+        root.setCenter(model_and_palette);
 
+        configureReadonly(false);
         setGrid(prefs.getBoolean(SNAP_GRID, true));
         setSnap(prefs.getBoolean(SNAP_WIDGETS, true));
         setCoords(prefs.getBoolean(SHOW_COORDS, true));
@@ -417,6 +416,8 @@ public class DisplayEditor
 
     private void handleKeyPress(final KeyEvent event)
     {
+        if (isReadonly())
+            return;
         WidgetTree.handleGroupOrOrderKeys(event, this);
     }
 
@@ -541,17 +542,26 @@ public class DisplayEditor
 
     private void configureReadonly(final boolean read_only)
     {
+        // toolbar visibility is used in isReadonly()
         if (read_only)
         {
             model_and_palette.getItems().setAll(model_root);
             selection_tracker.enableChanges(false);
+            root.setTop(null);
         }
         else
         {
             model_and_palette.getItems().setAll(model_root, palette_node);
             model_and_palette.setDividerPositions(1);
             selection_tracker.enableChanges(true);
+            root.setTop(toolbar);
         }
+    }
+
+    boolean isReadonly()
+    {
+        // Use toolbar visibility as read/write flag
+        return root.getTop() == null;
     }
 
     /** Set Model

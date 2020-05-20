@@ -141,15 +141,15 @@ public class EditorGUI
             editor.getUndoableActionManager().undoLast();
         else if (meta  &&  code == KeyCode.Y)
             editor.getUndoableActionManager().redoLast();
-        else if (in_editor  &&  (code == KeyCode.DELETE))
-            editor.removeWidgets();
-        else if (in_editor  &&  (meta  &&  code == KeyCode.X))
-            editor.cutToClipboard();
         else if (in_editor  &&  meta  &&  code == KeyCode.C)
             editor.copyToClipboard();
-        else if (in_editor  &&  meta  &&  code == KeyCode.V)
+        else if (in_editor  &&  code == KeyCode.DELETE       &&  !editor.isReadonly())
+            editor.removeWidgets();
+        else if (in_editor  &&  meta  &&  code == KeyCode.X  &&  !editor.isReadonly())
+            editor.cutToClipboard();
+        else if (in_editor  &&  meta  &&  code == KeyCode.V  &&  !editor.isReadonly())
             pasteFromClipboard();
-        else if (in_editor  &&  meta  &&  code == KeyCode.D)
+        else if (in_editor  &&  meta  &&  code == KeyCode.D  &&  !editor.isReadonly())
         	editor.duplicateWidgets();
         else // Pass on, don't consume
             return;
