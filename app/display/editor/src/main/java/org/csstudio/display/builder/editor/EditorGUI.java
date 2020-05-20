@@ -421,21 +421,28 @@ public class EditorGUI
                 ungroup = new RemoveGroupAction(editor, null);
                 ungroup.setDisable(true);
             }
-            menu.getItems().setAll(delete,
-                                   cut,
-                                   copy,
-                                   new PasteWidgets(this),
-                                   new FindWidgetAction(node, editor),
-                                   new ExpandTreeAction(tree),
-                                   new CollapseTreeAction(tree),
-                                   new SeparatorMenuItem(),
-                                   group,
-                                   ungroup,
-                                   new SeparatorMenuItem(),
-                                   new ActionWapper(ActionDescription.TO_BACK),
-                                   new ActionWapper(ActionDescription.MOVE_UP),
-                                   new ActionWapper(ActionDescription.MOVE_DOWN),
-                                   new ActionWapper(ActionDescription.TO_FRONT));
+            if (editor.isReadonly())
+                menu.getItems().setAll(copy,
+                                       new FindWidgetAction(node, editor),
+                                       new ExpandTreeAction(tree),
+                                       new CollapseTreeAction(tree),
+                                       new SeparatorMenuItem());
+            else
+                menu.getItems().setAll(delete,
+                                       cut,
+                                       copy,
+                                       new PasteWidgets(this),
+                                       new FindWidgetAction(node, editor),
+                                       new ExpandTreeAction(tree),
+                                       new CollapseTreeAction(tree),
+                                       new SeparatorMenuItem(),
+                                       group,
+                                       ungroup,
+                                       new SeparatorMenuItem(),
+                                       new ActionWapper(ActionDescription.TO_BACK),
+                                       new ActionWapper(ActionDescription.MOVE_UP),
+                                       new ActionWapper(ActionDescription.MOVE_DOWN),
+                                       new ActionWapper(ActionDescription.TO_FRONT));
         });
     }
 
