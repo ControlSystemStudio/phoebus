@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -418,7 +418,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             if (menu_items.size() > 0)
                 menu_items.add(new SeparatorMenuItem());
 
-            if (AlarmUI.mayConfigure())
+            if (AlarmUI.mayConfigure(model))
             {
                 if (selection.size() <= 0)
                     // Add first item to empty config
@@ -461,7 +461,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     {
         tree_view.setOnMouseClicked(event ->
         {
-            if (!AlarmUI.mayConfigure()       ||
+            if (!AlarmUI.mayConfigure(model)       ||
                 event.getClickCount() != 2    ||
                 tree_view.getSelectionModel().getSelectedItems().size() != 1)
                 return;
