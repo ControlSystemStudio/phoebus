@@ -16,13 +16,12 @@ import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.ContextMenuEntry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  *  Provide a context menu item for creating or adding to a saveset
@@ -33,7 +32,7 @@ import java.util.List;
 @SuppressWarnings("nls")
 public class ContextMenuCreateSaveset implements ContextMenuEntry
 {
-    private static final Logger LOG = LoggerFactory.getLogger(SaveAndRestoreService.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(SaveAndRestoreService.class.getName());
 
     private static final Class<?> supportedTypes = ProcessVariable.class;
 
@@ -71,7 +70,7 @@ public class ContextMenuCreateSaveset implements ContextMenuEntry
                 ApplicationService.createInstance(SaveAndRestoreApplication.NAME);
                 saveAndRestoreService = (SaveAndRestoreService) ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().getBean("saveAndRestoreService");
             } catch (Exception ee) {
-                LOG.error("Cannot open SaveAndRestore application nor create its service instance!", ee);
+                LOGGER.severe("Cannot open SaveAndRestore application nor create its service instance!");
 
                 ee.printStackTrace();
             }
@@ -93,7 +92,7 @@ public class ContextMenuCreateSaveset implements ContextMenuEntry
             controller.setSelection(pvs);
             dialog.show();
         } catch (Exception e) {
-            LOG.error("Cannot load SaveSetFromSelection.fxml file!", e);
+            LOGGER.severe("Cannot load SaveSetFromSelection.fxml file!");
 
             e.printStackTrace();
         }
@@ -119,7 +118,7 @@ public class ContextMenuCreateSaveset implements ContextMenuEntry
                 alert.setContentText(alertMessage);
                 alert.show();
 
-                LOG.error(alertMessage, e);
+                LOGGER.severe(alertMessage);
 
                 e.printStackTrace();
             }

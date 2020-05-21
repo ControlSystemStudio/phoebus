@@ -22,8 +22,6 @@ import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.preferences.PreferencesReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.text.NumberFormat;
@@ -31,13 +29,14 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.logging.Logger;
 
 public class SaveSetFromSelectionController implements Initializable {
 
     private final SaveAndRestoreService saveAndRestoreService = (SaveAndRestoreService) ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().getBean("saveAndRestoreService");
     private final PreferencesReader preferencesReader = (PreferencesReader) ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().getBean("preferencesReader");
 
-    private final Logger LOG = LoggerFactory.getLogger(SaveAndRestoreService.class.getName());
+    private final Logger LOGGER = Logger.getLogger(SaveAndRestoreService.class.getName());
 
     private final String DESCRIPTION_PROPERTY = "description";
 
@@ -218,7 +217,7 @@ public class SaveSetFromSelectionController implements Initializable {
                 alert.setContentText(alertMessage);
                 alert.show();
 
-                LOG.error(alertMessage, e);
+                LOGGER.severe(alertMessage);
 
                 e.printStackTrace();
                 break;
@@ -282,7 +281,7 @@ public class SaveSetFromSelectionController implements Initializable {
                 alert.setContentText(alertMessage);
                 alert.show();
 
-                LOG.error(alertMessage, e);
+                LOGGER.severe(alertMessage);
 
                 e.printStackTrace();
             }
