@@ -214,14 +214,16 @@ public class DisplayEditorInstance implements AppInstance
             show_props.setSelected(editor_gui.arePropertiesShown());
             show_props.setOnAction(event -> editor_gui.showProperties(! editor_gui.arePropertiesShown()));
 
+            // In read-only mode, only allow copy and re-load.
+            // Tree may be shown, but property panel remains hidden
+            // since it doesn't support a read-only mode.
             if (EditorUtil.isDisplayReadOnly(model))
                 menu.getItems().setAll(copy,
                                        new SeparatorMenuItem(),
                                        new ReloadDisplayAction(this),
                                        reload_classes,
                                        new SeparatorMenuItem(),
-                                       show_tree,
-                                       show_props);
+                                       show_tree);
             else
                 menu.getItems().setAll(delete,
                                        cut,

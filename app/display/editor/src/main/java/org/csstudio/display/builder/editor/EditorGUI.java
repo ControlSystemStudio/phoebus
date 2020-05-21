@@ -539,6 +539,15 @@ public class EditorGUI
         {
             try
             {
+                if (EditorUtil.isDisplayReadOnly(model))
+                {
+                    // Show only the main section.
+                    // User may open widget tree via context menu,
+                    // but property panel should remain hidden
+                    // unless it supports a read-only mode.
+                    showProperties(false);
+                    showWidgetTree(false);
+                }
                 editor.setModel(model);
                 tree.setModel(model);
 
