@@ -548,6 +548,7 @@ public class DisplayEditor
             model_and_palette.getItems().setAll(model_root);
             selection_tracker.enableChanges(false);
             root.setTop(null);
+            autoScrollHandler.enable(false);
         }
         else
         {
@@ -555,6 +556,7 @@ public class DisplayEditor
             model_and_palette.setDividerPositions(1);
             selection_tracker.enableChanges(true);
             root.setTop(toolbar);
+            autoScrollHandler.enable(true);
         }
     }
 

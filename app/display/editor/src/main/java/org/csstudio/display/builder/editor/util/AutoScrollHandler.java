@@ -46,8 +46,9 @@ public class AutoScrollHandler {
         LEFT, RIGHT, TOP, BOTTOM
     }
 
-    private AtomicReference<Timeline> autoScrollTimeline = new AtomicReference<Timeline>();
+    private AtomicReference<Timeline> autoScrollTimeline = new AtomicReference<>();
     private final ScrollPane scrollPane;
+    private volatile boolean enabled = true;
 
     /**
      * @param scrollPane The {@link ScrollPane} instance for which auto-scroll must be managed.
@@ -58,15 +59,25 @@ public class AutoScrollHandler {
 
         scrollPane.setOnDragDone(event -> canceTimeline());
         scrollPane.setOnDragEntered(event -> canceTimeline());
-        scrollPane.setOnDragExited(event -> autoScrollTimeline.compareAndSet(null, createAndStartTimeline(getEdge(scrollPane.sceneToLocal(event.getSceneX(), event.getSceneY())))));
+        scrollPane.setOnDragExited(event ->
+        {
+            if (enabled)
+                autoScrollTimeline.compareAndSet(null, createAndStartTimeline(getEdge(scrollPane.sceneToLocal(event.getSceneX(), event.getSceneY()))));
+        });
         scrollPane.setOnMouseEntered(event -> canceTimeline());
         scrollPane.setOnMouseExited(event -> {
-            if ( event.isPrimaryButtonDown() ) {
+            if ( enabled  &&  event.isPrimaryButtonDown() ) {
                 autoScrollTimeline.compareAndSet(null, createAndStartTimeline(getEdge(scrollPane.sceneToLocal(event.getSceneX(), event.getSceneY()))));
             }
         });
         scrollPane.setOnMouseReleased(event -> canceTimeline());
 
+    }
+
+    /** @param enabled Enable auto-scroll? */
+    public void enable(final boolean enabled)
+    {
+        this.enabled = enabled;
     }
 
     /**
