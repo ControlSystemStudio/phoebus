@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -54,6 +54,9 @@ public class Tracker extends Group
     /** Show the location and size? */
     private boolean showLocationAndSize = true;
 
+    /** Enable changes? */
+    protected boolean enable_changes = true;
+
     /** Create tracker */
     public Tracker()
     {
@@ -86,6 +89,12 @@ public class Tracker extends Group
                 handle_bottom, handle_bottom_left, handle_left, locationLabel, sizeLabel);
 
         hookEvents();
+    }
+
+    /** @param enable_changes Allow resizes and moves? Otherwise just show selection */
+    public void enableChanges(final boolean enable_changes)
+    {
+        this.enable_changes = enable_changes;
     }
 
     /** @param listener Listener to notify of tracker changes */
@@ -146,7 +155,8 @@ public class Tracker extends Group
         {
             // When Control (Mac: Alt) is pressed, this might be start of copy-D&D,
             // so abort moving tracker
-            if (start_x < 0 ||
+            if (!enable_changes ||
+                start_x < 0 ||
                 (PlatformInfo.is_mac_os_x
                  ? event.isAltDown()
                  : event.isControlDown()))
@@ -324,6 +334,9 @@ public class Tracker extends Group
      */
     protected void handleKeyEvent(final KeyEvent event)
     {
+        if (!enable_changes)
+            return;
+
         // Consume handled event to keep the key focus,
         // which is otherwise lost to the 'tab-order' traversal
         final KeyCode code = event.getCode();
@@ -428,31 +441,35 @@ public class Tracker extends Group
         tracker.setWidth(width);
         tracker.setHeight(height);
 
+        handle_top_left.setVisible(enable_changes);
         handle_top_left.setX(x - HANDLE_SIZE);
         handle_top_left.setY(y - HANDLE_SIZE);
 
-        handle_top.setVisible(width > HANDLE_SIZE);
+        handle_top.setVisible(enable_changes  &&  width > HANDLE_SIZE);
         handle_top.setX(x + (width - HANDLE_SIZE) / 2);
         handle_top.setY(y - HANDLE_SIZE);
 
+        handle_top_right.setVisible(enable_changes);
         handle_top_right.setX(x + width);
         handle_top_right.setY(y - HANDLE_SIZE);
 
-        handle_right.setVisible(height > HANDLE_SIZE);
+        handle_right.setVisible(enable_changes  &&  height > HANDLE_SIZE);
         handle_right.setX(x + width);
         handle_right.setY(y + (height - HANDLE_SIZE)/2);
 
+        handle_bottom_right.setVisible(enable_changes);
         handle_bottom_right.setX(x + width);
         handle_bottom_right.setY(y + height);
 
-        handle_bottom.setVisible(width > HANDLE_SIZE);
+        handle_bottom.setVisible(enable_changes  &&  width > HANDLE_SIZE);
         handle_bottom.setX(x + (width - HANDLE_SIZE)/2);
         handle_bottom.setY(y + height);
 
+        handle_bottom_left.setVisible(enable_changes);
         handle_bottom_left.setX(x - HANDLE_SIZE);
         handle_bottom_left.setY(y + height);
 
-        handle_left.setVisible(height > HANDLE_SIZE);
+        handle_left.setVisible(enable_changes  &&  height > HANDLE_SIZE);
         handle_left.setX(x - HANDLE_SIZE);
         handle_left.setY(y + (height - HANDLE_SIZE)/2);
 
