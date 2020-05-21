@@ -391,6 +391,11 @@ public class EditorGUI
         // -> Focus now on 'layout', and that means the next Delete or Backspace
         // meant to edit the text will instead delete the widget.
         // https://github.com/kasemir/org.csstudio.display.builder/issues/486
+        // Using mouse-pressed works and is also quite natural:
+        // 1) Copy widgets in some other window
+        // 2) Click in layout to indicate paste position (and get focus)
+        // 3) Ctrl-V or context menu to paste
+        layout.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> layout.requestFocus());
 
         return layout;
     }
