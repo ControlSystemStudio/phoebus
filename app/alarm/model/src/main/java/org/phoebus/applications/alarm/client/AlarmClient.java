@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -74,7 +74,7 @@ public class AlarmClient
         consumer = KafkaHelper.connectConsumer(server, topics, topics);
         producer = KafkaHelper.connectProducer(server);
 
-        thread = new Thread(this::run, "AlarmClientModel");
+        thread = new Thread(this::run, "AlarmClientModel " + config_name);
         thread.setDaemon(true);
     }
 
@@ -541,9 +541,9 @@ public class AlarmClient
         }
         catch (final InterruptedException ex)
         {
-            logger.log(Level.WARNING, "Alarm client thread doesn't shut down", ex);
+            logger.log(Level.WARNING, thread.getName() + " thread doesn't shut down", ex);
         }
-        logger.info(thread.getName() + " shut down");
+        logger.log(Level.INFO, () -> thread.getName() + " shut down");
 
     }
 }
