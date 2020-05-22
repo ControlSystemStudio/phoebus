@@ -442,7 +442,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         {
             buf.append(" - ");
             if (getCount() > 0)
-                buf.append(getCount()).append(" counted within ").append(getDelay()).append(" sec");
+                buf.append(getCount()).append(" counts within ").append(getDelay()).append(" sec");
             else
                 buf.append(getDelay()).append(" sec delay");
         }
