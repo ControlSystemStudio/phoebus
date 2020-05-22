@@ -27,25 +27,27 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
-import org.epics.gpclient.*;
-import org.epics.gpclient.PVEvent.Type;
-import org.epics.vtype.VEnum;
-import org.epics.vtype.VString;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.VBox;
+import org.epics.gpclient.GPClient;
+import org.epics.gpclient.PVConfiguration;
+import org.epics.gpclient.PVEvent;
+import org.epics.gpclient.PVReader;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.Utilities;
 import org.phoebus.applications.saveandrestore.data.NodeChangedListener;
+import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.model.SnapshotEntry;
 import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.model.VNoData;
 import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 
 import java.time.Duration;
 import java.util.*;
@@ -53,6 +55,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class SnapshotController implements NodeChangedListener {
@@ -67,7 +70,7 @@ public class SnapshotController implements NodeChangedListener {
     private TextField createdDate;
 
     @FXML
-    private BorderPane borderPane;
+    private VBox vBox;
 
     @FXML
     private TextField snapshotName;
@@ -86,6 +89,12 @@ public class SnapshotController implements NodeChangedListener {
 
     @FXML
     private ToggleButton hideShowEqualItemsButton;
+
+    @FXML
+    private TextField filterTextField;
+
+    @FXML
+    private CheckBox preserveSelectionCheckBox;
 
     private SnapshotTable snapshotTable;
 
@@ -130,6 +139,8 @@ public class SnapshotController implements NodeChangedListener {
      */
     public static final long TABLE_UPDATE_INTERVAL = 500;
 
+    private List<List<Pattern>> regexPatterns = new ArrayList<>();
+
     @FXML
     public void initialize() {
 
@@ -139,7 +150,7 @@ public class SnapshotController implements NodeChangedListener {
         snapshotName.textProperty().bindBidirectional(snapshotNameProperty);
 
         snapshotTable = new SnapshotTable(this);
-        borderPane.setCenter(snapshotTable);
+        vBox.getChildren().add(snapshotTable);
 
         saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() -> {
            boolean canSave = snapshotSaveableProperty.get() && (!snapshotNameProperty.isEmpty().get() && !snapshotCommentProperty.isEmpty().get());
@@ -170,6 +181,69 @@ public class SnapshotController implements NodeChangedListener {
         restoreButton.disableProperty().bind(snapshotRestorableProperty.not());
 
         saveAndRestoreService.addNodeChangeListener(this);
+
+        filterTextField.addEventHandler(KeyEvent.KEY_PRESSED,  event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                String filterText = filterTextField.getText().trim();
+
+                if (filterText.isEmpty()) {
+                    List<TableEntry> arrayList = tableEntryItems.values().stream()
+                            .map(item -> {
+                                if (!preserveSelectionCheckBox.isSelected()) {
+                                    if (!item.readOnlyProperty().get()) {
+                                        item.selectedProperty().set(true);
+                                    }
+                                }
+                                return item;
+                            }).collect(Collectors.toList());
+
+                    UI_EXECUTOR.execute(() -> {
+                        snapshotTable.updateTable(arrayList);
+                    });
+
+                    return;
+                }
+
+                List<String> filters = Arrays.asList(filterText.split(","));
+                regexPatterns = filters.stream()
+                        .map(item -> {
+                                if (item.startsWith("/")) {
+                                    return Arrays.asList(Pattern.compile(item.substring(1, item.length() - 1).trim()));
+                                } else {
+                                    return Arrays.asList(item.split("&")).stream()
+                                            .map(andItem -> andItem.replaceAll("\\*", ".*"))
+                                            .map(andItem -> Pattern.compile(andItem.trim()))
+                                            .collect(Collectors.toList());
+                                }
+                        }).collect(Collectors.toList());
+
+                List<TableEntry> filteredEntries = tableEntryItems.values().stream()
+                        .filter(item -> {
+                            boolean matchEither = false;
+                            for (List<Pattern> andPatternList : regexPatterns) {
+                                boolean matchAnd = true;
+                                for (Pattern pattern : andPatternList) {
+                                    if (pattern.matcher(item.pvNameProperty().get()).find()) {
+                                        matchAnd &= true;
+                                    } else {
+                                        matchAnd &= false;
+                                    }
+                                }
+
+                                matchEither |= matchAnd;
+                            }
+
+                            if (!preserveSelectionCheckBox.isSelected()) {
+                                item.selectedProperty().setValue(matchEither);
+                            }
+                            return matchEither;
+                        }).collect(Collectors.toList());
+
+                UI_EXECUTOR.execute(() -> {
+                    snapshotTable.updateTable(filteredEntries);
+                });
+            }
+        });
     }
 
     public void setSnapshotTab(SnapshotTab snapshotTab){
