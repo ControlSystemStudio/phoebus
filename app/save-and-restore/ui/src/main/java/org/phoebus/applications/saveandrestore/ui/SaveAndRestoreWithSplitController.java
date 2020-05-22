@@ -38,27 +38,25 @@ import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.data.DataProvider;
 import org.phoebus.applications.saveandrestore.data.NodeAddedListener;
 import org.phoebus.applications.saveandrestore.data.NodeChangedListener;
+import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.framework.persistence.Memento;
-import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.javafx.ImageCache;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.NodeType;
 
 import java.io.IOException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.Executor;
+import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
-public class SaveAndRestoreController implements Initializable, NodeChangedListener, NodeAddedListener, ISaveAndRestoreController {
+public class SaveAndRestoreWithSplitController implements Initializable, NodeChangedListener, NodeAddedListener, ISaveAndRestoreController {
 
     private static Executor UI_EXECUTOR = Platform::runLater;
 
@@ -89,6 +87,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     @FXML
     private SplitPane splitPane;
 
+    @FXML
+    private ListView<Node> listView;
+
     @Autowired
     private SaveAndRestoreService saveAndRestoreService;
 
@@ -113,7 +114,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     private static final String TREE_STATE = "tree_state";
 
-    private static final Logger LOG = LoggerFactory.getLogger(SaveAndRestoreService.class.getName());
+    private static final Logger LOG = Logger.getLogger(SaveAndRestoreService.class.getName());
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -181,25 +182,25 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         MenuItem deleteSnapshotMenuItem = new MenuItem(Messages.contextMenuDelete, new ImageView(deleteIcon));
         deleteSnapshotMenuItem.setOnAction(ae -> {
-            deleteNodes(treeView.getSelectionModel().getSelectedItems());
+            deleteSnapshots(listView.getSelectionModel().getSelectedItems());
         });
 
         MenuItem renameSnapshotItem = new MenuItem(Messages.contextMenuRename, new ImageView(renameIcon));
         renameSnapshotItem.setOnAction(ae -> {
-            renameNode(treeView.getSelectionModel().getSelectedItem());
+            renameSnapshot(listView.getSelectionModel().getSelectedItem());
         });
 
         MenuItem compareSaveSetMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, new ImageView(compareSnapshotIcon));
         compareSaveSetMenuItem.setOnAction(ae -> {
-            comapreSnapshot(treeView.getSelectionModel().getSelectedItem());
+            comapreSnapshot(listView.getSelectionModel().getSelectedItem());
         });
 
         MenuItem tagAsGolden = new MenuItem(Messages.contextMenuTagAsGolden, new ImageView(snapshotGoldenIcon));
         tagAsGolden.textProperty().bind(toggleGoldenMenuItemText);
         tagAsGolden.graphicProperty().bind(toggleGoldenImageViewProperty);
         tagAsGolden.setOnAction(ae -> {
-            Node node = toggleGoldenProperty(treeView.getSelectionModel().getSelectedItem());
-            treeView.getSelectionModel().getSelectedItem().setValue(node);
+            Node node = toggleGoldenProperty(listView.getSelectionModel().getSelectedItem());
+            nodeChanged(node);
         });
 
         snapshotContextMenu.getItems().addAll(renameSnapshotItem, deleteSnapshotMenuItem, compareSaveSetMenuItem, tagAsGolden);
@@ -211,12 +212,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             if(item == null){
                 return;
             }
-            if (item.getValue().getNodeType().equals(NodeType.SNAPSHOT)) {
-                toggleGoldenMenuItemText.set(Boolean.parseBoolean(item.getValue().getProperty("golden")) ? Messages.contextMenuRemoveGoldenTag : Messages.contextMenuTagAsGolden);
-                toggleGoldenImageViewProperty.set(Boolean.parseBoolean(item.getValue().getProperty("golden")) ? snapshotImageView : snapshotGoldenImageView);
-            }
             if (me.getClickCount() == 2) {
-                nodeDoubleClicked(treeView.getSelectionModel().getSelectedItem());
+                nodeDoubleClicked(item);
             }
         });
 
@@ -242,6 +239,41 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         treeView.setCellFactory(p -> new BrowserTreeCell(folderContextMenu,
                 saveSetContextMenu, snapshotContextMenu, rootFolderContextMenu));
+
+        treeView.getSelectionModel().selectedItemProperty().addListener((observableValue, nodeTreeItem, selectedTreeItem) -> {
+            listView.getItems().clear();
+
+            Node selectedNode = selectedTreeItem.getValue();
+            if (selectedNode.getNodeType() != NodeType.CONFIGURATION) {
+                return;
+            }
+
+            List<Node> snapshots = saveAndRestoreService.getChildNodes(selectedNode);
+            if (!snapshots.isEmpty()) {
+                listView.getItems().addAll(snapshots);
+            }
+        });
+
+        listView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
+        listView.setCellFactory(p -> new BrowserListCell(snapshotContextMenu));
+
+        listView.setOnMouseClicked(action -> {
+            Node node = listView.getSelectionModel().getSelectedItem();
+
+            if (node == null) {
+                return;
+            }
+
+            if (node.getNodeType().equals(NodeType.SNAPSHOT)) {
+                toggleGoldenMenuItemText.set(Boolean.parseBoolean(node.getProperty("golden")) ? Messages.contextMenuRemoveGoldenTag : Messages.contextMenuTagAsGolden);
+                toggleGoldenImageViewProperty.set(Boolean.parseBoolean(node.getProperty("golden")) ? snapshotImageView : snapshotGoldenImageView);
+            }
+
+            if (action.getClickCount() == 2) {
+                nodeDoubleClicked(new TreeItem<Node>(node));
+            }
+        });
 
         loadTreeData();
     }
@@ -310,7 +342,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         try {
             return objectMapper.readValue(savedTreeState, new TypeReference<List<String>>() {});
         } catch (IOException e) {
-            LOG.error("Unable to obtain tree node data from service", e);
+            LOG.severe("Unable to obtain tree node data from service");
             return null;
         }
     }
@@ -344,25 +376,24 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         return true;
     }
 
-    private void comapreSnapshot(TreeItem<Node> treeItem) {
+    private void comapreSnapshot(Node listItem) {
 
         try {
             SnapshotTab currentTab = (SnapshotTab)tabPane.getSelectionModel().getSelectedItem();
             if(currentTab == null){
                 return;
             }
-            currentTab.addSnapshot(treeItem.getValue());
+            currentTab.addSnapshot(listItem);
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
 
-    private Node toggleGoldenProperty(TreeItem<Node> treeItem) {
-
+    private Node toggleGoldenProperty(Node node) {
         try {
-            return saveAndRestoreService.tagSnapshotAsGolden(treeItem.getValue(),
-                    !Boolean.parseBoolean(treeItem.getValue().getProperty("golden")));
+            return saveAndRestoreService.tagSnapshotAsGolden(node,
+                    !Boolean.parseBoolean(node.getProperty("golden")));
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -386,6 +417,17 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get().equals(ButtonType.OK)) {
             selectedItems.stream().forEach(treeItem -> deleteTreeItem(treeItem));
+        }
+    }
+
+    private void deleteSnapshots(ObservableList<Node> selectedItems) {
+        Alert alert = new Alert(AlertType.CONFIRMATION);
+        alert.setTitle(Messages.promptDeleteSelectedTitle);
+        alert.setHeaderText(Messages.promptDeleteSelectedHeader);
+        alert.setContentText(Messages.promptDeleteSelectedContent);
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get().equals(ButtonType.OK)) {
+            selectedItems.stream().forEach(item -> deleteListItem(item));
         }
     }
 
@@ -417,6 +459,34 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                     }
                     tabPane.getTabs().removeAll(tabsToRemove);
                     treeView.getSelectionModel().select(null);
+                });
+            }
+        };
+
+        new Thread(task).start();
+    }
+
+    private void deleteListItem(Node listItem){
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                saveAndRestoreService.deleteNode(listItem.getUniqueId());
+                return null;
+            }
+
+            @Override
+            public void succeeded(){
+                UI_EXECUTOR.execute(() -> {
+                    listView.getItems().remove(listItem);
+                    List<Tab> tabsToRemove = new ArrayList<>();
+                    for(Tab tab : tabPane.getTabs()) {
+                        if(tab.getId().equals(listItem.getUniqueId())) {
+                            tabsToRemove.add(tab);
+                            tab.getOnCloseRequest().handle(null);
+                        }
+                    }
+                    tabPane.getTabs().removeAll(tabsToRemove);
+                    listView.getSelectionModel().select(null);
                 });
             }
         };
@@ -489,8 +559,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 tab = new SaveSetTab(node.getValue(), saveAndRestoreService);
                 break;
             case SNAPSHOT:
-                tab = new SnapshotTab(treeView.getSelectionModel().getSelectedItem().getValue(), saveAndRestoreService);
-                ((SnapshotTab) tab).loadSnapshot(treeView.getSelectionModel().getSelectedItem().getValue());
+                tab = new SnapshotTab(node.getValue(), saveAndRestoreService);
+                ((SnapshotTab) tab).loadSnapshot(node.getValue());
                 break;
             case FOLDER:
             default:
@@ -590,11 +660,45 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
+    private void renameSnapshot(Node node) {
+        List<String> existingSiblingNodes =
+                listView.getItems().stream()
+                        .map(item -> item.getName())
+                        .collect(Collectors.toList());
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle(Messages.promptRenameNodeTitle);
+        dialog.setContentText(Messages.promptRenameNodeContent);
+        dialog.setHeaderText(null);
+        dialog.getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
+        dialog.getEditor().textProperty().setValue(node.getName());
+
+        dialog.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
+            String value = newValue.trim();
+            dialog.getDialogPane().lookupButton(ButtonType.OK)
+                    .setDisable(existingSiblingNodes.contains(value) || value.isEmpty());
+        });
+
+        Optional<String> result = dialog.showAndWait();
+
+        if (result.isPresent()) {
+            node.setName(result.get());
+            try {
+                saveAndRestoreService.updateNode(node);
+            } catch (Exception e) {
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle(Messages.errorActionFailed);
+                alert.setHeaderText(e.getMessage());
+                alert.showAndWait();
+            }
+        }
+    }
+
     private TreeItem<Node> createNode(final Node node){
         return new TreeItem<>(node){
             @Override
             public boolean isLeaf(){
-                return node.getNodeType().equals(NodeType.SNAPSHOT);
+                return node.getNodeType().equals(NodeType.CONFIGURATION);
             }
         };
     }
@@ -602,27 +706,49 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     @Override
     public void nodeChanged(Node node){
         // Find the node that has changed
-        TreeItem<Node> nodeSubjectToUpdate = recursiveSearch(node.getUniqueId(), treeView.getRoot());
-        if(nodeSubjectToUpdate == null){
-            // TODO: log this?
-            return;
+        if (node.getNodeType() != NodeType.SNAPSHOT) {
+            TreeItem<Node> nodeSubjectToUpdate = recursiveSearch(node.getUniqueId(), treeView.getRoot());
+            if (nodeSubjectToUpdate == null) {
+                // TODO: log this?
+                return;
+            }
+            nodeSubjectToUpdate.setValue(node);
+            nodeSubjectToUpdate.getParent().getChildren().sort(new TreeNodeComparator());
+            treeView.getSelectionModel().select(nodeSubjectToUpdate);
+        } else {
+            if (!listView.getItems().contains(node)) {
+                return;
+            }
+            for (int index = 0; index < listView.getItems().size(); index++) {
+                if (!listView.getItems().get(index).getUniqueId().equals(node.getUniqueId())) {
+                    continue;
+                }
+
+                listView.getItems().remove(index);
+                listView.getItems().add(index, node);
+                listView.getSelectionModel().select(index);
+                break;
+            }
         }
-        nodeSubjectToUpdate.setValue(node);
-        nodeSubjectToUpdate.getParent().getChildren().sort(new TreeNodeComparator());
-        treeView.getSelectionModel().select(nodeSubjectToUpdate);
     }
 
     @Override
     public void nodeAdded(Node parentNode, Node newNode){
-        // Find the parent to which the new node is to be added
-        TreeItem<Node> parentTreeItem = recursiveSearch(parentNode.getUniqueId(), treeView.getRoot());
-        if(parentTreeItem == null){
-            // TODO: log this?
-            return;
+        if (newNode.getNodeType() != NodeType.SNAPSHOT) {
+            // Find the parent to which the new node is to be added
+            TreeItem<Node> parentTreeItem = recursiveSearch(parentNode.getUniqueId(), treeView.getRoot());
+            if (parentTreeItem == null) {
+                // TODO: log this?
+                return;
+            }
+            parentTreeItem.getChildren().add(createNode(newNode));
+            parentTreeItem.getChildren().sort(new TreeNodeComparator());
+            parentTreeItem.expandedProperty().setValue(true);
+        } else {
+            if (treeView.getSelectionModel().getSelectedItem().getValue().getUniqueId().equals(parentNode.getUniqueId())) {
+                listView.getItems().add(newNode);
+            }
         }
-        parentTreeItem.getChildren().add(createNode(newNode));
-        parentTreeItem.getChildren().sort(new TreeNodeComparator());
-        parentTreeItem.expandedProperty().setValue(true);
     }
 
     private TreeItem<Node> recursiveSearch(String nodeIdToLocate, TreeItem<Node> node){

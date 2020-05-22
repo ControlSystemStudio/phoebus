@@ -28,6 +28,7 @@ import org.phoebus.applications.saveandrestore.data.providers.jmasar.JMasarDataP
 import org.phoebus.applications.saveandrestore.data.providers.jmasar.JMasarJerseyClient;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreWithSplitController;
 import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetController;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotController;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
@@ -103,6 +104,11 @@ public class AppConfig {
     @Bean
     public SaveAndRestoreController saveAndRestoreController(){
         return new SaveAndRestoreController();
+    }
+
+    @Bean
+    public SaveAndRestoreWithSplitController saveAndRestoreWithSplitController(){
+        return new SaveAndRestoreWithSplitController();
     }
 
     @Bean

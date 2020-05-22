@@ -21,11 +21,12 @@ package org.phoebus.applications.saveandrestore;
 
 
 import javafx.scene.Node;
-import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
+import org.phoebus.applications.saveandrestore.ui.ISaveAndRestoreController;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.pv.PV;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -34,7 +35,7 @@ public class SaveAndRestoreApplication implements AppDescriptor, AppInstance {
 	
 	public static final String NAME = "Save And Restore";
 	private AnnotationConfigApplicationContext context;
-	private SaveAndRestoreController controller;
+	private ISaveAndRestoreController controller;
 
 	@Override
 	public String getName() {
@@ -55,8 +56,13 @@ public class SaveAndRestoreApplication implements AppDescriptor, AppInstance {
 
 		DockItem tab = null;
 
+		PreferencesReader preferencesReader = (PreferencesReader) context.getBean("preferencesReader");
 		try {
-			tab = new DockItem(this, (Node)springFxmlLoader.load("ui/SaveAndRestoreUI.fxml"));
+		    if (preferencesReader.getBoolean("splitSnapshot")) {
+				tab = new DockItem(this, (Node) springFxmlLoader.load("ui/SaveAndRestoreUIWithSplit.fxml"));
+			} else {
+				tab = new DockItem(this, (Node) springFxmlLoader.load("ui/SaveAndRestoreUI.fxml"));
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
