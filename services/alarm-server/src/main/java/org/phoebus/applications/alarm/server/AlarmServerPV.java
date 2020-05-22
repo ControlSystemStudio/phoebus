@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -32,10 +32,9 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.applications.alarm.server.actions.AutomatedActions;
 import org.phoebus.applications.alarm.server.actions.AutomatedActionsHelper;
+import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
-
-import org.phoebus.core.vtypes.VTypeHelper;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.disposables.Disposable;
@@ -440,7 +439,13 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         if  (isLatching())
             buf.append(" - latching");
         if (getDelay() > 0)
-            buf.append(" - ").append(getDelay()).append(" sec delay");
+        {
+            buf.append(" - ");
+            if (getCount() > 0)
+                buf.append(getCount()).append(" counted within ").append(getDelay()).append(" sec");
+            else
+                buf.append(getDelay()).append(" sec delay");
+        }
 
         buf.append(" - ").append(logic.toString());
 
