@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2020 Oak Ridge National Laboratory.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -105,6 +105,7 @@ public class DelayedAlarmUpdate
                     logger.log(Level.SEVERE, "Error in delayed alarm update", ex);
                 }
             };
+            logger.log(Level.FINE, () -> "Schedule check for " + new_state + " in " + seconds + " secs");
             scheduled_task = timer.schedule(new_task, seconds, TimeUnit.SECONDS);
         }
     }
@@ -124,6 +125,9 @@ public class DelayedAlarmUpdate
         final ScheduledFuture<?> task = scheduled_task;
         scheduled_task = null;
         if (task != null)
+        {
             task.cancel(false);
+            logger.log(Level.FINE, () -> "Schedule check cancelled.");
+        }
     }
 }
