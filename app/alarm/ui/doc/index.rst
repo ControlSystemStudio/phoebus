@@ -170,7 +170,8 @@ Behavior
    be displayed silently?
 
  * Alarm Delay:
-   Only alarm if the trigger PV remains in alarm for at least this time.
+   Only alarm if the trigger PV remains in alarm for at least this time,
+   see examples below.
    
  * Alarm Count:
    Used in combination with the alarm delay.
@@ -189,6 +190,23 @@ Behavior
    Example: `'abc' > 10` will only enable this alarm if the PV 'abc' has a value above 10.
 
 
+The Alarm Delay and Count work in combination.
+By default, with both the alarm delay and count at zero, a non-OK PV severity is right away recognized.
+When the alarm delay is larger than zero, it starts a timer to check the PV after the given delay.
+For example, assume an alarm delay of 10 seconds, and the PV enters a MINOR alarm.
+If the PV still carries a not-OK severity after 10 seconds,
+the alarm state becomes MINOR or whatever the highest alarm severity of the PV was
+in the 10 seconds since first entering a not-OK severty.
+On the other hand, if the PV recovers to OK, there will be no alarm after the 10 second delay.
+
+As a second example, consider a PV that assumes MINOR severity, then recovers to OK and re-enters MINOR severity a couple of times.
+If the non-OK severity never persists longer then 10 seconds, it is ignored.
+The alarm count can be used to detect such cases. With an alarm count of 5, even if each non-OK severity lasts only say 1 second,
+when the PV becomes not-OK for 5 or more times within 10 seconds, the alarm will be indicated.
+For a delay of 10 seconds and a count of 5, there are thus two ways to enter an alarm state:
+Either the PV stays not-OK for at least 10 seconds,
+or it briefly becomes not-OK for at least 5 times within 10 seconds.
+
 While the filter, alarm delay and count can be helpful to reduce the number of alarms from 'noisy' PVs,
 ideally all such logic is implemented at the source, i.e. in the IOC that provides the alarm trigger PV.
 This not only simplifies the task of the alarm system, but also makes the behavior more obvious,
@@ -196,6 +214,8 @@ since a PV is used "as is", the alarm server uses the same alarm state that is i
 without adding filtering that might not be obvious when later inspecting an alarm.
 
 Note again that the alarm system only reacts to the severity of alarm trigger PVs.
+For EPICS records, this is for example configured via the HIGH, HSV and HYST fields of analog records,
+or the ZSV and OSV fields of binary records.
 Why, when and for how long an alarm trigger PV enters an alarm state is configured on the data source,
 and is not immediately obvious from the received alarm severity.
 
