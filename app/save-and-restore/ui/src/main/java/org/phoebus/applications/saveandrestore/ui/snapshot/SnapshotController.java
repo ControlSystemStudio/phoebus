@@ -182,67 +182,65 @@ public class SnapshotController implements NodeChangedListener {
 
         saveAndRestoreService.addNodeChangeListener(this);
 
-        filterTextField.addEventHandler(KeyEvent.KEY_PRESSED,  event -> {
-            if (event.getCode() == KeyCode.ENTER) {
-                String filterText = filterTextField.getText().trim();
+        filterTextField.addEventHandler(KeyEvent.ANY, event -> {
+            String filterText = filterTextField.getText().trim();
 
-                if (filterText.isEmpty()) {
-                    List<TableEntry> arrayList = tableEntryItems.values().stream()
-                            .map(item -> {
-                                if (!preserveSelectionCheckBox.isSelected()) {
-                                    if (!item.readOnlyProperty().get()) {
-                                        item.selectedProperty().set(true);
-                                    }
-                                }
-                                return item;
-                            }).collect(Collectors.toList());
-
-                    UI_EXECUTOR.execute(() -> {
-                        snapshotTable.updateTable(arrayList);
-                    });
-
-                    return;
-                }
-
-                List<String> filters = Arrays.asList(filterText.split(","));
-                regexPatterns = filters.stream()
+            if (filterText.isEmpty()) {
+                List<TableEntry> arrayList = tableEntryItems.values().stream()
                         .map(item -> {
-                                if (item.startsWith("/")) {
-                                    return Arrays.asList(Pattern.compile(item.substring(1, item.length() - 1).trim()));
-                                } else {
-                                    return Arrays.asList(item.split("&")).stream()
-                                            .map(andItem -> andItem.replaceAll("\\*", ".*"))
-                                            .map(andItem -> Pattern.compile(andItem.trim()))
-                                            .collect(Collectors.toList());
-                                }
-                        }).collect(Collectors.toList());
-
-                List<TableEntry> filteredEntries = tableEntryItems.values().stream()
-                        .filter(item -> {
-                            boolean matchEither = false;
-                            for (List<Pattern> andPatternList : regexPatterns) {
-                                boolean matchAnd = true;
-                                for (Pattern pattern : andPatternList) {
-                                    if (pattern.matcher(item.pvNameProperty().get()).find()) {
-                                        matchAnd &= true;
-                                    } else {
-                                        matchAnd &= false;
-                                    }
-                                }
-
-                                matchEither |= matchAnd;
-                            }
-
                             if (!preserveSelectionCheckBox.isSelected()) {
-                                item.selectedProperty().setValue(matchEither);
+                                if (!item.readOnlyProperty().get()) {
+                                    item.selectedProperty().set(true);
+                                }
                             }
-                            return matchEither;
+                            return item;
                         }).collect(Collectors.toList());
 
                 UI_EXECUTOR.execute(() -> {
-                    snapshotTable.updateTable(filteredEntries);
+                    snapshotTable.updateTable(arrayList);
                 });
+
+                return;
             }
+
+            List<String> filters = Arrays.asList(filterText.split(","));
+            regexPatterns = filters.stream()
+                    .map(item -> {
+                        if (item.startsWith("/")) {
+                            return Arrays.asList(Pattern.compile(item.substring(1, item.length() - 1).trim()));
+                        } else {
+                            return Arrays.asList(item.split("&")).stream()
+                                    .map(andItem -> andItem.replaceAll("\\*", ".*"))
+                                    .map(andItem -> Pattern.compile(andItem.trim()))
+                                    .collect(Collectors.toList());
+                        }
+                    }).collect(Collectors.toList());
+
+            List<TableEntry> filteredEntries = tableEntryItems.values().stream()
+                    .filter(item -> {
+                        boolean matchEither = false;
+                        for (List<Pattern> andPatternList : regexPatterns) {
+                            boolean matchAnd = true;
+                            for (Pattern pattern : andPatternList) {
+                                if (pattern.matcher(item.pvNameProperty().get()).find()) {
+                                    matchAnd &= true;
+                                } else {
+                                    matchAnd &= false;
+                                }
+                            }
+
+                            matchEither |= matchAnd;
+                        }
+
+                        if (!preserveSelectionCheckBox.isSelected()) {
+                            item.selectedProperty().setValue(matchEither);
+                        }
+                        return matchEither;
+                    }).collect(Collectors.toList());
+
+            UI_EXECUTOR.execute(() -> {
+                snapshotTable.updateTable(filteredEntries);
+            });
         });
     }
 
