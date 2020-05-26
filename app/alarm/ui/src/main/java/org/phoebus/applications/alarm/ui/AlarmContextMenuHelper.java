@@ -61,14 +61,17 @@ public class AlarmContextMenuHelper
     public void addSupportedEntries(final Node node,
                                     final AlarmClient model,
                                     final ContextMenu menu,
-                                    final List<AlarmTreeItem<?>> selection) {
+                                    final List<AlarmTreeItem<?>> selection)
+    {
         final List<MenuItem> menu_items = menu.getItems();
         final List<AlarmTreeItem<?>> active = new ArrayList<>();
         final List<AlarmTreeItem<?>> acked = new ArrayList<>();
         final List<ProcessVariable> pvnames = new ArrayList<>();
-        for (AlarmTreeItem<?> item : selection) {
+        for (AlarmTreeItem<?> item : selection)
+        {
             final SeverityLevel sev = item.getState().severity;
-            if (sev.ordinal() > SeverityLevel.OK.ordinal()) {
+            if (sev.ordinal() > SeverityLevel.OK.ordinal())
+            {
                 if (sev.isActive())
                     active.add(item);
                 else
@@ -78,9 +81,9 @@ public class AlarmContextMenuHelper
                 pvnames.add(new ProcessVariable(item.getName()));
         }
 
-        if (active.size() == 1 && active.get(0) instanceof AlarmClientLeaf)
+        if (active.size() == 1  &&  active.get(0) instanceof AlarmClientLeaf)
             menu_items.add(new AlarmInfoAction(node, (AlarmClientLeaf) active.get(0)));
-        if (acked.size() == 1 && acked.get(0) instanceof AlarmClientLeaf)
+        if (acked.size() == 1  &&  acked.get(0) instanceof AlarmClientLeaf)
             menu_items.add(new AlarmInfoAction(node, (AlarmClientLeaf) acked.get(0)));
 
         // Somehow indicate the origin of guidance, display, command?
@@ -90,7 +93,8 @@ public class AlarmContextMenuHelper
         //
         // Considered tool tip, but unclear how to attach TT to menu item.
         final AtomicInteger count = new AtomicInteger();
-        for (AlarmTreeItem<?> item : selection) {
+        for (AlarmTreeItem<?> item : selection)
+        {
             addGuidance(node, menu_items, item, count);
             if (count.get() >= AlarmSystem.alarm_menu_max_items)
                 break;
@@ -98,7 +102,8 @@ public class AlarmContextMenuHelper
         added.clear();
         count.set(0);
 
-        for (AlarmTreeItem<?> item : selection) {
+        for (AlarmTreeItem<?> item : selection)
+        {
             addDisplays(node, menu_items, item, count);
             if (count.get() >= AlarmSystem.alarm_menu_max_items)
                 break;
@@ -106,7 +111,8 @@ public class AlarmContextMenuHelper
         added.clear();
         count.set(0);
 
-        for (AlarmTreeItem<?> item : selection) {
+        for (AlarmTreeItem<?> item : selection)
+        {
             addCommands(node, menu_items, item, count);
             if (count.get() >= AlarmSystem.alarm_menu_max_items)
                 break;
@@ -117,27 +123,9 @@ public class AlarmContextMenuHelper
         if (AlarmUI.mayAcknowledge(model))
         {
             if (active.size() > 0)
-            {
-                if(AlarmSystem.menuItemAcknowledgeOnTop)
-                {
-                    menu_items.add(0, new AcknowledgeAction(model, active));
-                }
-                else
-                {
-                    menu_items.add(new AcknowledgeAction(model, active));
-                }
-            }
+                menu_items.add(0, new AcknowledgeAction(model, active));
             if (acked.size() > 0)
-            {
-                if(AlarmSystem.menuItemAcknowledgeOnTop)
-                {
-                    menu_items.add(0, new UnAcknowledgeAction(model, active));
-                }
-                else
-                {
-                    menu_items.add(new UnAcknowledgeAction(model, acked));
-                }
-            }
+                menu_items.add(0, new UnAcknowledgeAction(model, active));
         }
         // Add context menu actions for PVs
         if (pvnames.size() > 0)
@@ -145,7 +133,8 @@ public class AlarmContextMenuHelper
             menu_items.add(new SeparatorMenuItem());
             SelectionService.getInstance().setSelection("AlarmUI", pvnames);
             ContextMenuHelper.addSupportedEntries(node, menu);
-        } else
+        }
+        else
         {
             // search for other context menu actions registered for AlarmTreeItem
             SelectionService.getInstance().setSelection("AlarmUI", selection);
