@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Templates</name>
+  <width>570</width>
+  <height>700</height>
+  <grid_visible>false</grid_visible>
+  <widget type="label" version="2.0.0">
+    <name>Titlel</name>
+    <text>Read-Only Displays as "Templates"</text>
+    <width>570</width>
+    <height>31</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Intro</name>
+    <text>When a display file is read-only in the file system, the editor opens in a corresponding read-only mode.
+
+Widgets can be copied out of this editor, but not changed.
+
+This can be used as a "template" repository, where for example arrangements of widgets are prepared for being copy/pasted into another editor.
+If you later intend to change the "template" and expect displays to use the current version, an "Embedded Display" is of course the way to go.
+There are times, however, when you prefer to simply re-use widget arrangements via copy/paste, and a read-only displays helps with that.</text>
+    <y>31</y>
+    <width>510</width>
+    <height>209</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Example1</name>
+    <text>Labelled PV Text and Status LED</text>
+    <x>70</x>
+    <y>300</y>
+    <width>210</width>
+    <height>30</height>
+    <font>
+      <font family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="group" version="2.0.0">
+    <name>Group</name>
+    <x>70</x>
+    <y>330</y>
+    <width>180</width>
+    <height>20</height>
+    <style>3</style>
+    <transparent>true</transparent>
+    <widget type="textupdate" version="2.0.0">
+      <name>Text Update</name>
+      <pv_name>PV</pv_name>
+      <x>50</x>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>Label_2</name>
+      <text>Label:</text>
+      <width>60</width>
+    </widget>
+    <widget type="multi_state_led" version="2.0.0">
+      <name>LED (Multi State)</name>
+      <pv_name>PV</pv_name>
+      <x>160</x>
+      <states>
+        <state>
+          <value>0</value>
+          <label>Off</label>
+          <color>
+            <color name="Off" red="60" green="100" blue="60">
+            </color>
+          </color>
+        </state>
+        <state>
+          <value>1</value>
+          <label>On</label>
+          <color>
+            <color name="On" red="0" green="255" blue="0">
+            </color>
+          </color>
+        </state>
+      </states>
+    </widget>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Example2</name>
+    <text>Some Graphics</text>
+    <x>70</x>
+    <y>400</y>
+    <width>210</width>
+    <height>30</height>
+    <font>
+      <font family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="group" version="2.0.0">
+    <name>Group</name>
+    <x>70</x>
+    <y>430</y>
+    <width>90</width>
+    <height>120</height>
+    <style>3</style>
+    <transparent>true</transparent>
+    <widget type="ellipse" version="2.0.0">
+      <name>Ellipse</name>
+      <x>20</x>
+      <width>41</width>
+      <height>20</height>
+    </widget>
+    <widget type="rectangle" version="2.0.0">
+      <name>Rectangle</name>
+      <x>20</x>
+      <y>20</y>
+      <width>41</width>
+      <height>60</height>
+      <corner_width>10</corner_width>
+      <corner_height>10</corner_height>
+    </widget>
+    <widget type="polyline" version="2.0.0">
+      <name>Polyline</name>
+      <y>80</y>
+      <width>30</width>
+      <height>40</height>
+      <points>
+        <point x="30.0" y="0.0">
+        </point>
+        <point x="20.0" y="40.0">
+        </point>
+        <point x="0.0" y="40.0">
+        </point>
+      </points>
+    </widget>
+    <widget type="polyline" version="2.0.0">
+      <name>Polyline_1</name>
+      <x>50</x>
+      <y>80</y>
+      <width>30</width>
+      <height>40</height>
+      <points>
+        <point x="0.0" y="0.0">
+        </point>
+        <point x="10.0" y="40.0">
+        </point>
+        <point x="30.0" y="40.0">
+        </point>
+      </points>
+    </widget>
+    <widget type="polyline" version="2.0.0">
+      <name>Polyline_2</name>
+      <x>60</x>
+      <y>30</y>
+      <width>30</width>
+      <points>
+        <point x="0.0" y="0.0">
+        </point>
+        <point x="20.0" y="20.0">
+        </point>
+        <point x="30.0" y="10.0">
+        </point>
+      </points>
+    </widget>
+    <widget type="polyline" version="2.0.0">
+      <name>Polyline_3</name>
+      <y>30</y>
+      <width>20</width>
+      <height>40</height>
+      <points>
+        <point x="20.0" y="0.0">
+        </point>
+        <point x="0.0" y="30.0">
+        </point>
+        <point x="0.0" y="40.0">
+        </point>
+      </points>
+    </widget>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Usage</name>
+    <text>To use:
+
+1) Select something in here, Copy
+2) Click in other editor, Paste</text>
+    <x>250</x>
+    <y>410</y>
+    <width>240</width>
+    <height>90</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Change Mode</name>
+    <text>To change between normal editor mode and r/o mode:
+
+1) Change the file "write" permissions in the OS or the File Browser
+2) Close and re-open the editor, or use the context menu to Re-load the display</text>
+    <y>610</y>
+    <width>520</width>
+    <height>90</height>
+  </widget>
+</display>

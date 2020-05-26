@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,7 +7,7 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui;
 
-import org.phoebus.applications.alarm.AlarmSystem;
+import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.javafx.ImageCache;
@@ -76,52 +76,56 @@ public class AlarmUI
         return severity_icons[severity.ordinal()];
     }
 
+    /** Verify authorization, qualified by model's current config
+     *  @param model Alarm client model
+     *  @param auto Authorization name
+     *  @return <code>true</code> if the user has authorization
+     */
+    private static boolean haveQualifiedAuthorization(final AlarmClient model, final String authorization)
+    {
+        if (model != null)
+        {   // Check for authorization specific to this alarm model
+            final String qualified = authorization + "." + model.getRoot().getName();
+            if (AuthorizationService.isAuthorizationDefined(qualified))
+                return AuthorizationService.hasAuthorization(qualified);
+        }
+        return AuthorizationService.hasAuthorization(authorization);
+    }
+
     /** Verify acknowledge action through authorization service.
+     *  @param model Alarm client model
      *  @return <code>true</code> if the user has authorization to acknowledge.
      */
-    public static boolean mayAcknowledge()
+    public static boolean mayAcknowledge(final AlarmClient model)
     {
-        String authStr = "alarm_ack." + AlarmSystem.config_name;
-        boolean hasAuthRule = AuthorizationService.isAuthorizationDefined(authStr);
-        if (hasAuthRule)
-            return AuthorizationService.hasAuthorization(authStr);
-        return AuthorizationService.hasAuthorization("alarm_ack");
+        return haveQualifiedAuthorization(model, "alarm_ack");
     }
 
     /** Verify configure action through authorization service.
+     *  @param model Alarm client model
      *  @return <code>true</code> if the user has authorization to configure.
      */
-    public static boolean mayConfigure()
+    public static boolean mayConfigure(final AlarmClient model)
     {
-        String authStr = "alarm_config." + AlarmSystem.config_name;
-        boolean hasAuthRule = AuthorizationService.isAuthorizationDefined(authStr);
-        if (hasAuthRule)
-            return AuthorizationService.hasAuthorization(authStr);
-        return AuthorizationService.hasAuthorization("alarm_config");
+        return haveQualifiedAuthorization(model, "alarm_config");
     }
 
     /** Verify modify mode action through authorization service.
+     *  @param model Alarm client model
      *  @return <code>true</code> if the user has authorization to modify maintenance/normal mode.
      */
-    public static boolean mayModifyMode()
+    public static boolean mayModifyMode(final AlarmClient model)
     {
-        String authStr = "alarm_mode." + AlarmSystem.config_name;
-        boolean hasAuthRule = AuthorizationService.isAuthorizationDefined(authStr);
-        if (hasAuthRule)
-            return AuthorizationService.hasAuthorization(authStr);
-        return AuthorizationService.hasAuthorization("alarm_mode");
+        return haveQualifiedAuthorization(model, "alarm_mode");
     }
 
     /** Verify disable_notify action through authorization service.
+     *  @param model Alarm client model
      *  @return <code>true</code> if the user has authorization to disable notifications.
      */
-    public static boolean mayDisableNotify()
+    public static boolean mayDisableNotify(final AlarmClient model)
     {
-        String authStr = "alarm_notify." + AlarmSystem.config_name;
-        boolean hasAuthRule = AuthorizationService.isAuthorizationDefined(authStr);
-        if (hasAuthRule)
-            return AuthorizationService.hasAuthorization(authStr);
-        return AuthorizationService.hasAuthorization("alarm_notify");
+        return haveQualifiedAuthorization(model, "alarm_notify");
     }
 
     /** @return Label that indicates missing server connection */

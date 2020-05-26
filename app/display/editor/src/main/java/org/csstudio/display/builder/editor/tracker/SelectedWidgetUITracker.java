@@ -240,7 +240,7 @@ public class SelectedWidgetUITracker extends Tracker
         else
         {
             event.consume();
-            if (widgets.size() == 1  &&  inline_editor == null)
+            if (enable_changes  &&  widgets.size() == 1  &&  inline_editor == null)
                 createInlineEditor(widgets.get(0));
         }
     }

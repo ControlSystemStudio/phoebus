@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -61,17 +61,14 @@ public class AlarmContextMenuHelper
     public void addSupportedEntries(final Node node,
                                     final AlarmClient model,
                                     final ContextMenu menu,
-                                    final List<AlarmTreeItem<?>> selection)
-    {
+                                    final List<AlarmTreeItem<?>> selection) {
         final List<MenuItem> menu_items = menu.getItems();
         final List<AlarmTreeItem<?>> active = new ArrayList<>();
         final List<AlarmTreeItem<?>> acked = new ArrayList<>();
         final List<ProcessVariable> pvnames = new ArrayList<>();
-        for (AlarmTreeItem<?> item : selection)
-        {
+        for (AlarmTreeItem<?> item : selection) {
             final SeverityLevel sev = item.getState().severity;
-            if (sev.ordinal() > SeverityLevel.OK.ordinal())
-            {
+            if (sev.ordinal() > SeverityLevel.OK.ordinal()) {
                 if (sev.isActive())
                     active.add(item);
                 else
@@ -81,9 +78,9 @@ public class AlarmContextMenuHelper
                 pvnames.add(new ProcessVariable(item.getName()));
         }
 
-        if (active.size() == 1  &&  active.get(0) instanceof AlarmClientLeaf)
+        if (active.size() == 1 && active.get(0) instanceof AlarmClientLeaf)
             menu_items.add(new AlarmInfoAction(node, (AlarmClientLeaf) active.get(0)));
-        if (acked.size() == 1  &&  acked.get(0) instanceof AlarmClientLeaf)
+        if (acked.size() == 1 && acked.get(0) instanceof AlarmClientLeaf)
             menu_items.add(new AlarmInfoAction(node, (AlarmClientLeaf) acked.get(0)));
 
         // Somehow indicate the origin of guidance, display, command?
@@ -93,8 +90,7 @@ public class AlarmContextMenuHelper
         //
         // Considered tool tip, but unclear how to attach TT to menu item.
         final AtomicInteger count = new AtomicInteger();
-        for (AlarmTreeItem<?> item : selection)
-        {
+        for (AlarmTreeItem<?> item : selection) {
             addGuidance(node, menu_items, item, count);
             if (count.get() >= AlarmSystem.alarm_menu_max_items)
                 break;
@@ -102,8 +98,7 @@ public class AlarmContextMenuHelper
         added.clear();
         count.set(0);
 
-        for (AlarmTreeItem<?> item : selection)
-        {
+        for (AlarmTreeItem<?> item : selection) {
             addDisplays(node, menu_items, item, count);
             if (count.get() >= AlarmSystem.alarm_menu_max_items)
                 break;
@@ -111,8 +106,7 @@ public class AlarmContextMenuHelper
         added.clear();
         count.set(0);
 
-        for (AlarmTreeItem<?> item : selection)
-        {
+        for (AlarmTreeItem<?> item : selection) {
             addCommands(node, menu_items, item, count);
             if (count.get() >= AlarmSystem.alarm_menu_max_items)
                 break;
@@ -120,12 +114,30 @@ public class AlarmContextMenuHelper
         added.clear();
         count.set(0);
 
-        if (AlarmUI.mayAcknowledge())
+        if (AlarmUI.mayAcknowledge(model))
         {
             if (active.size() > 0)
-                menu_items.add(new AcknowledgeAction(model, active));
+            {
+                if(AlarmSystem.menuItemAcknowledgeOnTop)
+                {
+                    menu_items.add(0, new AcknowledgeAction(model, active));
+                }
+                else
+                {
+                    menu_items.add(new AcknowledgeAction(model, active));
+                }
+            }
             if (acked.size() > 0)
-                menu_items.add(new UnAcknowledgeAction(model, acked));
+            {
+                if(AlarmSystem.menuItemAcknowledgeOnTop)
+                {
+                    menu_items.add(0, new UnAcknowledgeAction(model, active));
+                }
+                else
+                {
+                    menu_items.add(new UnAcknowledgeAction(model, acked));
+                }
+            }
         }
         // Add context menu actions for PVs
         if (pvnames.size() > 0)

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2020 Oak Ridge National Laboratory.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -620,7 +620,41 @@ public class AlarmLogicUnitTest
         System.out.println("wait...");
         Thread.sleep(delay * 1500);
         logic.check(true, true, SeverityLevel.MINOR, "high", SeverityLevel.MINOR, "high");
-     }
+    }
+
+    @Test
+    public void testDelayedButShortBurst() throws Exception
+    {
+        System.out.println("* Latched, annunciated, delayed: { Major, clear} several times within delay, no alarm");
+        final int delay = 2;
+        final AlarmLogicDemo logic = new AlarmLogicDemo(true, true, delay);
+        logic.check(false, false, SeverityLevel.OK, OK, SeverityLevel.OK, OK);
+        assertEquals("", logic.getAlarmState().getValue());
+
+        String last_value = "";
+        for (int i=0; i<10; ++i)
+        {
+            // MAJOR alarm has no immediate effect
+            logic.computeNewState("a"+i, SeverityLevel.MAJOR, "very high");
+            logic.check(true, false, SeverityLevel.MAJOR, "very high", SeverityLevel.OK, OK);
+            assertEquals(last_value, logic.getAlarmState().getValue());
+
+            // .. if it clears in time (1/2 the delay time)
+            Thread.sleep(delay * 500);
+            last_value = "b" + i;
+            logic.computeNewState(last_value, SeverityLevel.OK, OK);
+            logic.check(true, false, SeverityLevel.OK, OK, SeverityLevel.OK, OK);
+            assertEquals(last_value, logic.getAlarmState().getValue());
+
+            // The 'delay' timer resets when the PV returns to OK
+        }
+
+        // Assert that it stays that way
+        System.out.println("wait...");
+        Thread.sleep(delay * 1500);
+        logic.check(false, false, SeverityLevel.OK, OK, SeverityLevel.OK, OK);
+        assertEquals(last_value, logic.getAlarmState().getValue());
+    }
 
     @Test
     public void testLatchedAnnunciatedCount() throws Exception
