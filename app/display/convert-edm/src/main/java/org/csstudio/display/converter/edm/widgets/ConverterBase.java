@@ -391,7 +391,11 @@ public abstract class ConverterBase<W extends Widget>
         {
             try
             {
+                // Handle 'local' scope by using display ID
                 String newName = pvName.replace("$(!W)", "$(DID)");
+                newName = pvName.replace("$(!A)", "$(DID)");
+                newName = pvName.replace("$(!WZ)", "$(DID)");
+                newName = pvName.replace("$(!AZ)", "$(DID)");
                 newName = newName.replaceAll("\\x24\\x28\\x21[A-Z]{1}\\x29", "\\$(DID)");
                 String[] parts = StringSplitter.splitIgnoreInQuotes(newName, '=', true);
                 StringBuilder sb = new StringBuilder("loc://");
