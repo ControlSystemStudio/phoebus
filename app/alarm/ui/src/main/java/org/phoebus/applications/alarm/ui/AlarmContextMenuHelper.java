@@ -125,7 +125,7 @@ public class AlarmContextMenuHelper
             if (active.size() > 0)
                 menu_items.add(0, new AcknowledgeAction(model, active));
             if (acked.size() > 0)
-                menu_items.add(0, new UnAcknowledgeAction(model, active));
+                menu_items.add(0, new UnAcknowledgeAction(model, acked));
         }
         // Add context menu actions for PVs
         if (pvnames.size() > 0)
