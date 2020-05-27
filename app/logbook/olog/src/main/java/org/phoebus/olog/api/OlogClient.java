@@ -1,6 +1,33 @@
 package org.phoebus.olog.api;
 
-import java.io.File;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.UniformInterfaceException;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.config.ClientConfig;
+import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
+import com.sun.jersey.client.urlconnection.HTTPSProperties;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
+import com.sun.jersey.multipart.FormDataMultiPart;
+import com.sun.jersey.multipart.file.FileDataBodyPart;
+import com.sun.jersey.multipart.impl.MultiPartWriter;
+import org.phoebus.logbook.Attachment;
+import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.LogbookException;
+import org.phoebus.logbook.Messages;
+import org.phoebus.logbook.Property;
+import org.phoebus.logbook.Tag;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -21,41 +48,13 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriBuilder;
-
-import org.phoebus.logbook.Attachment;
-import org.phoebus.logbook.LogClient;
-import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.Logbook;
-import org.phoebus.logbook.LogbookException;
-import org.phoebus.logbook.Messages;
-import org.phoebus.logbook.Property;
-import org.phoebus.logbook.Tag;
-
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
-import com.sun.jersey.client.urlconnection.HTTPSProperties;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
-import com.sun.jersey.multipart.FormDataMultiPart;
-import com.sun.jersey.multipart.file.FileDataBodyPart;
-import com.sun.jersey.multipart.impl.MultiPartWriter;
-
+/**
+ * A logbook client to tne Olog logbook service
+ */
 public class OlogClient implements LogClient {
 
     private final WebResource service;
@@ -111,7 +110,7 @@ public class OlogClient implements LogClient {
         }
 
         /**
-         * Creates a {@link OlogClientBuilder} for a CF client to URI <tt>uri</tt>.
+         * Creates a {@link OlogClientBuilder} for a CF client to URI <code>uri</code>.
          * 
          * @param uri
          * @return {@link OlogClientBuilder}
@@ -122,7 +121,7 @@ public class OlogClient implements LogClient {
 
         /**
          * Creates a {@link OlogClientBuilder} for a CF client to {@link URI}
-         * <tt>uri</tt>.
+         * <code>uri</code>.
          * 
          * @param uri
          * @return {@link OlogClientBuilder}
@@ -442,10 +441,6 @@ public class OlogClient implements LogClient {
             this.logs.add(log);
         }
 
-        public SetLogs(Collection<LogEntry> logs) {
-            this.logs = new ArrayList<LogEntry>(logs);
-        }
-
         @Override
         public Collection<LogEntry> call() {
             Collection<LogEntry> returnLogs = new HashSet<LogEntry>();
@@ -482,35 +477,6 @@ public class OlogClient implements LogClient {
             return Collections.unmodifiableCollection(returnLogs);
 
         }
-    }
-    @Override
-    public Tag set(Tag tag) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Tag set(Tag tag, Collection<Long> logIds) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Logbook set(Logbook Logbook) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Logbook set(Logbook logbook, Collection<Long> logIds) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Property set(Property property) {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     @Override
@@ -572,48 +538,6 @@ public class OlogClient implements LogClient {
                 throw new UniformInterfaceException(clientResponse);
             }
         }
-    }
-
-    @Override
-    public Property update(Property property) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Tag update(Tag tag, Long logId) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Tag update(Tag tag, Collection<Long> logIds) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Logbook update(Logbook logbook, Long logId) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Logbook update(Logbook logbook, Collection<Long> logIds) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Property update(Property property, Long logId) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Attachment add(File local, Long logId) {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     @Override
