@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -29,12 +29,25 @@ public class EdmAutoConverter implements DisplayAutoConverter
     private static final ConcurrentHashMap<String, Semaphore> active_conversions = new ConcurrentHashMap<>();
 
     @Override
-    public DisplayModel autoconvert(final String parent_display, final String display_file) throws Exception
+    public DisplayModel autoconvert(final String parent_display, String display_file) throws Exception
     {
         // Is auto-converter enabled?
         if (ConverterPreferences.auto_converter_dir == null)
             return null;
 
+        // Special case:
+        // Parent display is null, and display_file is the complete path
+        // to a file within the auto_converter_dir.
+        // This can for example happen when opening an auto-converted file
+        // from the alarm display.
+        if (parent_display == null)
+        {
+            final File the_file = new File(display_file);
+            if (ConverterPreferences.auto_converter_dir.equals(the_file.getParentFile()))
+            {   // Use just the file name. doConvert() will add the auto_converter_dir
+                display_file = the_file.getName();
+            }
+        }
         logger.log(Level.INFO, "For parent display " + parent_display + ", can " + display_file + " be auto-created from EDM file?");
 
         // Converter could be called in parallel for the same display_file
