@@ -258,54 +258,6 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public void delete(LogEntry arg0) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(Collection<LogEntry> arg0) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(Tag arg0, Long arg1) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(Tag arg0, Collection<Long> arg1) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(Logbook arg0, Long arg1) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(Logbook arg0, Collection<Long> arg1) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(Property arg0, Long arg1) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(Property arg0, Collection<Long> arg1) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
     public InputStream getAttachment(Long arg0, org.phoebus.logbook.Attachment arg1) {
         // TODO Auto-generated method stub
         return null;
@@ -399,36 +351,6 @@ public class OlogClient implements LogClient {
     public Property update(Property arg0, Long arg1) {
         // TODO Auto-generated method stub
         return null;
-    }
-
-    @Override
-    public void delete(Long arg0) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(String arg0, Long arg1) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void deleteLogbook(String arg0) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void deleteProperty(String arg0) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void deleteTag(String arg0) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override

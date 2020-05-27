@@ -289,42 +289,54 @@ public interface LogClient {
      *
      * @param tagName - the name of the tag to be deleted
      */
-    public void deleteTag(String tagName);
+    public default void deleteTag(String tagName) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
 
     /**
      * Delete the logbook with name <code>logbook</code>
      *
      * @param logbookName - the name of the logbook to be deleted
      */
-    public void deleteLogbook(String logbookName);
+    public default void deleteLogbook(String logbookName) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
 
     /**
      * Delete the property with name <code>property</code>
      *
      * @param propertyName - property to be deleted
      */
-    public void deleteProperty(String propertyName);
+    public default void deleteProperty(String propertyName) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
 
     /**
      * Remove the LogEntry <code>log</code>
      *
      * @param log LogEntry to be removed
      */
-    public void delete(LogEntry log);
+    public default void delete(LogEntry log) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
 
     /**
      * Remove the LogEntry identified by <code>logId</code>
      *
      * @param logId LogEntry id LogEntry id to be removed
      */
-    public void delete(Long logId);
+    public default void delete(Long logId) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
 
     /**
      * Remove the LogEntry collection identified by <code>logIds</code>
      *
      * @param logIds logs to be removed
      */
-    public void delete(Collection<LogEntry> logIds);
+    public default void delete(Collection<LogEntry> logIds) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
 
     /**
      * Remove tag <code>tag</code> from the LogEntry with the id <code>logId</code>
@@ -332,7 +344,9 @@ public interface LogClient {
      * @param tag - the tag to be removed
      * @param logId - the log entry from which the tag is to be removed
      */
-    public void delete(Tag tag, Long logId);
+    public default void delete(Tag tag, Long logId) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
 
     /**
      * Remove the tag <code>tag </code> from all the logs identified by <code>logIds</code>
@@ -340,7 +354,9 @@ public interface LogClient {
      * @param tag - the tag to be removed
      * @param logIds - the logs from which the tag is to be removed
      */
-    public void delete(Tag tag, Collection<Long> logIds);
+    public default void delete(Tag tag, Collection<Long> logIds) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
 
     /**
      * Remove logbook <code>logbook</code> from the LogEntry with name <code>logName</code>
@@ -348,7 +364,9 @@ public interface LogClient {
      * @param logbook - the logbook to be removed
      * @param logId - the log entry from which the logbook is to be removed
      */
-    public void delete(Logbook logbook, Long logId);
+    public default void delete(Logbook logbook, Long logId) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
 
     /**
      * Remove the logbook <code>logbook</code> from the set of logs <code>logIds</code>
@@ -356,7 +374,9 @@ public interface LogClient {
      * @param logbook - the logbook to be removed
      * @param logIds - the logs from which the logbook is to be removed
      */
-    public void delete(Logbook logbook, Collection<Long> logIds);
+    public default void delete(Logbook logbook, Collection<Long> logIds) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
 
     /**
      * Remove property <code>property</code> from the LogEntry with id <code>logId</code>
@@ -364,7 +384,9 @@ public interface LogClient {
      * @param property - the property to be deleted
      * @param logId - LogEntry id from which the property is to be removed
      */
-    public void delete(Property property, Long logId);
+    public default void delete(Property property, Long logId) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
 
     /**
      * Remove the property <code>property</code> from the set of logs
@@ -373,7 +395,9 @@ public interface LogClient {
      * @param property - the property to be deleted
      * @param logIds - the logs from which to property is to be removed
      */
-    public void delete(Property property, Collection<Long> logIds);
+    public default void delete(Property property, Collection<Long> logIds) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
 
     /**
      * Remove file attachment from LogEntry <code>logId<code>
@@ -381,7 +405,7 @@ public interface LogClient {
      * @param fileName - the file name to be removed
      * @param logId - the logid from which the attached file is to be removed
      */
-    public void delete(String fileName, Long logId);
-
-
+    public default void delete(String fileName, Long logId) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
 }
