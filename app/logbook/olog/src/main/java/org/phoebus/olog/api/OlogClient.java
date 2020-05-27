@@ -605,7 +605,7 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public LogEntry update(Property property, Long logId) {
+    public Property update(Property property, Long logId) {
         // TODO Auto-generated method stub
         return null;
     }
