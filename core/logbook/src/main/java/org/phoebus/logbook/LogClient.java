@@ -49,7 +49,7 @@ public interface LogClient {
     /**
      * Return all the logs. ***Warning can return a lot of data***
      *
-     * @return Collection of all LogEntry entires
+     * @return Collection of all {@link LogEntry}s
      */
     public Collection<LogEntry> listLogs();
 
@@ -302,7 +302,7 @@ public interface LogClient {
     }
 
     /**
-     * Find log entires with tag {tagname}
+     * Find log entries with tag {tagname}
      * @param tagName - tag name
      * @return List of matching {@link LogEntry}
      */
@@ -311,7 +311,7 @@ public interface LogClient {
     }
 
     /**
-     * Find log entires with logbook
+     * Find log entries with logbook
      * @param logbookName - logbook name
      * @return List of matching {@link LogEntry}
      */
@@ -335,7 +335,7 @@ public interface LogClient {
     }
 
     /**
-     * Find log entires with the given property
+     * Find log entries with the given property
      *
      * @param propertyName - name of the required property
      * @return List of matching {@link LogEntry}
