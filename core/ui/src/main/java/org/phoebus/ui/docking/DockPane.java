@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import javafx.scene.control.*;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.application.Messages;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Styles;
 
@@ -253,6 +254,7 @@ public class DockPane extends TabPane
                             alert.setTitle(Messages.DockCloseNamedPaneTitle);
                             alert.setContentText(MessageFormat.format(Messages.DockCloseNamedPaneText, getName()));
                             alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
+                            DialogHelper.positionDialog(alert, this, 0, 0);
                             alert.showAndWait().ifPresent(type -> {
                                 if (type == ButtonType.NO)
                                     return;
