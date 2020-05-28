@@ -8,6 +8,7 @@
 package org.phoebus.ui.docking;
 
 import java.lang.ref.WeakReference;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -243,7 +244,23 @@ public class DockPane extends TabPane
                     ((SplitDock) dock_parent).canMerge())
                 {
                     final MenuItem close = new MenuItem(Messages.DockClose, new ImageView(close_icon));
-                    close.setOnAction(evt -> mergeEmptyAnonymousSplit());
+                    close.setOnAction(evt -> 
+                    {
+                        if (!getName().isBlank())
+                        {
+                            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                            alert.initOwner(dock_parent.getScene().getWindow());
+                            alert.setTitle(Messages.DockCloseNamedPaneTitle);
+                            alert.setContentText(MessageFormat.format(Messages.DockCloseNamedPaneText, getName()));
+                            alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
+                            alert.showAndWait().ifPresent(type -> {
+                                if (type == ButtonType.NO)
+                                    return;
+                                setName("");
+                            });
+                        }
+                        mergeEmptyAnonymousSplit();
+                    });
                     items.addAll(new SeparatorMenuItem(), close);
                 }
             }

@@ -26,6 +26,8 @@ public class Messages
     public static String DockAppName;
     public static String DockClose;
     public static String DockCloseAll;
+    public static String DockCloseNamedPaneText;
+    public static String DockCloseNamedPaneTitle;
     public static String DockCloseOthers;
     public static String DockDetach;
     public static String DockInfo;
