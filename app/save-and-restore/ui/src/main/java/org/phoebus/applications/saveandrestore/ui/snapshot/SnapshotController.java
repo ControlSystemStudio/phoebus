@@ -234,6 +234,8 @@ public class SnapshotController implements NodeChangedListener {
 
                         if (!preserveSelectionCheckBox.isSelected()) {
                             item.selectedProperty().setValue(matchEither);
+                        } else {
+                            matchEither |= item.selectedProperty().get();
                         }
                         return matchEither;
                     }).collect(Collectors.toList());
