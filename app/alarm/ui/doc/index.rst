@@ -147,12 +147,12 @@ By default, the annunciator will start the actual message with
 the alarm severity. For example, a description of "Vacuum Problem"
 will be annunciated as for example "Minor Alarm: Vacuum Problem".
 The addition of the alarm severity can be disabled by starting
-the description with a "*" as in "* Vacuum Problem".
+the description with a "\*" as in "\* Vacuum Problem".
 
 When there is a flurry of alarms, the annunciator will summarize
 them to "There are 10 more alarms". To assert that certain alarms
 are always annunciated, even if they occur within a burst of other alarms,
-start the message with "!" (or "*!").
+start the message with "!" (or "\*!").
 
 
 Behavior
