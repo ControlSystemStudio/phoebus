@@ -35,6 +35,8 @@ import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -527,6 +529,24 @@ class SnapshotTable extends TableView<TableEntry> {
                 }
                 clickedRow = rowAtMouse == -1 ? getSelectionModel().getSelectedCells().get(0).getRow() : rowAtMouse;
             }
+        });
+
+        addEventHandler(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() != KeyCode.SPACE) {
+                return;
+            }
+
+            ObservableList<TableEntry> selections = getSelectionModel().getSelectedItems();
+
+            if (selections == null) {
+                return;
+            }
+
+            selections.stream().forEach(item -> item.selectedProperty().setValue(!item.selectedProperty().get()));
+
+            // Somehow JavaFX TableView handles SPACE pressed event as going into edit mode of the cell.
+            // Consuming event prevents NullPointerException.
+            event.consume();
         });
     }
 
