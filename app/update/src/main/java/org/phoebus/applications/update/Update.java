@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -189,27 +189,38 @@ public class Update
                 }
 
                 final File outfile = new File(install_location, wrangled);
+                // ZIP file tends to contain an entry for each folder itself
+                // before the content of that folder,
+                // so we could rely on that and create the folder at that time.
+                // But the ZIP may also start with top-level files
+                // for which the top-level 'output' folder needs to be created.
+                // So ignore specific folder entries and
+                // instead create any missing folders as needed.
                 if (entry.isDirectory())
-                {
-                    logger.info(counter + "/" + num_entries + ": " + "Create " + outfile);
-                    outfile.mkdirs();
-                }
+                    continue;
+
+                final File folder = outfile.getParentFile();
+                if (folder.exists())
+                    logger.info(counter + "/" + num_entries + ": " + entry.getName() + " => " + outfile);
                 else
                 {
-                    logger.info(counter + "/" + num_entries + ": " + entry.getName() + " => " + outfile);
-                    try
-                    (
-                        BufferedInputStream in = new BufferedInputStream(zip.getInputStream(entry));
-                    )
-                    {
-                        Files.copy(in, outfile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                        // ZIP contains a few entries that are 'executable' for Linux and OS X.
-                        // How to get file permissions from ZIP file?
-                        // For now just make shell scripts executable
-                        if (outfile.getName().endsWith(".sh"))
-                            outfile.setExecutable(true);
-                    }
+                    logger.info(counter + "/" + num_entries + ": " + entry.getName() + " => " + outfile + " (new folder)");
+                    folder.mkdirs();
                 }
+
+                try
+                (
+                    BufferedInputStream in = new BufferedInputStream(zip.getInputStream(entry));
+                )
+                {
+                    Files.copy(in, outfile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    // ZIP contains a few entries that are 'executable' for Linux and OS X.
+                    // How to get file permissions from ZIP file?
+                    // For now just make shell scripts executable
+                    if (outfile.getName().endsWith(".sh"))
+                        outfile.setExecutable(true);
+                }
+
                 sub.worked(1);
             }
         }
