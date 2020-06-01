@@ -35,6 +35,7 @@ import org.phoebus.service.saveandrestore.model.internal.SnapshotPv;
 import javax.json.Json;
 import java.io.ByteArrayInputStream;
 import java.time.Instant;
+import java.util.Arrays;
 
 import static org.junit.Assert.*;
 
@@ -52,6 +53,32 @@ public class SnapshotDataConverterTest {
 		time = Time.of(Instant.ofEpochSecond(1000, 7000));
 		alarm = Alarm.of(AlarmSeverity.NONE, AlarmStatus.NONE, "name");
 		display = Display.none();
+	}
+
+	@Test
+	public void testFromVString(){
+		VString vString = VString.of("someString", alarm, time);
+		SnapshotPv snapshotPv = SnapshotDataConverter.fromVType(vString);
+		assertEquals("[\"someString\"]", snapshotPv.getValue());
+		assertEquals(AlarmSeverity.NONE, snapshotPv.getAlarmSeverity());
+		assertEquals(AlarmStatus.NONE, snapshotPv.getAlarmStatus());
+		assertEquals("name", snapshotPv.getAlarmName());
+		assertEquals(1000, snapshotPv.getTime());
+		assertEquals(7000, snapshotPv.getTimens());
+		assertEquals(SnapshotPvDataType.STRING, snapshotPv.getDataType());
+	}
+
+	@Test
+	public void testFromVEnum(){
+		VEnum vEnum = VEnum.of(1, EnumDisplay.of("a", "b", "c"), alarm, time);
+		SnapshotPv snapshotPv = SnapshotDataConverter.fromVType(vEnum);
+		assertEquals("[\"b\"]", snapshotPv.getValue());
+		assertEquals(AlarmSeverity.NONE, snapshotPv.getAlarmSeverity());
+		assertEquals(AlarmStatus.NONE, snapshotPv.getAlarmStatus());
+		assertEquals("name", snapshotPv.getAlarmName());
+		assertEquals(1000, snapshotPv.getTime());
+		assertEquals(7000, snapshotPv.getTimens());
+		assertEquals(SnapshotPvDataType.ENUM, snapshotPv.getDataType());
 	}
 
 	@Test
@@ -366,15 +393,15 @@ public class SnapshotDataConverterTest {
 	@Test(expected = RuntimeException.class)
 	public void testUnsupportedType() {
 
-		VEnum vEnum = VEnum.of(0, EnumDisplay.of("choice1"), alarm, time);
-		SnapshotDataConverter.fromVType(vEnum);
+		VEnumArray vEnumArray = VEnumArray.of(ArrayInteger.of(1, 2, 3), EnumDisplay.of("a", "b", "c"), Alarm.none(), Time.now());
+		SnapshotDataConverter.fromVType(vEnumArray);
 	}
 
 	@Test
 	public void testGetScalarValueString() {
 
-		assertEquals("[1]", SnapshotDataConverter.getScalarValueString(new Integer(1)));
-		assertEquals("[1.1]", SnapshotDataConverter.getScalarValueString(new Double(1.1)));
+		assertEquals("[1]", SnapshotDataConverter.getScalarValueString(Integer.valueOf(1)));
+		assertEquals("[1.1]", SnapshotDataConverter.getScalarValueString(Double.valueOf(1.1)));
 		String string = SnapshotDataConverter.getScalarValueString("string");
 		assertEquals("[\"string\"]", string);
 	}
@@ -550,14 +577,15 @@ public class SnapshotDataConverterTest {
 		snapshotPv.setValue("[\"string\"]");
 		assertTrue(SnapshotDataConverter.toVType(snapshotPv) instanceof VString);
 
-	}
+		snapshotPv = SnapshotPv.builder().alarmName("name").alarmStatus(AlarmStatus.NONE)
+				.alarmSeverity(AlarmSeverity.NONE).dataType(SnapshotPvDataType.STRING).sizes("[1,2,3]").time(1000L)
+				.timens(7000).value("[\"1\",\"2\",\"3\",\"4\",\"5\",\"6\"]").build();
+		assertTrue(SnapshotDataConverter.toVType(snapshotPv) instanceof VStringArray);
 
-	@Test(expected = PVConversionException.class)
-	public void testFailToConvertFromStringArray() {
-		SnapshotPv snapshotPv = SnapshotPv.builder().alarmName("name").alarmStatus(AlarmStatus.NONE)
-				.alarmSeverity(AlarmSeverity.NONE).dataType(SnapshotPvDataType.STRING).sizes("[2]").time(1000L)
-				.timens(7000).value("[\"string1\",\"string2\"]").build();
-		SnapshotDataConverter.toVType(snapshotPv);
+		snapshotPv = SnapshotPv.builder().alarmName("name").alarmStatus(AlarmStatus.NONE)
+				.alarmSeverity(AlarmSeverity.NONE).dataType(SnapshotPvDataType.ENUM).sizes("[1]").time(1000L)
+				.timens(7000).value("[\"2\"]").build();
+		assertTrue(SnapshotDataConverter.toVType(snapshotPv) instanceof VEnum);
 	}
 
 	@Test

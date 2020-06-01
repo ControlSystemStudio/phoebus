@@ -19,11 +19,12 @@ public class AddTag2ChannelsJob implements JobRunnable {
     
 
     /**
-     * submit a job to add a tag _tag_ to a group of channels
+     * submit a job to add a tag to a channel or a group of channels
      *
-     * @param name - job name
-     * @param channels - collection of channels to which the tag is to be added
-     * @param tag - builder of the the tag to be added
+     * @param client - channelfinder client, which this job be submitted to
+     * @param channelNames - collection of channels to which the tag is to be added
+     * @param tag - the tag to be added
+     * @param error_handler 
      */
     public static Job submit(ChannelFinderClient client,
                                 final Collection<String> channelNames,

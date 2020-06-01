@@ -10,6 +10,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -34,6 +35,8 @@ import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.LogbookException;
+import org.phoebus.logbook.Messages;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.Tag;
 
@@ -52,21 +55,21 @@ import com.sun.jersey.multipart.FormDataBodyPart;
 import com.sun.jersey.multipart.FormDataMultiPart;
 import com.sun.jersey.multipart.file.FileDataBodyPart;
 import com.sun.jersey.multipart.impl.MultiPartWriter;
+
 /**
- *
+ * A client to the Olog-es webservice
  *
  * @author Eric Berryman taken from shroffk
- *
  */
 public class OlogClient implements LogClient {
     private final WebResource service;
 
     private Logger logger = Logger.getLogger(OlogClient.class.getPackageName());
+
     /**
      * Builder Class to help create a olog client.
      *
      * @author shroffk
-     *
      */
     public static class OlogClientBuilder {
         // required
@@ -107,7 +110,7 @@ public class OlogClient implements LogClient {
         }
 
         /**
-         * Creates a {@link OlogClientBuilder} for a CF client to URI <tt>uri</tt>.
+         * Creates a {@link OlogClientBuilder} for a CF client to URI <code>uri</code>.
          *
          * @param uri
          * @return {@link OlogClientBuilder}
@@ -118,7 +121,7 @@ public class OlogClient implements LogClient {
 
         /**
          * Creates a {@link OlogClientBuilder} for a CF client to {@link URI}
-         * <tt>uri</tt>.
+         * <code>uri</code>.
          *
          * @param uri
          * @return {@link OlogClientBuilder}
@@ -161,7 +164,7 @@ public class OlogClient implements LogClient {
         }
 
         /**
-         * set the {@link ClientConfig} to be used while creating the channelfinder
+         * set the {@link ClientConfig} to be used while creating the Olog-es
          * client connection.
          *
          * @param clientConfig
@@ -249,188 +252,9 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public org.phoebus.logbook.Attachment add(File arg0, Long arg1) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void delete(LogEntry arg0) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(Collection<LogEntry> arg0) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(Tag arg0, Long arg1) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(Tag arg0, Collection<Long> arg1) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(Logbook arg0, Long arg1) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(Logbook arg0, Collection<Long> arg1) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(Property arg0, Long arg1) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(Property arg0, Collection<Long> arg1) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public InputStream getAttachment(Long arg0, org.phoebus.logbook.Attachment arg1) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public LogEntry getLog(Long arg0) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Property getProperty(String arg0) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Tag set(Tag arg0) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Logbook set(Logbook arg0) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Property set(Property arg0) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Tag set(Tag arg0, Collection<Long> arg1) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Logbook set(Logbook arg0, Collection<Long> arg1) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public LogEntry update(LogEntry arg0) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Collection<LogEntry> update(Collection<LogEntry> arg0) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Property update(Property arg0) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Tag update(Tag arg0, Long arg1) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Tag update(Tag arg0, Collection<Long> arg1) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Logbook update(Logbook arg0, Long arg1) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Logbook update(Logbook arg0, Collection<Long> arg1) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public LogEntry update(Property arg0, Long arg1) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void delete(Long arg0) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(String arg0, Long arg1) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void deleteLogbook(String arg0) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void deleteProperty(String arg0) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void deleteTag(String arg0) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public LogEntry set(LogEntry log) {
+    public LogEntry set(LogEntry log) throws LogbookException{
         ClientResponse clientResponse;
+
         try {
             clientResponse = service.path("logs")
                     .type(MediaType.APPLICATION_JSON)
@@ -455,6 +279,7 @@ public class OlogClient implements LogClient {
                     if (attachementResponse.getStatus() > 300)
                     {
                         // TODO failed to add attachments
+                        logger.log(Level.SEVERE, "Failed to submit attachment(s), HTTP status: " + attachementResponse.getStatus());
                     }
                 });
 
@@ -464,22 +289,31 @@ public class OlogClient implements LogClient {
                         .get(ClientResponse.class);
                 return logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), XmlLog.class);
             }
-
-        } catch (UniformInterfaceException | ClientHandlerException | IOException e)
-        {
-            e.printStackTrace();
+            else if(clientResponse.getStatus() == 401){
+                logger.log(Level.SEVERE, "Submission of log entry returned HTTP status, invalid credentials");
+                throw new LogbookException(Messages.SubmissionFailedInvalidCredentials);
+            }
+            else{
+                logger.log(Level.SEVERE, "Submission of log entry returned HTTP status" + clientResponse.getStatus() );
+                throw new LogbookException(MessageFormat.format(Messages.SubmissionFailedWithHttpStatus, clientResponse.getStatus()));
+            }
+        } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
+            logger.log(Level.SEVERE,"Failed to submit log entry, got client exception", e);
+            throw new LogbookException(e);
         }
-        return null;
     }
 
+    /**
+     * Returns a LogEntry that exactly matches the logId <code>logId</code>
+     *
+     * @param logId LogEntry id
+     * @return LogEntry object
+     */
     @Override
-    public Collection<LogEntry> set(Collection<LogEntry> xmlLogs) {
-        Collection<LogEntry> createdLogs = new HashSet<>();
-        xmlLogs.stream().forEachOrdered(log -> {
-            createdLogs.add(set(log));
-        });
-        return null;
+    public LogEntry getLog(Long logId){
+        return findLogById(logId);
     }
+
 
     @Override
     public LogEntry findLogById(Long logId) {
@@ -591,20 +425,17 @@ public class OlogClient implements LogClient {
 
     @Override
     public Collection<Attachment> listAttachments(Long logId) {
-        Collection<Attachment> allAttachments = new HashSet<>();
-        // TODO with olog-es we have to fetch the log first, which contains the list of the attachment ids
-//        XmlAttachments allXmlAttachments = service.path("attachments")
-//                .path(logId.toString())
-//                .accept(MediaType.APPLICATION_XML).get(XmlAttachments.class);
-//        for (XmlAttachment xmlAttachment : allXmlAttachments.getAttachments()) {
-//            allAttachments.add(xmlAttachment);
-//        }
-        return allAttachments;
+        return getLog(logId).getAttachments();
     }
 
     @Override
     public Collection<String> listAttributes(String propertyName) {
-        return (Collection<String>) getProperty(propertyName).getAttributes();
+        try {
+            return (Collection<String>) getProperty(propertyName).getAttributes();
+        } catch (LogbookException e) {
+            logger.log(Level.WARNING, "Unable to get property attribute list from service", e);
+            return Collections.emptyList();
+        }
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -193,7 +193,15 @@ public class ImageRepresentation extends RegionBaseRepresentation<Pane, ImageWid
             image_plot.requestUpdate();
         });
 
-        // For now _not_ listening to runtime changes of roi.interactive() or roi.file() ...
+        // Allow interactive adjustment of ROI?
+        model_roi.interactive().addPropertyListener((prop, old, interactive) ->
+        {
+            plot_roi.setInteractive(interactive);
+            // Cancel tracker which might have been active
+            if (! interactive)
+                Platform.runLater(() -> image_plot.removeROITracker());
+        });
+        // For now _not_ listening to runtime changes of roi.file() ...
 
         // Listen to roi.x_value(), .. and update plot_roi
         final WidgetPropertyListener<Double> model_roi_listener = (o, old, value) ->

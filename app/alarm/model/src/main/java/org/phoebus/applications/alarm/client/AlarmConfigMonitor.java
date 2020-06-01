@@ -50,6 +50,12 @@ public class AlarmConfigMonitor
             //NOP
         }
 
+	@Override
+        public void serverDisableNotifyChanged(boolean disable_notify)
+        {
+            //NOP
+        }
+
         @Override
         public void itemAdded(final AlarmTreeItem<?> item)
         {

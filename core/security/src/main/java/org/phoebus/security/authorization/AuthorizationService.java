@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -21,7 +21,8 @@ import org.phoebus.framework.workbench.Locations;
 import org.phoebus.security.PhoebusSecurity;
 
 /** Authorization Service
- *  @author Evan Smith
+ *  @author Tanvi Ashwarya
+ *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class AuthorizationService
@@ -39,7 +40,7 @@ public class AuthorizationService
             final String filename = PhoebusSecurity.authorization_file;
             final String httpPrefix = "http://";
             final String httpsPrefix = "https://";
-            
+
             if (filename.isEmpty())
             {
                 logger.log(Level.CONFIG, "Using " + PhoebusSecurity.class.getResource("/authorization.conf"));
@@ -85,13 +86,26 @@ public class AuthorizationService
     }
 
     /** Initialize service with an existing instance of a custom class
-     *  implementing Authorization interface 
+     *  implementing Authorization interface
      *  @param auth custom Authorization object
      */
-    public static void init(Authorization auth)
+    public static void init(final Authorization auth)
     {
         if (instance.getAndSet(auth) != null)
             logger.log(Level.SEVERE, "Authorization is initialized more than once (" + auth.toString() + ")");
+    }
+
+
+    /** Check if an authorization is defined
+     *  @param authorization Name of the authorization
+     *  @return <code>true</code> if authorization is defined
+     */
+    public static boolean isAuthorizationDefined(final String authorization)
+    {
+        final Authorization authorizations = instance.get();
+        if (authorizations == null)
+            return false;
+        return authorizations.isAuthorizationDefined(authorization);
     }
 
     /** Check if current user is authorized to do something

@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-
 <!--
   ~ Copyright (C) 2019 European Spallation Source ERIC.
   ~
@@ -23,6 +19,10 @@
   ~  
   -->
 
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
 <VBox fx:id="root" prefHeight="1000" prefWidth="800" HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.ui.write.LogEntryEditorController">
     <padding>
         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
@@ -36,30 +36,43 @@
         <VBox.margin>
             <Insets bottom="10.0" />
         </VBox.margin>
-      </VBox>
+    </VBox>
 
     <VBox fx:id="attachments" alignment="CENTER" VBox.vgrow="NEVER">
-        <fx:include source="AttachmentsView.fxml" fx:id="attachmentsView"/>
+        <fx:include fx:id="attachmentsView" source="AttachmentsView.fxml" />
     </VBox>
 
     <HBox alignment="BOTTOM_CENTER" fillHeight="false">
-      <children>
-         <Pane HBox.hgrow="ALWAYS" />
-         <Button fx:id="cancel" alignment="CENTER_RIGHT" mnemonicParsing="false" onAction="#cancel" text="Cancel">
-            <HBox.margin>
-               <Insets left="5.0" right="5.0" />
-            </HBox.margin></Button>
-         <Button fx:id="submit" alignment="CENTER_RIGHT" mnemonicParsing="false" onAction="#submit" text="Submit">
-            <HBox.margin>
-               <Insets left="5.0" />
-            </HBox.margin></Button>
-      </children>
-      <VBox.margin>
-         <Insets />
-      </VBox.margin>
-      <padding>
-         <Insets top="10.0" />
-      </padding>
+        <children>
+            <GridPane>
+                <!-- Progress indicator and completion message are not supposed to be visible simultaneously -->
+                <ProgressIndicator fx:id="progressIndicator" prefHeight="30" prefWidth="30" visible="false" />
+                <Label fx:id="completionMessageLabel" prefHeight="30" text="" textFill="red" visible="false" />
+            <columnConstraints>
+               <ColumnConstraints />
+            </columnConstraints>
+            <rowConstraints>
+               <RowConstraints />
+            </rowConstraints>
+            </GridPane>
+            <Pane HBox.hgrow="ALWAYS" />
+            <Button fx:id="cancel" alignment="CENTER_RIGHT" minWidth="57.0" mnemonicParsing="false" onAction="#cancel" text="Cancel">
+                <HBox.margin>
+                    <Insets left="5.0" right="5.0" />
+                </HBox.margin>
+            </Button>
+            <Button fx:id="submit" alignment="CENTER_RIGHT" minWidth="57.0" mnemonicParsing="false" onAction="#submit" text="Submit">
+                <HBox.margin>
+                    <Insets left="5.0" />
+                </HBox.margin>
+            </Button>
+        </children>
+        <VBox.margin>
+            <Insets />
+        </VBox.margin>
+        <padding>
+            <Insets top="10.0" />
+        </padding>
     </HBox>
 
 </VBox>

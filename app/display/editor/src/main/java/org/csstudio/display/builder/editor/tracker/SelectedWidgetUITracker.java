@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.RecursiveTask;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -239,7 +240,7 @@ public class SelectedWidgetUITracker extends Tracker
         else
         {
             event.consume();
-            if (widgets.size() == 1  &&  inline_editor == null)
+            if (enable_changes  &&  widgets.size() == 1  &&  inline_editor == null)
                 createInlineEditor(widgets.get(0));
         }
     }
@@ -354,6 +355,72 @@ public class SelectedWidgetUITracker extends Tracker
         inline_editor = null;
     }
 
+    /** Locate widgets that would be 'clicked' by a mouse event's location */
+    private class ClickWidgets extends RecursiveTask<Boolean>
+    {
+        private static final long serialVersionUID = 7120422764377430463L;
+        private final MouseEvent event;
+        private final List<Widget> widgets;
+
+        ClickWidgets(final MouseEvent event, final List<Widget> widgets)
+        {
+            this.event = event;
+            this.widgets = widgets;
+        }
+
+        @Override
+        protected Boolean compute()
+        {
+            return click(widgets);
+        }
+
+        /** @param widgets Widgets to click
+         *  @return Was at least one widget clicked?
+         */
+        private Boolean click(final List<Widget> widgets)
+        {
+            boolean clicked = false;
+
+            final int N = widgets.size();
+            if (N > TrackerSnapConstraint.PARALLEL_THRESHOLD)
+            {
+                final int split = N / 2;
+                final ClickWidgets sub1 = new ClickWidgets(event, widgets.subList(0, split));
+                final ClickWidgets sub2 = new ClickWidgets(event, widgets.subList(split, N));
+                // Spawn sub1, handle sub2 in this thread
+                sub1.fork();
+                clicked = sub2.compute();
+                if (sub1.join())
+                    clicked = true;
+
+            }
+            else
+            {
+                for (Widget widget : widgets)
+                {
+                    // If there are child widgets, first check those.
+                    // If one of them gets clicked, skip checking the parent (e.g. group)
+                    // since 'selecting' a child should not toggle the parent's selection.
+                    final ChildrenProperty children = ChildrenProperty.getChildren(widget);
+                    if (children != null  &&
+                        click(children.getValue()))
+                        clicked = true;
+
+                    // If no child widget got clicked, check widget itself
+                    if (! clicked)
+                        if (GeometryTools.getDisplayBounds(widget).contains(event.getX(), event.getY()))
+                        {
+                            logger.log(Level.FINE, () -> "Tracker passes click through to " + widget);
+                            toolkit.execute(() -> toolkit.fireClick(widget, event.isShortcutDown()));
+                            clicked = true;
+                        }
+                }
+            }
+
+            return clicked;
+        }
+    }
+
     /** Tracker is in front of the widgets that it handles,
      *  so it receives all mouse clicks.
      *  When 'Control' key is down, that event should be passed
@@ -364,12 +431,9 @@ public class SelectedWidgetUITracker extends Tracker
      */
     private void passClickToWidgets(final MouseEvent event)
     {
-        for (Widget widget : widgets)
-            if (GeometryTools.getDisplayBounds(widget).contains(event.getX(), event.getY()))
-            {
-                logger.log(Level.FINE, "Tracker passes click through to {0}", widget);
-                toolkit.fireClick(widget, event.isShortcutDown());
-            }
+        final DisplayModel model = getModel();
+        if (model != null)
+            new ClickWidgets(event, model.getChildren()).compute();
     }
 
     @Override

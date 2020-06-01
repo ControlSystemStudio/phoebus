@@ -72,8 +72,6 @@
     <interpolation>0</interpolation>
     <minimum>-1.0</minimum>
     <maximum>1.0</maximum>
-    <rois>
-    </rois>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_2</name>
@@ -168,8 +166,6 @@ impacts on overall perception. </text>
     <interpolation>1</interpolation>
     <minimum>-1.0</minimum>
     <maximum>1.0</maximum>
-    <rois>
-    </rois>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_4</name>
@@ -231,6 +227,14 @@ the value range.</text>
         </font>
       </scale_font>
     </y_axis>
+    <rules>
+      <rule name="interactive" prop_id="rois[0].interactive" out_exp="false">
+        <exp bool_exp="pv0&lt;1">
+          <value>false</value>
+        </exp>
+        <pv_name>loc://roi_interactive(1)</pv_name>
+      </rule>
+    </rules>
     <autoscale>false</autoscale>
     <minimum>-1.0</minimum>
     <maximum>1.0</maximum>
@@ -447,36 +451,26 @@ or used in a script for customized formatting.</text>
         <name>X</name>
         <width>80</width>
         <editable>true</editable>
-        <options>
-        </options>
       </column>
       <column>
         <name>Y</name>
         <width>80</width>
         <editable>true</editable>
-        <options>
-        </options>
       </column>
       <column>
         <name>Value</name>
         <width>100</width>
         <editable>true</editable>
-        <options>
-        </options>
       </column>
       <column>
         <name>Xi</name>
         <width>80</width>
         <editable>true</editable>
-        <options>
-        </options>
       </column>
       <column>
         <name>Yi</name>
         <width>80</width>
         <editable>true</editable>
-        <options>
-        </options>
       </column>
     </columns>
     <editable>false</editable>
@@ -649,5 +643,12 @@ via PVs.</text>
     <y>802</y>
     <format>1</format>
     <precision>2</precision>
+  </widget>
+  <widget type="checkbox" version="2.0.0">
+    <name>Check Box</name>
+    <pv_name>loc://roi_interactive(1)</pv_name>
+    <label>interactive</label>
+    <x>960</x>
+    <y>672</y>
   </widget>
 </display>

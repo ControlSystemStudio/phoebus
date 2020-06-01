@@ -28,7 +28,11 @@ import org.phoebus.applications.saveandrestore.data.providers.jmasar.JMasarDataP
 import org.phoebus.applications.saveandrestore.data.providers.jmasar.JMasarJerseyClient;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreWithSplitController;
 import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetController;
+import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetFromSelectionController;
+import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetSelectionController;
+import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetSelectionWithSplitController;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotController;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.preferences.PreferencesReader;
@@ -106,6 +110,11 @@ public class AppConfig {
     }
 
     @Bean
+    public SaveAndRestoreWithSplitController saveAndRestoreWithSplitController(){
+        return new SaveAndRestoreWithSplitController();
+    }
+
+    @Bean
     @Scope("prototype")
     public SnapshotController snapshotController(){
         return new SnapshotController();
@@ -115,6 +124,24 @@ public class AppConfig {
     @Scope("prototype")
     public SaveSetController saveSetController(){
         return new SaveSetController();
+    }
+
+    @Bean
+    @Scope("prototype")
+    public SaveSetFromSelectionController saveSetFromSelectionController(){
+        return new SaveSetFromSelectionController();
+    }
+
+    @Bean
+    @Scope("prototype")
+    public SaveSetSelectionController saveSetSelectionController() {
+        return new SaveSetSelectionController();
+    }
+
+    @Bean
+    @Scope("prototype")
+    public SaveSetSelectionWithSplitController saveSetSelectionWithSplitController() {
+        return new SaveSetSelectionWithSplitController();
     }
 
     @Bean

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -96,9 +96,18 @@ public class ParallelCommandImpl extends ScanCommandImpl<ParallelCommand>
     @Override
     public void simulate(final SimulationContext context) throws Exception
     {
-        context.logExecutionStep("Start following commands in parallel", 0.0);
-        context.simulate(implementation);
-        context.logExecutionStep("Await completion of above commands", 0.0);
+        final int level = context.incParallelLevel();
+        final String level_spec = level > 1 ? " (level " + level + ")" : "";
+        try
+        {
+            context.logExecutionStep("Start following commands in parallel" + level_spec, 0.0);
+            context.simulate(implementation);
+            context.logExecutionStep("Await completion of above commands" + level_spec, 0.0);
+        }
+        finally
+        {
+            context.decParallelLevel();
+        }
     }
 
     /** {@inheritDoc} */
@@ -130,7 +139,7 @@ public class ParallelCommandImpl extends ScanCommandImpl<ParallelCommand>
 
             // Check if there was an error
             if (first_error.get() != null)
-                throw new Exception("Parallel Sub-command failed", first_error.get());
+                throw new Exception(first_error.get().getMessage() + " (Parallel)", first_error.get());
         }
         catch (TimeoutException ex)
         {

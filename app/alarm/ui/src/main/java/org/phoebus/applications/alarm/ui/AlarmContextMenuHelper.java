@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -120,12 +120,12 @@ public class AlarmContextMenuHelper
         added.clear();
         count.set(0);
 
-        if (AlarmUI.mayAcknowledge())
+        if (AlarmUI.mayAcknowledge(model))
         {
             if (active.size() > 0)
-                menu_items.add(new AcknowledgeAction(model, active));
+                menu_items.add(0, new AcknowledgeAction(model, active));
             if (acked.size() > 0)
-                menu_items.add(new UnAcknowledgeAction(model, acked));
+                menu_items.add(0, new UnAcknowledgeAction(model, acked));
         }
         // Add context menu actions for PVs
         if (pvnames.size() > 0)
@@ -133,7 +133,8 @@ public class AlarmContextMenuHelper
             menu_items.add(new SeparatorMenuItem());
             SelectionService.getInstance().setSelection("AlarmUI", pvnames);
             ContextMenuHelper.addSupportedEntries(node, menu);
-        } else
+        }
+        else
         {
             // search for other context menu actions registered for AlarmTreeItem
             SelectionService.getInstance().setSelection("AlarmUI", selection);

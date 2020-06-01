@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -56,7 +56,12 @@ public class AlarmSystem
     /** Kafka Server host:port */
     public static final String server;
 
-    /** Name of alarm tree root */
+    /** Name of alarm tree root
+     *
+     *  <p>Default name from preferences.
+     *  UI instances may select different one at runtime,
+     *  but this remains unchanged.
+     */
     public static final String config_name;
 
     /** Names of selectable alarm configurations */
@@ -112,6 +117,9 @@ public class AlarmSystem
     /** Nag period in seconds */
     public static final long nag_period_ms;
 
+    /** Disable notify feature */
+    public static final boolean disable_notify_visible;
+
     static
     {
         final PreferencesReader prefs = new PreferencesReader(AlarmSystem.class, "/alarm_preferences.properties");
@@ -133,6 +141,7 @@ public class AlarmSystem
         automated_action_followup = getItems(prefs.get("automated_action_followup"));
         heartbeat_pv = prefs.get("heartbeat_pv");
         heartbeat_ms = prefs.getInt("heartbeat_secs") * 1000L;
+        disable_notify_visible = prefs.getBoolean("disable_notify_visible");
 
         double secs = 0.0;
         try

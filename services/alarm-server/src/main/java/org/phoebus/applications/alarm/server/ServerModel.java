@@ -371,7 +371,7 @@ class ServerModel
     {
         try
         {
-            final String json = new_state == null ? null : new String(JsonModelWriter.toJsonBytes(new_state, AlarmLogic.getMaintenanceMode()));
+            final String json = new_state == null ? null : new String(JsonModelWriter.toJsonBytes(new_state, AlarmLogic.getMaintenanceMode(), AlarmLogic.getDisableNotify()));
             final ProducerRecord<String, String> record = new ProducerRecord<>(config_state_topic, AlarmSystem.STATE_PREFIX + path, json);
             producer.send(record);
             last_state_update = System.currentTimeMillis();

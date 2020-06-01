@@ -5,28 +5,31 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.representation.test;
+package org.csstudio.display.builder.representation.javafx;
 
-import org.csstudio.display.builder.model.properties.PredefinedColorMaps;
-import org.csstudio.display.builder.representation.javafx.ColorMapDialog;
+import org.phoebus.framework.macros.Macros;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
 import javafx.stage.Stage;
 
-/** Demo of {@link ColorMapDialog}
+/** Demo of {@link MacrosDialog}
  *  @author Kay Kasemir
  */
-public class JFXColorMapDialogDemo extends ApplicationWrapper
+@SuppressWarnings("nls")
+public class MacrosDialogDemo extends ApplicationWrapper
 {
     public static void main(final String[] args)
     {
-        launch(JFXColorMapDialogDemo.class, args);
+        launch(MacrosDialogDemo.class, args);
     }
 
     @Override
     public void start(final Stage stage)
     {
-        final ColorMapDialog dialog = new ColorMapDialog(PredefinedColorMaps.VIRIDIS, null);
+        final Macros macros = new Macros();
+        macros.add("S", "Test");
+        macros.add("N", "17");
+        final MacrosDialog dialog = new MacrosDialog(macros, null);
         System.out.println(dialog.showAndWait());
     }
 }

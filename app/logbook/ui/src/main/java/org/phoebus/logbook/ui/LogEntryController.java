@@ -108,12 +108,14 @@ public class LogEntryController {
             logDescription.setWrapText(true);
             logDescription.setText(logEntry.getDescription());
 
-            if(logEntry.getTitle()!= null) {
-                logTime.setText(logEntry.getCreatedDate().toString() +
-                        System.lineSeparator() + logEntry.getTitle());
-            } else {
-                logTime.setText(logEntry.getCreatedDate().toString());
+            StringBuilder text = new StringBuilder();
+            if (logEntry.getCreatedDate() != null) {
+                text.append(logEntry.getCreatedDate().toString()).append(System.lineSeparator());
             }
+            if (logEntry.getTitle() != null) {
+                text.append(logEntry.getTitle());
+            }
+            logTime.setText(text.toString());
 
             ObservableList<String> logbookList = FXCollections.observableArrayList();
             logbookList.addAll(logEntry.getLogbooks().stream().map(Logbook::getName).collect(Collectors.toList()));

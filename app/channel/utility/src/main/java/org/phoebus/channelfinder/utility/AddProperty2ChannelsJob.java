@@ -31,15 +31,16 @@ public class AddProperty2ChannelsJob implements JobRunnable {
     /**
      * submit a job to add a Property to a channel or a group of channels
      *
-     * @param name - job name
-     * @param channels - collection of channels to which the tag is to be added
-     * @param tag - builder of the the tag to be added
+     * @param client - channelfinder client, which this job be submitted to
+     * @param channelNames - collection of channels to which the property is to be added
+     * @param property - the property to be added
+     * @param error_handler 
      */
     public static Job submit(ChannelFinderClient client,
                                 final Collection<String> channelNames,
                                 final Property property,
                                 final BiConsumer<String, Exception> error_handler) {
-        return JobManager.schedule("Adding tag : " + property.getName() + " to " + channelNames.size() + " channels",
+        return JobManager.schedule("Adding property : " + property.getName() + " to " + channelNames.size() + " channels",
                 new AddProperty2ChannelsJob(client, channelNames, property, error_handler));
     }
 

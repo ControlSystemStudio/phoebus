@@ -74,7 +74,12 @@ public class DisplayEditorInstance implements AppInstance
     private final EditorGUI editor_gui;
 
     private final WidgetPropertyListener<String> model_name_listener = (property, old_value, new_value) ->
-        Platform.runLater(() -> dock_item.setLabel("[Edit] " + property.getValue()));
+    {
+        final String label = EditorUtil.isDisplayReadOnly(property.getWidget().checkDisplayModel())
+            ? "[R/O] " + property.getValue()
+            : "[Edit] " + property.getValue();
+        Platform.runLater(() -> dock_item.setLabel(label));
+    };
 
     /** Last time the file was modified */
     private volatile long modification_marker = 0;
@@ -209,29 +214,40 @@ public class DisplayEditorInstance implements AppInstance
             show_props.setSelected(editor_gui.arePropertiesShown());
             show_props.setOnAction(event -> editor_gui.showProperties(! editor_gui.arePropertiesShown()));
 
-            menu.getItems().setAll(delete,
-                    cut,
-                    copy,
-                    duplicate,
-                    new PasteWidgets(getEditorGUI()),
-                    copy_properties,
-                    paste_properties,
-                    new SeparatorMenuItem(),
-                    group,
-                    ungroup,
-                    new SeparatorMenuItem(),
-                    morph,
-                    back,
-                    front,
-                    new SetDisplaySize(editor_gui.getDisplayEditor()),
-                    new SeparatorMenuItem(),
-                    ExecuteDisplayAction.asMenuItem(this),
-                    new ReloadDisplayAction(this),
-                    reload_classes,
-                    new SeparatorMenuItem(),
-                    embedded,
-                    show_tree,
-                    show_props);
+            // In read-only mode, only allow copy and re-load.
+            // Tree may be shown, but property panel remains hidden
+            // since it doesn't support a read-only mode.
+            if (EditorUtil.isDisplayReadOnly(model))
+                menu.getItems().setAll(copy,
+                                       new SeparatorMenuItem(),
+                                       new ReloadDisplayAction(this),
+                                       reload_classes,
+                                       new SeparatorMenuItem(),
+                                       show_tree);
+            else
+                menu.getItems().setAll(delete,
+                                       cut,
+                                       copy,
+                                       duplicate,
+                                       new PasteWidgets(getEditorGUI()),
+                                       copy_properties,
+                                       paste_properties,
+                                       new SeparatorMenuItem(),
+                                       group,
+                                       ungroup,
+                                       new SeparatorMenuItem(),
+                                       morph,
+                                       back,
+                                       front,
+                                       new SetDisplaySize(editor_gui.getDisplayEditor()),
+                                       new SeparatorMenuItem(),
+                                       ExecuteDisplayAction.asMenuItem(this),
+                                       new ReloadDisplayAction(this),
+                                       reload_classes,
+                                       new SeparatorMenuItem(),
+                                       embedded,
+                                       show_tree,
+                                       show_props);
 
             menu.show(editor_gui.getDisplayEditor().getContextMenuNode().getScene().getWindow(),
                     contextMenuEvent.getScreenX(), contextMenuEvent.getScreenY());

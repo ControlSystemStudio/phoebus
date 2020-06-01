@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,6 +17,7 @@ import javafx.scene.paint.Color;
  *
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class RegionOfInterest
 {
     private final String name;
@@ -77,6 +78,12 @@ public class RegionOfInterest
         // Caller needs to request update of image
     }
 
+    /** @param interactive Should region be movable? */
+    public void setInteractive(final boolean interactive)
+    {
+        this.interactive = interactive;
+    }
+
     /** @return Is region interactive? */
     public boolean isInteractive()
     {
@@ -94,5 +101,11 @@ public class RegionOfInterest
     {
         this.region = region;
         // Caller needs to request update of image
+    }
+
+    @Override
+    public String toString()
+    {
+        return "ROI '" + name + "': interactive=" + interactive;
     }
 }

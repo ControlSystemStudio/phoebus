@@ -77,7 +77,10 @@ public class EmbeddedDisplayWidget extends MacroWidget
         /** Stretch the embedded content to fit the container,
          *  separately scaling the horizontal and vertical size
          */
-        StretchContent(Messages.Resize_Stretch);
+        StretchContent(Messages.Resize_Stretch),
+
+        /** No resize, but also no scroll bars. Oversized content is cropped */
+        Crop(Messages.Resize_Crop);
 
         private final String label;
 
@@ -160,13 +163,18 @@ public class EmbeddedDisplayWidget extends MacroWidget
                 {
                     try
                     {   // 0=SIZE_OPI_TO_CONTAINER, 1=SIZE_CONTAINER_TO_OPI, 2=CROP_OPI, 3=SCROLL_OPI
+                        // Problem with any resize is that we now use the content's connfigured width x height
+                        // as size, while the legacy implementation self-determined the size and
+                        // width x height were usually not configured.
+                        // This likely results in unexpected resizing until the size of the legacy display file
+                        // (which doesn't matter to the legacy tool) gets configured.
                         final int old_resize = Integer.parseInt(XMLUtil.getString(element));
                         if (old_resize == 0)
                             widget.setPropertyValue(propResize, Resize.ResizeContent);
                         else if (old_resize == 1)
                             widget.setPropertyValue(propResize, Resize.SizeToContent);
-                        else
-                            widget.setPropertyValue(propResize, Resize.None);
+                        else // 'scroll' or 'crop' -> crop
+                            widget.setPropertyValue(propResize, Resize.Crop);
                     }
                     catch (NumberFormatException ex)
                     {
@@ -278,6 +286,15 @@ public class EmbeddedDisplayWidget extends MacroWidget
         properties.add(embedded_model = runtimeModel.createProperty(this, null));
         properties.add(transparent = propTransparent.createProperty(this, false));
         BorderSupport.addBorderProperties(this, properties);
+    }
+
+    @Override
+    public WidgetProperty<?> getProperty(String name) throws IllegalArgumentException, IndexOutOfBoundsException
+    {
+        // Support legacy scripts/rules that access opi_file
+        if (name.equals("opi_file"))
+            return propFile();
+        return super.getProperty(name);
     }
 
     /** @return 'file' property */

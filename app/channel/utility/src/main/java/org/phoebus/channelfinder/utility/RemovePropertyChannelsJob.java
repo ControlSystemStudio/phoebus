@@ -27,17 +27,18 @@ public class RemovePropertyChannelsJob implements JobRunnable {
     
 
     /**
-     * submit a job to add a Property to a channel or a group of channels
+     * submit a job to remove a Property from a channel or a group of channels
      *
-     * @param name - job name
-     * @param channelNames - collection of channels to which the tag is to be added
-     * @param tag - builder of the the tag to be added
+     * @param client - channelfinder client, which this job be submitted to
+     * @param channelNames - collection of channels to which the property is to be removed
+     * @param property - the property to be removed
+     * @param error_handler 
      */
-    public static Job submit(ChannelFinderClient client,
+     public static Job submit(ChannelFinderClient client,
                                 final Collection<String> channelNames,
                                 final Property property,
                                 final BiConsumer<String, Exception> error_handler) {
-        return JobManager.schedule("Adding tag : " + property.getName() + " to " + channelNames.size() + " channels",
+        return JobManager.schedule("Removing property : " + property.getName() + " from " + channelNames.size() + " channels",
                 new RemovePropertyChannelsJob(client, channelNames, property, error_handler));
     }
 
@@ -51,7 +52,7 @@ public class RemovePropertyChannelsJob implements JobRunnable {
 
     @Override
     public void run(JobMonitor monitor) throws Exception {
-        monitor.beginTask("Removing property : " + property.getName() + " to " + channelNames.size() + " channels");
+        monitor.beginTask("Removing property : " + property.getName() + " from " + channelNames.size() + " channels");
         client.delete(Property.Builder.property(property), channelNames);
         //schannel_handler.accept(channels);
     }

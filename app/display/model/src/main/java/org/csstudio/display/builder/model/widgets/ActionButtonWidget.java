@@ -13,7 +13,6 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPVName;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPassword;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propRotationStep;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propText;
@@ -45,19 +44,25 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 
-/**
- * Widget that provides button for invoking actions.
+/** Widget that provides button for invoking actions.
  *
- *  <B>Note:</B> this class cannot inherit from {@link PVWidget}
- *  because doesn't need active border and the "runtime value".
+ *  <p>The widget doesn't directly act on its primary PV.
+ *  The PV is mostly used like a macro for actions
+ *  that write to a "$(pv_name)" PV.
+ *  It is used for the alarm sensitive border,
+ *  and "text" (label) can have a special value "$(pv_value)"
+ *  to update with value changes.
  *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ActionButtonWidget extends VisibleWidget
+public class ActionButtonWidget extends PVWidget
 {
     public static final int DEFAULT_WIDTH = 100,
                             DEFAULT_HEIGHT = 30;
+
+    /** When "text" has this value, it will reflect the primary PV's value */
+    public static final String VALUE_LABEL = "$(pv_value)";
 
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
@@ -75,6 +80,16 @@ public class ActionButtonWidget extends VisibleWidget
             return new ActionButtonWidget();
         }
     };
+
+    // The legacy MenuButton can have arbitrary actions,
+    // like an ActionButton.
+    // If, however, the "pv_name" was configured,
+    // the "label" was ignored and replaced with
+    // the current value of the PV.
+    // It was mostly used with "actions_from_pv",
+    // behaving exactly like a Combo,
+    // but sometimes with "Write PV" actions
+    // to get custom labels and values.
 
     /** Check if XML describes a legacy Menu Button */
     static boolean isMenuButton(final Element xml)
@@ -133,7 +148,7 @@ public class ActionButtonWidget extends VisibleWidget
                         the_text.appendChild(label_el.getFirstChild().cloneNode(true));
                     else
                     {
-                        Text the_label = doc.createTextNode("Menu Button Label");
+                        Text the_label = doc.createTextNode(VALUE_LABEL);
                         the_text.appendChild(the_label);
                     }
                     xml.appendChild(the_text);
@@ -165,7 +180,7 @@ public class ActionButtonWidget extends VisibleWidget
                     }
             }
             // If there is no pv_name, remove from tool tip
-            if ( ((MacroizedWidgetProperty<String>)button.pv_name).getSpecification().isEmpty())
+            if ( ((MacroizedWidgetProperty<String>)button.propPVName()).getSpecification().isEmpty())
                 tooltip.setSpecification(tooltip.getSpecification().replace("$(pv_name)\n", ""));
 
             return true;
@@ -180,7 +195,6 @@ public class ActionButtonWidget extends VisibleWidget
     }
 
     // Has pv_name and pv_writable, but no pv_value which would make it a WritablePVWidget
-    private volatile WidgetProperty<String> pv_name;
     private volatile WidgetProperty<Boolean> enabled;
     private volatile WidgetProperty<String> text;
     private volatile WidgetProperty<WidgetFont> font;
@@ -212,7 +226,6 @@ public class ActionButtonWidget extends VisibleWidget
     protected void defineProperties(final List<WidgetProperty<?>> properties)
     {
         super.defineProperties(properties);
-        properties.add(pv_name = propPVName.createProperty(this, ""));
         properties.add(text = propText.createProperty(this, "$(actions)"));
         properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
@@ -232,11 +245,6 @@ public class ActionButtonWidget extends VisibleWidget
         // Default would show $(pv_value), which doesn't exist for this widget.
         // Use $(actions) instead.
         return "$(pv_name)\n$(actions)";
-    }
-
-    /** @return 'pv_name' property */
-    public final WidgetProperty<String> propPVName ( ) {
-        return pv_name;
     }
 
     /** @return 'text' property */
