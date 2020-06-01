@@ -79,7 +79,7 @@ public class ScanServerImpl implements ScanServer
     {
         return new ScanServerInfo(ScanServerInstance.VERSION,
                 start_time,
-                ScanServerInstance.getScanConfigPath(),
+                ScanServerInstance.getScanConfigURL().toExternalForm(),
                 ScanServerInstance.getScanConfig().getScriptPaths(),
                 ScanServerInstance.getScanConfig().getMacros());
     }
