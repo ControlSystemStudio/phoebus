@@ -131,7 +131,7 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
       <items>
          <CheckBox fx:id="preserveSelectionCheckBox" mnemonicParsing="false" text="Preserve selection after" />
          <Label text="Filter:" />
-         <TextField fx:id="filterTextField" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="26.0" promptText="* for all matching and , as or separator, &amp; as and separator. Start with / for regex. All if empty." HBox.hgrow="ALWAYS" />
+         <TextField fx:id="filterTextField" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="26.0" HBox.hgrow="ALWAYS" />
       </items>
    </ToolBar>
 </VBox>

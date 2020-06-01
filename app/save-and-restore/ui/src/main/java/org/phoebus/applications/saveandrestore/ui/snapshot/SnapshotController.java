@@ -28,6 +28,8 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import org.epics.gpclient.GPClient;
@@ -47,6 +49,7 @@ import org.phoebus.applications.saveandrestore.ui.model.SnapshotEntry;
 import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.model.VNoData;
 import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
+import org.phoebus.ui.docking.DockPane;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Duration;
@@ -182,6 +185,27 @@ public class SnapshotController implements NodeChangedListener {
 
         saveAndRestoreService.addNodeChangeListener(this);
 
+        DockPane.getActiveDockPane().addEventFilter(KeyEvent.ANY, event -> {
+            if (event.isShortcutDown() && event.getCode() == KeyCode.F) {
+                filterTextField.requestFocus();
+            }
+        });
+
+        preserveSelectionCheckBox.selectedProperty().addListener((observableValue, aBoolean, isSelected) -> {
+            if (isSelected) {
+                boolean allSelected = tableEntryItems.values().stream()
+                        .filter(item -> !item.selectedProperty().get())
+                        .collect(Collectors.toList()).isEmpty();
+
+                if (allSelected) {
+                    tableEntryItems.values().parallelStream()
+                            .forEach(item -> item.selectedProperty().set(false));
+                }
+            }
+        });
+
+        String filterShortcutName = (new KeyCodeCombination(KeyCode.F, KeyCombination.SHORTCUT_DOWN)).getDisplayText();
+        filterTextField.setPromptText("* for all matching and , as or separator, & as and separator. Start with / for regex. All if empty. (" + filterShortcutName + ")");
         filterTextField.addEventHandler(KeyEvent.ANY, event -> {
             String filterText = filterTextField.getText().trim();
 
