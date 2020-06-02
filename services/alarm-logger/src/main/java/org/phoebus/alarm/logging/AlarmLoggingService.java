@@ -188,11 +188,12 @@ public class AlarmLoggingService {
                     throw new Exception("Unknown option " + cmd);
             }
         } catch (Exception ex) {
-            help();
-            System.out.println();
-            ex.printStackTrace();
-            close();
-            return;
+	    System.out.println("\n>>>> Print StackTrace ....");
+	    ex.printStackTrace();
+	    System.out.println("\n>>>> Please check available arguments of alarm-logger as follows:");
+	    help();
+	    System.exit(SpringApplication.exit(context));
+	    return;
         }
 
         logger.info("Alarm Logging Service (PID " + ProcessHandle.current().pid() + ")");
