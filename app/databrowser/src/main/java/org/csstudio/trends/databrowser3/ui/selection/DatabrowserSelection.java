@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.persistence.XMLPersistence;
+import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
 import org.phoebus.util.time.TimeRelativeInterval;
 
 import javafx.scene.image.Image;
@@ -18,14 +19,18 @@ import javafx.scene.image.Image;
 public class DatabrowserSelection {
     
     private final Model model;
-    private final Image plot;
+    private final ModelBasedPlot plot;
     
+    public static DatabrowserSelection of(Model model, ModelBasedPlot plot) {
+        return new DatabrowserSelection(model, plot);
+    }
+
     /**
      * A instance representing a selection on the databrowser plot.
      * @param model the databrowser model
-     * @param plot the databrowser plot
+     * @param plot the ModelBasedPlot
      */
-    public DatabrowserSelection(Model model, Image plot) {
+    public DatabrowserSelection(Model model, ModelBasedPlot plot) {
         this.model = model;
         this.plot = plot;
     }
@@ -63,7 +68,7 @@ public class DatabrowserSelection {
      * @return Image
      */
     public Image getPlot() {
-        return plot;
+        return plot.getPlot().getImage();
     }
 
 }
