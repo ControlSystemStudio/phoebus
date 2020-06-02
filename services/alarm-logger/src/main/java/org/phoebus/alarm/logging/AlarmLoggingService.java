@@ -53,7 +53,7 @@ public class AlarmLoggingService {
         System.out.println("-es_port  9200                           - elastic server port");
         System.out.println("-es_sniff  false                         - elastic server sniff feature");
         System.out.println("-bootstrap.servers localhost:9092        - Kafka server address");
-        System.out.println("-properties /opt/alarm_logger.propertier - Properties file to be used (instead of command line arguments)");
+        System.out.println("-properties /opt/alarm_logger.properties - Properties file to be used (instead of command line arguments)");
         System.out.println("-date_span_units M                       - Date units for the time based index to span.");
         System.out.println("-date_span_value 1                       - Date value for the time based index to span.");
         System.out.println("-logging logging.properties              - Load log settings");
@@ -94,9 +94,11 @@ public class AlarmLoggingService {
             while (iter.hasNext()) {
 
                 final String cmd = iter.next();
-                if (cmd.startsWith("-h")) {
+		if ( cmd.equals("-h") || cmd.equals("-help")) {
+		    use_shell = false;
                     help();
-                    close();
+		    // Do we need the exit code for help?
+		    System.exit(SpringApplication.exit(context));
                     return;
                 } else if (cmd.equals("-noshell")) {
                     use_shell = false;
