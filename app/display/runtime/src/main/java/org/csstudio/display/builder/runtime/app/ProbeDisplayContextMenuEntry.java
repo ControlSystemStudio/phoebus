@@ -60,7 +60,7 @@ public class ProbeDisplayContextMenuEntry implements ContextMenuEntry
     }
 
     @Override
-    public void callWithSelection(final Selection selection) throws Exception
+    public void call(final Selection selection) throws Exception
     {
         final List<ProcessVariable> pvs = selection.getSelections();
         for (ProcessVariable pv : pvs)

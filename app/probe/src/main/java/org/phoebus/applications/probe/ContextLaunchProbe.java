@@ -33,7 +33,7 @@ public class ContextLaunchProbe implements ContextMenuEntry {
     }
 
     @Override
-    public void callWithSelection(Selection selection) {
+    public void call(Selection selection) {
         List<ProcessVariable> pvs = selection.getSelections();
         LaunchProbe(pvs);
     }

@@ -57,7 +57,7 @@ public class ChannelInfo implements ContextMenuEntry {
     private ChannelFinderClient client = ChannelFinderService.getInstance().getClient();
 
     @Override
-    public void callWithSelection(Selection selection) throws Exception
+    public void call(Selection selection) throws Exception
     {
         List<ProcessVariable> pvs = new ArrayList<>();
         List<Channel> channels = new ArrayList<>();
