@@ -1,9 +1,7 @@
 package org.phoebus.applications.email;
 
-import javax.mail.Session;
-
 /**
- * 
+ * TODO a simple service to handle email actions
  * @author Kunal Shroff
  *
  */
