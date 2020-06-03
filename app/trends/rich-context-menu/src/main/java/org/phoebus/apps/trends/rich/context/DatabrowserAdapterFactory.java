@@ -47,12 +47,13 @@ public class DatabrowserAdapterFactory implements AdapterFactory {
 
             DatabrowserSelection databrowserSelection = ((DatabrowserSelection) adaptableObject);
             StringBuffer title = new StringBuffer();
-            title.append("Databrowser Plot: " + databrowserSelection.getPlotTitle().get());
+            title.append("Databrowser Plot");
+            databrowserSelection.getPlotTitle().ifPresent(title::append);
             emailEntry.setTitle(title.toString());
 
             StringBuffer body = new StringBuffer();
-            body.append(databrowserSelection.getPlotTitle().get());
-            body.append("for the time period: " +  databrowserSelection.getPlotTime().toAbsoluteInterval().toString());
+            databrowserSelection.getPlotTitle().ifPresent(body::append);
+            body.append("The time period: " +  databrowserSelection.getPlotTime().toAbsoluteInterval().toString());
             emailEntry.setBody(body.toString());
 
             emailEntry.setImages(List.of(databrowserSelection.getPlot()));
