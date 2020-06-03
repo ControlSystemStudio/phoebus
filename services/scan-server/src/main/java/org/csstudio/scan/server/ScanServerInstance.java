@@ -49,9 +49,9 @@ public class ScanServerInstance
 
     private static ScanServerImpl scan_server;
 
-    public static String getScanConfigPath()
+    public static URL getScanConfigURL()
     {
-        return scan_config_file.toExternalForm();
+        return scan_config_file;
     }
 
     public static ScanConfig getScanConfig()

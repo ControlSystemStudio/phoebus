@@ -12,7 +12,7 @@ public class PropertiesHelper {
     static Properties prop = new Properties();
 
     static {
-        String filename = "alarm_config_logging_service.properties";
+        String filename = "alarm_config_logger.properties";
 
         try (InputStream input = PropertiesHelper.class.getClassLoader().getResourceAsStream(filename);) {
             if (input != null) {

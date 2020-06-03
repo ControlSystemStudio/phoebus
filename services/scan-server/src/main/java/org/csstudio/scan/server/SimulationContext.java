@@ -63,7 +63,15 @@ public class SimulationContext
      */
     public SimulationContext(final JythonSupport jython, final PrintStream log_stream) throws Exception
     {
-        simulation_info = ScanServerInstance.getScanConfig();
+        // Read scan config for each simulation to allow changing slew rates etc.
+        try
+        {
+            simulation_info = new ScanConfig(ScanServerInstance.getScanConfigURL().openStream());
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Simulation fails to read scan config", ex);
+        }
         macros = new MacroContext(simulation_info.getMacros());
         this.log_stream = log_stream;
 
