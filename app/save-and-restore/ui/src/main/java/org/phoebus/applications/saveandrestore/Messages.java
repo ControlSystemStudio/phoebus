@@ -55,6 +55,7 @@ public class Messages {
     public static String labelCreateFolderEmptyTree;
     public static String toolTipShowLiveReadback;
     public static String toolTipShowStoredReadback;
+    public static String toolTipShowTreeTable;
     public static String toolTipShowHideEqualToggleButton;
     public static String toolTipTableColumnPVName;
     public static String toolTipTableColumnReadbackPVName;

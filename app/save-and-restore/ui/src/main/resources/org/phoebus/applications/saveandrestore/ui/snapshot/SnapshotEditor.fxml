@@ -26,6 +26,7 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
         <items>
             <ToggleButton fx:id="showLiveReadbackButton" mnemonicParsing="false" />
             <ToggleButton fx:id="showStoredReadbackButton" mnemonicParsing="false" />
+            <ToggleButton fx:id="showTreeTableButton" mnemonicParsing="false" />
             <Pane HBox.hgrow="ALWAYS" />
             <ToggleButton fx:id="hideShowEqualItemsButton" mnemonicParsing="false" />
         </items>
