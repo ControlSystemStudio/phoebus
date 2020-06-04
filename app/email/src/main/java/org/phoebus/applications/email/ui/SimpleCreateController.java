@@ -156,7 +156,7 @@ public class SimpleCreateController {
                 messageBodyPart.setText(textArea.getText());
                 multipart.addBodyPart(messageBodyPart);
                 // Attachments
-// TODO Fix access to javax.annotations that clashes with JDK9 module, see #52
+                // TODO Fix access to javax.annotations that clashes with JDK9 module, see #52
                 final String date = TimestampFormats.SECONDS_FORMAT.format(Instant.now());
                 int i = 0;
                 for (Image image : att_images.getImages()) {
@@ -278,6 +278,12 @@ public class SimpleCreateController {
     public void setImages(final List<Image> images)
     {
         att_images.setImages(images);
+    }
+
+    /** @param images Initial list of images to attach */
+    public void setAttachmets(final List<File> files)
+    {
+        att_files.setFiles(files);
     }
 
     private void recomputeTextArea() {

@@ -61,7 +61,7 @@ public class ContextMenuCreateSaveset implements ContextMenuEntry
     }
 
     @Override
-    public void callWithSelection(final Selection selection) throws Exception
+    public void call(final Selection selection) throws Exception
     {
         try {
             saveAndRestoreService = (SaveAndRestoreService) ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().getBean("saveAndRestoreService");

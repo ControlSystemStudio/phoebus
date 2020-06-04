@@ -19,7 +19,6 @@ import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -31,10 +30,8 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableColumn;
-import javafx.scene.control.TreeTableColumn.CellDataFeatures;
 import javafx.scene.control.TreeTableView;
 import javafx.scene.image.ImageView;
-import javafx.util.Callback;
 
 /**
  * Controller for the Tree view of Channels based on a set of selected properties
@@ -172,7 +169,7 @@ public class ChannelTreeController extends ChannelFinderController {
                             }).collect(Collectors.toList());
                     // set the selection
                     SelectionService.getInstance().setSelection(treeTableView, supportedTypes);
-                    entry.callWithSelection(SelectionService.getInstance().getSelection());
+                    entry.call(SelectionService.getInstance().getSelection());
                     // reset the selection
                     SelectionService.getInstance().setSelection(treeTableView, old);
                 } catch (Exception e1) {

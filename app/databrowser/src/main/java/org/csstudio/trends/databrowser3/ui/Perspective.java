@@ -11,6 +11,7 @@ import static org.csstudio.trends.databrowser3.Activator.logger;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.prefs.BackingStoreException;
@@ -32,17 +33,19 @@ import org.csstudio.trends.databrowser3.ui.properties.PropertyPanel;
 import org.csstudio.trends.databrowser3.ui.properties.RemoveUnusedAxes;
 import org.csstudio.trends.databrowser3.ui.sampleview.SampleView;
 import org.csstudio.trends.databrowser3.ui.search.SearchView;
+import org.csstudio.trends.databrowser3.ui.selection.DatabrowserSelection;
 import org.csstudio.trends.databrowser3.ui.waveformview.WaveformView;
-import org.phoebus.applications.email.actions.SendEmailAction;
 import org.phoebus.core.types.ProcessVariable;
-import org.phoebus.email.EmailPreferences;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.logbook.ui.LogbookUiPreferences;
 import org.phoebus.logbook.ui.menu.SendLogbookAction;
+import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.PrintAction;
+import org.phoebus.ui.spi.ContextMenuEntry;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.application.Platform;
@@ -55,6 +58,7 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 
@@ -196,11 +200,23 @@ public class Perspective extends SplitPane
             items.add(new SeparatorMenuItem());
             items.add(new PrintAction(plot.getPlot()));
             items.add(new SaveSnapshotAction(plot.getPlot()));
-            if (EmailPreferences.isEmailSupported())
-                items.add(new SendEmailAction(this, Messages.ActionEmailTitle, Messages.ActionEmailBody, () ->  plot.getPlot().getImage()));
+
+            SelectionService.getInstance().setSelection(this, Arrays.asList(DatabrowserSelection.of(model, plot)));
+            List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+            supported.stream().forEach(action -> {
+                MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
+                menuItem.setOnAction((e) -> {
+                    try {
+                        action.call(plot.getPlot(), SelectionService.getInstance().getSelection());
+                    } catch (Exception ex) {
+                        logger.log(Level.WARNING, "Failed to exectute " + action.getName() + " from databrowser plot.", ex);
+                    }
+                });
+                items.add(menuItem);
+            });
+
             if (LogbookUiPreferences.is_supported)
                 items.add(new SendLogbookAction(DockPane.getActiveDockPane(), Messages.ActionLogbookTitle, Messages.ActionLogbookBody, () ->  plot.getPlot().getImage()));
-
             if (model.getEmptyAxis().isPresent())
             {
                 items.add(new SeparatorMenuItem());
@@ -486,4 +502,5 @@ public class Perspective extends SplitPane
         // Their model listeners have been removed when controller stopped
         // and 'disposed' model.
     }
+    
 }

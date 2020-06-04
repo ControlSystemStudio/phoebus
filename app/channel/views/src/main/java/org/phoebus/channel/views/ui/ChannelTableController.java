@@ -208,7 +208,7 @@ public class ChannelTableController extends ChannelFinderController {
                     }).collect(Collectors.toList());
                     // set the selection 
                     SelectionService.getInstance().setSelection(tableView, pvs);
-                    entry.callWithSelection(SelectionService.getInstance().getSelection());
+                    entry.call(SelectionService.getInstance().getSelection());
                     // reset the selection
                     SelectionService.getInstance().setSelection(tableView, old);
                 } catch (Exception e1) {

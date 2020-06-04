@@ -26,7 +26,6 @@ import javafx.stage.Stage;
 
 /**
  * @author Kunal Shroff
- *
  */
 public class EmailApp implements AppResourceDescriptor {
 
@@ -38,12 +37,14 @@ public class EmailApp implements AppResourceDescriptor {
     private Session session;
 
     @Override
-    public String getName() {
+    public String getName()
+    {
         return NAME;
     }
 
     @Override
-    public String getDisplayName() {
+    public String getDisplayName()
+    {
         return DISPLAY_NAME;
     }
 
@@ -51,7 +52,8 @@ public class EmailApp implements AppResourceDescriptor {
      * Create the {@link Session} at startup
      */
     @Override
-    public void start() {
+    public void start()
+    {
         final Properties props = new Properties();
         props.put("mail.smtp.host", EmailPreferences.mailhost);
         props.put("mail.smtp.port", EmailPreferences.mailport);
@@ -73,7 +75,8 @@ public class EmailApp implements AppResourceDescriptor {
     }
 
     @Override
-    public AppInstance create() {
+    public AppInstance create()
+    {
         try {
             
             final FXMLLoader loader = new FXMLLoader();
@@ -99,7 +102,8 @@ public class EmailApp implements AppResourceDescriptor {
      * Handle resources like mailto:shroffk@....
      */
     @Override
-    public AppInstance create(URI resource) {
+    public AppInstance create(URI resource)
+    {
         return create();
     }
 
@@ -107,7 +111,8 @@ public class EmailApp implements AppResourceDescriptor {
      *
      * @return {@link Session} connection factory needed to create and send emails.
      */
-    public Session getSession() {
+    public Session getSession()
+    {
         return session;
     }
 }

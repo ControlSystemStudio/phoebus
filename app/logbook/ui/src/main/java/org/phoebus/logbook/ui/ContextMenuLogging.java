@@ -29,7 +29,7 @@ public class ContextMenuLogging implements ContextMenuEntry {
 
     @SuppressWarnings("unchecked")
     @Override
-    public void callWithSelection(Selection selection) {
+    public void call(Selection selection) {
 
         List<LogEntry> adaptedSelections = new ArrayList<>();
         selection.getSelections().stream().forEach(s -> {

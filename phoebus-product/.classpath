@@ -49,5 +49,6 @@
     <classpathentry combineaccessrules="false" kind="src" path="/app-perfmon"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-pace"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-diag"/>
+    <classpathentry combineaccessrules="false" kind="src" path="/app-trends-simple-context-menu"/>
     <classpathentry kind="output" path="target/classes"/>
 </classpath>
