@@ -7,6 +7,9 @@
     <artifactId>app</artifactId>
     <version>4.6.4-SNAPSHOT</version>
   </parent>
+  <properties>
+    <gpclient.version>1.0.4</gpclient.version>
+  </properties>
   <modules>
     <module>model</module>
     <module>ui</module>
