@@ -3,6 +3,8 @@ package org.phoebus.logbook.ui;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.phoebus.logbook.LogEntry;
@@ -31,6 +33,8 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 public class LogEntryController {
+
+    private static final Logger logger = Logger.getLogger(LogEntryController.class.getName());
 
     static final Image tag = ImageCache.getImage(LogEntryController.class, "/icons/add_tag.png");
     static final Image logbook = ImageCache.getImage(LogEntryController.class, "/icons/logbook-16.png");
@@ -178,7 +182,7 @@ public class LogEntryController {
                                 newStage.setScene(scene);
                                 newStage.show();
                             } catch (FileNotFoundException e) {
-                                e.printStackTrace();
+                                logger.log(Level.WARNING, "failed to open Image File.", e);
                             }
 
                         }
@@ -186,7 +190,7 @@ public class LogEntryController {
                 }
             });
         } catch (FileNotFoundException ex) {
-            ex.printStackTrace();
+            logger.log(Level.WARNING, "failed to open Image File.", ex);
         }
         return imageView;
     }

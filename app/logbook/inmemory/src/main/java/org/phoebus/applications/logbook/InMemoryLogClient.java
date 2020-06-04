@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -30,6 +32,7 @@ import com.google.common.io.Files;
  * A logbook which maintains logentries in memory. It is mainly for testing and debugging purpose.
  */
 public class InMemoryLogClient implements LogClient{
+    private static Logger logger = Logger.getLogger(InMemoryLogClient.class.getName());
     private final AtomicInteger logIdCounter;
     private final Map<Long, LogEntry> logEntries;
 
@@ -93,7 +96,7 @@ public class InMemoryLogClient implements LogClient{
                 Files.copy(file, tempFile);
                 return AttachmentImpl.of(tempFile);
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.WARNING, "failed to get in memory attachment", e);
                 return null;
             }
         }).collect(Collectors.toSet());

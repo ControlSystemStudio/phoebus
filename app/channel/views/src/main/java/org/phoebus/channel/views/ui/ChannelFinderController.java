@@ -1,6 +1,7 @@
 package org.phoebus.channel.views.ui;
 
 import java.util.Collection;
+import java.util.logging.Logger;
 
 import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.ChannelFinderClient;
@@ -21,6 +22,7 @@ import javafx.application.Platform;
  */
 public abstract class ChannelFinderController {
 
+    public static Logger logger = Logger.getLogger(ChannelFinderController.class.getName());
     private ChannelFinderClient client;
 
     private Job channelSearchJob;

@@ -10,7 +10,7 @@ import org.phoebus.security.tokens.SimpleAuthenticationToken;
 
 public class OlogLogbook implements LogFactory {
 
-    private static final Logger logger = Logger.getLogger(OlogLogbook.class.getName());
+    public static final Logger logger = Logger.getLogger(OlogLogbook.class.getName());
     private static final String ID = "olog";
     private LogClient oLogClient;
 

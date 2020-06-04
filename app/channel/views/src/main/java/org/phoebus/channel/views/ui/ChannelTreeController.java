@@ -9,6 +9,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import org.phoebus.channelfinder.Channel;
@@ -172,8 +173,8 @@ public class ChannelTreeController extends ChannelFinderController {
                     entry.call(SelectionService.getInstance().getSelection());
                     // reset the selection
                     SelectionService.getInstance().setSelection(treeTableView, old);
-                } catch (Exception e1) {
-                    e1.printStackTrace();
+                } catch (Exception ex) {
+                    logger.log(Level.WARNING, "Failed to execute action " + entry.getName(), ex);
                 }
             });
             contextMenu.getItems().add(item);

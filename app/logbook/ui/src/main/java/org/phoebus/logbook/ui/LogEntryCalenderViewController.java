@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import javafx.scene.input.KeyCode;
@@ -63,6 +65,8 @@ import jfxtras.scene.control.agenda.Agenda.AppointmentImplLocal;
  *
  */
 public class LogEntryCalenderViewController extends LogbookSearchController {
+
+    private static final Logger logger = Logger.getLogger(LogEntryCalenderViewController.class.getName());
 
     static final Image tag = ImageCache.getImage(LogEntryController.class, "/icons/add_tag.png");
     static final Image logbook = ImageCache.getImage(LogEntryController.class, "/icons/logbook-16.png");
@@ -153,7 +157,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                     dialog.show();
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.log(Level.WARNING, "Failed to show details for : " + appointment.getSummary(), e);
             }
             return null;
         });
@@ -169,7 +173,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
             String styleSheetResource = LogbookUiPreferences.calendarViewItemStylesheet;
             agenda.getStylesheets().add(this.getClass().getResource(styleSheetResource).toString());
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Failed to set css style", e);
         }
 
         AnchorPane.setTopAnchor(agenda, 6.0);
@@ -234,7 +238,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
             });
             logbookSearchpopover = new PopOver(logbookSelectionLoader.getRoot());
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Failed to open logbook search.", e);
         }
         searchLogbooks.focusedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
@@ -273,7 +277,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
             });
             tagSearchpopover = new PopOver(tagSelectionLoader.getRoot());
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Failed to open tag search.", e);
         }
         searchTags.focusedProperty().addListener(
                 (ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {

@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -12,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import static org.phoebus.applications.alarm.AlarmSystem.logger;
 /**
  * A message which describes both state and configuration events
  * 
@@ -399,7 +401,7 @@ public class AlarmMessage implements Serializable{
         try {
             return toJson();
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "failed to parse the alarm message ", e);
         }
         return "";
     }
