@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -84,7 +85,7 @@ public class LogService {
                     try {
                         logFactory.getLogClient(authToken).set(logEntry);
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        logger.log(Level.WARNING, "failed to create log entry ", e);
                     }
                 });
             });

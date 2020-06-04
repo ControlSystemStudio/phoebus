@@ -47,7 +47,6 @@ public class OlogException extends RuntimeException {
                     new ParserDelegator().parse(reader, callback, false);
                     return callback.getMessage();
             } catch (IOException e) {
-                    //e.printStackTrace();
                 return "Could not retrieve message from server";
             }
 	}

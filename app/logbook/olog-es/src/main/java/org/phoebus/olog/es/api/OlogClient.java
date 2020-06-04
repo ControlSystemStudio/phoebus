@@ -373,7 +373,7 @@ public class OlogClient implements LogClient {
                             Files.copy(getAttachment(log.getId(), attachment.getName()), temp, StandardCopyOption.REPLACE_EXISTING);
                             fileAttachment.setFile(temp.toFile());
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            logger.log(Level.WARNING, "Failed to retrieve attachment " + fileAttachment.getFileName() ,e);
                         }
                         return fileAttachment;
                     }).collect(Collectors.toList());
@@ -381,7 +381,7 @@ public class OlogClient implements LogClient {
                 }
             });
         } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "failed to retrieve log entries", e);
         }
         return Collections.unmodifiableList(logs);
     }
@@ -475,7 +475,7 @@ public class OlogClient implements LogClient {
             });
             return properties;
         } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "failed to list olog properties", e);
             return Collections.emptySet();
         }
     }
@@ -489,7 +489,7 @@ public class OlogClient implements LogClient {
             });
             return tags;
         } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "failed to retrieve olog tags", e);
             return Collections.emptySet();
         }
     }
