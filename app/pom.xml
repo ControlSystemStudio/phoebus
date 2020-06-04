@@ -29,5 +29,6 @@
     <module>pace</module>
     <module>save-and-restore</module>
     <module>console</module>
+    <module>trends</module>
   </modules>
 </project>
