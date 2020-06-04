@@ -208,8 +208,8 @@ public class Perspective extends SplitPane
                 menuItem.setOnAction((e) -> {
                     try {
                         action.call(plot.getPlot(), SelectionService.getInstance().getSelection());
-                    } catch (Exception e1) {
-                        logger.log(Level.WARNING, "Failed to exectute " + action.getName() + " from databrowser plot.");
+                    } catch (Exception ex) {
+                        logger.log(Level.WARNING, "Failed to exectute " + action.getName() + " from databrowser plot.", ex);
                     }
                 });
                 items.add(menuItem);
