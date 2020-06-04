@@ -2,11 +2,14 @@ package org.phoebus.channel.views.ui;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
+
+import static org.phoebus.channel.views.ui.ChannelFinderController.logger;
 
 public class ListMultiOrderedPickerDialog extends Dialog<List<String>> {
 
@@ -44,7 +47,7 @@ public class ListMultiOrderedPickerDialog extends Dialog<List<String>> {
                 return button == ButtonType.OK ? controller.getOrderedSelectedOptions() : null;
             });
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "ListMultiOrderedPickerDialog failed ", e);
         }
     }
 }

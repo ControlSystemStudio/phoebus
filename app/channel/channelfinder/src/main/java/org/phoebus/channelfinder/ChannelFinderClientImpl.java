@@ -301,7 +301,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
                             new TypeReference<List<XmlProperty>>() {
                             });
                 } catch (JsonParseException e) {
-                    e.printStackTrace();
+                    log.log(Level.WARNING, "Failed to retrieve channelfinder properties", e);
                 }
                 for (XmlProperty xmlproperty : xmlproperties) {
                     allProperties.add(xmlproperty.getName());
@@ -352,7 +352,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         try {
             Preferences.userNodeForPackage(ChannelFinderClientImpl.class).clear();
         } catch (BackingStoreException e) {
-            e.printStackTrace();
+            log.log(Level.WARNING, "Failed to retrieve channelfinder preferences", e);
         }
     }
 
