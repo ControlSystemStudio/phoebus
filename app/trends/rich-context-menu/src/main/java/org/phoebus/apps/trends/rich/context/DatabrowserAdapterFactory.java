@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.csstudio.trends.databrowser3.ui.selection.DatabrowserSelection;
 import org.phoebus.applications.email.EmailEntry;
@@ -53,7 +54,10 @@ public class DatabrowserAdapterFactory implements AdapterFactory {
 
             StringBuffer body = new StringBuffer();
             databrowserSelection.getPlotTitle().ifPresent(body::append);
-            body.append("The time period: " +  databrowserSelection.getPlotTime().toAbsoluteInterval().toString());
+            body.append("databrowser plot for the following pvs:" + System.lineSeparator());
+            body.append(databrowserSelection.getPlotPVs().stream().collect(Collectors.joining(System.lineSeparator())));
+            body.append(System.lineSeparator());
+            body.append("Over the time period: " +  databrowserSelection.getPlotTime().toAbsoluteInterval().toString());
             emailEntry.setBody(body.toString());
 
             emailEntry.setImages(List.of(databrowserSelection.getPlot()));
