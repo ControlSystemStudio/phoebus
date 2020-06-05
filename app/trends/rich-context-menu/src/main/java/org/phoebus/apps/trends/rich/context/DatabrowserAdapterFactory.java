@@ -65,7 +65,7 @@ public class DatabrowserAdapterFactory implements AdapterFactory {
             try
             {
                 // Create file name for a temp file
-                File file = Files.createTempFile("phoebus", "-db-email.plt").toFile();
+                File file = Files.createTempFile("phoebus-db-email", System.currentTimeMillis() + ".plt").toFile();
                 // Arrange for the file to be deleted on exit of JVM
                 // (Hard to delete earlier since we don't know when the email submission completes)
                 file.deleteOnExit();
