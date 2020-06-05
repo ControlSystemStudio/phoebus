@@ -7,7 +7,8 @@
  *******************************************************************************/
 package org.phoebus.logbook.ui.write;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
@@ -15,17 +16,12 @@ import javafx.stage.Stage;
 /**
  * Demonstrate the {@link LogEntryEditorStage}
  * @author Evan Smith
- *
- * <b>NOTE</b> On Java 11+ the run configuration must include JVM options for the JavaFX modules, e.g.
- * --module-path
- * /Users/georgweiss/.m2/repository/org/openjfx/javafx-base/14:/Users/georgweiss/.m2/repository/org/openjfx/javafx-graphics/14:/Users/georgweiss/.m2/repository/org/openjfx/javafx-fxml/14:/Users/georgweiss/.m2/repository/org/openjfx/javafx-controls/14
- * --add-modules=javafx.base
- * --add-modules=javafx.graphics
- * --add-modules=javafx.fxml
- * --add-modules=javafx.controls
  */
-public class DemoLogEntryEditorStage extends Application
+public class LogEntryEditorStageDemo extends ApplicationWrapper
 {
+    public static void main(String[] args) {
+        launch(LogEntryEditorStageDemo.class, args);
+    }
 
     @Override
     public void start(Stage primaryStage) throws Exception
@@ -37,9 +33,4 @@ public class DemoLogEntryEditorStage extends Application
         new LogEntryEditorStage(root, new LogEntryModel(), null).show();
     }
 
-    public static void main(String[] args)
-    {
-        launch(args);
-    }
-    
 }

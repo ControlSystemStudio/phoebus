@@ -7,7 +7,8 @@
  *******************************************************************************/
 package org.phoebus.logbook.ui.write;
 
-import javafx.application.Application;
+import org.phoebus.ui.javafx.ApplicationWrapper;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Scene;
@@ -18,11 +19,15 @@ import javafx.stage.Stage;
  * Demonstrate the ListSelectionDialog
  * @author Evan Smith
  */
-public class DemoListSelectionDialog extends Application
+public class ListSelectionDialogDemo extends ApplicationWrapper
 {
     ObservableList<String> available;
     ObservableList<String> selected;
-    
+
+    public static void main(String[] args) {
+        launch(ListSelectionDialogDemo.class, args);
+    }
+
     @Override
     public void start(Stage primaryStage) throws Exception
     {
@@ -61,9 +66,5 @@ public class DemoListSelectionDialog extends Application
     {
         return selected.remove(item);
     }
-    
-    public static void main(String[] args)
-    {
-        launch(args);
-    }
+
 }
