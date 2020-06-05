@@ -24,7 +24,8 @@ public class ListSelectionDialogDemo extends ApplicationWrapper
     ObservableList<String> available;
     ObservableList<String> selected;
 
-    public static void main(String[] args) {
+    public static void main(String[] args)
+    {
         launch(ListSelectionDialogDemo.class, args);
     }
 
