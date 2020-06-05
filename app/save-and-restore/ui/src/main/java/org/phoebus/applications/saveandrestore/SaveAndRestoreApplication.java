@@ -27,9 +27,13 @@ import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.pv.PV;
+import org.phoebus.pv.ca.JCA_Preferences;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SaveAndRestoreApplication implements AppDescriptor, AppInstance {
 	
@@ -64,18 +68,18 @@ public class SaveAndRestoreApplication implements AppDescriptor, AppInstance {
 				tab = new DockItem(this, (Node) springFxmlLoader.load("ui/SaveAndRestoreUI.fxml"));
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			Logger.getLogger(SaveAndRestoreApplication.class.getName()).log(Level.SEVERE, "Failed loading fxml", e);
 		}
 
 		controller = springFxmlLoader.getLoader().getController();
 
 		DockPane.getActiveDockPane().addTab(tab);
-		PreferencesReader pvPreferencesReader = (PreferencesReader)context.getBean("pvPreferencesReader");
-		String epicsAddressList = pvPreferencesReader.get("addr_list");
-
-		if(epicsAddressList != null && !epicsAddressList.isEmpty()){
-			System.setProperty("com.cosylab.epics.caj.CAJContext.addr_list", epicsAddressList);
+		try {
+			JCA_Preferences.getInstance().installPreferences();
+		} catch (Exception e) {
+			Logger.getLogger(SaveAndRestoreApplication.class.getName()).log(Level.SEVERE, "Failed loading JCA preferences", e);
 		}
+
 		return this;
 	}
 

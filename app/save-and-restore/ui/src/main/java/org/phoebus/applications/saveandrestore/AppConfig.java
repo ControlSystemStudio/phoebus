@@ -59,15 +59,12 @@ public class AppConfig {
     private static final int DEFAULT_CONNECT_TIMEOUT = 1000; // ms
 
     private PreferencesReader preferencesReader;
-    private PreferencesReader pvPreferencesReader;
     private Preferences preferences;
 
     @PostConstruct
     public void init(){
         preferences = PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class);
         preferencesReader = new PreferencesReader(getClass(), "/save_and_restore_preferences.properties");
-        pvPreferencesReader = new PreferencesReader(JCA_PVFactory.class, "/pv_ca_preferences.properties");
-
     }
 
     @Bean
@@ -78,11 +75,6 @@ public class AppConfig {
     @Bean("preferencesReader")
     public PreferencesReader preferencesReader(){
         return preferencesReader;
-    }
-
-    @Bean("pvPreferencesReader")
-    public PreferencesReader getPvPreferencesReader(){
-        return pvPreferencesReader;
     }
 
     @Bean
