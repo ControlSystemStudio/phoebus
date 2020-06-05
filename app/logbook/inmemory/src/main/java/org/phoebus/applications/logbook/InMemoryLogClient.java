@@ -94,6 +94,7 @@ public class InMemoryLogClient implements LogClient{
                 }
                 File tempFile = File.createTempFile(prefix, ext);
                 Files.copy(file, tempFile);
+                tempFile.deleteOnExit();
                 return AttachmentImpl.of(tempFile);
             } catch (IOException e) {
                 logger.log(Level.WARNING, "failed to get in memory attachment", e);
