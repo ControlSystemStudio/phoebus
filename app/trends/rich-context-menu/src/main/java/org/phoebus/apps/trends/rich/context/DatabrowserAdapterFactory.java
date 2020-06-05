@@ -64,7 +64,7 @@ public class DatabrowserAdapterFactory implements AdapterFactory {
 
             try
             {
-                File file = Files.createTempFile("phoebus", "-db-email.plt").toFile();
+                File file = Files.createTempFile("phoebus-db-email", System.currentTimeMillis() + ".plt").toFile();
                 try (FileOutputStream fileOutputStream = new FileOutputStream(file);)
                 {
                     databrowserSelection.getPlotFile(fileOutputStream);
