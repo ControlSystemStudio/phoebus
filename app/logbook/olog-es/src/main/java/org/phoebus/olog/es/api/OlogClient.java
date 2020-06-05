@@ -372,6 +372,7 @@ public class OlogClient implements LogClient {
                             Path temp = Files.createTempFile("phoebus", attachment.getName());
                             Files.copy(getAttachment(log.getId(), attachment.getName()), temp, StandardCopyOption.REPLACE_EXISTING);
                             fileAttachment.setFile(temp.toFile());
+                            temp.toFile().deleteOnExit();
                         } catch (IOException e) {
                             logger.log(Level.WARNING, "Failed to retrieve attachment " + fileAttachment.getFileName() ,e);
                         }

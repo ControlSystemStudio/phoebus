@@ -633,6 +633,7 @@ public class OlogClient implements LogClient {
                                     Files.copy(getAttachment(log.getId(), attachment.getFileName()), temp,
                                             StandardCopyOption.REPLACE_EXISTING);
                                     a.setFile(temp.toFile());
+                                    temp.toFile().deleteOnExit();
                                 } catch (IOException e) {
                                     logger.log(Level.WARNING, "failed to retrieve attachment file " + a.getName(), e);
                                 }
