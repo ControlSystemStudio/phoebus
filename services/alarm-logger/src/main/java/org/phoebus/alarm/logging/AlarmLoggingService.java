@@ -108,8 +108,7 @@ public class AlarmLoggingService {
                     try(FileInputStream file = new FileInputStream(iter.next());){
                         properties.load(file);
                     } catch(FileNotFoundException e) {
-                        System.out.println();
-                        e.printStackTrace();
+                        logger.log(Level.SEVERE, "failed to load server properties", e);
                     }
                     iter.remove();
                 } else if (cmd.equals("-topics")) {

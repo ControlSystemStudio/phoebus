@@ -10,6 +10,7 @@ import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
@@ -89,8 +90,7 @@ public class AlarmConfigLoggingService {
                     try (FileInputStream file = new FileInputStream(iter.next());) {
                         properties.load(file);
                     } catch (FileNotFoundException e) {
-                        System.out.println();
-                        e.printStackTrace();
+                        logger.log(Level.SEVERE, "failed to load server properties", e);
                     }
                     iter.remove();
                 } else if (cmd.equals("-topics")) {
