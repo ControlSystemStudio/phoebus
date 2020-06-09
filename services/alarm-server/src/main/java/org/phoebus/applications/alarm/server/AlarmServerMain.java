@@ -137,8 +137,8 @@ public class AlarmServerMain implements ServerModelListener
             restart.offer(false);
         else if (args.length == 1)
         {
-	    if (args[0].startsWith("shut"))
-		restart.offer(false);
+            if (args[0].startsWith("shut"))
+                restart.offer(false);
             else if (args[0].equals("restart"))
                 restart.offer(true);
             else if (args[0].equals("mode"))
@@ -561,8 +561,8 @@ public class AlarmServerMain implements ServerModelListener
             while (iter.hasNext())
             {
                 final String cmd = iter.next();
-		if ( cmd.equals("-h") || cmd.equals("-help")) 
-		{
+                if ( cmd.equals("-h") || cmd.equals("-help"))
+                {
                     help();
                     return;
                 }
