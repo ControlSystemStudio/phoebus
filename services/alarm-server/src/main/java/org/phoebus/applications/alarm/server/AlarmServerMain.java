@@ -610,7 +610,7 @@ public class AlarmServerMain implements ServerModelListener
                     config = pref_conf_names;
                     use_settings = true;
 		    
-	        }
+                }
                 else if (cmd.equals("-noshell"))
                 {
                     use_shell = false;
