@@ -572,7 +572,7 @@ public class AlarmServerMain implements ServerModelListener
                         throw new Exception("Missing -server name");
                     iter.remove();
                     args_server = iter.next();
-		    use_args_server = true;
+                    use_args_server = true;
                     iter.remove();
                 }
                 else if (cmd.equals("-config"))
@@ -581,7 +581,7 @@ public class AlarmServerMain implements ServerModelListener
                         throw new Exception("Missing -config name");
                     iter.remove();
                     args_config = iter.next();
-		    use_args_config = true;
+                    use_args_config = true;
                     iter.remove();
                 }
                 else if (cmd.equals("-logging"))
@@ -649,21 +649,21 @@ public class AlarmServerMain implements ServerModelListener
                     throw new Exception("Unknown option " + cmd);
             }
 
-	    if ( use_args_server ) {
-		if ( use_settings ) {
-		    logger.log(Level.WARNING,"Found the conflicted configurations : -settings/server:" + server + " and -server:" + args_server);
-		    logger.log(Level.WARNING,"Force to use the argument -server instead of -settings");
-		    logger.log(Level.WARNING,"Server : " + args_server);
-		}
-		server = args_server;
+            if ( use_args_server ) {
+                if ( use_settings ) {
+                    logger.log(Level.WARNING,"Found the conflicted configurations : -settings/server:" + server + " and -server:" + args_server);
+                    logger.log(Level.WARNING,"Force to use the argument -server instead of -settings");
+                    logger.log(Level.WARNING,"Server : " + args_server);
+                }
+                server = args_server;
 	    }
-	    if ( use_args_config ) {
-		if ( use_settings ) {
-		    logger.log(Level.WARNING,"Found the conflicted configurations : -settings/config:" + config + " and -config:" + args_config);
-		    logger.log(Level.WARNING,"Force to use the argument -config instead of -settings");
-		    logger.log(Level.WARNING,"Config : " + args_config);
-		}
-		config = args_config;
+            if ( use_args_config ) {
+                if ( use_settings ) {
+                    logger.log(Level.WARNING,"Found the conflicted configurations : -settings/config:" + config + " and -config:" + args_config);
+                    logger.log(Level.WARNING,"Force to use the argument -config instead of -settings");
+                    logger.log(Level.WARNING,"Config : " + args_config);
+                }
+                config = args_config;
 	    }
 	    
 
