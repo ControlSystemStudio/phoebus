@@ -137,8 +137,8 @@ public class AlarmServerMain implements ServerModelListener
             restart.offer(false);
         else if (args.length == 1)
         {
-            if (args[0].equals("shutdown"))
-                restart.offer(false);
+	    if (args[0].startsWith("shut"))
+		restart.offer(false);
             else if (args[0].equals("restart"))
                 restart.offer(true);
             else if (args[0].equals("mode"))
@@ -526,16 +526,16 @@ public class AlarmServerMain implements ServerModelListener
         System.out.println();
         System.out.println("Command-line arguments:");
         System.out.println();
-        System.out.println("-help                       - This text");
-        System.out.println("-server   localhost:9092    - Kafka server");
-        System.out.println("-config   Accelerator       - Alarm configuration");
+        System.out.println("-help                          - This text");
+        System.out.println("-server    localhost:9092      - Kafka server with port number");
+        System.out.println("-config    Accelerator         - Alarm configuration");
         // Don't mention this option, prefer examples/create_topics.sh
         // System.out.println("-create_topics              - Create Kafka topics for alarm configuration?");
-        System.out.println("-settings settings.xml      - Import preferences (PV connectivity) from property format file");
-        System.out.println("-noshell                    - Disable the command shell for running without a terminal");
-        System.out.println("-export   config.xml        - Export alarm configuration to file");
-        System.out.println("-import   config.xml        - Import alarm configruation from file");
-        System.out.println("-logging logging.properties -  Load log settings");
+        System.out.println("-settings  settings.{xml,ini}  - Import preferences (PV connectivity) from property format file");
+        System.out.println("-noshell                       - Disable the command shell for running without a terminal");
+        System.out.println("-export    config.xml          - Export alarm configuration to file");
+        System.out.println("-import    config.xml          - Import alarm configruation from file");
+        System.out.println("-logging   logging.properties  - Load log settings");
         System.out.println();
     }
 
@@ -561,8 +561,8 @@ public class AlarmServerMain implements ServerModelListener
             while (iter.hasNext())
             {
                 final String cmd = iter.next();
-                if (cmd.startsWith("-h"))
-                {
+		if ( cmd.equals("-h") || cmd.equals("-help")) 
+		{
                     help();
                     return;
                 }
@@ -651,7 +651,7 @@ public class AlarmServerMain implements ServerModelListener
 
 	    if ( use_args_server ) {
 		if ( use_settings ) {
-		    logger.log(Level.WARNING,"Found the conflicted configuration : -settings/server:" + server + " and -server:" + args_server);
+		    logger.log(Level.WARNING,"Found the conflicted configurations : -settings/server:" + server + " and -server:" + args_server);
 		    logger.log(Level.WARNING,"Force to use the argument -server instead of -settings");
 		    logger.log(Level.WARNING,"Server : " + args_server);
 		}
@@ -659,7 +659,7 @@ public class AlarmServerMain implements ServerModelListener
 	    }
 	    if ( use_args_config ) {
 		if ( use_settings ) {
-		    logger.log(Level.WARNING,"Found the conflicted configuration : -settings/server:" + config + " and -config:" + args_config);
+		    logger.log(Level.WARNING,"Found the conflicted configurations : -settings/config:" + config + " and -config:" + args_config);
 		    logger.log(Level.WARNING,"Force to use the argument -config instead of -settings");
 		    logger.log(Level.WARNING,"Config : " + args_config);
 		}
