@@ -18,6 +18,8 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
+import java.util.prefs.Preferences;
+
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.ClientState;
@@ -135,7 +137,7 @@ public class AlarmServerMain implements ServerModelListener
             restart.offer(false);
         else if (args.length == 1)
         {
-            if (args[0].startsWith("shut"))
+            if (args[0].equals("shutdown"))
                 restart.offer(false);
             else if (args[0].equals("restart"))
                 restart.offer(true);
@@ -545,8 +547,13 @@ public class AlarmServerMain implements ServerModelListener
         String server = "localhost:9092";
         String config = "Accelerator";
         boolean use_shell = true;
-
-        // Handle arguments
+	String  args_server = "";
+	String  args_config = "";
+	boolean use_args_server = false;
+	boolean use_args_config = false;
+	boolean use_settings = false;
+	
+	// Handle arguments
         final List<String> args = new ArrayList<>(List.of(original_args));
         final Iterator<String> iter = args.iterator();
         try
@@ -564,7 +571,8 @@ public class AlarmServerMain implements ServerModelListener
                     if (! iter.hasNext())
                         throw new Exception("Missing -server name");
                     iter.remove();
-                    server = iter.next();
+                    args_server = iter.next();
+		    use_args_server = true;
                     iter.remove();
                 }
                 else if (cmd.equals("-config"))
@@ -572,7 +580,8 @@ public class AlarmServerMain implements ServerModelListener
                     if (! iter.hasNext())
                         throw new Exception("Missing -config name");
                     iter.remove();
-                    config = iter.next();
+                    args_config = iter.next();
+		    use_args_config = true;
                     iter.remove();
                 }
                 else if (cmd.equals("-logging"))
@@ -593,7 +602,15 @@ public class AlarmServerMain implements ServerModelListener
                     iter.remove();
                     logger.info("Loading settings from " + filename);
                     PropertyPreferenceLoader.load(new FileInputStream(filename));
-                }
+		    
+		    Preferences userPrefs  = Preferences.userRoot().node("org/phoebus/applications/alarm");
+		    String pref_server     = userPrefs.get("server", server);
+		    String pref_conf_names = userPrefs.get("config_names", config);
+		    server = pref_server;
+		    config = pref_conf_names;
+		    use_settings = true;
+		    
+	        }
                 else if (cmd.equals("-noshell"))
                 {
                     use_shell = false;
@@ -631,6 +648,26 @@ public class AlarmServerMain implements ServerModelListener
                 else
                     throw new Exception("Unknown option " + cmd);
             }
+
+	    if ( use_args_server ) {
+		if ( use_settings ) {
+		    logger.log(Level.WARNING,"Found the conflicted configuration : -settings/server:" + server + " and -server:" + args_server);
+		    logger.log(Level.WARNING,"Force to use the argument -server instead of -settings");
+		    logger.log(Level.WARNING,"Server : " + args_server);
+		}
+		server = args_server;
+	    }
+	    if ( use_args_config ) {
+		if ( use_settings ) {
+		    logger.log(Level.WARNING,"Found the conflicted configuration : -settings/server:" + config + " and -config:" + args_config);
+		    logger.log(Level.WARNING,"Force to use the argument -config instead of -settings");
+		    logger.log(Level.WARNING,"Config : " + args_config);
+		}
+		config = args_config;
+	    }
+	    
+
+	    
         }
         catch (final Exception ex)
         {
