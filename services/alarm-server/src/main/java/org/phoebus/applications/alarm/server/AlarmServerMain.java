@@ -547,11 +547,11 @@ public class AlarmServerMain implements ServerModelListener
         String server = "localhost:9092";
         String config = "Accelerator";
         boolean use_shell = true;
-	String  args_server = "";
-	String  args_config = "";
-	boolean use_args_server = false;
-	boolean use_args_config = false;
-	boolean use_settings = false;
+        String  args_server = "";
+        String  args_config = "";
+        boolean use_args_server = false;
+        boolean use_args_config = false;
+        boolean use_settings = false;
 	
 	// Handle arguments
         final List<String> args = new ArrayList<>(List.of(original_args));
