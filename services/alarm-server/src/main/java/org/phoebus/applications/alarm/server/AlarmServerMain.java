@@ -603,12 +603,12 @@ public class AlarmServerMain implements ServerModelListener
                     logger.info("Loading settings from " + filename);
                     PropertyPreferenceLoader.load(new FileInputStream(filename));
 		    
-		    Preferences userPrefs  = Preferences.userRoot().node("org/phoebus/applications/alarm");
-		    String pref_server     = userPrefs.get("server", server);
-		    String pref_conf_names = userPrefs.get("config_names", config);
-		    server = pref_server;
-		    config = pref_conf_names;
-		    use_settings = true;
+                    Preferences userPrefs  = Preferences.userRoot().node("org/phoebus/applications/alarm");
+                    String pref_server     = userPrefs.get("server", server);
+                    String pref_conf_names = userPrefs.get("config_names", config);
+                    server = pref_server;
+                    config = pref_conf_names;
+                    use_settings = true;
 		    
 	        }
                 else if (cmd.equals("-noshell"))
