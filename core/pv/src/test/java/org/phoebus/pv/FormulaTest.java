@@ -8,8 +8,14 @@
 package org.phoebus.pv;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 import io.reactivex.disposables.Disposable;
 
@@ -17,6 +23,23 @@ import io.reactivex.disposables.Disposable;
 @SuppressWarnings("nls")
 public class FormulaTest
 {
+    @BeforeClass
+    public static void setup()
+    {
+        System.setProperty("java.util.logging.ConsoleHandler.formatter",
+                           "java.util.logging.SimpleFormatter");
+        // 1: date, 2: source, 3: logger, 4: level, 5: message, 6:thrown
+        System.setProperty("java.util.logging.SimpleFormatter.format",
+                           "%1$tH:%1$tM:%1$tS %4$s %5$s%6$s%n");
+
+
+
+        final Logger logger = Logger.getLogger("");
+        logger.setLevel(Level.FINE);
+        for (Handler handler : logger.getHandlers())
+            handler.setLevel(logger.getLevel());
+    }
+
     private void dumpPool()
     {
         System.out.println("PV Pool");
@@ -53,6 +76,49 @@ public class FormulaTest
     {
         runFormula("=`sim://sine` * 2");
         runFormula("=`sim://ramp` + 100");
+        dumpPool();
+    }
+
+    // Formula with a 'local' PV that's updated by a 10Hz thread,
+    // and some 'sim' PVs on a 1Hz thread.
+    // With full logging on, observe how two quasi-concurrent
+    // input updates result in only one formula re-evaluation.
+    @Test
+    public void concurrentInputs() throws Exception
+    {
+        final CountDownLatch done = new CountDownLatch(10);
+
+        final PV loc = PVPool.getPV("loc://x(0)");
+        final Thread update_loc = new Thread(() ->
+        {
+            try
+            {
+                while (! done.await(100, TimeUnit.MILLISECONDS))
+                {
+                    loc.write(System.currentTimeMillis());
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.printStackTrace();
+            }
+        });
+        update_loc.start();
+
+        final PV pv = PVPool.getPV("= `loc://x(0)` + `sim://noise` + 2 * `sim://ramp`");
+        final Disposable flow = pv.onValueEvent()
+                                  .subscribe(value ->
+        {
+            System.out.println(VTypeHelper.toDouble(value));
+            done.countDown();
+        });
+        done.await();
+        update_loc.join();
+        flow.dispose();
+
+        dumpPool();
+        PVPool.releasePV(loc);
+        PVPool.releasePV(pv);
         dumpPool();
     }
 }
