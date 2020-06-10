@@ -11,6 +11,7 @@ import static org.csstudio.display.builder.representation.ToolkitRepresentation.
 
 import java.util.logging.Level;
 
+import javafx.scene.input.MouseButton;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -124,7 +125,16 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
                 }
             });
             // Clicking into widget also activates
-            text.setOnMouseClicked(event -> setActive(true));
+            text.setOnMouseClicked(event -> {
+                // Secondary mouse button should bring up context menu
+                // but not enable editing.
+                if(event.getButton().equals(MouseButton.PRIMARY)){
+                    setActive(true);
+                }
+                else{
+                    text.setEditable(false);
+                }
+            });
             // While getting the focus does not activate the widget
             // (first need to type something or click),
             // _loosing_ focus de-activates the widget.

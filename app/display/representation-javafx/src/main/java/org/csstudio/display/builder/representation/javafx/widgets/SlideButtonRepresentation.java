@@ -14,6 +14,7 @@ import static org.csstudio.display.builder.representation.ToolkitRepresentation.
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
+import javafx.scene.input.MouseButton;
 import org.controlsfx.control.ToggleSwitch;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
@@ -130,7 +131,11 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
         if (! toolkit.isEditMode() )
             button.addEventFilter(MouseEvent.MOUSE_RELEASED, event ->
             {
-                handleSlide();
+                // To avoid setting a new value when context menu is requested,
+                // slide only if primary button was pressed.
+                if(event.getButton().equals(MouseButton.PRIMARY)) {
+                    handleSlide();
+                }
                 event.consume();
             });
 
