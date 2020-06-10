@@ -22,7 +22,7 @@ public class Preferences
 {
     public static int performance_log_period_secs, performance_log_threshold_ms,
                       update_accumulation_time, update_delay, plot_update_delay, image_update_delay,
-                      tooltip_length;
+                      tooltip_length, embedded_timeout;
 
     static
     {
@@ -36,6 +36,7 @@ public class Preferences
             plot_update_delay = prefs.getInt("plot_update_delay");
             image_update_delay = prefs.getInt("image_update_delay");
             tooltip_length = prefs.getInt("tooltip_length");
+            embedded_timeout = prefs.getInt("embedded_timeout");
         }
         catch (Exception ex)
         {
