@@ -32,8 +32,6 @@ public class FormulaTest
         System.setProperty("java.util.logging.SimpleFormatter.format",
                            "%1$tH:%1$tM:%1$tS %4$s %5$s%6$s%n");
 
-
-
         final Logger logger = Logger.getLogger("");
         logger.setLevel(Level.FINE);
         for (Handler handler : logger.getHandlers())
@@ -88,6 +86,7 @@ public class FormulaTest
     {
         final CountDownLatch done = new CountDownLatch(10);
 
+        // Local PV, updated by thread different from 'sim' PV thread
         final PV loc = PVPool.getPV("loc://x(0)");
         final Thread update_loc = new Thread(() ->
         {
@@ -105,6 +104,7 @@ public class FormulaTest
         });
         update_loc.start();
 
+        // Formula triggered by loc and sim PVs
         final PV pv = PVPool.getPV("= `loc://x(0)` + `sim://noise` + 2 * `sim://ramp`");
         final Disposable flow = pv.onValueEvent()
                                   .subscribe(value ->
@@ -112,11 +112,15 @@ public class FormulaTest
             System.out.println(VTypeHelper.toDouble(value));
             done.countDown();
         });
-        done.await();
-        update_loc.join();
-        flow.dispose();
 
-        dumpPool();
+        // Await some updates
+        done.await();
+
+        // Loc thread should finish
+        update_loc.join();
+
+        // Close everything
+        flow.dispose();
         PVPool.releasePV(loc);
         PVPool.releasePV(pv);
         dumpPool();
