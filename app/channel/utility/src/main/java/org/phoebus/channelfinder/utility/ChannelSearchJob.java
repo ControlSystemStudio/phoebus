@@ -1,6 +1,9 @@
 package org.phoebus.channelfinder.utility;
 
 import java.util.Collection;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -23,31 +26,31 @@ public class ChannelSearchJob implements JobRunnable {
     private final Consumer<Collection<Channel>> channel_handler;
     private final BiConsumer<String, Exception> error_handler;
 
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+
     /**
      * Submit search job
-     * 
-     * @param archives
-     *            Archives to search
-     * @param pattern
-     *            Space seperated search criterias, patterns may include * and ?
-     *            wildcards
-     *            channelNamePattern propertyName=valuePattern1,valuePattern2 Tags=tagNamePattern
-     *            Each criteria is logically ANDed, || seperated values are
-     *            logically ORed Query for channels based on the Query string
-     *            query 
-     *            example: find("SR* Cell=1,2 Tags=GolderOrbit,myTag") this
-     *            will return all channels with names starting with SR AND have
-     *            property Cell=1 OR 2 AND have tags goldenOrbit AND myTag. IMP:
-     *            each criteria is logically AND'ed while multiple values for
-     *            Properties are OR'ed.
-     * @param channel_handler
-     *            Invoked when the job located names on the server
-     * @param error_handler
-     *            Invoked with URL and Exception when the job failed
+     *
+     * @param client          client to use for making REST requests to channelfinder
+     * @param pattern         Space seperated search criterias, patterns may include * and ?
+     *                        wildcards
+     *                        channelNamePattern propertyName=valuePattern1,valuePattern2 Tags=tagNamePattern
+     *                        Each criteria is logically ANDed, || seperated values are
+     *                        logically ORed Query for channels based on the Query string
+     *                        query
+     *                        example: find("SR* Cell=1,2 Tags=GolderOrbit,myTag") this
+     *                        will return all channels with names starting with SR AND have
+     *                        property Cell=1 OR 2 AND have tags goldenOrbit AND myTag. IMP:
+     *                        each criteria is logically AND'ed while multiple values for
+     *                        Properties are OR'ed.
+     * @param channel_handler Invoked when the job located names on the server
+     * @param error_handler   Invoked with URL and Exception when the job failed
      * @return {@link Job}
      */
-    public static Job submit(ChannelFinderClient client, final String pattern,
-            final Consumer<Collection<Channel>> channel_handler, final BiConsumer<String, Exception> error_handler) {
+    public static Job submit(ChannelFinderClient client,
+                             final String pattern,
+                             final Consumer<Collection<Channel>> channel_handler,
+                             final BiConsumer<String, Exception> error_handler) {
         return JobManager.schedule("searching Channelfinder for : " + pattern,
                 new ChannelSearchJob(client, pattern, channel_handler, error_handler));
     }
@@ -63,8 +66,30 @@ public class ChannelSearchJob implements JobRunnable {
 
     @Override
     public void run(JobMonitor monitor) throws Exception {
-        monitor.beginTask("searching Channelfinder for : " + pattern);
-        Collection<Channel> channels = client.find(pattern);
-        channel_handler.accept(channels);
+        String taskName = "searching Channelfinder for : " + pattern;
+        monitor.beginTask(taskName);
+        {
+            FutureTask task = new FutureTask(() ->
+            {
+                Thread.currentThread().sleep(5000);
+                Collection<Channel> channels = client.find(pattern);
+                channel_handler.accept(channels);
+                return channels;
+            });
+            executorService.submit(task);
+            int count = 0;
+            while (!task.isDone())
+            {
+                if(monitor.isCanceled())
+                {
+                    task.cancel(true);
+                } else {
+                    monitor.updateTaskName(taskName + " running for : " + count + " seconds");
+                    Thread.currentThread().sleep(1000);
+                    count++;
+                }
+            }
+            monitor.done();
+        }
     }
 }
