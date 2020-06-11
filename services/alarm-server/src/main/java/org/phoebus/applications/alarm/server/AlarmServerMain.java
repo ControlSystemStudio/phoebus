@@ -18,6 +18,8 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
+import java.util.prefs.Preferences;
+
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.ClientState;
@@ -524,16 +526,16 @@ public class AlarmServerMain implements ServerModelListener
         System.out.println();
         System.out.println("Command-line arguments:");
         System.out.println();
-        System.out.println("-help                       - This text");
-        System.out.println("-server   localhost:9092    - Kafka server");
-        System.out.println("-config   Accelerator       - Alarm configuration");
+        System.out.println("-help                          - This text");
+        System.out.println("-server    localhost:9092      - Kafka server with port number");
+        System.out.println("-config    Accelerator         - Alarm configuration");
         // Don't mention this option, prefer examples/create_topics.sh
         // System.out.println("-create_topics              - Create Kafka topics for alarm configuration?");
-        System.out.println("-settings settings.xml      - Import preferences (PV connectivity) from property format file");
-        System.out.println("-noshell                    - Disable the command shell for running without a terminal");
-        System.out.println("-export   config.xml        - Export alarm configuration to file");
-        System.out.println("-import   config.xml        - Import alarm configruation from file");
-        System.out.println("-logging logging.properties -  Load log settings");
+        System.out.println("-settings  settings.{xml,ini}  - Import preferences (PV connectivity) from property format file");
+        System.out.println("-noshell                       - Disable the command shell for running without a terminal");
+        System.out.println("-export    config.xml          - Export alarm configuration to file");
+        System.out.println("-import    config.xml          - Import alarm configruation from file");
+        System.out.println("-logging   logging.properties  - Load log settings");
         System.out.println();
     }
 
@@ -545,8 +547,13 @@ public class AlarmServerMain implements ServerModelListener
         String server = "localhost:9092";
         String config = "Accelerator";
         boolean use_shell = true;
-
-        // Handle arguments
+        String  args_server = "";
+        String  args_config = "";
+        boolean use_args_server = false;
+        boolean use_args_config = false;
+        boolean use_settings = false;
+	
+	// Handle arguments
         final List<String> args = new ArrayList<>(List.of(original_args));
         final Iterator<String> iter = args.iterator();
         try
@@ -554,7 +561,7 @@ public class AlarmServerMain implements ServerModelListener
             while (iter.hasNext())
             {
                 final String cmd = iter.next();
-                if (cmd.startsWith("-h"))
+                if ( cmd.equals("-h") || cmd.equals("-help"))
                 {
                     help();
                     return;
@@ -564,7 +571,8 @@ public class AlarmServerMain implements ServerModelListener
                     if (! iter.hasNext())
                         throw new Exception("Missing -server name");
                     iter.remove();
-                    server = iter.next();
+                    args_server = iter.next();
+                    use_args_server = true;
                     iter.remove();
                 }
                 else if (cmd.equals("-config"))
@@ -572,7 +580,8 @@ public class AlarmServerMain implements ServerModelListener
                     if (! iter.hasNext())
                         throw new Exception("Missing -config name");
                     iter.remove();
-                    config = iter.next();
+                    args_config = iter.next();
+                    use_args_config = true;
                     iter.remove();
                 }
                 else if (cmd.equals("-logging"))
@@ -593,6 +602,14 @@ public class AlarmServerMain implements ServerModelListener
                     iter.remove();
                     logger.info("Loading settings from " + filename);
                     PropertyPreferenceLoader.load(new FileInputStream(filename));
+		    
+                    Preferences userPrefs  = Preferences.userRoot().node("org/phoebus/applications/alarm");
+                    String pref_server     = userPrefs.get("server", server);
+                    String pref_conf_names = userPrefs.get("config_names", config);
+                    server = pref_server;
+                    config = pref_conf_names;
+                    use_settings = true;
+		    
                 }
                 else if (cmd.equals("-noshell"))
                 {
@@ -631,6 +648,26 @@ public class AlarmServerMain implements ServerModelListener
                 else
                     throw new Exception("Unknown option " + cmd);
             }
+
+            if ( use_args_server ) {
+                if ( use_settings ) {
+                    logger.log(Level.WARNING,"Found the conflicted configurations : -settings/server:" + server + " and -server:" + args_server);
+                    logger.log(Level.WARNING,"Force to use the argument -server instead of -settings");
+                    logger.log(Level.WARNING,"Server : " + args_server);
+                }
+                server = args_server;
+	    }
+            if ( use_args_config ) {
+                if ( use_settings ) {
+                    logger.log(Level.WARNING,"Found the conflicted configurations : -settings/config:" + config + " and -config:" + args_config);
+                    logger.log(Level.WARNING,"Force to use the argument -config instead of -settings");
+                    logger.log(Level.WARNING,"Config : " + args_config);
+                }
+                config = args_config;
+	    }
+	    
+
+	    
         }
         catch (final Exception ex)
         {
