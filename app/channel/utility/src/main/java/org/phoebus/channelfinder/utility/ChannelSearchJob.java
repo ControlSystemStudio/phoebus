@@ -50,13 +50,15 @@ public class ChannelSearchJob implements JobRunnable {
     public static Job submit(ChannelFinderClient client,
                              final String pattern,
                              final Consumer<Collection<Channel>> channel_handler,
-                             final BiConsumer<String, Exception> error_handler) {
+                             final BiConsumer<String, Exception> error_handler)
+    {
         return JobManager.schedule("searching Channelfinder for : " + pattern,
                 new ChannelSearchJob(client, pattern, channel_handler, error_handler));
     }
 
     private ChannelSearchJob(ChannelFinderClient client, String pattern, Consumer<Collection<Channel>> channel_handler,
-            BiConsumer<String, Exception> error_handler) {
+            BiConsumer<String, Exception> error_handler)
+    {
         super();
         this.client = client;
         this.pattern = pattern;
@@ -65,7 +67,8 @@ public class ChannelSearchJob implements JobRunnable {
     }
 
     @Override
-    public void run(JobMonitor monitor) throws Exception {
+    public void run(JobMonitor monitor) throws Exception
+    {
         String taskName = "searching Channelfinder for : " + pattern;
         monitor.beginTask(taskName);
         {
