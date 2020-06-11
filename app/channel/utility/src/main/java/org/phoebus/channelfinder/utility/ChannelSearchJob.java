@@ -21,6 +21,8 @@ import org.phoebus.framework.jobs.JobRunnable;
  * @author Kunal Shroff, Kay Kasemir
  */
 public class ChannelSearchJob implements JobRunnable {
+    private static final String NAME = "searching Channelfinder for : ";
+
     private final ChannelFinderClient client;
     private final String pattern;
     private final Consumer<Collection<Channel>> channel_handler;
@@ -52,7 +54,7 @@ public class ChannelSearchJob implements JobRunnable {
                              final Consumer<Collection<Channel>> channel_handler,
                              final BiConsumer<String, Exception> error_handler)
     {
-        return JobManager.schedule("searching Channelfinder for : " + pattern,
+        return JobManager.schedule(NAME + pattern,
                 new ChannelSearchJob(client, pattern, channel_handler, error_handler));
     }
 
@@ -67,32 +69,36 @@ public class ChannelSearchJob implements JobRunnable {
     }
 
     @Override
-    public void run(JobMonitor monitor) throws Exception
+    public void run(JobMonitor monitor)
     {
-        String taskName = "searching Channelfinder for : " + pattern;
+        String taskName = NAME + pattern;
         monitor.beginTask(taskName);
         {
             FutureTask task = new FutureTask(() ->
             {
-                Thread.currentThread().sleep(5000);
                 Collection<Channel> channels = client.find(pattern);
                 channel_handler.accept(channels);
                 return channels;
             });
-            executorService.submit(task);
-            int count = 0;
-            while (!task.isDone())
-            {
-                if(monitor.isCanceled())
+            try {
+                executorService.submit(task);
+                int count = 0;
+                while (!task.isDone())
                 {
-                    task.cancel(true);
-                } else {
-                    monitor.updateTaskName(taskName + " running for : " + count + " seconds");
-                    Thread.currentThread().sleep(1000);
-                    count++;
+                    if(monitor.isCanceled())
+                    {
+                        task.cancel(true);
+                    } else {
+                        monitor.updateTaskName(taskName + " running for : " + count + " seconds");
+                        Thread.currentThread().sleep(1000);
+                        count++;
+                    }
                 }
+                monitor.done();
+            } catch (Exception e)
+            {
+                error_handler.accept("Failed to complete " + taskName, e);
             }
-            monitor.done();
         }
     }
 }
