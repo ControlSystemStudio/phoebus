@@ -15,7 +15,7 @@ import java.util.function.BiConsumer;
 
 /**
  * A Job to remove properties from a list of channels
- * 
+ *
  * @author Kunal Shroff
  */
 public class RemovePropertyChannelsJob extends JobRunnableWithCancel {
