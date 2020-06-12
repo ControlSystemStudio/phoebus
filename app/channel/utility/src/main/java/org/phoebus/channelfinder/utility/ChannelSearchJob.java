@@ -1,18 +1,15 @@
 package org.phoebus.channelfinder.utility;
 
-import java.util.Collection;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-
 import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.ChannelFinderClient;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.framework.jobs.JobMonitor;
-import org.phoebus.framework.jobs.JobRunnable;
+
+import java.util.Collection;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * Background job for searching channels from the channelfinder directory
@@ -20,13 +17,13 @@ import org.phoebus.framework.jobs.JobRunnable;
  * 
  * @author Kunal Shroff, Kay Kasemir
  */
-public class ChannelSearchJob implements JobRunnable {
-    private static final String NAME = "searching Channelfinder for : ";
+public class ChannelSearchJob extends JobRunnableWithCancel {
+    private static final String NAME = "searching Channelfinder for pattern : ";
 
     private final ChannelFinderClient client;
     private final String pattern;
-    private final Consumer<Collection<Channel>> channel_handler;
-    private final BiConsumer<String, Exception> error_handler;
+    private final Consumer<Collection<Channel>> channelHandler;
+    private final BiConsumer<String, Exception> errorHandler;
 
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
@@ -46,57 +43,55 @@ public class ChannelSearchJob implements JobRunnable {
      *                        each criteria is logically AND'ed while multiple values for
      *                        Properties are OR'ed.
      * @param channel_handler Invoked when the job located names on the server
-     * @param error_handler   Invoked with URL and Exception when the job failed
+     * @param errorHandler   Invoked with URL and Exception when the job failed
      * @return {@link Job}
      */
     public static Job submit(ChannelFinderClient client,
                              final String pattern,
                              final Consumer<Collection<Channel>> channel_handler,
-                             final BiConsumer<String, Exception> error_handler)
+                             final BiConsumer<String, Exception> errorHandler)
     {
         return JobManager.schedule(NAME + pattern,
-                new ChannelSearchJob(client, pattern, channel_handler, error_handler));
+                new ChannelSearchJob(client, pattern, channel_handler, errorHandler));
     }
 
-    private ChannelSearchJob(ChannelFinderClient client, String pattern, Consumer<Collection<Channel>> channel_handler,
-            BiConsumer<String, Exception> error_handler)
+    /**
+     * private constructor
+     * @param client - client to be used for searching
+     * @param pattern - search pattern
+     * @param channelHandler - handler for matching channels
+     * @param errorHandler - error handler
+     */
+    private ChannelSearchJob(ChannelFinderClient client,
+                             String pattern,
+                             Consumer<Collection<Channel>> channelHandler,
+                             BiConsumer<String, Exception> errorHandler)
     {
         super();
         this.client = client;
         this.pattern = pattern;
-        this.channel_handler = channel_handler;
-        this.error_handler = error_handler;
+        this.channelHandler = channelHandler;
+        this.errorHandler = errorHandler;
     }
 
     @Override
-    public void run(JobMonitor monitor)
+    public String getName()
     {
-        String taskName = NAME + pattern;
-        monitor.beginTask(taskName);
-        FutureTask task = new FutureTask(() ->
-        {
+        return NAME + pattern;
+    }
+
+    @Override
+    public Runnable getRunnable()
+    {
+        return () -> {
             Collection<Channel> channels = client.find(pattern);
-            channel_handler.accept(channels);
-            return channels;
-        });
-        try {
-            executorService.submit(task);
-            int count = 0;
-            while (!task.isDone())
-            {
-                if(monitor.isCanceled())
-                {
-                    task.cancel(true);
-                } else {
-                    monitor.updateTaskName(taskName + " running for : " + count + " seconds");
-                    Thread.currentThread().sleep(1000);
-                    count++;
-                }
-            }
-            monitor.done();
-        } catch (Exception e)
-        {
-            error_handler.accept("Failed to complete " + taskName, e);
-        }
+            channelHandler.accept(channels);
+        };
+    }
+
+    @Override
+    public BiConsumer<String, Exception> getErrorHandler()
+    {
+        return errorHandler;
     }
 }
