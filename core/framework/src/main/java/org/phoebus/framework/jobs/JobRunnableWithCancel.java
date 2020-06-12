@@ -10,6 +10,26 @@ import java.util.logging.Logger;
 /**
  * A helper class which provides the framework for running tasks in the background while still monitoring for cancel requests.
  *
+ *
+ * Ideally, a JobRunnable is written with cancellation and potentially progress updates in mind:
+ *
+ * JobManager.schedule("Demo", monitor ->
+ * {
+ *     monitor.beginTask("What I do", 100);
+ *     for (int step=0; step < 100; ++step)
+ *     {
+ *         // Allow cancellation
+ *         if (monitor.isCanceled())
+ *             return;
+ *         // .. do something
+ *         monitor.worked(1);
+ *     }
+ * });
+ *
+ * If the task cannot be cancelled gracefully because it is for
+ * example stuck in network calls or inside a 3rd party library,
+ * the  `JobRunnableWithCancel` may be used to brute-force
+ * interrupt the task in response to a cancellation request.
  * @author Kunal Shroff
  */
 public abstract class JobRunnableWithCancel implements JobRunnable {
