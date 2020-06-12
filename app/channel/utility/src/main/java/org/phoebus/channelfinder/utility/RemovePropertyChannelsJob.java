@@ -8,6 +8,7 @@ import org.phoebus.channelfinder.Property;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
+import org.phoebus.framework.jobs.JobRunnableWithCancel;
 
 import java.util.Collection;
 import java.util.function.BiConsumer;

@@ -10,6 +10,7 @@ import org.phoebus.channelfinder.ChannelFinderClient;
 import org.phoebus.channelfinder.Property;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.jobs.JobRunnableWithCancel;
 
 
 /**
