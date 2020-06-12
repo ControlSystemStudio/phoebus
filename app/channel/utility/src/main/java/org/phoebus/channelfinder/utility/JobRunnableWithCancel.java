@@ -75,4 +75,13 @@ public abstract class JobRunnableWithCancel implements JobRunnable {
      * @return Runnable - the operation to be executed by this job
      */
     public abstract Runnable getRunnable();
+
+    /**
+     * The error handler for handling exceptions thrown while running this job
+     * @return BiConsumer - handles exceptions
+     */
+    public BiConsumer<String, Exception> getErrorHandler()
+    {
+        return this.errorHandler;
+    }
 }
