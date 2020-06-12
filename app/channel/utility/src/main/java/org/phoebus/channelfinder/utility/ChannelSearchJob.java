@@ -6,8 +6,6 @@ import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
 
 import java.util.Collection;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -24,8 +22,6 @@ public class ChannelSearchJob extends JobRunnableWithCancel {
     private final String pattern;
     private final Consumer<Collection<Channel>> channelHandler;
     private final BiConsumer<String, Exception> errorHandler;
-
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     /**
      * Submit search job
