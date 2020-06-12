@@ -35,7 +35,6 @@ import org.phoebus.service.saveandrestore.model.internal.SnapshotPv;
 import javax.json.Json;
 import java.io.ByteArrayInputStream;
 import java.time.Instant;
-import java.util.Arrays;
 
 import static org.junit.Assert.*;
 
@@ -72,7 +71,7 @@ public class SnapshotDataConverterTest {
 	public void testFromVEnum(){
 		VEnum vEnum = VEnum.of(1, EnumDisplay.of("a", "b", "c"), alarm, time);
 		SnapshotPv snapshotPv = SnapshotDataConverter.fromVType(vEnum);
-		assertEquals("[\"b\"]", snapshotPv.getValue());
+		assertEquals("[1,[\"a\",\"b\",\"c\"]]", snapshotPv.getValue());
 		assertEquals(AlarmSeverity.NONE, snapshotPv.getAlarmSeverity());
 		assertEquals(AlarmStatus.NONE, snapshotPv.getAlarmStatus());
 		assertEquals("name", snapshotPv.getAlarmName());
@@ -172,6 +171,9 @@ public class SnapshotDataConverterTest {
 
 		VString vString = VString.of("string", alarm, time);
 		assertEquals(SnapshotPvDataType.STRING, SnapshotDataConverter.getDataType(vString));
+
+		VEnum vEnum = VEnum.of(0, EnumDisplay.of("choice1"), alarm, time);
+		assertEquals(SnapshotPvDataType.ENUM, SnapshotDataConverter.getDataType(vEnum));
 
 		VByteArray vByteArray = VByteArray.of(new ArrayByte(CollectionNumbers.toListByte((byte) 1)), alarm, time,
 				display);
@@ -584,7 +586,7 @@ public class SnapshotDataConverterTest {
 
 		snapshotPv = SnapshotPv.builder().alarmName("name").alarmStatus(AlarmStatus.NONE)
 				.alarmSeverity(AlarmSeverity.NONE).dataType(SnapshotPvDataType.ENUM).sizes("[1]").time(1000L)
-				.timens(7000).value("[\"2\"]").build();
+				.timens(7000).value("[1,[\"a\",\"b\",\"c\"]]").build();
 		assertTrue(SnapshotDataConverter.toVType(snapshotPv) instanceof VEnum);
 	}
 
