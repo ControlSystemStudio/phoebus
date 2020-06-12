@@ -2,8 +2,8 @@ package org.phoebus.channelfinder.utility;
 
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.JobRunnable;
+import org.phoebus.framework.jobs.NamedThreadFactory;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 public abstract class JobRunnableWithCancel implements JobRunnable {
 
     private static final Logger logger = Logger.getLogger(JobRunnableWithCancel.class.getName());
-    private static final ExecutorService executorService = Executors.newCachedThreadPool();
+    private static final ExecutorService executorService = Executors.newCachedThreadPool(new NamedThreadFactory(JobRunnableWithCancel.class.getName()));
 
     /*
      * A default implementation of an error handler for job which logs the exception.
@@ -38,7 +38,8 @@ public abstract class JobRunnableWithCancel implements JobRunnable {
      * @throws Exception on error
      */
     @Override
-    public void run(JobMonitor monitor) throws Exception {
+    public void run(JobMonitor monitor) throws Exception
+    {
         monitor.beginTask(getName());
 
         FutureTask task = new FutureTask(getRunnable(), null);
