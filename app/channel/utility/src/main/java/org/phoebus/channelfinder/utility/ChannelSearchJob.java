@@ -73,32 +73,30 @@ public class ChannelSearchJob implements JobRunnable {
     {
         String taskName = NAME + pattern;
         monitor.beginTask(taskName);
+        FutureTask task = new FutureTask(() ->
         {
-            FutureTask task = new FutureTask(() ->
+            Collection<Channel> channels = client.find(pattern);
+            channel_handler.accept(channels);
+            return channels;
+        });
+        try {
+            executorService.submit(task);
+            int count = 0;
+            while (!task.isDone())
             {
-                Collection<Channel> channels = client.find(pattern);
-                channel_handler.accept(channels);
-                return channels;
-            });
-            try {
-                executorService.submit(task);
-                int count = 0;
-                while (!task.isDone())
+                if(monitor.isCanceled())
                 {
-                    if(monitor.isCanceled())
-                    {
-                        task.cancel(true);
-                    } else {
-                        monitor.updateTaskName(taskName + " running for : " + count + " seconds");
-                        Thread.currentThread().sleep(1000);
-                        count++;
-                    }
+                    task.cancel(true);
+                } else {
+                    monitor.updateTaskName(taskName + " running for : " + count + " seconds");
+                    Thread.currentThread().sleep(1000);
+                    count++;
                 }
-                monitor.done();
-            } catch (Exception e)
-            {
-                error_handler.accept("Failed to complete " + taskName, e);
             }
+            monitor.done();
+        } catch (Exception e)
+        {
+            error_handler.accept("Failed to complete " + taskName, e);
         }
     }
 }
