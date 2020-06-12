@@ -4,6 +4,7 @@ import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.ChannelFinderClient;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.jobs.JobRunnableWithCancel;
 
 import java.util.Collection;
 import java.util.function.BiConsumer;

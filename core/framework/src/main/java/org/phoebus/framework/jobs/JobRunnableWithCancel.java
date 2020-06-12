@@ -1,8 +1,4 @@
-package org.phoebus.channelfinder.utility;
-
-import org.phoebus.framework.jobs.JobMonitor;
-import org.phoebus.framework.jobs.JobRunnable;
-import org.phoebus.framework.jobs.NamedThreadFactory;
+package org.phoebus.framework.jobs;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
