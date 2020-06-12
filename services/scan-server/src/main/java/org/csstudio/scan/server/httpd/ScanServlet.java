@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2012-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -51,6 +51,7 @@ public class ScanServlet extends HttpServlet
     {
         // Require XML: "text/xml", "text/xml; charset=UTF-8", ...
         final String format = request.getContentType();
+        logger.log(Level.FINE, () -> "POST scan " + format);
         if (! format.contains("/xml"))
         {
             logger.log(Level.WARNING, "POST /scan got format '" + format + "'");
@@ -87,6 +88,9 @@ public class ScanServlet extends HttpServlet
         // Submit scan
         try
         {
+            if (logger.isLoggable(Level.FINE))
+                logger.log(Level.FINE, "Scan '" + scan_name + "':\n" + scan_commands);
+
             final long scan_id = scan_server.submitScan(scan_name, scan_commands, queue, pre_post);
 
             // Return scan ID

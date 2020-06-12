@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -110,7 +110,7 @@ public class AlarmTableUI extends BorderPane
 
     private final Button server_notify = new Button();
 
-    private ToolBar toolbar = createToolbar();
+    private final ToolBar toolbar;
 
     /** Enable dragging the PV name from a table cell.
      *  @param cell Table cell
@@ -225,6 +225,8 @@ public class AlarmTableUI extends BorderPane
     {
         this.client = client;
 
+        toolbar = createToolbar();
+
         // When user resizes columns, update them in the 'other' table
         active.setColumnResizePolicy(new LinkedColumnResize(active, acknowledged));
         acknowledged.setColumnResizePolicy(new LinkedColumnResize(acknowledged, active));
@@ -260,8 +262,17 @@ public class AlarmTableUI extends BorderPane
         setMaintenanceMode(false);
         server_mode.setOnAction(event ->  client.setMode(! client.isMaintenanceMode()));
 
-	setDisableNotify(false);
+        // Could 'bind',
+        //   server_mode.disableProperty().bind(new SimpleBooleanProperty(!AlarmUI.mayModifyMode(client)));
+        // but mayModifyModel is not observable, plus setting it only when _disabled_
+        // means no actual property is created for the default value, enabled.
+        if (!AlarmUI.mayModifyMode(client))
+            server_mode.setDisable(true);
+
+        setDisableNotify(false);
         server_notify.setOnAction(event ->  client.setNotify(! client.isDisableNotify()));
+        if (!AlarmUI.mayDisableNotify(client))
+            server_notify.setDisable(true);
 
         final Button acknowledge = new Button("", ImageCache.getImageView(AlarmUI.class, "/icons/acknowledge.png"));
         acknowledge.disableProperty().bind(Bindings.isEmpty(active.getSelectionModel().getSelectedItems()));
@@ -282,12 +293,10 @@ public class AlarmTableUI extends BorderPane
         search.setTooltip(new Tooltip("Enter pattern ('vac', 'amp*trip')\nfor PV Name or Description,\npress RETURN to select"));
         search.textProperty().addListener(prop -> selectRows());
 
-	if (AlarmSystem.disable_notify_visible)
-	{
-	    return new ToolBar(active_count,ToolbarHelper.createStrut(), ToolbarHelper.createSpring(), server_mode, server_notify, acknowledge, unacknowledge, search);
-	}
+    	if (AlarmSystem.disable_notify_visible)
+    	    return new ToolBar(active_count,ToolbarHelper.createStrut(), ToolbarHelper.createSpring(), server_mode, server_notify, acknowledge, unacknowledge, search);
 
-	return new ToolBar(active_count,ToolbarHelper.createStrut(), ToolbarHelper.createSpring(), server_mode, acknowledge, unacknowledge, search);
+    	return new ToolBar(active_count,ToolbarHelper.createStrut(), ToolbarHelper.createSpring(), server_mode, acknowledge, unacknowledge, search);
     }
 
     /** Show if connected to server or not
@@ -332,7 +341,7 @@ public class AlarmTableUI extends BorderPane
 
         }
     }
-    
+
     private TableView<AlarmInfoRow> createTable(final ObservableList<AlarmInfoRow> rows,
                                                 final boolean active)
     {
@@ -451,7 +460,7 @@ public class AlarmTableUI extends BorderPane
             if (menu_items.size() > 0)
                 menu_items.add(new SeparatorMenuItem());
 
-            if (AlarmUI.mayConfigure()  &&   selection.size() == 1)
+            if (AlarmUI.mayConfigure(client)  &&   selection.size() == 1)
             {
                 menu_items.add(new ConfigureComponentAction(table, client, selection.get(0)));
                 menu_items.add(new SeparatorMenuItem());

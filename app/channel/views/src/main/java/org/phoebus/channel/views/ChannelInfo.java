@@ -1,12 +1,11 @@
 package org.phoebus.channel.views;
 
-import javafx.application.Platform;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.image.Image;
+import static javafx.scene.control.Alert.AlertType.INFORMATION;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.phoebus.channel.views.ui.ChannelInfoTreeController;
-import org.phoebus.channel.views.ui.SelectEntityController;
 import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.ChannelFinderClient;
 import org.phoebus.channelfinder.ChannelFinderService;
@@ -18,14 +17,10 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import static javafx.scene.control.Alert.AlertType.INFORMATION;
+import javafx.application.Platform;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Alert;
+import javafx.scene.image.Image;
 
 /**
  * Action which opens a dialog to display the channel information.
@@ -57,7 +52,7 @@ public class ChannelInfo implements ContextMenuEntry {
     private ChannelFinderClient client = ChannelFinderService.getInstance().getClient();
 
     @Override
-    public void callWithSelection(Selection selection) throws Exception
+    public void call(Selection selection) throws Exception
     {
         List<ProcessVariable> pvs = new ArrayList<>();
         List<Channel> channels = new ArrayList<>();

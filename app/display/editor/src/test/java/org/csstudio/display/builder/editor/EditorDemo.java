@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -99,7 +99,7 @@ public class EditorDemo extends ApplicationWrapper
         if (args.length == 1)
             display_file = args[0];
 
-        LogManager.getLogManager().readConfiguration(new FileInputStream("../../../phoebus-product/src/main/resources/logging.properties"));
+        LogManager.getLogManager().readConfiguration(new FileInputStream("../../../core/launcher/src/main/resources/logging.properties"));
 
         launch(EditorDemo.class, args);
     }

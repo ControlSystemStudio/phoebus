@@ -19,12 +19,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
  * A utility Class for handling the navigation of .bob and .opi files
  */
 public class ProcessOPI {
+    private static final Logger logger = Logger.getLogger(ProcessOPI.class.getName());
 
     private final File rootFile;
     private final Set<File> allLinkedFiles;
@@ -99,7 +102,7 @@ public class ProcessOPI {
                         String resource = ModelResourceUtil.resolveResource(file.getPath(), expanded_path);
                         result.add(new File(resource));
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        logger.log(Level.WARNING, "Failed to resolve macros for : " + action.getFile(), e);
                     }
                 });
 
@@ -107,7 +110,7 @@ public class ProcessOPI {
             });
             return result;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Failed to getLinkedFiles for file " + file.getPath(), e);
         }
         return result;
     }

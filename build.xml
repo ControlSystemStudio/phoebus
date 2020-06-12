@@ -31,6 +31,7 @@
     <ant target="clean" dir="app/pvtable"/>
     <ant target="clean" dir="app/rtplot"/>
     <ant target="clean" dir="app/databrowser"/>
+    <ant target="clean" dir="app/trends/rich-context-menu"/>
     <ant target="clean" dir="app/3d-viewer"/>
     <ant target="clean" dir="app/perfmon"/>
     <ant target="clean" dir="app/pace"/>
@@ -101,6 +102,7 @@
     <ant dir="app/pvtable"/>
     <ant dir="app/rtplot"/>
     <ant dir="app/databrowser"/>
+    <ant dir="app/trends/rich-context-menu"/>
     <ant dir="app/3d-viewer"/>
     <ant dir="app/perfmon"/>
     <ant dir="app/pace"/>

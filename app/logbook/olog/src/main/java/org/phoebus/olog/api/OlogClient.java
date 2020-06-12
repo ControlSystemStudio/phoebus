@@ -49,9 +49,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import static org.phoebus.applications.logbook.OlogLogbook.logger;
 /**
  * A logbook client to tne Olog logbook service
  */
@@ -631,8 +633,9 @@ public class OlogClient implements LogClient {
                                     Files.copy(getAttachment(log.getId(), attachment.getFileName()), temp,
                                             StandardCopyOption.REPLACE_EXISTING);
                                     a.setFile(temp.toFile());
+                                    temp.toFile().deleteOnExit();
                                 } catch (IOException e) {
-                                    e.printStackTrace();
+                                    logger.log(Level.WARNING, "failed to retrieve attachment file " + a.getName(), e);
                                 }
                                 return a;
                             }).collect(Collectors.toList());

@@ -23,7 +23,7 @@ public class PropertiesHelper {
                 logger.warning("Sorry, unable to find " + filename);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.warning("Failed to load properties from: " + filename);
         }
     }
 

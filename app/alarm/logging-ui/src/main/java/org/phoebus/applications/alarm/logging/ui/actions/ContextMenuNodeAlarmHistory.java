@@ -37,7 +37,7 @@ public class ContextMenuNodeAlarmHistory implements ContextMenuEntry {
 
     @SuppressWarnings("unchecked")
     @Override
-    public void callWithSelection(Selection selection) throws URISyntaxException {
+    public void call(Selection selection) throws URISyntaxException {
 
         List<AlarmTreeItem> selectedNodes = new ArrayList<>();
         selection.getSelections().stream().forEach(s -> {

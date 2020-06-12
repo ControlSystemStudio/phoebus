@@ -21,12 +21,12 @@ public class RemoveTagChannelsJob extends JobRunnableWithCancel {
     private final BiConsumer<String, Exception> errorHandler;
 
     /**
-     * Submit a job to remove the tag _tag_ to a group of channels
+     * submit a job to remove a Tag from a channel or a group of channels
      *
-     * @param client - channelfinder client to use
-     * @param channelNames - collection of channels to which the tag is to be removed
-     * @param tag - the tag to be removed from the channels
-     * @param errorHandler - error handler
+     * @param client - channelfinder client, which this job be submitted to
+     * @param channelNames - collection of channels to which the property is to be removed
+     * @param tag - the tag to be removed
+     * @param errorHandler  - error handler
      * @return Job
      */
     public static Job submit(ChannelFinderClient client,

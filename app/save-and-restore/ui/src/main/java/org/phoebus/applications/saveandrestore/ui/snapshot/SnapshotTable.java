@@ -35,7 +35,11 @@ import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
@@ -491,6 +495,8 @@ class SnapshotTable extends TableView<TableEntry> {
         setEditable(true);
         getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         setMaxWidth(Double.MAX_VALUE);
+        setMaxHeight(Double.MAX_VALUE);
+        VBox.setVgrow(this, Priority.ALWAYS);
         setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         getStylesheets().add(SnapshotTable.class.getResource("/style.css").toExternalForm());
 
@@ -523,6 +529,24 @@ class SnapshotTable extends TableView<TableEntry> {
                 }
                 clickedRow = rowAtMouse == -1 ? getSelectionModel().getSelectedCells().get(0).getRow() : rowAtMouse;
             }
+        });
+
+        addEventHandler(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() != KeyCode.SPACE) {
+                return;
+            }
+
+            ObservableList<TableEntry> selections = getSelectionModel().getSelectedItems();
+
+            if (selections == null) {
+                return;
+            }
+
+            selections.stream().forEach(item -> item.selectedProperty().setValue(!item.selectedProperty().get()));
+
+            // Somehow JavaFX TableView handles SPACE pressed event as going into edit mode of the cell.
+            // Consuming event prevents NullPointerException.
+            event.consume();
         });
     }
 

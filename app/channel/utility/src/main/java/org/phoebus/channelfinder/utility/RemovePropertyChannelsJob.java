@@ -27,15 +27,15 @@ public class RemovePropertyChannelsJob extends JobRunnableWithCancel {
     
 
     /**
-     * submit a job to remove a Property to a channel or a group of channels
+     * submit a job to remove a Property from a channel or a group of channels
      *
-     * @param client - channelfinder client to use
-     * @param channelNames - collection of channels to which the tag is to be removed
-     * @param property - the property to be removed from the channels
+     * @param client - channelfinder client, which this job be submitted to
+     * @param channelNames - collection of channels to which the property is to be removed
+     * @param property - the property to be removed
      * @param errorHandler - error handler
      * @return Job
      */
-    public static Job submit(ChannelFinderClient client,
+     public static Job submit(ChannelFinderClient client,
                                 final Collection<String> channelNames,
                                 final Property property,
                                 final BiConsumer<String, Exception> errorHandler)
@@ -54,13 +54,6 @@ public class RemovePropertyChannelsJob extends JobRunnableWithCancel {
         this.errorHandler = errorHandler;
         this.channelNames = channels;
         this.property = property;
-    }
-
-    @Override
-    public void run(JobMonitor monitor) throws Exception
-    {
-        monitor.beginTask("Removing property : " + property.getName() + " to " + channelNames.size() + " channels");
-        client.delete(Property.Builder.property(property), channelNames);
     }
 
     @Override

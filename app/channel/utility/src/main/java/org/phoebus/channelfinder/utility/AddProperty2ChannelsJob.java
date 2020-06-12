@@ -26,8 +26,8 @@ public class AddProperty2ChannelsJob extends JobRunnableWithCancel {
     /**
      * Submit a job to add a Property to a channel or a group of channels
      *
-     * @param client - channelfinder client to use
-     * @param channelNames - list of channels to which the property is to be added
+     * @param client - channelfinder client, which this job be submitted to
+     * @param channelNames - collection of channels to which the property is to be added
      * @param property - the property to be added to the channels
      * @param errorHandler - error handler
      * @return {@link Job}

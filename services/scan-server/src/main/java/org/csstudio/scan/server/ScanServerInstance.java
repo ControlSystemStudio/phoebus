@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -49,9 +49,9 @@ public class ScanServerInstance
 
     private static ScanServerImpl scan_server;
 
-    public static String getScanConfigPath()
+    public static URL getScanConfigURL()
     {
-        return scan_config_file.toExternalForm();
+        return scan_config_file;
     }
 
     public static ScanConfig getScanConfig()
@@ -230,6 +230,7 @@ public class ScanServerInstance
                     iter.remove();
                     final String filename = iter.next();
                     iter.remove();
+                    logger.info("Loading log settings from " + filename);
                     LogManager.getLogManager().readConfiguration(new FileInputStream(filename));
                 }
                 else if (cmd.equals("-noshell"))

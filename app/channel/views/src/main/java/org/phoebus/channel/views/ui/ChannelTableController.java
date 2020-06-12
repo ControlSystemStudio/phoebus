@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import org.phoebus.channel.views.ChannelTableApp;
@@ -41,6 +42,8 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.Callback;
+
+import static org.phoebus.channel.views.ui.ChannelFinderController.logger;
 
 /**
  * Controller for the file browser app
@@ -208,11 +211,11 @@ public class ChannelTableController extends ChannelFinderController {
                     }).collect(Collectors.toList());
                     // set the selection 
                     SelectionService.getInstance().setSelection(tableView, pvs);
-                    entry.callWithSelection(SelectionService.getInstance().getSelection());
+                    entry.call(SelectionService.getInstance().getSelection());
                     // reset the selection
                     SelectionService.getInstance().setSelection(tableView, old);
-                } catch (Exception e1) {
-                    e1.printStackTrace();
+                } catch (Exception ex) {
+                    logger.log(Level.WARNING, "Failed to execute action " + entry.getName(), ex);
                 }
             });
             contextMenu.getItems().add(item);

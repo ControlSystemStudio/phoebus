@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import javafx.scene.input.MouseButton;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -102,6 +103,14 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
                 });
 
                 return cell;
+            });
+
+            combo.setOnMouseClicked(event -> {
+                // Secondary mouse button should bring up context menu,
+                // but not show selections (i.e. not expand drop-down).
+                if(event.getButton().equals(MouseButton.SECONDARY)){
+                    combo.hide();
+                }
             });
 
         }

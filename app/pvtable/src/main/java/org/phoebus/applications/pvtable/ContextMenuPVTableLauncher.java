@@ -46,7 +46,7 @@ public class ContextMenuPVTableLauncher implements ContextMenuEntry
     }
 
     @Override
-    public void callWithSelection(final Selection selection) throws Exception
+    public void call(final Selection selection) throws Exception
     {
         final PVTableInstance instance = ApplicationService.createInstance(PVTableApplication.NAME);
         final List<ProcessVariable> pvs = selection.getSelections();

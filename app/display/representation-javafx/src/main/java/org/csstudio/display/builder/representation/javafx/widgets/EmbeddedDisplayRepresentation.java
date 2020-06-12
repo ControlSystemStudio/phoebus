@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -30,6 +30,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -122,6 +123,19 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
         scroll.getStyleClass().addAll("embedded_display", "edge-to-edge");
         // Panning tends to 'jerk' the content when clicked
         // scroll.setPannable(true);
+
+
+        // If there are scrollbars, the scroll pane may react
+        // to the mouse wheel and scroll the content.
+        // Unfortunately it will also react to the mouse wheel
+        // when there are no scrollbars and might end up with
+        // the content moved out of the viewport.
+        // --> Suppress scrolling unless we have scrollbars.
+        scroll.addEventFilter(ScrollEvent.ANY, event ->
+        {
+            if (model_widget.propResize().getValue() != Resize.None)
+                event.consume();
+        });
         return scroll;
     }
 
@@ -364,6 +378,13 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
                 zoom.setY(1.0);
                 scroll.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
                 scroll.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+            }
+            else if (resize == Resize.Crop)
+            {
+                zoom.setX(1.0);
+                zoom.setY(1.0);
+                scroll.setHbarPolicy(ScrollBarPolicy.NEVER);
+                scroll.setVbarPolicy(ScrollBarPolicy.NEVER);
             }
             else if (resize == Resize.ResizeContent  ||  resize == Resize.StretchContent )
             {

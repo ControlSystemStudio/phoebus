@@ -10,6 +10,9 @@ package org.phoebus.pv.formula;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 import org.csstudio.apputil.formula.Formula;
@@ -26,6 +29,19 @@ import org.phoebus.pv.PV;
 @SuppressWarnings("nls")
 public class FormulaPV extends PV
 {
+    /** Evaluate formulas on one thread
+     *  to decouple and throttle input updates
+     */
+    private static final ExecutorService update_thread = Executors.newSingleThreadExecutor(target ->
+    {
+        final Thread thread = new Thread(target, "FormulaPV");
+        thread.setDaemon(true);
+        return thread;
+    });
+
+    /** Is there already a pending update? */
+    private AtomicBoolean pending = new AtomicBoolean();
+
     private Formula formula;
     private volatile FormulaInput[] inputs;
 
@@ -47,7 +63,7 @@ public class FormulaPV extends PV
                 inputs[i] = new FormulaInput(this, vars[i]);
 
             // Set initial value
-            update();
+            doUpdate();
         }
         catch (Exception ex)
         {
@@ -72,9 +88,24 @@ public class FormulaPV extends PV
         return pvs;
     }
 
-    /** Compute updated value of formula and notify listeners */
+    /** Schedule evaluation of formula */
     void update()
     {
+        if (pending.getAndSet(true))
+            logger.log(Level.FINE, () -> getName() + " skips recalc on " + Thread.currentThread());
+        else
+            update_thread.submit(this::doUpdate);
+    }
+
+    /** Compute updated value of formula and notify listeners */
+    private void doUpdate()
+    {
+        pending.set(false);
+        logger.log(Level.FINE, () -> getName() + " recalc on " + Thread.currentThread());
+
+        // Simulate slow evaluation
+        // try { Thread.sleep(100); } catch (InterruptedException e) {}
+
         final VType value = formula.eval();
         notifyListenersOfValue(value);
     }

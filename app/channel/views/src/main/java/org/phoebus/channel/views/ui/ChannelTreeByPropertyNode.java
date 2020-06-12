@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
@@ -18,6 +19,12 @@ import org.phoebus.pv.PVPool;
 import org.phoebus.ui.vtype.FormatOption;
 import org.phoebus.ui.vtype.FormatOptionHandler;
 
+import static org.phoebus.channel.views.ui.ChannelFinderController.logger;
+
+/**
+ * A representation of a node in the channelfinder tree
+ * @author Kunal Shroff
+ */
 public class ChannelTreeByPropertyNode {
 
     // The model that contains the node, used to access all data
@@ -79,7 +86,7 @@ public class ChannelTreeByPropertyNode {
                             });
                             this.model.nodePVs.add(pv);
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            logger.log(Level.WARNING, "failed to create an active pv connection for pv: " + channel.getName(), e);
                         }
                     }
                 }

@@ -20,11 +20,11 @@ public class AddTag2ChannelsJob extends JobRunnableWithCancel {
     private final BiConsumer<String, Exception> errorHandler;
 
     /**
-     * Submit a job to add a tag _tag_ to a group of channels
+     * submit a job to add a tag to a channel or a group of channels
      *
-     * @param client - channelfinder client to use
+     * @param client - channelfinder client, which this job be submitted to
      * @param channelNames - collection of channels to which the tag is to be added
-     * @param tag - the tag to be added to the channels
+     * @param tag - the tag to be added
      * @param errorHandler - error handler
      * @return Job
      */

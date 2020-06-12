@@ -58,7 +58,7 @@ import java.util.concurrent.Executor;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
-public class SaveAndRestoreController implements Initializable, NodeChangedListener, NodeAddedListener {
+public class SaveAndRestoreController implements Initializable, NodeChangedListener, NodeAddedListener, ISaveAndRestoreController {
 
     private static Executor UI_EXECUTOR = Platform::runLater;
 
@@ -636,11 +636,13 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         return result;
     }
 
+    @Override
     public void save(final Memento memento){
         saveTreeState();
         memento.setNumber("POS", splitPane.getDividers().get(0).getPosition());
     }
 
+    @Override
     public void restore(final Memento memento){
         memento.getNumber("POS").ifPresent(pos -> splitPane.setDividerPositions(pos.doubleValue()));
     }

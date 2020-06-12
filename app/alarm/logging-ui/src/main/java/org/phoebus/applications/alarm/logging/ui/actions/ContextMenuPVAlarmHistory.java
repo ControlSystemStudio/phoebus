@@ -35,7 +35,7 @@ public class ContextMenuPVAlarmHistory implements ContextMenuEntry {
 
     @SuppressWarnings("unchecked")
     @Override
-    public void callWithSelection(Selection selection) throws URISyntaxException {
+    public void call(Selection selection) throws URISyntaxException {
 
         List<ProcessVariable> selectedPvs = new ArrayList<>();
         selection.getSelections().stream().forEach(s -> {

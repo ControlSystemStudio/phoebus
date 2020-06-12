@@ -1,0 +1,21 @@
+<project default="app-trends-rich-context-menu">
+  <import file="../../../dependencies/ant_settings.xml"/>
+
+  <target name="app-trends-rich-context-menu">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}" debug="${debug}">
+      <src path="${src}"/>
+      <classpath>
+        <path refid="app-classpath"/>
+        <pathelement path="../../databrowser/${build}/app-databrowser-${version}.jar"/>
+        <pathelement path="../../email/${build}/app-email-${version}.jar"/>
+      </classpath>
+    </javac>
+  	
+    <jar destfile="${build}/app-trends-rich-context-menu-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+	
+</project>

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -64,6 +64,9 @@ public class DisplayModel extends Widget
 
     /** Reserved DisplayModel user data key for name of input file */
     public static final String USER_DATA_INPUT_FILE = "_input_file";
+
+    /** Reserved DisplayModel user data key for 'read only' flag, "true" to set, anything else means false */
+    public static final String USER_DATA_READONLY = "_read_only";
 
     /** Reserved DisplayModel user data key for version of input file
      *

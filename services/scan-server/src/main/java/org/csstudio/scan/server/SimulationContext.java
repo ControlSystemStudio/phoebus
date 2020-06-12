@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 import org.csstudio.scan.device.DeviceInfo;
@@ -53,6 +54,8 @@ public class SimulationContext
 
     private double simulation_seconds = 0.0;
 
+    private final AtomicInteger parallel_level = new AtomicInteger();
+
     /** Initialize
      *  @param jython {@link JythonSupport}
      *  @param log_stream Stream for simulation progress log
@@ -60,7 +63,15 @@ public class SimulationContext
      */
     public SimulationContext(final JythonSupport jython, final PrintStream log_stream) throws Exception
     {
-        simulation_info = ScanServerInstance.getScanConfig();
+        // Read scan config for each simulation to allow changing slew rates etc.
+        try
+        {
+            simulation_info = new ScanConfig(ScanServerInstance.getScanConfigURL().openStream());
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Simulation fails to read scan config", ex);
+        }
         macros = new MacroContext(simulation_info.getMacros());
         this.log_stream = log_stream;
 
@@ -82,6 +93,20 @@ public class SimulationContext
     public MacroContext getMacros()
     {
         return macros;
+    }
+
+    /** Increment level of 'Parallel' commands
+     *  @return Incremented parallel command level
+     */
+    public int incParallelLevel()
+    {
+        return parallel_level.incrementAndGet();
+    }
+
+    /** Decrement level of 'Parallel' commands */
+    public void decParallelLevel()
+    {
+        parallel_level.decrementAndGet();
     }
 
     /** @return Current time of simulation in seconds */

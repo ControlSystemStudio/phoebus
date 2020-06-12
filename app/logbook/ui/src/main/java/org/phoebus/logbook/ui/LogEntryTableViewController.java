@@ -85,6 +85,8 @@ import javafx.util.Duration;
  */
 public class LogEntryTableViewController extends LogbookSearchController {
 
+    static final Logger logger = Logger.getLogger(LogEntryTableViewController.class.getName());
+
     static final Image tag = ImageCache.getImage(LogEntryController.class, "/icons/add_tag.png");
     static final Image logbook = ImageCache.getImage(LogEntryController.class, "/icons/logbook-16.png");
     String styles = "-fx-background-color: #0000ff;" + "-fx-border-color: #ff0000;";
@@ -209,7 +211,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
             });
             logbookSearchpopover = new PopOver(logbookSelectionLoader.getRoot());
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "failed to open logbook search dialog", e);
         }
         searchLogbooks.focusedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
@@ -248,7 +250,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
             });
             tagSearchpopover = new PopOver(tagSelectionLoader.getRoot());
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "failed to open tag search dialog", e);
         }
         searchTags.focusedProperty().addListener(
                 (ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {

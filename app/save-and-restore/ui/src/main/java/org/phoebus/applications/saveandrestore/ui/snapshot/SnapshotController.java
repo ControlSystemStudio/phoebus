@@ -27,25 +27,32 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
-import org.epics.gpclient.*;
-import org.epics.gpclient.PVEvent.Type;
-import org.epics.vtype.VEnum;
-import org.epics.vtype.VString;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.VBox;
+import org.epics.gpclient.GPClient;
+import org.epics.gpclient.PVConfiguration;
+import org.epics.gpclient.PVEvent;
+import org.epics.gpclient.PVReader;
 import org.epics.vtype.VType;
+import org.phoebus.applications.saveandrestore.ApplicationContextProvider;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.Utilities;
 import org.phoebus.applications.saveandrestore.data.NodeChangedListener;
+import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.model.SnapshotEntry;
 import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.model.VNoData;
 import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
+import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.ui.docking.DockPane;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 
 import java.time.Duration;
 import java.util.*;
@@ -53,6 +60,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class SnapshotController implements NodeChangedListener {
@@ -67,7 +75,7 @@ public class SnapshotController implements NodeChangedListener {
     private TextField createdDate;
 
     @FXML
-    private BorderPane borderPane;
+    private VBox vBox;
 
     @FXML
     private TextField snapshotName;
@@ -85,9 +93,20 @@ public class SnapshotController implements NodeChangedListener {
     private ToggleButton showStoredReadbackButton;
 
     @FXML
+    private ToggleButton showTreeTableButton;
+
+    @FXML
     private ToggleButton hideShowEqualItemsButton;
 
+    @FXML
+    private TextField filterTextField;
+
+    @FXML
+    private CheckBox preserveSelectionCheckBox;
+
     private SnapshotTable snapshotTable;
+
+    private SnapshotTreeTable snapshotTreeTable;
 
     /**
      * The {@link SnapshotTab} controlled by this controller.
@@ -117,6 +136,10 @@ public class SnapshotController implements NodeChangedListener {
     private boolean showStoredReadbacks = false;
     private boolean hideEqualItems;
 
+    private PreferencesReader preferencesReader = (PreferencesReader) ApplicationContextProvider.getApplicationContext().getBean("preferencesReader");
+    private final SimpleBooleanProperty showTreeTable = new SimpleBooleanProperty(false);
+    private boolean isTreeTableViewEnabled = preferencesReader.getBoolean("treeTableView.enable");
+
     private Node config;
 
     private static Executor UI_EXECUTOR = Platform::runLater;
@@ -130,6 +153,8 @@ public class SnapshotController implements NodeChangedListener {
      */
     public static final long TABLE_UPDATE_INTERVAL = 500;
 
+    private List<List<Pattern>> regexPatterns = new ArrayList<>();
+
     @FXML
     public void initialize() {
 
@@ -139,7 +164,21 @@ public class SnapshotController implements NodeChangedListener {
         snapshotName.textProperty().bindBidirectional(snapshotNameProperty);
 
         snapshotTable = new SnapshotTable(this);
-        borderPane.setCenter(snapshotTable);
+        vBox.getChildren().add(snapshotTable);
+
+        if (isTreeTableViewEnabled) {
+            snapshotTreeTable = new SnapshotTreeTable(this);
+
+            showTreeTable.addListener((observableValue, aBoolean, on) -> {
+                if (on) {
+                    vBox.getChildren().remove(snapshotTable);
+                    vBox.getChildren().add(snapshotTreeTable);
+                } else {
+                    vBox.getChildren().remove(snapshotTreeTable);
+                    vBox.getChildren().add(snapshotTable);
+                }
+            });
+        }
 
         saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() -> {
            boolean canSave = snapshotSaveableProperty.get() && (!snapshotNameProperty.isEmpty().get() && !snapshotCommentProperty.isEmpty().get());
@@ -150,26 +189,145 @@ public class SnapshotController implements NodeChangedListener {
         showLiveReadbackButton.setTooltip(new Tooltip(Messages.toolTipShowLiveReadback));
         showLiveReadbackProperty.bind(showLiveReadbackButton.selectedProperty());
         showLiveReadbackButton.selectedProperty().addListener((a, o, n) -> {
-            UI_EXECUTOR.execute(() -> snapshotTable.updateTable(new ArrayList(tableEntryItems.values()), snapshots, showLiveReadbackProperty.get(), showStoredReadbacks));
+            UI_EXECUTOR.execute(() -> {
+                ArrayList arrayList = new ArrayList(tableEntryItems.values());
+                snapshotTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbacks);
+                if (isTreeTableViewEnabled) {
+                    snapshotTreeTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbacks);
+                }
+            });
         });
 
         showStoredReadbackButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/icons/show_stored_readback_column.png"))));
         showStoredReadbackButton.setTooltip(new Tooltip(Messages.toolTipShowStoredReadback));
         showStoredReadbackButton.selectedProperty().addListener((a, o, n) -> {
-            UI_EXECUTOR.execute(() -> snapshotTable.updateTable(new ArrayList(tableEntryItems.values()), snapshots, showLiveReadbackProperty.get(), showStoredReadbacks));
+            UI_EXECUTOR.execute(() -> {
+                ArrayList arrayList = new ArrayList(tableEntryItems.values());
+                snapshotTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbacks);
+                if (isTreeTableViewEnabled) {
+                    snapshotTreeTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbacks);
+                }
+            });
         });
+
+        if (isTreeTableViewEnabled) {
+            showTreeTableButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/icons/show_tree_table_view.png"))));
+            showTreeTableButton.setTooltip(new Tooltip(Messages.toolTipShowTreeTable));
+            showTreeTableButton.selectedProperty().bindBidirectional(showTreeTable);
+        } else {
+            showTreeTableButton.setVisible(false);
+        }
 
         hideShowEqualItemsButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/icons/hide_show_equal_items.png"))));
         hideShowEqualItemsButton.setTooltip(new Tooltip(Messages.toolTipShowHideEqualToggleButton));
         hideShowEqualItemsButton.selectedProperty()
                 .addListener((a, o, n) -> {
                     hideEqualItems = n;
-                    UI_EXECUTOR.execute(() -> snapshotTable.updateTable(new ArrayList(tableEntryItems.values())));
+
+                    ArrayList arrayList = new ArrayList(tableEntryItems.values());
+                    UI_EXECUTOR.execute(() -> snapshotTable.updateTable(arrayList));
+                    if (isTreeTableViewEnabled) {
+                        UI_EXECUTOR.execute(() -> snapshotTreeTable.updateTable(arrayList));
+                    }
                 });
 
         restoreButton.disableProperty().bind(snapshotRestorableProperty.not());
 
         saveAndRestoreService.addNodeChangeListener(this);
+
+        DockPane.getActiveDockPane().addEventFilter(KeyEvent.ANY, event -> {
+            if (event.isShortcutDown() && event.getCode() == KeyCode.F) {
+                if (!filterTextField.isFocused()) {
+                    filterTextField.requestFocus();
+                }
+            }
+        });
+
+        preserveSelectionCheckBox.selectedProperty().addListener((observableValue, aBoolean, isSelected) -> {
+            if (isSelected) {
+                boolean allSelected = tableEntryItems.values().stream()
+                        .filter(item -> !item.selectedProperty().get())
+                        .collect(Collectors.toList()).isEmpty();
+
+                if (allSelected) {
+                    tableEntryItems.values().stream()
+                            .forEach(item -> item.selectedProperty().set(false));
+                }
+            }
+        });
+
+        String filterShortcutName = (new KeyCodeCombination(KeyCode.F, KeyCombination.SHORTCUT_DOWN)).getDisplayText();
+        filterTextField.setPromptText("* for all matching and , as or separator, & as and separator. Start with / for regex. All if empty. (" + filterShortcutName + ")");
+
+        filterTextField.addEventHandler(KeyEvent.ANY, event -> {
+            String filterText = filterTextField.getText().trim();
+
+            if (filterText.isEmpty()) {
+                List<TableEntry> arrayList = tableEntryItems.values().stream()
+                        .map(item -> {
+                            if (!preserveSelectionCheckBox.isSelected()) {
+                                if (!item.readOnlyProperty().get()) {
+                                    item.selectedProperty().set(true);
+                                }
+                            }
+                            return item;
+                        }).collect(Collectors.toList());
+
+                UI_EXECUTOR.execute(() -> {
+                    snapshotTable.updateTable(arrayList);
+                    if (isTreeTableViewEnabled) {
+                        snapshotTreeTable.updateTable(arrayList);
+                    }
+                });
+
+                return;
+            }
+
+            List<String> filters = Arrays.asList(filterText.split(","));
+            regexPatterns = filters.stream()
+                    .map(item -> {
+                        if (item.startsWith("/")) {
+                            return Arrays.asList(Pattern.compile(item.substring(1, item.length() - 1).trim()));
+                        } else {
+                            return Arrays.asList(item.split("&")).stream()
+                                    .map(andItem -> andItem.replaceAll("\\*", ".*"))
+                                    .map(andItem -> Pattern.compile(andItem.trim()))
+                                    .collect(Collectors.toList());
+                        }
+                    }).collect(Collectors.toList());
+
+            List<TableEntry> filteredEntries = tableEntryItems.values().stream()
+                    .filter(item -> {
+                        boolean matchEither = false;
+                        for (List<Pattern> andPatternList : regexPatterns) {
+                            boolean matchAnd = true;
+                            for (Pattern pattern : andPatternList) {
+                                if (pattern.matcher(item.pvNameProperty().get()).find()) {
+                                    matchAnd &= true;
+                                } else {
+                                    matchAnd &= false;
+                                }
+                            }
+
+                            matchEither |= matchAnd;
+                        }
+
+                        if (!preserveSelectionCheckBox.isSelected()) {
+                            item.selectedProperty().setValue(matchEither);
+                        } else {
+                            matchEither |= item.selectedProperty().get();
+                        }
+
+                        return matchEither;
+                    }).collect(Collectors.toList());
+
+            UI_EXECUTOR.execute(() -> {
+                snapshotTable.updateTable(filteredEntries);
+                if (isTreeTableViewEnabled) {
+                    snapshotTreeTable.updateTable(filteredEntries);
+                }
+            });
+        });
     }
 
     public void setSnapshotTab(SnapshotTab snapshotTab){
@@ -206,6 +364,9 @@ public class SnapshotController implements NodeChangedListener {
                     new VSnapshot(snapshot, snapshotItemsToSnapshotEntries(snapshotItems));
             List<TableEntry> tableEntries = addSnapshot(vSnapshot);
             snapshotTable.updateTable(tableEntries, snapshots, false, false);
+            if (isTreeTableViewEnabled) {
+                snapshotTreeTable.updateTable(tableEntries, snapshots, false, false);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -222,6 +383,9 @@ public class SnapshotController implements NodeChangedListener {
             List<TableEntry> tableEntries = setSnapshotInternal(vSnapshot);
             UI_EXECUTOR.execute(() -> {
                 snapshotTable.updateTable(tableEntries, snapshots, false, false);
+                if (isTreeTableViewEnabled) {
+                    snapshotTreeTable.updateTable(tableEntries, snapshots, false, false);
+                }
             });
         } catch (Exception e) {
             e.printStackTrace();
@@ -232,19 +396,22 @@ public class SnapshotController implements NodeChangedListener {
 
         UI_EXECUTOR.execute(() -> {
             try {
-            List<SnapshotItem> snapshotItems = saveAndRestoreService.getSnapshotItems(snapshot.getUniqueId());
+                List<SnapshotItem> snapshotItems = saveAndRestoreService.getSnapshotItems(snapshot.getUniqueId());
 
-            snapshotCommentProperty.set(snapshot.getProperty("comment"));
-            createdDateTextProperty.set(snapshot.getCreated().toString());
-            createdByTextProperty.set(snapshot.getUserName());
-            snapshotNameProperty.set(snapshot.getName());
+                snapshotCommentProperty.set(snapshot.getProperty("comment"));
+                createdDateTextProperty.set(snapshot.getCreated().toString());
+                createdByTextProperty.set(snapshot.getUserName());
+                snapshotNameProperty.set(snapshot.getName());
 
-            VSnapshot vSnapshot =
-                    new VSnapshot(snapshot, snapshotItemsToSnapshotEntries(snapshotItems));
-            List<TableEntry> tableEntries = loadSnapshotInternal(vSnapshot);
+                VSnapshot vSnapshot =
+                        new VSnapshot(snapshot, snapshotItemsToSnapshotEntries(snapshotItems));
+                List<TableEntry> tableEntries = loadSnapshotInternal(vSnapshot);
 
-            snapshotTable.updateTable(tableEntries, snapshots, false, false);
-            snapshotRestorableProperty.set(true);
+                snapshotTable.updateTable(tableEntries, snapshots, false, false);
+                if (isTreeTableViewEnabled) {
+                    snapshotTreeTable.updateTable(tableEntries, snapshots, false, false);
+                }
+                snapshotRestorableProperty.set(true);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -333,7 +500,7 @@ public class SnapshotController implements NodeChangedListener {
                 name = t.pvNameProperty().get();
                 pv = pvs.get(t.pvNameProperty().get());
 
-                // there is no issues with non atomic access to snapshotTableEntryPvProxy.value or snapshotTableEntryPvProxy.readbackValue because the PV is
+                // there is no issues with non atomic access to snapshotTreeTableEntryPvProxy.value or snapshotTreeTableEntryPvProxy.readbackValue because the PV is
                 // suspended and the value could not change while suspended
                 value = pv == null || pv.pvValue == null ? VDisconnectedData.INSTANCE : pv.pvValue;
                 readbackName = readbacks.get(name);
@@ -357,6 +524,9 @@ public class SnapshotController implements NodeChangedListener {
             List<TableEntry> tableEntries = loadSnapshotInternal(taken);
             UI_EXECUTOR.execute(() -> {
                 snapshotTable.updateTable(tableEntries, snapshots, showLiveReadbackProperty.get(), false);
+                if (isTreeTableViewEnabled) {
+                    snapshotTreeTable.updateTable(tableEntries, snapshots, showLiveReadbackProperty.get(), false);
+                }
                 snapshotSaveableProperty.setValue(true);
             });
         } catch (Exception e) {

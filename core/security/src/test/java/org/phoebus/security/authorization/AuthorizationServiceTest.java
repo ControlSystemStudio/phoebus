@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -48,9 +48,17 @@ public class AuthorizationServiceTest
             assertTrue(as.hasAuthorization("alarm_config"));
         }
 
+        assertTrue(as.isAuthorizationDefined("alarm_ack"));
+        // 'bogus' is not defined, and not granted
+        assertFalse(as.isAuthorizationDefined("bogus"));
+        assertFalse(as.hasAuthorization("bogus"));
+
         // FULL
         as = createAuthorization("root");
         assertTrue(as.hasAuthorization("alarm_ack"));
         assertTrue(as.hasAuthorization("alarm_config"));
+        // 'bogus' is not defined, but covered by FULL=root
+        assertFalse(as.isAuthorizationDefined("bogus"));
+        assertTrue(as.hasAuthorization("bogus"));
     }
 }
