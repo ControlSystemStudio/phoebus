@@ -355,7 +355,7 @@ public class AlarmServerMain implements ServerModelListener
                 setMaintenanceMode(true);
             else if (JsonTags.NORMAL.equals(command))
                 setMaintenanceMode(false);
-	     else if (JsonTags.DISABLE_NOTIFY.equals(command))
+            else if (JsonTags.DISABLE_NOTIFY.equals(command))
                 setDisableNotify(true);
             else if (JsonTags.ENABLE_NOTIFY.equals(command))
                 setDisableNotify(false);
@@ -419,7 +419,7 @@ public class AlarmServerMain implements ServerModelListener
         // Configure alarm logic
         AlarmLogic.setDisableNotify(disable_notify);
 
-	// Force state update of root to publish the updated server mode
+        // Force state update of root to publish the updated server mode
         model.sendStateUpdate(model.getRoot().getPathName(), model.getRoot().getState());
     }
 
@@ -552,8 +552,8 @@ public class AlarmServerMain implements ServerModelListener
         boolean use_args_server = false;
         boolean use_args_config = false;
         boolean use_settings = false;
-	
-	// Handle arguments
+
+        // Handle arguments
         final List<String> args = new ArrayList<>(List.of(original_args));
         final Iterator<String> iter = args.iterator();
         try
@@ -602,14 +602,13 @@ public class AlarmServerMain implements ServerModelListener
                     iter.remove();
                     logger.info("Loading settings from " + filename);
                     PropertyPreferenceLoader.load(new FileInputStream(filename));
-		    
+
                     Preferences userPrefs  = Preferences.userRoot().node("org/phoebus/applications/alarm");
                     String pref_server     = userPrefs.get("server", server);
                     String pref_conf_names = userPrefs.get("config_names", config);
                     server = pref_server;
                     config = pref_conf_names;
                     use_settings = true;
-		    
                 }
                 else if (cmd.equals("-noshell"))
                 {
@@ -625,25 +624,25 @@ public class AlarmServerMain implements ServerModelListener
                 }
                 else if (cmd.equals("-import"))
                 {
-                	if (! iter.hasNext())
-                		throw new Exception("Missing -import file name");
-                	iter.remove();
-                	final String filename = iter.next();
-                	iter.remove();
-                	logger.info("Import model from " + filename);
-                	new AlarmConfigTool().importModel(filename, server, config);
-                	return;
+                    if (! iter.hasNext())
+                        throw new Exception("Missing -import file name");
+                    iter.remove();
+                    final String filename = iter.next();
+                    iter.remove();
+                    logger.info("Import model from " + filename);
+                    new AlarmConfigTool().importModel(filename, server, use_args_config ? args_config : config);
+                    return;
                 }
                 else if (cmd.equals("-export"))
                 {
-                	if (! iter.hasNext())
-                		throw new Exception("Missing -export file name");
-                	iter.remove();
-                	final String filename = iter.next();
-                	iter.remove();
-                	logger.info("Exporting model to " + filename);
-                	new AlarmConfigTool().exportModel(filename, server, config);
-                	return;
+                    if (! iter.hasNext())
+                        throw new Exception("Missing -export file name");
+                    iter.remove();
+                    final String filename = iter.next();
+                    iter.remove();
+                    logger.info("Exporting model to " + filename);
+                    new AlarmConfigTool().exportModel(filename, server, use_args_config ? args_config : config);
+                    return;
                 }
                 else
                     throw new Exception("Unknown option " + cmd);
@@ -656,7 +655,7 @@ public class AlarmServerMain implements ServerModelListener
                     logger.log(Level.WARNING,"Server : " + args_server);
                 }
                 server = args_server;
-	    }
+            }
             if ( use_args_config ) {
                 if ( use_settings ) {
                     logger.log(Level.WARNING,"Found the conflicted configurations : -settings/config:" + config + " and -config:" + args_config);
@@ -664,10 +663,8 @@ public class AlarmServerMain implements ServerModelListener
                     logger.log(Level.WARNING,"Config : " + args_config);
                 }
                 config = args_config;
-	    }
-	    
+            }
 
-	    
         }
         catch (final Exception ex)
         {
