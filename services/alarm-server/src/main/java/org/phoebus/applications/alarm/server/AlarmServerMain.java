@@ -631,7 +631,7 @@ public class AlarmServerMain implements ServerModelListener
                 	final String filename = iter.next();
                 	iter.remove();
                 	logger.info("Import model from " + filename);
-                	new AlarmConfigTool().importModel(filename, server, config);
+                	new AlarmConfigTool().importModel(filename, server, use_args_config ? args_config : config);
                 	return;
                 }
                 else if (cmd.equals("-export"))
@@ -642,7 +642,7 @@ public class AlarmServerMain implements ServerModelListener
                 	final String filename = iter.next();
                 	iter.remove();
                 	logger.info("Exporting model to " + filename);
-                	new AlarmConfigTool().exportModel(filename, server, config);
+                	new AlarmConfigTool().exportModel(filename, server, use_args_config ? args_config : config);
                 	return;
                 }
                 else
