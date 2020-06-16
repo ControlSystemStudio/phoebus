@@ -276,14 +276,27 @@ public class SnapshotDataConverter {
 				case ENUM:{
 					Object[] values = objectMapper.readValue(snapshotPv.getValue(), Object[].class);
 
-					int index = (int) values[0];
-					List<String> choices = (List<String>) values[1];
-					EnumDisplay enumDisplay = EnumDisplay.of(choices);
+					if (values.length == 2) {
+						int index = (int) values[0];
+						List<String> choices = (List<String>) values[1];
+						EnumDisplay enumDisplay = EnumDisplay.of(choices);
 
-					if (isScalar) {
-						return VEnum.of(index, enumDisplay, alarm, time);
-					} else {
-						throw new PVConversionException("VEnumArray not supported");
+						if (isScalar) {
+							return VEnum.of(index, enumDisplay, alarm, time);
+						} else {
+							throw new PVConversionException("VEnumArray not supported");
+						}
+					}
+					// The following else if statement is for backward compatibility.
+					else if (values.length == 1) {
+						if (isScalar) {
+							return VEnum.of(0, EnumDisplay.of((String) values[0]), alarm, time);
+						} else {
+							throw new PVConversionException("VEnumArray not supported");
+						}
+					}
+					else {
+						throw new PVConversionException("Wrong data size! VEnum DB data has been corrupted!");
 					}
 				}
 			}
