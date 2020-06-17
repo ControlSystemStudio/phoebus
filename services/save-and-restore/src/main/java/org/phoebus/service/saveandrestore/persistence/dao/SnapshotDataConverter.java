@@ -19,76 +19,22 @@
 package org.phoebus.service.saveandrestore.persistence.dao;
 
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.epics.util.array.ArrayByte;
-import org.epics.util.array.ArrayDouble;
-import org.epics.util.array.ArrayFloat;
-import org.epics.util.array.ArrayInteger;
-import org.epics.util.array.ArrayLong;
-import org.epics.util.array.ArrayShort;
-import org.epics.util.array.ArrayUByte;
-import org.epics.util.array.ArrayUInteger;
-import org.epics.util.array.ArrayULong;
-import org.epics.util.array.ArrayUShort;
-import org.epics.util.array.CollectionNumbers;
-import org.epics.util.array.IteratorDouble;
-import org.epics.util.array.IteratorFloat;
-import org.epics.util.array.IteratorNumber;
-import org.epics.util.array.ListByte;
-import org.epics.util.array.ListDouble;
-import org.epics.util.array.ListFloat;
-import org.epics.util.array.ListInteger;
-import org.epics.util.array.ListLong;
-import org.epics.util.array.ListShort;
-import org.epics.util.array.ListUByte;
-import org.epics.util.array.ListUInteger;
-import org.epics.util.array.ListULong;
-import org.epics.util.array.ListUShort;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.epics.util.array.*;
 import org.epics.util.number.UByte;
 import org.epics.util.number.UInteger;
 import org.epics.util.number.ULong;
 import org.epics.util.number.UShort;
-import org.epics.vtype.Alarm;
-import org.epics.vtype.Display;
-import org.epics.vtype.EnumDisplay;
-import org.epics.vtype.Time;
-import org.epics.vtype.VByte;
-import org.epics.vtype.VByteArray;
-import org.epics.vtype.VDouble;
-import org.epics.vtype.VDoubleArray;
-import org.epics.vtype.VEnum;
-import org.epics.vtype.VFloat;
-import org.epics.vtype.VFloatArray;
-import org.epics.vtype.VInt;
-import org.epics.vtype.VIntArray;
-import org.epics.vtype.VLong;
-import org.epics.vtype.VLongArray;
-import org.epics.vtype.VNumber;
-import org.epics.vtype.VNumberArray;
-import org.epics.vtype.VShort;
-import org.epics.vtype.VShortArray;
-import org.epics.vtype.VString;
-import org.epics.vtype.VStringArray;
-import org.epics.vtype.VType;
-import org.epics.vtype.VUByte;
-import org.epics.vtype.VUByteArray;
-import org.epics.vtype.VUInt;
-import org.epics.vtype.VUIntArray;
-import org.epics.vtype.VULong;
-import org.epics.vtype.VULongArray;
-import org.epics.vtype.VUShort;
-import org.epics.vtype.VUShortArray;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.phoebus.service.saveandrestore.epics.exception.PVConversionException;
+import org.epics.vtype.*;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.service.saveandrestore.epics.exception.PVConversionException;
 import org.phoebus.service.saveandrestore.model.internal.SnapshotPv;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 
 /**
@@ -202,7 +148,7 @@ public class SnapshotDataConverter {
 					.alarmStatus(alarm.getStatus())
 					.time(instant.getEpochSecond())
 					.timens(instant.getNano())
-					.value(getScalarValueString(vEnum.getValue()))
+					.value(getEnumValueString(vEnum))
 					.dataType(dataType)
 					.sizes(SCALAR_AS_JSON)
 					.build();
@@ -328,12 +274,29 @@ public class SnapshotDataConverter {
 					}
 				}
 				case ENUM:{
-					String[] values = objectMapper.readValue(snapshotPv.getValue(), String[].class);
-					if(isScalar) {
-						return VEnum.of(0, EnumDisplay.of(values), alarm, time);
+					Object[] values = objectMapper.readValue(snapshotPv.getValue(), Object[].class);
+
+					if (values.length == 2) {
+						int index = (int) values[0];
+						List<String> choices = (List<String>) values[1];
+						EnumDisplay enumDisplay = EnumDisplay.of(choices);
+
+						if (isScalar) {
+							return VEnum.of(index, enumDisplay, alarm, time);
+						} else {
+							throw new PVConversionException("VEnumArray not supported");
+						}
+					}
+					// The following else if statement is for backward compatibility.
+					else if (values.length == 1) {
+						if (isScalar) {
+							return VEnum.of(0, EnumDisplay.of((String) values[0]), alarm, time);
+						} else {
+							throw new PVConversionException("VEnumArray not supported");
+						}
 					}
 					else {
-						throw new PVConversionException("VEnumArray not supported");
+						throw new PVConversionException("Wrong data size! VEnum DB data has been corrupted!");
 					}
 				}
 			}
@@ -446,6 +409,21 @@ public class SnapshotDataConverter {
 			return objectMapper.writeValueAsString(valueArray);
 		} catch (JsonProcessingException e) {
 			throw new PVConversionException(String.format("Unable to write scalar value \"%s\" as JSON string", value.toString()));
+		}
+	}
+
+	protected static String getEnumValueString(VEnum value) {
+		ObjectMapper objectMapper = new ObjectMapper();
+
+		List<Object> valueList = new ArrayList<>();
+
+		valueList.add(value.getIndex());
+		valueList.add(value.getDisplay().getChoices());
+
+		try {
+			return objectMapper.writeValueAsString(valueList);
+		} catch (JsonProcessingException e) {
+			throw new PVConversionException("Unable to write VEnum values as JSON string");
 		}
 	}
 
