@@ -167,6 +167,13 @@
       <version>1.2</version>
     </dependency>
 
+    <!-- JavaScript (replacement for nashorn) -->
+    <dependency>
+      <groupId>org.mozilla</groupId>
+      <artifactId>rhino</artifactId>
+      <version>1.7.12</version>
+    </dependency>
+
     <!-- Dependency for olog, channelfinde, and other rest clients. https://mvnrepository.com/artifact/com.sun.jersey/jersey-core -->
     <dependency>
       <groupId>com.sun.jersey</groupId>
