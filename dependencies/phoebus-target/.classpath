@@ -66,12 +66,12 @@
     <classpathentry exported="true" kind="lib" path="target/lib/jersey-core-1.19.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jersey-multipart-1.19.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jersey-server-1.19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/jetty-http-9.4.9.v20180320.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/jetty-io-9.4.9.v20180320.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/jetty-security-9.4.9.v20180320.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/jetty-server-9.4.9.v20180320.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/jetty-servlet-9.4.9.v20180320.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/jetty-util-9.4.9.v20180320.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/jetty-http-9.4.30.v20200611.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/jetty-io-9.4.30.v20200611.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/jetty-security-9.4.30.v20200611.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/jetty-server-9.4.30.v20200611.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/jetty-servlet-9.4.30.v20200611.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/jetty-util-9.4.30.v20200611.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jfxtras-agenda-9.0-r1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jfxtras-common-9.0-r1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jfxtras-controls-9.0-r1.jar"/>
