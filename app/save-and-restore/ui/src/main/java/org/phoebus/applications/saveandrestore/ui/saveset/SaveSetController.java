@@ -264,6 +264,8 @@ public class SaveSetController implements NodeChangedListener {
 		pvNameProperty.set("");
 		readOnlyProperty.set(false);
 		readbackPvNameProperty.set("");
+
+		pvNameField.requestFocus();
 	}
 
 

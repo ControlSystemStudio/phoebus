@@ -19,19 +19,25 @@
  */
 package org.phoebus.applications.saveandrestore;
 
-import java.text.*;
+import org.epics.util.array.*;
+import org.epics.util.number.*;
+import org.epics.util.text.NumberFormats;
+import org.epics.vtype.*;
+import org.phoebus.applications.saveandrestore.ui.model.Threshold;
+import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
+import org.phoebus.applications.saveandrestore.ui.model.VNoData;
+
+import java.math.BigInteger;
+import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
-
-import org.epics.util.array.*;
-import org.epics.util.text.NumberFormats;
-import org.epics.vtype.*;
-import org.phoebus.applications.saveandrestore.ui.model.*;
 
 /**
  *
@@ -167,24 +173,48 @@ public final class Utilities {
                     array[i] = Float.parseFloat(elements[i].trim());
                 }
                 list = ArrayFloat.of(array);
+            } else if (type instanceof VULongArray) {
+                long[] array = new long[elements.length];
+                for (int i = 0; i < elements.length; i++) {
+                    array[i] = new BigInteger(elements[i].trim()).longValue();
+                }
+                list = ArrayULong.of(array);
             } else if (type instanceof VLongArray) {
                 long[] array = new long[elements.length];
                 for (int i = 0; i < elements.length; i++) {
                     array[i] = Long.parseLong(elements[i].trim());
                 }
                 list = ArrayLong.of(array);
+            } else if (type instanceof VUIntArray) {
+                int[] array = new int[elements.length];
+                for (int i = 0; i < elements.length; i++) {
+                    array[i] = Long.valueOf(Integer.parseInt(elements[i].trim())).intValue();
+                }
+                list = ArrayUInteger.of(array);
             } else if (type instanceof VIntArray) {
                 int[] array = new int[elements.length];
                 for (int i = 0; i < elements.length; i++) {
                     array[i] = Integer.parseInt(elements[i].trim());
                 }
                 list = ArrayInteger.of(array);
+            } else if (type instanceof VUShortArray) {
+                short[] array = new short[elements.length];
+                for (int i = 0; i < elements.length; i++) {
+                    array[i] = Integer.valueOf(Integer.parseInt(elements[i].trim())).shortValue();
+                }
+                list = ArrayUShort.of(array);
             } else if (type instanceof VShortArray) {
                 short[] array = new short[elements.length];
                 for (int i = 0; i < elements.length; i++) {
                     array[i] = Short.parseShort(elements[i].trim());
                 }
                 list = ArrayShort.of(array);
+            } else if (type instanceof VUByteArray) {
+                byte[] array = new byte[elements.length];
+                for (int i = 0; i < elements.length; i++) {
+                    array[i] = Integer.valueOf(Integer.parseInt(elements[i].trim())).byteValue();
+                }
+                list = ArrayUByte.of(array);
             } else if (type instanceof VByteArray) {
                 byte[] array = new byte[elements.length];
                 for (int i = 0; i < elements.length; i++) {
@@ -198,12 +228,20 @@ public final class Utilities {
             return VDouble.of(Double.parseDouble(data), alarm, time, Display.none());
         } else if (type instanceof VFloat) {
             return VFloat.of(Float.parseFloat(data), alarm, time, Display.none());
+        } else if (type instanceof VULong) {
+            return VULong.of(ULong.valueOf(new BigInteger(data).longValue()), alarm, time, Display.none());
         } else if (type instanceof VLong) {
             return VLong.of(Long.parseLong(data), alarm, time, Display.none());
+        } else if (type instanceof VUInt) {
+            return VUInt.of(UInteger.valueOf(Long.valueOf(Long.parseLong(data)).intValue()), alarm, time, Display.none());
         } else if (type instanceof VInt) {
             return VInt.of(Integer.parseInt(data), alarm, time, Display.none());
+        } else if (type instanceof VUShort) {
+            return VUShort.of(UShort.valueOf(Integer.valueOf(Integer.parseInt(data)).shortValue()), alarm, time, Display.none());
         } else if (type instanceof VShort) {
             return VShort.of(Short.parseShort(data), alarm, time, Display.none());
+        } else if (type instanceof VUByte) {
+            return VUByte.of(UByte.valueOf(Integer.valueOf(Integer.parseInt(data)).byteValue()), alarm, time, Display.none());
         } else if (type instanceof VByte) {
             return VByte.of(Byte.parseByte(data), alarm, time, Display.none());
         } else if (type instanceof VEnum) {
@@ -330,17 +368,33 @@ public final class Utilities {
                     sb.append(pattern.matcher(formatter.format(list.getFloat(i))).replaceAll("\\.")).append(COMMA)
                         .append(' ');
                 }
+            } else if (type instanceof VULongArray) {
+                for (int i = 0; i < size; i++) {
+                    sb.append(ULong.valueOf(list.getLong(i))).append(COMMA).append(' ');
+                }
             } else if (type instanceof VLongArray) {
                 for (int i = 0; i < size; i++) {
                     sb.append(list.getLong(i)).append(COMMA).append(' ');
+                }
+            } else if (type instanceof VUIntArray) {
+                for (int i = 0; i < size; i++) {
+                    sb.append(UInteger.valueOf(list.getInt(i))).append(COMMA).append(' ');
                 }
             } else if (type instanceof VIntArray) {
                 for (int i = 0; i < size; i++) {
                     sb.append(list.getInt(i)).append(COMMA).append(' ');
                 }
+            } else if (type instanceof VUShortArray) {
+                for (int i = 0; i < size; i++) {
+                    sb.append(UShort.valueOf(list.getShort(i))).append(COMMA).append(' ');
+                }
             } else if (type instanceof VShortArray) {
                 for (int i = 0; i < size; i++) {
                     sb.append(list.getShort(i)).append(COMMA).append(' ');
+                }
+            } else if (type instanceof VUByteArray) {
+                for (int i = 0; i < size; i++) {
+                    sb.append(UByte.valueOf(list.getByte(i))).append(COMMA).append(' ');
                 }
             } else if (type instanceof VByteArray) {
                 for (int i = 0; i < size; i++) {
@@ -449,9 +503,39 @@ public final class Utilities {
                     sb.append('+');
                 }
                 sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+            } else if (value instanceof VULong) {
+                BigInteger data = ((VULong) value).getValue().bigIntegerValue();
+                BigInteger base = ((VULong) baseValue).getValue().bigIntegerValue();
+                BigInteger newd = data.subtract(base);
+                diff = data.compareTo(base);
+                if (threshold.isPresent()) {
+                    withinThreshold = ((Threshold<BigInteger>) threshold.get()).isWithinThreshold(data, base);
+                } else {
+                    withinThreshold = diff == 0;
+                }
+                sb.append(' ').append(DELTA_CHAR);
+                if (newd.compareTo(BigInteger.ZERO) > 0) {
+                    sb.append('+');
+                }
+                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
             } else if (value instanceof VLong) {
                 long data = ((VLong) value).getValue();
                 long base = ((VNumber) baseValue).getValue().longValue();
+                long newd = data - base;
+                diff = Long.compare(data, base);
+                if (threshold.isPresent()) {
+                    withinThreshold = ((Threshold<Long>) threshold.get()).isWithinThreshold(data, base);
+                } else {
+                    withinThreshold = diff == 0;
+                }
+                sb.append(' ').append(DELTA_CHAR);
+                if (newd > 0) {
+                    sb.append('+');
+                }
+                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+            } else if (value instanceof VUInt) {
+                long data = ((VUInt) value).getValue().longValue();
+                long base = ((VUInt) baseValue).getValue().longValue();
                 long newd = data - base;
                 diff = Long.compare(data, base);
                 if (threshold.isPresent()) {
@@ -479,6 +563,21 @@ public final class Utilities {
                     sb.append('+');
                 }
                 sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+            } else if (value instanceof VUShort) {
+                int data = ((VUShort) value).getValue().intValue();
+                int base = ((VUShort) baseValue).getValue().intValue();
+                int newd = data - base;
+                diff = Integer.compare(data, base);
+                if (threshold.isPresent()) {
+                    withinThreshold = ((Threshold<Integer>) threshold.get()).isWithinThreshold(data, base);
+                } else {
+                    withinThreshold = diff == 0;
+                }
+                sb.append(' ').append(DELTA_CHAR);
+                if (newd > 0) {
+                    sb.append('+');
+                }
+                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
             } else if (value instanceof VShort) {
                 short data = ((VShort) value).getValue();
                 short base = ((VNumber) baseValue).getValue().shortValue();
@@ -486,6 +585,21 @@ public final class Utilities {
                 diff = Short.compare(data, base);
                 if (threshold.isPresent()) {
                     withinThreshold = ((Threshold<Short>) threshold.get()).isWithinThreshold(data, base);
+                } else {
+                    withinThreshold = diff == 0;
+                }
+                sb.append(' ').append(DELTA_CHAR);
+                if (newd > 0) {
+                    sb.append('+');
+                }
+                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+            } else if (value instanceof VUByte) {
+                int data = ((VUByte) value).getValue().intValue();
+                int base = ((VUByte) baseValue).getValue().intValue();
+                int newd = data - base;
+                diff = Integer.compare(data, base);
+                if (threshold.isPresent()) {
+                    withinThreshold = ((Threshold<Integer>) threshold.get()).isWithinThreshold(data, base);
                 } else {
                     withinThreshold = diff == 0;
                 }
@@ -596,9 +710,37 @@ public final class Utilities {
                     sb.append('+');
                 }
                 sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+            } else if (value instanceof VULong) {
+                BigInteger data = ((VULong) value).getValue().bigIntegerValue();
+                BigInteger base = ((VULong) baseValue).getValue().bigIntegerValue();
+                BigInteger newd = data.subtract(base);
+                diff = data.compareTo(base);
+                if (threshold.isPresent()) {
+                    withinThreshold = ((Threshold<BigInteger>) threshold.get()).isWithinThreshold(data, base);
+                } else {
+                    withinThreshold = diff == 0;
+                }
+                if (newd.compareTo(BigInteger.ZERO) > 0) {
+                    sb.append('+');
+                }
+                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
             } else if (value instanceof VLong) {
                 long data = ((VLong) value).getValue();
                 long base = ((VNumber) baseValue).getValue().longValue();
+                long newd = data - base;
+                diff = Long.compare(data, base);
+                if (threshold.isPresent()) {
+                    withinThreshold = ((Threshold<Long>) threshold.get()).isWithinThreshold(data, base);
+                } else {
+                    withinThreshold = diff == 0;
+                }
+                if (newd > 0) {
+                    sb.append('+');
+                }
+                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+            } else if (value instanceof VUInt) {
+                long data = ((VUInt) value).getValue().longValue();
+                long base = ((VUInt) baseValue).getValue().longValue();
                 long newd = data - base;
                 diff = Long.compare(data, base);
                 if (threshold.isPresent()) {
@@ -624,6 +766,20 @@ public final class Utilities {
                     sb.append('+');
                 }
                 sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+            } else if (value instanceof VUShort) {
+                int data = ((VUShort) value).getValue().intValue();
+                int base = ((VUShort) baseValue).getValue().intValue();
+                int newd = data - base;
+                diff = Integer.compare(data, base);
+                if (threshold.isPresent()) {
+                    withinThreshold = ((Threshold<Integer>) threshold.get()).isWithinThreshold(data, base);
+                } else {
+                    withinThreshold = diff == 0;
+                }
+                if (newd > 0) {
+                    sb.append('+');
+                }
+                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
             } else if (value instanceof VShort) {
                 short data = ((VShort) value).getValue();
                 short base = ((VNumber) baseValue).getValue().shortValue();
@@ -631,6 +787,20 @@ public final class Utilities {
                 diff = Short.compare(data, base);
                 if (threshold.isPresent()) {
                     withinThreshold = ((Threshold<Short>) threshold.get()).isWithinThreshold(data, base);
+                } else {
+                    withinThreshold = diff == 0;
+                }
+                if (newd > 0) {
+                    sb.append('+');
+                }
+                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+            } else if (value instanceof VUByte) {
+                int data = ((VUByte) value).getValue().intValue();
+                int base = ((VUByte) baseValue).getValue().intValue();
+                int newd = data - base;
+                diff = Integer.compare(data, base);
+                if (threshold.isPresent()) {
+                    withinThreshold = ((Threshold<Integer>) threshold.get()).isWithinThreshold(data, base);
                 } else {
                     withinThreshold = diff == 0;
                 }
@@ -748,9 +918,23 @@ public final class Utilities {
                     return ((Threshold<Float>) threshold.get()).isWithinThreshold(data, base);
                 }
                 return Float.compare(data, base) == 0;
+            } else if (v1 instanceof VULong) {
+                BigInteger data = ((VULong) v1).getValue().bigIntegerValue();
+                BigInteger base = ((VULong) v2).getValue().bigIntegerValue();
+                if (threshold.isPresent()) {
+                    return ((Threshold<BigInteger>) threshold.get()).isWithinThreshold(data, base);
+                }
+                return data.compareTo(base) == 0;
             } else if (v1 instanceof VLong) {
                 long data = ((VLong) v1).getValue();
                 long base = ((VNumber) v2).getValue().longValue();
+                if (threshold.isPresent()) {
+                    return ((Threshold<Long>) threshold.get()).isWithinThreshold(data, base);
+                }
+                return Long.compare(data, base) == 0;
+            } else if (v1 instanceof VUInt) {
+                long data = ((VUInt) v1).getValue().longValue();
+                long base = ((VUInt) v2).getValue().longValue();
                 if (threshold.isPresent()) {
                     return ((Threshold<Long>) threshold.get()).isWithinThreshold(data, base);
                 }
@@ -762,6 +946,13 @@ public final class Utilities {
                     return ((Threshold<Integer>) threshold.get()).isWithinThreshold(data, base);
                 }
                 return Integer.compare(data, base) == 0;
+            } else if (v1 instanceof VUShort) {
+                int data = ((VUShort) v1).getValue().intValue();
+                int base = ((VUShort) v2).getValue().intValue();
+                if (threshold.isPresent()) {
+                    return ((Threshold<Integer>) threshold.get()).isWithinThreshold(data, base);
+                }
+                return Integer.compare(data, base) == 0;
             } else if (v1 instanceof VShort) {
                 short data = ((VShort) v1).getValue();
                 short base = ((VNumber) v2).getValue().shortValue();
@@ -769,6 +960,13 @@ public final class Utilities {
                     return ((Threshold<Short>) threshold.get()).isWithinThreshold(data, base);
                 }
                 return Short.compare(data, base) == 0;
+            } else if (v1 instanceof VUByte) {
+                int data = ((VUByte) v1).getValue().intValue();
+                int base = ((VNumber) v2).getValue().intValue();
+                if (threshold.isPresent()) {
+                    return ((Threshold<Integer>) threshold.get()).isWithinThreshold(data, base);
+                }
+                return Integer.compare(data, base) == 0;
             } else if (v1 instanceof VByte) {
                 byte data = ((VByte) v1).getValue();
                 byte base = ((VNumber) v2).getValue().byteValue();
@@ -791,7 +989,9 @@ public final class Utilities {
             return b == c || b != null && b.equals(c);
         } else if (v1 instanceof VNumberArray && v2 instanceof VNumberArray) {
             if ((v1 instanceof VByteArray && v2 instanceof VByteArray)
+                || (v1 instanceof VUByteArray && v2 instanceof VUByteArray)
                 || (v1 instanceof VShortArray && v2 instanceof VShortArray)
+                || (v1 instanceof VUShortArray && v2 instanceof VUShortArray)
                 || (v1 instanceof VIntArray && v2 instanceof VIntArray)
                 || (v1 instanceof VFloatArray && v2 instanceof VFloatArray)
                 || (v1 instanceof VDoubleArray && v2 instanceof VDoubleArray)) {
@@ -807,6 +1007,19 @@ public final class Utilities {
                     }
                 }
                 return true;
+            } else if (v1 instanceof VUIntArray && v2 instanceof VUIntArray) {
+                ListUInteger b = ((VUIntArray) v1).getData();
+                ListUInteger c = ((VUIntArray) v1).getData();
+                int size = b.size();
+                if (size != c.size()) {
+                    return false;
+                }
+                for (int i = 0; i < size; i++) {
+                    if (Long.compare(UInteger.valueOf(b.getInt(i)).longValue(), UInteger.valueOf(c.getInt(i)).longValue()) != 0) {
+                        return false;
+                    }
+                }
+                return true;
             } else if (v1 instanceof VLongArray && v2 instanceof VLongArray) {
                 ListLong b = ((VLongArray) v1).getData();
                 ListLong c = ((VLongArray) v2).getData();
@@ -816,6 +1029,19 @@ public final class Utilities {
                 }
                 for (int i = 0; i < size; i++) {
                     if (Long.compare(b.getLong(i), c.getLong(i)) != 0) {
+                        return false;
+                    }
+                }
+                return true;
+            } else if (v1 instanceof VULongArray && v2 instanceof VULongArray) {
+                ListULong b = ((VULongArray) v1).getData();
+                ListULong c = ((VULongArray) v2).getData();
+                int size = b.size();
+                if (size != c.size()) {
+                    return false;
+                }
+                for (int i = 0; i < size; i++) {
+                    if (BigInteger.valueOf(b.getLong(i)).compareTo(BigInteger.valueOf(c.getLong(i))) != 0) {
                         return false;
                     }
                 }
@@ -856,18 +1082,34 @@ public final class Utilities {
                 float data = ((VFloat) v1).getValue();
                 float base = ((VFloat) v2).getValue();
                 return Float.compare(data, base) == 0;
+            } else if (v1 instanceof VULong && v2 instanceof VULong) {
+                BigInteger data = ((VULong) v1).getValue().bigIntegerValue();
+                BigInteger base = ((VULong) v2).getValue().bigIntegerValue();
+                return data.compareTo(base) == 0;
             } else if (v1 instanceof VLong && v2 instanceof VLong) {
                 long data = ((VLong) v1).getValue();
                 long base = ((VLong) v2).getValue();
+                return Long.compare(data, base) == 0;
+            } else if (v1 instanceof VUInt && v2 instanceof VUInt) {
+                long data = UnsignedConversions.toLong(((VUInt) v1).getValue().intValue());
+                long base = UnsignedConversions.toLong(((VUInt) v2).getValue().intValue());
                 return Long.compare(data, base) == 0;
             } else if (v1 instanceof VInt && v2 instanceof VInt) {
                 int data = ((VInt) v1).getValue();
                 int base = ((VInt) v2).getValue();
                 return Integer.compare(data, base) == 0;
+            } else if (v1 instanceof VUShort && v2 instanceof VUShort) {
+                int data = UnsignedConversions.toInt(((VUShort) v1).getValue().shortValue());
+                int base = UnsignedConversions.toInt(((VUShort) v2).getValue().shortValue());
+                return Integer.compare(data, base) == 0;
             } else if (v1 instanceof VShort && v2 instanceof VShort) {
                 short data = ((VShort) v1).getValue();
                 short base = ((VShort) v2).getValue();
                 return Short.compare(data, base) == 0;
+            } else if (v1 instanceof VUByte && v2 instanceof VUByte) {
+                int data = UnsignedConversions.toInt(((VUByte) v1).getValue().byteValue());
+                int base = UnsignedConversions.toInt(((VUByte) v2).getValue().byteValue());
+                return Integer.compare(data, base) == 0;
             } else if (v1 instanceof VByte && v2 instanceof VByte) {
                 byte data = ((VByte) v1).getValue();
                 byte base = ((VByte) v2).getValue().byteValue();
@@ -888,8 +1130,11 @@ public final class Utilities {
             return false;
         } else if (v1 instanceof VNumberArray && v2 instanceof VNumberArray) {
             if ((v1 instanceof VByteArray && v2 instanceof VByteArray)
+                || (v1 instanceof VUByteArray && v2 instanceof VUByteArray)
                 || (v1 instanceof VShortArray && v2 instanceof VShortArray)
+                || (v1 instanceof VUShortArray && v2 instanceof VUShortArray)
                 || (v1 instanceof VIntArray && v2 instanceof VIntArray)
+                || (v1 instanceof VUIntArray && v2 instanceof VUIntArray)
                 || (v1 instanceof VFloatArray && v2 instanceof VFloatArray)
                 || (v1 instanceof VDoubleArray && v2 instanceof VDoubleArray)) {
                 ListNumber b = ((VNumberArray) v1).getData();
@@ -913,6 +1158,19 @@ public final class Utilities {
                 }
                 for (int i = 0; i < size; i++) {
                     if (Long.compare(b.getLong(i), c.getLong(i)) != 0) {
+                        return false;
+                    }
+                }
+                return true;
+            } else if (v1 instanceof VULongArray && v2 instanceof VULongArray) {
+                ListULong b = ((VULongArray) v1).getData();
+                ListULong c = ((VULongArray) v2).getData();
+                int size = b.size();
+                if (size != c.size()) {
+                    return false;
+                }
+                for (int i = 0; i < size; i++) {
+                    if (BigInteger.valueOf(b.getLong(i)).compareTo(BigInteger.valueOf(c.getLong(i))) != 0) {
                         return false;
                     }
                 }

@@ -10,10 +10,7 @@
  */
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -132,6 +129,8 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                         return "";
                     } else if (item instanceof VNumber) {
                         return ((VNumber) item).getValue().toString();
+                    } else if (item instanceof VNumberArray) {
+                        return ((VNumberArray) item).getData().toString();
                     } else if (item instanceof VEnum) {
                         return ((VEnum) item).getValue();
                     } else if (item instanceof VTypePair) {
@@ -773,6 +772,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
             ObjectProperty<VTypePair> value = treeTableEntry.tableEntry.valueProperty();
             value.setValue(new VTypePair(value.get().base, e.getNewValue(), value.get().threshold));
+            controller.updateSnapshot(0, e.getRowValue().getValue().tableEntry, e.getNewValue());
         });
 
         storedValueBaseColumn.getColumns().add(storedValueColumn);
@@ -936,7 +936,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
                 return treeTableEntry.tableEntry.compareValueProperty(snapshotIndex);
             });
-            setpointValueCol.setCellFactory(e -> new VSetpointTreeCellEditor<>(controller));
+            setpointValueCol.setCellFactory(e -> new VTypeTreeCellEditor<>());
             setpointValueCol.setEditable(true);
             setpointValueCol.setOnEditCommit(e -> {
                 TreeTableEntry treeTableEntry = e.getRowValue().getValue();
@@ -946,7 +946,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
                 ObjectProperty<VTypePair> value = e.getRowValue().getValue().tableEntry.compareValueProperty(snapshotIndex);
                 value.setValue(new VTypePair(value.get().base, e.getNewValue().value, value.get().threshold));
-//                controller.updateSnapshot(snapshotIndex, e.getRowValue());
+                controller.updateSnapshot(snapshotIndex, e.getRowValue().getValue().tableEntry, e.getNewValue().value);
 //                controller.resume();
             });
             setpointValueCol.label.setOnMouseReleased(e -> {
