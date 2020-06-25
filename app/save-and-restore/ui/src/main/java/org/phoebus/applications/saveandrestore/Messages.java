@@ -67,6 +67,7 @@ public class Messages {
     public static String toolTipTableColumnPVValues;
     public static String toolTipUnionOfSetpointPVNames;
     public static String toolTipTableColumnBaseSetpointValue;
+    public static String labelMultiplier;
     public static String toolTipMultiplierSpinner;
     public static String saveSnapshotErrorContent;
     public static String snapshotModifiedText;

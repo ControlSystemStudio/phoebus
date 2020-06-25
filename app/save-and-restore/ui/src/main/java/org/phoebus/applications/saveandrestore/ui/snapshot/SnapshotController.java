@@ -33,6 +33,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextArea;
@@ -122,6 +123,9 @@ public class SnapshotController implements NodeChangedListener {
 
     @FXML
     private ToggleButton showTreeTableButton;
+
+    @FXML
+    private Label multiplierLabel;
 
     @FXML
     private Spinner<Double> multiplierSpinner;
@@ -253,6 +257,8 @@ public class SnapshotController implements NodeChangedListener {
         } else {
             showTreeTableButton.setVisible(false);
         }
+
+        multiplierLabel.setText(Messages.labelMultiplier);
 
         SpinnerValueFactory<Double> spinnerValueFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 999.0, 1.0, 0.01);
         spinnerValueFactory.setConverter(new DoubleStringConverter());
