@@ -20,11 +20,26 @@ package org.phoebus.applications.saveandrestore.ui.snapshot;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
+import javafx.collections.SetChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -32,13 +47,23 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
+import javafx.util.converter.DoubleStringConverter;
 import org.epics.gpclient.GPClient;
 import org.epics.gpclient.PVConfiguration;
 import org.epics.gpclient.PVEvent;
 import org.epics.gpclient.PVReader;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VString;
+import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.ApplicationContextProvider;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.SafeMultiply;
 import org.phoebus.applications.saveandrestore.Utilities;
 import org.phoebus.applications.saveandrestore.data.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
@@ -46,16 +71,20 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.model.SnapshotEntry;
-import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
-import org.phoebus.applications.saveandrestore.ui.model.VNoData;
-import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
+import org.phoebus.applications.saveandrestore.ui.model.*;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.ui.docking.DockPane;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.logging.Level;
@@ -96,6 +125,12 @@ public class SnapshotController implements NodeChangedListener {
     private ToggleButton showTreeTableButton;
 
     @FXML
+    private Label multiplierLabel;
+
+    @FXML
+    private Spinner<Double> multiplierSpinner;
+
+    @FXML
     private ToggleButton hideShowEqualItemsButton;
 
     @FXML
@@ -133,7 +168,12 @@ public class SnapshotController implements NodeChangedListener {
     private final BooleanProperty snapshotSaveableProperty = new SimpleBooleanProperty(false);
     private final BooleanProperty showLiveReadbackProperty = new SimpleBooleanProperty(false);
 
+    private final ObservableSet<Integer> dirtySnapshotEntries = FXCollections.observableSet();
+    private String persistentSnapshotName = null;
+    private boolean persistentGoldenState = false;
+
     private boolean showStoredReadbacks = false;
+
     private boolean hideEqualItems;
 
     private PreferencesReader preferencesReader = (PreferencesReader) ApplicationContextProvider.getApplicationContext().getBean("preferencesReader");
@@ -217,6 +257,30 @@ public class SnapshotController implements NodeChangedListener {
         } else {
             showTreeTableButton.setVisible(false);
         }
+
+        multiplierLabel.setText(Messages.labelMultiplier);
+
+        SpinnerValueFactory<Double> spinnerValueFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 999.0, 1.0, 0.01);
+        spinnerValueFactory.setConverter(new DoubleStringConverter());
+        multiplierSpinner.setValueFactory(spinnerValueFactory);
+        multiplierSpinner.getEditor().setAlignment(Pos.CENTER_RIGHT);
+        multiplierSpinner.getEditor().getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        multiplierSpinner.getEditor().textProperty()
+                .addListener((a, o, n) -> {
+                    multiplierSpinner.getEditor().getStyleClass().remove("scale-error");
+                    multiplierSpinner.setTooltip(null);
+                    snapshotRestorableProperty.set(true);
+
+                    Double parsedNumber = null;
+                    try {
+                        parsedNumber = Double.parseDouble(n.trim());
+                        updateSnapshot(parsedNumber);
+                    } catch (NumberFormatException e) {
+                        multiplierSpinner.getEditor().getStyleClass().add("scale-error");
+                        multiplierSpinner.setTooltip(new Tooltip(Messages.toolTipMultiplierSpinner));
+                        snapshotRestorableProperty.set(false);
+                    }
+                });
 
         hideShowEqualItemsButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/icons/hide_show_equal_items.png"))));
         hideShowEqualItemsButton.setTooltip(new Tooltip(Messages.toolTipShowHideEqualToggleButton));
@@ -328,6 +392,23 @@ public class SnapshotController implements NodeChangedListener {
                 }
             });
         });
+
+        dirtySnapshotEntries.addListener(new SetChangeListener<Integer>() {
+            @Override
+            public void onChanged(Change<? extends Integer> change) {
+                if (dirtySnapshotEntries.size() == 0) {
+                    snapshotSaveableProperty.set(false);
+
+                    snapshotNameProperty.set(persistentSnapshotName);
+                    snapshotTab.updateTabTitile(persistentSnapshotName, persistentGoldenState);
+                } else {
+                    snapshotSaveableProperty.set(true);
+
+                    snapshotNameProperty.set(persistentSnapshotName + " " + Messages.snapshotModifiedText);
+                    snapshotTab.updateTabTitile(persistentSnapshotName + " " + Messages.snapshotModifiedText, false);
+                }
+            }
+        });
     }
 
     public void setSnapshotTab(SnapshotTab snapshotTab){
@@ -339,7 +420,12 @@ public class SnapshotController implements NodeChangedListener {
             this.config = saveAndRestoreService.getParentNode(snapshot.getUniqueId());
             snapshotNameProperty.set(snapshot.getName());
             snapshotUniqueIdProperty.set(snapshot.getUniqueId());
+
             snapshotTab.updateTabTitile(snapshot.getName(), Boolean.parseBoolean(snapshot.getProperty("golden")));
+            snapshotTab.setId(snapshot.getUniqueId());
+
+            persistentSnapshotName = snapshot.getName();
+            persistentGoldenState = Boolean.parseBoolean(snapshot.getProperty("golden"));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -413,6 +499,15 @@ public class SnapshotController implements NodeChangedListener {
                 }
                 snapshotRestorableProperty.set(true);
 
+                vSnapshot.getEntries().stream().forEach(item -> {
+                    item.getValueProperty().addListener((observableValue, vType, newVType) -> {
+                        if (!Utilities.areVTypesIdentical(newVType, item.getStoredValue(), false)) {
+                            dirtySnapshotEntries.add(item.getConfigPv().getId());
+                        } else {
+                            dirtySnapshotEntries.remove(item.getConfigPv().getId());
+                        }
+                    });
+                });
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -488,6 +583,10 @@ public class SnapshotController implements NodeChangedListener {
             createdByTextProperty.set(null);
             createdDateTextProperty.set(null);
             snapshotSaveableProperty.setValue(false);
+
+            snapshotTab.setId(null);
+            snapshotTab.updateTabTitile(Messages.unnamedSnapshot, false);
+            dirtySnapshotEntries.clear();
         });
         try {
             List<SnapshotEntry> entries = new ArrayList<>(tableEntryItems.size());
@@ -518,6 +617,7 @@ public class SnapshotController implements NodeChangedListener {
 
             Node snapshot = Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build();
 
+            multiplierSpinner.getEditor().setText("1.0");
             VSnapshot taken = new VSnapshot(snapshot, entries);
             snapshots.clear();
             snapshots.add(taken);
@@ -728,6 +828,56 @@ public class SnapshotController implements NodeChangedListener {
         }
     }
 
+    private void updateSnapshot(double multiplier) {
+        snapshots.stream().forEach(snapshot -> {
+            snapshot.getEntries().stream().filter(item -> !item.isReadOnly()).forEach(item -> {
+                VType vtype = item.getStoredValue();
+                VType newVType = null;
+
+                if (vtype instanceof VNumber) {
+                    newVType = SafeMultiply.multiply((VNumber) vtype, multiplier);
+                } else if (vtype instanceof VNumberArray) {
+                    newVType = SafeMultiply.multiply((VNumberArray) vtype, multiplier);
+                } else {
+                    return;
+                }
+
+                item.set(newVType, item.isSelected());
+
+                TableEntry tableEntry = tableEntryItems.get(item.getPVName());
+                tableEntry.snapshotValProperty().set(newVType);
+
+                ObjectProperty<VTypePair> value = tableEntry.valueProperty();
+                value.setValue(new VTypePair(value.get().base, newVType, value.get().threshold));
+            });
+        });
+    }
+
+    public void updateSnapshot(int snapshotIndex, TableEntry rowValue, VType newValue) {
+        VSnapshot snapshot = snapshots.get(snapshotIndex);
+        snapshot.getEntries().stream()
+                .filter(item -> item.getPVName().equals(rowValue.getConfigPv().getPvName()))
+                .filter(item -> !item.isReadOnly())
+                .findFirst()
+                .ifPresent(item -> {
+                    VType vtype = item.getValue();
+                    VType newVType = null;
+                    if (newValue instanceof VNumber) {
+                        newVType = VNumber.of(((VNumber) newValue).getValue(), Alarm.alarmOf(vtype), Time.timeOf(vtype), Display.displayOf(vtype));
+                    } else if (newValue instanceof VNumberArray) {
+                        newVType = VNumberArray.of(((VNumberArray) newValue).getData(), Alarm.alarmOf(vtype), Time.timeOf(vtype), Display.displayOf(vtype));
+                    } else if (newValue instanceof VString) {
+                        newVType = VString.of(((VString) newValue).getValue(), Alarm.alarmOf(vtype), Time.timeOf(vtype));
+                    } else if (newValue instanceof VStringArray) {
+                        newVType = VStringArray.of(((VStringArray) newValue).getData(), Alarm.alarmOf(vtype), Time.timeOf(vtype));
+                    } else if (newValue instanceof VEnum) {
+                        newVType = newValue;
+                    }
+                    item.set(newVType, rowValue.selectedProperty().get());
+                    rowValue.snapshotValProperty().set(newVType);
+                });
+    }
+
     private class PV {
         final String pvName;
         final String readbackPvName;
@@ -876,6 +1026,9 @@ public class SnapshotController implements NodeChangedListener {
             snapshotNameProperty.set(node.getName());
             snapshotSaveableProperty.setValue(false);
             snapshotTab.updateTabTitile(node.getName(), Boolean.parseBoolean(node.getProperty("golden")));
+
+            persistentSnapshotName = node.getName();
+            persistentGoldenState = Boolean.parseBoolean(node.getProperty("golden"));
         }
     }
 }
