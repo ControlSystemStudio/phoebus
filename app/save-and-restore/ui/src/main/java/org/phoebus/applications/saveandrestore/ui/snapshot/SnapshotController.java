@@ -271,7 +271,7 @@ public class SnapshotController implements NodeChangedListener {
                         updateSnapshot(parsedNumber);
                     } catch (NumberFormatException e) {
                         multiplierSpinner.getEditor().getStyleClass().add("scale-error");
-                        multiplierSpinner.setTooltip(new Tooltip("This field only takes number."));
+                        multiplierSpinner.setTooltip(new Tooltip(Messages.toolTipMultiplierSpinner));
                         snapshotRestorableProperty.set(false);
                     }
                 });
@@ -398,8 +398,8 @@ public class SnapshotController implements NodeChangedListener {
                 } else {
                     snapshotSaveableProperty.set(true);
 
-                    snapshotNameProperty.set(persistentSnapshotName + " (modified)");
-                    snapshotTab.updateTabTitile(persistentSnapshotName + " (modified)", false);
+                    snapshotNameProperty.set(persistentSnapshotName + " " + Messages.snapshotModifiedText);
+                    snapshotTab.updateTabTitile(persistentSnapshotName + " " + Messages.snapshotModifiedText, false);
                 }
             }
         });
