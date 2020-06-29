@@ -194,6 +194,9 @@ public class EmbeddedDisplayWidget extends MacroWidget
                 }
                 else
                     BorderSupport.handleLegacyBorder(widget, xml);
+
+                // Legacy "Linking Container" defined a "Linking Container ID" macro
+                ((EmbeddedDisplayWidget) widget).propMacros().getValue().add("LCID", widget.getID());
             }
             return true;
         }
