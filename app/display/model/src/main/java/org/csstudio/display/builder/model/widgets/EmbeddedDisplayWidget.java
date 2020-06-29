@@ -286,6 +286,9 @@ public class EmbeddedDisplayWidget extends MacroWidget
         properties.add(embedded_model = runtimeModel.createProperty(this, null));
         properties.add(transparent = propTransparent.createProperty(this, false));
         BorderSupport.addBorderProperties(this, properties);
+
+        // Legacy "Linking Container" defined a "Linking Container ID" macro.
+        propMacros().getValue().add("LCID", getID());
     }
 
     @Override
