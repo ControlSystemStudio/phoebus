@@ -253,12 +253,21 @@ public class SetCommand extends ScanCommand
                 command_element.appendChild(element);
             }
 
-            element = dom.createElement("readback_value");
             if (readback_value instanceof String)
-                element.appendChild(dom.createTextNode('"' + (String)readback_value + '"'));
+            {   // Skip when empty, otherwise persist as "text" ..
+                if (((String)readback_value).length() > 0)
+                {
+                    element = dom.createElement("readback_value");
+                    element.appendChild(dom.createTextNode('"' + (String)readback_value + '"'));
+                    command_element.appendChild(element);
+                }
+            }
             else
+            {   // .. or number
+                element = dom.createElement("readback_value");
                 element.appendChild(dom.createTextNode(readback_value.toString()));
-            command_element.appendChild(element);
+                command_element.appendChild(element);
+           }
         }
         if (tolerance > 0.0)
         {
@@ -284,7 +293,7 @@ public class SetCommand extends ScanCommand
         setCompletion(XMLUtil.getChildBoolean(element, ScanCommandProperty.TAG_COMPLETION).orElse(false));
         setWait(XMLUtil.getChildBoolean(element, ScanCommandProperty.TAG_WAIT).orElse(true));
         setReadback(XMLUtil.getChildString(element, ScanCommandProperty.TAG_READBACK).orElse(getDeviceName()));
-        setReadbackValue(StringOrDouble.parse(XMLUtil.getChildString(element, ScanCommandProperty.TAG_READBACK_VALUE).orElse("")));
+        setReadbackValue(StringOrDouble.parse(XMLUtil.getChildString(element, ScanCommandProperty.TAG_READBACK_VALUE).orElse("\"\"")));
         setTolerance(XMLUtil.getChildDouble(element, ScanCommandProperty.TAG_TOLERANCE).orElse(0.1));
         setTimeout(XMLUtil.getChildDouble(element, ScanCommandProperty.TAG_TIMEOUT).orElse(0.0));
         super.readXML(element);
