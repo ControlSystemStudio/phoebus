@@ -33,6 +33,7 @@ import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
 import org.csstudio.display.builder.model.widgets.GroupWidget.Style;
+import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -286,9 +287,6 @@ public class EmbeddedDisplayWidget extends MacroWidget
         properties.add(embedded_model = runtimeModel.createProperty(this, null));
         properties.add(transparent = propTransparent.createProperty(this, false));
         BorderSupport.addBorderProperties(this, properties);
-
-        // Legacy "Linking Container" defined a "Linking Container ID" macro.
-        propMacros().getValue().add("LCID", getID());
     }
 
     @Override
@@ -298,6 +296,17 @@ public class EmbeddedDisplayWidget extends MacroWidget
         if (name.equals("opi_file"))
             return propFile();
         return super.getProperty(name);
+    }
+
+    @Override
+    public Macros getEffectiveMacros()
+    {
+        final Macros macros = new Macros(super.getEffectiveMacros());
+
+        // Legacy "Linking Container" defined a "Linking Container ID" macro.
+        macros.add("LCID", getID());
+
+        return macros;
     }
 
     /** @return 'file' property */
