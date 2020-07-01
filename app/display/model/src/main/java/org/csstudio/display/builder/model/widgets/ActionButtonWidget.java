@@ -148,7 +148,8 @@ public class ActionButtonWidget extends PVWidget
                         the_text.appendChild(label_el.getFirstChild().cloneNode(true));
                     else
                     {
-                        Text the_label = doc.createTextNode(VALUE_LABEL);
+                        //If label is null, it should stay empty
+                        Text the_label = doc.createTextNode("");
                         the_text.appendChild(the_label);
                     }
                     xml.appendChild(the_text);
