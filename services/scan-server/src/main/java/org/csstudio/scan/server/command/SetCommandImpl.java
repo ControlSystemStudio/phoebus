@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -103,6 +103,7 @@ public class SetCommandImpl extends ScanCommandImpl<SetCommand>
                                 command.getValue(),
                                 command.getCompletion(), command.getWait(),
                                 macros.resolveMacros(command.getReadback()),
+                                command.getReadbackValue(),
                                 command.getTolerance(),
                                 TimeDuration.ofSeconds(command.getTimeout()));
         try
