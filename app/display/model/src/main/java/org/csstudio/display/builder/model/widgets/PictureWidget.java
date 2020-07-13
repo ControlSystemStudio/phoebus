@@ -83,7 +83,12 @@ public class PictureWidget extends MacroWidget
             }
 
             if (xml_version.getMajor() < 2)
+            {
+                final PictureWidget picture = (PictureWidget) widget;
                 MacroWidget.importPVName(model_reader, widget, widget_xml);
+                XMLUtil.getChildBoolean(widget_xml, "stretch_to_fit")
+                       .ifPresent(stretch -> picture.propStretch().setValue(stretch));
+            }
 
             // Parse updated XML
             return super.configureFromXML(model_reader, widget, widget_xml);
