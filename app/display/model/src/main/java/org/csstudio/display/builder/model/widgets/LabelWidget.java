@@ -38,6 +38,7 @@ import org.csstudio.display.builder.model.properties.RotationStep;
 import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 
 /** Widget that displays a static text
@@ -79,8 +80,13 @@ public class LabelWidget extends MacroWidget
             // Default used to be 'middle'
             if (is_legacy)
             {
+                final LabelWidget label = (LabelWidget) widget;
                 widget.getProperty(propVerticalAlignment).setValue(VerticalAlignment.MIDDLE);
                 MacroWidget.importPVName(model_reader, widget, xml);
+                // Legacy rotation_angle -> rotation_step
+                // BOY counted angle clockwise, we now use mathematical sense of rotation
+                XMLUtil.getChildDouble(xml, "rotation_angle")
+                       .ifPresent(rotation -> label.propRotationStep().setValue(RotationStep.forAngle(-rotation)));
             }
 
             if (! super.configureFromXML(model_reader, widget, xml))
