@@ -171,8 +171,8 @@ public class XMLPersistence
             // Ignore
         }
 
-        final String start = XMLUtil.getChildString(root_node, TAG_START).orElse("");
-        final String end = XMLUtil.getChildString(root_node, TAG_END).orElse("");
+        final String start = model.resolveMacros(XMLUtil.getChildString(root_node, TAG_START).orElse(""));
+        final String end = model.resolveMacros(XMLUtil.getChildString(root_node, TAG_END).orElse(""));
         if (start.length() > 0  &&  end.length() > 0)
         {
             final boolean scroll = XMLUtil.getChildBoolean(root_node, TAG_SCROLL).orElse(true);

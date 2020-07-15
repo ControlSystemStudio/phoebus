@@ -143,7 +143,7 @@ public class SampleView extends VBox
 
     private void update()
     {
-        final List<String> model_items = model.getItems().stream().map(item -> item.getName()).collect(Collectors.toList());
+        final List<String> model_items = model.getItems().stream().map(item -> item.getResolvedName()).collect(Collectors.toList());
         if (! model_items.equals(items.getItems()))
         {
             items.getItems().setAll( model_items );
@@ -173,7 +173,7 @@ public class SampleView extends VBox
                 }
                 catch (Exception ex)
                 {
-                    Activator.logger.log(Level.WARNING, "Cannot access samples for " + item.getName(), ex);
+                    Activator.logger.log(Level.WARNING, "Cannot access samples for " + item.getResolvedName(), ex);
                 }
         }
         // Update UI

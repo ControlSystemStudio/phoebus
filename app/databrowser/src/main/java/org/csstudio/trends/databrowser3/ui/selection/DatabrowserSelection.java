@@ -62,7 +62,7 @@ public class DatabrowserSelection {
      */
     public List<String> getPlotPVs()
     {
-        return model.getItems().stream().map(ModelItem::getName).collect(Collectors.toList());
+        return model.getItems().stream().map(ModelItem::getResolvedName).collect(Collectors.toList());
     }
 
     /**
