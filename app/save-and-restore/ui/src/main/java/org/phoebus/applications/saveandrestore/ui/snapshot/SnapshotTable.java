@@ -10,15 +10,8 @@
  */
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
-import java.lang.reflect.Field;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-
-
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.ObservableList;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
@@ -44,12 +37,28 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.util.StringConverter;
-import org.epics.vtype.*;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.EnumDisplay;
+import org.epics.vtype.Time;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.Messages;
-import org.phoebus.applications.saveandrestore.ui.MultitypeTableCell;
 import org.phoebus.applications.saveandrestore.Utilities;
-import org.phoebus.applications.saveandrestore.ui.model.*;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.ui.MultitypeTableCell;
+import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
+import org.phoebus.applications.saveandrestore.ui.model.VNoData;
+import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
+import org.phoebus.applications.saveandrestore.ui.model.VTypePair;
+
+import java.lang.reflect.Field;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 
 class SnapshotTable extends TableView<TableEntry> {
@@ -118,6 +127,8 @@ class SnapshotTable extends TableView<TableEntry> {
                         return "";
                     } else if (item instanceof VNumber) {
                         return ((VNumber) item).getValue().toString();
+                    } else if (item instanceof VNumberArray) {
+                        return ((VNumberArray) item).getData().toString();
                     } else if (item instanceof VEnum) {
                         return ((VEnum) item).getValue();
                     } else if (item instanceof VTypePair) {
@@ -579,7 +590,12 @@ class SnapshotTable extends TableView<TableEntry> {
         int width = measureStringWidth("000", Font.font(20));
         TableColumn<TableEntry, Integer> idColumn = new TooltipTableColumn<>("#",
             Messages.toolTipTableColumIndex, width, width, false);
-        idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+        idColumn.setCellValueFactory(cell -> {
+            int idValue = cell.getValue().idProperty().get();
+            idColumn.setPrefWidth(Math.max(idColumn.getWidth(), measureStringWidth(String.valueOf(idValue), Font.font(20))));
+
+            return new ReadOnlyObjectWrapper(idValue);
+        });
         snapshotTableEntries.add(idColumn);
 
         pvNameColumn = new TooltipTableColumn<>("PV Name",
@@ -625,6 +641,7 @@ class SnapshotTable extends TableView<TableEntry> {
         storedValueColumn.setOnEditCommit(e -> {
             ObjectProperty<VTypePair> value = e.getRowValue().valueProperty();
             value.setValue(new VTypePair(value.get().base, e.getNewValue(), value.get().threshold));
+            controller.updateSnapshot(0, e.getRowValue(), e.getNewValue());
         });
 
         storedValueBaseColumn.getColumns().add(storedValueColumn);
@@ -676,7 +693,12 @@ class SnapshotTable extends TableView<TableEntry> {
         int width = measureStringWidth("000", Font.font(20));
         TableColumn<TableEntry, Integer> idColumn = new TooltipTableColumn<>("#",
             Messages.toolTipTableColumIndex, width, width, false);
-        idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+        idColumn.setCellValueFactory(cell -> {
+            int idValue = cell.getValue().idProperty().get();
+            idColumn.setPrefWidth(Math.max(idColumn.getWidth(), measureStringWidth(String.valueOf(idValue), Font.font(20))));
+
+            return new ReadOnlyObjectWrapper(idValue);
+        });
         list.add(idColumn);
 
         TableColumn<TableEntry, String> setpointPVName = new TooltipTableColumn<>("PV Name",
@@ -743,12 +765,12 @@ class SnapshotTable extends TableView<TableEntry> {
 
             setpointValueCol.label.setContextMenu(menu);
             setpointValueCol.setCellValueFactory(e -> e.getValue().compareValueProperty(snapshotIndex));
-            setpointValueCol.setCellFactory(e -> new VSetpointCellEditor<>(controller));
+            setpointValueCol.setCellFactory(e -> new VTypeCellEditor<>());
             setpointValueCol.setEditable(true);
             setpointValueCol.setOnEditCommit(e -> {
                 ObjectProperty<VTypePair> value = e.getRowValue().compareValueProperty(snapshotIndex);
                 value.setValue(new VTypePair(value.get().base, e.getNewValue().value, value.get().threshold));
-//                controller.updateSnapshot(snapshotIndex, e.getRowValue());
+                controller.updateSnapshot(snapshotIndex, e.getRowValue(), e.getNewValue().value);
 //                controller.resume();
             });
             setpointValueCol.label.setOnMouseReleased(e -> {

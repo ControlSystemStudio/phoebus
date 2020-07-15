@@ -179,9 +179,14 @@ public class ActionButtonWidget extends PVWidget
                         }
                     }
             }
-            // If there is no pv_name, remove from tool tip
+            // If there is no pv_name, remove from tool tip ..
             if ( ((MacroizedWidgetProperty<String>)button.propPVName()).getSpecification().isEmpty())
+            {
                 tooltip.setSpecification(tooltip.getSpecification().replace("$(pv_name)\n", ""));
+                // .. and label
+                if ( ((MacroizedWidgetProperty<String>)button.propText()).getSpecification().equals(VALUE_LABEL))
+                    button.propText().setValue("");
+            }
 
             return true;
         }

@@ -1,12 +1,14 @@
 package org.phoebus.applications.saveandrestore.ui.model;
 
-import java.io.Serializable;
-import java.util.Objects;
-
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.Utilities;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+
+import java.io.Serializable;
+import java.util.Objects;
 
 
 /**
@@ -21,7 +23,8 @@ public class SnapshotEntry implements Serializable {
 
         private static final long serialVersionUID = 5181175467248870613L;
         private final ConfigPv configPv;
-        private transient VType value;
+        private transient ObjectProperty<VType> valueProperty = new SimpleObjectProperty<>();
+        private final transient VType storedValue;
         private boolean selected;
         private final String readbackName;
         private final transient VType readbackValue;
@@ -45,7 +48,8 @@ public class SnapshotEntry implements Serializable {
          */
         public SnapshotEntry(ConfigPv configPv, VType value, boolean selected, String readbackName, VType readbackValue,
                              String delta, boolean readOnly) {
-            this.value = value == null ? VNoData.INSTANCE : value;
+            this.valueProperty.set(value == null ? VNoData.INSTANCE : value);
+            this.storedValue = value;
             this.configPv = configPv;
             this.selected = selected;
             this.readbackName = readbackName == null ? "" : readbackName;
@@ -64,8 +68,26 @@ public class SnapshotEntry implements Serializable {
          * @return the stored pv value
          */
         public VType getValue() {
-            return value;
+            return valueProperty.get();
         }
+
+        /**
+         * Returns PV value property
+         *
+         * @return the stored PV value property
+         */
+
+        public ObjectProperty<VType> getValueProperty() {
+            return valueProperty;
+        }
+
+        /**
+         * Returns stored PV value.
+         * Initialized once when object creation and remain unchanged.
+         *
+         * @return an immutable stored PV value
+         */
+        public VType getStoredValue() { return storedValue; }
 
         /**
          * Returns the name of the PV.
@@ -129,8 +151,8 @@ public class SnapshotEntry implements Serializable {
          * @param value the value to set
          * @param selected true if selected or false otherwise
          */
-        void set(VType value, boolean selected) {
-            this.value = value == null ? VNoData.INSTANCE : value;
+        public void set(VType value, boolean selected) {
+            this.valueProperty.set(value == null ? VNoData.INSTANCE : value);
             this.selected = selected;
         }
 
@@ -141,7 +163,7 @@ public class SnapshotEntry implements Serializable {
          */
         @Override
         public int hashCode() {
-            return Objects.hash(SnapshotEntry.class, configPv.getPvName(), selected, readOnly, readbackName, readbackValue, delta, value,
+            return Objects.hash(SnapshotEntry.class, configPv.getPvName(), selected, readOnly, readbackName, readbackValue, delta, valueProperty.get(),
                     readbackValue);
         }
 
@@ -162,7 +184,7 @@ public class SnapshotEntry implements Serializable {
                     && Objects.equals(readbackName, other.readbackName) && Objects.equals(delta, other.delta))) {
                 return false;
             }
-            if (!Utilities.areVTypesIdentical(value, other.value, true)) {
+            if (!Utilities.areVTypesIdentical(valueProperty.get(), other.valueProperty.get(), true)) {
                 return false;
             }
             if (!Utilities.areVTypesIdentical(readbackValue, other.readbackValue, false)) {

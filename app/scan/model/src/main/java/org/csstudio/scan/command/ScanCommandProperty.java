@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Oak Ridge National Laboratory.
+ * Copyright (c) 2012-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,6 +28,7 @@ public class ScanCommandProperty
     final public static String TAG_DEVICE = "device";
     final public static String TAG_VALUE = "value";
     final public static String TAG_READBACK = "readback";
+    final public static String TAG_READBACK_VALUE = "readback_value";
     final public static String TAG_COMPLETION = "completion";
     final public static String TAG_WAIT = "wait";
     final public static String TAG_TOLERANCE = "tolerance";

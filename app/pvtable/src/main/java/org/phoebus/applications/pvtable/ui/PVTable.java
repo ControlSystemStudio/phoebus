@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,7 +14,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javafx.scene.input.MouseEvent;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VType;
 import org.phoebus.applications.email.actions.SendEmailAction;
@@ -671,6 +670,7 @@ public class PVTable extends VBox
                 {
                     Alert alert = new Alert(AlertType.CONFIRMATION, "", ButtonType.NO, ButtonType.YES);
                     alert.setHeaderText("Are you sure you want to disable save/restore functionality for this table?");
+                    DialogHelper.positionDialog(alert, this, -100, -100);
                     Optional<ButtonType> result = alert.showAndWait();
                     if (result.isPresent() && result.get() == ButtonType.YES)
                     {

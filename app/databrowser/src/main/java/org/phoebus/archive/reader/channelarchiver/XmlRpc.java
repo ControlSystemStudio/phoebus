@@ -7,9 +7,11 @@
  ******************************************************************************/
 package org.phoebus.archive.reader.channelarchiver;
 
-import java.io.OutputStreamWriter;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.phoebus.framework.persistence.XMLUtil;
@@ -92,15 +94,35 @@ public class XmlRpc
     public static Element communicate(final URL url, final String command) throws Exception
     {
         final URLConnection connection = url.openConnection();
-        connection.setDoOutput(true);
+        if (! (connection instanceof HttpURLConnection))
+            throw new Exception("Cannot create HttpURLConnection for " + url);
+        final HttpURLConnection http = (HttpURLConnection) connection;
 
-        final OutputStreamWriter out = new OutputStreamWriter(connection.getOutputStream());
-        out.write(command);
-        out.flush();
-        out.close();
+        final byte[] bytes = command.getBytes(StandardCharsets.UTF_8);
 
-        // Expect <methodResponse><params><param><value>
+        // Send the request
+        http.setDoOutput(true);
+        http.setRequestMethod("POST");
+        http.setInstanceFollowRedirects(true);
+        // XmlRPC server expects "text/xml" and will report HTTP 400 otherwise
+        http.setRequestProperty("Content-Type", "text/xml");
+        http.setRequestProperty("charset", "UTF-8");
+        http.setRequestProperty("Accept", "text/html, application/xml, *");
+        http.setFixedLengthStreamingMode(bytes.length);
+
+        try (OutputStream out = connection.getOutputStream())
+        {
+            out.write(bytes);
+            out.flush();
+        }
+        
+        // Parse the response, expecting <methodResponse><params><param><value>
         Element el = XMLUtil.openXMLDocument(connection.getInputStream(), "methodResponse");
+        // Check for fault
+        Element fault = XMLUtil.getChildElement(el, "fault");
+        if (fault != null)
+            throw new Exception(XMLUtil.elementToString(fault, false));
+
         el = getChildElement(el, "params");
         el = getChildElement(el, "param");
         el = getChildElement(el, "value");

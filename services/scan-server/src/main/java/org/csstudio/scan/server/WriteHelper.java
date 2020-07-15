@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -58,6 +58,7 @@ public class WriteHelper
      *  @param completion Await completion to the write?
      *  @param wait Wait for readback to match?
      *  @param readback_name Readback device name (default will be main device_name)
+     *  @param readback_value Readback value ("" to use written value)
      *  @param tolerance Numeric tolerance when checking value
      *  @param timeout Timeout for callback as well as readback; <code>null</code> as "forever"
      *  @throws Exception on error
@@ -66,7 +67,9 @@ public class WriteHelper
                        final String device_name, final Object value,
                        final boolean completion,
                        final boolean wait,
-                       final String readback_name, final double tolerance, final Duration timeout) throws Exception
+                       final String readback_name,
+                       Object readback_value,
+                       final double tolerance, final Duration timeout) throws Exception
     {
         this.context = context;
         this.completion = completion;
@@ -84,17 +87,21 @@ public class WriteHelper
         //  Wait for the device to reach the value?
         if (wait)
         {
+            if (readback_value == null  ||
+                readback_value.toString().isEmpty())
+                readback_value = value;
+
             // When using completion, readback needs to match "right away"
             final Duration check_timeout = completion ? Duration.ofSeconds(1) : timeout;
-            if (value instanceof Number)
+            if (readback_value instanceof Number)
             {
-                final double desired = ((Number)value).doubleValue();
+                final double desired = ((Number)readback_value).doubleValue();
                 condition = new NumericValueCondition(readback, Comparison.EQUALS, desired,
                                                       tolerance, check_timeout);
             }
             else
             {
-                final String desired = value.toString();
+                final String desired = readback_value.toString();
                 condition = new TextValueCondition(readback, Comparison.EQUALS, desired, check_timeout);
             }
         }

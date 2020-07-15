@@ -275,7 +275,11 @@ public class AlarmTableUI extends BorderPane
             server_notify.setDisable(true);
 
         final Button acknowledge = new Button("", ImageCache.getImageView(AlarmUI.class, "/icons/acknowledge.png"));
-        acknowledge.disableProperty().bind(Bindings.isEmpty(active.getSelectionModel().getSelectedItems()));
+	if (AlarmUI.mayAcknowledge(client))
+	    acknowledge.disableProperty().bind(Bindings.isEmpty(active.getSelectionModel().getSelectedItems()));
+	else
+	    acknowledge.setDisable(true);
+
         acknowledge.setOnAction(event ->
         {
             for (AlarmInfoRow row : active.getSelectionModel().getSelectedItems())
@@ -283,7 +287,11 @@ public class AlarmTableUI extends BorderPane
         });
 
         final Button unacknowledge = new Button("", ImageCache.getImageView(AlarmUI.class, "/icons/unacknowledge.png"));
-        unacknowledge.disableProperty().bind(Bindings.isEmpty(acknowledged.getSelectionModel().getSelectedItems()));
+	if (AlarmUI.mayAcknowledge(client))
+	    unacknowledge.disableProperty().bind(Bindings.isEmpty(acknowledged.getSelectionModel().getSelectedItems()));
+	else
+	    unacknowledge.setDisable(true);
+
         unacknowledge.setOnAction(event ->
         {
             for (AlarmInfoRow row : acknowledged.getSelectionModel().getSelectedItems())
