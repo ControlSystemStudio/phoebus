@@ -50,6 +50,8 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.Modality;
 import javafx.util.Pair;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
@@ -531,6 +533,11 @@ public class SaveAndRestoreWithSplitController extends BaseSaveAndRestoreControl
         alert.setTitle(Messages.promptDeleteSelectedTitle);
         alert.setHeaderText(Messages.promptDeleteSelectedHeader);
         alert.setContentText(Messages.promptDeleteSelectedContent);
+        alert.getDialogPane().addEventFilter(KeyEvent.ANY, event -> {
+            if (event.getCode().equals(KeyCode.ENTER) || event.getCode().equals(KeyCode.SPACE)) {
+                event.consume();
+            }
+        });
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get().equals(ButtonType.OK)) {
             selectedItems.stream().forEach(treeItem -> deleteTreeItem(treeItem));
@@ -542,6 +549,11 @@ public class SaveAndRestoreWithSplitController extends BaseSaveAndRestoreControl
         alert.setTitle(Messages.promptDeleteSelectedTitle);
         alert.setHeaderText(Messages.promptDeleteSelectedHeader);
         alert.setContentText(Messages.promptDeleteSelectedContent);
+        alert.getDialogPane().addEventFilter(KeyEvent.ANY, event -> {
+            if (event.getCode().equals(KeyCode.ENTER) || event.getCode().equals(KeyCode.SPACE)) {
+                event.consume();
+            }
+        });
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get().equals(ButtonType.OK)) {
             selectedItems.stream().forEach(item -> deleteListItem(item));
