@@ -579,9 +579,6 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
             try {
                 Node newTreeNode = saveAndRestoreService
                         .createNode(parentTreeItem.getValue().getUniqueId(), newFolderNode);
-                parentTreeItem.getChildren().add(createNode(newTreeNode));
-                parentTreeItem.getChildren().sort(new TreeNodeComparator());
-                parentTreeItem.setExpanded(true);
             } catch (Exception e) {
                 Alert alert = new Alert(AlertType.ERROR);
                 alert.setTitle("Action failed");
@@ -650,9 +647,6 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
                 Node newTreeNode = saveAndRestoreService
                         .createNode(treeView.getSelectionModel().getSelectedItem().getValue().getUniqueId(), newSateSetNode);
                 TreeItem<Node> newSaveSetNode = createNode(newTreeNode);
-                parentTreeItem.getChildren().add(newSaveSetNode);
-                parentTreeItem.getChildren().sort(new TreeNodeComparator());
-                parentTreeItem.setExpanded(true);
                 nodeDoubleClicked(newSaveSetNode);
                 treeView.getSelectionModel().clearSelection();
                 treeView.getSelectionModel().select(treeView.getRow(newSaveSetNode));
