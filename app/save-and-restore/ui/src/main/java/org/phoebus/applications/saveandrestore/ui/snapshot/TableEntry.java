@@ -244,18 +244,28 @@ public class TableEntry {
         if (index == 0) {
             if (val instanceof VNumber) {
                 status.set(((VNumber) val).getAlarm().getStatus().name());
-                severity.set(((VNumber)val).getAlarm().getSeverity().name());
+                severity.set(((VNumber) val).getAlarm().getSeverity().name());
+            } else if (val instanceof VNumberArray) {
+                status.set(((VNumberArray) val).getAlarm().getStatus().name());
+                severity.set(((VNumberArray) val).getAlarm().getSeverity().name());
             } else if (val instanceof VEnum) {
                 status.set(((VEnum) val).getAlarm().getStatus().name());
                 severity.set(((VEnum) val).getAlarm().getSeverity().name());
+            } else if (val instanceof VEnumArray) {
+                status.set(((VEnumArray) val).getAlarm().getStatus().name());
+                severity.set(((VEnumArray) val).getAlarm().getSeverity().name());
             } else {
                 severity.set(AlarmSeverity.NONE.name());
                 status.set("---");
             }
             if (val instanceof VNumber) {
                 timestamp.set(((VNumber) val).getTime().getTimestamp());
+            } else if (val instanceof VNumberArray) {
+                timestamp.set(((VNumberArray) val).getTime().getTimestamp());
             } else if (val instanceof VEnum) {
                 timestamp.set(((VEnum) val).getTime().getTimestamp());
+            } else if (val instanceof VEnumArray) {
+                timestamp.set(((VEnumArray) val).getTime().getTimestamp());
             } else {
                 timestamp.set(null);
             }
@@ -329,11 +339,17 @@ public class TableEntry {
         value.set(new VTypePair(val, stored, threshold));
         liveStoredEqual.set(Utilities.areValuesEqual(val, stored, threshold));
         if (val instanceof VNumber) {
-            status.set(((VNumber)val).getAlarm().getStatus().name());
-            severity.set(((VNumber)val).getAlarm().getSeverity().name());
+            status.set(((VNumber) val).getAlarm().getStatus().name());
+            severity.set(((VNumber) val).getAlarm().getSeverity().name());
+        } else if (val instanceof VNumberArray) {
+                status.set(((VNumberArray) val).getAlarm().getStatus().name());
+                severity.set(((VNumberArray) val).getAlarm().getSeverity().name());
         } else if (val instanceof VEnum) {
             status.set(((VEnum) val).getAlarm().getStatus().name());
             severity.set(((VEnum) val).getAlarm().getSeverity().name());
+        } else if (val instanceof VEnumArray) {
+            status.set(((VEnumArray) val).getAlarm().getStatus().name());
+            severity.set(((VEnumArray) val).getAlarm().getSeverity().name());
         } else {
             severity.set(AlarmSeverity.NONE.name());
             status.set("---");

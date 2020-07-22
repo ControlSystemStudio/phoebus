@@ -18,11 +18,12 @@
 
 package org.phoebus.service.saveandrestore.persistence.dao;
 
-import java.util.List;
-
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.Tag;
+
+import java.util.List;
 
 /**
  * @author georgweiss Created 11 Mar 2019
@@ -139,4 +140,7 @@ public interface NodeDAO {
 	 */
 	public Node updateNode(Node nodeToUpdate);
 
+	public List<Tag> getAllTags();
+
+	public List<Tag> getTags(String uniqueSnapshotId);
 }

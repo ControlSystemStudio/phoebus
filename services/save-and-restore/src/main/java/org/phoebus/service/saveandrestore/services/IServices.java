@@ -22,6 +22,7 @@ import java.util.List;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.Tag;
 
 
 public interface IServices {
@@ -53,4 +54,8 @@ public interface IServices {
 	public Node getRootNode();
 	
 	public Node getParentNode(String uniqueNodeId);
+
+	public List<Tag> getTags(String uniqueSnapshotId);
+
+	public List<Tag> getAllTags();
 }

@@ -19,8 +19,8 @@ package org.phoebus.applications.saveandrestore;
 
 import javafx.fxml.FXMLLoader;
 
-import javax.swing.*;
 import java.io.IOException;
+import java.util.ResourceBundle;
 
 /**
  * Helper class used to load FXML such that the associated controller is provided
@@ -32,9 +32,14 @@ public class SpringFxmlLoader {
     private FXMLLoader loader;
 
     public Object load(String url) {
+        return load(url, null);
+    }
+
+    public Object load(String url, ResourceBundle resourceBundle) {
         try {
             loader = new FXMLLoader();
             loader.setLocation(SpringFxmlLoader.class.getResource(url));
+            loader.setResources(resourceBundle);
             loader.setControllerFactory(clazz -> ApplicationContextProvider.getApplicationContext().getBean(clazz));
             return loader.load();
         } catch (IOException ioException) {

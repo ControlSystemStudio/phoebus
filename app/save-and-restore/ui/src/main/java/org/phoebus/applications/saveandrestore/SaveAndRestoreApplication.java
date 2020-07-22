@@ -21,12 +21,11 @@ package org.phoebus.applications.saveandrestore;
 
 
 import javafx.scene.Node;
-import org.phoebus.applications.saveandrestore.ui.ISaveAndRestoreController;
+import org.phoebus.applications.saveandrestore.ui.BaseSaveAndRestoreController;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
-import org.phoebus.pv.PV;
 import org.phoebus.pv.ca.JCA_Preferences;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
@@ -39,7 +38,7 @@ public class SaveAndRestoreApplication implements AppDescriptor, AppInstance {
 	
 	public static final String NAME = "Save And Restore";
 	private AnnotationConfigApplicationContext context;
-	private ISaveAndRestoreController controller;
+	private BaseSaveAndRestoreController controller;
 
 	@Override
 	public String getName() {
@@ -72,6 +71,8 @@ public class SaveAndRestoreApplication implements AppDescriptor, AppInstance {
 		}
 
 		controller = springFxmlLoader.getLoader().getController();
+
+		tab.setOnCloseRequest(event -> controller.closeTagSearchWindow());
 
 		DockPane.getActiveDockPane().addTab(tab);
 		try {

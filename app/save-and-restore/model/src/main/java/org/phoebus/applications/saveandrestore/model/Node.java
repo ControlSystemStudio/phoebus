@@ -18,8 +18,10 @@
 
 package org.phoebus.applications.saveandrestore.model;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -61,6 +63,7 @@ public class Node implements Comparable<Node>{
 	private NodeType nodeType = NodeType.FOLDER;
 	private String userName;
 	private Map<String, String> properties;
+	private List<Tag> tags;
 
 	/**
 	 * Do not change!!!
@@ -86,7 +89,26 @@ public class Node implements Comparable<Node>{
 		}
 		return properties.get(key);
 	}
-	
+
+	public void addTag(Tag tag) {
+	    if (tags == null) {
+	    	tags = new ArrayList<>();
+		}
+
+		if (tags.stream().noneMatch(item -> item.getName().equals(tag.getName()))) {
+			tags.add(tag);
+		}
+	}
+
+	public void removeTag(Tag tag) {
+		if (tags != null) {
+			tags.stream()
+					.filter(item -> item.getName().equals(tag.getName()))
+					.findFirst()
+					.ifPresent(item -> tags.remove(item));
+		}
+	}
+
 	@Override
 	public boolean equals(Object other) {
 		if(other == null) {

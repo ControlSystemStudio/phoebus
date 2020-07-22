@@ -1,3 +1,24 @@
+/**
+ * Copyright (C) 2020 Facility for Rare Isotope Beams
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Contact Information: Facility for Rare Isotope Beam,
+ *                      Michigan State University,
+ *                      East Lansing, MI 48824-1321
+ *                      http://frib.msu.edu
+ */
 package org.phoebus.applications.saveandrestore.ui.saveset;
 
 import javafx.beans.property.SimpleBooleanProperty;
@@ -9,12 +30,20 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.phoebus.applications.saveandrestore.ApplicationContextProvider;
+import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.SpringFxmlLoader;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -28,8 +57,20 @@ import java.text.NumberFormat;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.logging.Logger;
+
+/**
+ * Interface with ChannelFinder or {@link ProcessVariable} class in clipboard
+ * providing an convenient way to create a saveset with many PVs.
+ *
+ * @author <a href="mailto:changj@frib.msu.edu">Genie Jhang</a>
+ */
 
 public class SaveSetFromSelectionController implements Initializable {
 
@@ -102,7 +143,8 @@ public class SaveSetFromSelectionController implements Initializable {
                         saveSetName.setEditable(false);
                         description.setEditable(true);
 
-                        createLocationText(saveAndRestoreService.getParentNode(newNode.getUniqueId()));
+                        Node parentNode = saveAndRestoreService.getParentNode(newNode.getUniqueId());
+                        locationTextField.setText(DirectoryUtilities.CreateLocationString(parentNode, false));
                     } else {
                         saveSetName.setText("");
                         description.setText("");
@@ -110,7 +152,7 @@ public class SaveSetFromSelectionController implements Initializable {
                         saveSetName.setEditable(true);
                         description.setEditable(true);
 
-                        createLocationText(newNode);
+                        locationTextField.setText(DirectoryUtilities.CreateLocationString(newNode, false));
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -195,36 +237,6 @@ public class SaveSetFromSelectionController implements Initializable {
         });
 
         numSelected.addListener((observableValue, number, newValue) -> numSelectedLabel.setText(NumberFormat.getIntegerInstance().format(newValue)));
-    }
-
-    private void createLocationText(Node node) {
-        String labelText = node.getName();
-
-        while (true) {
-            try {
-                Node parentNode = saveAndRestoreService.getParentNode(node.getUniqueId());
-
-                if (parentNode.getName().equals("Root folder")) {
-                    break;
-                }
-
-                labelText = parentNode.getName() + " ▶ " + labelText;
-                node = parentNode;
-            } catch (Exception e) {
-                String alertMessage = "Cannot retrieve the parent node of node: " + node.getName() + "(" + node.getUniqueId() + ")";
-
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setContentText(alertMessage);
-                alert.show();
-
-                LOGGER.severe(alertMessage);
-
-                e.printStackTrace();
-                break;
-            }
-        }
-
-        locationTextField.setText(labelText);
     }
 
     public void setSelection(List<ProcessVariable> pvList) {
