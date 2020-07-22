@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 
-<GridPane alignment="CENTER" hgap="5.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="800.0" vgap="5.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.TagSearchController">
+<GridPane alignment="CENTER" hgap="5.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="950.0" vgap="5.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.TagSearchController">
   <columnConstraints>
     <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
     <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" />
@@ -24,8 +24,8 @@
       <TableView fx:id="resultTableView" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="1">
         <columns>
           <TableColumn fx:id="tagNameColumn" editable="false" minWidth="75.0" prefWidth="75.0" text="%tagSearchTableNameColumn" />
-          <TableColumn fx:id="commentColumn" editable="false" minWidth="310.0" prefWidth="310.0" text="%tagSearchTableCommentColumn" />
-            <TableColumn fx:id="createdColumn" editable="false" minWidth="150.0" prefWidth="150.0" text="%tagSearchTableCreatedColumn" />
+          <TableColumn fx:id="commentColumn" editable="false" minWidth="475.0" prefWidth="475.0" text="%tagSearchTableCommentColumn" />
+            <TableColumn fx:id="createdColumn" editable="false" minWidth="200.0" prefWidth="200.0" text="%tagSearchTableCreatedColumn" />
             <TableColumn fx:id="creatorColumn" editable="false" minWidth="100.0" prefWidth="100.0" text="%tagSearchTableCreatorColumn" />
         </columns>
          <columnResizePolicy>
