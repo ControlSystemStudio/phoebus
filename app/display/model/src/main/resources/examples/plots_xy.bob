@@ -26,6 +26,14 @@ one for the "X" and one for the "Y" axis.</text>
     <y>91</y>
     <width>511</width>
     <height>340</height>
+    <rules>
+      <rule name="Interactive" prop_id="marker[0].interactive" out_exp="false">
+        <exp bool_exp="pv0&lt;1">
+          <value>false</value>
+        </exp>
+        <pv_name>loc://interactive(1)</pv_name>
+      </rule>
+    </rules>
     <traces>
       <trace>
         <name></name>
@@ -39,8 +47,10 @@ one for the "X" and one for the "Y" axis.</text>
           </color>
         </color>
         <line_width>3</line_width>
+        <line_style>0</line_style>
         <point_type>0</point_type>
         <point_size>10</point_size>
+        <visible>true</visible>
       </trace>
       <trace>
         <name></name>
@@ -54,8 +64,10 @@ one for the "X" and one for the "Y" axis.</text>
           </color>
         </color>
         <line_width>1</line_width>
+        <line_style>0</line_style>
         <point_type>2</point_type>
         <point_size>5</point_size>
+        <visible>true</visible>
       </trace>
     </traces>
     <marker>
@@ -317,6 +329,7 @@ pvs[1].write(err)
     <x_axis>
       <title>X</title>
       <autoscale>false</autoscale>
+      <log_scale>false</log_scale>
       <minimum>0.0</minimum>
       <maximum>10.0</maximum>
       <show_grid>false</show_grid>
@@ -328,6 +341,7 @@ pvs[1].write(err)
         <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
         </font>
       </scale_font>
+      <visible>true</visible>
     </x_axis>
     <y_axes>
       <y_axis>
@@ -361,8 +375,10 @@ pvs[1].write(err)
           </color>
         </color>
         <line_width>3</line_width>
+        <line_style>0</line_style>
         <point_type>2</point_type>
         <point_size>10</point_size>
+        <visible>true</visible>
       </trace>
       <trace>
         <name>Demo</name>
@@ -376,8 +392,10 @@ pvs[1].write(err)
           </color>
         </color>
         <line_width>1</line_width>
+        <line_style>0</line_style>
         <point_type>0</point_type>
         <point_size>10</point_size>
+        <visible>true</visible>
       </trace>
     </traces>
   </widget>
@@ -474,6 +492,7 @@ plot.setPropertyValue("y_axes[0].autoscale", True)
     <x_axis>
       <title>X</title>
       <autoscale>false</autoscale>
+      <log_scale>false</log_scale>
       <minimum>-2.0</minimum>
       <maximum>22.0</maximum>
       <show_grid>false</show_grid>
@@ -485,6 +504,7 @@ plot.setPropertyValue("y_axes[0].autoscale", True)
         <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
         </font>
       </scale_font>
+      <visible>true</visible>
     </x_axis>
     <y_axes>
       <y_axis>
@@ -518,8 +538,10 @@ plot.setPropertyValue("y_axes[0].autoscale", True)
           </color>
         </color>
         <line_width>0</line_width>
+        <line_style>0</line_style>
         <point_type>0</point_type>
         <point_size>10</point_size>
+        <visible>true</visible>
       </trace>
       <trace>
         <name>Bars</name>
@@ -533,8 +555,10 @@ plot.setPropertyValue("y_axes[0].autoscale", True)
           </color>
         </color>
         <line_width>5</line_width>
+        <line_style>0</line_style>
         <point_type>0</point_type>
         <point_size>10</point_size>
+        <visible>true</visible>
       </trace>
     </traces>
   </widget>
@@ -576,11 +600,11 @@ For a "Line Width" of zero, the bar graph turns into a histogram-type display wi
   <widget type="label" version="2.0.0">
     <name>Label_31</name>
     <class>COMMENT</class>
-    <text>(Can also move marker with mouse)</text>
-    <x>300</x>
-    <y>461</y>
-    <width>250</width>
-    <height>30</height>
+    <text>(Can also move marker with mouse when 'interactive')</text>
+    <x>410</x>
+    <y>500</y>
+    <width>140</width>
+    <height>60</height>
     <font use_class="true">
       <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
       </font>
@@ -591,5 +615,12 @@ For a "Line Width" of zero, the bar graph turns into a histogram-type display wi
     </foreground_color>
     <transparent use_class="true">true</transparent>
     <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="checkbox" version="2.0.0">
+    <name>Check Box</name>
+    <pv_name>loc://interactive(1)</pv_name>
+    <label>  Interactive</label>
+    <x>380</x>
+    <y>470</y>
   </widget>
 </display>
