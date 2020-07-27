@@ -219,9 +219,9 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
         final boolean save_bitRev = bitReverse;
 
         final int [] colorIndices = new int [nBits];
-        final int number = VTypeUtil.getValueNumber(value).intValue();
+        final long number = Integer.toUnsignedLong(VTypeUtil.getValueNumber(value).intValue());
         for (int i = 0; i < nBits; i++)
-            colorIndices[ save_bitRev ? i : nBits-1-i] = number & (1 << (sBit+i));
+            colorIndices[ save_bitRev ? i : nBits-1-i] = (number & (1L << (sBit+i))) == 0 ? 0 : 1;
         return colorIndices;
     }
 
@@ -354,10 +354,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
         final Color[] new_colorVals = new Color[value_indices.length];
         final Color[] save_colors = colors;
         for (int i = 0; i < value_indices.length; i++)
-        {
-            value_indices[i] = value_indices[i] <= 0 ? 0 : 1;
             new_colorVals[i] = save_colors[value_indices[i]];
-        }
         value_colors = new_colorVals;
 
         dirty_content.mark();
