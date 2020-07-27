@@ -29,47 +29,78 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.CustomMenuItem;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.Tooltip;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.stage.Modality;
+import javafx.util.Pair;
+import org.phoebus.applications.saveandrestore.ApplicationContextProvider;
+import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.data.DataProvider;
-import org.phoebus.applications.saveandrestore.data.NodeAddedListener;
-import org.phoebus.applications.saveandrestore.data.NodeChangedListener;
+import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetTab;
+import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotNewTagDialog;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
+import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
+import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
 import org.phoebus.framework.persistence.Memento;
-import org.phoebus.ui.docking.DockStage;
+import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.ui.javafx.ImageCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.NodeType;
 
 import java.io.IOException;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.ResourceBundle;
+import java.util.Stack;
 import java.util.concurrent.Executor;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
-public class SaveAndRestoreController implements Initializable, NodeChangedListener, NodeAddedListener, ISaveAndRestoreController {
+public class SaveAndRestoreController extends BaseSaveAndRestoreController {
 
     private static Executor UI_EXECUTOR = Platform::runLater;
 
-    public static final Image folderIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/folder.png");
-    public static final Image saveSetIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/saveset.png");
-    public static final Image editSaveSetIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/edit_saveset.png");
-    public static final Image deleteIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/delete.png");
-    public static final Image renameIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/rename_col.png");
-    public static final Image snapshotIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot.png");
-    public static final Image snapshotGoldenIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-golden.png");
-    public static final Image compareSnapshotIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/compare.png");
+    public static final Image folderIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/save-and-restore/folder.png");
+    public static final Image saveSetIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/save-and-restore/saveset.png");
+    public static final Image editSaveSetIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/save-and-restore/edit_saveset.png");
+    public static final Image deleteIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/delete.png");
+    public static final Image renameIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/rename_col.png");
+    public static final Image snapshotIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/save-and-restore/snapshot.png");
+    public static final Image snapshotGoldenIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/save-and-restore/snapshot-golden.png");
+    public static final Image compareSnapshotIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/save-and-restore/compare.png");
+    public static final Image snapshotTagsWithCommentIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/save-and-restore/snapshot-tags.png");
 
     @FXML
     private TreeView<Node> treeView;
@@ -82,6 +113,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     @FXML
     private Button reconnectButton;
+
+    @FXML
+    private Button tagSearchButton;
 
     @FXML
     private Label emptyTreeInstruction;
@@ -115,11 +149,22 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     private static final Logger LOG = LoggerFactory.getLogger(SaveAndRestoreService.class.getName());
 
+    private PreferencesReader preferencesReader;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        preferencesReader = (PreferencesReader) ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().getBean("preferencesReader");
 
-        reconnectButton.setGraphic(ImageCache.getImageView(SaveAndRestoreController.class, "/icons/refresh.png"));
+        reconnectButton.setGraphic(ImageCache.getImageView(BaseSaveAndRestoreController.class, "/icons/refresh.png"));
         reconnectButton.setTooltip(new Tooltip(Messages.buttonRefresh));
+
+        ImageView tagSearchButtonImageView = ImageCache.getImageView(BaseSaveAndRestoreController.class, "/icons/tagSearch.png");
+        tagSearchButtonImageView.setFitWidth(16);
+        tagSearchButtonImageView.setFitHeight(16);
+
+        tagSearchButton.setGraphic(tagSearchButtonImageView);
+        tagSearchButton.setTooltip(new Tooltip(Messages.buttonTagSearch));
+
         emptyTreeInstruction.textProperty().setValue(Messages.labelCreateFolderEmptyTree);
 
 
@@ -202,7 +247,81 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             treeView.getSelectionModel().getSelectedItem().setValue(node);
         });
 
-        snapshotContextMenu.getItems().addAll(renameSnapshotItem, deleteSnapshotMenuItem, compareSaveSetMenuItem, tagAsGolden);
+        ImageView snapshotTagsWithCommentIconImage = new ImageView(snapshotTagsWithCommentIcon);
+        snapshotTagsWithCommentIconImage.setFitHeight(22);
+        snapshotTagsWithCommentIconImage.setFitWidth(22);
+        Menu tagWithComment = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
+        tagWithComment.setOnShowing(event -> {
+            Node node = treeView.getSelectionModel().getSelectedItem().getValue();
+
+            ObservableList<MenuItem> tagList = tagWithComment.getItems();
+
+            while (tagList.size() > 2) {
+                tagList.remove(tagList.size() - 1);
+            }
+
+            if (node.getTags().isEmpty()) {
+                CustomMenuItem noTags = TagWidget.NoTagMenuItem();
+                noTags.setDisable(true);
+                tagList.add(noTags);
+            } else {
+                node.getTags().sort(new TagComparator());
+                node.getTags().stream().forEach(tag -> {
+                    CustomMenuItem tagItem = TagWidget.TagWithCommentMenuItem(tag);
+
+                    tagItem.setOnAction(actionEvent -> {
+                        Alert confirmation = new Alert(AlertType.CONFIRMATION);
+                        confirmation.setTitle(Messages.tagRemoveConfirmationTitle);
+                        String locationString = DirectoryUtilities.CreateLocationString(node, true);
+                        javafx.scene.Node headerNode = TagUtil.CreateRemoveHeader(locationString, node.getName(), tag);
+                        confirmation.getDialogPane().setHeader(headerNode);
+                        confirmation.setContentText(Messages.tagRemoveConfirmationContent);
+
+                        Optional<ButtonType> result = confirmation.showAndWait();
+                        result.ifPresent(buttonType -> {
+                            if (buttonType == ButtonType.OK) {
+                                try {
+                                    saveAndRestoreService.removeTagFromSnapshot(node, tag);
+                                } catch (Exception e) {
+
+                                }
+                            }
+                        });
+                    });
+                    tagList.add(tagItem);
+                });
+            }
+        });
+
+        CustomMenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
+        addTagWithCommentMenuItem.setOnAction(action -> {
+            Node selectedNode = treeView.getSelectionModel().getSelectedItem().getValue();
+            SnapshotNewTagDialog snapshotNewTagDialog = new SnapshotNewTagDialog(selectedNode.getTags());
+            snapshotNewTagDialog.initModality(Modality.APPLICATION_MODAL);
+
+            String locationString = DirectoryUtilities.CreateLocationString(selectedNode, true);
+            snapshotNewTagDialog.getDialogPane().setHeader(TagUtil.CreateAddHeader(locationString, selectedNode.getName()));
+
+            Optional<Pair<String, String>> result = snapshotNewTagDialog.showAndWait();
+            result.ifPresent(items -> {
+                Tag aNewTag = Tag.builder()
+                        .snapshotId(selectedNode.getUniqueId())
+                        .name(items.getKey())
+                        .comment(items.getValue())
+                        .userName(System.getProperty("user.name"))
+                        .build();
+
+                try {
+                    saveAndRestoreService.addTagToSnapshot(selectedNode, aNewTag);
+                } catch (Exception e) {
+
+                }
+            });
+        });
+
+        tagWithComment.getItems().addAll(addTagWithCommentMenuItem, new SeparatorMenuItem());
+
+        snapshotContextMenu.getItems().addAll(renameSnapshotItem, deleteSnapshotMenuItem, compareSaveSetMenuItem, tagAsGolden, tagWithComment);
 
         treeView.setEditable(true);
 
@@ -269,6 +388,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                         List<Node> childNodes = saveAndRestoreService.getChildNodes(Node.builder().uniqueId(s).build());
                         if(childNodes != null) { // This may be the case if the tree structure was modified outside of the UI
                             List<TreeItem<Node>> childItems = childNodes.stream().map(n -> createNode(n)).collect(Collectors.toList());
+                            childItems.sort(new TreeNodeComparator());
                             childNodesMap.put(s, childItems);
                         }
                     });
@@ -278,6 +398,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                     List<Node> childNodes = saveAndRestoreService.getChildNodes(rootItem.getValue());
                     List<TreeItem<Node>> childItems = childNodes.stream().map(n -> createNode(n)).collect(Collectors.toList());
                     treeViewEmpty.setValue(childItems.isEmpty());
+                    childItems.sort(new TreeNodeComparator());
                     rootItem.getChildren().addAll(childItems);
                 }
 
@@ -322,9 +443,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         List<Node> childNodes = saveAndRestoreService.getChildNodes(targetItem.getValue());;
         Collections.sort(childNodes);
-        UI_EXECUTOR.execute(() -> {
-            targetItem.getChildren().addAll(childNodes.stream().map(n -> createNode(n)).collect(Collectors.toList()));
-        });
+        targetItem.getChildren().addAll(childNodes.stream().map(n -> createNode(n)).collect(Collectors.toList()));
+        targetItem.getChildren().sort(new TreeNodeComparator());
     }
 
     /**
@@ -383,6 +503,11 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         alert.setTitle(Messages.promptDeleteSelectedTitle);
         alert.setHeaderText(Messages.promptDeleteSelectedHeader);
         alert.setContentText(Messages.promptDeleteSelectedContent);
+        alert.getDialogPane().addEventFilter(KeyEvent.ANY, event -> {
+            if (event.getCode().equals(KeyCode.ENTER) || event.getCode().equals(KeyCode.SPACE)) {
+                event.consume();
+            }
+        });
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get().equals(ButtonType.OK)) {
             selectedItems.stream().forEach(treeItem -> deleteTreeItem(treeItem));
@@ -461,9 +586,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             try {
                 Node newTreeNode = saveAndRestoreService
                         .createNode(parentTreeItem.getValue().getUniqueId(), newFolderNode);
-                parentTreeItem.getChildren().add(createNode(newTreeNode));
-                parentTreeItem.getChildren().sort((a, b) -> a.getValue().getName().compareTo(b.getValue().getName()));
-                parentTreeItem.setExpanded(true);
             } catch (Exception e) {
                 Alert alert = new Alert(AlertType.ERROR);
                 alert.setTitle("Action failed");
@@ -532,10 +654,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 Node newTreeNode = saveAndRestoreService
                         .createNode(treeView.getSelectionModel().getSelectedItem().getValue().getUniqueId(), newSateSetNode);
                 TreeItem<Node> newSaveSetNode = createNode(newTreeNode);
-                parentTreeItem.getChildren().add(newSaveSetNode);
-                parentTreeItem.getChildren().sort((a, b) -> a.getValue().getName().compareTo(b.getValue().getName()));
-                parentTreeItem.setExpanded(true);
                 nodeDoubleClicked(newSaveSetNode);
+                treeView.getSelectionModel().clearSelection();
                 treeView.getSelectionModel().select(treeView.getRow(newSaveSetNode));
             } catch (Exception e) {
                 Alert alert = new Alert(AlertType.ERROR);
@@ -609,6 +729,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
         nodeSubjectToUpdate.setValue(node);
         nodeSubjectToUpdate.getParent().getChildren().sort(new TreeNodeComparator());
+        treeView.getSelectionModel().clearSelection();
         treeView.getSelectionModel().select(nodeSubjectToUpdate);
     }
 
@@ -645,6 +766,21 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     @Override
     public void restore(final Memento memento){
         memento.getNumber("POS").ifPresent(pos -> splitPane.setDividerPositions(pos.doubleValue()));
+    }
+
+    @Override
+    public void locateNode(Stack<Node> nodeStack) {
+        TreeItem<Node> parentTreeItem = treeView.getRoot();
+
+        while (nodeStack.size() > 0) {
+            Node currentNode = nodeStack.pop();
+            TreeItem<Node> currentTreeItem = recursiveSearch(currentNode.getUniqueId(), parentTreeItem);
+            currentTreeItem.setExpanded(true);
+            parentTreeItem = currentTreeItem;
+        }
+
+        treeView.getSelectionModel().clearSelection();
+        treeView.getSelectionModel().select(parentTreeItem);
     }
 
     private void saveTreeState(){
@@ -695,6 +831,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         if(allItems.containsKey(parentItem.getValue().getUniqueId())){
             List<TreeItem<Node>> childItems = allItems.get(parentItem.getValue().getUniqueId());
             parentItem.getChildren().setAll(childItems);
+            parentItem.getChildren().sort(new TreeNodeComparator());
             childItems.stream().forEach(ci -> setChildItems(allItems, ci));
         }
     }
@@ -711,7 +848,18 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     private class TreeNodeComparator implements Comparator<TreeItem<Node>>{
         @Override
         public int compare(TreeItem<Node> t1, TreeItem<Node> t2){
+            if (t1.getValue().getNodeType().equals(NodeType.SNAPSHOT) && t2.getValue().getNodeType().equals(NodeType.SNAPSHOT)) {
+                return (preferencesReader.getBoolean("sortSnapshotsTimeReversed") ? -1 : 1)*t1.getValue().getCreated().compareTo(t2.getValue().getCreated());
+            }
+
             return t1.getValue().compareTo(t2.getValue());
+        }
+    }
+
+    private class TagComparator implements Comparator<Tag> {
+        @Override
+        public int compare(Tag tag1, Tag tag2){
+            return -tag1.getCreated().compareTo(tag2.getCreated());
         }
     }
 }

@@ -38,6 +38,7 @@ import org.flywaydb.test.annotation.FlywayTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.phoebus.applications.saveandrestore.model.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.test.context.ContextConfiguration;
@@ -56,9 +57,7 @@ import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.service.saveandrestore.persistence.config.PersistenceConfiguration;
 import org.phoebus.service.saveandrestore.persistence.config.PersistenceTestConfig;
-import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.services.exception.NodeNotFoundException;
-import org.phoebus.service.saveandrestore.services.exception.SnapshotNotFoundException;
 
 import static org.junit.Assert.*;
 
@@ -473,6 +472,41 @@ public class DAOTest {
 		newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "name2", "comment", "user");
 		snapshotItems = nodeDAO.getSnapshotItems(newSnapshot.getUniqueId());
 		assertTrue(snapshotItems.isEmpty());
+	}
+
+	@Test
+	@FlywayTest(invokeCleanDB = true)
+	public void testSnapshotTag() {
+		Node rootNode = nodeDAO.getRootNode();
+		Node folderNode = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().name("testFolder").nodeType(NodeType.FOLDER).build());
+		Node savesetNode = nodeDAO.createNode(folderNode.getUniqueId(), Node.builder().name("testSaveset").nodeType(NodeType.CONFIGURATION).build());
+		Node snapshot = nodeDAO.createNode(savesetNode.getUniqueId(), Node.builder().name("testSnapshot").nodeType(NodeType.SNAPSHOT).build());
+
+		Tag tag = Tag.builder().snapshotId(snapshot.getUniqueId()).name("tag1").comment("comment1").userName("testUser1").build();
+		snapshot.addTag(tag);
+
+		snapshot = nodeDAO.updateNode(snapshot);
+		assertEquals(1, snapshot.getTags().size());
+		assertEquals(snapshot.getUniqueId(), snapshot.getTags().get(0).getSnapshotId());
+		assertEquals("tag1", snapshot.getTags().get(0).getName());
+		assertEquals("comment1", snapshot.getTags().get(0).getComment());
+		assertEquals("testUser1", snapshot.getTags().get(0).getUserName());
+
+		// Adding the same named tag doesn't affect anything.
+		tag = Tag.builder().name("tag1").comment("comment2").userName("testUser2").build();
+		snapshot.addTag(tag);
+
+		snapshot = nodeDAO.updateNode(snapshot);
+		assertEquals(1, snapshot.getTags().size());
+		assertEquals(snapshot.getUniqueId(), snapshot.getTags().get(0).getSnapshotId());
+		assertEquals("tag1", snapshot.getTags().get(0).getName());
+		assertEquals("comment1", snapshot.getTags().get(0).getComment());
+		assertEquals("testUser1", snapshot.getTags().get(0).getUserName());
+
+		snapshot.removeTag(tag);
+
+		snapshot = nodeDAO.updateNode(snapshot);
+		assertEquals(0, snapshot.getTags().size());
 	}
 
 	@Test

@@ -19,16 +19,38 @@
  *                      East Lansing, MI 48824-1321
  *                      http://frib.msu.edu
  */
-package org.phoebus.applications.saveandrestore.ui.snapshot.hierarchyparser;
-
-import java.util.List;
+package org.phoebus.applications.saveandrestore.model;
 
 /**
- * An interface for hierarchy parses
- *
- *  @author Genie Jhang <changj@frib.msu.edu>
+ * @author <a href="mailto:changj@frib.msu.edu">Genie Jhang</a>
  */
 
-public interface IHierarchyParser {
-    List<String> parse(String pvName);
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+import java.util.Date;
+
+@Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Tag implements Comparable<Tag> {
+    private String snapshotId;
+    private String name;
+    private String comment;
+    private Date created;
+    private String userName;
+
+    @Override
+    public int compareTo(Tag otherTag) {
+        return name.equals(otherTag.getName()) ? 1 : 0;
+    }
 }

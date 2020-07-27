@@ -19,16 +19,36 @@
  *                      East Lansing, MI 48824-1321
  *                      http://frib.msu.edu
  */
-package org.phoebus.applications.saveandrestore.ui.snapshot.hierarchyparser;
+package org.phoebus.service.saveandrestore.web.controllers;
+
+import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.service.saveandrestore.services.IServices;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 /**
- * An interface for hierarchy parses
+ * {@link TagController} class for supporting RESTful APIs for tag
  *
- *  @author Genie Jhang <changj@frib.msu.edu>
+ * @author <a href="mailto:changj@frib.msu.edu">Genie Jhang</a>
  */
 
-public interface IHierarchyParser {
-    List<String> parse(String pvName);
+@RestController
+public class TagController extends BaseController {
+
+    @Autowired
+    private IServices services;
+
+    @GetMapping("/tags")
+    public List<Tag> getTags() {
+        return services.getAllTags();
+    }
+
+    @GetMapping("/tag/{snapshotUniqueId}")
+    public List<Tag> getTag(@PathVariable String snapshotUniqueId) {
+        return services.getTags(snapshotUniqueId);
+    }
 }

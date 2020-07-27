@@ -27,6 +27,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
+import javafx.scene.control.TreeTableRow;
 import javafx.scene.control.TreeTableView;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import javafx.scene.image.Image;
@@ -50,6 +51,7 @@ import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.ApplicationContextProvider;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.Utilities;
 import org.phoebus.applications.saveandrestore.ui.MultitypeTreeTableCell;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
@@ -58,7 +60,10 @@ import org.phoebus.applications.saveandrestore.ui.model.VNoData;
 import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
 import org.phoebus.applications.saveandrestore.ui.model.VTypePair;
 import org.phoebus.applications.saveandrestore.ui.snapshot.hierarchyparser.IHierarchyParser;
+import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.lang.reflect.Field;
@@ -71,6 +76,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
@@ -653,6 +659,30 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
             // Somehow JavaFX TableView handles SPACE pressed event as going into edit mode of the cell.
             // Consuming event prevents NullPointerException.
             event.consume();
+        });
+
+        setRowFactory(tableView -> new TreeTableRow<>() {
+            final ContextMenu contextMenu= new ContextMenu();
+
+            @Override
+            protected void updateItem(TreeTableEntry item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item == null || item.folder || empty) {
+                    setOnContextMenuRequested(null);
+                } else {
+                    setOnContextMenuRequested(event -> {
+                        List<ProcessVariable> selectedPVList = getSelectionModel().getSelectedItems().stream()
+                                .map(treeTableEntry -> new ProcessVariable(treeTableEntry.getValue().pvNameProperty().get()))
+                                .collect(Collectors.toList());
+
+                        contextMenu.hide();
+                        contextMenu.getItems().clear();
+                        SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME, selectedPVList);
+                        ContextMenuHelper.addSupportedEntries(this, contextMenu);
+                        contextMenu.show(this, event.getScreenX(), event.getScreenY());
+                    });
+                }
+            }
         });
     }
 

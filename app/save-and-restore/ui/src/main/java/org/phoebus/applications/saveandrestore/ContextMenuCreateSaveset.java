@@ -1,3 +1,24 @@
+/**
+ * Copyright (C) 2020 Facility for Rare Isotope Beams
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Contact Information: Facility for Rare Isotope Beam,
+ *                      Michigan State University,
+ *                      East Lansing, MI 48824-1321
+ *                      http://frib.msu.edu
+ */
 package org.phoebus.applications.saveandrestore;
 
 import javafx.scene.Parent;
@@ -11,7 +32,6 @@ import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetFromSelectionController;
 import org.phoebus.core.types.ProcessVariable;
-import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.javafx.ImageCache;
@@ -85,7 +105,6 @@ public class ContextMenuCreateSaveset implements ContextMenuEntry
             Stage dialog = new Stage();
             dialog.setTitle(getName());
             dialog.initModality(Modality.WINDOW_MODAL);
-            PreferencesReader preferencesReader = (PreferencesReader) ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().getBean("preferencesReader");
             dialog.setScene(new Scene((Parent) springFxmlLoader.load("ui/saveset/SaveSetFromSelection.fxml")));
 
             final SaveSetFromSelectionController controller = springFxmlLoader.getLoader().getController();
