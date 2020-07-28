@@ -35,8 +35,12 @@ public class Messages
     public static String DisplayApplicationMissingRight;
     public static String DisplayApplicationName;
     public static String Distribute;
+    public static String DistributeGapTitle;
+    public static String DistributeGapMessage;
     public static String DistributeHorizontally;
     public static String DistributeVertically;
+    public static String DistributeHorizontallyGap;
+    public static String DistributeVerticallyGap;
     public static String Duplicate;
     public static String DownloadPromptFMT;
     public static String DownloadTitle;
