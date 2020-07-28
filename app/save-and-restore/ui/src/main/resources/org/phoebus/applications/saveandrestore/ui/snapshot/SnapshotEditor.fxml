@@ -34,7 +34,7 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
     </ToolBar>
     <GridPane maxWidth="1.7976931348623157E308" prefHeight="102.0">
       <columnConstraints>
-        <ColumnConstraints hgrow="NEVER" maxWidth="151.0" minWidth="10.0" prefWidth="111.0" />
+        <ColumnConstraints hgrow="NEVER" maxWidth="151.0" minWidth="10.0" prefWidth="130.0" />
         <ColumnConstraints hgrow="ALWAYS" maxWidth="311.0" minWidth="10.0" prefWidth="265.0" />
           <ColumnConstraints hgrow="NEVER" />
           <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="159.0" prefWidth="288.0" />

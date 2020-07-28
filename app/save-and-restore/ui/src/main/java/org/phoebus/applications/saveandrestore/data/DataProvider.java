@@ -23,6 +23,7 @@ import java.util.List;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.Tag;
 
 public interface DataProvider {
 
@@ -49,5 +50,6 @@ public interface DataProvider {
 	public List<SnapshotItem> getSnapshotItems(String snapshotUniqueId);
 
 	public Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment);
-	
+
+	public List<Tag> getAllTags();
 }

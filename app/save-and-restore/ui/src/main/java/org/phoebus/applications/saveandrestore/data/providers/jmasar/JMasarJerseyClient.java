@@ -191,4 +191,10 @@ public class JMasarJerseyClient implements JMasarClient{
 
         return response.getEntity(Node.class);
     }
+
+    @Override
+    public List<Tag> getAllTags() {
+        ClientResponse response = getCall("/tags");
+        return response.getEntity(new GenericType<List<Tag>>(){});
+    }
 }

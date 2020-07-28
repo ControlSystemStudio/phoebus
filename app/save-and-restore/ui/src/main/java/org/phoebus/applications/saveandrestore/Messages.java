@@ -39,6 +39,10 @@ public class Messages {
     public static String contextMenuCompareSnapshots;
     public static String contextMenuTagAsGolden;
     public static String contextMenuRemoveGoldenTag;
+    public static String contextMenuTagsWithComment;
+    public static String contextMenuAddTagWithComment;
+    public static String contextMenuRemoveTagWithComment;
+    public static String contextMenuNoTagWithComment;
     public static String errorActionFailed;
     public static String jmasarServiceUnavailable;
     public static String deletionNotAllowedHeader;
@@ -71,6 +75,20 @@ public class Messages {
     public static String toolTipMultiplierSpinner;
     public static String saveSnapshotErrorContent;
     public static String snapshotModifiedText;
+    public static String saveTagButtonLabel;
+    public static String tagNameLabel;
+    public static String tagCommentLabel;
+    public static String createNewTagDialogTitle;
+    public static String tagRemoveConfirmationTitle;
+    public static String tagRemoveConfirmationContent;
+    public static String buttonTagSearch;
+    public static String tagSearchWindowLabel;
+    public static String tagSearchKeywordLabel;
+    public static String tagSearchTableNameColumn;
+    public static String tagSearchTableCommentColumn;
+    public static String tagSearchTableCreatedColumn;
+    public static String tagSearchTableCreatorColumn;
+    public static String tagSearchEntryToolTip;
 
     static
     {

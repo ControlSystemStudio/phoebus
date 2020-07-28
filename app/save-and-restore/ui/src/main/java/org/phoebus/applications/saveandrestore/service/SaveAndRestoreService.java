@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.Tag;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -104,6 +105,7 @@ public class SaveAndRestoreService {
     public Node createNode(String parentsUniqueId, Node newTreeNode) throws Exception {
         Future<Node> future = executor.submit(() -> dataProvider.createNode(parentsUniqueId, newTreeNode));
 
+        notifyNodeAddedListeners(getNode(parentsUniqueId), newTreeNode);
         return future.get();
     }
 
@@ -159,6 +161,29 @@ public class SaveAndRestoreService {
         return updatedNode;
     }
 
+    public Node addTagToSnapshot(final Node node, final Tag tag) throws Exception {
+        Future<Node> future = executor.submit(() -> {
+            node.addTag(tag);
+            return dataProvider.updateNode(node);
+        });
+
+        Node updatedNode = future.get();
+        notifyNodeChangeListeners(updatedNode);
+        return updatedNode;
+    }
+
+    public Node removeTagFromSnapshot(final Node node, final Tag tag) throws Exception {
+        Future<Node> future = executor.submit(() -> {
+            node.removeTag(tag);
+
+            return dataProvider.updateNode(node);
+        });
+
+        Node updatedNode = future.get();
+        notifyNodeChangeListeners(updatedNode);
+        return updatedNode;
+    }
+
     public Node saveSnapshot(Node saveSetNode, List<SnapshotItem> snapshotItems, String snapshotName, String comment) throws Exception {
         // Some beautifying is needed to ensure successful serialization.
         List<SnapshotItem> beautifiedItems = snapshotItems.stream().map(snapshotItem -> {
@@ -175,6 +200,12 @@ public class SaveAndRestoreService {
         Node savedSnapshot = future.get();
         notifyNodeAddedListeners(saveSetNode, savedSnapshot);
         return savedSnapshot;
+    }
+
+    public List<Tag> getAllTags() throws Exception {
+        Future<List<Tag>> future = executor.submit(() -> dataProvider.getAllTags());
+
+        return future.get();
     }
 
     public void addNodeChangeListener(NodeChangedListener nodeChangeListener){
