@@ -257,7 +257,9 @@ public class DisplayEditor
 
         final MenuButton dist = new MenuButton(null, null,
             createMenuItem(ActionDescription.DIST_HORIZ),
-            createMenuItem(ActionDescription.DIST_VERT));
+            createMenuItem(ActionDescription.DIST_VERT),
+            createMenuItem(ActionDescription.DIST_HORIZ_GAP),
+            createMenuItem(ActionDescription.DIST_VERT_GAP));
         dist.setTooltip(new Tooltip(Messages.Distribute));
 
         // Use the first item as the icon for the drop-down...

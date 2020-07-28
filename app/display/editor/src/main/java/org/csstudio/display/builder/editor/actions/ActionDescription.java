@@ -12,14 +12,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 import org.csstudio.display.builder.editor.DisplayEditor;
 import org.csstudio.display.builder.editor.Messages;
+import org.csstudio.display.builder.editor.app.DisplayEditorInstance;
 import org.csstudio.display.builder.editor.undo.SetWidgetPropertyAction;
 import org.csstudio.display.builder.editor.undo.UpdateWidgetOrderAction;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.NumericInputDialog;
 import org.phoebus.ui.javafx.PlatformInfo;
 import org.phoebus.ui.undo.CompoundUndoableAction;
 import org.phoebus.ui.undo.UndoableActionManager;
@@ -539,7 +544,7 @@ public abstract class ActionDescription
         }
     };
 
-    /** Distribute widgets horizontally */
+    /** Distribute widgets vertically */
     public static final ActionDescription DIST_VERT =
         new ActionDescription("icons/distribute_vc.png", Messages.DistributeVertically)
     {
@@ -662,6 +667,126 @@ public abstract class ActionDescription
                     height = widget.propHeight().getValue();
                     undo.execute(new SetWidgetPropertyAction<>(widget.propY(), ( topCenter + i * coffset ) - height / 2));
                 }
+            }
+        }
+    };
+
+    private static final String DISTRIBUTION_VGAP = "distribution_vgap";
+    private static final String DISTRIBUTION_HGAP = "distribution_hgap";
+    
+    /** Distribute widgets horizontally with preset gap */
+    public static final ActionDescription DIST_HORIZ_GAP =
+        new ActionDescription("icons/distribute_hcg.png", Messages.DistributeHorizontallyGap)
+    {
+        @Override
+        public void run(final DisplayEditor editor, final boolean selected)
+        {
+            final List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
+            final UndoableActionManager undo = editor.getUndoableActionManager();
+            final int N = widgets.size();
+            final Preferences prefs = PhoebusPreferenceService.userNodeForClass(DisplayEditorInstance.class);
+
+            if (N < 3)
+                return;
+
+            int offset = prefs.getInt(DISTRIBUTION_HGAP, editor.getModel().propGridStepX().getValue());
+            
+            NumericInputDialog input = new NumericInputDialog(Messages.DistributeGapTitle, Messages.DistributeGapMessage, offset, val -> null);
+            DialogHelper.positionDialog(input, editor.getContextMenuNode(), 0, 0);
+            final double res = input.prompt();
+            if (Double.isNaN(res))
+                return;
+            offset = (int)res;
+            prefs.putInt(DISTRIBUTION_HGAP, offset);
+
+            final List<Widget> sortedWidgets = widgets.stream()
+                                                      .sorted(( w1, w2 ) ->
+            {
+                    final int w1x = w1.propX().getValue().intValue();
+                    final int w1w = w1.propWidth().getValue().intValue();
+                    final int w2x = w2.propX().getValue().intValue();
+                    final int w2w = w2.propWidth().getValue().intValue();
+                    // Description see DIST_HORIZ above
+                    if ( w1x <= w2x && w1x + w1w <= w2x + w2w )
+                        return -1;
+                    else if ( w1x >= w2x && w1x + w1w >= w2x + w2w )
+                        return 1;
+                    else
+                        return ( w1x + w1w / 2 ) - ( w2x + w2w / 2 );
+                })
+                .collect(Collectors.toList());
+
+            //  Equal gap distribution...
+            //  ------------------------------------------------------------
+            Widget widget = sortedWidgets.get(0);
+            int location = widget.propX().getValue();
+            int width = widget.propWidth().getValue();
+
+            for ( int i = 1; i < N; i++ )
+            {
+                widget = sortedWidgets.get(i);
+                location += width + offset;
+
+                undo.execute(new SetWidgetPropertyAction<>(widget.propX(), location));
+
+                width = widget.propWidth().getValue();
+            }
+        }
+    };
+
+    /** Distribute widgets vertically with preset gap*/
+    public static final ActionDescription DIST_VERT_GAP =
+        new ActionDescription("icons/distribute_vcg.png", Messages.DistributeVerticallyGap)
+    {
+        @Override
+        public void run(final DisplayEditor editor, final boolean selected)
+        {
+            final List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
+            final UndoableActionManager undo = editor.getUndoableActionManager();
+            final int N = widgets.size();
+            final Preferences prefs = PhoebusPreferenceService.userNodeForClass(DisplayEditorInstance.class);
+
+            if (N < 3)
+                return;
+
+            int offset = prefs.getInt(DISTRIBUTION_VGAP, editor.getModel().propGridStepY().getValue());
+
+            NumericInputDialog input = new NumericInputDialog(Messages.DistributeGapTitle, Messages.DistributeGapMessage, offset, val -> null);
+            DialogHelper.positionDialog(input, editor.getContextMenuNode(), 0, 0);
+            final double res = input.prompt();
+            if (Double.isNaN(res))
+                return;
+            offset = (int)res;
+            prefs.putInt(DISTRIBUTION_VGAP, offset);
+
+            final List<Widget> sortedWidgets = widgets.stream()
+                                                      .sorted(( w1, w2 ) ->
+            {
+                    final int w1y = w1.propY().getValue().intValue();
+                    final int w1h = w1.propHeight().getValue().intValue();
+                    final int w2y = w2.propY().getValue().intValue();
+                    final int w2h = w2.propHeight().getValue().intValue();
+                    // Description see DIST_VERT above
+                    if ( w1y <= w2y && w1y + w1h <= w2y + w2h )
+                        return -1;
+                    else if ( w1y >= w2y && w1y + w1h >= w2y + w2h )
+                        return 1;
+                    else
+                        return ( w1y + w1h / 2 ) - ( w2y + w2h / 2 );
+            }).collect(Collectors.toList());
+
+            //  Equal gap distribution...
+            //  ------------------------------------------------------------
+            Widget widget = sortedWidgets.get(0);
+            int location = widget.propY().getValue();
+            int height = widget.propHeight().getValue();
+
+            for ( int i = 1; i < N; i++ )
+            {
+                widget = sortedWidgets.get(i);
+                location += height + offset;
+                undo.execute(new SetWidgetPropertyAction<>(widget.propY(), location));
+                height = widget.propHeight().getValue();
             }
         }
     };
