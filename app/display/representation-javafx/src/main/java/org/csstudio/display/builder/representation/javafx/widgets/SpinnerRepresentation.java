@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.widgets.SpinnerWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.Display;
@@ -52,6 +53,7 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
     private final UntypedWidgetPropertyListener styleListener = this::styleChanged;
     private final UntypedWidgetPropertyListener behaviourListener = this::behaviorChanged;
     private final UntypedWidgetPropertyListener contentListener = this::contentChanged;
+    private final WidgetPropertyListener<String> pvNameListener = this::pvnameChanged;
 
     protected volatile String value_text = "<?>";
     protected volatile VType value = null;
@@ -352,6 +354,8 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         model_widget.propShowUnits().addUntypedPropertyListener(contentListener);
         model_widget.runtimePropValue().addUntypedPropertyListener(contentListener);
 
+        model_widget.propPVName().addPropertyListener(pvNameListener);
+
         behaviorChanged(null, null, null);
         contentChanged(null, null, null);
     }
@@ -373,6 +377,7 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         model_widget.propPrecision().removePropertyListener(contentListener);
         model_widget.propShowUnits().removePropertyListener(contentListener);
         model_widget.runtimePropValue().removePropertyListener(contentListener);
+        model_widget.propPVName().removePropertyListener(pvNameListener);
         super.unregisterListeners();
     }
 
@@ -405,6 +410,17 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         value = model_widget.runtimePropValue().getValue();
         value_text = computeText(value);
         scheduleContentUpdate();
+    }
+
+    private void pvnameChanged(final WidgetProperty<String> property, final String old_value, final String new_value)
+    {   // PV name typically changes in edit mode.
+        // -> Show new PV name.
+        // Runtime could deal with disconnect/reconnect for new PV name
+        // -> Also OK to show disconnected state until runtime
+        //    subscribes to new PV, so we eventually get values from new PV.
+        value_text = computeText(null);
+        dirty_content.mark();
+        toolkit.scheduleUpdate(this);
     }
 
     private void scheduleContentUpdate()
