@@ -122,13 +122,16 @@ public class Controller
         {
             logger.log(Level.WARNING, "No archived data for " + job.getPVItem().getDisplayName(), error);
             // Remove the problematic archive data source, but has to happen in UI thread
-            Platform.runLater(() ->  job.getPVItem().removeArchiveDataSource(archive));
+            if (Preferences.drop_failed_archives)
+                Platform.runLater(() ->  job.getPVItem().removeArchiveDataSource(archive));
         }
 
         @Override
         public void channelNotFound(final ArchiveFetchJob job, final boolean channelFoundAtLeastOnce,
                 final List<ArchiveDataSource> archivesThatFailed)
         {
+            logger.log(Level.INFO,
+                       () -> "Channel " + job.getPVItem().getResolvedDisplayName() + " not found in " + archivesThatFailed + ", removing data source.");
             // no need to reuse this source if the channel is not in it, but it has to happen in the UI thread, because
             // of the way the listeners of the pv item are implemented
             Platform.runLater(() ->  job.getPVItem().removeArchiveDataSource(archivesThatFailed));
@@ -137,7 +140,7 @@ public class Controller
             if (!channelFoundAtLeastOnce)
             {
                 logger.log(Level.INFO,
-                           "Channel " + job.getPVItem().getResolvedDisplayName() + " not found in any of the archived sources.");
+                           () -> "Channel " + job.getPVItem().getResolvedDisplayName() + " not found in any of the archived sources.");
             }
         }
     };
