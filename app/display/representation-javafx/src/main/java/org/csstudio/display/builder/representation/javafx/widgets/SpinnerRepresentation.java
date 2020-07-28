@@ -377,6 +377,7 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         model_widget.propPrecision().removePropertyListener(contentListener);
         model_widget.propShowUnits().removePropertyListener(contentListener);
         model_widget.runtimePropValue().removePropertyListener(contentListener);
+        model_widget.propPVName().removePropertyListener(pvNameListener);
         super.unregisterListeners();
     }
 
