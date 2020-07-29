@@ -194,7 +194,13 @@ public class DataBrowserInstance implements AppInstance
                 new_model.setMacros(macros);
 
                 // Load model from file in background
-                XMLPersistence.load(new_model, ResourceParser.getContent(new URI(input.getScheme() + "://" + input.getPath())));
+                // (strip 'query' from input)
+                XMLPersistence.load(new_model, ResourceParser.getContent(
+                        new URI(input.getScheme(),
+                                input.getAuthority(),
+                                input.getPath(),
+                                "",
+                                "")));
 
                 Platform.runLater(() ->
                 {
