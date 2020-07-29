@@ -14,7 +14,6 @@ import static org.csstudio.display.builder.representation.ToolkitRepresentation.
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
-import javafx.scene.input.MouseButton;
 import org.controlsfx.control.ToggleSwitch;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
@@ -29,6 +28,7 @@ import org.phoebus.ui.javafx.Styles;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -77,15 +77,14 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
         super.updateChanges();
 
         if ( dirty_size.checkAndClear() ) {
-
-            jfx_node.resize(model_widget.propWidth().getValue(), model_widget.propHeight().getValue());
-
             if ( model_widget.propAutoSize().getValue() ) {
+                jfx_node.setPrefSize(-1, -1);
                 jfx_node.autosize();
                 model_widget.propWidth().setValue((int) jfx_node.getWidth());
                 model_widget.propHeight().setValue((int) jfx_node.getHeight());
             }
-
+            else
+                jfx_node.setPrefSize(model_widget.propWidth().getValue(), model_widget.propHeight().getValue());
         }
 
         if ( dirty_style.checkAndClear() ) {
@@ -147,7 +146,7 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
         HBox hbox = new HBox(6, button, label);
         hbox.setAlignment(Pos.CENTER_RIGHT);
         return hbox;
-        
+
     }
 
     @Override
