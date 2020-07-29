@@ -144,17 +144,10 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
         label.setMaxWidth(Double.MAX_VALUE);
         label.setMnemonicParsing(false);
         HBox.setHgrow(label, Priority.ALWAYS);
-
         HBox hbox = new HBox(6, button, label);
-
         hbox.setAlignment(Pos.CENTER_RIGHT);
-
-        // This code manages layout,
-        // because otherwise for example border changes would trigger
-        // expensive Node.notifyParentOfBoundsChange() recursing up the scene graph
-        hbox.setManaged(false);
-
         return hbox;
+        
     }
 
     @Override
