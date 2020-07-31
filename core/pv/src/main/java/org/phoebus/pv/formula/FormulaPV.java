@@ -18,7 +18,9 @@ import java.util.logging.Level;
 import org.csstudio.apputil.formula.Formula;
 import org.csstudio.apputil.formula.VariableNode;
 import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
 import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.pv.PV;
@@ -60,7 +62,10 @@ public class FormulaPV extends PV
             final VariableNode vars[] = formula.getVariables();
             inputs = new FormulaInput[vars.length];
             for (int i=0; i<inputs.length; ++i)
+            {   // Initialize 'disconnected' until PV sends first value
+                vars[i].setValue(VDouble.of(Double.NaN, Alarm.disconnected(), Time.now(), Display.none()));
                 inputs[i] = new FormulaInput(this, vars[i]);
+            }
 
             // Set initial value
             doUpdate();

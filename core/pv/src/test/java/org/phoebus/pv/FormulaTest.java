@@ -7,12 +7,15 @@
  ******************************************************************************/
 package org.phoebus.pv;
 
+import static org.junit.Assert.assertTrue;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.epics.vtype.VType;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.phoebus.core.vtypes.VTypeHelper;
@@ -124,5 +127,18 @@ public class FormulaTest
         PVPool.releasePV(loc);
         PVPool.releasePV(pv);
         dumpPool();
+    }
+
+    // Formula with missing PV needs to be 'disconnected'
+    @Test
+    public void initialDisconnect() throws Exception
+    {
+        final PV pv = PVPool.getPV("= `missing_PV` + 5");
+
+        final VType value = pv.read();
+        System.out.println(pv.getName() + " = " + value);
+
+        assertTrue(PV.isDisconnected(value));
+        PVPool.releasePV(pv);
     }
 }
