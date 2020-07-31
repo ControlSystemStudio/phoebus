@@ -7,11 +7,16 @@
  *******************************************************************************/
 package org.csstudio.display.builder.editor.actions;
 
+import static org.csstudio.display.builder.editor.Plugin.logger;
+
+import java.io.File;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.logging.Level;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
@@ -21,8 +26,12 @@ import org.csstudio.display.builder.editor.app.DisplayEditorInstance;
 import org.csstudio.display.builder.editor.undo.SetWidgetPropertyAction;
 import org.csstudio.display.builder.editor.undo.UpdateWidgetOrderAction;
 import org.csstudio.display.builder.model.ChildrenProperty;
+import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.framework.util.ResourceParser;
+import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.NumericInputDialog;
 import org.phoebus.ui.javafx.PlatformInfo;
@@ -30,6 +39,7 @@ import org.phoebus.ui.undo.CompoundUndoableAction;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.geometry.Point2D;
+import javafx.stage.Stage;
 
 /** Description of an action
  *
@@ -787,6 +797,28 @@ public abstract class ActionDescription
                 location += height + offset;
                 undo.execute(new SetWidgetPropertyAction<>(widget.propY(), location));
                 height = widget.propHeight().getValue();
+            }
+        }
+    };
+
+    /** Open in external Editor */
+    public static final ActionDescription OPEN_EXTERNAL =
+        new ActionDescription("icons/file.png", Messages.OpenInExternalEditor)
+    {
+        @Override
+        public void run(final DisplayEditor editor, final boolean selected)
+        {
+            String resource = editor.getModel().getUserData(DisplayModel.USER_DATA_INPUT_FILE);
+            try {
+                AppResourceDescriptor application = ApplicationLauncherService.findApplication(new URI("display.xml"), true, (Stage)editor.getContextMenuNode().getScene().getWindow());
+                if (application == null)
+                    return;
+                logger.log(Level.INFO, "Opening " + resource + " with " + application.getName());
+                application.create(ResourceParser.getURI(new File(resource)));
+            }
+            catch (Exception e)
+            {
+                logger.log(Level.WARNING, "Opening " + resource + " failed.", e);
             }
         }
     };
