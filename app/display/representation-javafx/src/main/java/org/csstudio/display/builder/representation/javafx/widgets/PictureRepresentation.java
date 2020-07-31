@@ -9,13 +9,8 @@ package org.csstudio.display.builder.representation.javafx.widgets;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.logging.Level;
 
-import javafx.geometry.Point2D;
-import org.apache.batik.anim.dom.SAXSVGDocumentFactory;
-import org.apache.batik.util.XMLResourceDescriptor;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
@@ -25,20 +20,13 @@ import org.csstudio.display.builder.model.macros.MacroHandler;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.PictureWidget;
-import org.csstudio.display.builder.model.widgets.SymbolWidget;
 import org.csstudio.display.builder.representation.javafx.SVGHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
-import javafx.geometry.Dimension2D;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.svg.SVGDocument;
-import org.w3c.dom.svg.SVGElement;
-import org.w3c.dom.svg.SVGRect;
 
 /**
  * Creates JavaFX item for model widget.
@@ -62,23 +50,6 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
 
     private volatile Rotate rotation = new Rotate(0);
     private volatile Translate translate = new Translate(0,0);
-
-    public static Dimension2D computeSize(final PictureWidget widget)
-    {
-        final String imageFile = widget.propFile().getValue();
-
-        try
-        {
-            final String filename = ModelResourceUtil.resolveResource(widget.getTopDisplayModel(), imageFile);
-            final Image image = new Image(ModelResourceUtil.openResourceStream(filename));
-            return new Dimension2D(image.getWidth(), image.getHeight());
-
-        }
-        catch (Exception ex)
-        {
-            return new Dimension2D(0.0, 0.0);
-        }
-    }
 
     @Override
     public ImageView createJFXNode() throws Exception
@@ -240,10 +211,6 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
                 final_pic_h = (int) Math.floor(scale_fac * pic_h);
             }
 
-            if(img_path != null && img_path.toLowerCase().endsWith("svg")) {
-                img_loaded = loadSVG(img_path, final_pic_w, final_pic_h);
-                jfx_node.setImage(img_loaded);
-            }
             jfx_node.setFitHeight(final_pic_h);
             jfx_node.setFitWidth(final_pic_w);
 
@@ -293,7 +260,4 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
 
         }
     }
-
-
-
 }
