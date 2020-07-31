@@ -395,7 +395,14 @@ public class EditorGUI
         // 1) Copy widgets in some other window
         // 2) Click in layout to indicate paste position (and get focus)
         // 3) Ctrl-V or context menu to paste
-        layout.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> layout.requestFocus());
+        layout.addEventFilter(MouseEvent.MOUSE_PRESSED, event ->
+        {
+            // Don't steal the focus from an active inline editor,
+            // since that would close/commit it,
+            // and not allow clicking into editor to set cursor
+            if (! this.editor.getSelectedWidgetUITracker().isInlineEditorActive())
+                layout.requestFocus();
+        });
 
         return layout;
     }
