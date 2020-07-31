@@ -18,7 +18,9 @@ import java.util.logging.Level;
 import org.csstudio.apputil.formula.Formula;
 import org.csstudio.apputil.formula.VariableNode;
 import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
 import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.pv.PV;
@@ -44,6 +46,7 @@ public class FormulaPV extends PV
 
     private Formula formula;
     private volatile FormulaInput[] inputs;
+    private VType fixedValue = VDouble.of(Double.NaN, Alarm.disconnected(), Time.now(), Display.none());
 
     protected FormulaPV(final String name, final String expression)
     {
@@ -88,6 +91,18 @@ public class FormulaPV extends PV
         return pvs;
     }
 
+    /**
+     * @return <code>true</code> if all PV inputs are connected, otherwise <code>false</code>
+     */
+    private boolean inputsConnected(){
+        for (FormulaInput input : inputs) {
+            if(PV.isDisconnected(input.getPV().read())){
+                return false;
+            }
+        }
+        return true;
+    }
+
     /** Schedule evaluation of formula */
     void update()
     {
@@ -103,11 +118,14 @@ public class FormulaPV extends PV
         pending.set(false);
         logger.log(Level.FINE, () -> getName() + " recalc on " + Thread.currentThread());
 
-        // Simulate slow evaluation
-        // try { Thread.sleep(100); } catch (InterruptedException e) {}
-
-        final VType value = formula.eval();
-        notifyListenersOfValue(value);
+        // All formula input PVs should be connected to trigger evaluation.
+        if(!inputsConnected()){
+            notifyListenersOfValue(fixedValue);
+        }
+        else{
+            final VType value = formula.eval();
+            notifyListenersOfValue(value);
+        }
     }
 
     @Override

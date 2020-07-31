@@ -20,6 +20,7 @@ import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 
 import io.reactivex.disposables.Disposable;
+import org.phoebus.pv.formula.FormulaPV;
 
 /** Process Variable, API for accessing life control system data.
  *
@@ -70,7 +71,8 @@ public class RuntimePV // TODO (Almost) remove. Use vtype.pv, only add setValue 
     {
         // If there is a known value, perform initial update
         final VType value = pv.read();
-        if (value != null)
+        // FormulaPVs should not trigger value change as PV inputs may be disconnected
+        if (value != null && !(pv instanceof FormulaPV))
             listener.valueChanged(this, value);
         listeners.add(listener);
     }
