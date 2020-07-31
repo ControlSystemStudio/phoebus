@@ -40,6 +40,7 @@ import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
+import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
@@ -72,6 +73,7 @@ public class DisplayEditorInstance implements AppInstance
     private final AppResourceDescriptor app;
     private DockItemWithInput dock_item;
     private final EditorGUI editor_gui;
+    private final boolean external_editor_exists = null != ApplicationLauncherService.findApplication(ResourceParser.getURI(new File("x.xml")), false, null);
 
     private final WidgetPropertyListener<String> model_name_listener = (property, old_value, new_value) ->
     {
@@ -159,6 +161,7 @@ public class DisplayEditorInstance implements AppInstance
             final MenuItem morph = new MorphWidgetsMenu(editor_gui.getDisplayEditor());
             final MenuItem back = new ActionWapper(ActionDescription.TO_BACK);
             final MenuItem front = new ActionWapper(ActionDescription.TO_FRONT);
+            final ActionWapper open_external = new ActionWapper(ActionDescription.OPEN_EXTERNAL);
             if (selection.size() <= 0)
             {
                 delete.setDisable(true);
@@ -171,6 +174,7 @@ public class DisplayEditorInstance implements AppInstance
                 morph.setDisable(true);
                 back.setDisable(true);
                 front.setDisable(true);
+                open_external.setDisable(!external_editor_exists);
             }
 
             final MenuItem ungroup;
@@ -242,6 +246,7 @@ public class DisplayEditorInstance implements AppInstance
                                        new SetDisplaySize(editor_gui.getDisplayEditor()),
                                        new SeparatorMenuItem(),
                                        ExecuteDisplayAction.asMenuItem(this),
+                                       open_external,
                                        new ReloadDisplayAction(this),
                                        reload_classes,
                                        new SeparatorMenuItem(),

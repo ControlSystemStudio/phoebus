@@ -60,6 +60,7 @@ public class Messages
     public static String MoveToFront;
     public static String MoveUp;
     public static String NewDisplay;
+    public static String OpenInExternalEditor;
     public static String Order;
     public static String Paste;
     public static String PointCount_Fmt;
