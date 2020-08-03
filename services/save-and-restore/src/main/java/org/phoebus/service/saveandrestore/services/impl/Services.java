@@ -102,8 +102,13 @@ public class Services implements IServices {
 
 	@Override
 	public Node updateNode(Node nodeToUpdate) {
+		return updateNode(nodeToUpdate, false);
+	}
+
+	@Override
+	public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration) {
 		logger.info("Updating node unique id: {}", nodeToUpdate.getUniqueId());
-		return nodeDAO.updateNode(nodeToUpdate);
+		return nodeDAO.updateNode(nodeToUpdate, customTimeForMigration);
 	}
 
 	@Override

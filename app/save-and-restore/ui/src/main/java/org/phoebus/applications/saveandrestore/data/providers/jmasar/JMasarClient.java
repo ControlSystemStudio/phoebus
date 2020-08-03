@@ -33,6 +33,8 @@ public interface JMasarClient {
 
     public Node updateNode(Node nodeToUpdate);
 
+    public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration);
+
     public void deleteNode(String uniqueNodeId);
 
     public Node updateConfiguration(Node configToUpdate, List<ConfigPv> configPvList);

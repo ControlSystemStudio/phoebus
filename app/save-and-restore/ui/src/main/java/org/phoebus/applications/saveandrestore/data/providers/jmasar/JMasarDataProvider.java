@@ -50,8 +50,13 @@ public class JMasarDataProvider implements DataProvider {
 
 	@Override
 	public Node updateNode(Node nodeToUpdate) {
+		return updateNode(nodeToUpdate, false);
+	}
+
+	@Override
+	public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration) {
 		try {
-			return jmasarClient.updateNode(nodeToUpdate);
+			return jmasarClient.updateNode(nodeToUpdate, customTimeForMigration);
 		} catch (Exception e) {
 			return null;
 		}

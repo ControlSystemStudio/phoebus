@@ -485,7 +485,7 @@ public class DAOTest {
 		Tag tag = Tag.builder().snapshotId(snapshot.getUniqueId()).name("tag1").comment("comment1").userName("testUser1").build();
 		snapshot.addTag(tag);
 
-		snapshot = nodeDAO.updateNode(snapshot);
+		snapshot = nodeDAO.updateNode(snapshot, false);
 		assertEquals(1, snapshot.getTags().size());
 		assertEquals(snapshot.getUniqueId(), snapshot.getTags().get(0).getSnapshotId());
 		assertEquals("tag1", snapshot.getTags().get(0).getName());
@@ -496,7 +496,7 @@ public class DAOTest {
 		tag = Tag.builder().name("tag1").comment("comment2").userName("testUser2").build();
 		snapshot.addTag(tag);
 
-		snapshot = nodeDAO.updateNode(snapshot);
+		snapshot = nodeDAO.updateNode(snapshot, false);
 		assertEquals(1, snapshot.getTags().size());
 		assertEquals(snapshot.getUniqueId(), snapshot.getTags().get(0).getSnapshotId());
 		assertEquals("tag1", snapshot.getTags().get(0).getName());
@@ -505,7 +505,7 @@ public class DAOTest {
 
 		snapshot.removeTag(tag);
 
-		snapshot = nodeDAO.updateNode(snapshot);
+		snapshot = nodeDAO.updateNode(snapshot, false);
 		assertEquals(0, snapshot.getTags().size());
 	}
 
@@ -773,43 +773,43 @@ public class DAOTest {
 		props = new HashMap<>();
 		props.put("a", null);
 		childNode2.setProperties(props);
-		childNode2 = nodeDAO.updateNode(childNode2);
+		childNode2 = nodeDAO.updateNode(childNode2, false);
 
 		assertNull("b", childNode2.getProperty("a"));
 
 		props = new HashMap<>();
 		props.put("a", "b");
 		childNode2.setProperties(props);
-		nodeDAO.updateNode(childNode2);
+		nodeDAO.updateNode(childNode2, false);
 
 		props = new HashMap<>();
 		props.put("a", "");
 		childNode2.setProperties(props);
-		childNode2 = nodeDAO.updateNode(childNode2);
+		childNode2 = nodeDAO.updateNode(childNode2, false);
 
 		assertNull("b", childNode2.getProperty("a"));
 
 		props = new HashMap<>();
 		props.put("a", "b");
 		childNode2.setProperties(props);
-		nodeDAO.updateNode(childNode2);
+		nodeDAO.updateNode(childNode2, false);
 
 		props = new HashMap<>();
 		props.put(null, "c");
 		childNode2.setProperties(props);
-		childNode2 = nodeDAO.updateNode(childNode2);
+		childNode2 = nodeDAO.updateNode(childNode2, false);
 
 		assertNull("b", childNode2.getProperty("a"));
 
 		props = new HashMap<>();
 		props.put("a", "b");
 		childNode2.setProperties(props);
-		nodeDAO.updateNode(childNode2);
+		nodeDAO.updateNode(childNode2, false);
 
 		props = new HashMap<>();
 		props.put("", "c");
 		childNode2.setProperties(props);
-		childNode2 = nodeDAO.updateNode(childNode2);
+		childNode2 = nodeDAO.updateNode(childNode2, false);
 
 		assertNull("b", childNode2.getProperty("a"));
 
@@ -891,13 +891,13 @@ public class DAOTest {
 	public void testUpdateRootNode() {
 		Node rootNode = nodeDAO.getRootNode();
 
-		nodeDAO.updateNode(rootNode);
+		nodeDAO.updateNode(rootNode, false);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	@FlywayTest(invokeCleanDB = true)
 	public void testUpdateNonExistingNode() {
-		nodeDAO.updateNode(Node.builder().uniqueId("invalidUniqueId").build());
+		nodeDAO.updateNode(Node.builder().uniqueId("invalidUniqueId").build(), false);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -911,7 +911,7 @@ public class DAOTest {
 
 		childNode2.setName("a");
 
-		nodeDAO.updateNode(childNode2);
+		nodeDAO.updateNode(childNode2, false);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -925,7 +925,7 @@ public class DAOTest {
 
 		childNode2.setNodeType(NodeType.CONFIGURATION);
 
-		nodeDAO.updateNode(childNode2);
+		nodeDAO.updateNode(childNode2, false);
 	}
 
 	@Test
@@ -946,7 +946,7 @@ public class DAOTest {
 
 		childNode2.setProperties(props2);
 
-		childNode2 = nodeDAO.updateNode(childNode2);
+		childNode2 = nodeDAO.updateNode(childNode2, false);
 
 		assertEquals(2, childNode2.getProperties().size());
 		assertNotNull(childNode2.getProperty("aa"));
@@ -957,7 +957,7 @@ public class DAOTest {
 
 		childNode2.setProperties(props3);
 
-		childNode2 = nodeDAO.updateNode(childNode2);
+		childNode2 = nodeDAO.updateNode(childNode2, false);
 
 		assertEquals(1, childNode2.getProperties().size());
 		assertNull(childNode2.getProperty("aa"));

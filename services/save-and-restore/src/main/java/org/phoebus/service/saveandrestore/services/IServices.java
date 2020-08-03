@@ -50,7 +50,9 @@ public interface IServices {
 	public Node updateConfiguration(Node configToUpdate, List<ConfigPv> configPvList);
 	
 	public Node updateNode(Node nodeToUpdate);
-	
+
+	public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration);
+
 	public Node getRootNode();
 	
 	public Node getParentNode(String uniqueNodeId);

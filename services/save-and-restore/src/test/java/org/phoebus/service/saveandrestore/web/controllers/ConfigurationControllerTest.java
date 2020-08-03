@@ -451,9 +451,11 @@ public class ConfigurationControllerTest {
 
 		Node node = Node.builder().name("foo").uniqueId("a").build();
 
-		when(services.updateNode(node)).thenReturn(node);
+		when(services.updateNode(node, false)).thenReturn(node);
 
-		MockHttpServletRequestBuilder request = post("/node/a/update").contentType(JSON)
+		MockHttpServletRequestBuilder request = post("/node/a/update")
+				.param("customTimeForMigration", "false")
+				.contentType(JSON)
 				.content(objectMapper.writeValueAsString(node));
 
 		MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))

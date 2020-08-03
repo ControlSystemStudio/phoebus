@@ -320,15 +320,15 @@ public class NodeJdbcDAO implements NodeDAO {
 			list = jdbcTemplate.queryForList("select cp.id from config_pv as cp " +
 							"left join pv pv1 on cp.pv_id=pv1.id " +
 							"left join pv pv2 on cp.readback_pv_id=pv2.id " +
-							"where pv1.name=? and pv2.name is NULL",
-					new Object[] { configPv.getPvName() }, Integer.class);
+							"where pv1.name=? and pv2.name is NULL and cp.readonly=?",
+					new Object[] { configPv.getPvName(), configPv.isReadOnly() }, Integer.class);
 		}
 		else {
 			list = jdbcTemplate.queryForList("select cp.id from config_pv as cp " +
 							"left join pv pv1 on cp.pv_id=pv1.id " +
 							"left join pv pv2 on cp.readback_pv_id=pv2.id " +
-							"where pv1.name=? and pv2.name=?",
-					new Object[] { configPv.getPvName(), configPv.getReadbackPvName()}, Integer.class);
+							"where pv1.name=? and pv2.name=? and cp.readonly=?",
+					new Object[] { configPv.getPvName(), configPv.getReadbackPvName(), configPv.isReadOnly() }, Integer.class);
 		}
 
 
@@ -486,7 +486,7 @@ public class NodeJdbcDAO implements NodeDAO {
 
 	@Transactional
 	@Override
-	public Node updateNode(Node nodeToUpdate) {
+	public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration) {
 
 		Node persistedNode = getNode(nodeToUpdate.getUniqueId());
 
@@ -515,9 +515,13 @@ public class NodeJdbcDAO implements NodeDAO {
 			throw new IllegalArgumentException(String.format("A node with same type and name (%s) already exists in the same folder", nodeToUpdate.getName()));
 		}
 
-		jdbcTemplate.update("update node set name=?, last_modified=?, username=? where id=?",
-				nodeToUpdate.getName(), Timestamp.from(Instant.now()), nodeToUpdate.getUserName(), persistedNode.getId());
-
+		if (customTimeForMigration) {
+			jdbcTemplate.update("update node set name=?, created=?, last_modified=?, username=? where id=?",
+					nodeToUpdate.getName(), nodeToUpdate.getCreated(), Timestamp.from(Instant.now()), nodeToUpdate.getUserName(), persistedNode.getId());
+		} else {
+			jdbcTemplate.update("update node set name=?, last_modified=?, username=? where id=?",
+					nodeToUpdate.getName(), Timestamp.from(Instant.now()), nodeToUpdate.getUserName(), persistedNode.getId());
+		}
 
 		updateProperties(persistedNode.getId(), nodeToUpdate.getProperties());
 		updateTags(persistedNode.getUniqueId(), nodeToUpdate.getTags());
