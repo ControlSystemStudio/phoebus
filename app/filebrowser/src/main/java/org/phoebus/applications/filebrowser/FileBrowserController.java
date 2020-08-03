@@ -484,7 +484,7 @@ public class FileBrowserController {
     /** @param directory Desired root directory */
     public void setRoot(final File directory)
     {
-        monitor.clear();
+        monitor.setRoot(directory);
         path.setText(directory.toString());
         treeView.setRoot(new FileTreeItem(monitor, directory));
     }

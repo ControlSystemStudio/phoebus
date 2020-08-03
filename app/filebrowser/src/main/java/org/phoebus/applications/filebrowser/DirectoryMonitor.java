@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -39,11 +39,14 @@ public class DirectoryMonitor
         ADDED,
         CHANGED,
         REMOVED
-    };
+    }
     private final BiConsumer<File, Change> listener;
 
     /** NIO Watch Service */
     private WatchService watcher;
+
+    /** Root folder. All monitored files should be under this location */
+    private volatile File root = null;
 
     /** Thread that polls the `watcher`.
      *  Set to <code>null</code> when exiting.
@@ -75,13 +78,44 @@ public class DirectoryMonitor
         thread.start();
     }
 
+    /** @param root Root of directories and files to monitor */
+    public void setRoot(final File root)
+    {
+        logger.log(Level.INFO, () -> "Root: " + root);
+        this.root = root;
+        clear();
+    }
+
+    /** @param file File to check
+     *  @return Is the file located under the 'root' folder?
+     */
+    private boolean isUnderRoot(final File file)
+    {
+        for (File parent = file;  parent != null;  parent = parent.getParentFile())
+            if (parent.equals(root))
+                return true;
+        return false;
+    }
+
     /** Register a directory to be monitored
      *  @param directory To monitor. Will automatically un-register when it is deleted.
      */
     public void monitor(final File directory)
     {
+        // Tree sub-items (folders) are searched in background threads.
+        // monitor() might thus be requested when the UI was just closed...
         if (thread == null  ||  ! directory.isDirectory())
             return;
+
+        // .. or just after the 'root' has been changed.
+        // This especially happens when file browser is restored,
+        // starts out with $HOME and then gets set to another root from memento.
+        // --> Ignore folders that aren't under the currently selected root
+        if (! isUnderRoot(directory))
+        {
+            logger.log(Level.FINE, () -> "Not monitoring " + directory + " because not under " + root);
+            return;
+        }
         dir_keys.computeIfAbsent(directory, dir ->
         {
             try
@@ -98,7 +132,7 @@ public class DirectoryMonitor
     }
 
     /** Clear all monitors */
-    public void clear()
+    private void clear()
     {
         final Iterator<Entry<File, WatchKey>> iter = dir_keys.entrySet().iterator();
         while (iter.hasNext())
