@@ -5,15 +5,17 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.editor.poly;
+package org.csstudio.display.builder.editor;
 
-import org.csstudio.display.builder.editor.EditorUtil;
+import org.csstudio.display.builder.editor.poly.PointsEditor;
+import org.csstudio.display.builder.editor.poly.PointsEditorListener;
 import org.csstudio.display.builder.model.properties.Points;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polyline;
 import javafx.scene.shape.StrokeLineCap;
@@ -45,16 +47,16 @@ public class PointsEditorDemo extends ApplicationWrapper
         poly.setStrokeLineJoin(StrokeLineJoin.ROUND);
         poly.setFill(Color.CORNSILK);
 
-        final Group root = new Group();
-        root.getChildren().add(poly);
+        final Group group = new Group();
+        group.getChildren().add(poly);
 
+        final StackPane root = new StackPane(group);
         final Scene scene = new Scene(root, 400, 400);
         stage.setScene(scene);
         stage.show();
         EditorUtil.setSceneStyle(scene);
 
-
-        editor = new PointsEditor(root, (x, y) -> new Point2D(x, y), points, new PointsEditorListener()
+        editor = new PointsEditor(group, (x, y) -> new Point2D(x, y), points, new PointsEditorListener()
         {
             @Override
             public void pointsChanged(final Points points)
