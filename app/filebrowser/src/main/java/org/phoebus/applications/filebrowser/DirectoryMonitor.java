@@ -91,15 +91,9 @@ public class DirectoryMonitor
      */
     private boolean isUnderRoot(final File file)
     {
-        if (file.equals(root))
-            return true;
-        File parent = file.getParentFile();
-        while (parent != null)
-        {
+        for (File parent = file;  parent != null;  parent = parent.getParentFile())
             if (parent.equals(root))
                 return true;
-            parent = parent.getParentFile();
-        }
         return false;
     }
 
