@@ -78,7 +78,7 @@ public class DirectoryMonitor
         thread.start();
     }
 
-    /** Set the root folder to monitor */
+    /** @param root Root of directories and files to monitor */
     public void setRoot(final File root)
     {
         logger.log(Level.INFO, () -> "Root: " + root);
