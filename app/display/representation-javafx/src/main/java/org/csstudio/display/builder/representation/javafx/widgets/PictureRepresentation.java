@@ -117,11 +117,9 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
             if (toolkit.isEditMode()){
                 ImageCache.remove(img_path);
             }
-
-            if(img_path.toLowerCase().endsWith("svg")){
-                img_loaded = loadSVG(img_path, model_widget.propWidth().getValue(), model_widget.propHeight().getValue());
-            }
-            else{
+            // SVGs are not loaded here. Instead they are loaded when an update is scheduled. The reason is
+            // that SVGs must be reloaded when the image size is changed.
+            if(!img_path.toLowerCase().endsWith("svg")){
                 img_loaded = ImageCache.cache(img_path, () ->
                 {
                     try
@@ -136,22 +134,8 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
                     return null;
                 });
             }
-            if (img_loaded == null)
-                load_failed = true;
-        }
-
-        if (load_failed)
-        {
-            final String dflt_img = PictureWidget.default_pic;
-            try
-            {
-                // Open the image from the stream created from the resource file
-                img_loaded = new Image(ModelResourceUtil.openResourceStream(dflt_img));
-                load_failed = false;
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Failure loading default image file:" + img_path, ex);
+            if (img_loaded == null) {
+                load_failed = !loadDefaultImage();
             }
         }
 
@@ -211,6 +195,12 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
                 final_pic_h = (int) Math.floor(scale_fac * pic_h);
             }
 
+            // This actually loads SVG images.
+            if(img_path != null && img_path.toLowerCase().endsWith("svg")) {
+                loadSVG(img_path, final_pic_w, final_pic_h);
+                jfx_node.setImage(img_loaded);
+            }
+
             jfx_node.setFitHeight(final_pic_h);
             jfx_node.setFitWidth(final_pic_w);
 
@@ -229,14 +219,18 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
      * Loads a SVG resource. The image cache is used, but the key to the SVG resource depends
      * on the width and height of the image. Reason is that when resizing a image the underlying
      * SVG must be transcoded again with the new size.
+     * If the wanted SVG image is not found, the default (PNG) image is loaded instead.
      * @param width
      * @param height
      * @return An {@link Image} or <code>null</code>.
      */
-    private Image loadSVG(String fileName, double width, double height){
+    private void loadSVG(String fileName, double width, double height){
 
         String imageFileName = resolveImageFile(fileName);
-        return SVGHelper.loadSVG(imageFileName, width, height);
+        img_loaded = SVGHelper.loadSVG(imageFileName, width, height);
+        if(img_loaded == null){
+            loadDefaultImage();
+        }
     }
 
     private String resolveImageFile (String imageFileName ) {
@@ -257,7 +251,26 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
             logger.log(Level.WARNING, String.format("Failure resolving image path: %s", imageFileName), ex);
 
             return null;
-
         }
+    }
+
+    /**
+     * Convenience method to load default image if the wanted image resource cannot be found.
+     * Note that this method sets the instance variable <code>img_loaded</code>.
+     * @return <code>true</code> if default image loaded successfully, otherwise <code>false</code>
+     */
+    private boolean loadDefaultImage(){
+        final String dflt_img = PictureWidget.default_pic;
+        try
+        {
+            // Open the image from the stream created from the resource file
+            img_loaded = new Image(ModelResourceUtil.openResourceStream(dflt_img));
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Failure loading default image file:" + img_path, ex);
+        }
+        return false;
     }
 }
