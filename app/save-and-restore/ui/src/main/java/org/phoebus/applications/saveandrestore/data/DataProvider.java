@@ -34,7 +34,9 @@ public interface DataProvider {
 	public List<Node> getChildNodes(Node node);
 	
 	public Node updateNode(Node nodeToUpdate);
-	
+
+	public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration);
+
 	public Node createNode(String parentsUniqueId, Node node);
 	
 	public boolean deleteNode(String uniqueNodeId);

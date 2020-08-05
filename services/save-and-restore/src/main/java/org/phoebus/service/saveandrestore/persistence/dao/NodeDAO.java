@@ -136,9 +136,10 @@ public interface NodeDAO {
 	 * Updates a {@link Node} with respect to name or properties, or both. Node type cannot
 	 * be changed, of course.
 	 * @param nodeToUpdate The {@link Node} subject to update.
+	 * @param customTimeForMigration A boolean for setting created time manually for migration.
 	 * @return The {@link Node} object as read from the persistence implementation.
 	 */
-	public Node updateNode(Node nodeToUpdate);
+	public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration);
 
 	public List<Tag> getAllTags();
 

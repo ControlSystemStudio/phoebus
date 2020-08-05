@@ -33,6 +33,7 @@ import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -67,11 +68,23 @@ import java.util.*;
  * The settings (ini) file must specify the URL for the save-and-restore service like so:
  * org.phoebus.applications.saveandrestore.datamigration.git/jmasar.service.url=&lt;saveAndRestoreServiceUrl&gt;
  *
+ * Add the following setting to the setting file to map Git tag to {@link Tag} instead of Golden tag.
+ * org.phoebus.applications.saveandrestore.datamigration.git/useMultipleTag=true
+ *
+ * Add the following setting to the setting file to keep savesets with no snapshot created from them.
+ * org.phoebus.applications.saveandrestore.datamigration.git/keepSavesetWithNoSnapshot=true
+ *
  */
 public class GitMigrator {
 
     @Autowired
     private SaveAndRestoreService saveAndRestoreService;
+
+    @Autowired
+    private Boolean useMultipleTag;
+
+    @Autowired
+    private Boolean keepSavesetWithNoSnapshot;
 
     private Git git;
     private File gitRoot;
@@ -139,9 +152,11 @@ public class GitMigrator {
                 findBeamlineSetFiles(beamlineSetFiles, file);
             } else if (file.getName().endsWith("bms")) {
                 String snapshotFile = findSnapshotFile(file.getAbsolutePath());
-                if(snapshotFile == null){
+
+                if (snapshotFile == null && !keepSavesetWithNoSnapshot) {
                     continue;
                 }
+
                 FilePair filePair = new FilePair(file.getAbsolutePath(), snapshotFile);
                 beamlineSetFiles.add(filePair);
             }
@@ -170,7 +185,12 @@ public class GitMigrator {
 
         public FilePair(String bms, String snp){
             this.bms = bms.substring(gitRoot.getAbsolutePath().length() + 1);
-            this.snp = snp.substring(gitRoot.getAbsolutePath().length() + 1);
+
+            if (snp == null) {
+                this.snp = "";
+            } else {
+                this.snp = snp.substring(gitRoot.getAbsolutePath().length() + 1);
+            }
         }
 
         @Override
@@ -227,7 +247,7 @@ public class GitMigrator {
             Map<String, String> properties = new HashMap<>();
             properties.put("description", commitMessage);
             saveSetNode = Node.builder()
-                    .name(filePair.bms.substring(filePair.bms.lastIndexOf("/") + 1))
+                    .name(filePair.bms.substring(filePair.bms.lastIndexOf("/") + 1).replace(".bms", ""))
                     .nodeType(NodeType.CONFIGURATION)
                     .userName(author)
                     .created(commitDate)
@@ -238,7 +258,9 @@ public class GitMigrator {
             String fullPath = gitRoot.getAbsolutePath() + "/" + filePair.bms;
             List<ConfigPv> configPvs = FileReaderHelper.readSaveSet(new FileInputStream(fullPath));
             saveAndRestoreService.updateSaveSet(saveSetNode, configPvs);
-            createSnapshots(saveSetNode, filePair.snp);
+            if (!filePair.snp.isEmpty()) {
+                createSnapshots(saveSetNode, filePair.snp);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -282,11 +304,29 @@ public class GitMigrator {
                                 properties = new HashMap<>();
                             }
                             if(tag != null){
-                                properties.put("golden", "true");
-                                snapshotNode.setProperties(properties);
+                                if (useMultipleTag) {
+                                    String fullTagName = tag.getTagName();
+                                    String[] fullTagNameSplit = fullTagName.split("/");
+                                    String tagName = fullTagNameSplit[fullTagNameSplit.length - 1];
+                                    tagName = tagName.substring(1, tagName.length() - 1);
+
+                                    Tag snapshotTag = Tag.builder()
+                                            .name(tagName)
+                                            .comment(tag.getFullMessage())
+                                            .userName(tag.getTaggerIdent().getName())
+                                            .snapshotId(snapshotNode.getUniqueId())
+                                            .created(tag.getTaggerIdent().getWhen())
+                                            .build();
+
+                                    snapshotNode.addTag(snapshotTag);
+                                } else {
+                                    properties.put("golden", "true");
+                                    snapshotNode.setProperties(properties);
+                                }
                             }
                             snapshotNode.setUserName(commit.getCommitterIdent().getName());
-                            saveAndRestoreService.updateNode(snapshotNode);
+                            snapshotNode.setCreated(commitTime);
+                            saveAndRestoreService.updateNode(snapshotNode, true);
                         }
                     }
                 }

@@ -93,7 +93,11 @@ public class SaveAndRestoreService {
     }
 
     public Node updateNode(Node nodeToUpdate) throws Exception {
-        Future<Node> future = executor.submit(() -> dataProvider.updateNode(nodeToUpdate));
+        return updateNode(nodeToUpdate, false);
+    }
+
+    public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration) throws Exception {
+        Future<Node> future = executor.submit(() -> dataProvider.updateNode(nodeToUpdate, customTimeForMigration));
 
         Node node = future.get();
 
