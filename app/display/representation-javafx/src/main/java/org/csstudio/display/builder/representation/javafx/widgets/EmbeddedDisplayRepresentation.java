@@ -30,7 +30,6 @@ import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
-import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -39,6 +38,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Scale;
 
 /** Creates JavaFX item for model widget
@@ -53,7 +53,7 @@ import javafx.scene.transform.Scale;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<ScrollPane, EmbeddedDisplayWidget>
+public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane, EmbeddedDisplayWidget>
 {
     private static final Background TRANSPARENT_BACKGROUND = new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY));
     private static final Background EDIT_TRANSPARENT_BACKGROUND = new Background(new BackgroundFill(
@@ -83,7 +83,24 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
     private volatile Pane inner;
     private volatile Background inner_background = Background.EMPTY;
 
+    /** Zoom for 'inner' pane */
     private Scale zoom;
+
+    /** Optional scroll pane between 'jfx_node' Pane and 'inner'.
+     *
+     *  To allow scrolling, the scene graph is
+     *      jfx_node -> scroll -> inner.
+     *
+     *  If no scrolling is desired, the scrollbars can be hidden via
+     *  scroll.setHbarPolicy(ScrollBarPolicy.NEVER),
+     *  but such a ScrollPane would still react to for example mouse wheel events
+     *  and scroll its content. When filtering the event to work around this,
+     *  one could no longer scroll the overall display while the mouse it in the embedded section.
+     *
+     *  The easiest way to remove the scroll bars and any of its impact on
+     *  event handling is to simply remove the scrollpane from the scene graph:
+     *      jfx_node-> inner.
+     */
     private ScrollPane scroll;
 
     /** The display file (and optional group inside that display) to load */
@@ -104,7 +121,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
     }
 
     @Override
-    public ScrollPane createJFXNode() throws Exception
+    public Pane createJFXNode() throws Exception
     {
         // inner.setScaleX() and setScaleY() zoom from the center
         // and not the top-left edge, requiring adjustments to
@@ -115,6 +132,8 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
         inner.getTransforms().add(zoom = new Scale());
 
         scroll = new ScrollPane(inner);
+        scroll.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
+        scroll.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
         //  By default it seems that the minimum size is set to 36x36.
         //  This will make the border (if visible) not smaller that this minimum size
         //  even if the widget is actually smaller.
@@ -124,19 +143,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
         // Panning tends to 'jerk' the content when clicked
         // scroll.setPannable(true);
 
-
-        // If there are scrollbars, the scroll pane may react
-        // to the mouse wheel and scroll the content.
-        // Unfortunately it will also react to the mouse wheel
-        // when there are no scrollbars and might end up with
-        // the content moved out of the viewport.
-        // --> Suppress scrolling unless we have scrollbars.
-        scroll.addEventFilter(ScrollEvent.ANY, event ->
-        {
-            if (model_widget.propResize().getValue() != Resize.None)
-                event.consume();
-        });
-        return scroll;
+        return new Pane(scroll);
     }
 
     @Override
@@ -372,33 +379,37 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Scro
             scroll.setPrefSize(width, height);
 
             final Resize resize = model_widget.propResize().getValue();
+
+            // Does jfx_node need to crop,
+            // or will resizing resp. scroll pane handle it?
+            if (resize == Resize.Crop)
+                jfx_node.setClip(new Rectangle(width, height));
+            else
+                jfx_node.setClip(null);
+
             if (resize == Resize.None)
             {
+                // Need a scroll pane (which disables itself as needed)
+                jfx_node.getChildren().setAll(scroll);
+                scroll.setContent(inner);
+
                 zoom.setX(1.0);
                 zoom.setY(1.0);
-                scroll.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
-                scroll.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
             }
-            else if (resize == Resize.Crop)
-            {
-                zoom.setX(1.0);
-                zoom.setY(1.0);
-                scroll.setHbarPolicy(ScrollBarPolicy.NEVER);
-                scroll.setVbarPolicy(ScrollBarPolicy.NEVER);
-            }
-            else if (resize == Resize.ResizeContent  ||  resize == Resize.StretchContent )
-            {
-                zoom.setX(zoom_factor_x);
-                zoom.setY(zoom_factor_y);
-                scroll.setHbarPolicy(ScrollBarPolicy.NEVER);
-                scroll.setVbarPolicy(ScrollBarPolicy.NEVER);
-            }
-            else // SizeToContent
-            {
-                zoom.setX(1.0);
-                zoom.setY(1.0);
-                scroll.setHbarPolicy(ScrollBarPolicy.NEVER);
-                scroll.setVbarPolicy(ScrollBarPolicy.NEVER);
+            else
+            {   // Don't use a scroll pane
+                jfx_node.getChildren().setAll(inner);
+
+                if (resize == Resize.ResizeContent  ||  resize == Resize.StretchContent )
+                {
+                    zoom.setX(zoom_factor_x);
+                    zoom.setY(zoom_factor_y);
+                }
+                else // Resize.Crop, SizeToContent
+                {
+                    zoom.setX(1.0);
+                    zoom.setY(1.0);
+                }
             }
         }
         if (dirty_background.checkAndClear())
