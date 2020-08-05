@@ -268,18 +268,23 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
      * Note that this method sets the instance variable <code>img_loaded</code>.
      * @return <code>true</code> if default image loaded successfully, otherwise <code>false</code>
      */
-    private boolean loadDefaultImage(){
+    private boolean loadDefaultImage()
+    {
         final String dflt_img = PictureWidget.default_pic;
-        try
+        img_loaded = ImageCache.cache(dflt_img, () ->
         {
-            // Open the image from the stream created from the resource file
-            img_loaded = new Image(ModelResourceUtil.openResourceStream(dflt_img));
-            return true;
-        }
-        catch (Exception ex)
-        {
-            logger.log(Level.WARNING, "Failure loading default image file:" + img_path, ex);
-        }
-        return false;
+            try
+            {
+                // Open the image from the stream created from the resource file
+                return new Image(ModelResourceUtil.openResourceStream(dflt_img));
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Failure loading default image file:" + dflt_img, ex);
+            }
+            return null;
+            });
+
+        return img_loaded != null;
     }
 }
