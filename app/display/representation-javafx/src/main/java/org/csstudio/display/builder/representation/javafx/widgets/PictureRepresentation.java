@@ -69,12 +69,18 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
 
         model_widget.propStretch().addUntypedPropertyListener(styleChangedListener);
         model_widget.propRotation().addUntypedPropertyListener(styleChangedListener);
-        styleChanged(null, null, null);
+//      styleChanged() will be called by contentChanged()
 
         // This is one of those weird cases where getValue calls setValue and fires the listener.
         // So register listener after getValue called
         final String img_name = model_widget.propFile().getValue();
         model_widget.propFile().addPropertyListener(contentChangedListener);
+        /*
+         * Must clear the flags, JFXBaseRepresentation will call updateChanges() but we are not initialized yet
+         * (contentChanged() will set the flags after it initializes img_path and img_loaded)
+         */
+        dirty_style.checkAndClear();
+        dirty_content.checkAndClear();
         ModelThreadPool.getExecutor().execute(() -> contentChanged(null, null, img_name));
     }
 
