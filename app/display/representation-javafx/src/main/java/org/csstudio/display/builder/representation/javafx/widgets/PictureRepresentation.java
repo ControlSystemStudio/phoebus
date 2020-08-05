@@ -123,9 +123,12 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
             if (toolkit.isEditMode()){
                 ImageCache.remove(img_path);
             }
-            // SVGs are not loaded here. Instead they are loaded when an update is scheduled. The reason is
-            // that SVGs must be reloaded when the image size is changed.
-            if(!img_path.toLowerCase().endsWith("svg")){
+
+            // Load the SVG without specifying a size so that img_loaded will have the original aspect ratio that we need
+            if (img_path.toLowerCase().endsWith("svg"))
+                img_loaded = SVGHelper.loadSVG(img_path, 0.0, 0.0);
+            else
+            {
                 img_loaded = ImageCache.cache(img_path, () ->
                 {
                     try
