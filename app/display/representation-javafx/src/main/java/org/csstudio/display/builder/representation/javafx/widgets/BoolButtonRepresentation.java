@@ -353,8 +353,7 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         }
         if (dirty_enablement.checkAndClear())
         {
-            final boolean enabled = model_widget.propEnabled().getValue()  &&
-                                    model_widget.runtimePropPVWritable().getValue();
+            final boolean enabled = model_widget.propEnabled().getValue();
             jfx_node.setDisable(! enabled);
             Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
         }

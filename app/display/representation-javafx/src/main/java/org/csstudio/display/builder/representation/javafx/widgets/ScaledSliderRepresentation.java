@@ -243,8 +243,7 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
 
     private void enablementChanged(final WidgetProperty<Boolean> property, final Boolean old_value, final Boolean new_value)
     {
-        enabled = model_widget.propEnabled().getValue()  &&
-                  model_widget.runtimePropPVWritable().getValue();
+        enabled = model_widget.propEnabled().getValue();
         dirty_enablement.mark();
         toolkit.scheduleUpdate(this);
     }

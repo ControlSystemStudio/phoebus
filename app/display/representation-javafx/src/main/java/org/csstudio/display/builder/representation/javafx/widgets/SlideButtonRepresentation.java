@@ -97,7 +97,7 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
 
             // Don't disable the widget, because that would also remove the context menu etc.
             // Just apply a style that matches the disabled look.
-            enabled = model_widget.propEnabled().getValue() && model_widget.runtimePropPVWritable().getValue();
+            enabled = model_widget.propEnabled().getValue();
 
             Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
 

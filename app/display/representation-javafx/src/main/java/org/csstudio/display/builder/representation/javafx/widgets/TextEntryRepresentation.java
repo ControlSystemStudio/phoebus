@@ -367,8 +367,7 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
             jfx_node.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
 
             // Enable if enabled by user and there's write access
-            final boolean enabled = model_widget.propEnabled().getValue()  &&
-                                    model_widget.runtimePropPVWritable().getValue();
+            final boolean enabled = model_widget.propEnabled().getValue();
             // Don't disable the widget, because that would also remove the
             // context menu etc.
             // Just apply a style that matches the disabled look.
