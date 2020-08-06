@@ -29,6 +29,7 @@ import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
@@ -74,6 +75,9 @@ import java.util.*;
  * Add the following setting to the setting file to keep savesets with no snapshot created from them.
  * org.phoebus.applications.saveandrestore.datamigration.git/keepSavesetWithNoSnapshot=true
  *
+ * Add the following setting to the setting file to ignore duplicate snapshots (same commit time)
+ * org.phoebus.applications.saveandrestore.datamigration.git/ignoreDuplicateSnapshots=true
+ *
  */
 public class GitMigrator {
 
@@ -85,6 +89,9 @@ public class GitMigrator {
 
     @Autowired
     private Boolean keepSavesetWithNoSnapshot;
+
+    @Autowired
+    private Boolean ignoreDuplicateSnapshots;
 
     private Git git;
     private File gitRoot;
@@ -285,17 +292,57 @@ public class GitMigrator {
                         RevTag tag = tags.get(commit.getName());
                         try (InputStream stream = objectLoader.openStream()) {
                             List<SnapshotItem> snapshotItems = FileReaderHelper.readSnapshot(stream);
-                            if(tag != null){
-                                System.out.println();
-                            }
+
+                            Date commitTime = new Date(commit.getCommitTime() * 1000L);
+                            String snapshotName = commitTime.toString();
+
                             if(!isSnapshotCompatibleWithSaveSet(saveSetNode, snapshotItems)){
+                                System.out.println("------------------------------------------------------------------------------------");
+                                System.out.println(" Snapshot not compatible with the saveset!");
+                                System.out.println(" Check if PV names are the same in saveset and snapshot!");
+                                System.out.println("------------------------------------------------------------------------------------");
+                                System.out.println("    Commit: " + commit.getName());
+                                System.out.println("   Saveset: " + DirectoryUtilities.CreateLocationString(saveSetNode, false));
+                                System.out.println(" Timestamp: " + snapshotName);
+                                System.out.println("------------------------------------------------------------------------------------");
+
                                 continue;
                             }
                             snapshotItems = setConfigPvIds(saveSetNode, snapshotItems);
-                            Date commitTime = new Date(commit.getCommitTime() * 1000L);
+
+                            List<Node> nodeList = saveAndRestoreService.getChildNodes(saveSetNode);
+                            boolean isDuplicateSnapshotName = nodeList.stream().anyMatch(item -> item.getName().equals(snapshotName));
+                            int postfixNumber = 2;
+                            String postfixString = "";
+                            if (isDuplicateSnapshotName) {
+                                if (ignoreDuplicateSnapshots) {
+                                    continue;
+                                }
+
+                                while (true) {
+                                    postfixString = String.format(" (%d)", postfixNumber);
+                                    String newSnapshotName = String.format("%s %s", snapshotName, postfixString);
+
+                                    if (!nodeList.stream().anyMatch(item -> item.getName().equals(newSnapshotName))) {
+                                        break;
+                                    }
+
+                                    postfixNumber++;
+                                }
+
+                                System.out.println("------------------------------------------------------------------------------------");
+                                System.out.println(" Duplicate snapshot found!");
+                                System.out.println("------------------------------------------------------------------------------------");
+                                System.out.println("   Commit: " + commit.getName());
+                                System.out.println("  Saveset: " + DirectoryUtilities.CreateLocationString(saveSetNode, false));
+                                System.out.println(" Snapshot: " + snapshotName);
+                                System.out.println(" New name: " + snapshotName + postfixString);
+                                System.out.println("------------------------------------------------------------------------------------");
+                            }
+
                             Node snapshotNode = saveAndRestoreService.saveSnapshot(saveSetNode,
                                     snapshotItems,
-                                    commitTime.toString(),
+                                    snapshotName + postfixString,
                                     commit.getFullMessage());
 
                             snapshotNode = saveAndRestoreService.getNode(snapshotNode.getUniqueId());
