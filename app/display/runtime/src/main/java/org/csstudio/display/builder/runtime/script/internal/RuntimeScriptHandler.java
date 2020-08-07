@@ -30,6 +30,7 @@ import org.csstudio.display.builder.runtime.pv.RuntimePVListener;
 import org.epics.vtype.VType;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.MacroValueProvider;
+import org.phoebus.pv.PV;
 
 /** Handler for one script of a widget.
  *
@@ -219,7 +220,7 @@ public class RuntimeScriptHandler implements RuntimePVListener
         // Skip script execution unless all PVs are connected?
         if (check_connections)
             for (RuntimePV p : pvs)
-                if (p.read() == null)
+                if (PV.isDisconnected(pv.read()))
                     return;
 
         // If this is a trigger PV, execute the script.
