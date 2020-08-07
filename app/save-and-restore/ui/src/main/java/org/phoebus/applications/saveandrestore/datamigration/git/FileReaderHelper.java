@@ -37,8 +37,8 @@ public class FileReaderHelper {
         List<ConfigPv> configPVs = new ArrayList<>();
         for(SaveSetEntry entry : entries){
             ConfigPv configPv = ConfigPv.builder()
-                    .pvName("ca://" + entry.getPVName())
-                    .readbackPvName((entry.getReadback() == null || entry.getReadback().isEmpty()) ? null : ("ca://" + entry.getReadback()))
+                    .pvName(entry.getPVName())
+                    .readbackPvName((entry.getReadback() == null || entry.getReadback().isEmpty()) ? null : (entry.getReadback()))
                     .readOnly(entry.isReadOnly())
                     .build();
             configPVs.add(configPv);
@@ -53,8 +53,8 @@ public class FileReaderHelper {
         List<SnapshotItem> snapshotItems = new ArrayList<>();
         for (SnapshotEntry snapshotEntry : snapshotEntries) {
             ConfigPv configPv = ConfigPv.builder()
-                    .pvName("ca://" + snapshotEntry.getPVName())
-                    .readbackPvName((snapshotEntry.getReadbackName() == null || snapshotEntry.getReadbackName().isEmpty()) ? null : ("ca://" + snapshotEntry.getReadbackName()))
+                    .pvName(snapshotEntry.getPVName())
+                    .readbackPvName((snapshotEntry.getReadbackName() == null || snapshotEntry.getReadbackName().isEmpty()) ? null : (snapshotEntry.getReadbackName()))
                     .readOnly(snapshotEntry.isReadOnly())
                     .build();
 
