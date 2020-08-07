@@ -31,26 +31,18 @@ import org.phoebus.util.time.TimestampFormats;
 @SuppressWarnings("nls")
 public class PVUtil
 {
-    public static class PVHasNoValueException extends NullPointerException
-    {
-        public PVHasNoValueException(final String msg)
-        {
-            super(msg);
-        }
-    }
-
     /** Get valid value from PV
      *  @param pv PV
      *  @return Valid value
      *  @throws NullPointerException when PV is not connected, no valid value
      */
-    public static VType getVType(final RuntimePV pv) throws PVHasNoValueException
+    public static VType getVType(final RuntimePV pv) throws NullPointerException
     {
         final VType value = pv.read();
         if (value == null)
-            throw new PVHasNoValueException("PV " + pv.getName() + " has no value");
+            throw new NullPointerException("PV " + pv.getName() + " has no value");
         if (PV.isDisconnected(value))
-            throw new PVHasNoValueException("PV " + pv.getName() + " has no valid value");
+            throw new NullPointerException("PV " + pv.getName() + " has no valid value");
         return value;
     }
 
@@ -72,7 +64,7 @@ public class PVUtil
      *  @return Current value as int.  Boolean will turn into 0, 1.
      *  @throws NullPointerException if the PV has no value
      */
-    public static int getInt(final RuntimePV pv) throws PVHasNoValueException
+    public static int getInt(final RuntimePV pv) throws NullPointerException
     {
         return ValueUtil.getInt(getVType(pv));
     }
@@ -82,7 +74,7 @@ public class PVUtil
      *  @return Current value as long
      *  @throws NullPointerException if the PV has no value
      */
-    public static long getLong(final RuntimePV pv) throws PVHasNoValueException
+    public static long getLong(final RuntimePV pv) throws NullPointerException
     {
         return ValueUtil.getLong(getVType(pv));
     }
@@ -92,7 +84,7 @@ public class PVUtil
      *  @return Current value as string. Boolean will turn into "false"/"true"
      *  @throws NullPointerException if the PV has no value
      */
-    public static String getString(final RuntimePV pv) throws PVHasNoValueException
+    public static String getString(final RuntimePV pv) throws NullPointerException
     {
         return ValueUtil.getString(getVType(pv));
     }
@@ -106,7 +98,7 @@ public class PVUtil
      *  @return Current value as string
      *  @throws NullPointerException if the PV has no value
      */
-    public static String getString(final RuntimePV pv, final boolean byte_array_as_string) throws PVHasNoValueException
+    public static String getString(final RuntimePV pv, final boolean byte_array_as_string) throws NullPointerException
     {
         return ValueUtil.getString(getVType(pv), byte_array_as_string);
     }
@@ -116,7 +108,7 @@ public class PVUtil
      *  @return Enum labels or empty array if not enum nor table
      *  @throws NullPointerException if the PV has no value
      */
-    public static String[] getLabels(final RuntimePV pv) throws PVHasNoValueException
+    public static String[] getLabels(final RuntimePV pv) throws NullPointerException
     {
         return ValueUtil.getLabels(getVType(pv));
     }
@@ -129,7 +121,7 @@ public class PVUtil
      *          does not decode into a number.
      *  @throws NullPointerException if the PV has no value
      */
-    public static double[] getDoubleArray(final RuntimePV pv) throws PVHasNoValueException
+    public static double[] getDoubleArray(final RuntimePV pv) throws NullPointerException
     {
         return ValueUtil.getDoubleArray(getVType(pv));
     }
@@ -140,7 +132,7 @@ public class PVUtil
      *          Will return single-element array for scalar value.
      *  @throws NullPointerException if the PV has no value
      */
-    public static long[] getLongArray(final RuntimePV pv) throws PVHasNoValueException
+    public static long[] getLongArray(final RuntimePV pv) throws NullPointerException
     {
         return ValueUtil.getLongArray(getVType(pv));
     }
@@ -154,7 +146,7 @@ public class PVUtil
      *          For scalar PVs, an array with a single string is returned.
      *  @throws NullPointerException if the PV has no value
      */
-    public final static String[] getStringArray(final RuntimePV pv) throws PVHasNoValueException
+    public final static String[] getStringArray(final RuntimePV pv) throws NullPointerException
     {
         return ValueUtil.getStringArray(getVType(pv));
     }
@@ -171,7 +163,7 @@ public class PVUtil
      *  @see ValueUtil#getTimestamp(VType) to fetch time stamp for custom formatting
      *  @throws NullPointerException if the PV has no value
      */
-    public static String getTimeString(final RuntimePV pv) throws PVHasNoValueException
+    public static String getTimeString(final RuntimePV pv) throws NullPointerException
     {
         final Instant time = ValueUtil.getTimestamp(getVType(pv));
         if (time == null)
@@ -189,7 +181,7 @@ public class PVUtil
      *  @return milliseconds since 1970.
      *  @throws NullPointerException if the PV has no value
      */
-    public final static long getTimeInMilliseconds(final RuntimePV pv) throws PVHasNoValueException
+    public final static long getTimeInMilliseconds(final RuntimePV pv) throws NullPointerException
     {
         final Instant time = ValueUtil.getTimestamp(getVType(pv));
         if (time == null)
@@ -278,7 +270,7 @@ public class PVUtil
      *  @return List of rows, where each row contains either String or Number cells
      *  @throws NullPointerException if the PV has no value
      */
-    public static List<List<Object>> getTable(final RuntimePV pv) throws PVHasNoValueException
+    public static List<List<Object>> getTable(final RuntimePV pv) throws NullPointerException
     {
         return ValueUtil.getTable(getVType(pv));
     }
@@ -310,7 +302,7 @@ public class PVUtil
      *          if there is no matching sub-structure, the list is empty.
      *  @throws NullPointerException if the PV has no value
      */
-    public static List<List<Object>> getStructure(final RuntimePV pv, final String name) throws PVHasNoValueException
+    public static List<List<Object>> getStructure(final RuntimePV pv, final String name) throws NullPointerException
     {
     	return ValueUtil.getStructure(getVType(pv), name);
     }
@@ -325,7 +317,7 @@ public class PVUtil
      *  @return Either String or Number for the cell's value, null if invalid row/column
      *  @throws NullPointerException if the PV has no value
      */
-    public static Object getTableCell(final RuntimePV pv, final int row, final int column) throws PVHasNoValueException
+    public static Object getTableCell(final RuntimePV pv, final int row, final int column) throws NullPointerException
     {
         return ValueUtil.getTableCell(getVType(pv), row, column);
     }
@@ -356,7 +348,7 @@ public class PVUtil
      *          of the value.
      *  @throws NullPointerException if the PV has no value
      */
-    public static List<Object> getStructureElement(final RuntimePV pv, final String name) throws PVHasNoValueException
+    public static List<Object> getStructureElement(final RuntimePV pv, final String name) throws NullPointerException
     {
     	return ValueUtil.getStructureElement(getVType(pv), name);
     }
@@ -371,7 +363,7 @@ public class PVUtil
      *  @return Either String or Number for the cell's value, null if invalid name/index
      *  @throws NullPointerException if the PV has no value
      */
-    public static Object getStructureElement(final RuntimePV pv, final String name, final int index) throws PVHasNoValueException
+    public static Object getStructureElement(final RuntimePV pv, final String name, final int index) throws NullPointerException
     {
     	return ValueUtil.getStructureElement(getVType(pv), name, index);
     }

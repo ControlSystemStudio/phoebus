@@ -234,6 +234,7 @@ public class RuleToScript
         final StringBuilder script = new StringBuilder();
         script.append("## Script for Rule: ").append(rule.getName()).append("\n\n");
         script.append("from org.csstudio.display.builder.runtime.script import PVUtil\n");
+        script.append("from java import lang\n");
         if (pform == PropFormat.COLOR)
             script.append("from ").append(WidgetColor.class.getPackageName()).append(" import WidgetColor\n");
         else if (pform == PropFormat.FONT)
@@ -383,8 +384,12 @@ public class RuleToScript
         else
             script.append(try_indent).append(setPropStr).append(formatPropVal(prop, -1, pform)).append(")\n");
 
-        script.append("\nexcept PVUtil.PVHasNoValueException:\n");
+        script.append("\nexcept (Exception, lang.Exception) as e:\n");
         script.append(try_indent).append(setPropStr).append(formatPropVal(prop, -1, pform)).append(")\n");
+        script.append(try_indent).append("from org.csstudio.display.builder.runtime.script import ScriptUtil\n");
+        script.append(try_indent).append("ScriptUtil.getLogger().info('Restored default value because of exception')\n");
+        script.append(try_indent).append("import traceback\n");
+        script.append(try_indent).append("ScriptUtil.getLogger().warning(traceback.format_exc())\n");
 
         return script.toString();
     }
