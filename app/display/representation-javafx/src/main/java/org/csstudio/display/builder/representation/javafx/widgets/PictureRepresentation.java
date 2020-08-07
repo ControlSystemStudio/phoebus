@@ -69,12 +69,18 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
 
         model_widget.propStretch().addUntypedPropertyListener(styleChangedListener);
         model_widget.propRotation().addUntypedPropertyListener(styleChangedListener);
-        styleChanged(null, null, null);
+//      styleChanged() will be called by contentChanged()
 
         // This is one of those weird cases where getValue calls setValue and fires the listener.
         // So register listener after getValue called
         final String img_name = model_widget.propFile().getValue();
         model_widget.propFile().addPropertyListener(contentChangedListener);
+        /*
+         * Must clear the flags, JFXBaseRepresentation will call updateChanges() but we are not initialized yet
+         * (contentChanged() will set the flags after it initializes img_path and img_loaded)
+         */
+        dirty_style.checkAndClear();
+        dirty_content.checkAndClear();
         ModelThreadPool.getExecutor().execute(() -> contentChanged(null, null, img_name));
     }
 
@@ -117,9 +123,12 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
             if (toolkit.isEditMode()){
                 ImageCache.remove(img_path);
             }
-            // SVGs are not loaded here. Instead they are loaded when an update is scheduled. The reason is
-            // that SVGs must be reloaded when the image size is changed.
-            if(!img_path.toLowerCase().endsWith("svg")){
+
+            // Load the SVG without specifying a size so that img_loaded will have the original aspect ratio that we need
+            if (img_path.toLowerCase().endsWith("svg"))
+                img_loaded = SVGHelper.loadSVG(img_path, 0.0, 0.0);
+            else
+            {
                 img_loaded = ImageCache.cache(img_path, () ->
                 {
                     try
@@ -259,18 +268,23 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
      * Note that this method sets the instance variable <code>img_loaded</code>.
      * @return <code>true</code> if default image loaded successfully, otherwise <code>false</code>
      */
-    private boolean loadDefaultImage(){
+    private boolean loadDefaultImage()
+    {
         final String dflt_img = PictureWidget.default_pic;
-        try
+        img_loaded = ImageCache.cache(dflt_img, () ->
         {
-            // Open the image from the stream created from the resource file
-            img_loaded = new Image(ModelResourceUtil.openResourceStream(dflt_img));
-            return true;
-        }
-        catch (Exception ex)
-        {
-            logger.log(Level.WARNING, "Failure loading default image file:" + img_path, ex);
-        }
-        return false;
+            try
+            {
+                // Open the image from the stream created from the resource file
+                return new Image(ModelResourceUtil.openResourceStream(dflt_img));
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Failure loading default image file:" + dflt_img, ex);
+            }
+            return null;
+            });
+
+        return img_loaded != null;
     }
 }
