@@ -12,6 +12,7 @@ import static org.csstudio.display.builder.representation.ToolkitRepresentation.
 import java.util.List;
 import java.util.logging.Level;
 
+import javafx.scene.layout.Pane;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
@@ -42,7 +43,7 @@ import javafx.scene.shape.Ellipse;
  *  @author Megan Grodowitz
  */
 @SuppressWarnings("nls")
-public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBase, BoolButtonWidget>
+public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, BoolButtonWidget>
 {
     private final DirtyFlag dirty_representation = new DirtyFlag();
     private final DirtyFlag dirty_enablement = new DirtyFlag();
@@ -83,7 +84,7 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
     private final WidgetPropertyListener<VType> valueChangedListener = this::valueChanged;
 
     @Override
-    public ButtonBase createJFXNode() throws Exception
+    public Pane createJFXNode() throws Exception
     {
         led = new Ellipse();
         led.getStyleClass().add("led");
@@ -110,7 +111,9 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
             }
         }
 
-        return button;
+        Pane pane = new Pane();
+        pane.getChildren().setAll(button);
+        return pane;
     }
 
     /** Respond to button press
@@ -330,10 +333,10 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         {
             final int wid = model_widget.propWidth().getValue(),
                       hei = model_widget.propHeight().getValue();
-            jfx_node.setPrefSize(wid, hei);
-            jfx_node.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
-            jfx_node.setTextFill(foreground);
-            jfx_node.setStyle(background);
+            button.setPrefSize(wid, hei);
+            button.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
+            button.setTextFill(foreground);
+            button.setStyle(background);
 
             if (model_widget.propShowLED().getValue())
             {
@@ -355,30 +358,36 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         {
             final boolean enabled = model_widget.propEnabled().getValue()  &&
                                     model_widget.runtimePropPVWritable().getValue();
-            jfx_node.setDisable(! enabled);
-            Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
+            button.setDisable(! enabled);
+            Styles.update(button, Styles.NOT_ENABLED, !enabled);
         }
         if (update_value)
         {
-            jfx_node.setText(value_label);
+            button.setText(value_label);
             final ImageView image = value_image;
             if (image == null)
             {
                 if (model_widget.propShowLED().getValue())
                 {
-                    jfx_node.setGraphic(led);
+                    button.setGraphic(led);
                     // Put highlight in top-left corner, about 0.2 wide,
                     // relative to actual size of LED
                     led.setFill(toolkit.isEditMode() ? computeEditColors() : value_color);
                 }
                 else
                 {
-                    jfx_node.setGraphic(null);
-                    jfx_node.setStyle(background);
+                    button.setGraphic(null);
+                    button.setStyle(background);
                 }
             }
             else
-                jfx_node.setGraphic(image);
+                button.setGraphic(image);
         }
+    }
+
+    @Override
+    protected boolean isFilteringEditModeClicks()
+    {
+        return true;
     }
 }
