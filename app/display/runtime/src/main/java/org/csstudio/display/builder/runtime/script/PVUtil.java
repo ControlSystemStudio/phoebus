@@ -31,6 +31,15 @@ import org.phoebus.util.time.TimestampFormats;
 @SuppressWarnings("nls")
 public class PVUtil
 {
+    public static class PVHasNoValueException extends NullPointerException
+    {
+        public PVHasNoValueException(final String msg)
+        {
+            super(msg);
+        }
+    }
+
+
     /** Get valid value from PV
      *  @param pv PV
      *  @return Valid value
@@ -40,9 +49,9 @@ public class PVUtil
     {
         final VType value = pv.read();
         if (value == null)
-            throw new NullPointerException("PV " + pv.getName() + " has no value");
+            throw new PVHasNoValueException("PV " + pv.getName() + " has no value");
         if (PV.isDisconnected(value))
-            throw new NullPointerException("PV " + pv.getName() + " has no valid value");
+            throw new PVHasNoValueException("PV " + pv.getName() + " has no valid value");
         return value;
     }
 

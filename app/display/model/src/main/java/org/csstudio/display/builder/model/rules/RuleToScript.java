@@ -278,7 +278,9 @@ public class RuleToScript
             {
                 final String varname = entry.getKey();
                 /*
-                 * PVUtil.getDouble() (used for pv0, pv1, etc) does not throw an exception when the PV is disconnected
+                 * PVUtil.getDouble() (used for pv0, pv1, etc),
+                 * getSeverity() and getLegacySeverity() do not throw
+                 * an exception when the PV is disconnected:
                  * Let's make sure that we have a pvInt for every PV
                  */
                 if (expr_to_check.contains(varname) || varname.contains("pvInt"))
@@ -386,10 +388,8 @@ public class RuleToScript
 
         script.append("\nexcept (Exception, lang.Exception) as e:\n");
         script.append(try_indent).append(setPropStr).append(formatPropVal(prop, -1, pform)).append(")\n");
-        script.append(try_indent).append("from org.csstudio.display.builder.runtime.script import ScriptUtil\n");
-        script.append(try_indent).append("ScriptUtil.getLogger().info('Restored default value because of exception')\n");
-        script.append(try_indent).append("import traceback\n");
-        script.append(try_indent).append("ScriptUtil.getLogger().warning(traceback.format_exc())\n");
+        script.append(try_indent).append("if not isinstance(e, PVUtil.PVHasNoValueException):\n");
+        script.append(indent).append("raise e\n");
 
         return script.toString();
     }
