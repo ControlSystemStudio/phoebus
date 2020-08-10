@@ -234,6 +234,7 @@ public class RuleToScript
         final StringBuilder script = new StringBuilder();
         script.append("## Script for Rule: ").append(rule.getName()).append("\n\n");
         script.append("from org.csstudio.display.builder.runtime.script import PVUtil\n");
+        script.append("from java import lang\n");
         if (pform == PropFormat.COLOR)
             script.append("from ").append(WidgetColor.class.getPackageName()).append(" import WidgetColor\n");
         else if (pform == PropFormat.FONT)
@@ -276,13 +277,16 @@ public class RuleToScript
             for (Map.Entry<String, String> entry : pvm.entrySet())
             {
                 final String varname = entry.getKey();
-                if (expr_to_check.contains(varname))
+                /*
+                 * PVUtil.getDouble() (used for pv0, pv1, etc),
+                 * getSeverity() and getLegacySeverity() do not throw
+                 * an exception when the PV is disconnected:
+                 * Let's make sure that we have a pvInt for every PV
+                 */
+                if (expr_to_check.contains(varname) || varname.contains("pvInt"))
                     output_pvm.put(varname, entry.getValue());
             }
         }
-        // Generate code that reads the required pv* variables from PVs
-        for (Map.Entry<String, String> entry : output_pvm.entrySet())
-            script.append(entry.getKey()).append(" = ").append(entry.getValue()).append("\n");
 
         if (pform == PropFormat.COLOR)
         {   // If property is a color, create variables for all the used colors
@@ -337,8 +341,14 @@ public class RuleToScript
             }
         }
 
+        script.append("\ntry:\n");
+        final String try_indent = "    ";
+        // Generate code that reads the required pv* variables from PVs
+        for (Map.Entry<String, String> entry : output_pvm.entrySet())
+            script.append(try_indent).append(entry.getKey()).append(" = ").append(entry.getValue()).append("\n");
+
         script.append("\n## Script Body\n");
-        String indent = "    ";
+        final String indent = try_indent + "    ";
 
         final String setPropStr = "widget.setPropertyValue('" + rule.getPropID() + "', ";
         int idx = 0;
@@ -346,7 +356,7 @@ public class RuleToScript
         final Macros macros = attached_widget.getEffectiveMacros();
         for (ExpressionInfo<?> expr : rule.getExpressions())
         {
-            script.append((idx == 0) ? "if" : "elif");
+            script.append(try_indent).append((idx == 0) ? "if" : "elif");
 
             String expanded_expression;
             try
@@ -370,11 +380,16 @@ public class RuleToScript
 
         if (idx > 0)
         {
-            script.append("else:\n");
+            script.append(try_indent).append("else:\n");
             script.append(indent).append(setPropStr).append(formatPropVal(prop, -1, pform)).append(")\n");
         }
         else
-            script.append(setPropStr).append(formatPropVal(prop, -1, pform)).append(")\n");
+            script.append(try_indent).append(setPropStr).append(formatPropVal(prop, -1, pform)).append(")\n");
+
+        script.append("\nexcept (Exception, lang.Exception) as e:\n");
+        script.append(try_indent).append(setPropStr).append(formatPropVal(prop, -1, pform)).append(")\n");
+        script.append(try_indent).append("if not isinstance(e, PVUtil.PVHasNoValueException):\n");
+        script.append(indent).append("raise e\n");
 
         return script.toString();
     }
