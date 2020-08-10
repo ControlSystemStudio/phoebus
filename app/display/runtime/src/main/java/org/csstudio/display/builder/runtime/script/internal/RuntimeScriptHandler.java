@@ -46,7 +46,7 @@ public class RuntimeScriptHandler implements RuntimePVListener
     private final List<ScriptPV> infos;
     private final Script script;
     private final boolean is_rule;
-    private boolean check_connections;
+    private volatile boolean check_connections;
 
     /** 'pvs' is aligned with 'infos', i.e. pvs[i] goes with infos.get(i) */
     private final RuntimePV[] pvs;
