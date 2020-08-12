@@ -14,6 +14,7 @@ import java.util.Arrays;
 
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.properties.Points;
 import org.csstudio.display.builder.model.properties.ScriptPV;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
@@ -21,6 +22,7 @@ import org.csstudio.display.builder.model.properties.WidgetFontStyle;
 import org.csstudio.display.builder.model.rules.RuleInfo;
 import org.csstudio.display.builder.model.rules.RuleToScript;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
+import org.csstudio.display.builder.model.widgets.PolylineWidget;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
 import org.junit.Test;
 
@@ -104,5 +106,25 @@ public class RulesTest
         System.out.println(script);
         // Script must create WidgetFont for fonts
         assertThat(script, containsString("WidgetFont(\"" + font.getValue().getFamily() + "\", WidgetFontStyle." + font.getValue().getStyle().name() + ", " + font.getValue().getSize() + ")"));
+    }
+
+    /** Rule that uses points */
+    @Test
+    public void testPointsRule() throws Exception
+    {
+        final PolylineWidget widget = new PolylineWidget();
+
+        final WidgetProperty<Points> points = widget.propPoints().clone();
+        points.setValue(new Points(0.0, 0.0, 42.0, 42.0));
+
+        final RuleInfo rule = new RuleInfo("Points", "points", false,
+                Arrays.asList(new RuleInfo.ExprInfoValue<Points>("pv0 > 10", points)),
+                Arrays.asList(new ScriptPV("Whatever")));
+
+        System.out.println(rule);
+        final String script = RuleToScript.generatePy(widget, rule);
+        System.out.println(script);
+        // Script must create Points for points
+        assertThat(script, containsString("Points([0.0, 0.0, 42.0, 42.0])"));
     }
 }

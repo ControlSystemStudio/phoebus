@@ -16,6 +16,8 @@ import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.properties.Point;
+import org.csstudio.display.builder.model.properties.Points;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.csstudio.display.builder.model.rules.RuleInfo.ExpressionInfo;
@@ -54,7 +56,7 @@ public class RuleToScript
 
     private enum PropFormat
     {
-        NUMERIC, BOOLEAN, STRING, COLOR, FONT
+        NUMERIC, BOOLEAN, STRING, COLOR, FONT, POINTS
     }
 
     /** Appends text that represents value of the property as python literal
@@ -80,6 +82,8 @@ public class RuleToScript
             return createWidgetColor(builder, (WidgetColor) value);
         case FONT:
             return createWidgetFont(builder, (WidgetFont) value);
+        case POINTS:
+            return createPoints(builder, (Points) value);
         case NUMERIC:
             // Set enum to its ordinal
             if (value instanceof Enum<?>)
@@ -209,6 +213,24 @@ public class RuleToScript
         return script;
     }
 
+    private static StringBuilder createPoints(StringBuilder script, final Points points)
+    {
+        script.append("Points([");
+
+        boolean first = true;
+        for (Point p : points)
+        {
+            if (!first)
+                script.append(", ");
+            script.append(p.getX()).append(", ").append(p.getY());
+            first = false;
+        }
+
+        script.append("])");
+
+        return script;
+    }
+
     public static String generatePy(final Widget attached_widget, final RuleInfo rule)
     {
         final WidgetProperty<?> prop = attached_widget.getProperty(rule.getPropID());
@@ -224,6 +246,8 @@ public class RuleToScript
             pform = PropFormat.COLOR;
         else if (prop.getDefaultValue() instanceof WidgetFont)
             pform = PropFormat.FONT;
+        else if (prop.getDefaultValue() instanceof Points)
+            pform = PropFormat.POINTS;
         else
             pform = PropFormat.STRING;
 
@@ -235,6 +259,8 @@ public class RuleToScript
             script.append("from ").append(WidgetColor.class.getPackageName()).append(" import WidgetColor\n");
         else if (pform == PropFormat.FONT)
             script.append("from ").append(WidgetFont.class.getPackageName()).append(" import WidgetFont, WidgetFontStyle\n");
+        else if (pform == PropFormat.POINTS)
+            script.append("from ").append(Points.class.getPackageName()).append(" import Points\n");
 
         script.append("\n## Process variable extraction\n");
         script.append("## Use any of the following valid variable names in an expression:\n");
