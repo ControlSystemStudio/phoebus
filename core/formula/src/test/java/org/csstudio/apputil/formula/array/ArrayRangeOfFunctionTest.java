@@ -19,36 +19,36 @@
 
 package org.csstudio.apputil.formula.array;
 
-import org.csstudio.apputil.formula.spi.FormulaFunction;
 import org.epics.util.array.ArrayDouble;
+import org.epics.util.stats.Range;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
-import org.epics.vtype.VDouble;
-import org.epics.vtype.VDoubleArray;
-import org.epics.vtype.VString;
+import org.epics.vtype.VNumberArray;
+import org.junit.Test;
 
-/**
- * Abstract base class taking care of returning the category identifier for
- * all sub-classes.
- */
-public abstract class BaseArrayFunction implements FormulaFunction {
+import java.text.DecimalFormat;
 
-    protected static VDouble DEFAULT_NAN_DOUBLE = VDouble.of(Double.NaN,
-            Alarm.none(),
-            Time.now(),
-            Display.none());
+import static org.junit.Assert.*;
 
-    protected static VDoubleArray DEFAULT_NAN_DOUBLE_ARRAY = VDoubleArray.of(ArrayDouble.of(Double.NaN),
-            Alarm.none(),
-            Time.now(),
-            Display.none());
+public class ArrayRangeOfFunctionTest {
 
-    protected static VString DEFAULT_EMPTY_STRING =
-            VString.of("", Alarm.none(), Time.now());
+    @Test
+    public void compute() {
 
-    @Override
-    public String getCategory() {
-        return "array";
+        ArrayRangeOfFunction arrayRangeOfFunction = new ArrayRangeOfFunction();
+
+        assertEquals("arrayRangeOf", arrayRangeOfFunction.getName());
+        assertEquals("array", arrayRangeOfFunction.getCategory());
+
+        Display display =
+                Display.of(Range.of(1d, 10d), Range.of(10d, 20d), Range.of(20d, 30d), Range.of(30d, 40d), "N", new DecimalFormat(""));
+
+        VNumberArray numberArray = VNumberArray.of(ArrayDouble.of(1d, 2d), Alarm.none(), Time.now(), display);
+        VNumberArray range = (VNumberArray)arrayRangeOfFunction.compute(numberArray);
+
+        assertEquals(1, range.getData().getInt(0));
+        assertEquals(10, range.getData().getInt(1));
+
     }
 }

@@ -19,45 +19,56 @@
 
 package org.csstudio.apputil.formula.array;
 
+import org.epics.util.array.ArrayDouble;
 import org.epics.util.array.ListMath;
-import org.epics.vtype.*;
+import org.epics.util.stats.Range;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VType;
 
-import java.util.Arrays;
 import java.util.List;
 
-public class RescaleArrayFormulaFunction extends BaseArrayFunction {
+
+public class ArrayRangeOfFunction extends BaseArrayFunction {
 
     @Override
     public String getName() {
-        return "rescale";
+        return "arrayRangeOf";
     }
 
     @Override
     public String getDescription() {
-        return "Rescale an array using the factor and offset ";
+        return "Returns the range where the array is defined";
     }
 
     @Override
     public List<String> getArguments() {
-        return List.of("VNumberArray", "VNumber", "VNumber");
+        return List.of("VNumberArray");
     }
 
     @Override
-    public VType compute(VType... args) throws Exception {
-        for(VType arg : args){
-            if(arg == null){
-                throw new Exception(String.format("Function %s encountered a null arugment", getName()));
-            }
+    public String getSignature(){
+        return "(VNumberArray array)";
+    }
+
+
+    @Override
+    public VType compute(VType... args)  {
+        if(args[0] instanceof VNumberArray){
+            VNumberArray array = (VNumberArray)args[0];
+            Range range = array.getDisplay().getDisplayRange();
+            double min = range.getMinimum();
+            double max = range.getMaximum();
+            return VNumberArray.of(
+                    ArrayDouble.of(min, max),
+                    Alarm.none(),
+                    Time.now(),
+                    Display.none());
         }
-
-        VNumberArray arg1 = (VNumberArray) args[0];
-        VNumber arg2 = (VNumber) args[1];
-        VNumber arg3 = (VNumber) args[2];
-
-        return VNumberArray.of(
-                ListMath.rescale(arg1.getData(), arg2.getValue().doubleValue(), arg3.getValue().doubleValue()),
-                Alarm.highestAlarmOf(Arrays.asList(args), false),
-                Time.now(),
-                Display.none());
+        else{
+            return DEFAULT_NAN_DOUBLE_ARRAY;
+        }
     }
 }
