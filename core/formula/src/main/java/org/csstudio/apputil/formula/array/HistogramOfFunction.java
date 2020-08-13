@@ -19,11 +19,9 @@
 
 package org.csstudio.apputil.formula.array;
 
-import org.csstudio.apputil.formula.VTypeHelper;
+
 import org.epics.util.array.ArrayInteger;
 import org.epics.util.array.IteratorNumber;
-import org.epics.util.array.ListNumber;
-import org.epics.util.array.ListNumbers;
 import org.epics.util.stats.Range;
 import org.epics.util.stats.Ranges;
 import org.epics.util.stats.Statistics;
@@ -32,10 +30,10 @@ import org.epics.util.text.NumberFormats;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
-import org.epics.vtype.VIntArray;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 import java.util.List;
 
@@ -60,7 +58,7 @@ public class HistogramOfFunction extends BaseArrayFunction {
     }
 
     @Override
-    public String getSignature(){
+    public String getSignature() {
         return "(VNumberArray array [, VNumber binCount])";
     }
 
@@ -73,13 +71,14 @@ public class HistogramOfFunction extends BaseArrayFunction {
      * Computes a histogram from the input array. User may optionally specify the number of bins,
      * which - if not specified - defaults to 100. The display field will contain information
      * on the value of the bin holding the highest count.
+     *
      * @param args Arguments, count will match <code>getArgumentCount()</code>
      * @return A {@link VNumberArray} where each element holds the count for each bin. If the input
      * array is numeric, {@link BaseArrayFunction#DEFAULT_NAN_DOUBLE_ARRAY} is returned.
      */
     @Override
     public VType compute(VType... args) {
-        if(VTypeHelper.isNumericArray(args[0])){
+        if (VTypeHelper.isNumericArray(args[0])) {
             VNumberArray numberArray = (VNumberArray) args[0];
             if (numberArray == null) {
                 return null;
@@ -95,7 +94,7 @@ public class HistogramOfFunction extends BaseArrayFunction {
             }
 
             Statistics stats = StatisticsUtil.statisticsOf(numberArray.getData());
-            int nBins = args.length == 1 ? 100 : ((VNumber)args[1]).getValue().intValue();
+            int nBins = args.length == 1 ? 100 : ((VNumber) args[1]).getValue().intValue();
             Range aggregatedRange = aggregateRange(stats.getRange(), previousXRange);
             Range xRange;
             if (Ranges.overlap(aggregatedRange, stats.getRange()) >= 0.75) {
@@ -114,7 +113,7 @@ public class HistogramOfFunction extends BaseArrayFunction {
                 // Check value in range
                 if (xRange.contains(value)) {
 
-                    int bin = (int) Math.floor(xRange.normalize( value) * nBins);
+                    int bin = (int) Math.floor(xRange.normalize(value) * nBins);
                     if (bin == nBins) {
                         bin--;
                     }
@@ -134,8 +133,7 @@ public class HistogramOfFunction extends BaseArrayFunction {
                     Range.of(0.0, maxCount), "count", NumberFormats.precisionFormat(0));
 
             return VNumberArray.of(ArrayInteger.of(binData), Alarm.none(), Time.now(), display);
-        }
-        else{
+        } else {
             return BaseArrayFunction.DEFAULT_NAN_DOUBLE_ARRAY;
         }
     }
@@ -166,7 +164,7 @@ public class HistogramOfFunction extends BaseArrayFunction {
 
     private Range range(final double minValue, final double maxValue) {
         if (minValue > maxValue) {
-            throw new IllegalArgumentException("minValue should be less then or equal to maxValue (" + minValue+ ", " + maxValue + ")");
+            throw new IllegalArgumentException("minValue should be less then or equal to maxValue (" + minValue + ", " + maxValue + ")");
         }
         return Range.of(minValue, maxValue);
     }

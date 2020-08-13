@@ -19,7 +19,6 @@
 
 package org.csstudio.apputil.formula.array;
 
-import org.csstudio.apputil.formula.VTypeHelper;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
@@ -29,6 +28,7 @@ import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 import java.util.List;
 
