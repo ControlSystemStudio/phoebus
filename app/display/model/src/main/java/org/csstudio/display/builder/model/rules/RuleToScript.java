@@ -16,6 +16,8 @@ import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.properties.Point;
+import org.csstudio.display.builder.model.properties.Points;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.csstudio.display.builder.model.rules.RuleInfo.ExpressionInfo;
@@ -54,16 +56,18 @@ public class RuleToScript
 
     private enum PropFormat
     {
-        NUMERIC, BOOLEAN, STRING, COLOR, FONT
+        NUMERIC, BOOLEAN, STRING, COLOR, FONT, POINTS
     }
 
-    /** @param prop Property
-     *  @param exprIDX Index of expression
+    /** Appends text that represents value of the property as python literal
+     *  @param builder StringBuilder
+     *  @param prop Property
      *  @param pform Format
-     *  @return Text that represents value of the property as python literal
+     *  @return The passed in StringBuilder
      */
-    private static String formatPropVal(final WidgetProperty<?> prop, final int exprIDX, final PropFormat pform)
+    private static StringBuilder formatPropVal(StringBuilder builder, final WidgetProperty<?> prop, final PropFormat pform)
     {
+        final Object value = prop.getValue();
         switch(pform)
         {
         case BOOLEAN:
@@ -71,26 +75,22 @@ public class RuleToScript
             // convert property to string, parse as boolean,
             // then return the 'python' version of true/false
             // for evaluation in script
-            return Boolean.parseBoolean(prop.getValue().toString()) ? "True" : "False";
+            return builder.append(Boolean.parseBoolean(value.toString()) ? "True" : "False");
         case STRING:
-            return "u\"" + escapeString(prop.getValue().toString()) + "\"";
+            return builder.append("u\"").append(escapeString(value.toString())).append("\"");
         case COLOR:
-            if (exprIDX >= 0)
-                return "colorVal" + String.valueOf(exprIDX);
-            else
-                return "colorCurrent";
+            return createWidgetColor(builder, (WidgetColor) value);
         case FONT:
-            if (exprIDX >= 0)
-                return "fontVal" + String.valueOf(exprIDX);
-            else
-                return "fontCurrent";
+            return createWidgetFont(builder, (WidgetFont) value);
+        case POINTS:
+            return createPoints(builder, (Points) value);
         case NUMERIC:
             // Set enum to its ordinal
-            if (prop.getValue() instanceof Enum<?>)
-                return Integer.toString(((Enum<?>)prop.getValue()).ordinal());
+            if (value instanceof Enum<?>)
+                return builder.append(Integer.toString(((Enum<?>)value).ordinal()));
             // else: Format number as string
         default:
-            return String.valueOf(prop.getValue());
+            return builder.append(String.valueOf(value));
         }
     }
 
@@ -201,7 +201,7 @@ public class RuleToScript
         script.append("WidgetColor(").append(col.getRed()).append(", ")
                                      .append(col.getGreen()).append(", ")
                                      .append(col.getBlue()).append(", ")
-                                     .append(col.getAlpha()).append(")\n");
+                                     .append(col.getAlpha()).append(")");
         return script;
     }
 
@@ -209,7 +209,25 @@ public class RuleToScript
     {
         script.append("WidgetFont(\"").append(fon.getFamily()).append("\", WidgetFontStyle.")
                                       .append(fon.getStyle().name()).append(", ")
-                                      .append(fon.getSize()).append(")\n");
+                                      .append(fon.getSize()).append(")");
+        return script;
+    }
+
+    private static StringBuilder createPoints(StringBuilder script, final Points points)
+    {
+        script.append("Points([");
+
+        boolean first = true;
+        for (Point p : points)
+        {
+            if (!first)
+                script.append(", ");
+            script.append(p.getX()).append(", ").append(p.getY());
+            first = false;
+        }
+
+        script.append("])");
+
         return script;
     }
 
@@ -228,6 +246,8 @@ public class RuleToScript
             pform = PropFormat.COLOR;
         else if (prop.getDefaultValue() instanceof WidgetFont)
             pform = PropFormat.FONT;
+        else if (prop.getDefaultValue() instanceof Points)
+            pform = PropFormat.POINTS;
         else
             pform = PropFormat.STRING;
 
@@ -239,6 +259,8 @@ public class RuleToScript
             script.append("from ").append(WidgetColor.class.getPackageName()).append(" import WidgetColor\n");
         else if (pform == PropFormat.FONT)
             script.append("from ").append(WidgetFont.class.getPackageName()).append(" import WidgetFont, WidgetFontStyle\n");
+        else if (pform == PropFormat.POINTS)
+            script.append("from ").append(Points.class.getPackageName()).append(" import Points\n");
 
         script.append("\n## Process variable extraction\n");
         script.append("## Use any of the following valid variable names in an expression:\n");
@@ -288,59 +310,6 @@ public class RuleToScript
             }
         }
 
-        if (pform == PropFormat.COLOR)
-        {   // If property is a color, create variables for all the used colors
-            script.append("\n## Define Colors\n");
-            WidgetColor col = (WidgetColor) prop.getValue();
-            script.append("colorCurrent = ");
-            createWidgetColor(script, col);
-
-            if (!rule.getPropAsExprFlag())
-            {
-                int idx = 0;
-                for (ExpressionInfo<?> expr : rule.getExpressions())
-                {
-                    if (expr.getPropVal() instanceof WidgetProperty<?>)
-                    {
-                        final Object value = (( WidgetProperty<?>)expr.getPropVal()).getValue();
-                        if (value instanceof WidgetColor)
-                        {
-                            col = (WidgetColor) value;
-                            script.append("colorVal").append(idx).append(" = ");
-                            createWidgetColor(script, col);
-                        }
-                    }
-                    idx++;
-                }
-            }
-        }
-        else if (pform == PropFormat.FONT)
-        {   // If property is a font, create variables for all the used fonts
-            script.append("\n## Define Fonts\n");
-            WidgetFont fon = (WidgetFont) prop.getValue();
-            script.append("fontCurrent = ");
-            createWidgetFont(script, fon);
-
-            if (!rule.getPropAsExprFlag())
-            {
-                int idx = 0;
-                for (ExpressionInfo<?> expr : rule.getExpressions())
-                {
-                    if (expr.getPropVal() instanceof WidgetProperty<?>)
-                    {
-                        final Object value = (( WidgetProperty<?>)expr.getPropVal()).getValue();
-                        if (value instanceof WidgetFont)
-                        {
-                            fon = (WidgetFont) value;
-                            script.append("fontVal").append(idx).append(" = ");
-                            createWidgetFont(script, fon);
-                        }
-                    }
-                    idx++;
-                }
-            }
-        }
-
         script.append("\ntry:\n");
         final String try_indent = "    ";
         // Generate code that reads the required pv* variables from PVs
@@ -374,20 +343,24 @@ public class RuleToScript
             if (rule.getPropAsExprFlag())
                 script.append(javascriptToPythonLogic(expr.getPropVal().toString())).append(")\n");
             else
-                script.append(formatPropVal((WidgetProperty<?>) expr.getPropVal(), idx, pform)).append(")\n");
+                formatPropVal(script, (WidgetProperty<?>) expr.getPropVal(), pform).append(")\n");
             idx++;
         }
 
         if (idx > 0)
         {
             script.append(try_indent).append("else:\n");
-            script.append(indent).append(setPropStr).append(formatPropVal(prop, -1, pform)).append(")\n");
+            script.append(indent);
         }
         else
-            script.append(try_indent).append(setPropStr).append(formatPropVal(prop, -1, pform)).append(")\n");
+            script.append(try_indent);
+
+        script.append(setPropStr);
+        formatPropVal(script, prop, pform).append(")\n");
 
         script.append("\nexcept (Exception, lang.Exception) as e:\n");
-        script.append(try_indent).append(setPropStr).append(formatPropVal(prop, -1, pform)).append(")\n");
+        script.append(try_indent).append(setPropStr);
+        formatPropVal(script, prop, pform).append(")\n");
         script.append(try_indent).append("if not isinstance(e, PVUtil.PVHasNoValueException):\n");
         script.append(indent).append("raise e\n");
 
