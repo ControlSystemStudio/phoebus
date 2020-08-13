@@ -432,7 +432,7 @@ public class Model
     public ModelItem getItem(final String name)
     {
         for (ModelItem item : items)
-            if (item.getName().equals(name))
+            if (item.getName().equals(name) || item.getResolvedName().equals(name))
                 return item;
         return null;
     }

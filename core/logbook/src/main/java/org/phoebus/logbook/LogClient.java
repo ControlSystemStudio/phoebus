@@ -3,6 +3,7 @@ package org.phoebus.logbook;
 import java.io.File;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -14,447 +15,458 @@ import java.util.Map;
 public interface LogClient {
 
     /**
-     * Get a list of all the logbooks currently existings
-     * 
-     * @return string collection of logbooks
+     * Create a single LogEntry <code>log</code>, if the LogEntry already exists it is replaced.
+     *
+     * @param log - LogEntry to be added
+     * @return - the created log entry
      */
-    public Collection<Logbook> listLogbooks();
+    public LogEntry set(LogEntry log) throws LogbookException;
 
     /**
-     * Get a list of all the tags currently existing
-     * 
-     * @return string collection of tags
-     */
-    public Collection<Tag> listTags();
-
-    /**
-     * Get a list of all the Properties currently existing
-     * 
-     * @return
-     */
-    public Collection<Property> listProperties();
-
-    /**
-     * List the supported log levels
-     * 
-     * @return a list of supported levels
-     */
-    public Collection<String> listLevels();
-    
-    /**
-     * List all the active attributes associated with the property
-     * <tt>propertyName</tt> property must exist, name != null
-     * 
-     * @param propertyName
-     * @return
-     */
-    public Collection<String> listAttributes(String propertyName);
-
-    /**
-     * Return all the logs. ***Warning can return a lot of data***
-     * 
-     * @return Collection of all LogEntry entires
-     */
-    public Collection<LogEntry> listLogs();
-
-    /**
-     * Returns a LogEntry that exactly matches the logId <tt>logId</tt>
-     * 
+     * Returns a LogEntry that exactly matches the logId <code>logId</code>
+     *
      * @param logId LogEntry id
      * @return LogEntry object
      */
     public LogEntry getLog(Long logId);
 
     /**
-     * Returns a collection of attachments that matches the logId <tt>logId</tt>
-     * 
+     * Returns a collection of attachments that matches the logId <code>logId</code>
+     *
      * @param logId LogEntry id
      * @return attachments collection object
      */
     public Collection<Attachment> listAttachments(Long logId);
 
     /**
-     * 
-     * @param logId
-     * @param attachment
-     * @return {@link InputStream} to the attachment file
-     */
-    public InputStream getAttachment(Long logId, Attachment attachment);
-
-    /**
-     * 
-     * @param logId
-     * @param attachment
-     * @return {@link InputStream} to the attachment file
-     */
-    public InputStream getAttachment(Long logId, String attachmentName);
-
-    /**
-     * return the complete property <tt>property</tt>
-     * 
-     * @param property
-     * @return
-     */
-    public Property getProperty(String property);
-
-    /**
-     * Set a single LogEntry <tt>log</tt>, if the LogEntry already exists it is replaced.
-     * Destructive operation
-     * 
-     * TODO: check validity of LogEntry entry represented by builder
-     * 
-     * TODO: (shroffk) should there be anything returned? XXX: creating logs
-     * with same subject allowed?
-     * 
-     * @param log
-     *            the LogEntry to be added
-
-     */
-    public LogEntry set(LogEntry log);
-
-    /**
-     * Set a set of logs Destructive operation.
-     * 
-     * TODO: (shroffk) should anything be returned? and should be returned from
-     * the service?
-     * 
-     * @param logs collection of logs to be added
-     */
-    @Deprecated
-    public Collection<LogEntry> set(Collection<LogEntry> logs);
-
-    /**
-     * Set a Tag <tt>tag</tt> with no associated logs to the database.
-     * 
-     * TODO: validity check,
-     * 
-     * @param tag
-
-     */
-    public Tag set(Tag tag);
-
-    /**
-     * Set tag <tt>tag</tt> on the set of logs <tt>logIds</tt> and remove it
-     * from all others
-     * 
-     * TODO: all logIds should exist/ service should do proper transactions.
-     * 
-     * @param tag
-     * @param logIds
-
-     */
-    public Tag set(Tag tag, Collection<Long> logIds);
-
-    /**
-     * Set a new logbook <tt>logbook</tt> with no associated logs.
-     * 
-     * @param Logbook
-
-     */
-    public Logbook set(Logbook Logbook);
-
-    /**
-     * Set Logbook <tt>logbook</tt> to the logs <tt>logIds</tt> and remove it
-     * from all other logs TODO: all logids should exist, no nulls, check
-     * transaction
-     * 
-     * @param logbook
-     *            logbook builder
-     * @param logIds
-     *            LogEntry ids
-
-     */
-    public Logbook set(Logbook logbook, Collection<Long> logIds);
-
-    /**
-     * Create or replace property <tt>property</tt>
-     * 
-     * TODO: test creation of a new property, test changing this property, test
-     * old LogEntry entries still have old property structure
-     * 
-     * @param property
-     * @return
-
-     */
-    public Property set(Property property);
-
-    /**
-     * Update a LogEntry entry <tt>LogEntry </tt>
-     * 
-     * @param log
-     * @return the updated LogEntry entry
-
-     */
-    public LogEntry update(LogEntry log);
-
-    /**
-     * Update a set of logs
-     * 
-     * @param logs
-     *            set of logs to be added
-
-     */
-    public Collection<LogEntry> update(Collection<LogEntry> logs);
-
-    /**
-     * Update an existing property,
-     * 
-     * TODO: check non destructive nature, old attributes should not be touched.
-     * old entries should have old property.
-     * 
-     * @param property
-     * @return
-     */
-    public Property update(Property property);
-
-    /**
-     * Update Tag <tt>tag </tt> by adding it to LogEntry with name <tt>logName</tt>
-     * 
-     * TODO: logid valid.
-     * 
-     * @param tag
-     *            tag builder
-     * @param logId
-     *            LogEntry id the tag to be added
-
-     */
-    public Tag update(Tag tag, Long logId);
-
-    /**
-     * Update the Tag <tt>tag</tt> by adding it to the set of the logs with ids
-     * <tt>logIds</tt>
-     * 
-     * TODO: Transactional nature,
-     * 
-     * @param tag
-     *            tag builder
-     * @param logIds
-     *            collection of LogEntry ids
-
-     */
-    public Tag update(Tag tag, Collection<Long> logIds);
-
-    /**
-     * Add Logbook <tt>logbook</tt> to the LogEntry <tt>logId</tt>
-     * 
-     * @param logbook
-     *            logbook builder
-     * @param logId
-     *            LogEntry id
-
-     */
-    public Logbook update(Logbook logbook, Long logId);
-
-    /**
-     * 
-     * TODO: transaction check
-     * 
-     * @param logIds
-     * @param logbook
-
-     */
-    public Logbook update(Logbook logbook, Collection<Long> logIds);
-
-    /**
-     * Update Property <tt>property</tt> by adding it to LogEntry with id
-     * <tt>logId</tt>
-     * 
-     * TODO : service invalid payload, need attribute and value
-     * 
-     * @param property
-     *            property builder
-     * @param logId
-     *            LogEntry id the property to be added
-
-     */
-    public LogEntry update(Property property, Long logId);
-
-    /**
-     * @param logId
-     * @param local
-
-     */
-    public Attachment add(File local, Long logId);
-
-    /**
-     * 
-     * @param logId
-     * @return
-
-     */
-    @Deprecated
-    public LogEntry findLogById(Long logId);
-
-    /**
-     * 
-     * @param pattern
-     * @return collection of LogEntry objects
-
-     */
-    public List<LogEntry> findLogsBySearch(String pattern);
-
-    /**
-     * 
-     * @param pattern
-     * @return collection of LogEntry objects
-
-     */
-    public List<LogEntry> findLogsByTag(String pattern);
-
-    /**
-     * This function is a subset of queryLogs - should it be removed??
-     * <p>
-     * TODO: add the usage of patterns and implement on top of the general query
-     * using the map
-     * 
-     * @param logbook
-     *            logbook name
-     * @return collection of LogEntry objects
-
-     */
-    public List<LogEntry> findLogsByLogbook(String logbook);
-
-    /**
-     * This function is a subset of queryLogs should it be removed??
-     * <p>
-     * search for logs with property <tt>property</tt> and optionally value
-     * matching pattern<tt>propertyValue</tt>
-     * 
-     * @param property
-     * @return
-
-     */
-    public List<LogEntry> findLogsByProperty(String propertyName, String attributeName, String attributeValue);
-
-    /**
-     * 
-     * @param propertyName
-     * @return
-     */
-    public List<LogEntry> findLogsByProperty(String propertyName);
-
-    /**
      * Query for logs based on the criteria specified in the map
-     * 
-     * @param map
+     *
+     * @param map - search parameters
      * @return collection of LogEntry objects
      */
     public List<LogEntry> findLogs(Map<String, String> map);
 
     /**
-     * Remove {tag} from all logs
-     * 
-     * @param tag
+     * Return all the logs. ***Warning can return a lot of data***
+     *
+     * @return Collection of all {@link LogEntry}s
      */
-    public void deleteTag(String tag);
+    public Collection<LogEntry> listLogs();
+
+    /**
+     * Get a list of all the logbooks currently existings
+     * 
+     * @return string collection of logbooks
+     */
+    public default Collection<Logbook> listLogbooks() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Get a list of all the tags currently existing
+     * 
+     * @return string collection of tags
+     */
+    public default Collection<Tag> listTags() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Get a list of all the Properties currently existing
+     * 
+     * @return list of properties
+     */
+    public default Collection<Property> listProperties() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * List the supported log levels
+     * 
+     * @return a list of supported levels
+     */
+    public default Collection<String> listLevels() {
+        return Collections.emptyList();
+    }
+    
+    /**
+     * List all the active attributes associated with the property
+     * <code>propertyName</code> property must exist, name != null
+     * 
+     * @param propertyName - string property name
+     * @return list of property attributes
+     */
+    public default Collection<String> listAttributes(String propertyName) {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Retrieve an attachment of a log entry
+     * @param logId - log id
+     * @param attachment - the at
+     * @return {@link InputStream} to the attachment file
+     */
+    public default InputStream getAttachment(Long logId, Attachment attachment) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
 
     /**
      * 
-     * @param logbook
-     * @throws LogFinderException
+     * @param logId - log id
+     * @param attachmentName - attachment name
+     * @return {@link InputStream} to the attachment file
      */
-    public void deleteLogbook(String logbook);
+    public default InputStream getAttachment(Long logId, String attachmentName) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
 
     /**
-     * Delete the property with name <tt>property</tt>
+     * return the complete property <code>property</code>
      * 
-     * @param property
-
+     * @param property - property name
+     * @return the @property if it exists
      */
-    public void deleteProperty(String property);
+    public default Property getProperty(String property) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
 
     /**
-     * Remove the LogEntry identified by <tt>log</tt>
-     * 
-     * @param LogEntry LogEntry to be removed
-
+     * Create a Tag <code>tag</code>.
+     *
+     * @param tag - the tag to be created
+     * @return The created tag
      */
-    public void delete(LogEntry log);
+    public default Tag set(Tag tag) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
 
     /**
-     * Remove the LogEntry identified by <tt>log</tt>
-     * 
-     * @param logId
-     *            LogEntry id LogEntry id to be removed
-
+     * Create tag <code>tag</code> on the set of logs <code>logIds</code>
+     *
+     * @param tag - create a new tag
+     * @param logIds - the log ids to which the above tag is to be added
+     * @return the created tag
      */
-    public void delete(Long logId);
+    public default Tag set(Tag tag, Collection<Long> logIds) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
 
     /**
-     * Remove the LogEntry collection identified by <tt>log</tt>
+     * Create a new logbook <code>logbook</code> with no associated logs.
      * 
-     * @param logs
-     *            logs to be removed
-
+     * @param Logbook - the @logbook to be created
+     * @return the created logbook
      */
-    public void delete(Collection<LogEntry> logs);
+    public default Logbook set(Logbook Logbook) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
 
     /**
-     * Remove tag <tt>tag</tt> from the LogEntry with the id <tt>logId</tt>
+     * Create of replace <code>logbook</code> and add them to the logs <code>logIds</code>
      * 
-     * @param tag
-     * @param logId
+     * @param logbook - logbook to be created
+     * @param logIds - log ids to which the created logbook is to be
      */
-    public void delete(Tag tag, Long logId);
+    public default Logbook set(Logbook logbook, Collection<Long> logIds) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
 
     /**
-     * Remove the tag <tt>tag </tt> from all the logs <tt>logNames</tt>
+     * Create or replace property <code>property</code>
      * 
-     * @param tag
-     * @param logIds
-
+     * @param property - the property to be created or replaced
+     * @return the created/updated property
      */
-    public void delete(Tag tag, Collection<Long> logIds);
+    public default Property set(Property property) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
 
     /**
-     * Remove logbook <tt>logbook</tt> from the LogEntry with name <tt>logName</tt>
-     * 
-     * @param logbook
-     *            logbook builder
-     * @param logId
-     *            LogEntry id
+     * Update a LogEntry entry <code>LogEntry </code>
+     *
+     * @param log - the updated log entry
+     * @return the updated LogEntry entry
      */
-    public void delete(Logbook logbook, Long logId);
+    public default LogEntry update(LogEntry log) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
 
     /**
-     * Remove the logbook <tt>logbook</tt> from the set of logs <tt>logIds</tt>
-     * 
-     * @param logbook
-     * @param logIds
+     * Update a set of logs
+     *
+     * @param logs set of logs to be added
+     * @return return updated logentries
      */
-    public void delete(Logbook logbook, Collection<Long> logIds);
+    public default Collection<LogEntry> update(Collection<LogEntry> logs) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
 
     /**
-     * Remove property <tt>property</tt> from the LogEntry with id <tt>logId</tt>
-     * TODO: Should this be it's own service?
-     * 
-     * @param property
-     *            property builder
-     * @param logId
-     *            LogEntry id
+     * Update an existing property.
+     *
+     * @param property - the property to be updates
+     * @return the updated property
      */
-    public void delete(Property property, Long logId);
+    public default Property update(Property property) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
 
     /**
-     * Remove the property <tt>property</tt> from the set of logs
-     * <tt>logIds</tt>
-     * 
-     * @param property
-     * @param logIds
+     * Update Tag <code>tag </code> by adding it to LogEntry with id <code>logId</code>
+     *
+     * @param tag - tag to be updated
+     * @param logId LogEntry id the tag is to be added
+     * @return updated tag
      */
-    public void delete(Property property, Collection<Long> logIds);
+    public default Tag update(Tag tag, Long logId) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
 
     /**
-     * Remove file attachment from LogEntry <tt>logId<tt>
-     * 
-     * TODO: sardine delete hangs up, using jersey for delete
-     * 
-     * @param String
-     *            fileName
-     * @param Long
-     *            logId
+     * Update the Tag <code>tag</code> by adding it to the set of the logs with ids
+     * <code>logIds</code>
+     *
+     * @param tag - tag to be updated
+     * @param logIds - collection of LogEntry id
+     * @return updated tag
      */
-    public void delete(String fileName, Long logId);
+    public default Tag update(Tag tag, Collection<Long> logIds) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    /**
+     * Add Logbook <code>logbook</code> to the LogEntry <code>logId</code>
+     * 
+     * @param logbook - logbook to be updated
+     * @param logId - LogEntry id the logbook is to be added
+     * @return updated logbook
+     */
+    public default Logbook update(Logbook logbook, Long logId) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    /**
+     * Update the Tag <code>logbook</code> by adding it to the set of the logs with ids
+     * <code>logIds</code>
+     * 
+     * @param logbook - logbook to be updated
+     * @param logIds - LogEntry id the logbook is to be added
+     * @return updated logbook
+     */
+    public default Logbook update(Logbook logbook, Collection<Long> logIds) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    /**
+     * Update Property <code>property</code> by adding it to LogEntry with id
+     * <code>logId</code>
+     * 
+     * @param property - property to be
+     * @param logId - LogEntry id the property to be added
+     * @return updated property
+     */
+    public default Property update(Property property, Long logId) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    /**
+     * @param logId - the log id of the entry to which the file is to be attached
+     * @param local - local file to be attached to logId
+     * @return the new attachment add to the log entry
+     */
+    public default Attachment add(File local, Long logId) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    /**
+     * @param logId - the log id of the entry to be retrieved
+     * @return The log identified by logId
+     */
+    @Deprecated
+    public default LogEntry findLogById(Long logId) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    /**
+     * @param pattern - search pattern
+     * @return List of matching {@link LogEntry}
+     */
+    public default List<LogEntry> findLogsBySearch(String pattern) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    /**
+     * Find log entries with tag {tagname}
+     * @param tagName - tag name
+     * @return List of matching {@link LogEntry}
+     */
+    public default List<LogEntry> findLogsByTag(String tagName) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    /**
+     * Find log entries with logbook
+     * @param logbookName - logbook name
+     * @return List of matching {@link LogEntry}
+     */
+    public default List<LogEntry> findLogsByLogbook(String logbookName) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    /**
+     * This function is a subset of queryLogs should it be removed??
+     * <p>
+     * search for logs with property <code>property</code> and optionally value
+     * matching pattern<code>propertyValue</code>
+     * 
+     * @param propertyName
+     * @param attributeName
+     * @param attributeValue
+     * @return List of matching {@link LogEntry}
+     */
+    public default List<LogEntry> findLogsByProperty(String propertyName, String attributeName, String attributeValue) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    /**
+     * Find log entries with the given property
+     *
+     * @param propertyName - name of the required property
+     * @return List of matching {@link LogEntry}
+     */
+    public default List<LogEntry> findLogsByProperty(String propertyName) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
 
 
+    /**
+     * Delete the tag with name <code>tag</code
+     *
+     * @param tagName - the name of the tag to be deleted
+     */
+    public default void deleteTag(String tagName) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    /**
+     * Delete the logbook with name <code>logbook</code>
+     *
+     * @param logbookName - the name of the logbook to be deleted
+     */
+    public default void deleteLogbook(String logbookName) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    /**
+     * Delete the property with name <code>property</code>
+     *
+     * @param propertyName - property to be deleted
+     */
+    public default void deleteProperty(String propertyName) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    /**
+     * Remove the LogEntry <code>log</code>
+     *
+     * @param log LogEntry to be removed
+     */
+    public default void delete(LogEntry log) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    /**
+     * Remove the LogEntry identified by <code>logId</code>
+     *
+     * @param logId LogEntry id LogEntry id to be removed
+     */
+    public default void delete(Long logId) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    /**
+     * Remove the LogEntry collection identified by <code>logIds</code>
+     *
+     * @param logIds logs to be removed
+     */
+    public default void delete(Collection<LogEntry> logIds) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    /**
+     * Remove tag <code>tag</code> from the LogEntry with the id <code>logId</code>
+     * 
+     * @param tag - the tag to be removed
+     * @param logId - the log entry from which the tag is to be removed
+     */
+    public default void delete(Tag tag, Long logId) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    /**
+     * Remove the tag <code>tag </code> from all the logs identified by <code>logIds</code>
+     *
+     * @param tag - the tag to be removed
+     * @param logIds - the logs from which the tag is to be removed
+     */
+    public default void delete(Tag tag, Collection<Long> logIds) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    /**
+     * Remove logbook <code>logbook</code> from the LogEntry with name <code>logName</code>
+     *
+     * @param logbook - the logbook to be removed
+     * @param logId - the log entry from which the logbook is to be removed
+     */
+    public default void delete(Logbook logbook, Long logId) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    /**
+     * Remove the logbook <code>logbook</code> from the set of logs <code>logIds</code>
+     * 
+     * @param logbook - the logbook to be removed
+     * @param logIds - the logs from which the logbook is to be removed
+     */
+    public default void delete(Logbook logbook, Collection<Long> logIds) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    /**
+     * Remove property <code>property</code> from the LogEntry with id <code>logId</code>
+     * 
+     * @param property - the property to be deleted
+     * @param logId - LogEntry id from which the property is to be removed
+     */
+    public default void delete(Property property, Long logId) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    /**
+     * Remove the property <code>property</code> from the set of logs
+     * <code>logIds</code>
+     * 
+     * @param property - the property to be deleted
+     * @param logIds - the logs from which to property is to be removed
+     */
+    public default void delete(Property property, Collection<Long> logIds) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    /**
+     * Remove file attachment from LogEntry <code>logId<code>
+     *
+     * @param fileName - the file name to be removed
+     * @param logId - the logid from which the attached file is to be removed
+     */
+    public default void delete(String fileName, Long logId) throws LogbookException {
+        throw new LogbookException(new UnsupportedOperationException());
+    }
 }

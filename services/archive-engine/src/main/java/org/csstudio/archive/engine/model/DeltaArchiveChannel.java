@@ -13,6 +13,7 @@ import java.util.logging.Level;
 
 import org.epics.vtype.VType;
 import org.phoebus.util.time.SecondsParser;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 /** An ArchiveChannel that stores each incoming value that differs from
  *  the previous sample by some 'delta'.

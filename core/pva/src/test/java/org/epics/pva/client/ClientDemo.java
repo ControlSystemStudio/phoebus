@@ -109,8 +109,51 @@ public class ClientDemo
         pva.close();
     }
 
+
     @Test
     public void testMonitor() throws Exception
+    {
+        // Create a client (auto-close)
+        try (final PVAClient pva = new PVAClient())
+        {
+            // Handler for received values
+            final CountDownLatch done = new CountDownLatch(300000);
+            final MonitorListener handle_values = (channel, changes, overruns, data) ->
+            {
+                System.out.println(channel.getName() + " = " + data);
+                done.countDown();
+            };
+
+            // When channel (re-)connects, subscribe.
+            // When channel disconnects, subscription is automatically dropped.
+            final ClientChannelListener handle_state = (channel, state) ->
+            {
+                if (state == ClientChannelState.CONNECTED)
+                    try
+                    {
+                        channel.subscribe("", handle_values);
+                    }
+                    catch (Exception ex)
+                    {
+                        ex.printStackTrace();
+                    }
+                else
+                    System.out.println(channel.getName() + ": " + state);
+            };
+
+            // Create channel which then subscribes on connect
+            final PVAChannel ch1 = pva.getChannel("demo", handle_state);
+
+            done.await();
+
+            // Close channels
+            ch1.close();
+        }
+    }
+
+
+    @Test
+    public void testPipeline() throws Exception
     {
         // pipeline=10 fails with Base 7.0.2.2
         for (int pipeline : new int[] { 0, 4 /*, 10*/ })

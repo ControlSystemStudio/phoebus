@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,18 +11,15 @@ import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Objects;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 
-import javax.script.Bindings;
-import javax.script.Compilable;
-import javax.script.CompiledScript;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.ImporterTopLevel;
+import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
 
 /** JavaScript support
  *  @author Kay Kasemir
@@ -31,8 +28,6 @@ import org.csstudio.display.builder.runtime.pv.RuntimePV;
 class JavaScriptSupport extends BaseScriptSupport
 {
     private final ScriptSupport support;
-    private final ScriptEngine engine;
-    private final Bindings bindings;
 
     /** Create executor for java scripts
      *  @param support {@link ScriptSupport}
@@ -40,11 +35,6 @@ class JavaScriptSupport extends BaseScriptSupport
     public JavaScriptSupport(final ScriptSupport support) throws Exception
     {
         this.support = support;
-        // We always create the JS engine, even when not used, so disable
-        // 'Warning: Nashorn engine is planned to be removed from a future JDK release':
-        System.setProperty("nashorn.args", "--no-deprecation-warning");
-        engine = Objects.requireNonNull(new ScriptEngineManager().getEngineByName("nashorn"));
-        bindings = engine.createBindings();
     }
 
     /** Parse and compile script file
@@ -56,10 +46,16 @@ class JavaScriptSupport extends BaseScriptSupport
     */
     public Script compile(final String name, final InputStream stream) throws Exception
     {
-        // End users who actually _use_ JS do need a warning that it might undergo changes
-        logger.log(Level.WARNING, "JavaScript support based on 'nashorn' is deprecated (" + name + ")");
-        final CompiledScript code = ((Compilable) engine).compile(new InputStreamReader(stream));
-        return new JavaScript(this, name, code);
+        final Context thread_context = Context.enter();
+        try
+        {
+            final org.mozilla.javascript.Script code = thread_context.compileReader(new InputStreamReader(stream), name, 1, null);
+            return new JavaScript(this, name, code);
+        }
+        finally
+        {
+            Context.exit();
+        }
     }
 
     /** Request that a script gets executed
@@ -78,15 +74,22 @@ class JavaScriptSupport extends BaseScriptSupport
         {
             // Script may be queued again
             removeScheduleMarker(script);
+
+            final Context thread_context = Context.enter();
             try
             {
-                bindings.put("widget", widget);
-                bindings.put("pvs", pvs);
-                script.getCode().eval(bindings);
+                final Scriptable scope = new ImporterTopLevel(thread_context);
+                ScriptableObject.putProperty(scope, "widget", Context.javaToJS(widget, scope));
+                ScriptableObject.putProperty(scope, "pvs", Context.javaToJS(pvs, scope));
+                script.getCode().exec(thread_context, scope);
             }
             catch (final Throwable ex)
             {
                 logger.log(Level.WARNING, "Execution of '" + script + "' failed", ex);
+            }
+            finally
+            {
+                Context.exit();
             }
             return null;
         });

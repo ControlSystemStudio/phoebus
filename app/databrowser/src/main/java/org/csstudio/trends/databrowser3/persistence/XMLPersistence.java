@@ -129,6 +129,8 @@ public class XMLPersistence
 
     final private static String TAG_OLD_XYGRAPH_SETTINGS = "xyGraphSettings";
 
+    final public static String TAG_KEY = "key";
+
     /** @param model Model to load
      *  @param stream XML stream
      *  @throws Exception on error
@@ -169,8 +171,8 @@ public class XMLPersistence
             // Ignore
         }
 
-        final String start = XMLUtil.getChildString(root_node, TAG_START).orElse("");
-        final String end = XMLUtil.getChildString(root_node, TAG_END).orElse("");
+        final String start = model.resolveMacros(XMLUtil.getChildString(root_node, TAG_START).orElse(""));
+        final String end = model.resolveMacros(XMLUtil.getChildString(root_node, TAG_END).orElse(""));
         if (start.length() > 0  &&  end.length() > 0)
         {
             final boolean scroll = XMLUtil.getChildBoolean(root_node, TAG_SCROLL).orElse(true);
@@ -435,7 +437,7 @@ public class XMLPersistence
         final StringBuilder buf = new StringBuilder();
         buf.append(font.getFamily())
            .append('|')
-           .append(font.getSize())
+           .append((int)font.getSize())
            .append('|');
         // Cannot get the style out of the font as FontWeight, FontPosture??
         final String style = font.getStyle().toLowerCase();

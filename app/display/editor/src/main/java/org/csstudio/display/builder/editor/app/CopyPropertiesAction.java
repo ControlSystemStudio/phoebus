@@ -111,6 +111,8 @@ public class CopyPropertiesAction extends MenuItem
         super("Copy Properties", ImageCache.getImageView(ImageCache.class, "/icons/copy_edit.png"));
         if (selection.size() == 1)
             setOnAction(event -> selectPropertiesToCopy(editor.getContextMenuNode(), selection.get(0)));
+        else if (selection.size() == 0)
+            setOnAction(event -> selectPropertiesToCopy(editor.getContextMenuNode(), editor.getModel()));
         else
             setDisable(true);
     }

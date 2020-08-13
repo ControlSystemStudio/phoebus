@@ -20,6 +20,7 @@ import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.util.time.SecondsParser;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 /** An ArchiveChannel that stores value in a periodic scan.
  *  @author Kay Kasemir
@@ -32,7 +33,8 @@ public class ScannedArchiveChannel extends ArchiveChannel implements Runnable
     final private int max_repeats;
     private int repeats = 0;
 
-    /** @see ArchiveChannel#ArchiveChannel(String, int, IValue)
+    /**
+     * @see ArchiveChannel#ArchiveChannel(String, String, Enablement, int, VType)
      * @deprecated Use {@link #ScannedArchiveChannel(String,String,Enablement,int,VType,double,int)} instead*/
     @Deprecated
     public ScannedArchiveChannel(final String name,
@@ -45,7 +47,9 @@ public class ScannedArchiveChannel extends ArchiveChannel implements Runnable
         this(name, null, enablement, buffer_capacity, last_archived_value, scan_period, max_repeats);
     }
 
-    /** @see ArchiveChannel#ArchiveChannel(String, String, int, IValue) */
+    /**
+     *  @see ArchiveChannel#ArchiveChannel(String, String, Enablement, int, VType)
+     */
     public ScannedArchiveChannel(final String name,
                                  final String retention,
                                  final Enablement enablement,

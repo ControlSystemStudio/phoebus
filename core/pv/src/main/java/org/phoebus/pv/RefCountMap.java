@@ -11,8 +11,9 @@ import static org.phoebus.pv.PV.logger;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -68,7 +69,15 @@ public class RefCountMap<K, E>
         }
     }
 
-    final private ConcurrentHashMap<K, ReferencedEntry<E>> map = new ConcurrentHashMap<>();
+    // Started with ConcurrentHashMap and computeIfAbsent() in createOrGet().
+    // But the computeIfAbsent() mapping function must not itself update the map,
+    // which can happen with a formula PV which references and thus creates
+    // other PVs.
+    // With plain synchronization, adding a formula takes the synchronization lock,
+    // and while it is held, recursive additions from the same thread are possible.
+    //
+    // SYNC on access.
+    final private Map<K, ReferencedEntry<E>> map = new HashMap<>();
 
     /** Get or create item
      *
@@ -84,13 +93,22 @@ public class RefCountMap<K, E>
     {
         try
         {
-            final ReferencedEntry<E> ref_entry = map.computeIfAbsent(key, k -> new ReferencedEntry<>(creator.get()));
+            ReferencedEntry<E> ref_entry;
+            synchronized (map)
+            {
+                ref_entry = map.get(key);
+                if (ref_entry == null)
+                {
+                    ref_entry = new ReferencedEntry<>(creator.get());
+                    map.put(key, ref_entry);
+                }
+            }
             ref_entry.addRef();
             return ref_entry;
         }
         catch (Throwable ex)
         {
-            // Show PV name to help debug e.g. 'Recursive update'
+            // Show PV name to help debug errors
             throw new RuntimeException("Error for PV " + key, ex);
         }
     }
@@ -102,22 +120,31 @@ public class RefCountMap<K, E>
     public int release(final K key)
     {
         // System.out.println("Release " + key + " in " + map);
-        final ReferencedEntry<E> updated_entry = map.compute(key, (the_key, entry) ->
+        synchronized (map)
         {
+            final ReferencedEntry<E> entry = map.get(key);
             if (entry == null)
+            {
                 logger.log(Level.WARNING, "No reference found for " + key, new Exception("Call stack"));
-            else
-                if (entry.decRef() <= 0)
-                    return null;
-            return entry;
-        });
+                return 0;
+            }
 
-        return updated_entry == null ? 0 : updated_entry.getReferences();
+            final int refs = entry.decRef();
+            if (refs <= 0)
+            {   // No more references
+                map.remove(key);
+                return 0;
+            }
+            return refs;
+        }
     }
 
     /** @return Entries in map */
     public Collection<ReferencedEntry<E>> getEntries()
     {
-        return Collections.unmodifiableCollection(map.values());
+        synchronized (map)
+        {
+            return Collections.unmodifiableCollection(map.values());
+        }
     }
 }

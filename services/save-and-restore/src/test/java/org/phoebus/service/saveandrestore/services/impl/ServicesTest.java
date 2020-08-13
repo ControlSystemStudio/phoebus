@@ -244,7 +244,7 @@ public class ServicesTest {
 		Node node = Node.builder().build();
 		services.updateNode(node);
 		
-		verify(nodeDAO, atLeast(1)).updateNode(node);
+		verify(nodeDAO, atLeast(1)).updateNode(node, false);
 		
 		reset(nodeDAO);
 	}

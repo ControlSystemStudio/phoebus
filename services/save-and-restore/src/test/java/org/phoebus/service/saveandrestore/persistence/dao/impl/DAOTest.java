@@ -38,6 +38,7 @@ import org.flywaydb.test.annotation.FlywayTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.phoebus.applications.saveandrestore.model.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.test.context.ContextConfiguration;
@@ -56,9 +57,7 @@ import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.service.saveandrestore.persistence.config.PersistenceConfiguration;
 import org.phoebus.service.saveandrestore.persistence.config.PersistenceTestConfig;
-import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.services.exception.NodeNotFoundException;
-import org.phoebus.service.saveandrestore.services.exception.SnapshotNotFoundException;
 
 import static org.junit.Assert.*;
 
@@ -477,6 +476,41 @@ public class DAOTest {
 
 	@Test
 	@FlywayTest(invokeCleanDB = true)
+	public void testSnapshotTag() {
+		Node rootNode = nodeDAO.getRootNode();
+		Node folderNode = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().name("testFolder").nodeType(NodeType.FOLDER).build());
+		Node savesetNode = nodeDAO.createNode(folderNode.getUniqueId(), Node.builder().name("testSaveset").nodeType(NodeType.CONFIGURATION).build());
+		Node snapshot = nodeDAO.createNode(savesetNode.getUniqueId(), Node.builder().name("testSnapshot").nodeType(NodeType.SNAPSHOT).build());
+
+		Tag tag = Tag.builder().snapshotId(snapshot.getUniqueId()).name("tag1").comment("comment1").userName("testUser1").build();
+		snapshot.addTag(tag);
+
+		snapshot = nodeDAO.updateNode(snapshot, false);
+		assertEquals(1, snapshot.getTags().size());
+		assertEquals(snapshot.getUniqueId(), snapshot.getTags().get(0).getSnapshotId());
+		assertEquals("tag1", snapshot.getTags().get(0).getName());
+		assertEquals("comment1", snapshot.getTags().get(0).getComment());
+		assertEquals("testUser1", snapshot.getTags().get(0).getUserName());
+
+		// Adding the same named tag doesn't affect anything.
+		tag = Tag.builder().name("tag1").comment("comment2").userName("testUser2").build();
+		snapshot.addTag(tag);
+
+		snapshot = nodeDAO.updateNode(snapshot, false);
+		assertEquals(1, snapshot.getTags().size());
+		assertEquals(snapshot.getUniqueId(), snapshot.getTags().get(0).getSnapshotId());
+		assertEquals("tag1", snapshot.getTags().get(0).getName());
+		assertEquals("comment1", snapshot.getTags().get(0).getComment());
+		assertEquals("testUser1", snapshot.getTags().get(0).getUserName());
+
+		snapshot.removeTag(tag);
+
+		snapshot = nodeDAO.updateNode(snapshot, false);
+		assertEquals(0, snapshot.getTags().size());
+	}
+
+	@Test
+	@FlywayTest(invokeCleanDB = true)
 	public void testGetRootsParent() {
 		Node rootNode = nodeDAO.getRootNode();
 		Node parent = nodeDAO.getParentNode(rootNode.getUniqueId());
@@ -739,43 +773,43 @@ public class DAOTest {
 		props = new HashMap<>();
 		props.put("a", null);
 		childNode2.setProperties(props);
-		childNode2 = nodeDAO.updateNode(childNode2);
+		childNode2 = nodeDAO.updateNode(childNode2, false);
 
 		assertNull("b", childNode2.getProperty("a"));
 
 		props = new HashMap<>();
 		props.put("a", "b");
 		childNode2.setProperties(props);
-		nodeDAO.updateNode(childNode2);
+		nodeDAO.updateNode(childNode2, false);
 
 		props = new HashMap<>();
 		props.put("a", "");
 		childNode2.setProperties(props);
-		childNode2 = nodeDAO.updateNode(childNode2);
+		childNode2 = nodeDAO.updateNode(childNode2, false);
 
 		assertNull("b", childNode2.getProperty("a"));
 
 		props = new HashMap<>();
 		props.put("a", "b");
 		childNode2.setProperties(props);
-		nodeDAO.updateNode(childNode2);
+		nodeDAO.updateNode(childNode2, false);
 
 		props = new HashMap<>();
 		props.put(null, "c");
 		childNode2.setProperties(props);
-		childNode2 = nodeDAO.updateNode(childNode2);
+		childNode2 = nodeDAO.updateNode(childNode2, false);
 
 		assertNull("b", childNode2.getProperty("a"));
 
 		props = new HashMap<>();
 		props.put("a", "b");
 		childNode2.setProperties(props);
-		nodeDAO.updateNode(childNode2);
+		nodeDAO.updateNode(childNode2, false);
 
 		props = new HashMap<>();
 		props.put("", "c");
 		childNode2.setProperties(props);
-		childNode2 = nodeDAO.updateNode(childNode2);
+		childNode2 = nodeDAO.updateNode(childNode2, false);
 
 		assertNull("b", childNode2.getProperty("a"));
 
@@ -857,13 +891,13 @@ public class DAOTest {
 	public void testUpdateRootNode() {
 		Node rootNode = nodeDAO.getRootNode();
 
-		nodeDAO.updateNode(rootNode);
+		nodeDAO.updateNode(rootNode, false);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	@FlywayTest(invokeCleanDB = true)
 	public void testUpdateNonExistingNode() {
-		nodeDAO.updateNode(Node.builder().uniqueId("invalidUniqueId").build());
+		nodeDAO.updateNode(Node.builder().uniqueId("invalidUniqueId").build(), false);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -877,7 +911,7 @@ public class DAOTest {
 
 		childNode2.setName("a");
 
-		nodeDAO.updateNode(childNode2);
+		nodeDAO.updateNode(childNode2, false);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -891,7 +925,7 @@ public class DAOTest {
 
 		childNode2.setNodeType(NodeType.CONFIGURATION);
 
-		nodeDAO.updateNode(childNode2);
+		nodeDAO.updateNode(childNode2, false);
 	}
 
 	@Test
@@ -912,7 +946,7 @@ public class DAOTest {
 
 		childNode2.setProperties(props2);
 
-		childNode2 = nodeDAO.updateNode(childNode2);
+		childNode2 = nodeDAO.updateNode(childNode2, false);
 
 		assertEquals(2, childNode2.getProperties().size());
 		assertNotNull(childNode2.getProperty("aa"));
@@ -923,7 +957,7 @@ public class DAOTest {
 
 		childNode2.setProperties(props3);
 
-		childNode2 = nodeDAO.updateNode(childNode2);
+		childNode2 = nodeDAO.updateNode(childNode2, false);
 
 		assertEquals(1, childNode2.getProperties().size());
 		assertNull(childNode2.getProperty("aa"));

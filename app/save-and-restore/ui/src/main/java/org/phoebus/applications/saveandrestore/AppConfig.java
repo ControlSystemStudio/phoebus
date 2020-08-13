@@ -28,7 +28,12 @@ import org.phoebus.applications.saveandrestore.data.providers.jmasar.JMasarDataP
 import org.phoebus.applications.saveandrestore.data.providers.jmasar.JMasarJerseyClient;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreWithSplitController;
+import org.phoebus.applications.saveandrestore.ui.TagSearchController;
 import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetController;
+import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetFromSelectionController;
+import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetSelectionController;
+import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetSelectionWithSplitController;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotController;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.preferences.PreferencesReader;
@@ -55,15 +60,12 @@ public class AppConfig {
     private static final int DEFAULT_CONNECT_TIMEOUT = 1000; // ms
 
     private PreferencesReader preferencesReader;
-    private PreferencesReader pvPreferencesReader;
     private Preferences preferences;
 
     @PostConstruct
     public void init(){
         preferences = PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class);
         preferencesReader = new PreferencesReader(getClass(), "/save_and_restore_preferences.properties");
-        pvPreferencesReader = new PreferencesReader(JCA_PVFactory.class, "/pv_ca_preferences.properties");
-
     }
 
     @Bean
@@ -74,11 +76,6 @@ public class AppConfig {
     @Bean("preferencesReader")
     public PreferencesReader preferencesReader(){
         return preferencesReader;
-    }
-
-    @Bean("pvPreferencesReader")
-    public PreferencesReader getPvPreferencesReader(){
-        return pvPreferencesReader;
     }
 
     @Bean
@@ -106,6 +103,11 @@ public class AppConfig {
     }
 
     @Bean
+    public SaveAndRestoreWithSplitController saveAndRestoreWithSplitController(){
+        return new SaveAndRestoreWithSplitController();
+    }
+
+    @Bean
     @Scope("prototype")
     public SnapshotController snapshotController(){
         return new SnapshotController();
@@ -115,6 +117,30 @@ public class AppConfig {
     @Scope("prototype")
     public SaveSetController saveSetController(){
         return new SaveSetController();
+    }
+
+    @Bean
+    @Scope("prototype")
+    public SaveSetFromSelectionController saveSetFromSelectionController(){
+        return new SaveSetFromSelectionController();
+    }
+
+    @Bean
+    @Scope("prototype")
+    public SaveSetSelectionController saveSetSelectionController() {
+        return new SaveSetSelectionController();
+    }
+
+    @Bean
+    @Scope("prototype")
+    public SaveSetSelectionWithSplitController saveSetSelectionWithSplitController() {
+        return new SaveSetSelectionWithSplitController();
+    }
+
+    @Bean
+    @Scope("prototype")
+    public TagSearchController tagSearchController() {
+        return new TagSearchController();
     }
 
     @Bean

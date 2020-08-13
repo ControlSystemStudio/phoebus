@@ -1,6 +1,5 @@
 package org.phoebus.applications.probe;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.phoebus.core.types.ProcessVariable;
@@ -20,7 +19,7 @@ import javafx.scene.image.Image;
 @SuppressWarnings("nls")
 public class ContextLaunchProbe implements ContextMenuEntry {
 
-    private static final List<Class<?>> supportedTypes = Arrays.asList(ProcessVariable.class);
+    private static final Class<?> supportedTypes = ProcessVariable.class;
 
     @Override
     public String getName() {
@@ -34,7 +33,7 @@ public class ContextLaunchProbe implements ContextMenuEntry {
     }
 
     @Override
-    public void callWithSelection(Selection selection) {
+    public void call(Selection selection) {
         List<ProcessVariable> pvs = selection.getSelections();
         LaunchProbe(pvs);
     }
@@ -53,7 +52,7 @@ public class ContextLaunchProbe implements ContextMenuEntry {
     }
 
     @Override
-    public List<Class<?>> getSupportedTypes() {
+    public Class<?> getSupportedType() {
         return supportedTypes;
     }
 

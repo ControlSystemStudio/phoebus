@@ -47,7 +47,7 @@ public class ValueWithInfoFormatter extends ValueFormatter
                 Messages.Export_Delimiter + Messages.Export_NoValueMarker +
                 Messages.Export_Delimiter + Messages.Export_NoValueMarker;
         return super.format(value) + Messages.Export_Delimiter +
-            VTypeHelper.getSeverity(value) + Messages.Export_Delimiter +
+            org.phoebus.core.vtypes.VTypeHelper.getSeverity(value) + Messages.Export_Delimiter +
             VTypeHelper.getMessage(value);
     }
 }

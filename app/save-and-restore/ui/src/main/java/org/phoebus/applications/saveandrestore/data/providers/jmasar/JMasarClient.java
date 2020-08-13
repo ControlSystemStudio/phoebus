@@ -4,6 +4,7 @@ import org.phoebus.applications.saveandrestore.data.DataProviderException;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.Tag;
 
 import java.util.List;
 
@@ -32,8 +33,11 @@ public interface JMasarClient {
 
     public Node updateNode(Node nodeToUpdate);
 
+    public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration);
+
     public void deleteNode(String uniqueNodeId);
 
     public Node updateConfiguration(Node configToUpdate, List<ConfigPv> configPvList);
 
+    public List<Tag> getAllTags();
 }

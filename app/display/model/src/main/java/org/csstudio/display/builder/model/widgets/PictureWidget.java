@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -33,7 +33,7 @@ import org.w3c.dom.Text;
  *  @author Megan Grodowitz
  */
 @SuppressWarnings("nls")
-public class PictureWidget extends VisibleWidget
+public class PictureWidget extends MacroWidget
 {
     public final static String default_pic = "examples:/icons/default_picture.png";
 
@@ -64,7 +64,6 @@ public class PictureWidget extends VisibleWidget
         public boolean configureFromXML(final ModelReader model_reader, final Widget widget, final Element widget_xml)
                 throws Exception
         {
-            // Legacy used background color for the line
             Element xml = XMLUtil.getChildElement(widget_xml, "image_file");
             if (xml != null)
             {
@@ -81,6 +80,14 @@ public class PictureWidget extends VisibleWidget
                     fname.appendChild(fpath);
                 }
                 widget_xml.appendChild(fname);
+            }
+
+            if (xml_version.getMajor() < 2)
+            {
+                final PictureWidget picture = (PictureWidget) widget;
+                MacroWidget.importPVName(model_reader, widget, widget_xml);
+                XMLUtil.getChildBoolean(widget_xml, "stretch_to_fit")
+                       .ifPresent(stretch -> picture.propStretch().setValue(stretch));
             }
 
             // Parse updated XML

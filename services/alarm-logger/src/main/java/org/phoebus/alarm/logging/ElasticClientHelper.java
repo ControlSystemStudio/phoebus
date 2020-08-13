@@ -42,7 +42,6 @@ public class ElasticClientHelper {
                         client.close();
                     } catch (IOException e) {
                         logger.log(Level.WARNING, "Failed to close the elastic rest client", e);
-                        e.printStackTrace();
                     }
                 }
             }));
@@ -58,7 +57,6 @@ public class ElasticClientHelper {
                 client.close();
             } catch (IOException ex) {
                 logger.log(Level.WARNING, "Failed to close the elastic rest client", ex);
-                e.printStackTrace();
             }
         }
 

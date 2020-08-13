@@ -23,14 +23,9 @@
 )
 
 @java -version
-
-@set V=4.6.0
-
-@IF EXIST product-%V%.jar (
-  SET JAR=product-%V%.jar
-) ELSE (
-  SET JAR=product-%V%-SNAPSHOT.jar
-)
+echo off
+FOR /F "tokens=* USEBACKQ" %%F IN (`dir /B product*.jar`) DO (SET JAR=%%F)
+echo on
 
 @REM To get one instance, use server mode
 @java -jar %JAR% -server 4918 %*

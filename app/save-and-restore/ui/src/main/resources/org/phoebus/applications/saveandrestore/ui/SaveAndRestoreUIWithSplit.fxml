@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TreeView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<SplitPane fx:id="splitPane" dividerPositions="0.5985815602836879" prefHeight="500.0" prefWidth="707.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.SaveAndRestoreWithSplitController">
+	<items>
+		<BorderPane prefHeight="200.0" prefWidth="200.0">
+			<top>
+				<HBox>
+					<Label fx:id="jmasarServiceTitle" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" text="Save-and-restore service" HBox.hgrow="ALWAYS">
+						<HBox.margin>
+							<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+						</HBox.margin>
+					</Label>
+					<Region HBox.hgrow="ALWAYS" />
+					<Button fx:id="reconnectButton" onAction="#loadTreeData">
+                  		<HBox.margin>
+                     		<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                  		</HBox.margin>
+					</Button>
+               <Button fx:id="tagSearchButton" mnemonicParsing="false" onAction="#openTagSearchWindow">
+                  <HBox.margin>
+                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                  </HBox.margin>
+               </Button>
+				</HBox>
+			</top>
+         <center>
+            <SplitPane dividerPositions="0.5" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0" BorderPane.alignment="CENTER">
+              <items>
+      				<StackPane>
+      					<TreeView fx:id="treeView" prefHeight="347.0" prefWidth="195.0" BorderPane.alignment="CENTER" VBox.vgrow="ALWAYS">
+					</TreeView>
+      					<Label fx:id="emptyTreeInstruction" visible="false" />
+      				</StackPane>
+                  <ListView fx:id="listView" prefHeight="200.0" prefWidth="200.0" />
+              </items>
+            </SplitPane>
+         </center>
+		</BorderPane>
+		<TabPane fx:id="tabPane" prefHeight="1872.0" prefWidth="398.0" style="-fx-padding: 1; -fx-background-color: grey, -fx-control-inner-background; -fx-background-insets: 0, 1;">
+		</TabPane>
+	</items>
+
+
+</SplitPane>

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -46,8 +46,9 @@ public class ScriptInfo
     /** Example java script */
     public static final String EXAMPLE_JAVASCRIPT =
         "/* Embedded javascript */\n" +
-        "PVUtil = org.csstudio.display.builder.runtime.script.PVUtil;\n" +
-        "logger = org.csstudio.display.builder.runtime.script.ScriptUtil.getLogger();\n" +
+        "importClass(org.csstudio.display.builder.runtime.script.PVUtil);\n" +
+        "importClass(org.csstudio.display.builder.runtime.script.ScriptUtil);\n" +
+        "logger = ScriptUtil.getLogger();\n" +
         "logger.info(\"Hello\");\n" +
         "/* widget.setPropertyValue(\"text\", PVUtil.getString(pvs[0])); */";
 

@@ -40,6 +40,7 @@ import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
+import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
@@ -57,6 +58,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Control;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.input.ContextMenuEvent;
 
 /** Display Editor Instance
  *  @author Kay Kasemir
@@ -71,12 +73,22 @@ public class DisplayEditorInstance implements AppInstance
     private final AppResourceDescriptor app;
     private DockItemWithInput dock_item;
     private final EditorGUI editor_gui;
+    private final boolean external_editor_exists = null != ApplicationLauncherService.findApplication(ResourceParser.getURI(new File("x.xml")), false, null);
 
     private final WidgetPropertyListener<String> model_name_listener = (property, old_value, new_value) ->
-        Platform.runLater(() -> dock_item.setLabel(property.getValue()));
+    {
+        final String label = EditorUtil.isDisplayReadOnly(property.getWidget().checkDisplayModel())
+            ? "[R/O] " + property.getValue()
+            : "[Edit] " + property.getValue();
+        Platform.runLater(() -> dock_item.setLabel(label));
+    };
 
     /** Last time the file was modified */
     private volatile long modification_marker = 0;
+
+    /** Job that's currently saving the file, or <code>null</code> */
+    private volatile JobMonitor save_job = null;
+
 
     DisplayEditorInstance(final DisplayEditorApplication app)
     {
@@ -103,9 +115,10 @@ public class DisplayEditorInstance implements AppInstance
 
         final ContextMenu menu = new ContextMenu();
         final Control menu_node = editor_gui.getDisplayEditor().getContextMenuNode();
-        menu_node.setOnContextMenuRequested(event -> handleContextMenu(menu));
+        menu_node.setOnContextMenuRequested(event -> handleContextMenu(menu, event));
         menu_node.setContextMenu(menu);
 
+        dock_item.addCloseCheck(this::okToClose);
         dock_item.addClosedNotification(this::dispose);
     }
 
@@ -133,93 +146,117 @@ public class DisplayEditorInstance implements AppInstance
         }
     }
 
-    private void handleContextMenu(final ContextMenu menu)
+    private void handleContextMenu(final ContextMenu menu, ContextMenuEvent contextMenuEvent)
     {
-        // Depending on number of selected widgets, allow grouping, ungrouping, morphing
-        final List<Widget> selection = editor_gui.getDisplayEditor().getWidgetSelectionHandler().getSelection();
-        final ActionWapper delete = new ActionWapper(ActionDescription.DELETE);
-        final ActionWapper cut = new ActionWapper(ActionDescription.CUT);
-        final ActionWapper copy = new ActionWapper(ActionDescription.COPY);
-        final MenuItem copy_properties = new CopyPropertiesAction(editor_gui.getDisplayEditor(), selection);
-        final MenuItem paste_properties = new PastePropertiesAction(editor_gui.getDisplayEditor(), selection);
-        final MenuItem group = new CreateGroupAction(editor_gui.getDisplayEditor(), selection);
-        final MenuItem morph = new MorphWidgetsMenu(editor_gui.getDisplayEditor());
-        final MenuItem back = new ActionWapper(ActionDescription.TO_BACK);
-        final MenuItem front = new ActionWapper(ActionDescription.TO_FRONT);
-        if (selection.size() <= 0)
-        {
-            delete.setDisable(true);
-            cut.setDisable(true);
-            copy.setDisable(true);
-            // OK to create (resp. 'start') a group with just one widget.
-            // Even better when there's more than one widget.
-            group.setDisable(true);
-            morph.setDisable(true);
-            back.setDisable(true);
-            front.setDisable(true);
-        }
+            // Depending on number of selected widgets, allow grouping, ungrouping, morphing
+            final List<Widget> selection = editor_gui.getDisplayEditor().getWidgetSelectionHandler().getSelection();
+            final ActionWapper delete = new ActionWapper(ActionDescription.DELETE);
 
-        final MenuItem ungroup;
-        if (selection.size() == 1  &&  selection.get(0) instanceof GroupWidget)
-            ungroup = new RemoveGroupAction(editor_gui.getDisplayEditor(), (GroupWidget)selection.get(0));
-        else
-        {
-            ungroup = new RemoveGroupAction(editor_gui.getDisplayEditor(), null);
-            ungroup.setDisable(true);
-        }
+            final ActionWapper cut = new ActionWapper(ActionDescription.CUT);
+            final ActionWapper copy = new ActionWapper(ActionDescription.COPY);
+            final ActionWapper duplicate = new ActionWapper(ActionDescription.DUPLICATE);
+            final MenuItem copy_properties = new CopyPropertiesAction(editor_gui.getDisplayEditor(), selection);
+            final MenuItem paste_properties = new PastePropertiesAction(editor_gui.getDisplayEditor(), selection);
+            final MenuItem group = new CreateGroupAction(editor_gui.getDisplayEditor(), selection);
+            final MenuItem morph = new MorphWidgetsMenu(editor_gui.getDisplayEditor());
+            final MenuItem back = new ActionWapper(ActionDescription.TO_BACK);
+            final MenuItem front = new ActionWapper(ActionDescription.TO_FRONT);
+            final ActionWapper open_external = new ActionWapper(ActionDescription.OPEN_EXTERNAL);
+            if (selection.size() <= 0)
+            {
+                delete.setDisable(true);
+                cut.setDisable(true);
+                copy.setDisable(true);
+                duplicate.setDisable(true);
+                // OK to create (resp. 'start') a group with just one widget.
+                // Even better when there's more than one widget.
+                group.setDisable(true);
+                morph.setDisable(true);
+                back.setDisable(true);
+                front.setDisable(true);
+                open_external.setDisable(!external_editor_exists);
+            }
 
-        final MenuItem embedded;
-        if (selection.size() == 1)
-        {
-            final Optional<WidgetProperty<String>> pfile = selection.get(0).checkProperty(propFile);
-            if (pfile.isPresent() && pfile.get().getValue().endsWith(DisplayModel.FILE_EXTENSION))
-                embedded = new EditEmbeddedDisplayAction(app, selection.get(0), pfile.get().getValue());
+            final MenuItem ungroup;
+            if (selection.size() == 1  &&  selection.get(0) instanceof GroupWidget)
+                ungroup = new RemoveGroupAction(editor_gui.getDisplayEditor(), (GroupWidget)selection.get(0));
+            else
+            {
+                ungroup = new RemoveGroupAction(editor_gui.getDisplayEditor(), null);
+                ungroup.setDisable(true);
+            }
+
+            final MenuItem embedded;
+            if (selection.size() == 1)
+            {
+                final Optional<WidgetProperty<String>> pfile = selection.get(0).checkProperty(propFile);
+                if (pfile.isPresent() &&
+                    (pfile.get().getValue().endsWith(DisplayModel.FILE_EXTENSION) ||
+                     pfile.get().getValue().endsWith(DisplayModel.LEGACY_FILE_EXTENSION)))
+                    embedded = new EditEmbeddedDisplayAction(app, selection.get(0), pfile.get().getValue());
+                else
+                {
+                    embedded = new EditEmbeddedDisplayAction(app, null, null);
+                    embedded.setDisable(true);
+                }
+            }
             else
             {
                 embedded = new EditEmbeddedDisplayAction(app, null, null);
                 embedded.setDisable(true);
             }
-        }
-        else
-        {
-            embedded = new EditEmbeddedDisplayAction(app, null, null);
-            embedded.setDisable(true);
-        }
 
-        final DisplayModel model = editor_gui.getDisplayEditor().getModel();
-        final MenuItem reload_classes = new ReloadClassesAction(this);
-        if (model == null  ||  model.isClassModel())
-            reload_classes.setDisable(true);
+            final DisplayModel model = editor_gui.getDisplayEditor().getModel();
+            final MenuItem reload_classes = new ReloadClassesAction(this);
+            if (model == null  ||  model.isClassModel())
+                reload_classes.setDisable(true);
 
-        final CheckMenuItem show_tree = new CheckMenuItem(Messages.ShowWidgetTree);
-        show_tree.setSelected(editor_gui.isWidgetTreeShown());
-        show_tree.setOnAction(event -> editor_gui.showWidgetTree(! editor_gui.isWidgetTreeShown()));
-        final CheckMenuItem show_props = new CheckMenuItem(Messages.ShowProperties);
-        show_props.setSelected(editor_gui.arePropertiesShown());
-        show_props.setOnAction(event -> editor_gui.showProperties(! editor_gui.arePropertiesShown()));
+            final CheckMenuItem show_tree = new CheckMenuItem(Messages.ShowWidgetTree);
+            show_tree.setSelected(editor_gui.isWidgetTreeShown());
+            show_tree.setOnAction(event -> editor_gui.showWidgetTree(! editor_gui.isWidgetTreeShown()));
+            final CheckMenuItem show_props = new CheckMenuItem(Messages.ShowProperties);
+            show_props.setSelected(editor_gui.arePropertiesShown());
+            show_props.setOnAction(event -> editor_gui.showProperties(! editor_gui.arePropertiesShown()));
 
-        menu.getItems().setAll(delete,
-                               cut,
-                               copy,
-                               new PasteWidgets(getEditorGUI()),
-                               copy_properties,
-                               paste_properties,
-                               new SeparatorMenuItem(),
-                               group,
-                               ungroup,
-                               new SeparatorMenuItem(),
-                               morph,
-                               back,
-                               front,
-                               new SetDisplaySize(editor_gui.getDisplayEditor()),
-                               new SeparatorMenuItem(),
-                               ExecuteDisplayAction.asMenuItem(this),
-                               new ReloadDisplayAction(this),
-                               reload_classes,
-                               new SeparatorMenuItem(),
-                               embedded,
-                               show_tree,
-                               show_props);
+            // In read-only mode, only allow copy and re-load.
+            // Tree may be shown, but property panel remains hidden
+            // since it doesn't support a read-only mode.
+            if (EditorUtil.isDisplayReadOnly(model))
+                menu.getItems().setAll(copy,
+                                       new SeparatorMenuItem(),
+                                       new ReloadDisplayAction(this),
+                                       reload_classes,
+                                       new SeparatorMenuItem(),
+                                       show_tree);
+            else
+                menu.getItems().setAll(delete,
+                                       cut,
+                                       copy,
+                                       duplicate,
+                                       new PasteWidgets(getEditorGUI()),
+                                       copy_properties,
+                                       paste_properties,
+                                       new SeparatorMenuItem(),
+                                       group,
+                                       ungroup,
+                                       new SeparatorMenuItem(),
+                                       morph,
+                                       back,
+                                       front,
+                                       new SetDisplaySize(editor_gui.getDisplayEditor()),
+                                       new SeparatorMenuItem(),
+                                       ExecuteDisplayAction.asMenuItem(this),
+                                       open_external,
+                                       new ReloadDisplayAction(this),
+                                       reload_classes,
+                                       new SeparatorMenuItem(),
+                                       embedded,
+                                       show_tree,
+                                       show_props);
+
+            menu.show(editor_gui.getDisplayEditor().getContextMenuNode().getScene().getWindow(),
+                    contextMenuEvent.getScreenX(), contextMenuEvent.getScreenY());
+
     }
 
     @Override
@@ -351,58 +388,83 @@ public class DisplayEditorInstance implements AppInstance
 
     void doSave(final JobMonitor monitor) throws Exception
     {
-        final URI orig_input = dock_item.getInput();
-        final File file = Objects.requireNonNull(ResourceParser.getFile(orig_input));
+        save_job = monitor;
 
-        final DisplayModel model = editor_gui.getDisplayEditor().getModel();
+        try
+        {
+            final URI orig_input = dock_item.getInput();
+            final File file = Objects.requireNonNull(ResourceParser.getFile(orig_input));
 
-        // Check if it's a class file (*.bcf)
-        File proper;
-        if(model.isClassModel())
-        {
-            proper = ModelResourceUtil.enforceFileExtension(file, WidgetClassSupport.FILE_EXTENSION);
-        }
-        else
-        {
-            proper = ModelResourceUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
-        }
+            final DisplayModel model = editor_gui.getDisplayEditor().getModel();
 
-        if (file.equals(proper))
-        {
-            // Check if file has been changed outside of this editor
-            final long as_loaded = modification_marker;
-            if (as_loaded != 0  &&  file.exists()  &&  file.canRead())
+            // Check if it's a class file (*.bcf)
+            File proper;
+            if(model.isClassModel())
             {
-                final long current = file.lastModified();
-                if (current != as_loaded)
-                {
-                    final CompletableFuture<ButtonType> response = new CompletableFuture<>();
-                    // Prompt on UI thread
-                    Platform.runLater(() ->
-                    {
-                        final Alert prompt = new Alert(AlertType.CONFIRMATION);
-                        prompt.setTitle(Messages.FileChangedHdr);
-                        prompt.setResizable(true);
-                        prompt.setHeaderText(MessageFormat.format(Messages.FileChangedDlg, file.toString()));
-                        DialogHelper.positionDialog(prompt, dock_item.getTabPane(), -200, -200);
-                        response.complete(prompt.showAndWait().orElse(ButtonType.CANCEL));
-                    });
-
-                    // If user doesn't want to overwrite, abort the save
-                    if (response.get() != ButtonType.OK)
-                        return;
-                }
+                proper = ModelResourceUtil.enforceFileExtension(file, WidgetClassSupport.FILE_EXTENSION);
+            }
+            else
+            {
+                proper = ModelResourceUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
             }
 
-            editor_gui.saveModelAs(file);
-            modification_marker = file.lastModified();
+            if (file.equals(proper))
+            {
+                // Check if file has been changed outside of this editor
+                final long as_loaded = modification_marker;
+                if (as_loaded != 0  &&  file.exists()  &&  file.canRead())
+                {
+                    final long current = file.lastModified();
+                    if (current != as_loaded)
+                    {
+                        final CompletableFuture<ButtonType> response = new CompletableFuture<>();
+                        // Prompt on UI thread
+                        Platform.runLater(() ->
+                        {
+                            final Alert prompt = new Alert(AlertType.CONFIRMATION);
+                            prompt.setTitle(Messages.FileChangedHdr);
+                            prompt.setResizable(true);
+                            prompt.setHeaderText(MessageFormat.format(Messages.FileChangedDlg, file.toString()));
+                            DialogHelper.positionDialog(prompt, dock_item.getTabPane(), -200, -200);
+                            response.complete(prompt.showAndWait().orElse(ButtonType.CANCEL));
+                        });
+
+                        // If user doesn't want to overwrite, abort the save
+                        if (response.get() != ButtonType.OK)
+                            return;
+                    }
+                }
+
+                editor_gui.saveModelAs(file);
+                modification_marker = file.lastModified();
+            }
+            else
+            {   // Save-As with proper file name
+                dock_item.setInput(proper.toURI());
+                if (! dock_item.save_as(monitor))
+                    dock_item.setInput(orig_input);
+            }
         }
-        else
-        {   // Save-As with proper file name
-            dock_item.setInput(proper.toURI());
-            if (! dock_item.save_as(monitor))
-                dock_item.setInput(orig_input);
+        finally
+        {
+            save_job = null;
         }
+    }
+
+    private boolean okToClose()
+    {
+        if (save_job != null)
+        {
+            final Alert prompt = new Alert(AlertType.CONFIRMATION);
+            prompt.setTitle(Messages.FileChangedHdr);
+            prompt.setResizable(true);
+            prompt.setHeaderText(Messages.AbortSave);
+            DialogHelper.positionDialog(prompt, dock_item.getTabPane(), -200, -200);
+            if (prompt.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK)
+                return false;
+        }
+
+        return true;
     }
 
     private void dispose()

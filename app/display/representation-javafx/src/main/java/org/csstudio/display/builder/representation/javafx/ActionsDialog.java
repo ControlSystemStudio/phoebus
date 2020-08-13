@@ -9,6 +9,7 @@ package org.csstudio.display.builder.representation.javafx;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
@@ -21,12 +22,16 @@ import org.csstudio.display.builder.model.properties.ExecuteCommandActionInfo;
 import org.csstudio.display.builder.model.properties.ExecuteScriptActionInfo;
 import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
 import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo.Target;
+import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.properties.OpenFileActionInfo;
 import org.csstudio.display.builder.model.properties.OpenWebpageActionInfo;
 import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.properties.WritePVActionInfo;
+import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.framework.util.ResourceParser;
+import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
 
@@ -56,6 +61,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
 /** Dialog for editing {@link ActionInfo} list
  *  @author Kay Kasemir
@@ -96,6 +102,7 @@ public class ActionsDialog extends Dialog<ActionInfos>
     private final TextField execute_script_description = new TextField(),
                             execute_script_file = new TextField();
     private final TextArea execute_script_text = new TextArea();
+    private final Button btn_external_editor = new Button();
 
     // UI elements for ExecuteCommandAction
     private final TextField execute_command_description = new TextField(),
@@ -545,7 +552,10 @@ public class ActionsDialog extends Dialog<ActionInfos>
             {
                 final String path = FilenameSupport.promptForRelativePath(widget, execute_script_file.getText());
                 if (path != null)
+                {
                     execute_script_file.setText(path);
+                    btn_external_editor.setDisable(!externalEditorExists());
+                }
                 FilenameSupport.performMostAwfulTerribleNoGoodHack(action_list);
             }
             catch (Exception ex)
@@ -566,6 +576,7 @@ public class ActionsDialog extends Dialog<ActionInfos>
                 text.trim().isEmpty() ||
                 text.trim().equals(ScriptInfo.EXAMPLE_JAVASCRIPT) )
                 execute_script_text.setText(ScriptInfo.EXAMPLE_PYTHON);
+                btn_external_editor.setDisable(true);
         });
 
         final Button btn_embed_js = new Button(Messages.ScriptsDialog_BtnEmbedJS, JFXUtil.getIcon("embedded_script.png"));
@@ -577,10 +588,15 @@ public class ActionsDialog extends Dialog<ActionInfos>
                 text.trim().isEmpty() ||
                 text.trim().equals(ScriptInfo.EXAMPLE_PYTHON) )
                 execute_script_text.setText(ScriptInfo.EXAMPLE_JAVASCRIPT);
+                btn_external_editor.setDisable(true);
         });
 
-        execute_script_details.add(new HBox(10, btn_embed_py, btn_embed_js), 1, 2);
+        btn_external_editor.setText(Messages.OpenInExternalEditor);
+        btn_external_editor.setGraphic(JFXUtil.getIcon("file.png"));
+        btn_external_editor.setOnAction(event -> openInExternalEditor());
+        btn_external_editor.setDisable(true);
 
+        execute_script_details.add(new HBox(10, btn_embed_py, btn_embed_js, btn_external_editor), 1, 2);
         execute_script_details.add(new Label(Messages.ActionsDialog_ScriptText), 0, 3);
         execute_script_text.setText(null);
         execute_script_text.textProperty().addListener(update);
@@ -588,6 +604,30 @@ public class ActionsDialog extends Dialog<ActionInfos>
         GridPane.setVgrow(execute_script_text, Priority.ALWAYS);
 
         return execute_script_details;
+    }
+
+    /** @return Whether an external Python or Javascript editor is configured */
+    private boolean externalEditorExists()
+    {
+        return null != ApplicationLauncherService.findApplication(ResourceParser.getURI(new File(execute_script_file.getText())), false, null);
+    }
+
+    /** Open script file in a configured external Python or Javascript editor */
+    private void openInExternalEditor()
+    {
+        String resolved;
+        try
+        {
+            String path = MacroHandler.replace(widget.getMacrosOrProperties(), execute_script_file.getText());
+            resolved = ModelResourceUtil.resolveResource(widget.getDisplayModel(), path);
+            File file = new File(resolved);
+            ApplicationLauncherService.openFile(file, true, (Stage)this.getOwner());
+        }
+        catch (Exception e)
+        {
+            logger.warning("Cannot resolve resource " + execute_script_file.getText());
+            return;
+        }
     }
 
     /** @param action {@link ExecuteScriptActionInfo} to show */
@@ -599,6 +639,9 @@ public class ActionsDialog extends Dialog<ActionInfos>
             execute_script_description.setText(action.getDescription());
             execute_script_file.setText(action.getInfo().getPath());
             execute_script_text.setText(action.getInfo().getText());
+            btn_external_editor.setDisable(!externalEditorExists()
+                    || action.getInfo().getPath().equals(ScriptInfo.EMBEDDED_PYTHON)
+                    || action.getInfo().getPath().equals(ScriptInfo.EMBEDDED_JAVASCRIPT));
         }
         finally
         {

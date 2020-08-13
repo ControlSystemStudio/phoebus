@@ -60,6 +60,16 @@ public class RulesWidgetProperty extends WidgetProperty<List<RuleInfo>>
     {
         try
         {
+	    // Check for plain property (including re-mapped legacy properties)
+            return widget.getProperty(prop_id).clone();
+        }
+        catch (Throwable ex)
+        {
+            // Ignore, fall through to getPropertyByPath
+        }
+
+        try
+        {
             return widget.getPropertyByPath(prop_id, true).clone();
         }
         catch (Throwable ex)

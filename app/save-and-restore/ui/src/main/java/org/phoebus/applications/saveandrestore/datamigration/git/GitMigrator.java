@@ -29,10 +29,12 @@ import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -67,11 +69,29 @@ import java.util.*;
  * The settings (ini) file must specify the URL for the save-and-restore service like so:
  * org.phoebus.applications.saveandrestore.datamigration.git/jmasar.service.url=&lt;saveAndRestoreServiceUrl&gt;
  *
+ * Add the following setting to the setting file to map Git tag to {@link Tag} instead of Golden tag.
+ * org.phoebus.applications.saveandrestore.datamigration.git/useMultipleTag=true
+ *
+ * Add the following setting to the setting file to keep savesets with no snapshot created from them.
+ * org.phoebus.applications.saveandrestore.datamigration.git/keepSavesetWithNoSnapshot=true
+ *
+ * Add the following setting to the setting file to ignore duplicate snapshots (same commit time)
+ * org.phoebus.applications.saveandrestore.datamigration.git/ignoreDuplicateSnapshots=true
+ *
  */
 public class GitMigrator {
 
     @Autowired
     private SaveAndRestoreService saveAndRestoreService;
+
+    @Autowired
+    private Boolean useMultipleTag;
+
+    @Autowired
+    private Boolean keepSavesetWithNoSnapshot;
+
+    @Autowired
+    private Boolean ignoreDuplicateSnapshots;
 
     private Git git;
     private File gitRoot;
@@ -139,9 +159,11 @@ public class GitMigrator {
                 findBeamlineSetFiles(beamlineSetFiles, file);
             } else if (file.getName().endsWith("bms")) {
                 String snapshotFile = findSnapshotFile(file.getAbsolutePath());
-                if(snapshotFile == null){
+
+                if (snapshotFile == null && !keepSavesetWithNoSnapshot) {
                     continue;
                 }
+
                 FilePair filePair = new FilePair(file.getAbsolutePath(), snapshotFile);
                 beamlineSetFiles.add(filePair);
             }
@@ -170,7 +192,12 @@ public class GitMigrator {
 
         public FilePair(String bms, String snp){
             this.bms = bms.substring(gitRoot.getAbsolutePath().length() + 1);
-            this.snp = snp.substring(gitRoot.getAbsolutePath().length() + 1);
+
+            if (snp == null) {
+                this.snp = "";
+            } else {
+                this.snp = snp.substring(gitRoot.getAbsolutePath().length() + 1);
+            }
         }
 
         @Override
@@ -227,7 +254,7 @@ public class GitMigrator {
             Map<String, String> properties = new HashMap<>();
             properties.put("description", commitMessage);
             saveSetNode = Node.builder()
-                    .name(filePair.bms.substring(filePair.bms.lastIndexOf("/") + 1))
+                    .name(filePair.bms.substring(filePair.bms.lastIndexOf("/") + 1).replace(".bms", ""))
                     .nodeType(NodeType.CONFIGURATION)
                     .userName(author)
                     .created(commitDate)
@@ -238,7 +265,9 @@ public class GitMigrator {
             String fullPath = gitRoot.getAbsolutePath() + "/" + filePair.bms;
             List<ConfigPv> configPvs = FileReaderHelper.readSaveSet(new FileInputStream(fullPath));
             saveAndRestoreService.updateSaveSet(saveSetNode, configPvs);
-            createSnapshots(saveSetNode, filePair.snp);
+            if (!filePair.snp.isEmpty()) {
+                createSnapshots(saveSetNode, filePair.snp);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -263,17 +292,57 @@ public class GitMigrator {
                         RevTag tag = tags.get(commit.getName());
                         try (InputStream stream = objectLoader.openStream()) {
                             List<SnapshotItem> snapshotItems = FileReaderHelper.readSnapshot(stream);
-                            if(tag != null){
-                                System.out.println();
-                            }
+
+                            Date commitTime = new Date(commit.getCommitTime() * 1000L);
+                            String snapshotName = commitTime.toString();
+
                             if(!isSnapshotCompatibleWithSaveSet(saveSetNode, snapshotItems)){
+                                System.out.println("------------------------------------------------------------------------------------");
+                                System.out.println(" Snapshot not compatible with the saveset!");
+                                System.out.println(" Check if PV names are the same in saveset and snapshot!");
+                                System.out.println("------------------------------------------------------------------------------------");
+                                System.out.println("    Commit: " + commit.getName());
+                                System.out.println("   Saveset: " + DirectoryUtilities.CreateLocationString(saveSetNode, false));
+                                System.out.println(" Timestamp: " + snapshotName);
+                                System.out.println("------------------------------------------------------------------------------------");
+
                                 continue;
                             }
                             snapshotItems = setConfigPvIds(saveSetNode, snapshotItems);
-                            Date commitTime = new Date(commit.getCommitTime() * 1000L);
+
+                            List<Node> nodeList = saveAndRestoreService.getChildNodes(saveSetNode);
+                            boolean isDuplicateSnapshotName = nodeList.stream().anyMatch(item -> item.getName().equals(snapshotName));
+                            int postfixNumber = 2;
+                            String postfixString = "";
+                            if (isDuplicateSnapshotName) {
+                                if (ignoreDuplicateSnapshots) {
+                                    continue;
+                                }
+
+                                while (true) {
+                                    postfixString = String.format(" (%d)", postfixNumber);
+                                    String newSnapshotName = String.format("%s %s", snapshotName, postfixString);
+
+                                    if (!nodeList.stream().anyMatch(item -> item.getName().equals(newSnapshotName))) {
+                                        break;
+                                    }
+
+                                    postfixNumber++;
+                                }
+
+                                System.out.println("------------------------------------------------------------------------------------");
+                                System.out.println(" Duplicate snapshot found!");
+                                System.out.println("------------------------------------------------------------------------------------");
+                                System.out.println("   Commit: " + commit.getName());
+                                System.out.println("  Saveset: " + DirectoryUtilities.CreateLocationString(saveSetNode, false));
+                                System.out.println(" Snapshot: " + snapshotName);
+                                System.out.println(" New name: " + snapshotName + postfixString);
+                                System.out.println("------------------------------------------------------------------------------------");
+                            }
+
                             Node snapshotNode = saveAndRestoreService.saveSnapshot(saveSetNode,
                                     snapshotItems,
-                                    commitTime.toString(),
+                                    snapshotName + postfixString,
                                     commit.getFullMessage());
 
                             snapshotNode = saveAndRestoreService.getNode(snapshotNode.getUniqueId());
@@ -282,11 +351,29 @@ public class GitMigrator {
                                 properties = new HashMap<>();
                             }
                             if(tag != null){
-                                properties.put("golden", "true");
-                                snapshotNode.setProperties(properties);
+                                if (useMultipleTag) {
+                                    String fullTagName = tag.getTagName();
+                                    String[] fullTagNameSplit = fullTagName.split("/");
+                                    String tagName = fullTagNameSplit[fullTagNameSplit.length - 1];
+                                    tagName = tagName.substring(1, tagName.length() - 1);
+
+                                    Tag snapshotTag = Tag.builder()
+                                            .name(tagName)
+                                            .comment(tag.getFullMessage())
+                                            .userName(tag.getTaggerIdent().getName())
+                                            .snapshotId(snapshotNode.getUniqueId())
+                                            .created(tag.getTaggerIdent().getWhen())
+                                            .build();
+
+                                    snapshotNode.addTag(snapshotTag);
+                                } else {
+                                    properties.put("golden", "true");
+                                    snapshotNode.setProperties(properties);
+                                }
                             }
                             snapshotNode.setUserName(commit.getCommitterIdent().getName());
-                            saveAndRestoreService.updateNode(snapshotNode);
+                            snapshotNode.setCreated(commitTime);
+                            saveAndRestoreService.updateNode(snapshotNode, true);
                         }
                     }
                 }

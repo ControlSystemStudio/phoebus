@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.phoebus</groupId>
   <artifactId>parent</artifactId>
-  <version>4.6.2-SNAPSHOT</version>
+  <version>4.6.4-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>phoebus (parent)</name>
 
@@ -11,14 +11,29 @@
     <tag>HEAD</tag>
   </scm>
 
+  <distributionManagement>
+    <snapshotRepository>
+      <id>artifactory</id>
+      <name>ESS Artifactory Snapshot repository</name>
+      <url>https://artifactory.esss.lu.se/artifactory/libs-snapshot-local</url>
+    </snapshotRepository>
+    <repository>
+      <id>artifactory</id>
+      <name>ESS Artifactory Release repository</name>
+      <url>https://artifactory.esss.lu.se/artifactory/libs-release-local</url>
+    </repository>
+  </distributionManagement>
+
   <properties>
-    <epics.version>7.0.4</epics.version>
-    <vtype.version>1.0.1</vtype.version>
-    <openjfx.version>13.0.1</openjfx.version>
+    <epics.version>7.0.6</epics.version>
+    <vtype.version>1.0.3</vtype.version>
+    <openjfx.version>14</openjfx.version>
     <jackson.version>2.10.1</jackson.version>
     <batik.version>1.12</batik.version>
     <mockito.version>2.23.4</mockito.version>
     <postgresql.driver.version>42.2.9</postgresql.driver.version>
+    <lombok.version>1.18.12</lombok.version>
+    <jetty.version>9.4.30.v20200611</jetty.version>
     <!--<maven.repo.local>${project.build.directory}/.m2</maven.repo.local> -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -114,43 +129,50 @@
         </plugins>
       </build>
     </profile>
-    <!-- a profile for generating javadocs and the website from the .rst
-      files -->
-    <profile>
-      <id>docs</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <version>3.1.1</version>
-            <executions>
-              <execution>
-                <id>attach-javadocs</id>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-                <configuration>
-                  <!-- add this to disable checking -->
-                  <doclint>none</doclint>
-                  <source>11</source>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <!-- Attach sources -->
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-source-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>attach-sources</id>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
+  <!-- a profile for generating javadocs and sources -->
+  <profile>
+    <id>docs</id>
+    <build>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>3.1.1</version>
+          <executions>
+            <execution>
+              <id>attach-javadocs</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+              <configuration>
+                <!-- add this to disable checking -->
+                <doclint>none</doclint>
+                <source>11</source>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+        <!-- Attach sources -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>attach-sources</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </build>
+  </profile>
+  <!-- profile for and the website from the .rst files -->
+  <profile>
+    <id>sphinx</id>
+    <build>
+      <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-site-plugin</artifactId>
@@ -160,6 +182,24 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-project-info-reports-plugin</artifactId>
             <version>3.0.0</version>
+          </plugin>          
+          <!-- Generate the documentation for the Phoebus -->
+          <plugin>
+            <groupId>kr.motd.maven</groupId>
+            <artifactId>sphinx-maven-plugin</artifactId>
+            <version>2.6.0</version>
+            <configuration>
+              <sourceDirectory>${basedir}/docs/source</sourceDirectory>
+              <outputDirectory>${basedir}/docs/build/html</outputDirectory>
+            </configuration>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>generate</goal>
+                </goals>
+              </execution>
+            </executions>
           </plugin>
         </plugins>
       </build>

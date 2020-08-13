@@ -1,6 +1,10 @@
 *~
 target/
 
+## Generated Documentation ##
+docs/build/
+
+
 ### release files ###
 
 release.log
@@ -13,6 +17,7 @@ release.properties
 .settings
 logs.txt
 settings.xml
+!.github/maven/settings.xml
 nohup.out
 
 # Generated help files, html/generated
@@ -108,3 +113,4 @@ buildNumber.properties
 
 
 # End of https://www.gitignore.io/api/maven,eclipse
+/.gitignore

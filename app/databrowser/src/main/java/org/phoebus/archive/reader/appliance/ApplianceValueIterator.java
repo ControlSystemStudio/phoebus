@@ -39,6 +39,8 @@ import edu.stanford.slac.archiverappliance.PB.EPICSEvent.FieldValue;
 import edu.stanford.slac.archiverappliance.PB.EPICSEvent.PayloadInfo;
 import edu.stanford.slac.archiverappliance.PB.EPICSEvent.PayloadType;
 
+import gov.aps.jca.dbr.Status;
+
 /**
  *
  * <code>ApplianceValueIterator</code> is the base class for different value iterators.
@@ -148,7 +150,7 @@ public abstract class ApplianceValueIterator implements ValueIterator {
      */
     protected VType extractData(EpicsMessage dataMessage) {
         PayloadType type = mainStream.getPayLoadInfo().getType();
-        final Alarm alarm = Alarm.of(getSeverity(dataMessage.getSeverity()), AlarmStatus.CLIENT, String.valueOf(dataMessage.getStatus()));
+        final Alarm alarm = Alarm.of(getSeverity(dataMessage.getSeverity()), AlarmStatus.CLIENT, getStatus(dataMessage.getStatus()));
         final Time time = TimeHelper.fromInstant(TimestampHelper.fromSQLTimestamp(dataMessage.getTimestamp()));
 
         if (type == PayloadType.SCALAR_BYTE ||
@@ -312,5 +314,16 @@ public abstract class ApplianceValueIterator implements ValueIterator {
         } else {
             return AlarmSeverity.UNDEFINED;
         }
+    }
+
+    /**
+     * Determines alarm status from the given numerical representation.
+     *
+     * @param status numerical representation of alarm severity
+     *
+     * @return alarm status
+     */
+    protected static String getStatus(int status) {
+        return Status.forValue(status).getName();
     }
 }

@@ -93,7 +93,7 @@ public class LogbooksTagsView extends VBox
         Tooltip tooltip = new Tooltip(Messages.LogbooksTooltip);
         addLogbook.setTooltip(tooltip);
         logbookSelector.setTooltip(tooltip);
-        logbookLabel.setPrefWidth(LogEntryDialog.labelWidth);
+        logbookLabel.setPrefWidth(LogEntryEditorStage.labelWidth);
         logbookLabel.setTextFill(Color.RED);
         logbookField.textProperty().addListener((changeListener, oldVal, newVal) ->
         {
@@ -149,7 +149,7 @@ public class LogbooksTagsView extends VBox
         Tooltip tooltip = new Tooltip(Messages.TagsTooltip);
         addTag.setTooltip(tooltip);
         tagSelector.setTooltip(tooltip);
-        tagLabel.setPrefWidth(LogEntryDialog.labelWidth);
+        tagLabel.setPrefWidth(LogEntryEditorStage.labelWidth);
         tagSelector.setOnAction(actionEvent ->
         {
             if (tagSelector.isSelected())

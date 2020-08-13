@@ -15,6 +15,8 @@ public class Messages
     public static String AllFiles;
     public static String AlwaysShowTabs;
     public static String Applications;
+    public static String AppVersion;
+    public static String AppVersionHeader;
     public static String DeleteLayouts;
     public static String DeleteLayoutsConfirmFmt;
     public static String DeleteLayoutsInfo;
@@ -24,6 +26,8 @@ public class Messages
     public static String DockAppName;
     public static String DockClose;
     public static String DockCloseAll;
+    public static String DockCloseNamedPaneText;
+    public static String DockCloseNamedPaneTitle;
     public static String DockCloseOthers;
     public static String DockDetach;
     public static String DockInfo;

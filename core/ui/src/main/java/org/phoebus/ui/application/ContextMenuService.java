@@ -63,11 +63,9 @@ public class ContextMenuService {
             Class sc = s;
             do
             {
-                // System.out.println("Selection is of type " + sc);
                 allAdaptableSelectionType.add(sc);
                 for (Class inter : sc.getInterfaces())
                 {
-                    // System.out.println(".. and interface " + inter);
                     allAdaptableSelectionType.add(inter);
                 }
                 sc = sc.getSuperclass();
@@ -79,11 +77,12 @@ public class ContextMenuService {
             });
         });
 
-        //
+        // Return the context menu entries that can handle the given selection type,
+        // either directly or by adapting it to a supported type.
         final List<ContextMenuEntry> result = contextMenuEntries
             .stream()
             .filter(p -> {
-                  return !Collections.disjoint(p.getSupportedTypes(), allAdaptableSelectionType);
+                return allAdaptableSelectionType.contains(p.getSupportedType());
             })
             .collect(Collectors.toList());
         result.sort((a, b) -> a.getName().compareTo(b.getName()));

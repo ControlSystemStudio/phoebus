@@ -9,13 +9,8 @@ package org.csstudio.display.builder.representation.javafx.widgets;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.logging.Level;
 
-import javafx.geometry.Point2D;
-import org.apache.batik.anim.dom.SAXSVGDocumentFactory;
-import org.apache.batik.util.XMLResourceDescriptor;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
@@ -25,20 +20,13 @@ import org.csstudio.display.builder.model.macros.MacroHandler;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.PictureWidget;
-import org.csstudio.display.builder.model.widgets.SymbolWidget;
 import org.csstudio.display.builder.representation.javafx.SVGHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
-import javafx.geometry.Dimension2D;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.svg.SVGDocument;
-import org.w3c.dom.svg.SVGElement;
-import org.w3c.dom.svg.SVGRect;
 
 /**
  * Creates JavaFX item for model widget.
@@ -63,23 +51,6 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
     private volatile Rotate rotation = new Rotate(0);
     private volatile Translate translate = new Translate(0,0);
 
-    public static Dimension2D computeSize(final PictureWidget widget)
-    {
-        final String imageFile = widget.propFile().getValue();
-
-        try
-        {
-            final String filename = ModelResourceUtil.resolveResource(widget.getTopDisplayModel(), imageFile);
-            final Image image = new Image(ModelResourceUtil.openResourceStream(filename));
-            return new Dimension2D(image.getWidth(), image.getHeight());
-
-        }
-        catch (Exception ex)
-        {
-            return new Dimension2D(0.0, 0.0);
-        }
-    }
-
     @Override
     public ImageView createJFXNode() throws Exception
     {
@@ -98,12 +69,18 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
 
         model_widget.propStretch().addUntypedPropertyListener(styleChangedListener);
         model_widget.propRotation().addUntypedPropertyListener(styleChangedListener);
-        styleChanged(null, null, null);
+//      styleChanged() will be called by contentChanged()
 
         // This is one of those weird cases where getValue calls setValue and fires the listener.
         // So register listener after getValue called
         final String img_name = model_widget.propFile().getValue();
         model_widget.propFile().addPropertyListener(contentChangedListener);
+        /*
+         * Must clear the flags, JFXBaseRepresentation will call updateChanges() but we are not initialized yet
+         * (contentChanged() will set the flags after it initializes img_path and img_loaded)
+         */
+        dirty_style.checkAndClear();
+        dirty_content.checkAndClear();
         ModelThreadPool.getExecutor().execute(() -> contentChanged(null, null, img_name));
     }
 
@@ -147,10 +124,11 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
                 ImageCache.remove(img_path);
             }
 
-            if(img_path.toLowerCase().endsWith("svg")){
-                img_loaded = loadSVG(img_path, model_widget.propWidth().getValue(), model_widget.propHeight().getValue());
-            }
-            else{
+            // Load the SVG without specifying a size so that img_loaded will have the original aspect ratio that we need
+            if (img_path.toLowerCase().endsWith("svg"))
+                img_loaded = SVGHelper.loadSVG(img_path, 0.0, 0.0);
+            else
+            {
                 img_loaded = ImageCache.cache(img_path, () ->
                 {
                     try
@@ -165,22 +143,8 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
                     return null;
                 });
             }
-            if (img_loaded == null)
-                load_failed = true;
-        }
-
-        if (load_failed)
-        {
-            final String dflt_img = PictureWidget.default_pic;
-            try
-            {
-                // Open the image from the stream created from the resource file
-                img_loaded = new Image(ModelResourceUtil.openResourceStream(dflt_img));
-                load_failed = false;
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Failure loading default image file:" + img_path, ex);
+            if (img_loaded == null) {
+                load_failed = !loadDefaultImage();
             }
         }
 
@@ -240,10 +204,12 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
                 final_pic_h = (int) Math.floor(scale_fac * pic_h);
             }
 
+            // This actually loads SVG images.
             if(img_path != null && img_path.toLowerCase().endsWith("svg")) {
-                img_loaded = loadSVG(img_path, final_pic_w, final_pic_h);
+                loadSVG(img_path, final_pic_w, final_pic_h);
                 jfx_node.setImage(img_loaded);
             }
+
             jfx_node.setFitHeight(final_pic_h);
             jfx_node.setFitWidth(final_pic_w);
 
@@ -262,14 +228,18 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
      * Loads a SVG resource. The image cache is used, but the key to the SVG resource depends
      * on the width and height of the image. Reason is that when resizing a image the underlying
      * SVG must be transcoded again with the new size.
+     * If the wanted SVG image is not found, the default (PNG) image is loaded instead.
      * @param width
      * @param height
      * @return An {@link Image} or <code>null</code>.
      */
-    private Image loadSVG(String fileName, double width, double height){
+    private void loadSVG(String fileName, double width, double height){
 
         String imageFileName = resolveImageFile(fileName);
-        return SVGHelper.loadSVG(imageFileName, width, height);
+        img_loaded = SVGHelper.loadSVG(imageFileName, width, height);
+        if(img_loaded == null){
+            loadDefaultImage();
+        }
     }
 
     private String resolveImageFile (String imageFileName ) {
@@ -290,10 +260,31 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
             logger.log(Level.WARNING, String.format("Failure resolving image path: %s", imageFileName), ex);
 
             return null;
-
         }
     }
 
+    /**
+     * Convenience method to load default image if the wanted image resource cannot be found.
+     * Note that this method sets the instance variable <code>img_loaded</code>.
+     * @return <code>true</code> if default image loaded successfully, otherwise <code>false</code>
+     */
+    private boolean loadDefaultImage()
+    {
+        final String dflt_img = PictureWidget.default_pic;
+        img_loaded = ImageCache.cache(dflt_img, () ->
+        {
+            try
+            {
+                // Open the image from the stream created from the resource file
+                return new Image(ModelResourceUtil.openResourceStream(dflt_img));
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Failure loading default image file:" + dflt_img, ex);
+            }
+            return null;
+            });
 
-
+        return img_loaded != null;
+    }
 }

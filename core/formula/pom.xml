@@ -4,20 +4,19 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>core</artifactId>
-    <version>4.6.2-SNAPSHOT</version>
+    <version>4.6.4-SNAPSHOT</version>
   </parent>
   <dependencies>
    <!-- epics-util -->
    <dependency>
       <groupId>org.epics</groupId>
-      <artifactId>epics-core</artifactId>
-      <version>${epics.version}</version>
-      <type>pom</type>
-    </dependency>
-    <dependency>
-      <groupId>org.epics</groupId>
       <artifactId>vtype</artifactId>
       <version>${vtype.version}</version>
+   </dependency>
+   <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>core-vtype</artifactId>
+      <version>4.6.4-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>

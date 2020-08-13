@@ -82,7 +82,13 @@ Local process variables can be used within the application,
 for example to send a value from one display to another display within the same application.
 They do not communicate with the control system.
 
-Unless a type selector and initial value are provided, a local value will be of type 'double'
+Following the "loc://" prefix, the variable name must start with a character A-Z or a-z,
+potentially followed by more characters or numbers.
+Valid examples are "A", "b", "Example2", "MyVar42".
+Invalid examples are "42", "2ndExample".
+
+Next is an optional type selector like "<VLong>" and initial value like "42".
+Unless a type selector and initial value are provided, a local value will be of type 'VDouble'
 with initial value of 0.
 
 Local process variables only exist as long as they are referenced.

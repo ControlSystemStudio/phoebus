@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,7 @@ package org.csstudio.display.builder.representation.javafx.widgets;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.TimeUnit;
 
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.ModelPlugin;
@@ -20,19 +21,17 @@ import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.util.IOUtils;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.ToolbarHelper;
 
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
-import javafx.geometry.HPos;
-import javafx.geometry.VPos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Control;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebView;
@@ -41,19 +40,16 @@ import javafx.scene.web.WebView;
  *  @author Amanda Carpenter
  */
 @SuppressWarnings("nls")
-public class WebBrowserRepresentation extends RegionBaseRepresentation<Region, WebBrowserWidget>
+public class WebBrowserRepresentation extends RegionBaseRepresentation<BorderPane, WebBrowserWidget>
 {
     private final DirtyFlag dirty_size = new DirtyFlag();
     private final DirtyFlag dirty_url = new DirtyFlag();
     private final UntypedWidgetPropertyListener sizeListener = this::sizeChanged;
     private final WidgetPropertyListener<String> urlListener = this::urlChanged;
 
-    private volatile double width;
-    private volatile double height;
-
     private static final String[] downloads = new String[] { "zip", "csv", "cif", "tgz" };
 
-    class Browser extends Region
+    private class Browser extends BorderPane
     {
         //================
         //--fields
@@ -65,7 +61,7 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<Region, W
         public Browser(String url)
         {
             getStyleClass().add("browser");
-            getChildren().add(browser);
+            setCenter(browser);
             goToURL(url);
 
             // Support 'download' links on web page.
@@ -98,32 +94,15 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<Region, W
         //--protected methods
         protected void goToURL(String url)
         {
-            if (!url.startsWith("http://") && !url.startsWith("https://"))
-                if (url.equals(""))
-                    url = "about:blank";
-                else
-                    url = "http://" + url;
+            // Special handling of empty URLs
+            if (url == null  ||  url.isBlank())
+                url = "about:blank";
+            // Original implementation enforced "http://".
+            // Now also allow "file://" or other "xxx://",
+            // still defaulting to "http://".
+            else if (url.indexOf("://") < 0)
+                url = "http://" + url;
             webEngine.load(url);
-        }
-
-        @Override
-        protected void layoutChildren()
-        {
-            double w = getWidth();
-            double h = getHeight();
-            layoutInArea(browser, 0,0, w,h, 0, HPos.CENTER, VPos.CENTER);
-        }
-
-        @Override
-        protected double computePrefWidth(double height)
-        {
-            return width;
-        }
-
-        @Override
-        protected double computePrefHeight(double width)
-        {
-            return height;
         }
 
         private void download(final String url, final String file)
@@ -141,24 +120,23 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<Region, W
         }
     }
 
-    class BrowserWithToolbar extends Browser
+    private class BrowserWithToolbar extends Browser
     {
         //================
         //--fields
         final WebHistory history = webEngine.getHistory();
 
         //--toolbar controls
-        HBox toolbar;
         final Button backButton = new Button();
         final Button foreButton = new Button();
         final Button stop = new Button();
         final Button refresh  = new Button();
         final ComboBox<String> addressBar = new ComboBox<>();
         final Button go = new Button();
-        Control [] controls = new Control []
-                {backButton, foreButton, stop, refresh, addressBar, go};
-        String [] iconFiles = new String []
-                {"arrow_left.png", "arrow_right.png", "Player_stop.png", "refresh.png", null, "green_chevron.png"};
+
+        final HBox toolbar = new HBox(backButton, foreButton,
+                                      ToolbarHelper.createStrut(5),
+                                      stop, refresh, addressBar, go);
 
         //--toolbar handlers and listeners
         void handleBackButton(ActionEvent event)
@@ -212,11 +190,13 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<Region, W
 
         //================
         //--constructor
-        public BrowserWithToolbar(String url)
+        public BrowserWithToolbar(final String url)
         {
             super(url);
+
             locationChanged(null, null, webEngine.getLocation());
-            //assemble toolbar controls
+
+            // Assemble toolbar controls
             backButton.setOnAction(this::handleBackButton);
             foreButton.setOnAction(this::handleForeButton);
             stop.setOnAction(this::handleStop);
@@ -228,53 +208,45 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<Region, W
             webEngine.locationProperty().addListener(this::locationChanged);
             history.getEntries().addListener(this::entriesChanged);
 
-            for (int i = 0; i < controls.length; i++)
-            {
-                Control control = controls[i];
-                if (control instanceof ButtonBase)
-                {
-                    HBox.setHgrow(control, Priority.NEVER);
-                    //add graphics/text to buttons
-                    ((ButtonBase)control).setGraphic(ImageCache.getImageView(ModelPlugin.class, "/icons/browser/" + iconFiles[i]));
-                }
-                else
-                    HBox.setHgrow(control, Priority.ALWAYS);
-            }
+            // Buttons often appeared zero-sized when setting the icons right away,
+            // maybe because icon needs time to load?
+            // No perfect solution, but workaround:
+            // 1) Assert a minimum width to get initial positions
+            backButton.setMinWidth(40);
+            foreButton.setMinWidth(40);
+            stop.setMinWidth(40);
+            refresh.setMinWidth(40);
+            go.setMinWidth(40);
 
-            //add toolbar component
-            toolbar = new HBox(controls);
+            // 2) Add icons later, which seems to "work" every time
+            toolkit.schedule(() ->
+            {
+                backButton.setGraphic(ImageCache.getImageView(ModelPlugin.class, "/icons/browser/arrow_left.png"));
+                foreButton.setGraphic(ImageCache.getImageView(ModelPlugin.class, "/icons/browser/arrow_right.png"));
+                stop.setGraphic(ImageCache.getImageView(ModelPlugin.class, "/icons/browser/Player_stop.png"));
+                refresh.setGraphic(ImageCache.getImageView(ModelPlugin.class, "/icons/browser/refresh.png"));
+                go.setGraphic(ImageCache.getImageView(ModelPlugin.class, "/icons/browser/green_chevron.png"));
+            }, 500, TimeUnit.MILLISECONDS);
+
+            addressBar.setMaxWidth(Double.MAX_VALUE);
+            HBox.setHgrow(addressBar, Priority.ALWAYS);
             toolbar.getStyleClass().add("browser-toolbar");
-            getChildren().add(toolbar);
+
+            setTop(toolbar);
         }
 
         //================
         //--public methods
         public void disableToolbar()
         {
-            for (Control control : controls)
+            for (Node control : toolbar.getChildren())
                 control.setDisable(true);
         }
-
-        //================
-        //--protected methods
-        @Override
-        protected void layoutChildren()
-        {
-            double w = getWidth();
-            double h = getHeight();
-            double tbHeight = toolbar.prefHeight(w);
-            addressBar.setPrefWidth( addressBar.prefWidth(tbHeight) +
-                                    (w - toolbar.prefWidth(h)) );
-            layoutInArea(browser, 0,tbHeight, w,h-tbHeight, 0, HPos.CENTER, VPos.CENTER);
-            layoutInArea(toolbar, 0,0, w,tbHeight, 0, HPos.CENTER,VPos.CENTER);
-        }
-
     }
 
     @Override
-    public Region createJFXNode() throws Exception
+    public BorderPane createJFXNode() throws Exception
     {
-        boolean toolbar = model_widget.propShowToolbar().getValue();
         if (toolkit.isEditMode())
         {
             BrowserWithToolbar browser = new BrowserWithToolbar(model_widget.propWidgetURL().getValue())
@@ -287,6 +259,8 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<Region, W
             browser.disableToolbar();
             return browser;
         }
+
+        boolean toolbar = model_widget.propShowToolbar().getValue();
         return toolbar ? new BrowserWithToolbar(model_widget.propWidgetURL().getValue())
                 : new Browser(model_widget.propWidgetURL().getValue());
     }
@@ -316,8 +290,7 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<Region, W
         if (!toolkit.isEditMode())
             model_widget.propWidgetURL().removePropertyListener(urlListener);
         super.unregisterListeners();
-   }
-
+    }
 
     private void sizeChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
@@ -336,14 +309,9 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<Region, W
     {
         super.updateChanges();
         if (dirty_size.checkAndClear())
-        {
-            width = model_widget.propWidth().getValue();
-            height = model_widget.propHeight().getValue();
-            jfx_node.requestLayout();
-        }
+            jfx_node.setPrefSize(model_widget.propWidth().getValue(),
+                                 model_widget.propHeight().getValue());
         if (dirty_url.checkAndClear())
-        {
             ((Browser)jfx_node).goToURL(model_widget.propWidgetURL().getValue());
-        }
     }
 }

@@ -9,6 +9,7 @@ package org.csstudio.display.builder.representation.javafx;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -18,9 +19,13 @@ import java.util.stream.Collectors;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.properties.ScriptPV;
+import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.representation.javafx.PVTableItem.AutoCompletedTableCell;
+import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.framework.util.ResourceParser;
+import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.MultiLineInputDialog;
 import org.phoebus.ui.javafx.EditCell;
@@ -32,7 +37,6 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -53,17 +57,15 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableView.TableViewSelectionModel;
-import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.util.converter.DefaultStringConverter;
+import javafx.stage.Stage;
 
 /** Dialog for editing {@link ScriptInfo}s
  *  @author Kay Kasemir
@@ -154,6 +156,12 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
     {
         {
             setOnAction(e -> convertToEmbeddedJavaScript());
+        }
+    };
+    private MenuItem openInExternalEditorMenuItem = new MenuItem(Messages.OpenInExternalEditor, JFXUtil.getIcon("file.png"))
+    {
+        {
+           setOnAction(e -> openInExternalEditor());
         }
     };
 
@@ -253,18 +261,21 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
                         convertToFileMenuItem.setDisable(false);
                         convertToEmbeddedPythonMenuItem.setDisable(true);
                         convertToEmbeddedJavaScriptMenuItem.setDisable(false);
+                        openInExternalEditorMenuItem.setDisable(true);
                     }
                     else if (ScriptInfo.isJavaScript(selected.getScriptInfo().getPath()))
                     {
                         convertToFileMenuItem.setDisable(false);
                         convertToEmbeddedPythonMenuItem.setDisable(false);
                         convertToEmbeddedJavaScriptMenuItem.setDisable(true);
+                        openInExternalEditorMenuItem.setDisable(true);
                     }
                     else
                     {
                         convertToFileMenuItem.setDisable(true);
                         convertToEmbeddedPythonMenuItem.setDisable(true);
                         convertToEmbeddedJavaScriptMenuItem.setDisable(true);
+                        openInExternalEditorMenuItem.setDisable(true);
                     }
                 }
                 else
@@ -275,6 +286,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
                     convertToFileMenuItem.setDisable(true);
                     convertToEmbeddedPythonMenuItem.setDisable(false);
                     convertToEmbeddedJavaScriptMenuItem.setDisable(false);
+                    openInExternalEditorMenuItem.setDisable(!externalEditorExists());
                 }
             }
         });
@@ -425,7 +437,9 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
             convertToFileMenuItem,
             new SeparatorMenuItem(),
             convertToEmbeddedPythonMenuItem,
-            convertToEmbeddedJavaScriptMenuItem);
+            convertToEmbeddedJavaScriptMenuItem,
+            new SeparatorMenuItem(),
+            openInExternalEditorMenuItem);
         btn_edit.setText(Messages.Select);
         btn_edit.setGraphic(JFXUtil.getIcon("select-file.png"));
         btn_edit.setMaxWidth(Double.MAX_VALUE);
@@ -633,6 +647,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
         convertToFileMenuItem.setDisable(false);
         convertToEmbeddedPythonMenuItem.setDisable(false);
         convertToEmbeddedJavaScriptMenuItem.setDisable(true);
+        openInExternalEditorMenuItem.setDisable(true);
     }
 
     private void convertToEmbeddedPython()
@@ -650,6 +665,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
         convertToFileMenuItem.setDisable(false);
         convertToEmbeddedPythonMenuItem.setDisable(true);
         convertToEmbeddedJavaScriptMenuItem.setDisable(false);
+        openInExternalEditorMenuItem.setDisable(true);
     }
 
     private void convertToScriptFile()
@@ -666,6 +682,29 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
             convertToFileMenuItem.setDisable(true);
             convertToEmbeddedPythonMenuItem.setDisable(false);
             convertToEmbeddedJavaScriptMenuItem.setDisable(false);
+            openInExternalEditorMenuItem.setDisable(!externalEditorExists());
+        }
+    }
+
+    private boolean externalEditorExists()
+    {
+        return null != ApplicationLauncherService.findApplication(ResourceParser.getURI(new File(selected_script_item.file.get())), false, null);
+    }
+
+    private void openInExternalEditor()
+    {
+        String resolved;
+        try
+        {
+            String path = MacroHandler.replace(widget.getMacrosOrProperties(), selected_script_item.getScriptInfo().getPath());
+            resolved = ModelResourceUtil.resolveResource(widget.getDisplayModel(), path);
+            File file = new File(resolved);
+            ApplicationLauncherService.openFile(file, true, (Stage)this.getOwner());
+        }
+        catch (Exception e)
+        {
+            logger.warning("Cannot resolve resource " + selected_script_item.getScriptInfo().getPath());
+            return;
         }
     }
 

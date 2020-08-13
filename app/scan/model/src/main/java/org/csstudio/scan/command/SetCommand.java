@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -31,6 +31,7 @@ public class SetCommand extends ScanCommand
     private volatile String device_name;
     private volatile Object value;
     private volatile String readback;
+    private volatile Object readback_value;
     private volatile boolean completion;
     private volatile boolean wait;
     private volatile double tolerance;
@@ -39,7 +40,7 @@ public class SetCommand extends ScanCommand
     /** Initialize empty set command */
     public SetCommand()
     {
-        this("device", 0.0, false, "", true, 0.1, 0.0);
+        this("device", 0.0, false, "", "", true, 0.1, 0.0);
     }
 
     /** Initialize for readback with default tolerance and timeout
@@ -48,7 +49,7 @@ public class SetCommand extends ScanCommand
      */
     public SetCommand(final String device_name, final Object value)
     {
-        this(device_name, value, false, device_name, true, 0.1, 0.0);
+        this(device_name, value, false, device_name, "", true, 0.1, 0.0);
     }
 
     /** Initialize with default tolerance and timeout
@@ -58,7 +59,7 @@ public class SetCommand extends ScanCommand
      */
     public SetCommand(final String device_name, final Object value, final boolean wait)
     {
-        this(device_name, value, false, device_name, wait, 0.1, 0.0);
+        this(device_name, value, false, device_name, "", wait, 0.1, 0.0);
     }
 
     /** Initialize
@@ -69,7 +70,7 @@ public class SetCommand extends ScanCommand
     public SetCommand(final String device_name, final Object value,
             final String readback)
     {
-        this(device_name, value, false, readback, true, 0.1, 0.0);
+        this(device_name, value, false, readback, "", true, 0.1, 0.0);
     }
 
     /** Initialize
@@ -77,13 +78,14 @@ public class SetCommand extends ScanCommand
      *  @param value Value to write to the device
      *  @param completion Wait for write completion?
      *  @param readback Readback device
+     *  @param readback_value Desired readback value ("" to use written value)
      *  @param wait Wait for readback to match?
      *  @param tolerance Numeric tolerance when checking value
      *  @param timeout Timeout in seconds, 0 as "forever"
      */
     public SetCommand(final String device_name, final Object value,
             final boolean completion,
-            final String readback, final boolean wait,
+            final String readback, final Object readback_value, final boolean wait,
             final double tolerance, final double timeout)
     {
         if (device_name == null)
@@ -94,6 +96,7 @@ public class SetCommand extends ScanCommand
         if (readback == null)
             throw new NullPointerException();
         this.readback = readback;
+        this.readback_value = readback_value;
         this.wait = wait;
         this.tolerance = tolerance;
         this.timeout = timeout;
@@ -108,6 +111,7 @@ public class SetCommand extends ScanCommand
         properties.add(ScanCommandProperty.COMPLETION);
         properties.add(ScanCommandProperty.WAIT);
         properties.add(ScanCommandProperty.READBACK);
+        properties.add(new ScanCommandProperty("readback_value", "Readback Value", Object.class));
         properties.add(ScanCommandProperty.TOLERANCE);
         properties.add(ScanCommandProperty.TIMEOUT);
         super.configureProperties(properties);
@@ -177,6 +181,18 @@ public class SetCommand extends ScanCommand
         this.readback = readback;
     }
 
+    /** @return Value to check from readback device */
+    public Object getReadbackValue()
+    {
+        return readback_value;
+    }
+
+    /** @param readback_value Value to check from readback device ("" for written value) */
+    public void setReadbackValue(final Object readback_value)
+    {
+        this.readback_value = readback_value;
+    }
+
     /** @return Tolerance */
     public double getTolerance()
     {
@@ -228,11 +244,30 @@ public class SetCommand extends ScanCommand
             element.appendChild(dom.createTextNode(Boolean.toString(wait)));
             command_element.appendChild(element);
         }
-        if (wait  &&  ! readback.isEmpty())
+        else
         {
-            element = dom.createElement("readback");
-            element.appendChild(dom.createTextNode(readback));
-            command_element.appendChild(element);
+            if (! readback.isEmpty())
+            {
+                element = dom.createElement("readback");
+                element.appendChild(dom.createTextNode(readback));
+                command_element.appendChild(element);
+            }
+
+            if (readback_value instanceof String)
+            {   // Skip when empty, otherwise persist as "text" ..
+                if (((String)readback_value).length() > 0)
+                {
+                    element = dom.createElement("readback_value");
+                    element.appendChild(dom.createTextNode('"' + (String)readback_value + '"'));
+                    command_element.appendChild(element);
+                }
+            }
+            else
+            {   // .. or number
+                element = dom.createElement("readback_value");
+                element.appendChild(dom.createTextNode(readback_value.toString()));
+                command_element.appendChild(element);
+           }
         }
         if (tolerance > 0.0)
         {
@@ -258,6 +293,7 @@ public class SetCommand extends ScanCommand
         setCompletion(XMLUtil.getChildBoolean(element, ScanCommandProperty.TAG_COMPLETION).orElse(false));
         setWait(XMLUtil.getChildBoolean(element, ScanCommandProperty.TAG_WAIT).orElse(true));
         setReadback(XMLUtil.getChildString(element, ScanCommandProperty.TAG_READBACK).orElse(getDeviceName()));
+        setReadbackValue(StringOrDouble.parse(XMLUtil.getChildString(element, ScanCommandProperty.TAG_READBACK_VALUE).orElse("\"\"")));
         setTolerance(XMLUtil.getChildDouble(element, ScanCommandProperty.TAG_TOLERANCE).orElse(0.1));
         setTimeout(XMLUtil.getChildDouble(element, ScanCommandProperty.TAG_TIMEOUT).orElse(0.0));
         super.readXML(element);
@@ -284,8 +320,12 @@ public class SetCommand extends ScanCommand
                 buf.append(device_name);
             else
                 buf.append(readback);
+            buf.append("'");
+
+            if (! readback_value.toString().isEmpty())
+                buf.append(" = ").append(StringOrDouble.quote(readback_value));
             if (tolerance > 0)
-                buf.append("' +-").append(tolerance);
+                buf.append(" +-").append(tolerance);
             if (timeout > 0  &&  !completion)
                 buf.append(", ").append(timeout).append(" sec timeout");
             buf.append(")");

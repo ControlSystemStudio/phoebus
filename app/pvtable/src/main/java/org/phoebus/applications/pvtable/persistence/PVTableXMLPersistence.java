@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -62,7 +62,7 @@ public class PVTableXMLPersistence extends PVTablePersistence
     public void read(final PVTableModel model, final InputStream stream) throws Exception
     {
         final DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        Document doc = docBuilder.parse(stream);
+        final Document doc = docBuilder.parse(stream);
         read(model, doc);
     }
 
@@ -74,13 +74,13 @@ public class PVTableXMLPersistence extends PVTablePersistence
     {
         // Check if it's a <pvtable/>.
         doc.getDocumentElement().normalize();
-        Element root_node = doc.getDocumentElement();
-        String root_name = root_node.getNodeName();
+        final Element root_node = doc.getDocumentElement();
+        final String root_name = root_node.getNodeName();
 
         if (!root_name.equals(ROOT))
             throw new Exception("Expected <" + ROOT + ">, found <" + root_name + ">");
 
-        model.setSaveRestore(XMLUtil.getChildBoolean(root_node, ENABLE_SAVE_RESTORE).orElse(true));
+        model.setSaveRestore(XMLUtil.parseBoolean(root_node.getAttribute(ENABLE_SAVE_RESTORE), true));
 
         // Get the default <tolerance> entry
         final double default_tolerance = XMLUtil.getChildDouble(root_node, TOLERANCE).orElse(Settings.tolerance);

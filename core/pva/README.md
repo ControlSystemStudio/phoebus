@@ -11,16 +11,28 @@ Original motivation was understanding the protocol and implementing it based on 
 taking advantage of for example functional interfaces and concurrency classes,
 instead of requiring API compatibility to the C++ implementation.
 
+Network compatibility with all other PVA servers and clients is desired.
+
 Implementation is focused on the requirements of clients like CS-Studio,
 covering the majority of PV Access features but not all of them.
+Primary goal is support for the "normative types" as served by IOCs
+and images as served by the area detector.
+For these, client aims to reach or exceed the CPU and memory performance
+of the original Java client implementation.
+
 Also includes a PVA Server implementation, which was mostly created
 to again better understand the protocol and to allow closed-loop tests.
+A 'proxy' combines server and client into a 'gateway' type application,
+again mostly to test if the implementations can handle common data types.
 
-Network compatibility with all other PVA servers and clients is desired.
 
 Prerequisites
 -------------
-`JAVA_HOME` set to JDK 9 or higher
+`JAVA_HOME` set to JDK 8 or higher.
+
+While Phoebus generally targets JDK 9 or higher, the core-pva library
+remains for the time being compatible with JDK 8 to allow using it
+with MATLAB.
 
 Build
 -----

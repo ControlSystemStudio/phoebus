@@ -130,10 +130,6 @@ public class NavigationTabsWidget extends VisibleWidget
         properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(active = propActiveTab.createProperty(this, 0));
         properties.add(embedded_model = runtimeModel.createProperty(this, null));
-
-        // Initial size
-        propWidth().setValue(300);
-        propHeight().setValue(200);
     }
 
     /** @return 'tabs' property */

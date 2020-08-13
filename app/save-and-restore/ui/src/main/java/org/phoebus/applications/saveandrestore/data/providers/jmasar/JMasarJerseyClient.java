@@ -122,10 +122,16 @@ public class JMasarJerseyClient implements JMasarClient{
 
     @Override
     public Node updateNode(Node nodeToUpdate) {
+        return updateNode(nodeToUpdate, false);
+    }
+
+    @Override
+    public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration) {
         if(nodeToUpdate.getUserName() == null || nodeToUpdate.getUserName().isEmpty()) {
             nodeToUpdate.setUserName(getCurrentUsersName());
         }
-        WebResource webResource = client.resource(jmasarServiceUrl + "/node/" + nodeToUpdate.getUniqueId() + "/update");
+        WebResource webResource = client.resource(jmasarServiceUrl + "/node/" + nodeToUpdate.getUniqueId() + "/update")
+                .queryParam("customTimeForMigration", customTimeForMigration ? "true" : "false");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(nodeToUpdate, CONTENT_TYPE_JSON)
@@ -190,5 +196,11 @@ public class JMasarJerseyClient implements JMasarClient{
         }
 
         return response.getEntity(Node.class);
+    }
+
+    @Override
+    public List<Tag> getAllTags() {
+        ClientResponse response = getCall("/tags");
+        return response.getEntity(new GenericType<List<Tag>>(){});
     }
 }

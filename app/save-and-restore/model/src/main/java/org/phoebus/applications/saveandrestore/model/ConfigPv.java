@@ -49,14 +49,14 @@ public class ConfigPv implements Comparable<ConfigPv>{
 	public boolean equals(Object other) {
 		if(other instanceof ConfigPv) {
 			ConfigPv otherConfigPv = (ConfigPv)other;
-			return Objects.equals(pvName, otherConfigPv.getPvName()) && Objects.equals(readbackPvName, otherConfigPv.getReadbackPvName());
+			return Objects.equals(pvName, otherConfigPv.getPvName()) && Objects.equals(readbackPvName, otherConfigPv.getReadbackPvName()) && Objects.equals(readOnly, otherConfigPv.isReadOnly());
 		}
 		return false;
 	}
 	
 	@Override
 	public int hashCode() {
-		return Objects.hash(pvName, readbackPvName);
+		return Objects.hash(pvName, readbackPvName, readOnly);
 	}
 	
 	@Override
@@ -64,7 +64,8 @@ public class ConfigPv implements Comparable<ConfigPv>{
 		
 		return new StringBuffer()
 				.append("PV name=").append(pvName)
-				.append(", redback PV name=").append(readbackPvName)
+				.append(", readback PV name=").append(readbackPvName)
+				.append(", readOnly=").append(readOnly)
 				.toString();
 	}
 	

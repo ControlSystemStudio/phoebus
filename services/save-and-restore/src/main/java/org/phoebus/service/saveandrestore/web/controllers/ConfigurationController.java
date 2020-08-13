@@ -201,9 +201,10 @@ public class ConfigurationController extends BaseController {
 	 * @return A {@link Node} object representing the updated node.
 	 */
 	@PostMapping("/node/{uniqueNodeId}/update")
-	public Node updateNode(@PathVariable String uniqueNodeId, 
+	public Node updateNode(@PathVariable String uniqueNodeId,
+			@RequestParam(value = "customTimeForMigration", required = true) String customTimeForMigration,
 			@RequestBody Node nodeToUpdate) {
-		return services.updateNode(nodeToUpdate);
+		return services.updateNode(nodeToUpdate, Boolean.valueOf(customTimeForMigration));
 	}
 	
 	@GetMapping("/config/{uniqueNodeId}/items")

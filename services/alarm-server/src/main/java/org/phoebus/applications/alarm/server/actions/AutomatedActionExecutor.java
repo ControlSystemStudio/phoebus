@@ -16,6 +16,7 @@ import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
+import org.phoebus.applications.alarm.server.AlarmLogic;
 import org.phoebus.applications.alarm.server.AlarmServerPV;
 import org.phoebus.framework.jobs.JobManager;
 
@@ -44,7 +45,13 @@ public class AutomatedActionExecutor implements BiConsumer<AlarmTreeItem<?>, Tit
         JobManager.schedule("Automated Action", monitor ->
         {
             if (action.detail.startsWith("mailto:"))
+	    {
+		if (AlarmLogic.getDisableNotify() == true)
+		{
+		    return;
+		}
                 EmailActionExecutor.sendEmail(item, action.detail.substring(7).split(" *, *"));
+	    }
             else if (action.detail.startsWith("cmd:"))
                 CommandActionExecutor.run(item, action.detail.substring(4));
             else

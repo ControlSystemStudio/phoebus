@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -61,8 +61,8 @@ public class IncDecSlider extends Slider
         }
         event.consume();
 
-        // Is that below or above the current value?
-        final double val = getValue() / (getMax() - getMin());
+        // Is that below or above the current value in units of 0..1?
+        final double val = (getValue() - getMin()) / (getMax() - getMin());
         if (click > val)
             increment();
         else

@@ -66,7 +66,7 @@ public class SampleView extends VBox
             else
             {
                 setText(item);
-                setTextFill(SeverityColors.getTextColor(VTypeHelper.getSeverity(row.getItem().getVType())));
+                setTextFill(SeverityColors.getTextColor(org.phoebus.core.vtypes.VTypeHelper.getSeverity(row.getItem().getVType())));
             }
         }
     }
@@ -110,7 +110,7 @@ public class SampleView extends VBox
     {
         TableColumn<PlotSample, String> col = new TableColumn<>(Messages.TimeColumn);
         final VTypeFormat format = DoubleVTypeFormat.get();
-        col.setCellValueFactory(cell -> new SimpleStringProperty(TimestampFormats.FULL_FORMAT.format(VTypeHelper.getTimestamp(cell.getValue().getVType()))));
+        col.setCellValueFactory(cell -> new SimpleStringProperty(TimestampFormats.FULL_FORMAT.format(org.phoebus.core.vtypes.VTypeHelper.getTimestamp(cell.getValue().getVType()))));
         sample_table.getColumns().add(col);
 
         col = new TableColumn<>(Messages.ValueColumn);
@@ -119,7 +119,7 @@ public class SampleView extends VBox
 
         col = new TableColumn<>(Messages.SeverityColumn);
         col.setCellFactory(c -> new SeverityColoredTableCell());
-        col.setCellValueFactory(cell -> new SimpleStringProperty(VTypeHelper.getSeverity(cell.getValue().getVType()).name()));
+        col.setCellValueFactory(cell -> new SimpleStringProperty(org.phoebus.core.vtypes.VTypeHelper.getSeverity(cell.getValue().getVType()).name()));
         sample_table.getColumns().add(col);
 
         col = new TableColumn<>(Messages.StatusColumn);
@@ -143,7 +143,7 @@ public class SampleView extends VBox
 
     private void update()
     {
-        final List<String> model_items = model.getItems().stream().map(item -> item.getName()).collect(Collectors.toList());
+        final List<String> model_items = model.getItems().stream().map(item -> item.getResolvedName()).collect(Collectors.toList());
         if (! model_items.equals(items.getItems()))
         {
             items.getItems().setAll( model_items );
@@ -173,7 +173,7 @@ public class SampleView extends VBox
                 }
                 catch (Exception ex)
                 {
-                    Activator.logger.log(Level.WARNING, "Cannot access samples for " + item.getName(), ex);
+                    Activator.logger.log(Level.WARNING, "Cannot access samples for " + item.getResolvedName(), ex);
                 }
         }
         // Update UI

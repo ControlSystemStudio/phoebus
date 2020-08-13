@@ -18,15 +18,14 @@ import javafx.scene.image.Image;
 
 /**
  * A headless context menu entry for creating log entries from adaptable
- * selections. TODO this temporary headless action needs to removed once the
- * create log entry dialog is complete.
+ * selections.
  *
  * @author Kunal Shroff
  *
  */
 public class ContextMenuPVAlarmHistory implements ContextMenuEntry {
 
-    private static final List<Class<?>> supportedTypes = List.of(ProcessVariable.class);
+    private static final Class<?> supportedType = ProcessVariable.class;
     private static final String NAME = "Alarm History";
 
     @Override
@@ -36,7 +35,7 @@ public class ContextMenuPVAlarmHistory implements ContextMenuEntry {
 
     @SuppressWarnings("unchecked")
     @Override
-    public void callWithSelection(Selection selection) throws URISyntaxException {
+    public void call(Selection selection) throws URISyntaxException {
 
         List<ProcessVariable> selectedPvs = new ArrayList<>();
         selection.getSelections().stream().forEach(s -> {
@@ -48,8 +47,8 @@ public class ContextMenuPVAlarmHistory implements ContextMenuEntry {
     }
 
     @Override
-    public List<Class<?>> getSupportedTypes() {
-        return supportedTypes;
+    public Class<?> getSupportedType() {
+        return supportedType;
     }
 
     @Override

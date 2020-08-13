@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -122,7 +122,24 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
         return new AxisRange<>(start, end);
     }
 
-
+    /** @param data {@link PlotDataProvider} with values
+     *  @return <code>true</code> if the 'positions' are in order
+     */
+    private boolean isOrdered(final PlotDataProvider<XTYPE> data)
+    {
+        final int N = data.size();
+        if (N <= 0)
+            return false;
+        XTYPE prev = data.get(0).getPosition();
+        for (int i=1; i<N; ++i)
+        {
+            final XTYPE current = data.get(i).getPosition();
+            if (prev.compareTo(current) > 0)
+                return false;
+            prev = current;
+        }
+        return true;
+    }
 
     /** Submit background job to determine value range
      *  @param data {@link PlotDataProvider} with values
@@ -146,17 +163,29 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                 {
                     if (data.size() > 0)
                     {
-                        // Consider first sample at-or-before start
-                        int start = search.findSampleLessOrEqual(data, position_range.getLow());
-                        if (start < 0)
+                        int start, stop;
+                        if (isOrdered(data))
+                        {
+                            // Find start..stop indices from ordered positions to match axis range.
+                            // Consider first sample at-or-before start
+                            start = search.findSampleLessOrEqual(data, position_range.getLow());
+                            if (start < 0)
+                                start = 0;
+                            // Last sample is the one just inside end of range.
+                            stop = search.findSampleLessOrEqual(data, position_range.getHigh());
+                            if (stop < 0)
+                                stop = 0;
+                            if (logger.isLoggable(Level.FINE))
+                                logger.log(Level.FINE, "For " + data.size() + " samples, checking elements " + start + " .. " + stop +
+                                           " which are positioned within " + position_range.getLow() + " .. " + position_range.getHigh());
+                        }
+                        else
+                        {
+                            // Data does not have ordered 'positions', so consider all samples
                             start = 0;
-                        // Last sample is the one just inside end of range.
-                        int stop = search.findSampleLessOrEqual(data, position_range.getHigh());
-                        if (stop < 0)
-                            stop = 0;
-                        if (logger.isLoggable(Level.FINE))
-                            logger.log(Level.FINE, "For " + data.size() + " samples, checking elements " + start + " .. " + stop +
-                                       " which are positioned within " + position_range.getLow() + " .. " + position_range.getHigh());
+                            stop = data.size()-1;
+                        }
+
                         // If data is completely outside the position_range,
                         // we end up using just data[0]
                         // Check [start .. stop], including stop

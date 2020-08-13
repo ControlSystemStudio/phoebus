@@ -52,6 +52,13 @@ public class AlarmTableMediator implements AlarmClientListener
         Platform.runLater(() -> ui.setMaintenanceMode(maintenance_mode));
     }
 
+    // AlarmClientModelListener
+    @Override
+    public void serverDisableNotifyChanged(final boolean disable_notify)
+    {
+        Platform.runLater(() -> ui.setDisableNotify(disable_notify));
+    }
+
     // AlarmClientListener
     @Override
     public void itemAdded(final AlarmTreeItem<?> item)

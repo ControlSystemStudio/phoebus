@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,7 +9,6 @@ package org.csstudio.display.builder.model.widgets;
 
 import static org.csstudio.display.builder.model.ModelPlugin.logger;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFile;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMacros;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propTransparent;
 
 import java.util.Arrays;
@@ -44,7 +43,7 @@ import org.w3c.dom.Node;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class EmbeddedDisplayWidget extends VisibleWidget
+public class EmbeddedDisplayWidget extends MacroWidget
 {
     public static final int DEFAULT_WIDTH = 400,
                             DEFAULT_HEIGHT = 300;
@@ -79,7 +78,10 @@ public class EmbeddedDisplayWidget extends VisibleWidget
         /** Stretch the embedded content to fit the container,
          *  separately scaling the horizontal and vertical size
          */
-        StretchContent(Messages.Resize_Stretch);
+        StretchContent(Messages.Resize_Stretch),
+
+        /** No resize, but also no scroll bars. Oversized content is cropped */
+        Crop(Messages.Resize_Crop);
 
         private final String label;
 
@@ -162,13 +164,18 @@ public class EmbeddedDisplayWidget extends VisibleWidget
                 {
                     try
                     {   // 0=SIZE_OPI_TO_CONTAINER, 1=SIZE_CONTAINER_TO_OPI, 2=CROP_OPI, 3=SCROLL_OPI
+                        // Problem with any resize is that we now use the content's connfigured width x height
+                        // as size, while the legacy implementation self-determined the size and
+                        // width x height were usually not configured.
+                        // This likely results in unexpected resizing until the size of the legacy display file
+                        // (which doesn't matter to the legacy tool) gets configured.
                         final int old_resize = Integer.parseInt(XMLUtil.getString(element));
                         if (old_resize == 0)
                             widget.setPropertyValue(propResize, Resize.ResizeContent);
                         else if (old_resize == 1)
                             widget.setPropertyValue(propResize, Resize.SizeToContent);
-                        else
-                            widget.setPropertyValue(propResize, Resize.None);
+                        else // 'scroll' or 'crop' -> crop
+                            widget.setPropertyValue(propResize, Resize.Crop);
                     }
                     catch (NumberFormatException ex)
                     {
@@ -184,7 +191,7 @@ public class EmbeddedDisplayWidget extends VisibleWidget
                     final Style style = GroupWidget.convertLegacyStyle(border_style);
                     createGroupWrapper(widget, xml, style);
                     // Trigger re-parsing the XML from the parent down
-                    throw new ParseAgainException();
+                    throw new ParseAgainException("Wrap embedded display in group");
                 }
                 else
                     BorderSupport.handleLegacyBorder(widget, xml);
@@ -259,7 +266,6 @@ public class EmbeddedDisplayWidget extends VisibleWidget
         }
     }
 
-    private volatile WidgetProperty<Macros> macros;
     private volatile WidgetProperty<String> file;
     private volatile WidgetProperty<Resize> resize;
     private volatile WidgetProperty<String> group_name;
@@ -276,21 +282,30 @@ public class EmbeddedDisplayWidget extends VisibleWidget
     {
         super.defineProperties(properties);
         properties.add(file = propFile.createProperty(this, ""));
-        properties.add(macros = propMacros.createProperty(this, new Macros()));
         properties.add(resize = propResize.createProperty(this, Resize.None));
         properties.add(group_name = propGroupName.createProperty(this, ""));
         properties.add(embedded_model = runtimeModel.createProperty(this, null));
         properties.add(transparent = propTransparent.createProperty(this, false));
         BorderSupport.addBorderProperties(this, properties);
-
-        // Initial size
-        propWidth().setValue(300);
-        propHeight().setValue(200);
     }
 
-    /** @return 'macros' property */
-    public WidgetProperty<Macros> propMacros()
+    @Override
+    public WidgetProperty<?> getProperty(String name) throws IllegalArgumentException, IndexOutOfBoundsException
     {
+        // Support legacy scripts/rules that access opi_file
+        if (name.equals("opi_file"))
+            return propFile();
+        return super.getProperty(name);
+    }
+
+    @Override
+    public Macros getEffectiveMacros()
+    {
+        final Macros macros = new Macros(super.getEffectiveMacros());
+
+        // Legacy "Linking Container" defined a "Linking Container ID" macro.
+        macros.add("LCID", getID());
+
         return macros;
     }
 
@@ -329,16 +344,5 @@ public class EmbeddedDisplayWidget extends VisibleWidget
             throws Exception
     {
         return new EmbeddedDisplayWidgetConfigurator(persisted_version);
-    }
-
-    /** Embedded widget adds/replaces parent macros
-     *  @return {@link Macros}
-     */
-    @Override
-    public Macros getEffectiveMacros()
-    {
-        final Macros base = super.getEffectiveMacros();
-        final Macros my_macros = propMacros().getValue();
-        return base == null ? my_macros : Macros.merge(base, my_macros);
     }
 }

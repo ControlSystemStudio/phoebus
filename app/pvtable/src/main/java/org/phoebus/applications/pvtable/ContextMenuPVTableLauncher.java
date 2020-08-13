@@ -23,7 +23,7 @@ import javafx.scene.image.Image;
 @SuppressWarnings("nls")
 public class ContextMenuPVTableLauncher implements ContextMenuEntry
 {
-    private static final List<Class<?>> supportedTypes = List.of(ProcessVariable.class);
+    private static final Class<?> supportedType = ProcessVariable.class;
 
     static final Image icon = ImageCache.getImage(PVTableApplication.class, "/icons/pvtable.png");
 
@@ -40,13 +40,13 @@ public class ContextMenuPVTableLauncher implements ContextMenuEntry
     }
 
     @Override
-    public List<Class<?>> getSupportedTypes()
+    public Class<?> getSupportedType()
     {
-        return supportedTypes;
+        return supportedType;
     }
 
     @Override
-    public void callWithSelection(final Selection selection) throws Exception
+    public void call(final Selection selection) throws Exception
     {
         final PVTableInstance instance = ApplicationService.createInstance(PVTableApplication.NAME);
         final List<ProcessVariable> pvs = selection.getSelections();

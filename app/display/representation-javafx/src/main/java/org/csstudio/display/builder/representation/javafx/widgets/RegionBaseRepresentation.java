@@ -227,7 +227,8 @@ abstract public class RegionBaseRepresentation<JFX extends Region, MW extends Vi
         // for middle-button copy/paste
         // Note: This is AWT API!
         // JavaFX has no API, https://bugs.openjdk.java.net/browse/JDK-8088117
-        Toolkit.getDefaultToolkit().getSystemSelection().setContents(new StringSelection(pv_name), null);
+        if (Toolkit.getDefaultToolkit().getSystemSelection() != null)
+            Toolkit.getDefaultToolkit().getSystemSelection().setContents(new StringSelection(pv_name), null);
     }
 
     private void custom_border_changed(final WidgetProperty<?> property, final Object old_value, final Object new_value)

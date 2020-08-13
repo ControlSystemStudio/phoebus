@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,9 +18,7 @@ package org.csstudio.scan.server.command;
 import java.time.Duration;
 import java.time.Instant;
 
-import org.csstudio.scan.command.Comparison;
 import org.csstudio.scan.command.WaitCommand;
-import org.csstudio.scan.device.VTypeHelper;
 import org.csstudio.scan.server.MacroContext;
 import org.csstudio.scan.server.ScanCommandImpl;
 import org.csstudio.scan.server.ScanContext;
@@ -31,6 +29,7 @@ import org.csstudio.scan.server.condition.TextValueCondition;
 import org.csstudio.scan.server.device.Device;
 import org.csstudio.scan.server.device.SimulatedDevice;
 import org.csstudio.scan.server.internal.JythonSupport;
+import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.util.time.SecondsParser;
 import org.phoebus.util.time.TimeDuration;
 
@@ -127,7 +126,7 @@ public class WaitCommandImpl extends ScanCommandImpl<WaitCommand>
                     number, command.getTolerance(), timeout);
         }
         else
-            condition = new TextValueCondition(device, Comparison.EQUALS, desired.toString(), timeout);
+            condition = new TextValueCondition(device, command.getComparison(), desired.toString(), timeout);
         try
         {
             started = Instant.now();

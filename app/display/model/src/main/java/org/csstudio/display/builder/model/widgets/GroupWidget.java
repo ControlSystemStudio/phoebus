@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,7 +10,6 @@ package org.csstudio.display.builder.model.widgets;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMacros;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propTransparent;
 import static org.csstudio.display.builder.model.properties.InsetsWidgetProperty.runtimePropExtendedInsets;
 
@@ -35,7 +34,6 @@ import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
-import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 
@@ -55,7 +53,7 @@ import org.w3c.dom.Element;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class GroupWidget extends VisibleWidget
+public class GroupWidget extends MacroWidget
 {
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
@@ -96,14 +94,14 @@ public class GroupWidget extends VisibleWidget
 
     /** 'style' property */
     static final WidgetPropertyDescriptor<Style> propStyle =
-        new WidgetPropertyDescriptor<Style>(
+        new WidgetPropertyDescriptor<>(
             WidgetPropertyCategory.DISPLAY, "style", Messages.Style)
     {
         @Override
         public EnumWidgetProperty<Style> createProperty(final Widget widget,
                                                         final Style default_value)
         {
-            return new EnumWidgetProperty<Style>(this, widget, default_value);
+            return new EnumWidgetProperty<>(this, widget, default_value);
         }
     };
 
@@ -178,7 +176,6 @@ public class GroupWidget extends VisibleWidget
         }
     }
 
-    private volatile WidgetProperty<Macros> macros;
     private volatile ChildrenProperty children;
     private volatile WidgetProperty<Style> style;
     private volatile WidgetProperty<WidgetColor> foreground;
@@ -196,7 +193,6 @@ public class GroupWidget extends VisibleWidget
     protected void defineProperties(final List<WidgetProperty<?>> properties)
     {
         super.defineProperties(properties);
-        properties.add(macros = propMacros.createProperty(this, new Macros()));
         properties.add(children = new ChildrenProperty(this));
         properties.add(style = propStyle.createProperty(this, Style.GROUP));
         properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
@@ -207,16 +203,19 @@ public class GroupWidget extends VisibleWidget
     }
 
     @Override
+    public WidgetProperty<?> getProperty(String name) throws IllegalArgumentException, IndexOutOfBoundsException
+    {
+        // Support legacy scripts that access border color
+        if (name.equals("border_color"))
+            return foreground;
+        return super.getProperty(name);
+    }
+
+    @Override
     public WidgetConfigurator getConfigurator(final Version persisted_version)
             throws Exception
     {
         return new GroupWidgetConfigurator(persisted_version);
-    }
-
-    /** @return 'macros' property */
-    public WidgetProperty<Macros> propMacros()
-    {
-        return macros;
     }
 
     /** @return Runtime 'children' property */
@@ -247,17 +246,6 @@ public class GroupWidget extends VisibleWidget
     public WidgetProperty<Boolean> propTransparent()
     {
         return transparent;
-    }
-
-    /** Group widget extends parent macros
-     *  @return {@link Macros}
-     */
-    @Override
-    public Macros getEffectiveMacros()
-    {
-        final Macros base = super.getEffectiveMacros();
-        final Macros my_macros = propMacros().getValue();
-        return Macros.merge(base, my_macros);
     }
 
     /** @return 'font' property */

@@ -30,7 +30,7 @@ import javafx.scene.input.ClipboardContent;
 @SuppressWarnings("nls")
 public class ContextMenuPvToClipboard implements ContextMenuEntry
 {
-    private static final List<Class<?>> supportedTypes = Arrays.asList(ProcessVariable.class);
+    private static final Class<?> supportedTypes = ProcessVariable.class;
 
     private static final Image icon = ImageCache.getImage(ImageCache.class, "/icons/copy.png");
 
@@ -47,13 +47,13 @@ public class ContextMenuPvToClipboard implements ContextMenuEntry
     }
 
     @Override
-    public List<Class<?>> getSupportedTypes()
+    public Class<?> getSupportedType()
     {
         return supportedTypes;
     }
 
     @Override
-    public void callWithSelection(final Selection selection) throws Exception
+    public void call(final Selection selection) throws Exception
     {
         final List<ProcessVariable> pvs = selection.getSelections();
 

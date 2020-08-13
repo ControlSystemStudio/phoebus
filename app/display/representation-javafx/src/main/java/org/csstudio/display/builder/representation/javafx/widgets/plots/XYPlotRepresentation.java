@@ -268,7 +268,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
                 plot.requestCompleteUpdate();
             else
                 plot.requestUpdate();
-        };
+        }
 
         // PV changed value -> runtime updated X/Y value property -> valueChanged()
         private void valueChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
@@ -395,7 +395,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
             model_trace.traceErrorValue().removePropertyListener(value_listener);
             plot.removeTrace(trace);
         }
-    };
+    }
 
     private final List<TraceHandler> trace_handlers = new CopyOnWriteArrayList<>();
 
@@ -429,22 +429,22 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
     private void createMarker(final MarkerProperty model_marker)
     {
         final PlotMarker<Double> plot_marker = plot.addMarker(JFXUtil.convert(model_marker.color().getValue()),
-                                                      model_marker.interactive().getValue(),
-                                                      model_marker.value().getValue());
+                                                              model_marker.interactive().getValue(),
+                                                              model_marker.value().getValue());
 
-        // For now _not_ listening to runtime changes of model_marker.interactive()
-
-        // Listen to model_marker.value(), .. and update plot_marker
-        final WidgetPropertyListener<Double> model_marker_listener = (o, old, value) ->
+        // Listen to model_marker.value(), interactive() .. and update plot_marker
+        final UntypedWidgetPropertyListener model_marker_listener = (o, old, value) ->
         {
             if (changing_marker)
                 return;
             changing_marker = true;
+            plot_marker.setInteractive(model_marker.interactive().getValue());
             plot_marker.setPosition(model_marker.value().getValue());
             changing_marker = false;
             plot.requestUpdate();
         };
-        model_marker.value().addPropertyListener(model_marker_listener);
+        model_marker.value().addUntypedPropertyListener(model_marker_listener);
+        model_marker.interactive().addUntypedPropertyListener(model_marker_listener);
     }
 
     @Override

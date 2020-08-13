@@ -27,6 +27,8 @@ import org.csstudio.display.builder.editor.app.DisplayEditorInstance;
 import org.csstudio.display.builder.editor.app.PasteWidgets;
 import org.csstudio.display.builder.editor.app.RemoveGroupAction;
 import org.csstudio.display.builder.editor.properties.PropertyPanel;
+import org.csstudio.display.builder.editor.tree.CollapseTreeAction;
+import org.csstudio.display.builder.editor.tree.ExpandTreeAction;
 import org.csstudio.display.builder.editor.tree.FindWidgetAction;
 import org.csstudio.display.builder.editor.tree.WidgetTree;
 import org.csstudio.display.builder.model.DisplayModel;
@@ -139,15 +141,15 @@ public class EditorGUI
             editor.getUndoableActionManager().undoLast();
         else if (meta  &&  code == KeyCode.Y)
             editor.getUndoableActionManager().redoLast();
-        else if (in_editor  &&  (code == KeyCode.DELETE))
-            editor.removeWidgets();
-        else if (in_editor  &&  (meta  &&  code == KeyCode.X))
-            editor.cutToClipboard();
         else if (in_editor  &&  meta  &&  code == KeyCode.C)
             editor.copyToClipboard();
-        else if (in_editor  &&  meta  &&  code == KeyCode.V)
+        else if (in_editor  &&  code == KeyCode.DELETE       &&  !editor.isReadonly())
+            editor.removeWidgets();
+        else if (in_editor  &&  meta  &&  code == KeyCode.X  &&  !editor.isReadonly())
+            editor.cutToClipboard();
+        else if (in_editor  &&  meta  &&  code == KeyCode.V  &&  !editor.isReadonly())
             pasteFromClipboard();
-        else if (in_editor  &&  meta  &&  code == KeyCode.D)
+        else if (in_editor  &&  meta  &&  code == KeyCode.D  &&  !editor.isReadonly())
         	editor.duplicateWidgets();
         else // Pass on, don't consume
             return;
@@ -389,6 +391,18 @@ public class EditorGUI
         // -> Focus now on 'layout', and that means the next Delete or Backspace
         // meant to edit the text will instead delete the widget.
         // https://github.com/kasemir/org.csstudio.display.builder/issues/486
+        // Using mouse-pressed works and is also quite natural:
+        // 1) Copy widgets in some other window
+        // 2) Click in layout to indicate paste position (and get focus)
+        // 3) Ctrl-V or context menu to paste
+        layout.addEventFilter(MouseEvent.MOUSE_PRESSED, event ->
+        {
+            // Don't steal the focus from an active inline editor,
+            // since that would close/commit it,
+            // and not allow clicking into editor to set cursor
+            if (! this.editor.getSelectedWidgetUITracker().isInlineEditorActive())
+                layout.requestFocus();
+        });
 
         return layout;
     }
@@ -419,19 +433,28 @@ public class EditorGUI
                 ungroup = new RemoveGroupAction(editor, null);
                 ungroup.setDisable(true);
             }
-            menu.getItems().setAll(delete,
-                                   cut,
-                                   copy,
-                                   new PasteWidgets(this),
-                                   new FindWidgetAction(node, editor),
-                                   new SeparatorMenuItem(),
-                                   group,
-                                   ungroup,
-                                   new SeparatorMenuItem(),
-                                   new ActionWapper(ActionDescription.TO_BACK),
-                                   new ActionWapper(ActionDescription.MOVE_UP),
-                                   new ActionWapper(ActionDescription.MOVE_DOWN),
-                                   new ActionWapper(ActionDescription.TO_FRONT));
+            if (editor.isReadonly())
+                menu.getItems().setAll(copy,
+                                       new FindWidgetAction(node, editor),
+                                       new ExpandTreeAction(tree),
+                                       new CollapseTreeAction(tree),
+                                       new SeparatorMenuItem());
+            else
+                menu.getItems().setAll(delete,
+                                       cut,
+                                       copy,
+                                       new PasteWidgets(this),
+                                       new FindWidgetAction(node, editor),
+                                       new ExpandTreeAction(tree),
+                                       new CollapseTreeAction(tree),
+                                       new SeparatorMenuItem(),
+                                       group,
+                                       ungroup,
+                                       new SeparatorMenuItem(),
+                                       new ActionWapper(ActionDescription.TO_BACK),
+                                       new ActionWapper(ActionDescription.MOVE_UP),
+                                       new ActionWapper(ActionDescription.MOVE_DOWN),
+                                       new ActionWapper(ActionDescription.TO_FRONT));
         });
     }
 
@@ -465,6 +488,8 @@ public class EditorGUI
                 model.propName().setValue("Empty");
             }
 
+            if (! file.canWrite())
+                model.setUserData(DisplayModel.USER_DATA_READONLY, Boolean.TRUE.toString());
             setModel(model);
             this.file = file;
 
@@ -516,6 +541,7 @@ public class EditorGUI
         }
     }
 
+    /** @param model Display Model */
     private void setModel(final DisplayModel model)
     {
         final CountDownLatch ui_started = new CountDownLatch(1);
@@ -525,6 +551,15 @@ public class EditorGUI
         {
             try
             {
+                if (EditorUtil.isDisplayReadOnly(model))
+                {
+                    // Show only the main section.
+                    // User may open widget tree via context menu,
+                    // but property panel should remain hidden
+                    // unless it supports a read-only mode.
+                    showProperties(false);
+                    showWidgetTree(false);
+                }
                 editor.setModel(model);
                 tree.setModel(model);
 

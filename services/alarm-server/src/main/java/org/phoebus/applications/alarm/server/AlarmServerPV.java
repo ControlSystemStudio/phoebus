@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -32,6 +32,7 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.applications.alarm.server.actions.AutomatedActions;
 import org.phoebus.applications.alarm.server.actions.AutomatedActionsHelper;
+import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 
@@ -396,8 +397,8 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         }
         // Inspect alarm state of received value
         is_connected = true;
-        final SeverityLevel new_severity = VTypeHelper.decodeSeverity(value);
-        final String new_message = VTypeHelper.getStatusMessage(value);
+        final SeverityLevel new_severity = SeverityLevelHelper.decodeSeverity(value);
+        final String new_message = SeverityLevelHelper.getStatusMessage(value);
         final AlarmState received = new AlarmState(new_severity, new_message,
                                                    VTypeHelper.toString(value),
                                                    VTypeHelper.getTimestamp(value));
@@ -438,7 +439,13 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         if  (isLatching())
             buf.append(" - latching");
         if (getDelay() > 0)
-            buf.append(" - ").append(getDelay()).append(" sec delay");
+        {
+            buf.append(" - ");
+            if (getCount() > 0)
+                buf.append(getCount()).append(" counts within ").append(getDelay()).append(" sec");
+            else
+                buf.append(getDelay()).append(" sec delay");
+        }
 
         buf.append(" - ").append(logic.toString());
 

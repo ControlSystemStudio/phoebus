@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -63,6 +63,36 @@ public class PVAServer implements AutoCloseable
         tcp = new ServerTCPListener(this);
     }
 
+    /** Create PVA Server with custom search handler
+     *
+     *  <p>Search requests will be passed to the search handler.
+     *  If that search handler returns <code>true</code>,
+     *  the request is considered handled.
+     *  If the {@link SearchHandler} returns <code>false</code>,
+     *  the default handler will then reply as usual,
+     *  i.e. report served PVs.
+     *
+     *  @param search_handler Search handler
+     *  @throws Exception on error
+     */
+    public PVAServer(final SearchHandler search_handler) throws Exception
+    {
+        logger.log(Level.CONFIG, "PVA Server " + guid);
+
+        final SearchHandler combined_handler = (seq, cid, name, addr) ->
+        {
+            // Does custom handler consume the search request?
+            if (search_handler.handleSearchRequest(seq, cid, name, addr))
+                return true;
+            // Fall back to default handler
+            return handleSearchRequest(seq, cid, name, addr);
+        };
+
+        udp = new ServerUDPHandler(combined_handler);
+        tcp = new ServerTCPListener(this);
+    }
+
+
     /** Create a read-only PV which serves data to clients
      *
      *  <p>Creates a thread-safe copy of the initial value.
@@ -89,7 +119,7 @@ public class PVAServer implements AutoCloseable
      */
     public ServerPV createPV(final String name, final PVAStructure data, final WriteEventHandler write_handler)
     {
-        final ServerPV pv = new ServerPV(name, data, write_handler);
+        final ServerPV pv = new ServerPV(this, name, data, write_handler);
         pv_by_name.put(name, pv);
         pv_by_sid.put(pv.getSID(), pv);
         return pv;
@@ -103,7 +133,7 @@ public class PVAServer implements AutoCloseable
      */
     public ServerPV createPV(final String name, final RPCService rpc)
     {
-        final ServerPV pv = new ServerPV(name, rpc);
+        final ServerPV pv = new ServerPV(this, name, rpc);
         pv_by_name.put(name, pv);
         pv_by_sid.put(pv.getSID(), pv);
         return pv;
@@ -123,11 +153,12 @@ public class PVAServer implements AutoCloseable
         return pv_by_sid.get(sid);
     }
 
-    private void handleSearchRequest(final int seq, final int cid, final String name, final InetSocketAddress addr)
+    private boolean handleSearchRequest(final int seq, final int cid, final String name, final InetSocketAddress addr)
     {
         if (cid < 0)
         {   // 'List servers' search, no specific name
             POOL.execute(() -> udp.sendSearchReply(guid, 0, -1, tcp, addr));
+            return true;
         }
         else
         {
@@ -136,10 +167,14 @@ public class PVAServer implements AutoCloseable
             if (pv != null)
             {
                 // Reply with TCP connection info
-                logger.log(Level.FINE, "Received Search for known PV " + pv);
+                logger.log(Level.FINE, () -> "Received Search for known PV " + pv);
                 POOL.execute(() -> udp.sendSearchReply(guid, seq, cid, tcp, addr));
+                return true;
             }
+            else
+                logger.log(Level.FINE, () -> "Ignoring search for unknown PV '" + name + "'");
         }
+        return false;
     }
 
     /** @param tcp_connection Newly created {@link ServerTCPHandler} */
@@ -151,12 +186,22 @@ public class PVAServer implements AutoCloseable
     /** @param tcp_connection {@link ServerTCPHandler} that experienced error or client closed it */
     void shutdownConnection(final ServerTCPHandler tcp_connection)
     {
+        for (ServerPV pv : pv_by_name.values())
+        {
+            pv.removeClient(tcp_connection, -1);
+            pv.unregisterSubscription(tcp_connection, -1);
+        }
+
         // If this is still a known handler, close it, but don't wait
         if (tcp_handlers.remove(tcp_connection))
             tcp_connection.close(false);
+    }
 
-        for (ServerPV pv : pv_by_name.values())
-            pv.unregister(tcp_connection, -1);
+    /** @param pv PV to remove from server */
+    void deletePV(final ServerPV pv)
+    {
+        pv_by_name.remove(pv.getName());
+        pv_by_sid.remove(pv.getSID());
     }
 
     /** Close all connections */

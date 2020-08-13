@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -44,6 +44,9 @@ public class AlarmLogic // implements GlobalAlarmListener
 {
     /** @see #getMaintenanceMode() */
     private static volatile boolean maintenance_mode = false;
+
+    /** @see #getDisableNotify() */
+    private static volatile boolean disable_notify = false;
 
     /** Listener to notify on alarm state changes */
     final private AlarmLogicListener listener;
@@ -151,6 +154,25 @@ public class AlarmLogic // implements GlobalAlarmListener
     public static boolean getMaintenanceMode()
     {
         return maintenance_mode;
+    }
+
+    /** Set disable notify.
+     *  @param disable_notify
+     *  @see #getDisableNotify()
+     */
+    @SuppressWarnings("nls")
+    public static void setDisableNotify(final boolean disable_notify)
+    {
+        AlarmLogic.disable_notify = disable_notify;
+        logger.info("Disable Notify: " + disable_notify);
+    }
+
+    /** If disable_notify is true, email notifications are disabled
+     *  @return <code>true</code> disable notify
+     */
+    public static boolean getDisableNotify()
+    {
+        return disable_notify;
     }
 
     /** @param enable Enable or disable the logic?
@@ -262,11 +284,11 @@ public class AlarmLogic // implements GlobalAlarmListener
         // --> Fine.
         if (getCount() == count)
             return false;
-        AlarmStateHistory hist = alarm_history.get();
-        if (hist != null)
-            hist.dispose();
-        if (count > 0)
-            alarm_history.set(new AlarmStateHistory(count));
+        final AlarmStateHistory prev = count > 0
+                ? alarm_history.getAndSet(new AlarmStateHistory(count))
+                : alarm_history.getAndSet(null);
+        if (prev != null)
+            prev.dispose();
         return true;
     }
 

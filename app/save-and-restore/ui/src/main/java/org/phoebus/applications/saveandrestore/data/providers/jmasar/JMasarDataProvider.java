@@ -20,6 +20,7 @@ package org.phoebus.applications.saveandrestore.data.providers.jmasar;
 
 import org.phoebus.applications.saveandrestore.data.DataProvider;
 import org.phoebus.applications.saveandrestore.data.DataProviderException;
+import org.phoebus.applications.saveandrestore.model.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -49,8 +50,13 @@ public class JMasarDataProvider implements DataProvider {
 
 	@Override
 	public Node updateNode(Node nodeToUpdate) {
+		return updateNode(nodeToUpdate, false);
+	}
+
+	@Override
+	public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration) {
 		try {
-			return jmasarClient.updateNode(nodeToUpdate);
+			return jmasarClient.updateNode(nodeToUpdate, customTimeForMigration);
 		} catch (Exception e) {
 			return null;
 		}
@@ -103,5 +109,10 @@ public class JMasarDataProvider implements DataProvider {
 	@Override
 	public Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment){
 		return jmasarClient.saveSnapshot(configUniqueId, snapshotItems, snapshotName, comment);
+	}
+
+	@Override
+	public List<Tag> getAllTags() {
+		return jmasarClient.getAllTags();
 	}
 }

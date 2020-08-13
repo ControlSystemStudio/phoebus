@@ -5,6 +5,7 @@
  */
 package org.phoebus.olog.api;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -99,8 +100,8 @@ public class XmlLog {
         level = log.getLevel();
         md5Entry = "";
         md5Recent = "";
-        createdDate = Date.from(log.getCreatedDate());
-        modifiedDate = Date.from(log.getModifiedDate());
+        createdDate = log.getCreatedDate() != null ? Date.from(log.getCreatedDate()) : null;
+        modifiedDate = log.getModifiedDate() != null ? Date.from(log.getModifiedDate()) : null;
         description = log.getTitle() + System.lineSeparator() +log.getDescription();
 
         tags = log.getTags().stream().map(t -> {return new XmlTag(t);}).collect(Collectors.toList());
@@ -243,26 +244,7 @@ public class XmlLog {
         this.source = source;
     }
 
-    /**
-     * Getter for log subject.
-     *
-     * @return subject
-     */
-//    @XmlElement(name = "subject")
-//    public String getSubject() {
-//        return subject;
-//    }
-
-    /**
-     * Setter for log subject.
-     *
-     * @param subject the value to set
-     */
-//    public void setSubject(String subject) {
-//        this.subject = subject;
-//    }
-
-    /**
+     /**
      * Getter for log description.
      *
      * @return description
@@ -293,7 +275,7 @@ public class XmlLog {
     /**
      * Setter for MD5 entry.
      *
-     * @param description the value to set
+     * @param md5entry the value to set
      */
     public void setMD5Entry(String md5entry) {
         this.md5Entry = md5entry;
@@ -311,7 +293,7 @@ public class XmlLog {
     /**
      * Setter for Table id.
      *
-     * @param Table id to set
+     * @param tableId id to set
      */
     public void setTableId(Long tableId) {
         this.tableId = tableId;

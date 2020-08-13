@@ -28,6 +28,7 @@ import org.phoebus.ui.javafx.Styles;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -76,15 +77,14 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
         super.updateChanges();
 
         if ( dirty_size.checkAndClear() ) {
-
-            jfx_node.resize(model_widget.propWidth().getValue(), model_widget.propHeight().getValue());
-
             if ( model_widget.propAutoSize().getValue() ) {
+                jfx_node.setPrefSize(-1, -1);
                 jfx_node.autosize();
                 model_widget.propWidth().setValue((int) jfx_node.getWidth());
                 model_widget.propHeight().setValue((int) jfx_node.getHeight());
             }
-
+            else
+                jfx_node.setPrefSize(model_widget.propWidth().getValue(), model_widget.propHeight().getValue());
         }
 
         if ( dirty_style.checkAndClear() ) {
@@ -130,7 +130,11 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
         if (! toolkit.isEditMode() )
             button.addEventFilter(MouseEvent.MOUSE_RELEASED, event ->
             {
-                handleSlide();
+                // To avoid setting a new value when context menu is requested,
+                // slide only if primary button was pressed.
+                if(event.getButton().equals(MouseButton.PRIMARY)) {
+                    handleSlide();
+                }
                 event.consume();
             });
 
@@ -139,17 +143,10 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
         label.setMaxWidth(Double.MAX_VALUE);
         label.setMnemonicParsing(false);
         HBox.setHgrow(label, Priority.ALWAYS);
-
         HBox hbox = new HBox(6, button, label);
-
         hbox.setAlignment(Pos.CENTER_RIGHT);
-
-        // This code manages layout,
-        // because otherwise for example border changes would trigger
-        // expensive Node.notifyParentOfBoundsChange() recursing up the scene graph
-        hbox.setManaged(false);
-
         return hbox;
+
     }
 
     @Override

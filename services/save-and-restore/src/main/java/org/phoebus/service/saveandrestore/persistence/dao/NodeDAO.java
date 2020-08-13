@@ -18,11 +18,12 @@
 
 package org.phoebus.service.saveandrestore.persistence.dao;
 
-import java.util.List;
-
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.Tag;
+
+import java.util.List;
 
 /**
  * @author georgweiss Created 11 Mar 2019
@@ -135,8 +136,12 @@ public interface NodeDAO {
 	 * Updates a {@link Node} with respect to name or properties, or both. Node type cannot
 	 * be changed, of course.
 	 * @param nodeToUpdate The {@link Node} subject to update.
+	 * @param customTimeForMigration A boolean for setting created time manually for migration.
 	 * @return The {@link Node} object as read from the persistence implementation.
 	 */
-	public Node updateNode(Node nodeToUpdate);
+	public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration);
 
+	public List<Tag> getAllTags();
+
+	public List<Tag> getTags(String uniqueSnapshotId);
 }

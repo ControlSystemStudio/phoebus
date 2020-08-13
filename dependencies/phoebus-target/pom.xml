@@ -3,12 +3,12 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>dependencies</artifactId>
-    <version>4.6.2-SNAPSHOT</version>
+    <version>4.6.4-SNAPSHOT</version>
   </parent>
   <artifactId>phoebus-target</artifactId>
 
   <properties>
-    <spring.boot-version>2.0.5.RELEASE</spring.boot-version>
+    <spring.boot-version>2.1.5.RELEASE</spring.boot-version>
     <preReleaseScripts>${project.basedir}/release_classpath.py</preReleaseScripts>
   </properties>
 
@@ -65,7 +65,7 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>install-jars</artifactId>
-      <version>4.6.2-SNAPSHOT</version>
+      <version>4.6.4-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -142,7 +142,7 @@
     <dependency>
       <groupId>org.python</groupId>
       <artifactId>jython-standalone</artifactId>
-      <version>2.7.1</version>
+      <version>2.7.2</version>
     </dependency>
     <dependency>
       <groupId>net.sf.py4j</groupId>
@@ -165,6 +165,13 @@
       <groupId>org.tallison</groupId>
       <artifactId>jmatio</artifactId>
       <version>1.2</version>
+    </dependency>
+
+    <!-- JavaScript (replacement for nashorn) -->
+    <dependency>
+      <groupId>org.mozilla</groupId>
+      <artifactId>rhino</artifactId>
+      <version>1.7.12</version>
     </dependency>
 
     <!-- Dependency for olog, channelfinde, and other rest clients. https://mvnrepository.com/artifact/com.sun.jersey/jersey-core -->
@@ -235,22 +242,21 @@
       <version>${jackson.version}</version>
     </dependency>
 
-    <!-- Jetty, web server used by scan server, archive engine, .. For versions 
-      check http://central.maven.org/maven2/org/eclipse/jetty/jetty-maven-plugin/ -->
+    <!-- Jetty, web server used by scan server, archive engine, .. -->
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
-      <version>9.4.9.v20180320</version>
+      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-servlet</artifactId>
-      <version>9.4.9.v20180320</version>
+      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-security</artifactId>
-      <version>9.4.9.v20180320</version>
+      <version>${jetty.version}</version>
     </dependency>
 
     <!-- Derby, database used by scan server -->

@@ -6,6 +6,7 @@
 <project name="Phoebus" default="services">
 
   <target name="clean" description="Remove all artifacts">
+    <ant target="clean" dir="core/vtype"/>
     <ant target="clean" dir="core/formula"/>
     <ant target="clean" dir="core/framework"/>
     <ant target="clean" dir="core/util"/>
@@ -30,6 +31,7 @@
     <ant target="clean" dir="app/pvtable"/>
     <ant target="clean" dir="app/rtplot"/>
     <ant target="clean" dir="app/databrowser"/>
+    <ant target="clean" dir="app/trends/rich-context-menu"/>
     <ant target="clean" dir="app/3d-viewer"/>
     <ant target="clean" dir="app/perfmon"/>
     <ant target="clean" dir="app/pace"/>
@@ -72,6 +74,7 @@
     <!--
     <echo message="App classpath: ${toString:app-classpath}"/>
     -->
+    <ant dir="core/vtype"/>
     <ant dir="core/formula"/>
     <ant dir="core/framework"/>
     <ant dir="core/util"/>
@@ -99,6 +102,7 @@
     <ant dir="app/pvtable"/>
     <ant dir="app/rtplot"/>
     <ant dir="app/databrowser"/>
+    <ant dir="app/trends/rich-context-menu"/>
     <ant dir="app/3d-viewer"/>
     <ant dir="app/perfmon"/>
     <ant dir="app/pace"/>

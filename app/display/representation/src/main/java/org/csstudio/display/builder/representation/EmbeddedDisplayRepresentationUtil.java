@@ -36,7 +36,7 @@ import org.csstudio.display.builder.model.widgets.VisibleWidget;
 public class EmbeddedDisplayRepresentationUtil
 {
     /** Timeout used to await UI thread operations to prevent deadlock */
-    private static final long TIMEOUT_MS = 5000;
+    private static final long TIMEOUT_MS = Preferences.embedded_timeout;
 
     /** Display file name and optional group within that display */
     public static class DisplayAndGroup

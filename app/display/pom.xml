@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app</artifactId>
-    <version>4.6.2-SNAPSHOT</version>
+    <version>4.6.4-SNAPSHOT</version>
   </parent>
   <modules>
     <module>model</module>
@@ -16,5 +16,6 @@
     <module>editor</module>
     <module>convert-medm</module>
     <module>convert-edm</module>
+    <module>navigation</module>
   </modules>
 </project>

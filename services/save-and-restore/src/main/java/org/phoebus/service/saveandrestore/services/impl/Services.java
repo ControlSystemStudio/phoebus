@@ -21,6 +21,7 @@ import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.services.IServices;
 import org.phoebus.service.saveandrestore.services.exception.NodeNotFoundException;
@@ -101,8 +102,13 @@ public class Services implements IServices {
 
 	@Override
 	public Node updateNode(Node nodeToUpdate) {
+		return updateNode(nodeToUpdate, false);
+	}
+
+	@Override
+	public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration) {
 		logger.info("Updating node unique id: {}", nodeToUpdate.getUniqueId());
-		return nodeDAO.updateNode(nodeToUpdate);
+		return nodeDAO.updateNode(nodeToUpdate, customTimeForMigration);
 	}
 
 	@Override
@@ -145,5 +151,19 @@ public class Services implements IServices {
 		}
 
 		return nodeDAO.saveSnapshot(configUniqueId, snapshotItems, snapshotName, comment, userName);
+	}
+
+	@Override
+	public List<Tag> getTags(String snapshotUniqueId) {
+		logger.info("Getting tags of snapshot id={}", snapshotUniqueId);
+
+		return nodeDAO.getTags(snapshotUniqueId);
+	}
+
+	@Override
+	public List<Tag> getAllTags() {
+		logger.info("Getting all tags");
+
+		return nodeDAO.getAllTags();
 	}
 }

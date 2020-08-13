@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -62,14 +62,14 @@ class MonitorHandler implements CommandHandler<ServerTCPHandler>
         {
             logger.log(Level.FINE, () -> "Received MONITOR START for " + pv);
             // Register monitor to PV can keep sending updates as data changes
-            pv.register(new MonitorSubscription(req, pv, tcp));
+            pv.registerSubscription(new MonitorSubscription(req, pv, tcp));
         }
         else if (subcmd == PVAHeader.CMD_SUB_STOP  ||
                  subcmd == PVAHeader.CMD_SUB_DESTROY)
         {
             logger.log(Level.FINE, () -> "Received MONITOR STOP/DESTROY for  " + pv);
             // Stop/cancel/remove subscription
-            pv.unregister(tcp, req);
+            pv.unregisterSubscription(tcp, req);
         }
         else
         {

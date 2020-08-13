@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,8 +22,8 @@ import org.phoebus.applications.pvtable.Settings;
 import org.phoebus.applications.pvtable.model.PVTableItem;
 import org.phoebus.applications.pvtable.model.PVTableModel;
 import org.phoebus.applications.pvtable.model.PVTableModelListener;
-import org.phoebus.applications.pvtable.model.VTypeHelper;
 import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.security.authorization.AuthorizationService;
@@ -77,6 +77,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.converter.DefaultStringConverter;
+
 
 /** PV Table and its toolbar
  *  @author Kay Kasemir
@@ -648,6 +649,7 @@ public class PVTable extends VBox
 
         table.setOnContextMenuRequested(event ->
         {
+
             // Start with fixed entries
             menu.getItems().clear();
             menu.getItems().addAll(info, new SeparatorMenuItem());
@@ -668,6 +670,7 @@ public class PVTable extends VBox
                 {
                     Alert alert = new Alert(AlertType.CONFIRMATION, "", ButtonType.NO, ButtonType.YES);
                     alert.setHeaderText("Are you sure you want to disable save/restore functionality for this table?");
+                    DialogHelper.positionDialog(alert, this, -100, -100);
                     Optional<ButtonType> result = alert.showAndWait();
                     if (result.isPresent() && result.get() == ButtonType.YES)
                     {
@@ -686,6 +689,9 @@ public class PVTable extends VBox
             menu.getItems().add(new SaveSnapshotAction(table));
             menu.getItems().add(new SendEmailAction(table, "PV Snapshot", () -> "See attached screenshot.", () -> Screenshot.imageFromNode(this)));
             menu.getItems().add(new SendLogbookAction(table, "PV Snapshot", () -> "See attached screenshot.", () -> Screenshot.imageFromNode(this)));
+
+            menu.show(table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+
         });
 
         table.setContextMenu(menu);

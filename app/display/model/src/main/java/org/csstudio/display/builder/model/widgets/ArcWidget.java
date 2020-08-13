@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2016-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -35,7 +35,7 @@ import org.w3c.dom.Element;
  *  @author Megan Grodowitz
  */
 @SuppressWarnings("nls")
-public class ArcWidget extends VisibleWidget
+public class ArcWidget extends MacroWidget
 {
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
@@ -79,6 +79,8 @@ public class ArcWidget extends VisibleWidget
                 // 'Fill' is similar to the new 'transparent' option
                 XMLUtil.getChildBoolean(xml, "fill")
                        .ifPresent(fill -> arc.propTransparent().setValue(! fill));
+
+                MacroWidget.importPVName(model_reader, widget, xml);
             }
             return true;
         }

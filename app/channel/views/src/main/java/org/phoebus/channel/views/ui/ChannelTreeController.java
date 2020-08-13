@@ -8,6 +8,8 @@ import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import org.phoebus.channelfinder.Channel;
@@ -18,7 +20,6 @@ import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -30,10 +31,8 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableColumn;
-import javafx.scene.control.TreeTableColumn.CellDataFeatures;
 import javafx.scene.control.TreeTableView;
 import javafx.scene.image.ImageView;
-import javafx.util.Callback;
 
 /**
  * Controller for the Tree view of Channels based on a set of selected properties
@@ -167,15 +166,15 @@ public class ChannelTreeController extends ChannelFinderController {
 
                     List<Object> supportedTypes = SelectionService.getInstance().getSelection().getSelections().stream()
                             .map(s -> {
-                                return AdapterService.adapt(s, (Class) entry.getSupportedTypes().get(0)).get();
+                                return AdapterService.adapt(s, entry.getSupportedType()).get();
                             }).collect(Collectors.toList());
                     // set the selection
                     SelectionService.getInstance().setSelection(treeTableView, supportedTypes);
-                    entry.callWithSelection(SelectionService.getInstance().getSelection());
+                    entry.call(SelectionService.getInstance().getSelection());
                     // reset the selection
                     SelectionService.getInstance().setSelection(treeTableView, old);
-                } catch (Exception e1) {
-                    e1.printStackTrace();
+                } catch (Exception ex) {
+                    logger.log(Level.WARNING, "Failed to execute action " + entry.getName(), ex);
                 }
             });
             contextMenu.getItems().add(item);
@@ -190,8 +189,8 @@ public class ChannelTreeController extends ChannelFinderController {
      */
     private final class ChannelTreeItem extends TreeItem<ChannelTreeByPropertyNode> {
 
-        private boolean isFirstTimeLeaf = true;
-        private boolean isFirstTimeChildren = true;
+        private AtomicBoolean isFirstTimeLeaf = new AtomicBoolean(true);
+        private AtomicBoolean isFirstTimeChildren = new AtomicBoolean(true);
         private boolean isLeaf;
 
         public ChannelTreeItem(ChannelTreeByPropertyNode node) {
@@ -200,8 +199,7 @@ public class ChannelTreeController extends ChannelFinderController {
 
         @Override
         public ObservableList<TreeItem<ChannelTreeByPropertyNode>> getChildren() {
-            if (isFirstTimeChildren) {
-                isFirstTimeChildren = false;
+            if (isFirstTimeChildren.getAndSet(false)) {
                 super.getChildren().setAll(buildChildren(this));
             }
             return super.getChildren();
@@ -209,8 +207,7 @@ public class ChannelTreeController extends ChannelFinderController {
 
         @Override
         public boolean isLeaf() {
-            if (isFirstTimeLeaf) {
-                isFirstTimeLeaf = false;
+            if (isFirstTimeLeaf.getAndSet(false)) {
                 if (getValue().getParentNode() == null) {
                     isLeaf = false;
                 } else {

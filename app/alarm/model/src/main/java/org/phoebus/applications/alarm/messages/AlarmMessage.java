@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -12,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import static org.phoebus.applications.alarm.AlarmSystem.logger;
 /**
  * A message which describes both state and configuration events
  * 
@@ -52,6 +54,7 @@ public class AlarmMessage implements Serializable{
     private String current_severity;
     private String current_message;
     private String mode;
+    private boolean notify = true;
     private boolean latch;
 
     // The following fields encapsulate additional information for simplifying processing
@@ -221,6 +224,14 @@ public class AlarmMessage implements Serializable{
         this.mode = mode;
     }
 
+    public boolean getNotify() {
+        return notify;
+    }
+
+    public void setNotify(boolean notify) {
+        this.notify = notify;
+    }
+
     public String getKey() {
         return this.key;
     }
@@ -287,6 +298,7 @@ public class AlarmMessage implements Serializable{
             stateMessage.setCurrent_severity(current_severity);
             stateMessage.setCurrent_message(current_message);
             stateMessage.setMode(mode);
+	    stateMessage.setNotify(notify);
             stateMessage.setLatch(latch);
             return stateMessage;
         } else {
@@ -357,6 +369,8 @@ public class AlarmMessage implements Serializable{
         private String current_message;
         @JsonIgnore
         private String mode;
+	@JsonIgnore
+        private boolean notify;
         @JsonIgnore
         private boolean latch;
     }
@@ -387,7 +401,7 @@ public class AlarmMessage implements Serializable{
         try {
             return toJson();
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "failed to parse the alarm message ", e);
         }
         return "";
     }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -140,9 +140,12 @@ public class DisplayEditor
     private AutoScrollHandler autoScrollHandler;
     private DisplayModel model;
 
+    private final BorderPane root = new BorderPane();
     private ToolBar toolbar;
     private ScrollPane model_root;
     private Palette palette;
+    private Node palette_node;
+    private final SplitPane model_and_palette = new SplitPane();
     private Pane widget_parent;
     private final Group edit_tools = new Group();
     private ToggleButton grid;
@@ -186,10 +189,7 @@ public class DisplayEditor
         scroll_body.getChildren().add(edit_tools);
 
         palette = new Palette(this);
-        final Node palette_node = palette.create();
-
-        final SplitPane model_and_palette = new SplitPane(model_root, palette_node);
-        model_and_palette.setDividerPositions(1);
+        palette_node = palette.create();
 
         SplitPane.setResizableWithParent(palette_node, false);
         edit_tools.getChildren().addAll(selection_tracker);
@@ -197,9 +197,9 @@ public class DisplayEditor
 
         toolbar = createToolbar();
 
-        final BorderPane root = new BorderPane(model_and_palette);
-        root.setTop(toolbar);
+        root.setCenter(model_and_palette);
 
+        configureReadonly(false);
         setGrid(prefs.getBoolean(SNAP_GRID, true));
         setSnap(prefs.getBoolean(SNAP_WIDGETS, true));
         setCoords(prefs.getBoolean(SHOW_COORDS, true));
@@ -257,7 +257,9 @@ public class DisplayEditor
 
         final MenuButton dist = new MenuButton(null, null,
             createMenuItem(ActionDescription.DIST_HORIZ),
-            createMenuItem(ActionDescription.DIST_VERT));
+            createMenuItem(ActionDescription.DIST_VERT),
+            createMenuItem(ActionDescription.DIST_HORIZ_GAP),
+            createMenuItem(ActionDescription.DIST_VERT_GAP));
         dist.setTooltip(new Tooltip(Messages.Distribute));
 
         // Use the first item as the icon for the drop-down...
@@ -416,6 +418,8 @@ public class DisplayEditor
 
     private void handleKeyPress(final KeyEvent event)
     {
+        if (isReadonly())
+            return;
         WidgetTree.handleGroupOrOrderKeys(event, this);
     }
 
@@ -538,6 +542,32 @@ public class DisplayEditor
         }
     }
 
+    private void configureReadonly(final boolean read_only)
+    {
+        // toolbar visibility is used in isReadonly()
+        if (read_only)
+        {
+            model_and_palette.getItems().setAll(model_root);
+            selection_tracker.enableChanges(false);
+            root.setTop(null);
+            autoScrollHandler.enable(false);
+        }
+        else
+        {
+            model_and_palette.getItems().setAll(model_root, palette_node);
+            model_and_palette.setDividerPositions(1);
+            selection_tracker.enableChanges(true);
+            root.setTop(toolbar);
+            autoScrollHandler.enable(true);
+        }
+    }
+
+    boolean isReadonly()
+    {
+        // Use toolbar visibility as read/write flag
+        return root.getTop() == null;
+    }
+
     /** Set Model
      *  @param model Model to show and edit
      */
@@ -562,6 +592,7 @@ public class DisplayEditor
         // Create representation for model items
         try
         {
+            configureReadonly(EditorUtil.isDisplayReadOnly(model));
             toolkit.representModel(widget_parent, model);
         }
         catch (final Exception ex)
@@ -726,7 +757,6 @@ public class DisplayEditor
             // Potentially activate group at duplicate point
             group_handler.locateParent(bounds.getMinX(), bounds.getMinY(), bounds.getWidth(), bounds.getHeight());
             addWidgets(widgets, false);
-            
         }
         catch (Exception ex)
         {
@@ -829,7 +859,7 @@ public class DisplayEditor
         // Update pref about last show state
         saveCoords(show);
     }
-    
+
     /** @param show Show Coordinates on/off */
     public static void saveCoords(final boolean show)
     {

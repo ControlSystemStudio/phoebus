@@ -24,7 +24,7 @@ import javafx.scene.image.Image;
 @SuppressWarnings("nls")
 public class ContextMenuDataBrowserLauncher implements ContextMenuEntry
 {
-    private static final List<Class<?>> supportedTypes = List.of(ProcessVariable.class);
+    private static final Class<?> supportedType = ProcessVariable.class;
 
     @Override
     public String getName()
@@ -39,13 +39,13 @@ public class ContextMenuDataBrowserLauncher implements ContextMenuEntry
     }
 
     @Override
-    public List<Class<?>> getSupportedTypes()
+    public Class<?> getSupportedType()
     {
-        return supportedTypes;
+        return supportedType;
     }
 
     @Override
-    public void callWithSelection(final Selection selection) throws Exception
+    public void call(final Selection selection) throws Exception
     {
         final DataBrowserInstance instance = ApplicationService.createInstance(DataBrowserApp.NAME);
         final List<ProcessVariable> pvs = selection.getSelections();

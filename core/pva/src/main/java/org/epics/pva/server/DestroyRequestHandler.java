@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -37,7 +37,7 @@ class DestroyRequestHandler implements CommandHandler<ServerTCPHandler>
         // Locate monitor subscription
         final ServerPV pv = tcp.getServer().getPV(sid);
         if (pv != null)
-            pv.unregister(tcp, req);
+            pv.unregisterSubscription(tcp, req);
         else
             logger.log(Level.FINE, "Received request destroy command for unknown PV with SID " + sid + " request " + req);
     }

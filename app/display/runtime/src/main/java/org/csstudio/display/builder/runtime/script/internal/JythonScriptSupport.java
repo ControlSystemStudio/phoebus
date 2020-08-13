@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,13 +18,16 @@ import java.util.logging.Level;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.ModelPlugin;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.runtime.Preferences;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
+import org.python.core.Options;
 import org.python.core.Py;
 import org.python.core.PyCode;
 import org.python.core.PyList;
 import org.python.core.PySystemState;
 import org.python.core.PyVersionInfo;
+import org.python.core.RegistryKey;
 import org.python.util.PythonInterpreter;
 
 /** Jython script support
@@ -64,7 +67,22 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
             // Disable cachedir to avoid creation of cachedir folder.
             // See http://www.jython.org/jythonbook/en/1.0/ModulesPackages.html#java-package-scanning
             // and http://wiki.python.org/jython/PackageScanning
-            props.setProperty(PySystemState.PYTHON_CACHEDIR_SKIP, "true");
+            props.setProperty(RegistryKey.PYTHON_CACHEDIR_SKIP, "true");
+
+            // By default, Jython compiler creates bytecode files xxx$py.class
+            // adjacent to the *.py source file.
+            // They are owned by the current user, which typically results in
+            // problems for other users, who can either not read them, or not
+            // write updates after *.py changes.
+            // There is no way to have them be created in a different, per-user directory.
+            // C Python honors an environment variable PYTHONDONTWRITEBYTECODE=true to
+            // disable its bytecode files, but Jython only checks that in its command line launcher.
+            // Use the same environment variable in case it's defined,
+            // and default to disabled bytecode, i.e. the safe alternative.
+            if (System.getenv("PYTHONDONTWRITEBYTECODE") == null)
+                Options.dont_write_bytecode = true;
+            else
+                Options.dont_write_bytecode = Boolean.parseBoolean(System.getenv("PYTHONDONTWRITEBYTECODE"));
 
             // With python.home defined, there is no more
             // "ImportError: Cannot import site module and its dependencies: No module named site"
@@ -166,6 +184,14 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
         synchronized (JythonScriptSupport.class)
         {
             final int index = paths.indexOf(path);
+
+            // Warn about "examples:/... path that won't really work.
+            // Still add to the list so we only get the warning once,
+            // plus maybe some day we'll be able to use it...
+            if (index < 0  &&
+                path.startsWith(ModelResourceUtil.EXAMPLES_SCHEMA + ":"))
+                logger.log(Level.WARNING, "Jython will be unable to access scripts in " + path + ". Install examples in file system.");
+
             // Already top entry?
             if (index == 0)
                 return;
@@ -230,6 +256,7 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
                     python.set("widget", widget);
                     python.set("pvs", pvs);
                 }
+                logger.log(Level.INFO, () -> "Exec " + script + " for " + widget + " in " + python + ", locals: " + python.getLocals());
                 // .. but don't want to block for the duration of the script
                 python.exec(script.getCode());
             }

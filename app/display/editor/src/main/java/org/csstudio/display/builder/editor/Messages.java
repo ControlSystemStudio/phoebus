@@ -15,6 +15,7 @@ import org.phoebus.framework.nls.NLS;
 public class Messages
 {
     // Keep in alphabetical order, synchronized with messages.properties
+    public static String AbortSave;
     public static String AddElement;
     public static String AddWidget;
     public static String Align;
@@ -25,6 +26,7 @@ public class Messages
     public static String AlignMiddle;
     public static String AlignRight;
     public static String AlignTop;
+    public static String CollapseTree;
     public static String Copy;
     public static String CreateGroup;
     public static String Cut;
@@ -33,11 +35,17 @@ public class Messages
     public static String DisplayApplicationMissingRight;
     public static String DisplayApplicationName;
     public static String Distribute;
+    public static String DistributeGapTitle;
+    public static String DistributeGapMessage;
     public static String DistributeHorizontally;
     public static String DistributeVertically;
+    public static String DistributeHorizontallyGap;
+    public static String DistributeVerticallyGap;
+    public static String Duplicate;
     public static String DownloadPromptFMT;
     public static String DownloadTitle;
     public static String EditEmbededDisplay;
+    public static String ExpandTree;
     public static String FileChangedHdr;
     public static String FileChangedDlg;
     public static String FindWidget;
@@ -52,6 +60,7 @@ public class Messages
     public static String MoveToFront;
     public static String MoveUp;
     public static String NewDisplay;
+    public static String OpenInExternalEditor;
     public static String Order;
     public static String Paste;
     public static String PointCount_Fmt;

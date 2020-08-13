@@ -48,14 +48,11 @@ public class Preferences
         UPDATE_PERIOD = "update_period",
         USE_AUTO_SCALE = "use_auto_scale",
         USE_DEFAULT_ARCHIVES = "use_default_archives",
+        DROP_FAILED_ARCHIVES = "drop_failed_archives",
         USE_TRACE_NAMES = "use_trace_names",
         PROMPT_FOR_RAW_DATA = "prompt_for_raw_data_request",
         PROMPT_FOR_VISIBILITY = "prompt_for_visibility",
-
-        // Later...
-        PROMPT_FOR_ERRORS = "prompt_for_errors",
-        TIME_SPAN_SHORTCUTS = "time_span_shortcuts",
-        EMAIL_DEFAULT_SENDER = "email_default_sender";
+        TIME_SPAN_SHORTCUTS = "time_span_shortcuts";
 
     public static class TimePreset
     {
@@ -86,6 +83,7 @@ public class Preferences
     public static double update_period;
     public static boolean use_auto_scale;
     public static boolean use_default_archives;
+    public static boolean drop_failed_archives;
     public static boolean use_trace_names;
     public static boolean prompt_for_raw_data_request;
     public static boolean prompt_for_visibility;
@@ -135,6 +133,7 @@ public class Preferences
         update_period = prefs.getDouble(UPDATE_PERIOD);
         use_auto_scale = prefs.getBoolean(USE_AUTO_SCALE);
         use_default_archives = prefs.getBoolean(USE_DEFAULT_ARCHIVES);
+        drop_failed_archives = prefs.getBoolean(DROP_FAILED_ARCHIVES);
         use_trace_names = prefs.getBoolean(USE_TRACE_NAMES);
 
         prompt_for_raw_data_request = prefs.getBoolean(PROMPT_FOR_RAW_DATA);
@@ -142,7 +141,7 @@ public class Preferences
 
 
         time_presets = new ArrayList<>();
-        for (String preset : prefs.get("time_span_shortcuts").split("\\|"))
+        for (String preset : prefs.get(TIME_SPAN_SHORTCUTS).split("\\|"))
         {
             final String[] label_span = preset.split(",");
             time_presets.add(new TimePreset(label_span[0], TimeRelativeInterval.startsAt(TimeParser.parseTemporalAmount(label_span[1]))));

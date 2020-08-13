@@ -19,7 +19,7 @@ public class MapperTest {
 
     @Test
     public void AlarmStateMessageTest() {
-        String expectedJsonString = "{\"severity\":\"OK\",\"message\":\"OK\",\"value\":\"-2.5614483916185438\",\"time\":{\"seconds\":\"1531143702\",\"nanos\":\"487182900\"},\"current_severity\":\"OK\",\"current_message\":\"NONE\",\"latch\":false}";
+        String expectedJsonString = "{\"severity\":\"OK\",\"message\":\"OK\",\"value\":\"-2.5614483916185438\",\"time\":{\"seconds\":\"1531143702\",\"nanos\":\"487182900\"},\"current_severity\":\"OK\",\"current_message\":\"NONE\",\"notify\":false,\"latch\":false}";
 
         AlarmStateMessage message = new AlarmStateMessage();
         message.setValue("-2.5614483916185438");
@@ -32,6 +32,7 @@ public class MapperTest {
         timeMap.put("nanos", "487182900");
         message.setTime(timeMap);
         message.setMode(null);
+	message.setNotify(false);
 
         ObjectMapper objectMapper = new ObjectMapper();
 

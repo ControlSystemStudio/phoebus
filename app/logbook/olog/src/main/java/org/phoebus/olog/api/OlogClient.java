@@ -1,6 +1,33 @@
 package org.phoebus.olog.api;
 
-import java.io.File;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.UniformInterfaceException;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.config.ClientConfig;
+import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
+import com.sun.jersey.client.urlconnection.HTTPSProperties;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
+import com.sun.jersey.multipart.FormDataMultiPart;
+import com.sun.jersey.multipart.file.FileDataBodyPart;
+import com.sun.jersey.multipart.impl.MultiPartWriter;
+import org.phoebus.logbook.Attachment;
+import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.LogbookException;
+import org.phoebus.logbook.Messages;
+import org.phoebus.logbook.Property;
+import org.phoebus.logbook.Tag;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -22,37 +49,14 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriBuilder;
-
-import org.phoebus.logbook.Attachment;
-import org.phoebus.logbook.LogClient;
-import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.Logbook;
-import org.phoebus.logbook.Property;
-import org.phoebus.logbook.Tag;
-
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
-import com.sun.jersey.client.urlconnection.HTTPSProperties;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
-import com.sun.jersey.multipart.FormDataMultiPart;
-import com.sun.jersey.multipart.file.FileDataBodyPart;
-import com.sun.jersey.multipart.impl.MultiPartWriter;
-
+import static org.phoebus.applications.logbook.OlogLogbook.logger;
+/**
+ * A logbook client to tne Olog logbook service
+ */
 public class OlogClient implements LogClient {
 
     private final WebResource service;
@@ -80,6 +84,7 @@ public class OlogClient implements LogClient {
         private String protocol = null;
         private String username = null;
         private String password = null;
+        private String connectTimeoutAsString = null;
 
         private ExecutorService executor = Executors.newSingleThreadExecutor();
 
@@ -107,7 +112,7 @@ public class OlogClient implements LogClient {
         }
 
         /**
-         * Creates a {@link OlogClientBuilder} for a CF client to URI <tt>uri</tt>.
+         * Creates a {@link OlogClientBuilder} for a CF client to URI <code>uri</code>.
          * 
          * @param uri
          * @return {@link OlogClientBuilder}
@@ -118,7 +123,7 @@ public class OlogClient implements LogClient {
 
         /**
          * Creates a {@link OlogClientBuilder} for a CF client to {@link URI}
-         * <tt>uri</tt>.
+         * <code>uri</code>.
          * 
          * @param uri
          * @return {@link OlogClientBuilder}
@@ -225,8 +230,18 @@ public class OlogClient implements LogClient {
                             }, sslContext));
                 }
             }
-            this.username = ifNullReturnPreferenceValue(this.username, "username", "username");
-            this.password = ifNullReturnPreferenceValue(this.password, "password", "password");
+
+            this.username = ifNullReturnPreferenceValue(this.username, "username");
+            this.password = ifNullReturnPreferenceValue(this.password, "password");
+            this.connectTimeoutAsString = ifNullReturnPreferenceValue(this.connectTimeoutAsString, "connectTimeout");
+            Integer connectTimeout = 0;
+            try {
+                connectTimeout = Integer.parseInt(connectTimeoutAsString);
+            } catch (NumberFormatException e) {
+                Logger.getLogger(OlogClientBuilder.class.getPackageName())
+                        .warning("connectTimeout preference not set or invalid, using 0 (=infinite)");
+            }
+            this.clientConfig.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, connectTimeout);
 
             this.withRawFilter = Boolean.valueOf(this.properties.getPreferenceValue("debug"));
             return new OlogClient(this.ologURI,
@@ -238,7 +253,7 @@ public class OlogClient implements LogClient {
                     this.withRawFilter);
         }
 
-        private String ifNullReturnPreferenceValue(String value, String key, String Default) {
+        private String ifNullReturnPreferenceValue(String value, String key) {
             if (value == null) {
                 return this.properties.getPreferenceValue(key);
             } else {
@@ -407,18 +422,17 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public LogEntry set(LogEntry log) {
-        Collection<LogEntry> result = wrappedSubmit(new SetLogs(log));
-        if (result.size() == 1) {
-            return result.iterator().next();
-        } else {
-            throw new OlogException();
+    public LogEntry set(LogEntry log) throws LogbookException {
+        try {
+            Collection<LogEntry> result = wrappedSubmit(new SetLogs(log));
+            if (result.size() == 1) {
+                return result.iterator().next();
+            } else {
+                throw new LogbookException(Messages.SubmissionFailed);
+            }
+        } catch (Exception e) {
+            throw new LogbookException(e.getCause());
         }
-    }
-
-    @Override
-    public Collection<LogEntry> set(Collection<LogEntry> logs) {
-        return wrappedSubmit(new SetLogs(logs));
     }
 
     private class SetLogs implements Callable<Collection<LogEntry>> {
@@ -427,10 +441,6 @@ public class OlogClient implements LogClient {
         public SetLogs(LogEntry log) {
             this.logs = new ArrayList<LogEntry>();
             this.logs.add(log);
-        }
-
-        public SetLogs(Collection<LogEntry> logs) {
-            this.logs = new ArrayList<LogEntry>(logs);
         }
 
         @Override
@@ -469,35 +479,6 @@ public class OlogClient implements LogClient {
             return Collections.unmodifiableCollection(returnLogs);
 
         }
-    }
-    @Override
-    public Tag set(Tag tag) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Tag set(Tag tag, Collection<Long> logIds) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Logbook set(Logbook Logbook) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Logbook set(Logbook logbook, Collection<Long> logIds) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Property set(Property property) {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     @Override
@@ -559,48 +540,6 @@ public class OlogClient implements LogClient {
                 throw new UniformInterfaceException(clientResponse);
             }
         }
-    }
-
-    @Override
-    public Property update(Property property) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Tag update(Tag tag, Long logId) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Tag update(Tag tag, Collection<Long> logIds) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Logbook update(Logbook logbook, Long logId) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Logbook update(Logbook logbook, Collection<Long> logIds) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public LogEntry update(Property property, Long logId) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Attachment add(File local, Long logId) {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     @Override
@@ -694,8 +633,9 @@ public class OlogClient implements LogClient {
                                     Files.copy(getAttachment(log.getId(), attachment.getFileName()), temp,
                                             StandardCopyOption.REPLACE_EXISTING);
                                     a.setFile(temp.toFile());
+                                    temp.toFile().deleteOnExit();
                                 } catch (IOException e) {
-                                    e.printStackTrace();
+                                    logger.log(Level.WARNING, "failed to retrieve attachment file " + a.getName(), e);
                                 }
                                 return a;
                             }).collect(Collectors.toList());
@@ -705,84 +645,6 @@ public class OlogClient implements LogClient {
             }
             return Collections.unmodifiableList(logs);
         }
-    }
-
-    @Override
-    public void deleteTag(String tag) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void deleteLogbook(String logbook) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void deleteProperty(String property) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(LogEntry log) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(Long logId) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(Collection<LogEntry> logs) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(Tag tag, Long logId) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(Tag tag, Collection<Long> logIds) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(Logbook logbook, Long logId) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(Logbook logbook, Collection<Long> logIds) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(Property property, Long logId) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(Property property, Collection<Long> logIds) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void delete(String fileName, Long logId) {
-        // TODO Auto-generated method stub
-
     }
 
     private <T> T wrappedSubmit(Callable<T> callable) {

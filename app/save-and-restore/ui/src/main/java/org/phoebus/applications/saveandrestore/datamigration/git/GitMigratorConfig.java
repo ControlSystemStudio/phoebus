@@ -41,6 +41,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
+import javax.annotation.ManagedBean;
 import javax.annotation.PostConstruct;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -86,6 +87,15 @@ public class GitMigratorConfig {
     public SaveAndRestoreService saveAndRestoreService(){
         return new SaveAndRestoreService();
     }
+
+    @Bean
+    public Boolean useMultipleTag() { return preferencesReader.getBoolean("useMultipleTag"); }
+
+    @Bean
+    public Boolean keepSavesetWithNoSnapshot() { return preferencesReader.getBoolean("keepSavesetWithNoSnapshot"); }
+
+    @Bean
+    public Boolean ignoreDuplicateSnapshots() { return preferencesReader.getBoolean("ignoreDuplicateSnapshots"); }
 
     @Bean
     public JMasarJerseyClient jmasarClient(){

@@ -185,9 +185,6 @@ public class DataBrowserInstance implements AppInstance
             final Model new_model = new Model();
             try
             {
-                // Load model from file in background
-                XMLPersistence.load(new_model, ResourceParser.getContent(input));
-
                 // Check for macros
                 final Macros macros = new Macros();
                 ResourceParser.getQueryItemStream(input)
@@ -195,6 +192,15 @@ public class DataBrowserInstance implements AppInstance
                               .forEach(item -> macros.add(item.getKey(),
                                                           item.getValue()));
                 new_model.setMacros(macros);
+
+                // Load model from file in background
+                // (strip 'query' from input)
+                XMLPersistence.load(new_model, ResourceParser.getContent(
+                        new URI(input.getScheme(),
+                                input.getAuthority(),
+                                input.getPath(),
+                                "",
+                                "")));
 
                 Platform.runLater(() ->
                 {

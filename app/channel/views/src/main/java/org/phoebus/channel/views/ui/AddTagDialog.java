@@ -2,6 +2,7 @@ package org.phoebus.channel.views.ui;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.logging.Level;
 
 import org.phoebus.channelfinder.Tag;
 
@@ -10,6 +11,7 @@ import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 
+import static org.phoebus.channel.views.ui.ChannelFinderController.logger;
 /**
  * A dialog for adding a tag to a list of channels
  * 
@@ -33,7 +35,8 @@ public class AddTagDialog extends Dialog<Tag> {
                         : null;
             });
         } catch (IOException e) {
-            e.printStackTrace();
+            // TODO update the dialog
+            logger.log(Level.WARNING, "Failed to add tag", e);
         }
     }
 }

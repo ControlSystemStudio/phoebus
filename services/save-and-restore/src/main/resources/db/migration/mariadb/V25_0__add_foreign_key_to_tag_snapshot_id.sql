@@ -1,0 +1,1 @@
+ALTER TABLE tag ADD CONSTRAINT fk_snapshot_id FOREIGN KEY (snapshot_id) REFERENCES node(unique_id) ON DELETE CASCADE;

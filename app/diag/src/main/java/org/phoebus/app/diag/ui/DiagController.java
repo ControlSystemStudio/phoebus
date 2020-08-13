@@ -83,7 +83,7 @@ public class DiagController {
             item.setOnAction(e -> {
                 try {
                     //final Stage stage = (Stage) listView.getScene().getWindow();
-                    entry.callWithSelection(SelectionService.getInstance().getSelection());
+                    entry.call(SelectionService.getInstance().getSelection());
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }

@@ -12,8 +12,12 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
@@ -62,6 +66,8 @@ import jfxtras.scene.control.agenda.Agenda.AppointmentImplLocal;
  */
 public class LogEntryCalenderViewController extends LogbookSearchController {
 
+    private static final Logger logger = Logger.getLogger(LogEntryCalenderViewController.class.getName());
+
     static final Image tag = ImageCache.getImage(LogEntryController.class, "/icons/add_tag.png");
     static final Image logbook = ImageCache.getImage(LogEntryController.class, "/icons/logbook-16.png");
     String styles = "-fx-background-color: #0000ff;" + "-fx-border-color: #ff0000;";
@@ -77,7 +83,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
 
     // elements associated with the various search
     @FXML
-    AnchorPane ViewSearchPane;
+    GridPane ViewSearchPane;
     @FXML
     TextField searchText;
     @FXML
@@ -121,6 +127,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
     
     @FXML
     public void initialize() {
+
         // initialize the list of searchable parameters like logbooks, tags, etc...
 
         // initially set the search pane collapsed
@@ -150,7 +157,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                     dialog.show();
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.log(Level.WARNING, "Failed to show details for : " + appointment.getSummary(), e);
             }
             return null;
         });
@@ -163,9 +170,10 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
         // find the css file
 
         try {
-            agenda.getStylesheets().add(this.getClass().getResource("/Agenda.css").toString());
+            String styleSheetResource = LogbookUiPreferences.calendarViewItemStylesheet;
+            agenda.getStylesheets().add(this.getClass().getResource(styleSheetResource).toString());
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Failed to set css style", e);
         }
 
         AnchorPane.setTopAnchor(agenda, 6.0);
@@ -230,7 +238,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
             });
             logbookSearchpopover = new PopOver(logbookSelectionLoader.getRoot());
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Failed to open logbook search.", e);
         }
         searchLogbooks.focusedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
@@ -269,7 +277,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
             });
             tagSearchpopover = new PopOver(tagSelectionLoader.getRoot());
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Failed to open tag search.", e);
         }
         searchTags.focusedProperty().addListener(
                 (ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
@@ -344,6 +352,13 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                         timeSearchpopover.hide();
                     }
                 });
+
+        // Bind ENTER key press to search
+        query.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                search();
+            }
+        });
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored

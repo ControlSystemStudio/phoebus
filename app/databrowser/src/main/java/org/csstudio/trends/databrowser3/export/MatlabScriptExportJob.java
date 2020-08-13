@@ -79,7 +79,7 @@ public class MatlabScriptExportJob extends ExportJob
                 ++line_count;
                 // t(1)='2010/03/15 13:30:10.123';
                 out.println("t{" + line_count + "}='" +
-                    date_format.format(Date.from(VTypeHelper.getTimestamp(value))) + "';");
+                    date_format.format(Date.from(org.phoebus.core.vtypes.VTypeHelper.getTimestamp(value))) + "';");
                 // v(1)=4.125;
                 final double num = VTypeHelper.toDouble(value);
                 if (Double.isNaN(num) || Double.isInfinite(num))
@@ -87,7 +87,7 @@ public class MatlabScriptExportJob extends ExportJob
                 else
                     out.println("v(" + line_count + ")=" + num +";");
                 // q(1)=0;
-                out.println("q(" + line_count + ")=" + qualities.getQualityCode(VTypeHelper.getSeverity(value), VTypeHelper.getMessage(value)) +";");
+                out.println("q(" + line_count + ")=" + qualities.getQualityCode(org.phoebus.core.vtypes.VTypeHelper.getSeverity(value), VTypeHelper.getMessage(value)) +";");
                 if (line_count % PROGRESS_UPDATE_LINES == 0)
                     monitor.beginTask(MessageFormat.format("{0}: Wrote {1} samples", item.getName(), line_count));
             }

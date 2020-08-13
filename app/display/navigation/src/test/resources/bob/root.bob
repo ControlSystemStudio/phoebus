@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display</name>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button</name>
+    <actions>
+      <action type="open_display">
+        <file>child_1/child_1.bob</file>
+        <target>replace</target>
+        <description>Open Display</description>
+      </action>
+    </actions>
+    <text>child_1</text>
+    <x>10</x>
+    <y>20</y>
+    <width>150</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_1</name>
+    <actions>
+      <action type="open_display">
+        <file>child_2/child_2.bob</file>
+        <target>replace</target>
+        <description>Open Display</description>
+      </action>
+      <action type="open_display">
+        <file>child_1/child_1.bob</file>
+        <target>replace</target>
+        <description>Open Display 2</description>
+      </action>
+    </actions>
+    <text>child_2</text>
+    <x>10</x>
+    <y>70</y>
+    <width>150</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_2</name>
+    <actions>
+      <action type="open_display">
+        <file>child_3/child_3.bob</file>
+        <target>replace</target>
+        <description>Open Display</description>
+      </action>
+    </actions>
+    <text>child_3</text>
+    <x>10</x>
+    <y>120</y>
+    <width>150</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+</display>

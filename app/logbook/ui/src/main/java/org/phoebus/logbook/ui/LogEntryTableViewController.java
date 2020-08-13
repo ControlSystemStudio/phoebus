@@ -9,17 +9,29 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javafx.scene.Node;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.ui.LogbookQueryUtil.Keys;
+import org.phoebus.logbook.ui.write.AttachmentsViewController;
+import org.phoebus.logbook.ui.write.FieldsViewController;
+import org.phoebus.logbook.ui.write.LogEntryCompletionHandler;
+import org.phoebus.logbook.ui.write.LogEntryEditorController;
+import org.phoebus.logbook.ui.write.LogEntryEditorStage;
+import org.phoebus.logbook.ui.write.LogEntryModel;
 import org.phoebus.logbook.ui.write.PropertiesTab;
 import org.phoebus.ui.dialog.PopOver;
 import org.phoebus.ui.javafx.FilesTab;
@@ -73,6 +85,8 @@ import javafx.util.Duration;
  */
 public class LogEntryTableViewController extends LogbookSearchController {
 
+    static final Logger logger = Logger.getLogger(LogEntryTableViewController.class.getName());
+
     static final Image tag = ImageCache.getImage(LogEntryController.class, "/icons/add_tag.png");
     static final Image logbook = ImageCache.getImage(LogEntryController.class, "/icons/logbook-16.png");
     String styles = "-fx-background-color: #0000ff;" + "-fx-border-color: #ff0000;";
@@ -88,7 +102,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     // elements associated with the various search
     @FXML
-    AnchorPane ViewSearchPane;
+    GridPane ViewSearchPane;
     @FXML
     TextField searchText;
     @FXML
@@ -117,6 +131,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
     TableColumn<LogEntry, LogEntry> descriptionCol;
     @FXML
     TableColumn<LogEntry, LogEntry> metaCol;
+
+    @FXML
+    private Node topLevelNode;
 
     // Model
     List<LogEntry> logEntries;
@@ -194,7 +211,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
             });
             logbookSearchpopover = new PopOver(logbookSelectionLoader.getRoot());
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "failed to open logbook search dialog", e);
         }
         searchLogbooks.focusedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
@@ -233,7 +250,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
             });
             tagSearchpopover = new PopOver(tagSelectionLoader.getRoot());
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "failed to open tag search dialog", e);
         }
         searchTags.focusedProperty().addListener(
                 (ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
@@ -337,7 +354,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
                     if (empty) {
                         setGraphic(null);
                     } else {
-                        timeText.setText(SECONDS_FORMAT.format(logEntry.getCreatedDate()));
+                        if (logEntry.getCreatedDate() != null) {
+                            timeText.setText(SECONDS_FORMAT.format(logEntry.getCreatedDate()));
+                        }
                         ownerText.setText(logEntry.getOwner());
                         setGraphic(pane);
                     }
@@ -356,16 +375,29 @@ public class LogEntryTableViewController extends LogbookSearchController {
             final Text descriptionText = new Text();
             descriptionText.wrappingWidthProperty().bind(descriptionCol.widthProperty());
 
-            TabPane tabPane = new TabPane();
-            ImagesTab imagesTab = new ImagesTab();
-            FilesTab filesTab = new FilesTab();
-            PropertiesTab propertiesTab = new PropertiesTab();
-            tabPane.getTabs().addAll(imagesTab, filesTab, propertiesTab);
-            TitledPane tPane = new TitledPane(Messages.Attachments, tabPane);
-            Accordion imageGallery = new Accordion();
-            imageGallery.getPanes().add(tPane);
+            Node parent = topLevelNode.getScene().getRoot();
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("write/AttachmentsView.fxml"));
+            fxmlLoader.setControllerFactory(clazz -> {
+                try {
+                    if(clazz.isAssignableFrom(AttachmentsViewController.class)){
+                        AttachmentsViewController attachmentsViewController =
+                                (AttachmentsViewController)clazz.getConstructor(Node.class, Boolean.class)
+                                        .newInstance(parent, false);
+                        return attachmentsViewController;
+                    }
+                } catch (Exception e) {
+                    Logger.getLogger(LogEntryTableViewController.class.getName()).log(Level.SEVERE, "Failed to contruct controller for attachments view", e);
+                }
+                return null;
+            });
+            try {
+                Node node = fxmlLoader.load();
 
-            pane.addColumn(0, titleText, descriptionText, imageGallery);
+                pane.addColumn(0, titleText, descriptionText, node);
+            } catch (IOException e) {
+                Logger.getLogger(LogEntryTableViewController.class.getName()).log(Level.WARNING, "Unable to load fxml for attachments view", e);
+            }
+
             ColumnConstraints cc = new ColumnConstraints();
             cc.setHgrow(Priority.ALWAYS);
             pane.getColumnConstraints().add(cc);
@@ -377,32 +409,20 @@ public class LogEntryTableViewController extends LogbookSearchController {
                     if (empty) {
                         setGraphic(null);
                     } else {
+
                         if (logEntry.getTitle() == null || logEntry.getTitle().isEmpty()) {
                             titleText.setVisible(false);
                         } else {
                             titleText.setVisible(true);
                             titleText.setText(logEntry.getTitle());
                         }
-
-                        final List<Image> images = new ArrayList<>();
-                        final List<File> files = new ArrayList<>();
-                        logEntry.getAttachments().stream().forEach(attachment -> {
-                            if (attachment.getContentType().startsWith(Attachment.CONTENT_IMAGE)) {
-                                images.add(createImage(attachment.getFile()));
-                            } else {
-                                files.add(attachment.getFile());
-                            }
-                        });
-                        filesTab.setFiles(files);
-                        imagesTab.setImages(images);
-                        if(!files.isEmpty() || !images.isEmpty()) {
-                            tPane.setVisible(true);
-                            tPane.setExpanded(true);
-                        } else {
-                            tPane.setExpanded(false);
-                            tPane.setVisible(false);
-                        }
                         descriptionText.setText(logEntry.getDescription());
+
+                        AttachmentsViewController controller = fxmlLoader.getController();
+                        LogEntryModel model = new LogEntryModel(logEntry);
+
+                        controller.setImages(model.getImages());
+                        controller.setFiles(model.getFiles());
                         setGraphic(pane);
                     }
                 }
@@ -443,6 +463,13 @@ public class LogEntryTableViewController extends LogbookSearchController {
         tableView.getColumns().add(timeOwnerCol);
         tableView.getColumns().add(descriptionCol);
         tableView.getColumns().add(metaCol);
+
+        // Bind ENTER key press to search
+        query.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                search();
+            }
+        });
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored
@@ -536,7 +563,13 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     @Override
     public void setLogs(List<LogEntry> logs) {
-        this.logEntries = logs;
+        List<LogEntry> copy = logs.stream()
+                .collect(Collectors.toList());
+        Collections.sort(copy, (one, two) -> {
+            return two.getCreatedDate().compareTo(one.getCreatedDate());
+        });
+
+        this.logEntries = copy;
         refresh();
     }
 

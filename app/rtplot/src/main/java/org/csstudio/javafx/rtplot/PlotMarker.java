@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -48,6 +48,12 @@ public class PlotMarker<XTYPE extends Comparable<XTYPE>>
     public boolean isInteractive()
     {
         return interactive;
+    }
+
+    /** @param interactive Should marker be interactive? */
+    public void setInteractive(final boolean interactive)
+    {
+        this.interactive = interactive;
     }
 
     /** @return Position within plot */

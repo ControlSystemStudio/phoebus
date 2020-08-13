@@ -27,11 +27,13 @@
     <classpathentry combineaccessrules="false" kind="src" path="/app-channel-channelfinder"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-channel-views"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-console"/>
+    <classpathentry combineaccessrules="false" kind="src" path="/app-display-fonts"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-editor"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-runtime"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-representation-javafx"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-representation"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-model"/>
+    <classpathentry combineaccessrules="false" kind="src" path="/app-display-navigation"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-convert-medm"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-convert-edm"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-databrowser"/>
@@ -47,5 +49,6 @@
     <classpathentry combineaccessrules="false" kind="src" path="/app-perfmon"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-pace"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-diag"/>
+    <classpathentry combineaccessrules="false" kind="src" path="/app-trends-simple-context-menu"/>
     <classpathentry kind="output" path="target/classes"/>
 </classpath>

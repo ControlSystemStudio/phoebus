@@ -19,7 +19,6 @@ import org.epics.vtype.VType;
 import org.phoebus.ui.javafx.Styles;
 
 import javafx.scene.control.ProgressBar;
-import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 
@@ -41,10 +40,6 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
     public ProgressBar createJFXNode() throws Exception
     {
         final ProgressBar bar = new ProgressBar();
-        // This code manages layout,
-        // because otherwise for example border changes would trigger
-        // expensive Node.notifyParentOfBoundsChange() recursing up the scene graph
-        bar.setManaged(false);
         return bar;
     }
 
@@ -128,7 +123,7 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
         final double value = VTypeUtil.getValueNumber(vtype).doubleValue();
         final double percentage = (value - min_val) / (max_val - min_val);
         // Limit to 0.0 .. 1.0
-        if (percentage < 0.0)
+        if (percentage < 0.0  ||  !Double.isFinite(percentage))
             this.percentage = 0.0;
         else if (percentage > 1.0)
             this.percentage = 1.0;
@@ -152,12 +147,12 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
                 jfx_node.getTransforms().setAll(
                         new Translate(0, height),
                         new Rotate(-90, 0, 0));
-                jfx_node.resize(height, width);
+                jfx_node.setPrefSize(height, width);
             }
             else
             {
                 jfx_node.getTransforms().clear();
-                jfx_node.resize(width, height);
+                jfx_node.setPrefSize(width, height);
             }
 
             // Default 'inset' of .bar uses 7 pixels.
@@ -178,13 +173,4 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
         if (dirty_value.checkAndClear())
             jfx_node.setProgress(percentage);
     }
-
-    public static void main(String[] args)
-    {
-        final Color color = Color.rgb(236, 236, 236).deriveColor(0, 1.0, 0.9254*0.8, 1.0);
-        System.out.println(color.getBrightness());
-        System.out.println(color.getRed() * 255);
-        System.out.println(color.getGreen() * 255);
-        System.out.println(color.getBlue() * 255);
-           }
 }

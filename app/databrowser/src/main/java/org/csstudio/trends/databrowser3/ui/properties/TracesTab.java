@@ -401,7 +401,7 @@ public class TracesTab extends Tab
 
         // Trace PV/Formula Column ----------
         TableColumn<ModelItem, String> col = new TableColumn<>(Messages.ItemName);
-        col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getName()));
+        col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getResolvedName()));
         col.setCellFactory(TextFieldTableCell.forTableColumn());
         col.setOnEditCommit(event ->
         {
@@ -420,7 +420,7 @@ public class TracesTab extends Tab
 
         // Display Name Column ----------
         col = new TableColumn<>(Messages.TraceDisplayName);
-        col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getDisplayName()));
+        col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getResolvedDisplayName()));
         col.setCellFactory(TextFieldTableCell.forTableColumn());
         col.setOnEditCommit(event ->
         {
@@ -735,7 +735,7 @@ public class TracesTab extends Tab
             // Add PV-based entries
             final List<ProcessVariable> pvs = selection.stream()
                                                        .filter(item -> item instanceof PVItem)
-                                                       .map(item -> new ProcessVariable(item.getName()))
+                                                       .map(item -> new ProcessVariable(item.getResolvedName()))
                                                        .collect(Collectors.toList());
             if (pvs.size() > 0)
             {

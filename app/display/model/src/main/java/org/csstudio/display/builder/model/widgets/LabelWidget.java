@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -38,13 +38,14 @@ import org.csstudio.display.builder.model.properties.RotationStep;
 import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 
 /** Widget that displays a static text
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class LabelWidget extends VisibleWidget
+public class LabelWidget extends MacroWidget
 {
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
@@ -78,7 +79,15 @@ public class LabelWidget extends VisibleWidget
 
             // Default used to be 'middle'
             if (is_legacy)
+            {
+                final LabelWidget label = (LabelWidget) widget;
                 widget.getProperty(propVerticalAlignment).setValue(VerticalAlignment.MIDDLE);
+                MacroWidget.importPVName(model_reader, widget, xml);
+                // Legacy rotation_angle -> rotation_step
+                // BOY counted angle clockwise, we now use mathematical sense of rotation
+                XMLUtil.getChildDouble(xml, "rotation_angle")
+                       .ifPresent(rotation -> label.propRotationStep().setValue(RotationStep.forAngle(-rotation)));
+            }
 
             if (! super.configureFromXML(model_reader, widget, xml))
                 return false;

@@ -18,34 +18,31 @@
 
 package org.phoebus.service.saveandrestore.persistence.dao.impl;
 
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
 import org.apache.commons.collections4.CollectionUtils;
+import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.service.saveandrestore.model.internal.SnapshotPv;
+import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
+import org.phoebus.service.saveandrestore.persistence.dao.SnapshotDataConverter;
+import org.phoebus.service.saveandrestore.services.exception.NodeNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.service.saveandrestore.model.internal.SnapshotPv;
-import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
-import org.phoebus.service.saveandrestore.persistence.dao.SnapshotDataConverter;
-import org.phoebus.service.saveandrestore.services.exception.NodeNotFoundException;
-import org.phoebus.service.saveandrestore.services.exception.SnapshotNotFoundException;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.AbstractMap;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * @author georgweiss
@@ -116,6 +113,7 @@ public class NodeJdbcDAO implements NodeDAO {
 			Node node = jdbcTemplate.queryForObject("select * from node where id=?", new Object[] { nodeId },
 					new NodeRowMapper());
 			node.setProperties(getProperties(node.getId()));
+			node.setTags(getTags(node.getUniqueId()));
 			return node;
 		} catch (DataAccessException e) {
 			return null;
@@ -157,7 +155,10 @@ public class NodeJdbcDAO implements NodeDAO {
 	private List<Node> getChildNodes(int nodeId){
 		List<Node> childNodes = jdbcTemplate.query("select n.* from node as n join node_closure as nc on n.id=nc.descendant where "
 				+ "nc.ancestor=? and nc.depth=1", new Object[] { nodeId }, new NodeRowMapper());
-		childNodes.forEach(childNode -> childNode.setProperties(getProperties(childNode.getId())));
+		childNodes.forEach(childNode -> {
+			childNode.setProperties(getProperties(childNode.getId()));
+			childNode.setTags(getTags(childNode.getUniqueId()));
+		});
 
 		return childNodes;
 
@@ -277,6 +278,7 @@ public class NodeJdbcDAO implements NodeDAO {
 				parentNode.getId());
 
 		updateProperties(newNodeId, node.getProperties());
+		updateTags(uniqueId, node.getTags());
 
 		return getNode(uniqueId);
 	}
@@ -318,15 +320,15 @@ public class NodeJdbcDAO implements NodeDAO {
 			list = jdbcTemplate.queryForList("select cp.id from config_pv as cp " +
 							"left join pv pv1 on cp.pv_id=pv1.id " +
 							"left join pv pv2 on cp.readback_pv_id=pv2.id " +
-							"where pv1.name=? and pv2.name is NULL",
-					new Object[] { configPv.getPvName() }, Integer.class);
+							"where pv1.name=? and pv2.name is NULL and cp.readonly=?",
+					new Object[] { configPv.getPvName(), configPv.isReadOnly() }, Integer.class);
 		}
 		else {
 			list = jdbcTemplate.queryForList("select cp.id from config_pv as cp " +
 							"left join pv pv1 on cp.pv_id=pv1.id " +
 							"left join pv pv2 on cp.readback_pv_id=pv2.id " +
-							"where pv1.name=? and pv2.name=?",
-					new Object[] { configPv.getPvName(), configPv.getReadbackPvName()}, Integer.class);
+							"where pv1.name=? and pv2.name=? and cp.readonly=?",
+					new Object[] { configPv.getPvName(), configPv.getReadbackPvName(), configPv.isReadOnly() }, Integer.class);
 		}
 
 
@@ -474,6 +476,7 @@ public class NodeJdbcDAO implements NodeDAO {
 		pvsToAdd.stream().forEach(configPv -> saveConfigPv(configNode.getId(), configPv));
 
 		updateProperties(configNode.getId(), configToUpdate.getProperties());
+		updateTags(configNode.getUniqueId(), configToUpdate.getTags());
 
 		jdbcTemplate.update("update node set username=?, last_modified=? where id=?",
 				configToUpdate.getUserName(), Timestamp.from(Instant.now()), configNode.getId());
@@ -483,7 +486,7 @@ public class NodeJdbcDAO implements NodeDAO {
 
 	@Transactional
 	@Override
-	public Node updateNode(Node nodeToUpdate) {
+	public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration) {
 
 		Node persistedNode = getNode(nodeToUpdate.getUniqueId());
 
@@ -512,11 +515,16 @@ public class NodeJdbcDAO implements NodeDAO {
 			throw new IllegalArgumentException(String.format("A node with same type and name (%s) already exists in the same folder", nodeToUpdate.getName()));
 		}
 
-		jdbcTemplate.update("update node set name=?, last_modified=?, username=? where id=?",
-				nodeToUpdate.getName(), Timestamp.from(Instant.now()), nodeToUpdate.getUserName(), persistedNode.getId());
-
+		if (customTimeForMigration) {
+			jdbcTemplate.update("update node set name=?, created=?, last_modified=?, username=? where id=?",
+					nodeToUpdate.getName(), nodeToUpdate.getCreated(), Timestamp.from(Instant.now()), nodeToUpdate.getUserName(), persistedNode.getId());
+		} else {
+			jdbcTemplate.update("update node set name=?, last_modified=?, username=? where id=?",
+					nodeToUpdate.getName(), Timestamp.from(Instant.now()), nodeToUpdate.getUserName(), persistedNode.getId());
+		}
 
 		updateProperties(persistedNode.getId(), nodeToUpdate.getProperties());
+		updateTags(persistedNode.getUniqueId(), nodeToUpdate.getTags());
 
 		return getNode(persistedNode.getId());
 	}
@@ -582,6 +590,7 @@ public class NodeJdbcDAO implements NodeDAO {
 
 		for(Node snapshot : snapshots) {
 			snapshot.setProperties(getProperties(snapshot.getId()));
+			snapshot.setTags(getTags(snapshot.getUniqueId()));
 		}
 
 		return snapshots;
@@ -667,5 +676,31 @@ public class NodeJdbcDAO implements NodeDAO {
 	private Map<String, String> getProperties(int nodeId){
 		return jdbcTemplate.query("select * from property where node_id=?",
 				new Object[] {nodeId}, new PropertiesRowMapper());
+	}
+
+	public List<Tag> getAllTags() {
+		return jdbcTemplate.query("select * from tag", new TagsRowMapper());
+	}
+
+	public List<Tag> getTags(String uniqueSnapshotId) {
+		return jdbcTemplate.query("select * from tag where snapshot_id=?", new Object[]{uniqueSnapshotId}, new TagsRowMapper());
+	}
+
+	private void updateTags(String uniqueSnapshotId, List<Tag> tags) {
+		jdbcTemplate.update("delete from tag where snapshot_id=?", uniqueSnapshotId);
+
+		if(tags == null || tags.isEmpty()) {
+			return;
+		}
+
+		tags.stream().forEach(tag -> {
+			if (tag.getCreated() == null) {
+				jdbcTemplate.update("insert into tag (snapshot_id, name, comment, username) values(?, ?, ?, ?)",
+						tag.getSnapshotId(), tag.getName(), tag.getComment(), tag.getUserName());
+			} else {
+				jdbcTemplate.update("insert into tag (snapshot_id, name, comment, created, username) values(?, ?, ?, ?, ?)",
+						tag.getSnapshotId(), tag.getName(), tag.getComment(), tag.getCreated(), tag.getUserName());
+			}
+		});
 	}
 }
