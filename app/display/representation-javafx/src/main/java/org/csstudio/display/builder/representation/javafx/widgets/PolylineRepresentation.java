@@ -29,7 +29,7 @@ import javafx.scene.shape.StrokeLineJoin;
 /** Creates JavaFX item for model widget
  *  @author Kay Kasemir
  */
-public class PolylineRepresentation extends JFXBaseRepresentation<Group, PolylineWidget>
+public class PolylineRepresentation extends PolyBaseRepresentation<Group, PolylineWidget>
 {
     private final DirtyFlag dirty_display = new DirtyFlag();
     private final UntypedWidgetPropertyListener displayChangedListener = this::displayChanged;
@@ -80,9 +80,8 @@ public class PolylineRepresentation extends JFXBaseRepresentation<Group, Polylin
     @Override
     protected void registerListeners()
     {
-        if (! toolkit.isEditMode())
-            attachTooltip();
-        // Polyline can't use the default x/y handling from super.registerListeners();
+        super.registerListeners();
+
         model_widget.propVisible().addUntypedPropertyListener(displayChangedListener);
         model_widget.propX().addUntypedPropertyListener(displayChangedListener);
         model_widget.propY().addUntypedPropertyListener(displayChangedListener);
@@ -97,7 +96,8 @@ public class PolylineRepresentation extends JFXBaseRepresentation<Group, Polylin
     @Override
     protected void unregisterListeners()
     {
-        detachTooltip();
+        super.unregisterListeners();
+
         model_widget.propVisible().removePropertyListener(displayChangedListener);
         model_widget.propX().removePropertyListener(displayChangedListener);
         model_widget.propY().removePropertyListener(displayChangedListener);
@@ -109,7 +109,8 @@ public class PolylineRepresentation extends JFXBaseRepresentation<Group, Polylin
         model_widget.propArrowLength().removePropertyListener(displayChangedListener);
     }
 
-    private void displayChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
+    @Override
+    protected void displayChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
         dirty_display.mark();
         toolkit.scheduleUpdate(this);
@@ -124,16 +125,7 @@ public class PolylineRepresentation extends JFXBaseRepresentation<Group, Polylin
             if (model_widget.propVisible().getValue())
             {
                 jfx_node.setVisible(true);
-                // Change points x/y relative to widget location into
-                // on-screen location
-                final int x = model_widget.propX().getValue();
-                final int y = model_widget.propY().getValue();
-                final Double[] points = model_widget.propPoints().getValue().asDoubleArray();
-                for (int i=0; i<points.length; i+= 2)
-                {
-                    points[i] += x;
-                    points[i+1] += y;
-                }
+                final Double[] points = scalePoints();
                 final List<Node> children = jfx_node.getChildrenUnmodifiable();
                 final Color color = JFXUtil.convert(model_widget.propLineColor().getValue());
                 // Line width of 0 breaks the dash computation
