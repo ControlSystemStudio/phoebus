@@ -118,7 +118,6 @@ public class PolygonWidget extends PolyBaseWidget
         properties.add(line_width = propLineWidth.createProperty(this, 3));
         properties.add(line_color = propLineColor.createProperty(this, new WidgetColor(0, 0, 255)));
         properties.add(background_color = propBackgroundColor.createProperty(this, new WidgetColor(50, 50, 255)));
-        definePoints(properties);
     }
 
     @Override

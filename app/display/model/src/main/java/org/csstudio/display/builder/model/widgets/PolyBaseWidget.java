@@ -15,8 +15,6 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.Points;
 
 /** Base for widgets that display points
- *  Please not that this class does not override defineProperties() to add the points property;
- *   You have to manually add it by calling definePoints() in your defineProperties() function
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -29,8 +27,10 @@ public abstract class PolyBaseWidget extends MacroWidget
         super(type);
     }
 
-    protected void definePoints(final List<WidgetProperty<?>> properties)
+    @Override
+    protected void defineProperties(final List<WidgetProperty<?>> properties)
     {
+        super.defineProperties(properties);
         properties.add(points = propPoints.createProperty(this, new Points()));
     }
 

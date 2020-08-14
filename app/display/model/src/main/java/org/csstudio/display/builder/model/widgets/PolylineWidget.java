@@ -164,7 +164,6 @@ public class PolylineWidget extends PolyBaseWidget
         properties.add(line_style = propLineStyle.createProperty(this, LineStyle.SOLID));
         properties.add(arrows = propArrows.createProperty(this, Arrows.NONE));
         properties.add(arrow_length = propArrowLength.createProperty(this, 20));
-        definePoints(properties);
     }
 
     @Override
