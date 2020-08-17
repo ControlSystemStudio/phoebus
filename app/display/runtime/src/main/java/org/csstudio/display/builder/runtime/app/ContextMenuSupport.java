@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,13 +7,17 @@
  *******************************************************************************/
 package org.csstudio.display.builder.runtime.app;
 
+import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.macros.MacroHandler;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.properties.ActionInfo.ActionType;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
@@ -106,9 +110,20 @@ class ContextMenuSupport
                 {
                     if (target == Target.STANDALONE)
                         continue;
-                    final String desc = target == Target.REPLACE
-                                      ? open_info.getDescription()
-                                      : open_info.getDescription() + " (" + target + ")";
+                    // Expand macros in action description
+                    String desc;
+                    try
+                    {
+                        desc = MacroHandler.replace(widget.getEffectiveMacros(), open_info.getDescription());
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.log(Level.WARNING, "Cannot expand macros in action description '" + open_info.getDescription() + "'", ex);
+                        desc = open_info.getDescription();
+                    }
+                    // Mention non-default targets
+                    if (target != Target.REPLACE)
+                        desc += " (" + target + ")";
                     items.add(createMenuItem(widget,
                                    new OpenDisplayActionInfo(desc, open_info.getFile(),
                                                              open_info.getMacros(), target)));
