@@ -80,7 +80,12 @@ public class SymbolWidget extends PVWidget {
         WidgetPropertyCategory.WIDGET,
         "symbols",
         Messages.WidgetProperties_Symbols,
-        (widget, index) -> propSymbol(index).createProperty(widget, DEFAULT_SYMBOL),
+        (widget, index) -> {
+            String symbol = DEFAULT_SYMBOL;
+            if (index > 0)
+                symbol = ((SymbolWidget)widget).propSymbols().getElement(index - 1).getValue();
+            return propSymbol(index).createProperty(widget, symbol);
+        },
         0
     );
 
