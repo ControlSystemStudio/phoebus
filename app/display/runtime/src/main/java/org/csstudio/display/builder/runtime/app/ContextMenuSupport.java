@@ -235,8 +235,20 @@ class ContextMenuSupport
 
     private static MenuItem createMenuItem(final Widget widget, final ActionInfo info)
     {
+        // Expand macros in action description
+        String desc;
+        try
+        {
+            desc = MacroHandler.replace(widget.getEffectiveMacros(), info.getDescription());
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot expand macros in action description '" + info.getDescription() + "'", ex);
+            desc = info.getDescription();
+        }
+
         final ImageView icon = new ImageView(new Image(info.getType().getIconURL().toExternalForm()));
-        final MenuItem item = new MenuItem(info.getDescription(), icon);
+        final MenuItem item = new MenuItem(desc, icon);
         item.setOnAction(event -> ActionUtil.handleAction(widget, info));
         return item;
     }
