@@ -82,7 +82,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
 			((Label) snapshotBox.lookup("#primaryLabel"))
 					.setText(node.getName());
 			((Label) snapshotBox.lookup("#secondaryLabel")).setText(node.getCreated() + " (" + node.getUserName() + ")");
-			((ImageView) snapshotBox.lookup("#tagIcon")).setVisible(!node.getTags().isEmpty());
+			((ImageView) snapshotBox.lookup("#tagIcon")).setVisible(node.getTags() != null && !node.getTags().isEmpty());
 			setGraphic(snapshotBox);
 			if(node.getProperty("golden") != null && Boolean.valueOf(node.getProperty("golden"))){
 				((ImageView)snapshotBox.lookup("#snapshotIcon")).setImage(ImageCache.getImage(BrowserTreeCell.class, "/icons/save-and-restore/snapshot-golden.png"));
