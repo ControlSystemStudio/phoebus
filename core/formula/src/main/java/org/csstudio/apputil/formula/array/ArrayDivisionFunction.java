@@ -47,12 +47,7 @@ public class ArrayDivisionFunction extends BaseArrayFunction{
 
     @Override
     public List<String> getArguments() {
-        return List.of("VNumberArray", "VNumberArray");
-    }
-
-    @Override
-    public String getSignature(){
-        return "(VNumberArray array1, VNumberArray array2)";
+        return List.of("array", "array");
     }
 
     /**

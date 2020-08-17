@@ -49,12 +49,7 @@ public class ElementAtNumberFunction extends BaseArrayFunction {
 
     @Override
     public List<String> getArguments() {
-        return List.of("VNumberArray", "VNumber");
-    }
-
-    @Override
-    public String getSignature(){
-        return "([VNumberArray | VStringArray] array, VNumber index)";
+        return List.of("<String | Number> array", "index");
     }
 
     /**

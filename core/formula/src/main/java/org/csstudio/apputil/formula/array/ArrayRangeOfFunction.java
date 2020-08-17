@@ -45,14 +45,8 @@ public class ArrayRangeOfFunction extends BaseArrayFunction {
 
     @Override
     public List<String> getArguments() {
-        return List.of("VNumberArray");
+        return List.of("array");
     }
-
-    @Override
-    public String getSignature(){
-        return "(VNumberArray array)";
-    }
-
 
     @Override
     public VType compute(VType... args)  {

@@ -54,12 +54,7 @@ public class HistogramOfFunction extends BaseArrayFunction {
 
     @Override
     public List<String> getArguments() {
-        return List.of("VNumberAarray", "VNumber");
-    }
-
-    @Override
-    public String getSignature() {
-        return "(VNumberArray array [, VNumber binCount])";
+        return List.of("array", "bin count");
     }
 
     @Override

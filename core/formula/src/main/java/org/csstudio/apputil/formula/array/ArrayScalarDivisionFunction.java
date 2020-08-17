@@ -48,12 +48,7 @@ public class ArrayScalarDivisionFunction extends BaseArrayFunction{
 
     @Override
     public List<String> getArguments() {
-        return List.of("VNumberArray", "VNumber");
-    }
-
-    @Override
-    public String getSignature(){
-        return "(VNumberArray array, VNumber denominator)";
+        return List.of("array", "denominator");
     }
 
     /**
