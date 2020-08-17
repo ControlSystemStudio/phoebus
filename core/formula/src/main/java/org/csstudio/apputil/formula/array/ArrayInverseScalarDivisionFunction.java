@@ -49,12 +49,7 @@ public class ArrayInverseScalarDivisionFunction extends BaseArrayFunction{
 
     @Override
     public List<String> getArguments() {
-        return List.of("VNumber", "VNumberArray");
-    }
-
-    @Override
-    public String getSignature(){
-        return "(VNumber nominator, VNumberArray array)";
+        return List.of("nominator", "array");
     }
 
     /**

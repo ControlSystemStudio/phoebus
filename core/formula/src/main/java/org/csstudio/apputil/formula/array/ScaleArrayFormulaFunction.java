@@ -47,12 +47,7 @@ public class ScaleArrayFormulaFunction extends BaseArrayFunction {
 
     @Override
     public List<String> getArguments() {
-        return List.of("VNumberArray", "VNumber...");
-    }
-
-    @Override
-    public String getSignature(){
-        return "(VNumberArray array, VNumber factor[, VNumber offset])";
+        return List.of("array", "factor", "[offset]");
     }
 
     @Override

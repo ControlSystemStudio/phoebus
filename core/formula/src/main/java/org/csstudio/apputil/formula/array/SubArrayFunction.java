@@ -48,12 +48,7 @@ public class SubArrayFunction extends BaseArrayFunction {
 
     @Override
     public List<String> getArguments() {
-        return List.of("[VNumberArray | VStringArray]", "VNumber", "VNumber");
-    }
-
-    @Override
-    public String getSignature(){
-        return "([VNumberArray | VStringArray] array , VNumber fromIndex, VNumber toIndex)";
+        return List.of("<String | Number> array", "fromIndex", "toIndex");
     }
 
     /**

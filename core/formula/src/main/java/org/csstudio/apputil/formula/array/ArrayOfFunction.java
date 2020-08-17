@@ -51,12 +51,7 @@ public class ArrayOfFunction extends BaseArrayFunction{
 
     @Override
     public List<String> getArguments() {
-        return List.of("[VString | VNumber]...");
-    }
-
-    @Override
-    public String getSignature(){
-        return "([VString | VNumber]...)";
+        return List.of("<String | Number>...");
     }
 
     @Override
