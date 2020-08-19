@@ -63,7 +63,9 @@ public class PVAStructureHelper
                 actual = (PVAStructure) field;
             else if (field instanceof PVANumber)
                 return Decoders.decodeNumber(struct, (PVANumber) field);
-            if (field instanceof PVAString)
+            else if (field instanceof PVAArray)
+                return Decoders.decodeArray(struct, (PVAArray) field);
+            else if (field instanceof PVAString)
                 return Decoders.decodeString(struct, (PVAString) field);
         }
 

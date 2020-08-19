@@ -27,18 +27,10 @@ public class PVAStringArray extends PVAData implements PVAArray
      *  @param name Data item name
      *  @param value Initial value
      */
-    public PVAStringArray(final String name, final String[] value)
+    public PVAStringArray(final String name, final String... value)
     {
         super(name);
         this.value = value;
-    }
-
-    /** Construct variable-size string array
-     *  @param name Data item name
-     */
-    public PVAStringArray(final String name)
-    {
-        this(name, new String[0]);
     }
 
     /** @return Current value */

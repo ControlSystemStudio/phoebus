@@ -23,16 +23,16 @@ public class PVALongArray extends PVAData implements PVAArray
     private final boolean unsigned;
     private volatile long[] value;
 
-    public PVALongArray(final String name, final boolean unsigned, final long[] value)
+    /** Construct variable-size array
+     *  @param name Data item name
+     *  @param unsigned Unsigned data?
+     *  @param value Initial value
+     */
+    public PVALongArray(final String name, final boolean unsigned, final long... value)
     {
         super(name);
         this.unsigned = unsigned;
         this.value = value;
-    }
-
-    public PVALongArray(final String name, final boolean unsigned)
-    {
-        this(name, unsigned, new long[0]);
     }
 
     /** @return Is value unsigned? */

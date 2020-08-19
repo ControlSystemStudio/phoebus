@@ -22,15 +22,14 @@ public class PVAFloatArray extends PVAData implements PVAArray
 {
     private volatile float[] value;
 
-    public PVAFloatArray(final String name, final float[] value)
+    /** Construct variable-size array
+     *  @param name Data item name
+     *  @param value Initial value
+     */
+    public PVAFloatArray(final String name, final float... value)
     {
         super(name);
         this.value = value;
-    }
-
-    public PVAFloatArray(final String name)
-    {
-        this(name, new float[0]);
     }
 
     /** @return Current value */

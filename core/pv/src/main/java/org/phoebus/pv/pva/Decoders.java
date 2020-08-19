@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.epics.pva.data.PVAArray;
 import org.epics.pva.data.PVAByte;
 import org.epics.pva.data.PVAByteArray;
 import org.epics.pva.data.PVADouble;
@@ -226,7 +227,7 @@ public class Decoders
         {
             throw new UnsupportedOperationException("No parsing.");
         }
-    };
+    }
 
     private static Display decodeDisplay(final PVAStructure struct)
     {
@@ -437,6 +438,25 @@ public class Decoders
             return Decoders.decodeShort(struct, (PVAShort) field);
         if (field instanceof PVAByte)
             return Decoders.decodeByte(struct, (PVAByte) field);
+        throw new Exception("Cannot handle " + field.getClass().getName());
+    }
+
+    public static VType decodeArray(final PVAStructure struct, final PVAArray field) throws Exception
+    {
+        if (field instanceof PVADoubleArray)
+            return Decoders.decodeDoubleArray(struct, (PVADoubleArray) field);
+        if (field instanceof PVAFloatArray)
+            return Decoders.decodeFloatArray(struct, (PVAFloatArray) field);
+        if (field instanceof PVALongArray)
+            return Decoders.decodeLongArray(struct, (PVALongArray) field);
+        if (field instanceof PVAIntArray)
+            return Decoders.decodeIntArray(struct, (PVAIntArray) field);
+        if (field instanceof PVAShortArray)
+            return Decoders.decodeShortArray(struct, (PVAShortArray) field);
+        if (field instanceof PVAByteArray)
+            return Decoders.decodeByteArray(struct, (PVAByteArray) field);
+        if (field instanceof PVAStringArray)
+            return Decoders.decodeStringArray(struct, (PVAStringArray) field);
         throw new Exception("Cannot handle " + field.getClass().getName());
     }
 }
