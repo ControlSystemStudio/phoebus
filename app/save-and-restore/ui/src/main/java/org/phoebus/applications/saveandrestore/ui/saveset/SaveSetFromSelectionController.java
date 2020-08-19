@@ -140,7 +140,7 @@ public class SaveSetFromSelectionController implements Initializable {
                 try {
                     if (newNode.getNodeType() == NodeType.CONFIGURATION) {
                         saveSetName.setText(newNode.getName());
-                        description.setText(newNode.getProperty("description"));
+                        description.setText(newNode.getProperty(DESCRIPTION_PROPERTY));
 
                         saveSetName.setEditable(false);
                         description.setEditable(true);
