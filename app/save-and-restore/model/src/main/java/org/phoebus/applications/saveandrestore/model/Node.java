@@ -52,6 +52,7 @@ import lombok.ToString;
  *
  */
 public class Node implements Comparable<Node>{
+	final static public int MAX_NAME_LENGTH = 30;
 
 	private int id;
 	@Builder.Default

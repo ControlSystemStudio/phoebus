@@ -640,6 +640,16 @@ public class SaveAndRestoreWithSplitController extends BaseSaveAndRestoreControl
                         .collect(Collectors.toList());
 
         TextInputDialog dialog = new TextInputDialog();
+        dialog.getEditor().textProperty().addListener((observableValue, oldText, newText) -> {
+            if (newText.length() > Node.MAX_NAME_LENGTH) {
+                if (oldText.isEmpty()) {
+                    newText = newText.substring(0, Node.MAX_NAME_LENGTH);
+                } else {
+                    newText = oldText;
+                }
+                dialog.getEditor().setText(newText);
+            }
+        });
         dialog.setTitle(Messages.contextMenuNewFolder);
         dialog.setContentText(Messages.promptNewFolder);
         dialog.setHeaderText(null);
