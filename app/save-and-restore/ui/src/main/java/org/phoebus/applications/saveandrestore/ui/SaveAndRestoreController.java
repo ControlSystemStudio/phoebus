@@ -566,16 +566,6 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
                         .collect(Collectors.toList());
 
         TextInputDialog dialog = new TextInputDialog();
-        dialog.getEditor().textProperty().addListener((observableValue, oldText, newText) -> {
-            if (newText.length() > Node.MAX_NAME_LENGTH) {
-                if (oldText.isEmpty()) {
-                    newText = newText.substring(0, Node.MAX_NAME_LENGTH);
-                } else {
-                    newText = oldText;
-                }
-                dialog.getEditor().setText(newText);
-            }
-        });
         dialog.setTitle(Messages.contextMenuNewFolder);
         dialog.setContentText(Messages.promptNewFolder);
         dialog.setHeaderText(null);
@@ -585,6 +575,15 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
             String value = newValue.trim();
             dialog.getDialogPane().lookupButton(ButtonType.OK)
                     .setDisable(existingFolderNames.contains(value) || value.isEmpty());
+
+            if (newValue.length() > Node.MAX_NAME_LENGTH) {
+                if (oldValue.isEmpty()) {
+                    newValue = newValue.substring(0, Node.MAX_NAME_LENGTH);
+                } else {
+                    newValue = oldValue;
+                }
+                dialog.getEditor().setText(newValue);
+            }
         });
 
         Optional<String> result = dialog.showAndWait();
