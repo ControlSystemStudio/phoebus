@@ -31,19 +31,24 @@ public abstract class PolyBaseRepresentation<JFX extends Node, MW extends PolyBa
     protected void registerListeners()
     {
         if (! toolkit.isEditMode())
+        {
             attachTooltip();
         // Polyline and Polygon can't use the default x/y handling from super.registerListeners();
 
-        model_widget.propWidth().addUntypedPropertyListener(widthChangedListener);
-        model_widget.propHeight().addUntypedPropertyListener(heightChangedListener);
+            model_widget.propWidth().addUntypedPropertyListener(widthChangedListener);
+            model_widget.propHeight().addUntypedPropertyListener(heightChangedListener);
+        }
     }
 
     @Override
     protected void unregisterListeners()
     {
-        detachTooltip();
-        model_widget.propWidth().removePropertyListener(widthChangedListener);
-        model_widget.propHeight().removePropertyListener(heightChangedListener);
+        if (! toolkit.isEditMode())
+        {
+            detachTooltip();
+            model_widget.propWidth().removePropertyListener(widthChangedListener);
+            model_widget.propHeight().removePropertyListener(heightChangedListener);
+        }
     }
 
     abstract protected void displayChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value);
