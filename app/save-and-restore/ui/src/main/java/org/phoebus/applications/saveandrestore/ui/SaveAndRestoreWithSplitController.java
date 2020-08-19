@@ -725,6 +725,15 @@ public class SaveAndRestoreWithSplitController extends BaseSaveAndRestoreControl
             String value = newValue.trim();
             dialog.getDialogPane().lookupButton(ButtonType.OK)
                     .setDisable(existingFolderNames.contains(value) || value.isEmpty());
+
+            if (value.length() > Node.MAX_NAME_LENGTH) {
+                if (oldValue.isEmpty()) {
+                    value = value.substring(0, Node.MAX_NAME_LENGTH);
+                } else {
+                    value = oldValue.trim();
+                }
+                dialog.getEditor().setText(value);
+            }
         });
 
         Optional<String> result = dialog.showAndWait();
@@ -777,6 +786,15 @@ public class SaveAndRestoreWithSplitController extends BaseSaveAndRestoreControl
             String value = newValue.trim();
             dialog.getDialogPane().lookupButton(ButtonType.OK)
                     .setDisable(existingSiblingNodes.contains(value) || value.isEmpty());
+
+            if (newValue.length() > Node.MAX_NAME_LENGTH) {
+                if (oldValue.isEmpty()) {
+                    newValue = newValue.substring(0, Node.MAX_NAME_LENGTH);
+                } else {
+                    newValue = oldValue.trim();
+                }
+                dialog.getEditor().setText(newValue);
+            }
         });
 
         Optional<String> result = dialog.showAndWait();
@@ -811,6 +829,15 @@ public class SaveAndRestoreWithSplitController extends BaseSaveAndRestoreControl
             String value = newValue.trim();
             dialog.getDialogPane().lookupButton(ButtonType.OK)
                     .setDisable(existingSiblingNodes.contains(value) || value.isEmpty());
+
+            if (newValue.length() > Node.MAX_NAME_LENGTH) {
+                if (oldValue.isEmpty()) {
+                    newValue = newValue.substring(0, Node.MAX_NAME_LENGTH);
+                } else {
+                    newValue = oldValue.trim();
+                }
+                dialog.getEditor().setText(newValue);
+            }
         });
 
         Optional<String> result = dialog.showAndWait();
