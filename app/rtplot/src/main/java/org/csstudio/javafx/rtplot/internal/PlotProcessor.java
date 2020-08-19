@@ -11,7 +11,6 @@ import static org.csstudio.javafx.rtplot.Activator.logger;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
@@ -74,41 +73,19 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                     throw new TimeoutException("Cannot lock data for " + trace + ": " + data);
                 try
                 {
+                    // Position range tends to be ordered, which would allow to simply
+                    // use position 0 and N-1, but order is not guaranteed...
                     final int N = data.size();
-                    if (N <= 0)
-                        continue;
-                    // Try to only check the first and last position,
-                    // assuming all samples are ordered as common
-                    // for a time axis or position axis
-                    XTYPE pos = data.get(0).getPosition();
-                    // If first sample is Double (not Instant), AND NaN/inf, skip this trace
-                    if ((pos instanceof Double)  &&  !Double.isFinite((Double) pos))
-                        continue;
-                    if (start == null  ||  start.compareTo(pos) > 0)
-                        start = pos;
-                    if (end == null  ||  end.compareTo(pos) < 0)
-                        end = pos;
-                    // Last position
-                    pos = data.get(N-1).getPosition();
-                    if ((pos instanceof Double)  &&  !Double.isFinite((Double) pos))
-                        continue;
-                    if (start.compareTo(pos) > 0)
-                        start = pos;
-                    if (end.compareTo(pos) < 0)
-                        end = pos;
-                    // Need to check all values?
-                    if (Objects.equals(start, end))
+                    for (int i=0; i<N; ++i)
                     {
-                        for (int i=N-2; i>0; --i)
-                        {
-                            pos = data.get(i).getPosition();
-                            if ((pos instanceof Double)  &&  !Double.isFinite((Double) pos))
-                                continue;
-                            if (start.compareTo(pos) > 0)
-                                start = pos;
-                            if (end.compareTo(pos) < 0)
-                                end = pos;
-                        }
+                        XTYPE pos = data.get(i).getPosition();
+                        // If sample is Double (not Instant), AND NaN/inf, skip this trace
+                        if ((pos instanceof Double)  &&  !Double.isFinite((Double) pos))
+                            continue;
+                        if (start == null  ||  start.compareTo(pos) > 0)
+                            start = pos;
+                        if (end == null  ||  end.compareTo(pos) < 0)
+                            end = pos;
                     }
                 }
                 finally
@@ -431,8 +408,7 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                 final AxisRange<XTYPE> range = determinePositionRange(all_y_axes);
                 if (range != null)
                 {
-                    if (logger.isLoggable(Level.FINE))
-                        logger.log(Level.FINE, plot.getXAxis().getName() + " range " + range.getLow() + " .. " + range.getHigh());
+                    logger.log(Level.FINE, () -> plot.getXAxis().getName() + " range " + range.getLow() + " .. " + range.getHigh());
                     plot.getXAxis().setValueRange(range.getLow(), range.getHigh());
                     plot.fireXAxisChange();
                 }
