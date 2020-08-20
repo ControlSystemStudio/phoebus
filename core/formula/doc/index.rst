@@ -43,3 +43,13 @@ where each element is defined as array[x] * factor [+ offset]. The offset is opt
 **subArray([VNumberArray | VStringArray] array, VNumber fromIndex, VNumber toIndex)** -
 Returns a VNumberArray or VStringArray that is a sub-array defined by the fromIndex
 and toIndex. The indexes must be valid, e.g. fromIndex > 0, fromIndex < toIndex etc.
+
+**arrayRangeOf(VNumberArray array)** - Returns a Display Range of the given array
+This includes the display min, max
+
+**arrayStats(VNumberArray array)** - Returns a VStatistic with the statistical information of the given array
+This includes the average, min, max, and element count
+
+**arrayMax(VNumberArray array)** - Returns a VDouble with the greatest value of the given array
+
+**arrayMin(VNumberArray array)** - Returns a VDouble with the smallest value of the given array
