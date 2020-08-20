@@ -46,6 +46,8 @@ org.csstudio.apputil.formula.array.ArrayInverseScalarDivisionFunction
 org.csstudio.apputil.formula.array.ArrayOfFunction
 org.csstudio.apputil.formula.array.ArrayRangeOfFunction
 org.csstudio.apputil.formula.array.ArrayStatsFunction
+org.csstudio.apputil.formula.array.ArrayMaxFunction
+org.csstudio.apputil.formula.array.ArrayMinFunction
 
 # Alarm
 org.csstudio.apputil.formula.alarm.HighestSeverityFunction
