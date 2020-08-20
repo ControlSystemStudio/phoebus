@@ -49,3 +49,7 @@ This includes the display min, max
 
 **arrayStats(VNumberArray array)** - Returns a VStatistic with the statistical information of the given array
 This includes the average, min, max, and element count
+
+**arrayMax(VNumberArray array)** - Returns a VDouble with the greatest value of the given array
+
+**arrayMin(VNumberArray array)** - Returns a VDouble with the smallest value of the given array
