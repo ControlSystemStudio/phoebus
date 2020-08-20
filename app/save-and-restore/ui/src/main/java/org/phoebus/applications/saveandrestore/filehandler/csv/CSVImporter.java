@@ -250,14 +250,6 @@ public class CSVImporter extends CSVCommon {
             dialog.setHeaderText("Duplicate snapshot name found!" + System.lineSeparator() + "Please change the snapshot name to continue, or cancel.");
             dialog.getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
             dialog.getEditor().textProperty().addListener((observableValue, oldName, newName) -> {
-                if (newName.length() > Node.MAX_NAME_LENGTH) {
-                    if (oldName.isEmpty()) {
-                        newName = newName.substring(0, Node.MAX_NAME_LENGTH);
-                    } else {
-                        newName = oldName;
-                    }
-                    dialog.getEditor().setText(newName);
-                }
                 dialog.getDialogPane().lookupButton(ButtonType.OK).setDisable(childNodeNameList.contains(newName) || newName.equals(csvParser.getSnapshotName()));
             });
 
