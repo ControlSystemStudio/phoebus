@@ -196,14 +196,6 @@ public class SaveSetFromSelectionController implements Initializable {
 
         saveSetName.setPromptText(savesetTimeFormat.format(Instant.now()));
         saveSetName.textProperty().addListener((observableValue, oldName, newName) -> {
-            if (newName.length() > 30) {
-                if (oldName.isEmpty()) {
-                    newName = newName.substring(0, 30);
-                } else {
-                    newName = oldName;
-                }
-                saveSetName.setText(newName);
-            }
             saveButton.setDisable(nodeListInFolder.contains(newName));
         });
 
