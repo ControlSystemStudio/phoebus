@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -35,6 +35,7 @@ import org.epics.vtype.Time;
 import org.epics.vtype.VByteArray;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VEnum;
+import org.epics.vtype.VFloat;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VString;
@@ -264,10 +265,14 @@ public class RDBArchiveWriter implements ArchiveWriter
         // Then going down in precision to integers, finally strings...
         if (sample instanceof VDouble)
             batchDoubleSamples(channel, stamp, severity, status, ((VDouble)sample).getValue(), null);
+        else if (sample instanceof VFloat)
+            batchDoubleSamples(channel, stamp, severity, status, ((VFloat)sample).getValue(), null);
         else if (sample instanceof VNumber)
-        {    // Write as double or integer?
+        {   // Write as double or integer?
+            // VDouble & VFloat are already handled, but check once more
+            // in case a custom VNumber returns a floating point type
             final Number number = ((VNumber)sample).getValue();
-            if (number instanceof Double)
+            if (number instanceof Double  ||  number instanceof Float)
                 batchDoubleSamples(channel, stamp, severity, status, number.doubleValue(), null);
             else
                 batchLongSample(channel, stamp, severity, status, number.longValue());
