@@ -57,7 +57,7 @@ import javafx.stage.Stage;
  *
  */
 @SuppressWarnings("nls")
-public class SimpleCreateController {
+public class EmailDialogController {
 
     private static final String LAST_TO = "last_to";
     private static final String LAST_FROM = "last_from";

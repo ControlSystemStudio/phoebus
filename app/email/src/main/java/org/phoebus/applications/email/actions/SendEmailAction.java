@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import org.phoebus.applications.email.EmailApp;
-import org.phoebus.applications.email.ui.SimpleCreateController;
+import org.phoebus.applications.email.ui.EmailDialogController;
 import org.phoebus.email.EmailPreferences;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -48,9 +48,9 @@ public class SendEmailAction extends MenuItem
                 try
                 {
                     final FXMLLoader loader = new FXMLLoader();
-                    loader.setLocation(EmailApp.class.getResource("ui/SimpleCreate.fxml"));
+                    loader.setLocation(EmailApp.class.getResource("ui/EmailDialog.fxml"));
                     Parent root = loader.load();
-                    final SimpleCreateController controller = loader.getController();
+                    final EmailDialogController controller = loader.getController();
 
                     if (title != null)
                         controller.setTitle(title);
