@@ -90,6 +90,8 @@ public class SaveSetFromSelectionController implements Initializable {
 
     private static final DateTimeFormatter savesetTimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
 
+    private final List<String> nodeListInFolder = new ArrayList<>();
+
     @FXML
     private TextField locationTextField;
 
@@ -138,13 +140,16 @@ public class SaveSetFromSelectionController implements Initializable {
                 try {
                     if (newNode.getNodeType() == NodeType.CONFIGURATION) {
                         saveSetName.setText(newNode.getName());
-                        description.setText(newNode.getProperty("description"));
+                        description.setText(newNode.getProperty(DESCRIPTION_PROPERTY));
 
                         saveSetName.setEditable(false);
                         description.setEditable(true);
 
                         Node parentNode = saveAndRestoreService.getParentNode(newNode.getUniqueId());
                         locationTextField.setText(DirectoryUtilities.CreateLocationString(parentNode, false));
+
+                        nodeListInFolder.clear();
+                        saveAndRestoreService.getChildNodes(parentNode).forEach(item -> nodeListInFolder.add(item.getName()));
                     } else {
                         saveSetName.setText("");
                         description.setText("");
@@ -153,6 +158,9 @@ public class SaveSetFromSelectionController implements Initializable {
                         description.setEditable(true);
 
                         locationTextField.setText(DirectoryUtilities.CreateLocationString(newNode, false));
+
+                        nodeListInFolder.clear();
+                        saveAndRestoreService.getChildNodes(newNode).forEach(item -> nodeListInFolder.add(item.getName()));
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -187,6 +195,9 @@ public class SaveSetFromSelectionController implements Initializable {
         });
 
         saveSetName.setPromptText(savesetTimeFormat.format(Instant.now()));
+        saveSetName.textProperty().addListener((observableValue, oldName, newName) -> {
+            saveButton.setDisable(nodeListInFolder.contains(newName));
+        });
 
         description.setPromptText("Saveset created at " + savesetTimeFormat.format(Instant.now()));
 

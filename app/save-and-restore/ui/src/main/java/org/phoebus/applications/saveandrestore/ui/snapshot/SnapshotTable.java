@@ -182,30 +182,32 @@ class SnapshotTable extends TableView<TableEntry> {
         public boolean isTextFieldType() {
             T item = getItem();
             if (item instanceof VEnum) {
-                if (getItems().isEmpty()) {
-                    VEnum value = (VEnum) item;
-                    List<String> labels = value.getDisplay().getChoices();
-                    List<T> values = new ArrayList<>(labels.size());
-                    for (int i = 0; i < labels.size(); i++) {
-                        values.add((T) VEnum.of(i, EnumDisplay.of(labels), Alarm.none(), Time.now()));
-                    }
-                    setItems(values);
+                getItems().clear();
+
+                VEnum value = (VEnum) item;
+                List<String> labels = value.getDisplay().getChoices();
+                List<T> values = new ArrayList<>(labels.size());
+                for (int i = 0; i < labels.size(); i++) {
+                    values.add((T) VEnum.of(i, EnumDisplay.of(labels), Alarm.none(), Time.now()));
                 }
+                setItems(values);
+
                 return false;
             } else if (item instanceof VTypePair) {
                 VTypePair v = ((VTypePair) item);
                 VType type = v.value;
                 if (type instanceof VEnum) {
-                    if (getItems().isEmpty()) {
-                        VEnum value = (VEnum) type;
-                        List<String> labels = value.getDisplay().getChoices();
-                        List<T> values = new ArrayList<>(labels.size());
-                        for (int i = 0; i < labels.size(); i++) {
-                            values.add(
+                    getItems().clear();
+
+                    VEnum value = (VEnum) type;
+                    List<String> labels = value.getDisplay().getChoices();
+                    List<T> values = new ArrayList<>(labels.size());
+                    for (int i = 0; i < labels.size(); i++) {
+                        values.add(
                                 (T) new VTypePair(v.base, VEnum.of(i, EnumDisplay.of(labels), Alarm.none(), Time.now()), v.threshold));
-                        }
-                        setItems(values);
                     }
+                    setItems(values);
+
                     return false;
                 }
             }
