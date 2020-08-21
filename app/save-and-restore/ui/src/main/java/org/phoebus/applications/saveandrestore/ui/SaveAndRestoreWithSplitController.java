@@ -210,7 +210,10 @@ public class SaveAndRestoreWithSplitController extends BaseSaveAndRestoreControl
             }
         });
 
-        folderContextMenu.getItems().addAll(newFolderMenuItem, renameFolderMenuItem, deleteFolderMenuItem, newSaveSetMenuItem, importSaveSetMenuItem);
+        folderContextMenu.getItems().addAll(newFolderMenuItem, renameFolderMenuItem, deleteFolderMenuItem, newSaveSetMenuItem);
+        if (preferencesReader.getBoolean("enableCSVIO")) {
+            folderContextMenu.getItems().add(importSaveSetMenuItem);
+        }
 
         rootFolderContextMenu = new ContextMenu();
         MenuItem newRootFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(folderIcon));
@@ -284,7 +287,10 @@ public class SaveAndRestoreWithSplitController extends BaseSaveAndRestoreControl
             }
         });
 
-        saveSetContextMenu.getItems().addAll(openSaveSetMenuItem, editSaveSetMenuItem, renameSaveSetMenuItem, deleteSaveSetMenuItem, importSnapshotMenuItem, exportSaveSetMenuItem);
+        saveSetContextMenu.getItems().addAll(openSaveSetMenuItem, editSaveSetMenuItem, renameSaveSetMenuItem, deleteSaveSetMenuItem);
+        if (preferencesReader.getBoolean("enableCSVIO")) {
+            saveSetContextMenu.getItems().addAll(exportSaveSetMenuItem, importSnapshotMenuItem);
+        }
 
         snapshotContextMenu = new ContextMenu();
 
@@ -409,7 +415,10 @@ public class SaveAndRestoreWithSplitController extends BaseSaveAndRestoreControl
             }
         });
 
-        snapshotContextMenu.getItems().addAll(renameSnapshotItem, deleteSnapshotMenuItem, compareSaveSetMenuItem, tagAsGolden, tagWithComment, exportSnapshotMenuItem);
+        snapshotContextMenu.getItems().addAll(renameSnapshotItem, deleteSnapshotMenuItem, compareSaveSetMenuItem, tagAsGolden, tagWithComment);
+        if (preferencesReader.getBoolean("enableCSVIO")) {
+            snapshotContextMenu.getItems().add(exportSnapshotMenuItem);
+        }
 
         treeView.setEditable(true);
 
