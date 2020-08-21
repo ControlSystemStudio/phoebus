@@ -21,6 +21,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
 import org.phoebus.applications.email.EmailApp;
+import org.phoebus.email.EmailPreferences;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.javafx.FilesTab;
@@ -56,7 +57,7 @@ import javafx.stage.Stage;
  *
  */
 @SuppressWarnings("nls")
-public class SimpleCreateController {
+public class EmailDialogController {
 
     private static final String LAST_TO = "last_to";
     private static final String LAST_FROM = "last_from";
@@ -197,7 +198,10 @@ public class SimpleCreateController {
     public void initialize() {
 
         txtTo.setText(prefs.get(LAST_TO, ""));
-        txtFrom.setText(prefs.get(LAST_FROM, ""));
+        if(EmailPreferences.from == null || EmailPreferences.from.isBlank())
+            txtFrom.setText(prefs.get(LAST_FROM, ""));
+        else
+            txtFrom.setText(EmailPreferences.from);
 
         txtFrom.setPromptText("Enter your email address");
         txtTo.setPromptText("Enter receipient's email address(es)");
@@ -280,7 +284,7 @@ public class SimpleCreateController {
         att_images.setImages(images);
     }
 
-    /** @param images Initial list of images to attach */
+    /** @param files Initial list of files to attach */
     public void setAttachmets(final List<File> files)
     {
         att_files.setFiles(files);

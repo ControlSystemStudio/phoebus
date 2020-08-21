@@ -13,7 +13,7 @@ import javax.mail.Authenticator;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 
-import org.phoebus.applications.email.ui.SimpleCreateController;
+import org.phoebus.applications.email.ui.EmailDialogController;
 import org.phoebus.email.EmailPreferences;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
@@ -80,9 +80,9 @@ public class EmailApp implements AppResourceDescriptor {
         try {
             
             final FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(EmailApp.class.getResource("ui/SimpleCreate.fxml"));
+            loader.setLocation(EmailApp.class.getResource("ui/EmailDialog.fxml"));
             Parent root = loader.load();
-            final SimpleCreateController controller = loader.getController();
+            final EmailDialogController controller = loader.getController();
             
             Scene scene = new Scene(root, 600, 800);
 
