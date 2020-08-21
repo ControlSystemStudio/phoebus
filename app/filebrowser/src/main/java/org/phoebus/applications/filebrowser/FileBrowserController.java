@@ -453,8 +453,15 @@ public class FileBrowserController {
             }
 
             contextMenu.getItems().add(new DeleteAction(treeView, selectedItems));
-
             contextMenu.getItems().add(new SeparatorMenuItem());
+
+            if(!is_file && selectedItems.size() == 1){
+                final File file = selectedItems.get(0).getValue().file;
+                if(file.canWrite()){
+                    contextMenu.getItems().addAll(new NewDisplayAction(treeView, selectedItems.get(0)));
+                    contextMenu.getItems().add(new SeparatorMenuItem());
+                }
+            }
 
             if (is_file)
                 contextMenu.getItems().add(new RefreshAction(treeView, item.getParent()));
@@ -462,8 +469,10 @@ public class FileBrowserController {
                 contextMenu.getItems().add(new RefreshAction(treeView, item));
         }
 
-        if (selectedItems.size() == 1)
+        if (selectedItems.size() == 1){
             contextMenu.getItems().addAll(new PropertiesAction(treeView,  selectedItems.get(0)));
+        }
+
 
         contextMenu.show(treeView.getScene().getWindow(), e.getScreenX(), e.getScreenY());
     }
