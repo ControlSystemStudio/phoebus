@@ -51,12 +51,15 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.util.Pair;
 import org.phoebus.applications.saveandrestore.ApplicationContextProvider;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.data.DataProvider;
+import org.phoebus.applications.saveandrestore.filehandler.csv.CSVExporter;
+import org.phoebus.applications.saveandrestore.filehandler.csv.CSVImporter;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
@@ -73,6 +76,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.text.MessageFormat;
@@ -101,6 +105,8 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
     public static final Image snapshotGoldenIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/save-and-restore/snapshot-golden.png");
     public static final Image compareSnapshotIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/save-and-restore/compare.png");
     public static final Image snapshotTagsWithCommentIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/save-and-restore/snapshot-tags.png");
+    public static final Image csvImportIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/csv_import.png");
+    public static final Image csvExportIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/csv_export.png");
 
     @FXML
     private TreeView<Node> treeView;
@@ -189,7 +195,29 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
             handleNewSaveSet(treeView.getSelectionModel().getSelectedItem());
         });
 
+        ImageView importSaveSetIconImageView = new ImageView(csvImportIcon);
+        importSaveSetIconImageView.setFitWidth(18);
+        importSaveSetIconImageView.setFitHeight(18);
+
+        MenuItem importSaveSetMenuItem = new MenuItem(Messages.importSaveSetLabel, importSaveSetIconImageView);
+        importSaveSetMenuItem.setOnAction(ae -> {
+            try {
+                FileChooser fileChooser = new FileChooser();
+                fileChooser.setTitle(Messages.importSaveSetLabel);
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Supported file formats (CSV, SNP)", "*.csv", "*.bms"));
+                File file = fileChooser.showOpenDialog(splitPane.getScene().getWindow());
+                if (file != null) {
+                    CSVImporter.importFile(treeView.getSelectionModel().getSelectedItem().getValue(), file);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
         folderContextMenu.getItems().addAll(newFolderMenuItem, renameFolderMenuItem, deleteFolderMenuItem, newSaveSetMenuItem);
+        if (preferencesReader.getBoolean("enableCSVIO")) {
+            folderContextMenu.getItems().add(importSaveSetMenuItem);
+        }
 
         rootFolderContextMenu = new ContextMenu();
         MenuItem newRootFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(folderIcon));
@@ -220,7 +248,53 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
             nodeDoubleClicked(treeView.getSelectionModel().getSelectedItem());
         });
 
+        ImageView exportSaveSetIconImageView = new ImageView(csvExportIcon);
+        exportSaveSetIconImageView.setFitWidth(18);
+        exportSaveSetIconImageView.setFitHeight(18);
+
+        MenuItem exportSaveSetMenuItem = new MenuItem(Messages.exportSaveSetLabel, exportSaveSetIconImageView);
+        exportSaveSetMenuItem.setOnAction(ae -> {
+            try {
+                FileChooser fileChooser = new FileChooser();
+                fileChooser.setTitle(Messages.exportSaveSetLabel);
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV (BMS compatible)", "*.csv"));
+                fileChooser.setInitialFileName(treeView.getSelectionModel().getSelectedItem().getValue().getName());
+                File file = fileChooser.showSaveDialog(splitPane.getScene().getWindow());
+                if (file != null) {
+                    if (!file.getAbsolutePath().toLowerCase().endsWith("csv")) {
+                        file = new File(file.getAbsolutePath() + ".csv");
+                    }
+
+                    CSVExporter.export(treeView.getSelectionModel().getSelectedItem().getValue(), file.getAbsolutePath());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+        ImageView importSnapshotIconImageView = new ImageView(csvImportIcon);
+        importSnapshotIconImageView.setFitWidth(18);
+        importSnapshotIconImageView.setFitHeight(18);
+
+        MenuItem importSnapshotMenuItem = new MenuItem(Messages.importSnapshotLabel, importSnapshotIconImageView);
+        importSnapshotMenuItem.setOnAction(ae -> {
+            try {
+                FileChooser fileChooser = new FileChooser();
+                fileChooser.setTitle(Messages.importSnapshotLabel);
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Supported file formats (CSV, SNP)", "*.csv", "*.snp"));
+                File file = fileChooser.showOpenDialog(splitPane.getScene().getWindow());
+                if (file != null) {
+                    CSVImporter.importFile(treeView.getSelectionModel().getSelectedItem().getValue(), file);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
         saveSetContextMenu.getItems().addAll(openSaveSetMenuItem, editSaveSetMenuItem, renameSaveSetMenuItem, deleteSaveSetMenuItem);
+        if (preferencesReader.getBoolean("enableCSVIO")) {
+            saveSetContextMenu.getItems().addAll(exportSaveSetMenuItem, importSnapshotMenuItem);
+        }
 
         snapshotContextMenu = new ContextMenu();
 
@@ -321,7 +395,34 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
 
         tagWithComment.getItems().addAll(addTagWithCommentMenuItem, new SeparatorMenuItem());
 
+        ImageView exportSnapshotIconImageView = new ImageView(csvExportIcon);
+        exportSnapshotIconImageView.setFitWidth(18);
+        exportSnapshotIconImageView.setFitHeight(18);
+
+        MenuItem exportSnapshotMenuItem = new MenuItem(Messages.exportSnapshotLabel, exportSnapshotIconImageView);
+        exportSnapshotMenuItem.setOnAction(ae -> {
+            try {
+                FileChooser fileChooser = new FileChooser();
+                fileChooser.setTitle(Messages.exportSnapshotLabel);
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV (SNP compatible)", "*.csv"));
+                fileChooser.setInitialFileName(treeView.getSelectionModel().getSelectedItem().getValue().getName());
+                File file = fileChooser.showSaveDialog(splitPane.getScene().getWindow());
+                if (file != null) {
+                    if (!file.getAbsolutePath().toLowerCase().endsWith("csv")) {
+                        file = new File(file.getAbsolutePath() + ".csv");
+                    }
+
+                    CSVExporter.export(treeView.getSelectionModel().getSelectedItem().getValue(), file.getAbsolutePath());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
         snapshotContextMenu.getItems().addAll(renameSnapshotItem, deleteSnapshotMenuItem, compareSaveSetMenuItem, tagAsGolden, tagWithComment);
+        if (preferencesReader.getBoolean("enableCSVIO")) {
+            snapshotContextMenu.getItems().add(exportSnapshotMenuItem);
+        }
 
         treeView.setEditable(true);
 
