@@ -198,7 +198,10 @@ public class EmailDialogController {
     public void initialize() {
 
         txtTo.setText(prefs.get(LAST_TO, ""));
-        txtFrom.setText(prefs.get(LAST_FROM, EmailPreferences.from));
+        if(EmailPreferences.from == null || EmailPreferences.from.isBlank())
+            txtFrom.setText(prefs.get(LAST_FROM, ""));
+        else
+            txtFrom.setText(EmailPreferences.from);
 
         txtFrom.setPromptText("Enter your email address");
         txtTo.setPromptText("Enter receipient's email address(es)");
