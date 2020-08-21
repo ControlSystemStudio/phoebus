@@ -356,23 +356,23 @@ public class TableEntry {
         }
     }
 
-//    /**
-//     * Set the threshold value for this entry. All value comparisons related to this entry are calculated using the
-//     * threshold (if it exists). Once the threshold is set, it cannot be unset.
-//     *
-//     * @param threshold the threshold
-//     */
-//    public void setThreshold(Optional<Threshold<?>> threshold) {
-//        if (threshold.isPresent()) {
-//            this.threshold = threshold;
-//            VType val = this.value.get().value;
-//            this.value.set(new VTypePair(this.value.get().base, val, threshold));
-//            this.liveStoredEqual.set(Utilities.areValuesEqual(liveValue.get(), val, threshold));
-//            this.compareValues.forEach(e -> e.set(new VTypePair(val, e.get().value, threshold)));
-//            this.liveReadback.set(new VTypePair(this.liveReadback.get().base, this.liveReadback.get().value, threshold));
-//            this.storedReadback
-//                .set(new VTypePair(this.storedReadback.get().base, this.storedReadback.get().value, threshold));
-//            this.compareStoredReadbacks.forEach(e -> e.set(new VTypePair(e.get().base, e.get().value, threshold)));
-//        }
-//    }
+    /**
+     * Set the threshold value for this entry. All value comparisons related to this entry are calculated using the
+     * threshold (if it exists).
+     *
+     * @param threshold the threshold
+     */
+    public void setThreshold(Optional<Threshold<?>> threshold) {
+        if (threshold.isPresent()) {
+            this.threshold = threshold;
+            VType val = this.value.get().value;
+            this.value.set(new VTypePair(this.value.get().base, val, threshold));
+            this.liveStoredEqual.set(Utilities.areValuesEqual(liveValue.get(), val, threshold));
+            this.compareValues.forEach(e -> e.set(new VTypePair(val, e.get().value, threshold)));
+            this.liveReadback.set(new VTypePair(this.liveReadback.get().base, this.liveReadback.get().value, threshold));
+            this.storedReadback
+                .set(new VTypePair(this.storedReadback.get().base, this.storedReadback.get().value, threshold));
+            this.compareStoredReadbacks.forEach(e -> e.set(new VTypePair(e.get().base, e.get().value, threshold)));
+        }
+    }
 }

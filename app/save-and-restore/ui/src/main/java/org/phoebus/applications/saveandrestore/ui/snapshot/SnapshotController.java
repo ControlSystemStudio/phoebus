@@ -125,6 +125,12 @@ public class SnapshotController implements NodeChangedListener {
     private ToggleButton showTreeTableButton;
 
     @FXML
+    private Label thresholdLabel;
+
+    @FXML
+    private Spinner<Double> thresholdSpinner;
+
+    @FXML
     private Label multiplierLabel;
 
     @FXML
@@ -258,11 +264,32 @@ public class SnapshotController implements NodeChangedListener {
             showTreeTableButton.setVisible(false);
         }
 
+        thresholdLabel.setText(Messages.labelThreshold);
+
+        SpinnerValueFactory<Double> thresholdSpinnerValueFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 999.0, 0.0, 0.01);
+        thresholdSpinnerValueFactory.setConverter(new DoubleStringConverter());
+        thresholdSpinner.setValueFactory(thresholdSpinnerValueFactory);
+        thresholdSpinner.getEditor().setAlignment(Pos.CENTER_RIGHT);
+        thresholdSpinner.getEditor().getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        thresholdSpinner.getEditor().textProperty().addListener((a, o, n) -> {
+            thresholdSpinner.getEditor().getStyleClass().remove("scale-error");
+            thresholdSpinner.setTooltip(null);
+
+            Double parsedNumber = null;
+            try {
+                parsedNumber = Double.parseDouble(n.trim());
+                updateThreshold(parsedNumber);
+            } catch (Exception e) {
+                thresholdSpinner.getEditor().getStyleClass().add("scale-error");
+                thresholdSpinner.setTooltip(new Tooltip(Messages.toolTipMultiplierSpinner));
+            }
+        });
+
         multiplierLabel.setText(Messages.labelMultiplier);
 
-        SpinnerValueFactory<Double> spinnerValueFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 999.0, 1.0, 0.01);
-        spinnerValueFactory.setConverter(new DoubleStringConverter());
-        multiplierSpinner.setValueFactory(spinnerValueFactory);
+        SpinnerValueFactory<Double> multiplierSpinnerValueFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 999.0, 1.0, 0.01);
+        multiplierSpinnerValueFactory.setConverter(new DoubleStringConverter());
+        multiplierSpinner.setValueFactory(multiplierSpinnerValueFactory);
         multiplierSpinner.getEditor().setAlignment(Pos.CENTER_RIGHT);
         multiplierSpinner.getEditor().getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         multiplierSpinner.getEditor().textProperty()
@@ -826,6 +853,31 @@ public class SnapshotController implements NodeChangedListener {
             });
         } finally {
         }
+    }
+
+    private void updateThreshold(double threshold) {
+        snapshots.stream().forEach(snapshot -> {
+            snapshot.getEntries().forEach(item -> {
+                VType vtype = item.getStoredValue();
+                VType diffVType = null;
+
+                double ratio = threshold/100;
+
+                TableEntry tableEntry = tableEntryItems.get(item.getPVName());
+                if (vtype instanceof VNumber) {
+                    diffVType = SafeMultiply.multiply((VNumber) vtype, ratio);
+                    VNumber vNumber = (VNumber) diffVType;
+                    boolean isNegative = vNumber.getValue().doubleValue() < 0;
+
+                    tableEntry.setThreshold(Optional.of(new Threshold<>(isNegative ? SafeMultiply.multiply(vNumber.getValue(), -1.0) : vNumber.getValue())));
+                } else if (vtype instanceof VNumberArray) {
+                    // TODO: Probably ignore waveform value? or compare each component? Leave it for now.
+                    diffVType = SafeMultiply.multiply((VNumberArray) vtype, ratio);
+                    VNumberArray vNumberArray = (VNumberArray) diffVType;
+//                  tableEntry.setThreshold(Optional.of(new Threshold<>(vNumberArray.getData())));
+                }
+            });
+        });
     }
 
     private void updateSnapshot(double multiplier) {

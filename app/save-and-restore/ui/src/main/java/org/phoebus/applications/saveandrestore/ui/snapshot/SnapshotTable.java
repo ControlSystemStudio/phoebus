@@ -60,6 +60,7 @@ import org.phoebus.ui.application.ContextMenuHelper;
 import java.lang.reflect.Field;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -320,7 +321,14 @@ class SnapshotTable extends TableView<TableEntry> {
                         setText(pair.value.toString());
                     } else {
                         Utilities.VTypeComparison vtc = Utilities.deltaValueToString(pair.value, pair.base, pair.threshold);
-                        setText(vtc.getString());
+                        String percentage = Utilities.deltaValueToPercentage(pair.value, pair.base);
+                        if (!percentage.isEmpty()) {
+                            NumberFormat numberFormat = NumberFormat.getNumberInstance();
+                            numberFormat.setMaximumFractionDigits(6);
+                            setText(numberFormat.format(Double.parseDouble(vtc.getString())) + " (" + percentage + "%)");
+                        } else {
+                            setText(vtc.getString());
+                        }
                         if (!vtc.isWithinThreshold()) {
                             getStyleClass().add("diff-cell");
                             setGraphic(new ImageView(WARNING_IMAGE));

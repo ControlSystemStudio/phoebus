@@ -907,6 +907,37 @@ public final class Utilities {
     }
 
     /**
+     * Compares the value of the given {@link VType} to the <code>baseValue</code>.
+     * If the base va0lue and the transformed value are both of a {@link VNumber} type,
+     * the formatted percentage of the transformed value to the base value is returned.
+     *
+     * @param value the value to compare
+     * @param baseValue the base value to compare the value to
+     * @return formatted percentage of the difference
+     */
+    @SuppressWarnings("unchecked")
+    public static String deltaValueToPercentage(VType value, VType baseValue) {
+        if (value instanceof VNumber && baseValue instanceof VNumber) {
+            double data = ((VNumber) value).getValue().doubleValue();
+            double base = ((VNumber) baseValue).getValue().doubleValue();
+            double newd = data - base;
+
+            double percentage = newd/data*100;
+
+            if (!Double.isFinite(percentage) || Double.compare(percentage, 0) == 0) {
+                return "";
+            }
+
+            NumberFormat format = NumberFormat.getNumberInstance();
+            format.setMaximumFractionDigits(2);
+
+            return format.format(percentage);
+        }
+
+        return "";
+    }
+
+    /**
      * Transforms the timestamp to string, using the format HH:mm:ss.SSS MMM dd (yyyy).
      *
      * @param t the timestamp to transform
