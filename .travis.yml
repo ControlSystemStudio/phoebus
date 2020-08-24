@@ -1,6 +1,6 @@
 sudo: required
 language: java
-dist: trusty
+dist: xenial
 jdk:
   - openjdk11
 
