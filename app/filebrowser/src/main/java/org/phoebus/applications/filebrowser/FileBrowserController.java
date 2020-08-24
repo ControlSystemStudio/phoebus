@@ -7,13 +7,16 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 
+import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.application.ApplicationLauncherService;
+import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
@@ -43,6 +46,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import org.phoebus.ui.spi.ContextMenuEntry;
 
 /**
  * Controller for the file browser app
@@ -422,7 +426,24 @@ public class FileBrowserController {
                 }
 
                 if (file.isDirectory())
+                {
                     contextMenu.getItems().add(new SetBaseDirectory(file, this::setRoot));
+
+                    SelectionService.getInstance().setSelection(this, Arrays.asList(file));
+                    // Search for SPI contributions to the context menu
+                    List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+                    supported.stream().forEach(action -> {
+                        MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
+                        menuItem.setOnAction((event) -> {
+                            try {
+                                action.call(SelectionService.getInstance().getSelection());
+                            } catch (Exception ex) {
+                                logger.log(Level.WARNING, "Failed to exectute " + action.getName() + " from file browser", ex);
+                            }
+                        });
+                        contextMenu.getItems().add(menuItem);
+                    });
+                }
             }
 
             contextMenu.getItems().add(new CopyPath(selectedItems));
