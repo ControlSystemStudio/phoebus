@@ -45,6 +45,7 @@ import javafx.stage.Stage;
 import org.phoebus.applications.saveandrestore.ApplicationContextProvider;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.SpringFxmlLoader;
+import org.phoebus.applications.saveandrestore.filehandler.csv.CSVCommon;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
@@ -60,6 +61,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -89,6 +91,8 @@ public class SaveSetFromSelectionController implements Initializable {
     }
 
     private static final DateTimeFormatter savesetTimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
+
+    private final List<String> nodeListInFolder = new ArrayList<>();
 
     @FXML
     private TextField locationTextField;
@@ -131,6 +135,18 @@ public class SaveSetFromSelectionController implements Initializable {
 
     private SimpleObjectProperty<Node> targetNode = new SimpleObjectProperty<>();
 
+    private boolean isDisabledSaveSetSelectionInBrowsing;
+
+    public void disableSaveSetSelectionInBrowsing() {
+        isDisabledSaveSetSelectionInBrowsing = true;
+    }
+
+    private SimpleObjectProperty<Node> createdSaveset = null;
+
+    public void setCreatedSavesetProperty(SimpleObjectProperty<Node> createdSaveset) {
+        this.createdSaveset = createdSaveset;
+    }
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         targetNode.addListener((observableValue, node, newNode) -> {
@@ -138,13 +154,16 @@ public class SaveSetFromSelectionController implements Initializable {
                 try {
                     if (newNode.getNodeType() == NodeType.CONFIGURATION) {
                         saveSetName.setText(newNode.getName());
-                        description.setText(newNode.getProperty("description"));
+                        description.setText(newNode.getProperty(DESCRIPTION_PROPERTY));
 
                         saveSetName.setEditable(false);
                         description.setEditable(true);
 
                         Node parentNode = saveAndRestoreService.getParentNode(newNode.getUniqueId());
                         locationTextField.setText(DirectoryUtilities.CreateLocationString(parentNode, false));
+
+                        nodeListInFolder.clear();
+                        saveAndRestoreService.getChildNodes(parentNode).forEach(item -> nodeListInFolder.add(item.getName()));
                     } else {
                         saveSetName.setText("");
                         description.setText("");
@@ -153,6 +172,9 @@ public class SaveSetFromSelectionController implements Initializable {
                         description.setEditable(true);
 
                         locationTextField.setText(DirectoryUtilities.CreateLocationString(newNode, false));
+
+                        nodeListInFolder.clear();
+                        saveAndRestoreService.getChildNodes(newNode).forEach(item -> nodeListInFolder.add(item.getName()));
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -174,9 +196,14 @@ public class SaveSetFromSelectionController implements Initializable {
                 } else {
                     dialog.setScene(new Scene((Parent) springFxmlLoader.load("ui/saveset/SaveSetSelector.fxml")));
                 }
+
+                final BaseSaveSetSelectionController saveSetSelectionController = springFxmlLoader.getLoader().getController();
+                if (isDisabledSaveSetSelectionInBrowsing) {
+                    saveSetSelectionController.disableSavesetSelection();
+                }
+
                 dialog.showAndWait();
 
-                final ISelectedNodeProvider saveSetSelectionController = springFxmlLoader.getLoader().getController();
                 final Node selectedNode = saveSetSelectionController.getSelectedNode();
                 if (selectedNode != null) {
                     targetNode.set(selectedNode);
@@ -187,6 +214,9 @@ public class SaveSetFromSelectionController implements Initializable {
         });
 
         saveSetName.setPromptText(savesetTimeFormat.format(Instant.now()));
+        saveSetName.textProperty().addListener((observableValue, oldName, newName) -> {
+            saveButton.setDisable(nodeListInFolder.contains(newName));
+        });
 
         description.setPromptText("Saveset created at " + savesetTimeFormat.format(Instant.now()));
 
@@ -255,6 +285,29 @@ public class SaveSetFromSelectionController implements Initializable {
         }
     }
 
+    public void setData(Node targetNode, String name, String description, List<Map<String, String>> entries) {
+        if (targetNode != null) {
+            this.targetNode.set(targetNode);
+        }
+
+        this.saveSetName.setText(name);
+        this.description.setText(description);
+
+        for (Map<String, String> entry : entries) {
+            final TableRowEntry rowEntry = new TableRowEntry();
+            rowEntry.selected = true;
+            rowEntry.pv = ConfigPv.builder()
+                    .pvName(entry.get(CSVCommon.H_PV_NAME))
+                    .readbackPvName(entry.get(CSVCommon.H_READBACK))
+                    .readOnly(Boolean.parseBoolean(entry.get(CSVCommon.H_READ_ONLY)) || "1".equals(entry.get(CSVCommon.H_READ_ONLY)))
+                    .build();
+            pvTable.getItems().add(rowEntry);
+
+            numSelected.set(entries.size());
+            numTotalLabel.setText(NumberFormat.getIntegerInstance().format(entries.size()));
+        }
+    }
+
     @FXML
     private void save(ActionEvent ae) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -285,7 +338,11 @@ public class SaveSetFromSelectionController implements Initializable {
                 Node newSaveSet = saveAndRestoreService.createNode(parentNode.getUniqueId(), newSaveSetBuild);
 
                 newSaveSet.putProperty(DESCRIPTION_PROPERTY, (description.getText().trim().isEmpty() ? description.getPromptText() : description.getText().trim()));
-                saveAndRestoreService.updateSaveSet(newSaveSet, pvs);
+                newSaveSet = saveAndRestoreService.updateSaveSet(newSaveSet, pvs);
+
+                if (createdSaveset != null) {
+                    createdSaveset.set(newSaveSet);
+                }
             } catch (Exception e) {
                 String alertMessage = "Cannot save PVs in parent node: " + parentNode.getName() + "(" + parentNode.getUniqueId() + ")";
 

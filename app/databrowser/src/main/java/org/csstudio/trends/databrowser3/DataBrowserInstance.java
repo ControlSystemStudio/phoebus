@@ -199,8 +199,8 @@ public class DataBrowserInstance implements AppInstance
                         new URI(input.getScheme(),
                                 input.getAuthority(),
                                 input.getPath(),
-                                "",
-                                "")));
+                                null,
+                                null)));
 
                 Platform.runLater(() ->
                 {

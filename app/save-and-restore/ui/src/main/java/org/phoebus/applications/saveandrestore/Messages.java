@@ -89,6 +89,10 @@ public class Messages {
     public static String tagSearchTableCreatedColumn;
     public static String tagSearchTableCreatorColumn;
     public static String tagSearchEntryToolTip;
+    public static String importSaveSetLabel;
+    public static String exportSaveSetLabel;
+    public static String importSnapshotLabel;
+    public static String exportSnapshotLabel;
 
     static
     {
