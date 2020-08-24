@@ -14,6 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * <a target="_blank" href="https://icons8.com/icons/set/percentage">Percentage icon</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+ * <a target="_blank" href="https://icons8.com/icons/set/price-tag">Price Tag icon</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+ * <a target="_blank" href="https://icons8.com/icons/set/add-tag">Add Tag icon</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+ * <a target="_blank" href="https://icons8.com/icons/set/remove-tag">Remove Tag icon</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
  */
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
@@ -137,6 +142,9 @@ public class SnapshotController implements NodeChangedListener {
     private Spinner<Double> multiplierSpinner;
 
     @FXML
+    private ToggleButton showHideDeltaPercentageButton;
+
+    @FXML
     private ToggleButton hideShowEqualItemsButton;
 
     @FXML
@@ -180,6 +188,7 @@ public class SnapshotController implements NodeChangedListener {
 
     private boolean showStoredReadbacks = false;
 
+    private boolean showDeltaPercentage = false;
     private boolean hideEqualItems;
 
     private PreferencesReader preferencesReader = (PreferencesReader) ApplicationContextProvider.getApplicationContext().getBean("preferencesReader");
@@ -237,9 +246,9 @@ public class SnapshotController implements NodeChangedListener {
         showLiveReadbackButton.selectedProperty().addListener((a, o, n) -> {
             UI_EXECUTOR.execute(() -> {
                 ArrayList arrayList = new ArrayList(tableEntryItems.values());
-                snapshotTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbacks);
+                snapshotTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbacks, showDeltaPercentage);
                 if (isTreeTableViewEnabled) {
-                    snapshotTreeTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbacks);
+                    snapshotTreeTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbacks, showDeltaPercentage);
                 }
             });
         });
@@ -249,9 +258,9 @@ public class SnapshotController implements NodeChangedListener {
         showStoredReadbackButton.selectedProperty().addListener((a, o, n) -> {
             UI_EXECUTOR.execute(() -> {
                 ArrayList arrayList = new ArrayList(tableEntryItems.values());
-                snapshotTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbacks);
+                snapshotTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbacks, showDeltaPercentage);
                 if (isTreeTableViewEnabled) {
-                    snapshotTreeTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbacks);
+                    snapshotTreeTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbacks, showDeltaPercentage);
                 }
             });
         });
@@ -307,6 +316,25 @@ public class SnapshotController implements NodeChangedListener {
                         multiplierSpinner.setTooltip(new Tooltip(Messages.toolTipMultiplierSpinner));
                         snapshotRestorableProperty.set(false);
                     }
+                });
+
+        ImageView showHideDeltaPercentageButtonImageView = new ImageView(new Image(getClass().getResourceAsStream("/icons/show_hide_delta_percentage.png")));
+        showHideDeltaPercentageButtonImageView.setFitWidth(16);
+        showHideDeltaPercentageButtonImageView.setFitHeight(16);
+
+        showHideDeltaPercentageButton.setGraphic(showHideDeltaPercentageButtonImageView);
+        showHideDeltaPercentageButton.setTooltip(new Tooltip(Messages.toolTipShowHideDeltaPercentageToggleButton));
+        showHideDeltaPercentageButton.selectedProperty()
+                .addListener((a, o, n) -> {
+                    showDeltaPercentage = n;
+
+                    UI_EXECUTOR.execute(() -> {
+                        ArrayList arrayList = new ArrayList(tableEntryItems.values());
+                        snapshotTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbacks, showDeltaPercentage);
+                        if (isTreeTableViewEnabled) {
+                            snapshotTreeTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbacks, showDeltaPercentage);
+                        }
+                    });
                 });
 
         hideShowEqualItemsButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/icons/hide_show_equal_items.png"))));
@@ -476,9 +504,9 @@ public class SnapshotController implements NodeChangedListener {
             VSnapshot vSnapshot =
                     new VSnapshot(snapshot, snapshotItemsToSnapshotEntries(snapshotItems));
             List<TableEntry> tableEntries = addSnapshot(vSnapshot);
-            snapshotTable.updateTable(tableEntries, snapshots, false, false);
+            snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
             if (isTreeTableViewEnabled) {
-                snapshotTreeTable.updateTable(tableEntries, snapshots, false, false);
+                snapshotTreeTable.updateTable(tableEntries, snapshots, false, false, false);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -495,9 +523,9 @@ public class SnapshotController implements NodeChangedListener {
                     new VSnapshot(snapshot, saveSetToSnapshotEntries(configPvs));
             List<TableEntry> tableEntries = setSnapshotInternal(vSnapshot);
             UI_EXECUTOR.execute(() -> {
-                snapshotTable.updateTable(tableEntries, snapshots, false, false);
+                snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
                 if (isTreeTableViewEnabled) {
-                    snapshotTreeTable.updateTable(tableEntries, snapshots, false, false);
+                    snapshotTreeTable.updateTable(tableEntries, snapshots, false, false, false);
                 }
             });
         } catch (Exception e) {
@@ -520,9 +548,9 @@ public class SnapshotController implements NodeChangedListener {
                         new VSnapshot(snapshot, snapshotItemsToSnapshotEntries(snapshotItems));
                 List<TableEntry> tableEntries = loadSnapshotInternal(vSnapshot);
 
-                snapshotTable.updateTable(tableEntries, snapshots, false, false);
+                snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
                 if (isTreeTableViewEnabled) {
-                    snapshotTreeTable.updateTable(tableEntries, snapshots, false, false);
+                    snapshotTreeTable.updateTable(tableEntries, snapshots, false, false, false);
                 }
                 snapshotRestorableProperty.set(true);
 
@@ -650,9 +678,9 @@ public class SnapshotController implements NodeChangedListener {
             snapshots.add(taken);
             List<TableEntry> tableEntries = loadSnapshotInternal(taken);
             UI_EXECUTOR.execute(() -> {
-                snapshotTable.updateTable(tableEntries, snapshots, showLiveReadbackProperty.get(), false);
+                snapshotTable.updateTable(tableEntries, snapshots, showLiveReadbackProperty.get(), false, showDeltaPercentage);
                 if (isTreeTableViewEnabled) {
-                    snapshotTreeTable.updateTable(tableEntries, snapshots, showLiveReadbackProperty.get(), false);
+                    snapshotTreeTable.updateTable(tableEntries, snapshots, showLiveReadbackProperty.get(), false, showDeltaPercentage);
                 }
                 snapshotSaveableProperty.setValue(true);
             });
@@ -858,7 +886,7 @@ public class SnapshotController implements NodeChangedListener {
     private void updateThreshold(double threshold) {
         snapshots.stream().forEach(snapshot -> {
             snapshot.getEntries().forEach(item -> {
-                VType vtype = item.getStoredValue();
+                VType vtype = item.getValue();
                 VType diffVType = null;
 
                 double ratio = threshold/100;
