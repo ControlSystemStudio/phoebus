@@ -15,6 +15,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.MissingResourceException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -127,6 +128,14 @@ public class NLS
      */
     public static ResourceBundle getMessages(Class<?> clazz)
     {
-        return ResourceBundle.getBundle(clazz.getPackageName() + ".messages");
+        ResourceBundle bundle;
+        try {
+            bundle = ResourceBundle.getBundle(clazz.getPackageName() + ".messages");
+        } catch (MissingResourceException e) {
+            getLogger().log(Level.SEVERE, clazz.getName() + " is missing 'messages.properties'");
+            bundle = null;
+        }
+
+        return bundle;
     }
 }
