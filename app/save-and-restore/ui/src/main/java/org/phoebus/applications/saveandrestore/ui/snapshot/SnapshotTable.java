@@ -60,6 +60,7 @@ import org.phoebus.ui.application.ContextMenuHelper;
 import java.lang.reflect.Field;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -285,6 +286,9 @@ class SnapshotTable extends TableView<TableEntry> {
                 SnapshotController.class.getResourceAsStream("/icons/showerr_tsk.png"));
         private final Tooltip tooltip = new Tooltip();
 
+        private boolean showDeltaPercentage = false;
+        private void setShowDeltaPercentage() { showDeltaPercentage = true; }
+
         VDeltaCellEditor() {
             super();
         }
@@ -320,7 +324,14 @@ class SnapshotTable extends TableView<TableEntry> {
                         setText(pair.value.toString());
                     } else {
                         Utilities.VTypeComparison vtc = Utilities.deltaValueToString(pair.value, pair.base, pair.threshold);
-                        setText(vtc.getString());
+                        String percentage = Utilities.deltaValueToPercentage(pair.value, pair.base);
+                        if (!percentage.isEmpty() && showDeltaPercentage) {
+                            NumberFormat numberFormat = NumberFormat.getNumberInstance();
+                            numberFormat.setMaximumFractionDigits(6);
+                            setText(numberFormat.format(Double.parseDouble(vtc.getString())) + " (" + percentage + "%)");
+                        } else {
+                            setText(vtc.getString());
+                        }
                         if (!vtc.isWithinThreshold()) {
                             getStyleClass().add("diff-cell");
                             setGraphic(new ImageView(WARNING_IMAGE));
@@ -492,6 +503,7 @@ class SnapshotTable extends TableView<TableEntry> {
     private final List<VSnapshot> uiSnapshots = new ArrayList<>();
     private boolean showStoredReadbacks;
     private boolean showReadbacks;
+    private boolean showDeltaPercentage;
     private final SnapshotController controller;
     private CheckBox selectAllCheckBox;
 
@@ -681,7 +693,14 @@ class SnapshotTable extends TableView<TableEntry> {
                 Utilities.DELTA_CHAR + " Live Setpoint",
                 "", 100);
         delta.setCellValueFactory(e -> e.getValue().valueProperty());
-        delta.setCellFactory(e -> new VDeltaCellEditor<>());
+        delta.setCellFactory(e -> {
+            VDeltaCellEditor vDeltaCellEditor = new VDeltaCellEditor<>();
+            if (showDeltaPercentage) {
+                vDeltaCellEditor.setShowDeltaPercentage();
+            }
+
+            return vDeltaCellEditor;
+        });
         delta.setEditable(false);
         storedValueBaseColumn.getColumns().add(delta);
 
@@ -869,13 +888,15 @@ class SnapshotTable extends TableView<TableEntry> {
      * @param snapshots the snapshots which are currently displayed
      * @param showLiveReadback true if readback column should be visible or false otherwise
      * @param showStoredReadback true if the stored readback value columns should be visible or false otherwise
+     * @param showDeltaPercentage true if delta percentage should be be visible or false otherwise
      */
-    public void updateTable(List<TableEntry> entries, List<VSnapshot> snapshots, boolean showLiveReadback, boolean showStoredReadback) {
+    public void updateTable(List<TableEntry> entries, List<VSnapshot> snapshots, boolean showLiveReadback, boolean showStoredReadback, boolean showDeltaPercentage) {
         getColumns().clear();
         uiSnapshots.clear();
         // we should always know if we are showing the stored readback or not, to properly extract the selection
         this.showStoredReadbacks = showStoredReadback;
         this.showReadbacks = showLiveReadback;
+        this.showDeltaPercentage = showDeltaPercentage;
         uiSnapshots.addAll(snapshots);
         if (uiSnapshots.size() == 1) {
             createTableForSingleSnapshot(showLiveReadback, showStoredReadback);
