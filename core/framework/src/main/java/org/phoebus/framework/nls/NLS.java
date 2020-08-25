@@ -123,7 +123,7 @@ public class NLS
      *  Tries to open "messages_{LOCALE}.properties",
      *  falling back to generic "messages.properties"
      *  @param clazz Class relative to which message resources are located
-     *  @returns ResourceBundle for messages or null
+     *  @return ResourceBundle for messages or null
      */
     public static ResourceBundle getMessages(Class<?> clazz)
     {
