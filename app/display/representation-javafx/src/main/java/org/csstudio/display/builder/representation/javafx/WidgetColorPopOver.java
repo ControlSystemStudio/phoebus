@@ -51,8 +51,7 @@ public class WidgetColorPopOver extends PopOver
 	    try
         {
             final URL fxml = WidgetColorPopOver.class.getResource("WidgetColorPopOver.fxml");
-            final InputStream iStream = NLS.getMessages(WidgetColorPopOver.class);
-            final ResourceBundle bundle = new PropertyResourceBundle(iStream);
+            final ResourceBundle bundle = NLS.getMessages(WidgetColorPopOver.class);
             final FXMLLoader fxmlLoader = new FXMLLoader(fxml, bundle);
             final Node content = (Node) fxmlLoader.load();
 

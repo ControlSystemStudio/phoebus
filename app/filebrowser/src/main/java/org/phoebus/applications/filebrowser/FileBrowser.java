@@ -46,8 +46,7 @@ public class FileBrowser implements AppInstance
         try
         {
             final URL fxml = getClass().getResource("FileBrowser.fxml");
-            final InputStream iStream = NLS.getMessages(FileBrowser.class);
-            final ResourceBundle bundle = new PropertyResourceBundle(iStream);
+            final ResourceBundle bundle = NLS.getMessages(FileBrowser.class);
             fxmlLoader = new FXMLLoader(fxml, bundle);
             content = (Node) fxmlLoader.load();
             controller = fxmlLoader.getController();
