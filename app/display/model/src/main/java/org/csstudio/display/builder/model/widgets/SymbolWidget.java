@@ -85,7 +85,10 @@ public class SymbolWidget extends PVWidget {
             try {
                 if (index > 0)
                     symbol = ((SymbolWidget)widget).propSymbols().getElement(index - 1).getValue();
-            } catch (IndexOutOfBoundsException e) {}
+            } catch (IndexOutOfBoundsException e) {
+                // It is expected when a widget with more than 2 symbols is parsed
+                // and the property is being populated --> safe to ignore
+            }
             return propSymbol(index).createProperty(widget, symbol);
         },
         0
