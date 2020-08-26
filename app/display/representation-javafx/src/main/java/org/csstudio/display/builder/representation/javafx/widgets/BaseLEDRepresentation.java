@@ -116,6 +116,11 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
      */
     abstract protected String computeLabel(final int color_index);
 
+    /** Compute the label when PV is disconnected
+     *  @return String to show in label
+     */
+    abstract protected String computeLabel();
+
     @Override
     protected void registerListeners()
     {
@@ -174,7 +179,7 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
         if (value == null && runtime_mode)
         {
             value_color = alarm_colors[AlarmSeverity.UNDEFINED.ordinal()];
-            value_label = "";
+            value_label = computeLabel();
         }
         else
         {
