@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.ResourceBundle;
+import java.util.MissingResourceException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -80,16 +82,20 @@ public class NLS
 
         try
         {
-            final InputStream msg_props = getMessages(clazz);
-            // Read properties into fields
-            if (msg_props != null)
-            {
-                final Properties props = new Properties();
-                props.load(msg_props);
+            ResourceBundle bundle = getMessages(clazz);
 
-                for (final String name : props.stringPropertyNames())
+            // Read properties into fields
+            if (bundle != null)
+            {
+                for (final String name : bundle.keySet())
                 {
-                    final String value = props.getProperty(name);
+                    String value;
+                    try {
+                        value = bundle.getString(name);
+                    } catch (ClassCastException ex) {
+                        getLogger().log(Level.SEVERE, clazz.getName() + " contains non-string message '" + name + "'");
+                        continue;
+                    }
                     final Field field = fields.get(name);
                     if (field == null)
                         getLogger().log(Level.SEVERE, clazz.getName() + " contains superflous message '" + name + "'");
@@ -114,28 +120,22 @@ public class NLS
         }
     }
 
-    /** Get stream for messages
+    /** Get resource bundle for messages
      *  Tries to open "messages_{LOCALE}.properties",
      *  falling back to generic "messages.properties"
      *  @param clazz Class relative to which message resources are located
-     *  @returns Stream for messages or null
+     *  @return ResourceBundle for messages or null
      */
-    public static InputStream getMessages(Class<?> clazz)
+    public static ResourceBundle getMessages(Class<?> clazz)
     {
-        // First try "messages_de.properties", "messages_fr.properties", "messages_zh.properties", ...
-        // based on locale
-        String filename = "messages_" + Locale.getDefault().getLanguage() + ".properties";
-        InputStream msg_props = clazz.getResourceAsStream(filename);
-
-        // Fall back to default file
-        if (msg_props == null)
-        {
-            filename = "messages.properties";
-            msg_props = clazz.getResourceAsStream(filename);
+        ResourceBundle bundle;
+        try {
+            bundle = ResourceBundle.getBundle(clazz.getPackageName() + ".messages");
+        } catch (MissingResourceException e) {
+            getLogger().log(Level.SEVERE, clazz.getName() + " is missing 'messages.properties'");
+            bundle = null;
         }
 
-        if (msg_props == null)
-            getLogger().log(Level.SEVERE, "Cannot open '" + filename  + "' for " + clazz.getName());
-        return msg_props;
+        return bundle;
     }
 }
