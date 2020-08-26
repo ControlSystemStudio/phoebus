@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -41,6 +41,14 @@ import java.util.logging.Logger;
  *  The language code `xx` ('en' for English) is determined
  *  by the {@link Locale} or can be set via the property `user.language`.
  *
+ *  <p>When a localized file `messages_xx.properties`
+ *  misses a field, the value from the default `messages.properties` file is used
+ *  and a warning is logged.
+ *  When the default `messages.properties` file has no value, either,
+ *  the value "&lt;SomeMessageVariable&gt;" is used
+ *  and a warning is logged.
+ *  <p>
+ *
  *  <p>Since the message files are Java property files,
  *  they need to use ISO 8859-1 character encoding.
  *  Unicode can be used, for example <code>\u00e4</code> for lowercase a-umlaut.
@@ -80,28 +88,45 @@ public class NLS
 
         try
         {
-            final InputStream msg_props = getMessages(clazz);
-            // Read properties into fields
-            if (msg_props != null)
-            {
-                final Properties props = new Properties();
-                props.load(msg_props);
+            // There must be a generic (English) message file
+            final Properties generic = loadProperties(clazz, "messages.properties");
+            if (generic == null)
+                throw new Exception("Missing \"messages.properties\"");
 
-                for (final String name : props.stringPropertyNames())
+            // There might be a localized message file
+            final String localized_filename = "messages_" + Locale.getDefault().getLanguage() + ".properties";
+            final Properties localized = loadProperties(clazz, localized_filename);
+
+            for (final String name : generic.stringPropertyNames())
+            {
+                // Check for localized text
+                String value = null;
+                if (localized != null)
                 {
-                    final String value = props.getProperty(name);
-                    final Field field = fields.get(name);
-                    if (field == null)
-                        getLogger().log(Level.SEVERE, clazz.getName() + " contains superflous message '" + name + "'");
-                    else
-                    {
-                        field.set(null, value);
-                        fields.remove(name);
-                    }
+                    value = localized.getProperty(name);
+                    if (value == null)
+                        getLogger().log(Level.SEVERE, clazz.getName() + " is missing value for '" + name + "' in " + localized_filename);
+                }
+                // Fall back to generic text
+                if (value == null)
+                    value = generic.getProperty(name);
+                final Field field = fields.get(name);
+                if (field == null)
+                    getLogger().log(Level.SEVERE, clazz.getName() + " contains superflous message '" + name + "'");
+                else
+                {
+                    field.set(null, value);
+                    fields.remove(name);
                 }
             }
 
-            // Complain about missing values, set their fields to reflect the field name
+            // List values in localized file that are not in the generic file
+            if (localized != null)
+                for (final String name : localized.stringPropertyNames())
+                    if (generic.getProperty(name) == null)
+                        getLogger().log(Level.SEVERE, clazz.getName() + " contains superflous message '" + name + "' in " + localized_filename);
+
+            // Complain about missing values, set their text to reflect the field name
             for (Field field : fields.values())
             {
                 getLogger().log(Level.SEVERE, clazz.getName() + " is missing value for '" + field.getName() + "'");
@@ -114,28 +139,24 @@ public class NLS
         }
     }
 
-    /** Get stream for messages
-     *  Tries to open "messages_{LOCALE}.properties",
-     *  falling back to generic "messages.properties"
+    /** Get content of "messages*properties"
      *  @param clazz Class relative to which message resources are located
-     *  @returns Stream for messages or null
+     *  @param filename "messages_de.properties", "messages_fr.properties", "messages.properties", ...
+     *  @returns Properties or <code>null</code>
      */
-    public static InputStream getMessages(Class<?> clazz)
+    public static Properties loadProperties(final Class<?> clazz, final String filename)
     {
-        // First try "messages_de.properties", "messages_fr.properties", "messages_zh.properties", ...
-        // based on locale
-        String filename = "messages_" + Locale.getDefault().getLanguage() + ".properties";
-        InputStream msg_props = clazz.getResourceAsStream(filename);
-
-        // Fall back to default file
-        if (msg_props == null)
+        try
         {
-            filename = "messages.properties";
-            msg_props = clazz.getResourceAsStream(filename);
+            final InputStream msg_props = clazz.getResourceAsStream(filename);
+            final Properties properties = new Properties();
+            properties.load(msg_props);
+            return properties;
         }
-
-        if (msg_props == null)
-            getLogger().log(Level.SEVERE, "Cannot open '" + filename  + "' for " + clazz.getName());
-        return msg_props;
+        catch (Exception ex)
+        {
+            // Ignore
+        }
+        return null;
     }
 }

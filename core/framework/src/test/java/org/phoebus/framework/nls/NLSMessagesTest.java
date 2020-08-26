@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -25,6 +25,8 @@ public class NLSMessagesTest
     // A 'Messages' type of class needs public static String member variables
     public static String Hello;
     public static String Bye;
+    public static String HowAreYou;
+    public static String Missing;
 
     private Locale original;
 
@@ -54,6 +56,9 @@ public class NLSMessagesTest
         System.out.println("Messages for '" + Locale.getDefault().getLanguage() + "': " + Hello + ", " + Bye);
         assertThat(Hello, equalTo("Hello"));
         assertThat(Bye, equalTo("Bye"));
+        assertThat(HowAreYou, equalTo("How are you?"));
+        // No text, uses field name
+        assertThat(Missing, equalTo("<Missing>"));
     }
 
     /** Check if the expected messages were read */
@@ -65,6 +70,10 @@ public class NLSMessagesTest
         System.out.println("Messages for '" + Locale.getDefault().getLanguage() + "': " + Hello + ", " + Bye);
         assertThat(Hello, equalTo("Moin"));
         assertThat(Bye, equalTo("Tschüss"));
+        // Not in messages_de.properties, falling back to default messages.properties
+        assertThat(HowAreYou, equalTo("How are you?"));
+        // No text, uses field name
+        assertThat(Missing, equalTo("<Missing>"));
     }
 
     @After
