@@ -102,7 +102,9 @@ public class TextSymbolRepresentation extends RegionBaseRepresentation<Label, Te
 
             symbolIndex = Math.min(Math.max(symbolIndex, 0), model_widget.propSymbols().size() - 1);
 
-            jfx_node.setText(( symbolIndex >= 0 ) ? model_widget.propSymbols().getElement(symbolIndex).getValue() : "\u263A");
+            final String symbol_value = ( symbolIndex >= 0 ) ? model_widget.propSymbols().getElement(symbolIndex).getValue() : "\u263A";
+            model_widget.runtimePropSymbolValue().setValue(symbol_value);
+            jfx_node.setText(symbol_value);
 
         }
 
@@ -201,7 +203,9 @@ public class TextSymbolRepresentation extends RegionBaseRepresentation<Label, Te
 
             symbolIndex = Math.min(Math.max(symbolIndex, 0), model_widget.propSymbols().size() - 1);
 
-            jfx_node.setText(( symbolIndex >= 0 ) ? model_widget.propSymbols().getElement(symbolIndex).getValue() : "\u263A");
+            final String symbol_value = ( symbolIndex >= 0 ) ? model_widget.propSymbols().getElement(symbolIndex).getValue() : "\u263A";
+            model_widget.runtimePropSymbolValue().setValue(symbol_value);
+            jfx_node.setText(symbol_value);
 
         }
 
