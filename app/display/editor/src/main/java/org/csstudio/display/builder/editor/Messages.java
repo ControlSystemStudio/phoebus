@@ -62,7 +62,6 @@ public class Messages
     public static String NewDisplay;
     public static String NewDisplayFailed;
     public static String NewDisplayTargetFolderWriteProtected;
-    public static String NewDisplayTargetFileNotDirectory;
     public static String NewDisplaySelectionEmpty;
     public static String NewDisplayOverwriteExisting;
     public static String NewDisplayOverwriteExistingTitle;
