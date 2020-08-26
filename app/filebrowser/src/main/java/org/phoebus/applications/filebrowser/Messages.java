@@ -65,9 +65,6 @@ public class Messages
     public static String RenameHdr;
     public static String RenameJobName;
     public static String SetBaseDirectory;
-    public static String NewDisplay;
-    public static String NewDisplayNamePrompt;
-    public static String NewDisplayAlert;
     // ---
     // --- Keep alphabetically sorted and 'in sync' with messages.properties!
     // ---

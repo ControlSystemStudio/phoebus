@@ -54,8 +54,9 @@ public class NewDisplayMenuEntry implements MenuEntry
     {
         // Prompt for file
         final File file = DisplayEditorApplication.promptForFilename(Messages.NewDisplay);
-        if (file == null)
+        if (file == null) {
             return null;
+        }
 
         JobManager.schedule(Messages.NewDisplay, new CreateNewDisplayJob(file));
 
