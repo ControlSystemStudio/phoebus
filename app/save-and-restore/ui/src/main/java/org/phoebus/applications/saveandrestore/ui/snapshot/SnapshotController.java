@@ -53,6 +53,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.util.converter.DoubleStringConverter;
+import org.awaitility.core.ConditionTimeoutException;
 import org.epics.gpclient.GPClient;
 import org.epics.gpclient.PVConfiguration;
 import org.epics.gpclient.PVEvent;
@@ -75,6 +76,7 @@ import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.service.SaveAndRestoreException;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.model.*;
 import org.phoebus.framework.preferences.PreferencesReader;
@@ -96,6 +98,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
 
 public class SnapshotController implements NodeChangedListener {
 
@@ -203,6 +208,7 @@ public class SnapshotController implements NodeChangedListener {
 
     public static final Logger LOGGER = Logger.getLogger(SnapshotController.class.getName());
 
+    private static final String DESCRIPTION_PROPERTY = "description";
     /**
      * The time between updates of dynamic data in the table, in ms
      */
@@ -533,6 +539,92 @@ public class SnapshotController implements NodeChangedListener {
         }
     }
 
+    /**
+     * Creates a folder node, generates saveset node in created folder and saves snapshot node. All created nodes have the same name.
+     *
+     * @param saveSetName name of the saveset node
+     * @param comment     saveset comment
+     * @param pvList      list of PVs to save
+     * @throws SaveAndRestoreException if node with saveset name already exists.
+     *                                 if any of the nodes can not be created.
+     */
+    public void generateSaveSet(String saveSetName, String comment, List<String> pvList) throws SaveAndRestoreException {
+
+        List<ConfigPv> saveSetEntries = new ArrayList<ConfigPv>();
+
+        saveAndRestoreService.findNode(saveSetName, false);
+
+        //CREATE FOLDER
+        Node root = saveAndRestoreService.getRootNode();
+        Node newFolder = Node.builder()
+                .nodeType(NodeType.FOLDER)
+                .name(saveSetName)
+                .build();
+        Node newFolderNode;
+
+        try {
+            newFolderNode = saveAndRestoreService.createNode(root.getUniqueId(), newFolder);
+
+            //CREATE CONFIGURATION
+            Node newSateSetNode = Node.builder()
+                    .nodeType(NodeType.CONFIGURATION)
+                    .name(saveSetName)
+                    .build();
+            Node newTreeNode = saveAndRestoreService.createNode(newFolderNode.getUniqueId(), newSateSetNode);
+
+            for (String pv : pvList) {
+                ConfigPv configPv = ConfigPv.builder()
+                        .pvName(pv)
+                        .readOnly(false)
+                        .build();
+                saveSetEntries.add(configPv);
+            }
+
+            newTreeNode.putProperty(DESCRIPTION_PROPERTY, comment);
+            newTreeNode = saveAndRestoreService.updateSaveSet(newTreeNode, saveSetEntries);
+            List<ConfigPv> configPvs = saveAndRestoreService.getConfigPvs(newTreeNode.getUniqueId());
+            Node config = saveAndRestoreService.getNode(newTreeNode.getUniqueId());
+            List<SnapshotItem> snapshotItems = new ArrayList<>();
+            List<PVReader<VType>> readers = new ArrayList<>();
+
+            CountDownLatch countdownLatch = new CountDownLatch(pvList.size());
+            try {
+                for (ConfigPv pv : configPvs) {
+                    PVReader<VType> readerPv = GPClient.readAndWrite(patchPvName(pv.getPvName()))
+                            .addReadListener((event, p) -> {
+                                if (event.getType().contains(PVEvent.Type.VALUE)) {
+                                    SnapshotItem item = SnapshotItem.builder()
+                                            .value(p.getValue())
+                                            .readbackValue(null)
+                                            .configPv(pv)
+                                            .build();
+                                    snapshotItems.add(item);
+
+                                    countdownLatch.countDown();
+                                }
+                            })
+                            .start();
+                    readers.add(readerPv);
+                }
+
+                try {
+                    await().atMost(2, SECONDS).until(() -> readers.stream().allMatch(x -> x.isConnected()));
+                } catch (ConditionTimeoutException ex) {
+                    LOGGER.log(Level.WARNING, "Some PVs could not be saved because they are disconnected");
+                }
+
+                countdownLatch.await(1, SECONDS);
+            } finally {
+                for (PVReader<VType> reader : readers) {
+                    reader.close();
+                }
+            }
+            saveAndRestoreService.saveSnapshot(config, snapshotItems, saveSetName, comment);
+        } catch (Exception ex) {
+            throw new SaveAndRestoreException(ex);
+        }
+    }
+
     private void loadSnapshotInternal(Node snapshot) {
 
         UI_EXECUTOR.execute(() -> {
@@ -568,6 +660,77 @@ public class SnapshotController implements NodeChangedListener {
                 e.printStackTrace();
             }
         });
+    }
+
+    /**
+     * Restores and validates snapshot. Restore does not start if more than one snapshot with the same name exists or
+     * if snapshot does not exist.
+     *
+     * @param name snapshot name
+     * @return true if restoring was successful, false if restoring failed
+     * @throws SaveAndRestoreException if snapshot does not exists or if more than one snapshot with the same name exist
+     */
+    public boolean restoreSnapshotAndValidate(String name) throws SaveAndRestoreException {
+
+        Node node = saveAndRestoreService.findNode(name, true).orElseThrow(() -> new SaveAndRestoreException("Snapshot does not exist"));
+        List<SnapshotItem> snapshotItems;
+        try {
+            snapshotItems = saveAndRestoreService.getSnapshotItems(node.getUniqueId());
+        } catch (Exception ex) {
+            throw new SaveAndRestoreException(ex);
+        }
+        VSnapshot s = new VSnapshot(node, snapshotItemsToSnapshotEntries(snapshotItems));
+        List<SnapshotEntry> entries = s.getEntries();
+
+        Map<String, PV> myPvs = new HashMap<>();
+        Map<String, Boolean> writeStatuses = new LinkedHashMap<>();
+
+        // Create TableEntries and PVs
+        for (int i = 0; i < entries.size(); i++) {
+            SnapshotEntry entry = entries.get(i);
+            TableEntry tableEntry = new TableEntry();
+            String pvName = entry.getPVName();
+            tableEntry.idProperty().setValue(i + 1);
+            tableEntry.pvNameProperty().setValue(pvName);
+            tableEntry.setConfigPv(entry.getConfigPv());
+            tableEntry.selectedProperty().setValue(entry.isSelected());
+            tableEntry.setSnapshotValue(entry.getValue(), 0);
+            tableEntry.setStoredReadbackValue(entry.getReadbackValue(), 0);
+            tableEntry.readbackNameProperty().set(entry.getReadbackName());
+            tableEntry.readOnlyProperty().set(entry.isReadOnly());
+            myPvs.put(pvName, new PV(tableEntry));
+            writeStatuses.put(pvName, false);
+        }
+
+        CountDownLatch countDownLatch = new CountDownLatch(s.getEntries().size());
+        for (SnapshotEntry entry : entries) {
+            final PV pv = myPvs.get(entry.getPVName());
+            if (entry.getValue() != null) {
+
+                // Waiting for pv to connect.
+                await().atMost(5, SECONDS).until(() -> pv.pv.isWriteConnected());
+
+                pv.pv.write(entry.getValue(), (event, pvWriter) -> {
+                    if (event.getType().contains(PVEvent.Type.WRITE_SUCCEEDED)) {
+                        LOGGER.info(countDownLatch + " Write OK, signalling latch");
+                        writeStatuses.put(entry.getPVName(), true);
+                        countDownLatch.countDown();
+                    } else if (event.getType().contains(PVEvent.Type.WRITE_FAILED)) {
+                        LOGGER.info(countDownLatch + "Write FAILED, signalling latch");
+                        writeStatuses.put(entry.getPVName(), false);
+                        countDownLatch.countDown();
+                    }
+                });
+            }
+        }
+        try {
+            boolean success = countDownLatch.await(2, SECONDS);
+            if (!success) throw new SaveAndRestoreException("Restoring snapshot timed out");
+        } catch (InterruptedException e) {
+            throw new SaveAndRestoreException(e);
+        }
+
+        return writeStatuses.values().stream().allMatch(x -> x);
     }
 
     @FXML
@@ -958,6 +1121,16 @@ public class SnapshotController implements NodeChangedListener {
                     rowValue.snapshotValProperty().set(newVType);
                 });
     }
+        
+    private String patchPvName(String pvName) {
+        if (pvName == null || pvName.isEmpty()) {
+            return null;
+        } else if (pvName.startsWith("ca://") || pvName.startsWith("pva://")) {
+            return pvName;
+        } else {
+            return defaultEpicsProtocol + "://" + pvName;
+        }
+    }
 
     private class PV {
         final String pvName;
@@ -1021,18 +1194,6 @@ public class SnapshotController implements NodeChangedListener {
                                 snapshotTableEntry.setReadbackValue(this.readbackValue);
                             }
                         }).maxRate(Duration.ofMillis(TABLE_UPDATE_INTERVAL)).start();
-            }
-        }
-
-        private String patchPvName(String pvName){
-            if(pvName == null || pvName.isEmpty()){
-                return null;
-            }
-            else if(pvName.startsWith("ca://") || pvName.startsWith("pva://")){
-                return pvName;
-            }
-            else{
-                return defaultEpicsProtocol + "://" + pvName;
             }
         }
 
