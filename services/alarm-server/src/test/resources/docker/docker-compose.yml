@@ -1,0 +1,25 @@
+version: '2.2'
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper:latest
+    ports:
+      - "2181:2181"
+    hostname: zookeeper
+  kafka:
+    image: wurstmeister/kafka:latest
+    command: [start-kafka.sh]
+    ports:
+      - "9092:9092"
+    hostname: kafka
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: 192.168.99.100 # docker-machine ip
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_PORT: 9092
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - "zookeeper"
+
+volumes:
+  esdata:
+    driver: local
