@@ -198,6 +198,7 @@ public class Messages
     public static String WidgetProperties_Font;
     public static String WidgetProperties_ForegroundColor;
     public static String WidgetProperties_Format;
+    public static String WidgetProperties_Selector;
     public static String WidgetProperties_GridColor;
     public static String WidgetProperties_GridStepX;
     public static String WidgetProperties_GridStepY;

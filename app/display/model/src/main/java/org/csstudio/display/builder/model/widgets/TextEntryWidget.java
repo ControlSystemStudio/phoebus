@@ -14,9 +14,11 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFormat;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propSelector;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPrecision;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propShowUnits;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propWrapWords;
+
 
 import java.util.Arrays;
 import java.util.List;
@@ -43,6 +45,7 @@ import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.phoebus.ui.vtype.FormatOption;
+import org.phoebus.ui.vtype.SelectorOption;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -202,6 +205,7 @@ public class TextEntryWidget extends WritablePVWidget
     private volatile WidgetProperty<WidgetColor> background;
     private volatile WidgetProperty<WidgetFont> font;
     private volatile WidgetProperty<FormatOption> format;
+    private volatile WidgetProperty<SelectorOption> selector;
     private volatile WidgetProperty<Integer> precision;
     private volatile WidgetProperty<Boolean> show_units;
     private volatile WidgetProperty<Boolean> wrap_words;
@@ -232,6 +236,7 @@ public class TextEntryWidget extends WritablePVWidget
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.WRITE_BACKGROUND)));
         properties.add(format = propFormat.createProperty(this, FormatOption.DEFAULT));
+        properties.add(selector = propSelector.createProperty(this, SelectorOption.NONE));
         properties.add(precision = propPrecision.createProperty(this, -1));
         properties.add(show_units = propShowUnits.createProperty(this, true));
         properties.add(enabled = propEnabled.createProperty(this, true));
@@ -263,7 +268,13 @@ public class TextEntryWidget extends WritablePVWidget
     {
         return format;
     }
-
+    
+    /** @return 'selector' property */
+    public WidgetProperty<SelectorOption> propSelector()
+    {
+        return selector;
+    }
+    
     /** @return 'precision' property */
     public WidgetProperty<Integer> propPrecision()
     {

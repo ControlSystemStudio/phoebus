@@ -44,6 +44,9 @@ public class Messages
     public static String RenameColumnInfo;
     public static String RenameColumnTitle;
     public static String ReplaceExamplesWarningFMT;
+    public static String Selector_Datetime;
+    public static String Selector_File;
+    public static String Selector_None;
     public static String Undo_TT;
 
     static

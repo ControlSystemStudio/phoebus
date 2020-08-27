@@ -26,6 +26,7 @@ import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.ui.vtype.FormatOption;
+import org.phoebus.ui.vtype.SelectorOption;
 
 /** Common widget properties.
  *
@@ -437,6 +438,19 @@ public class CommonWidgetProperties
         @Override
         public EnumWidgetProperty<FormatOption> createProperty(final Widget widget,
                 final FormatOption default_value)
+        {
+            return new EnumWidgetProperty<>(this, widget, default_value);
+        }
+    };
+
+    /** 'selector' property */
+    public static final WidgetPropertyDescriptor<SelectorOption> propSelector =
+            new WidgetPropertyDescriptor<>(
+                    WidgetPropertyCategory.DISPLAY, "selector_type", Messages.WidgetProperties_Selector)
+    {
+        @Override
+        public EnumWidgetProperty<SelectorOption> createProperty(final Widget widget,
+                final SelectorOption default_value)
         {
             return new EnumWidgetProperty<>(this, widget, default_value);
         }
