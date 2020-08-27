@@ -73,6 +73,8 @@ public class TextSymbolWidget extends PVWidget {
         (widget, index) -> propSymbol.createProperty(widget, "\u263A")
     );
 
+    private static final WidgetPropertyDescriptor<String>                       runtimePropSymbolValue = newStringPropertyDescriptor(WidgetPropertyCategory.RUNTIME, "symbol_value", Messages.WidgetProperties_SymbolValue);
+
     private volatile WidgetProperty<Integer>                     array_index;
     private volatile WidgetProperty<WidgetColor>                 background;
     private volatile WidgetProperty<Boolean>                     enabled;
@@ -84,6 +86,7 @@ public class TextSymbolWidget extends PVWidget {
     private volatile WidgetProperty<Boolean>                     transparent;
     private volatile WidgetProperty<VerticalAlignment>           vertical_alignment;
     private volatile WidgetProperty<Boolean>                     wrap_words;
+    private volatile WidgetProperty<String>                      symbol_value;
 
     public TextSymbolWidget ( ) {
         super(WIDGET_DESCRIPTOR.getType(), 32, 32);
@@ -133,6 +136,10 @@ public class TextSymbolWidget extends PVWidget {
         return wrap_words;
     }
 
+    public WidgetProperty<String> runtimePropSymbolValue ( ) {
+        return symbol_value;
+    }
+
     @Override
     protected void defineProperties ( final List<WidgetProperty<?>> properties ) {
 
@@ -152,6 +159,14 @@ public class TextSymbolWidget extends PVWidget {
         properties.add(array_index          = propArrayIndex.createProperty(this, 0));
         properties.add(enabled              = propEnabled.createProperty(this, true));
 
+        properties.add(symbol_value         = runtimePropSymbolValue.createProperty(this, ""));
+
     }
 
+    @Override
+    protected String getInitialTooltip()
+    {
+        // Show the symbol value too
+        return super.getInitialTooltip() + "\n$(symbol_value)";
+    }
 }
