@@ -160,6 +160,8 @@ public class StructuredWidgetProperty extends WidgetProperty<List<WidgetProperty
                     throw new Exception("Cannot set structure " + getName() + "." + element.getName() + " to " + new_element, ex);
                 }
             }
+            // Notify listeners of the whole array
+            firePropertyChange(this, null, this.value);
         }
         else
             throw new Exception("Elements of structure " + getName() + " cannot be assigned from " + new_value);
@@ -195,6 +197,8 @@ public class StructuredWidgetProperty extends WidgetProperty<List<WidgetProperty
                 logger.log(Level.WARNING, "Error reading " + getName() + " element " + element.getName(), ex);
             }
         }
+        // Notify listeners of the whole array
+        firePropertyChange(this, null, this.value);
     }
 
     @Override

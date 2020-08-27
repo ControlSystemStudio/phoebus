@@ -273,7 +273,7 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
             }
             child = child.getNextSibling();
         }
-        value = elements;
+        setValue(elements);
     }
 
     @Override
