@@ -75,6 +75,14 @@ public class PropertyPanel extends BorderPane
         setMinHeight(0);
     }
 
+    /**
+     *  @return Whether one of the property editors has focus
+     */
+    public boolean hasFocus()
+    {
+        return section.hasFocus();
+    }
+
     /** Populate UI with properties of widgets
      *  @param widgets Widgets to configure
      */

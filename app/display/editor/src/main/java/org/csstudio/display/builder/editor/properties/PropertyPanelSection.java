@@ -110,6 +110,8 @@ public class PropertyPanelSection extends GridPane
 
     private boolean class_mode = false;
 
+    private volatile boolean has_focus = false;
+
     private final List<WidgetPropertyBinding<?,?>> bindings = new ArrayList<>();
     private int next_row = -1;
 
@@ -131,6 +133,14 @@ public class PropertyPanelSection extends GridPane
     public void setClassMode(final boolean class_mode)
     {
         this.class_mode = class_mode;
+    }
+
+    /**
+     *  @return Whether one of the property editors has focus
+     */
+    public boolean hasFocus()
+    {
+        return has_focus;
     }
 
     void fill(final UndoableActionManager undo,
@@ -651,6 +661,18 @@ public class PropertyPanelSection extends GridPane
 
         label.getStyleClass().add("property_name");
         field.getStyleClass().add("property_value");
+
+        // Update has_focus
+        final Node tmpfield;
+        if (field instanceof HBox)
+            tmpfield = ((HBox)field).getChildren().get(0);
+        else
+            tmpfield = field;
+
+        tmpfield.focusedProperty().addListener((ob, o, focused) ->
+        {
+            has_focus = focused;
+        });
 
         // Allow label to shrink (can use tooltip to see),
         // but show the value
