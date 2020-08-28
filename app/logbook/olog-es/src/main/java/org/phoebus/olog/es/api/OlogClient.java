@@ -445,11 +445,18 @@ public class OlogClient implements LogClient {
         return logEntries;
     }
 
-    // A predefined set of levels supported by olog
-    private final List<String> levels = Arrays.asList("Urgent", "Suggestion", "Info", "Request", "Problem");
+    /**
+     * List of level values as defined in the properties file.
+     */
+    private List<String> levels;
 
     @Override
     public Collection<String> listLevels() {
+        if(levels == null){
+            OlogProperties ologProperties = new OlogProperties();
+            String[] levelList = ologProperties.getPreferenceValue("levels").split(",");
+            levels = Arrays.asList(levelList);
+        }
         return levels;
     }
 
