@@ -131,9 +131,13 @@ public class EditorGUI
         // Those keys are often used when editing text,
         // and it's easy to accidentally loose input focus
         // and then delete a widget instead of a character.
+        // Also check if property panel has focus; don't want to delete
+        // widget when its name is edited and the mouse happens to be
+        // inside the editor
         final boolean in_editor = editor.getContextMenuNode()
                                         .getLayoutBounds()
-                                        .contains(mouse_x, mouse_y);
+                                        .contains(mouse_x, mouse_y) &&
+                                  ! property_panel.hasFocus();
 
         // Use Ctrl-C .. except on Mac, where it's Command-C ..
         final boolean meta = event.isShortcutDown();
