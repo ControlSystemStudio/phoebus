@@ -344,60 +344,6 @@ class SnapshotTable extends TableView<TableEntry> {
         }
     }
 
-    private static class VSetpointCellEditor<T> extends VTypeCellEditor<T> {
-
-        private static final Image DISCONNECTED_IMAGE = new Image(
-                SnapshotController.class.getResourceAsStream("/icons/showerr_tsk.png"));
-        private final Tooltip tooltip = new Tooltip();
-
-        VSetpointCellEditor(SnapshotController cntrl) {
-            super();
-        }
-
-        @Override
-        public void updateItem(T item, boolean empty) {
-            super.updateItem(item, empty);
-            getStyleClass().remove("diff-cell");
-            if (item == null || empty) {
-                setText("");
-                setTooltip(null);
-                setGraphic(null);
-            } else {
-                if (item == VDisconnectedData.INSTANCE) {
-                    setText(VDisconnectedData.DISCONNECTED);
-                    setGraphic(new ImageView(DISCONNECTED_IMAGE));
-                    tooltip.setText("No Value Available");
-                    setTooltip(tooltip);
-                    getStyleClass().add("diff-cell");
-                } else if (item == VNoData.INSTANCE) {
-                    setText(item.toString());
-                    tooltip.setText("No Value Available");
-                    setTooltip(tooltip);
-                } else if (item instanceof VType) {
-                    setText(Utilities.valueToString((VType) item));
-                    setGraphic(null);
-                    tooltip.setText(item.toString());
-                    setTooltip(tooltip);
-                } else if (item instanceof VTypePair) {
-                    VTypePair pair = (VTypePair) item;
-                    if (pair.value == VDisconnectedData.INSTANCE) {
-                        setText(VDisconnectedData.DISCONNECTED);
-                        if (pair.base != VDisconnectedData.INSTANCE) {
-                            getStyleClass().add("diff-cell");
-                        }
-                        setGraphic(new ImageView(DISCONNECTED_IMAGE));
-                    } else if (pair.value == VNoData.INSTANCE) {
-                        setText(pair.value.toString());
-                    } else {
-                        setText(Utilities.valueToString(pair.value));
-                    }
-                    tooltip.setText(pair.value.toString());
-                    setTooltip(tooltip);
-                }
-            }
-        }
-    }
-
     /**
      * <code>TooltipTableColumn</code> is the common table column implementation, which can also provide the tooltip.
      *
