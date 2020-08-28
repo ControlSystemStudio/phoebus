@@ -85,10 +85,7 @@ public class TextSymbolRepresentation extends RegionBaseRepresentation<Label, Te
                 jfx_node.setVisible((boolean) value);
             }
 
-            jfx_node.setLayoutX(model_widget.propX().getValue());
-            jfx_node.setLayoutY(model_widget.propY().getValue());
-            jfx_node.setPrefWidth(model_widget.propWidth().getValue());
-            jfx_node.setPrefHeight(model_widget.propHeight().getValue());
+            jfx_node.resize(model_widget.propWidth().getValue(), model_widget.propHeight().getValue());
 
         }
 
@@ -113,31 +110,34 @@ public class TextSymbolRepresentation extends RegionBaseRepresentation<Label, Te
             final int width = model_widget.propWidth().getValue();
             final int height = model_widget.propHeight().getValue();
             final RotationStep rotation = model_widget.propRotationStep().getValue();
+            final int w, h;
 
             switch ( rotation ) {
-                case NONE:
-                    jfx_node.setPrefSize(width, height);
-                    if ( was_ever_transformed ) {
-                        jfx_node.getTransforms().clear();
-                    }
-                    break;
                 case NINETY:
-                    jfx_node.setPrefSize(height, width);
+                    w = height; h = width;
                     jfx_node.getTransforms().setAll(new Rotate(-rotation.getAngle()), new Translate(-height, 0));
                     was_ever_transformed = true;
                     break;
                 case ONEEIGHTY:
-                    jfx_node.setPrefSize(width, height);
+                    w = width; h = height;
                     jfx_node.getTransforms().setAll(new Rotate(-rotation.getAngle()), new Translate(-width, -height));
                     was_ever_transformed = true;
                     break;
                 case MINUS_NINETY:
-                    jfx_node.setPrefSize(height, width);
+                    w = height; h = width;
                     jfx_node.getTransforms().setAll(new Rotate(-rotation.getAngle()), new Translate(0, -width));
                     was_ever_transformed = true;
                     break;
+                case NONE:
+                default:
+                    w = width; h = height;
+                    if ( was_ever_transformed ) {
+                        jfx_node.getTransforms().clear();
+                    }
+                    break;
             }
 
+            jfx_node.resize(w, h);
             value = model_widget.propEnabled().getValue();
 
             if ( !Objects.equals(value, enabled) ) {
@@ -224,6 +224,7 @@ public class TextSymbolRepresentation extends RegionBaseRepresentation<Label, Te
         symbol.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
         symbol.setTextFill(JFXUtil.convert(model_widget.propForegroundColor().getValue()));
         symbol.setText("\u263A");
+        symbol.setManaged(false);
 
         enabled = model_widget.propEnabled().getValue();
 
