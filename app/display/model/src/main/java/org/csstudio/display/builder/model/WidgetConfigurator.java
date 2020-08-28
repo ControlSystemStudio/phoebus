@@ -63,6 +63,17 @@ public class WidgetConfigurator
         }
     }
 
+    /** This exception is thrown when the version of the widget in the XML
+     *  config is not supported
+     */
+    public static class UnsupportedWidgetVersionException extends Exception
+    {
+        public UnsupportedWidgetVersionException(final String msg)
+        {
+            super(msg);
+        }
+    }
+
     /** Version of the XML.
      *
      *  <p>Derived class can use this to decide how to read older XML.
@@ -87,8 +98,16 @@ public class WidgetConfigurator
      *
      */
     public boolean configureFromXML(final ModelReader model_reader, final Widget widget,
-            final Element xml) throws ParseAgainException, Exception
+            final Element xml) throws ParseAgainException, UnsupportedWidgetVersionException, Exception
     {
+        if (xml_version.getMajor() > widget.getVersion().getMajor())
+        {
+            logger.log(Level.SEVERE,
+                       "Error reading widget " + widget + ": unsupported version " + xml_version);
+
+            throw new UnsupportedWidgetVersionException("Unsupported " + widget.getType() + " version: " + xml_version);
+        }
+
         // System.out.println("Reading " + widget + " from saved V" + xml_version);
         configureAllPropertiesFromMatchingXML(model_reader, widget, xml);
         return true;

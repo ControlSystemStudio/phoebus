@@ -23,6 +23,7 @@ import org.csstudio.display.builder.model.Preferences;
 import org.csstudio.display.builder.model.Version;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetConfigurator.ParseAgainException;
+import org.csstudio.display.builder.model.WidgetConfigurator.UnsupportedWidgetVersionException;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetFactory;
 import org.csstudio.display.builder.model.WidgetFactory.WidgetTypeException;
@@ -207,6 +208,12 @@ public class ModelReader
             {
                 ex.printStackTrace();
                 return null;
+            }
+            catch (UnsupportedWidgetVersionException ex)
+            {
+                // Already logged when thrown
+                ++widget_errors_during_parse;
+                // Continue with next widget
             }
             catch (WidgetTypeException ex)
             {
