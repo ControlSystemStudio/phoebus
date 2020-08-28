@@ -477,21 +477,23 @@ public class EditorGUI
             {
                 canon_path = file.getCanonicalPath();
                 model = ModelLoader.loadModel(new FileInputStream(file), canon_path);
+                this.file = file;
             }
             catch (final Exception ex)
             {
                 canon_path = null;
                 logger.log(Level.SEVERE, "Cannot load model from " + file, ex);
                 ExceptionDetailsErrorDialog.openError("Creating empty file",
-                        "Cannot load model from\n" + file + "\n\nCreating new, empty file", ex);
+                        "Cannot load model from\n" + file + "\n\nCreating new, empty model", ex);
                 model = new DisplayModel();
                 model.propName().setValue("Empty");
+                // Don't associate this editor with the file we've failed to load
+                this.file = null;
             }
 
             if (! file.canWrite())
                 model.setUserData(DisplayModel.USER_DATA_READONLY, Boolean.TRUE.toString());
             setModel(model);
-            this.file = file;
 
             try
             {
