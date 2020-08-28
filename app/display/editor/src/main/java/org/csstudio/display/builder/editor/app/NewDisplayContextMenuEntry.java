@@ -35,6 +35,7 @@ import org.phoebus.ui.dialog.SaveAsDialog;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.ContextMenuEntry;
+import org.phoebus.util.FileExtensionUtil;
 
 import java.io.File;
 import java.text.MessageFormat;
@@ -100,7 +101,7 @@ public class NewDisplayContextMenuEntry implements ContextMenuEntry {
             newDisplayFile = targetFile;
         }
         else{
-            newDisplayFile = ModelResourceUtil.enforceFileExtension(targetFile, DisplayModel.FILE_EXTENSION);
+            newDisplayFile = FileExtensionUtil.enforceFileExtension(targetFile, DisplayModel.FILE_EXTENSION);
             // Check if the file exists on the file system when .bob extension has been enforced.
             // If it does, prompt user to cancel or overwrite.
             if(newDisplayFile.exists()){

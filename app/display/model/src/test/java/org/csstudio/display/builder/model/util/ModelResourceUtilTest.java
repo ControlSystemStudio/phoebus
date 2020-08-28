@@ -23,25 +23,6 @@ import org.junit.Test;
 public class ModelResourceUtilTest
 {
     @Test
-    public void testFile() throws Exception
-    {
-        File bob = new File("/some/path/file.bob");
-
-        // Change from no file extension
-        File file = ModelResourceUtil.enforceFileExtension(new File("/some/path/file"), DisplayModel.FILE_EXTENSION);
-        assertThat(file, equalTo(bob));
-
-        // Change from other file extension
-        file = ModelResourceUtil.enforceFileExtension(new File("/some/path/file.abc"), DisplayModel.FILE_EXTENSION);
-        assertThat(file, equalTo(bob));
-
-        // Leave matching extension
-        file = ModelResourceUtil.enforceFileExtension(new File("/some/path/file.bob"), DisplayModel.FILE_EXTENSION);
-        assertThat(file, equalTo(bob));
-    }
-
-
-    @Test
     public void testExamples() throws Exception
     {
         final String parent_display = "examples:/01_main.bob";

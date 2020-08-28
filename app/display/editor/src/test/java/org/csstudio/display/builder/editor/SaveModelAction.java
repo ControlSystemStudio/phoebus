@@ -16,6 +16,7 @@ import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 import org.phoebus.ui.dialog.SaveAsDialog;
 
 import javafx.stage.Window;
+import org.phoebus.util.FileExtensionUtil;
 
 /** Prompt for file name to save model
  *  @author Kay Kasemir
@@ -41,7 +42,7 @@ public class SaveModelAction extends ActionDescription
         if (file == null)
             return;
 
-        file = ModelResourceUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
+        file = FileExtensionUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
         editor.saveModelAs(file);
     }
 }

@@ -41,6 +41,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Window;
 import javafx.util.Duration;
+import org.phoebus.util.FileExtensionUtil;
 
 /** Display Runtime Application
  *  @author Kay Kasemir
@@ -170,7 +171,7 @@ public class DisplayEditorApplication implements AppResourceDescriptor
         if(file.exists()){
             return file;
         }
-        file = ModelResourceUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
+        file = FileExtensionUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
         // Check if the file exists on the file system when .bob extension has been enforced.
         // If it does, prompt user to cancel or overwrite.
         if(file.exists()){

@@ -59,6 +59,7 @@ import javafx.scene.control.Control;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.ContextMenuEvent;
+import org.phoebus.util.FileExtensionUtil;
 
 /** Display Editor Instance
  *  @author Kay Kasemir
@@ -401,11 +402,11 @@ public class DisplayEditorInstance implements AppInstance
             File proper;
             if(model.isClassModel())
             {
-                proper = ModelResourceUtil.enforceFileExtension(file, WidgetClassSupport.FILE_EXTENSION);
+                proper = FileExtensionUtil.enforceFileExtension(file, WidgetClassSupport.FILE_EXTENSION);
             }
             else
             {
-                proper = ModelResourceUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
+                proper = FileExtensionUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
             }
 
             if (file.equals(proper))
