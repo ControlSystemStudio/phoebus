@@ -202,6 +202,7 @@ public class ArchiveFetchJob implements JobRunnable
         this.start = start;
         this.end = end;
         this.listener = listener;
+        new Exception("NEW " + this).printStackTrace();
         this.job = JobManager.schedule(toString(), this);
     }
 
@@ -225,16 +226,29 @@ public class ArchiveFetchJob implements JobRunnable
 
         monitor.beginTask("Pending...");
 
+        // When a model is loaded, items added,
+        // or user zooms/pans, this can result in jobs being added
+        // and then soon canceled to add updated jobs.
+        // Wait a little to then check if we're already cancelled,
+        // instead of starting the request right away only to then
+        // have a hard time cancelling the ongoing query.
+        TimeUnit.MILLISECONDS.sleep(700);
+
+        // Cancelled before even started the worker?
+        if (monitor.isCanceled())
+        {
+            System.out.println("Quit before even starting " + this);
+            return;
+        }
         concurrent_requests.acquire();
         try
         {
             monitor.beginTask(Messages.ArchiveFetchStart);
 
-            // Cancelled before even started the worker?
-            if (monitor.isCanceled())
-                return;
-
             final WorkerThread worker = new WorkerThread();
+
+            System.out.println("ACTUALLY RUNNING " + this);
+
             final Future<?> done = Activator.thread_pool.submit(worker);
             // Poll worker and progress monitor
             long start = System.currentTimeMillis();
@@ -273,6 +287,7 @@ public class ArchiveFetchJob implements JobRunnable
      */
     public void cancel()
     {
+        new Exception("CANCEL " + this).printStackTrace();
         job.cancel();
     }
 

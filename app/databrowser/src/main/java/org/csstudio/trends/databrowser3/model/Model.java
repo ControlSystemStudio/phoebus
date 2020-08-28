@@ -932,13 +932,14 @@ public class Model
             listener.changedItemUnits(item);
     }
 
-    /** Notify listeners of changed item configuration
-     *  @param item Item that changed
-     */
-    void fireItemDataConfigChanged(final PVItem item)
+    /** Notify listeners of changed item data source configuration
+     *  @param item Item with changed data sources
+     *  @param archive_invalid Was a data source added, do we need to get new archived data?
+     *                         Or does the change not affect archived data?     */
+    void fireItemDataConfigChanged(final PVItem item, final boolean archive_invalid)
     {
         for (ModelListener listener : listeners)
-            listener.changedItemDataConfig(item);
+            listener.changedItemDataConfig(item, archive_invalid);
     }
 
     void fireItemRefreshRequested(final PVItem item)

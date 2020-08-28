@@ -222,7 +222,7 @@ public class TracesTab extends Tab
         }
 
         @Override
-        public void changedItemDataConfig(final PVItem item)
+        public void changedItemDataConfig(final PVItem item, final boolean archive_invalid)
         {
             trace_table.refresh();
         }

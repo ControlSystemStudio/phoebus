@@ -112,7 +112,7 @@ public class DataBrowserInstance implements AppInstance
         {   setDirty(true);   }
 
         @Override
-        public void changedItemDataConfig(PVItem item)
+        public void changedItemDataConfig(final PVItem item, final boolean archive_invalid)
         {   setDirty(true);   }
 
         @Override
