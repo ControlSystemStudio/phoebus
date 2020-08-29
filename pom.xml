@@ -216,6 +216,7 @@
             <version>1.0-alpha-2</version>
             <configuration>
               <aggregate>true</aggregate>
+              <includes>**/messages*.properties</includes>
               <locales>
                 <locale>de</locale>
                 <locale>es</locale>
