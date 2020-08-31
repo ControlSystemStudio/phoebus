@@ -231,7 +231,9 @@ public class ArchiveFetchJob implements JobRunnable
         // Wait a little to then check if we're already cancelled,
         // instead of starting the request right away only to then
         // have a hard time cancelling the ongoing query.
-        TimeUnit.MILLISECONDS.sleep(700);
+        // (For zoom/pan, this delay is actually used twice:
+        //  before starting the fetch job, then right here)
+        TimeUnit.MILLISECONDS.sleep(Preferences.archive_fetch_delay);
 
         // Cancelled before even started the worker?
         if (monitor.isCanceled())
