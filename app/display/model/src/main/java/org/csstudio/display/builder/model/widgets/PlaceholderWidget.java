@@ -30,6 +30,8 @@ import org.w3c.dom.Node;
 @SuppressWarnings("nls")
 public class PlaceholderWidget extends VisibleWidget
 {
+    public static final String suffix = "-placeholder";
+
     private static final Version VERSION = new Version(99, 0, 0);
 
     private static class CustomWidgetConfigurator extends WidgetConfigurator
@@ -63,7 +65,7 @@ public class PlaceholderWidget extends VisibleWidget
      */
     public PlaceholderWidget(final String type)
     {
-        super(type + "-placeholder");
+        super(type + suffix);
         orig_type = type;
     }
 
@@ -98,6 +100,12 @@ public class PlaceholderWidget extends VisibleWidget
     public final String getOrigType()
     {
         return orig_type;
+    }
+
+    @Override
+    public final boolean isClean()
+    {
+        return false;
     }
 
     public final void writeToXML(final ModelWriter model_writer, final XMLStreamWriter writer) throws Exception

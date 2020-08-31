@@ -120,9 +120,6 @@ public class DisplayModel extends Widget
     private volatile WidgetProperty<Integer> gridStepY;
     private volatile ChildrenProperty children;
 
-    /** Loaded without errors? */
-    private volatile Boolean clean;
-
     /** Create display model */
     public DisplayModel()
     {
@@ -176,7 +173,10 @@ public class DisplayModel extends Widget
 
     public final void setReaderResult(final ModelReader modelReader)
     {
-        if (this.clean != null)
+        /*
+         * setConfiguratorResult() might have already set it to true
+         */
+        if (this.clean != null && this.clean.booleanValue() == false)
             throw new RuntimeException("Cannot change cleanliness of DisplayModel");
 
         this.clean = Boolean.valueOf(modelReader.getNumberOfWidgetErrors() == 0);
@@ -185,6 +185,7 @@ public class DisplayModel extends Widget
     /** @return <code>true</code> if this display was loaded without errors,
      *          <code>false</code> if there were widget errors
      */
+    @Override
     public final boolean isClean()
     {
         Boolean safe = clean;
@@ -198,12 +199,15 @@ public class DisplayModel extends Widget
         // Check embedded displays and navigation tabs too
         for (Widget child: getChildren())
         {
-            java.util.Optional<WidgetProperty<DisplayModel>> child_dm_prop = child.checkProperty("embedded_model");
+            java.util.Optional<WidgetProperty<DisplayModel>> child_dm_prop = child.checkProperty(EmbeddedDisplayWidget.runtimeModel.getName());
             if (child_dm_prop.isPresent())
             {
                 final DisplayModel child_dm = child_dm_prop.get().getValue();
                 if (child_dm != null && child_dm.isClean() == false)
+                {
+                    clean = Boolean.valueOf(false);
                     return false;
+                }
             }
         }
 

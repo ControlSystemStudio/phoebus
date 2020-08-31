@@ -14,7 +14,6 @@ import java.util.ServiceLoader;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
-import org.csstudio.display.builder.model.WidgetConfigurator.UnsupportedWidgetVersionException;
 import org.csstudio.display.builder.model.WidgetClassSupport;
 import org.csstudio.display.builder.model.spi.DisplayAutoConverter;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
@@ -46,10 +45,6 @@ public class ModelLoader
         {
             final String resolved_name = ModelResourceUtil.resolveResource(parent_display, display_file);
             return loadModel(resolved_name);
-        }
-        catch (UnsupportedWidgetVersionException ex)
-        {
-            throw ex;
         }
         catch (Exception ex)
         {

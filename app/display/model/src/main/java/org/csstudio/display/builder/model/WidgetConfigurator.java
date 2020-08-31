@@ -63,27 +63,26 @@ public class WidgetConfigurator
         }
     }
 
-    /** This exception is thrown when the version of the widget in the XML
-     *  config is not supported
-     */
-    public static class UnsupportedWidgetVersionException extends Exception
-    {
-        public UnsupportedWidgetVersionException(final String msg)
-        {
-            super(msg);
-        }
-    }
-
     /** Version of the XML.
      *
      *  <p>Derived class can use this to decide how to read older XML.
      */
     protected final Version xml_version;
 
+    /** True if the widget was parsed without errors or warnings
+     */
+    protected boolean clean_parse;
+
     /**@param xml_version Version of the XML */
     public WidgetConfigurator(final Version xml_version)
     {
         this.xml_version = xml_version;
+        clean_parse = true;
+    }
+
+    public boolean isClean()
+    {
+        return clean_parse;
     }
 
     /** Configure widget based on data persisted in XML.
@@ -98,18 +97,19 @@ public class WidgetConfigurator
      *
      */
     public boolean configureFromXML(final ModelReader model_reader, final Widget widget,
-            final Element xml) throws ParseAgainException, UnsupportedWidgetVersionException, Exception
+            final Element xml) throws ParseAgainException, Exception
     {
-        if (xml_version.getMajor() > widget.getVersion().getMajor())
-        {
-            logger.log(Level.SEVERE,
-                       "Error reading widget " + widget + ": unsupported version " + xml_version);
-
-            throw new UnsupportedWidgetVersionException("Unsupported " + widget.getType() + " version: " + xml_version);
-        }
-
         // System.out.println("Reading " + widget + " from saved V" + xml_version);
         configureAllPropertiesFromMatchingXML(model_reader, widget, xml);
+
+        // Check this _after_ reading the properties so that when can log the widget's name
+        if (xml_version.getMajor() > widget.getVersion().getMajor())
+        {
+            clean_parse = false;
+            logger.log(Level.WARNING,
+                       "Widget " + widget + " has version " + xml_version.getMajor() + " expected " + widget.getVersion().getMajor());
+        }
+
         return true;
     }
 
@@ -137,6 +137,7 @@ public class WidgetConfigurator
             }
             catch (Exception ex)
             {
+                clean_parse = false;
                 logger.log(Level.SEVERE,
                            "Error reading widget " + widget + " property <" + property.getName() +
                            ">, line " + XMLUtil.getLineInfo(prop_xml), ex);

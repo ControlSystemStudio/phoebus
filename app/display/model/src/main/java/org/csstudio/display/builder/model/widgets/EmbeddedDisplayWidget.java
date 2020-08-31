@@ -179,6 +179,7 @@ public class EmbeddedDisplayWidget extends MacroWidget
                     }
                     catch (NumberFormatException ex)
                     {
+                        clean_parse = false;
                         logger.log(Level.WARNING, "Cannot decode legacy resize_behavior");
                     }
                 }

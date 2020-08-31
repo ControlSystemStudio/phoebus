@@ -17,12 +17,14 @@ import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.undo.UndoableAction;
 import org.phoebus.ui.undo.UndoableActionManager;
 
+import javafx.scene.Node;
 import javafx.scene.control.cell.TextFieldTreeCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.Rectangle;
 import javafx.util.StringConverter;
 
 /** Tree cell that displays {@link WidgetOrTab} (name, icon, ..)
@@ -87,9 +89,25 @@ class WidgetTreeCell extends TextFieldTreeCell<WidgetOrTab>
             final Widget widget = item.getWidget();
             final String type = widget.getType();
             setText(widget.getName());
+            if (widget.isClean() == false)
+                setTextFill(Color.RED);
+
             final Image icon = WidgetIcons.getIcon(type);
+            Node graphic = null;
             if (icon != null)
             {
+                graphic = new ImageView(icon);
+                if (widget.isClean() == false)
+                {
+                    final double w = icon.getWidth();
+                    final double h = icon.getHeight();
+                    final Rectangle rect = new Rectangle(0, 0, w, h);
+                    rect.setStroke(Color.RED);
+                    rect.setStrokeWidth(2);
+                    rect.setFill(Color.rgb(255, 0, 0, 0.5));
+                    graphic = new StackPane(rect, graphic);
+                }
+
                 if (widget instanceof VisibleWidget)
                 {
                     final boolean visible = ((VisibleWidget)widget).propVisible().getValue();
@@ -103,17 +121,12 @@ class WidgetTreeCell extends TextFieldTreeCell<WidgetOrTab>
                         l2.setStroke(Color.RED);
                         l1.setStrokeWidth(2);
                         l2.setStrokeWidth(2);
-                        final StackPane pane = new StackPane(new ImageView(icon), l1, l2);
-                        setGraphic(pane);
+                        graphic = new StackPane(graphic, l1, l2);
                     }
-                    else
-                        setGraphic(new ImageView(icon));
                 }
-                else
-                    setGraphic(new ImageView(icon));
             }
-            else
-                setGraphic(null);
+
+            setGraphic(graphic);
         }
         else
         {

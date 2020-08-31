@@ -514,7 +514,9 @@ public class EditorGUI
             if (canon_path != null && model.isClean() == false)
             {
                 ExceptionDetailsErrorDialog.openError("Errors while loading model",
-                        "There were some errors while loading model from " + file + "\nNot all widgets are displayed correctly; saving the display in this state might lead to losing those widgets. Please check the log for details.", null);
+                        "There were some errors while loading model from " + file + "\nNot all widgets are displayed correctly; " +
+                        "saving the display in this state might lead to losing those widgets or some of their properties." +
+                        "\nPlease check the log for details.", null);
             }
 
         });
