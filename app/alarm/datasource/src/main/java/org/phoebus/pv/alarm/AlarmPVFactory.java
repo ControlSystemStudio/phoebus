@@ -27,4 +27,9 @@ public class AlarmPVFactory implements PVFactory
         AlarmContext.registerPV(alarmPV);
         return alarmPV;
     }
+
+    public static void releaseAlarmPV(AlarmPV alarmPV) {
+        AlarmContext.releasePV(alarmPV);
+    }
+
 }

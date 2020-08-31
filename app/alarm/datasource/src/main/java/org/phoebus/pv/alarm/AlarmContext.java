@@ -99,4 +99,11 @@ public class AlarmContext
         initializeAlarmClient(alarmPV.getInfo().getRoot());
         intializeAlarmPV(alarmPV);
     }
+
+    public static synchronized void releasePV(AlarmPV alarmPV) {
+        if(pvs.containsKey(alarmPV.getInfo().getCompletePath()))
+        {
+            pvs.remove(alarmPV.getInfo().getCompletePath());
+        }
+    }
 }
