@@ -31,11 +31,17 @@ public class AlarmPV extends PV
 
     public void updateValue(AlarmTreeItem item)
     {
-        // Process alarm
-        VString alarm = VString.of(item.toString(),
-                                   processState(item.getState()),
-                                   Time.now());
-        notifyListenersOfValue(alarm);
+        if(item == null)
+        {
+            notifyListenersOfDisconnect();
+        }
+        else {
+            // Process alarm
+            VString alarm = VString.of(item.toString(),
+                    processState(item.getState()),
+                    Time.now());
+            notifyListenersOfValue(alarm);
+        }
     }
 
     @Override
@@ -43,6 +49,11 @@ public class AlarmPV extends PV
     {
         super.close();
         AlarmPVFactory.releaseAlarmPV(this);
+    }
+
+
+    public void disconnected() {
+        notifyListenersOfDisconnect();
     }
 
     private static Alarm processState(BasicState state)
@@ -66,4 +77,5 @@ public class AlarmPV extends PV
             return Alarm.of(AlarmSeverity.NONE, AlarmStatus.UNDEFINED, state.toString());
         }
     }
+
 }

@@ -7,7 +7,6 @@ import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -51,12 +50,18 @@ public class AlarmContext
 
                 @Override
                 public void itemAdded(AlarmTreeItem<?> item) {
-
+                    if(pvs.containsKey(item.getPathName()))
+                    {
+                        pvs.get(item.getPathName()).updateValue(item);
+                    }
                 }
 
                 @Override
                 public void itemRemoved(AlarmTreeItem<?> item) {
-
+                    if(pvs.containsKey(item.getPathName()))
+                    {
+                        pvs.get(item.getPathName()).disconnected();
+                    }
                 }
 
                 @Override
@@ -77,18 +82,26 @@ public class AlarmContext
     {
         if (alarmModels.containsKey(alarmPV.getInfo().getRoot()))
         {
-            AlarmClientNode root = alarmModels.get(alarmPV.getInfo().getRoot()).getRoot();
-            AlarmTreeItem<?> node = root;
-            // find the child
-            if (alarmPV.getInfo().getPath().isPresent())
+            if(pvs.containsKey(alarmPV.getInfo().getCompletePath()))
             {
-                Iterator<Path> it = Path.of(alarmPV.getInfo().getPath().get()).iterator();
-                while (it.hasNext())
+                AlarmClientNode root = alarmModels.get(alarmPV.getInfo().getRoot()).getRoot();
+                AlarmTreeItem<?> node = root;
+                // find the child
+                if (alarmPV.getInfo().getPath().isPresent())
                 {
-                    node = node.getChild(it.next().toString());
+                    Iterator<Path> it = Path.of(alarmPV.getInfo().getPath().get()).iterator();
+                    while (it.hasNext())
+                    {
+                        node = node.getChild(it.next().toString());
+                    }
                 }
+                pvs.get(alarmPV.getInfo().getCompletePath()).updateValue(node);
             }
-            pvs.get(alarmPV.getInfo().getCompletePath()).updateValue(node);
+            else
+            {
+
+            }
+
         }
     }
 
