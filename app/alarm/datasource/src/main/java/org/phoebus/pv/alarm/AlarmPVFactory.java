@@ -23,6 +23,8 @@ public class AlarmPVFactory implements PVFactory
     @Override
     public PV createPV(final String name, final String base_name) throws Exception
     {
-        return new AlarmPV(name, base_name);
+        AlarmPV alarmPV = new AlarmPV(name, base_name);
+        AlarmContext.registerPV(alarmPV);
+        return alarmPV;
     }
 }
