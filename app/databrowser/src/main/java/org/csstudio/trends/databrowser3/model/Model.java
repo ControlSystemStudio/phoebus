@@ -935,7 +935,8 @@ public class Model
     /** Notify listeners of changed item data source configuration
      *  @param item Item with changed data sources
      *  @param archive_invalid Was a data source added, do we need to get new archived data?
-     *                         Or does the change not affect archived data?     */
+     *                         Or does the change not affect archived data?
+     */
     void fireItemDataConfigChanged(final PVItem item, final boolean archive_invalid)
     {
         for (ModelListener listener : listeners)
