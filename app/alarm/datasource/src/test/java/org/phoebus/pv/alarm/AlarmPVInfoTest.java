@@ -40,7 +40,40 @@ public class AlarmPVInfoTest {
         assertEquals("Failed to parse the path info for pv: " + leaf,
                 alarmPVInfo.getPath(), Optional.of("/firstNode/secondNode/alarmPV"));
 
+    }
 
+    /**
+     * Test the mapping of the pv paths to the complete paths as encoded in the messages
+     * coming from the alarm server
+     */
+    @Test
+    public void parseCompletePath()
+    {
+        String onlyRoot = "root";
+        String oneNode = "root/firstNode";
+        String twoNode = "root/firstNode/secondNode";
+        String leaf = "root/firstNode/secondNode/alarmPV";
+
+
+        AlarmPVInfo alarmPVInfo = AlarmPVInfo.of(onlyRoot);
+        assertEquals("Failed to parse the root info for pv: " + onlyRoot,
+                "/root",
+                          alarmPVInfo.getCompletePath());
+
+        alarmPVInfo = AlarmPVInfo.of(oneNode);
+        assertEquals("Failed to parse the root info for pv: " + onlyRoot,
+                "/root/firstNode",
+                alarmPVInfo.getCompletePath());
+
+        alarmPVInfo = AlarmPVInfo.of(twoNode);
+        assertEquals("Failed to parse the root info for pv: " + onlyRoot,
+                "/root/firstNode/secondNode",
+                alarmPVInfo.getCompletePath());
+
+        alarmPVInfo = AlarmPVInfo.of(leaf);
+        assertEquals("Failed to parse the root info for pv: " + onlyRoot,
+                "/root/firstNode/secondNode/alarmPV",
+                alarmPVInfo.getCompletePath());
     }
 
 }
