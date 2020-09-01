@@ -31,6 +31,9 @@ import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.macros.MacroHandler;
+import org.csstudio.display.builder.model.persist.NamedWidgetColors;
+import org.csstudio.display.builder.model.persist.WidgetColorService;
+import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.PVWidget;
@@ -102,6 +105,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
     private final ImageView                      imageView              = new ImageView();
     private final Label                          indexLabel             = new Label();
     private final Circle                         indexLabelBackground   = new Circle(INDEX_LABEL_SIZE / 2, Color.BLACK.deriveColor(0.0, 0.0, 0.0, 0.75));
+    private final Rectangle                      disconnectedRectangle  = new Rectangle();
     private Dimension2D                          maxSize                = new Dimension2D(0, 0);
     private final WidgetPropertyListener<String> symbolPropertyListener = this::symbolChanged;
     private final AtomicReference<List<Symbol>>  symbols                = new AtomicReference<>(Collections.emptyList());
@@ -264,6 +268,8 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
                 value = model_widget.runtimePropValue().getValue();
 
                 if ( value != null ) {
+                    disconnectedRectangle.setVisible(false);
+
                     if ( PVWidget.RUNTIME_VALUE_NO_PV == value ) {
                         idx = model_widget.propInitialIndex().getValue();
                     } else if ( value instanceof VBoolean ) {
@@ -295,6 +301,8 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
                         }
 
                     }
+                } else if (! toolkit.isEditMode()) {
+                    disconnectedRectangle.setVisible(true);
                 }
 
             } finally {
@@ -345,6 +353,9 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
             if ( symbol != null ) {
                 setSymbolSize(w, h, model_widget.propPreserveRatio().getValue());
             }
+
+            disconnectedRectangle.setWidth(w);
+            disconnectedRectangle.setHeight(h);
 
             jfx_node.setLayoutX(model_widget.propX().getValue());
             jfx_node.setLayoutY(model_widget.propY().getValue());
@@ -404,7 +415,12 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         indexLabel.setVisible(model_widget.propShowIndex().getValue());
         indexLabel.textProperty().bind(Bindings.convert(imageIndexProperty()));
 
-        symbolPane.getChildren().addAll(getSymbolNode(), indexLabelBackground, indexLabel);
+        WidgetColor rect_color = WidgetColorService.getColor(NamedWidgetColors.ALARM_INVALID);
+        WidgetColor arect_color = new WidgetColor(rect_color.getRed(), rect_color.getGreen(), rect_color.getBlue(), 128);
+        disconnectedRectangle.setFill(JFXUtil.convert(arect_color));
+        disconnectedRectangle.setVisible(false);
+
+        symbolPane.getChildren().addAll(getSymbolNode(), indexLabelBackground, indexLabel, disconnectedRectangle);
 
         if ( model_widget.propTransparent().getValue() ) {
             symbolPane.setBackground(null);
