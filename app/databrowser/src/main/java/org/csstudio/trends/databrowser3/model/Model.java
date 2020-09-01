@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -932,13 +932,15 @@ public class Model
             listener.changedItemUnits(item);
     }
 
-    /** Notify listeners of changed item configuration
-     *  @param item Item that changed
+    /** Notify listeners of changed item data source configuration
+     *  @param item Item with changed data sources
+     *  @param archive_invalid Was a data source added, do we need to get new archived data?
+     *                         Or does the change not affect archived data?
      */
-    void fireItemDataConfigChanged(final PVItem item)
+    void fireItemDataConfigChanged(final PVItem item, final boolean archive_invalid)
     {
         for (ModelListener listener : listeners)
-            listener.changedItemDataConfig(item);
+            listener.changedItemDataConfig(item, archive_invalid);
     }
 
     void fireItemRefreshRequested(final PVItem item)
