@@ -90,7 +90,7 @@ public class AlarmContext
                 if (alarmPV.getInfo().getPath().isPresent())
                 {
                     Iterator<Path> it = Path.of(alarmPV.getInfo().getPath().get()).iterator();
-                    while (it.hasNext())
+                    while (it.hasNext() && node != null)
                     {
                         node = node.getChild(it.next().toString());
                     }
