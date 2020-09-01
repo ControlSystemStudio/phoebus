@@ -22,6 +22,7 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Preferences;
 import org.csstudio.display.builder.model.Version;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.WidgetConfigurator;
 import org.csstudio.display.builder.model.WidgetConfigurator.ParseAgainException;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetFactory;
@@ -110,6 +111,7 @@ public class ModelReader
     {
         root = XMLUtil.openXMLDocument(stream, XMLTags.DISPLAY);
         version = readVersion(root);
+        widget_errors_during_parse = 0;
         this.xml_file = xml_file;
     }
 
@@ -143,8 +145,14 @@ public class ModelReader
 
         model.setUserData(DisplayModel.USER_DATA_INPUT_VERSION, version);
 
+        widget_errors_during_parse = 0;
+
         // Read display's own properties
-        model.getConfigurator(version).configureFromXML(this, model, root);
+        final WidgetConfigurator configurator = model.getConfigurator(version);
+        configurator.configureFromXML(this, model, root);
+        if (! configurator.isClean())
+            ++widget_errors_during_parse;
+
         // Read widgets of model
         readWidgets(model.runtimeChildren(), root);
         if (widget_errors_during_parse > 0)
@@ -165,6 +173,8 @@ public class ModelReader
      */
     public void readWidgets(final ChildrenProperty children, final Element parent_xml)
     {
+        // Save the number of errors we had so far
+        int saved_widget_errors_during_parse = widget_errors_during_parse;
         // Limit the number of retries to avoid infinite loop
         for (int retries=0; retries < MAX_PARSE_AGAIN; ++retries)
         {
@@ -173,6 +183,9 @@ public class ModelReader
             {
                 for (Widget child : widgets)
                     children.addChild(child);
+
+                // Update the number of errors
+                widget_errors_during_parse += saved_widget_errors_during_parse;
                 return;
             }
         }
@@ -210,7 +223,6 @@ public class ModelReader
             }
             catch (WidgetTypeException ex)
             {
-                ++widget_errors_during_parse;
                 // Mention missing widget only once per reader
                 if (! unknown_widget_type.contains(ex.getType()))
                 {
@@ -221,7 +233,6 @@ public class ModelReader
             }
             catch (final Throwable ex)
             {
-                ++widget_errors_during_parse;
                 logger.log(Level.SEVERE,
                            "Widget configuration file error, " + source + ":" + XMLUtil.getLineInfo(widget_xml), ex);
                 // Continue with next widget
@@ -229,6 +240,7 @@ public class ModelReader
 
             if (! added)
             {
+                ++widget_errors_during_parse;
                 Widget widget = createPlaceholderWidget(widget_xml);
                 // Check for ParseAgainException
                 if (widget == null)
@@ -293,8 +305,15 @@ public class ModelReader
         for (WidgetDescriptor desc : WidgetFactory.getInstance().getAllWidgetDescriptors(type))
         {
             final Widget widget = desc.createWidget();
-            if (widget.getConfigurator(xml_version).configureFromXML(this, widget, widget_xml))
+            final WidgetConfigurator configurator = widget.getConfigurator(xml_version);
+            if (configurator.configureFromXML(this, widget, widget_xml))
+            {
+                widget.setConfiguratorResult(configurator);
+                if (! configurator.isClean())
+                    ++widget_errors_during_parse;
+
                 return widget;
+            }
         }
         throw new WidgetTypeException(type, "No suitable widget for " + type);
     }

@@ -160,6 +160,7 @@ public class TabsWidget extends MacroWidget
                 {
                     if (! content_xml.getAttribute("typeId").contains("group"))
                     {
+                        clean_parse = false;
                         logger.log(Level.WARNING, "Legacy 'tab' widget misses content of tab " + i);
                         break;
                     }
