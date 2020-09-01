@@ -128,7 +128,7 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Pane, Spinne
         });
 
         spinner.getEditor().setPadding(new Insets(0, 0, 0, 0));
-        
+
         Pane pane = new Pane();
         pane.getChildren().setAll(spinner);
         return pane;
