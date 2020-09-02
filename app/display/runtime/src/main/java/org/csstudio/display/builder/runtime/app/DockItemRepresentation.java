@@ -76,8 +76,8 @@ public class DockItemRepresentation extends JFXRepresentation
         // Size needs to account for the border and toolbar.
         // Using fixed numbers, exact size of border and toolbar unknown
         // at this time in the code
-        new_stage.setWidth(model.propWidth().getValue() + 20);
-        new_stage.setHeight(model.propHeight().getValue() + 70);
+        new_stage.setWidth(model.propWidth().getValue() + 18);
+        new_stage.setHeight(model.propHeight().getValue() + 105);
 
         new_stage.show();
 
