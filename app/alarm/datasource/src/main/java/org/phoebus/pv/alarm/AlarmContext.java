@@ -29,56 +29,13 @@ public class AlarmContext
         {
             logger.log(Level.CONFIG, "Creating a alarm client for config : + " + config + " in the alarm datasource");
             AlarmClient model = new AlarmClient(AlarmSystem.server, config);
-            model.addListener(new AlarmClientListener() {
-
-
-                @Override
-                public void serverStateChanged(boolean alive) {
-                    System.out.println("serverStateChanged : " + alive);
-
-                }
-
-                @Override
-                public void serverModeChanged(boolean maintenance_mode) {
-
-                }
-
-                @Override
-                public void serverDisableNotifyChanged(boolean disable_notify) {
-
-                }
-
-                @Override
-                public void itemAdded(AlarmTreeItem<?> item) {
-                    if(pvs.containsKey(item.getPathName()))
-                    {
-                        pvs.get(item.getPathName()).updateValue(item);
-                    }
-                }
-
-                @Override
-                public void itemRemoved(AlarmTreeItem<?> item) {
-                    if(pvs.containsKey(item.getPathName()))
-                    {
-                        pvs.get(item.getPathName()).disconnected();
-                    }
-                }
-
-                @Override
-                public void itemUpdated(AlarmTreeItem<?> item) {
-                    if(pvs.containsKey(item.getPathName()))
-                    {
-                        pvs.get(item.getPathName()).updateValue(item);
-                    }
-                }
-            });
-
+            model.addListener(new AlarmClientDatasourceListener(config));
             model.start();
             alarmModels.put(config, model);
         }
     }
 
-    private static synchronized void intializeAlarmPV(AlarmPV alarmPV)
+    private static synchronized void initializeAlarmPV(AlarmPV alarmPV)
     {
         if (alarmModels.containsKey(alarmPV.getInfo().getRoot()))
         {
@@ -110,13 +67,76 @@ public class AlarmContext
         pvs.put(alarmPV.getInfo().getCompletePath(), alarmPV);
         // Check if the alarm client associated with the root is created and running
         initializeAlarmClient(alarmPV.getInfo().getRoot());
-        intializeAlarmPV(alarmPV);
+        initializeAlarmPV(alarmPV);
     }
 
-    public static synchronized void releasePV(AlarmPV alarmPV) {
+    public static synchronized void releasePV(AlarmPV alarmPV)
+    {
         if(pvs.containsKey(alarmPV.getInfo().getCompletePath()))
         {
             pvs.remove(alarmPV.getInfo().getCompletePath());
+        }
+    }
+
+    private static class AlarmClientDatasourceListener implements AlarmClientListener
+    {
+        private final String config;
+
+        private AlarmClientDatasourceListener(String config) {
+            this.config = config;
+        }
+
+        @Override
+        public void serverStateChanged(boolean alive)
+        {
+            if(!alive)
+            {
+                pvs.values().stream()
+                        .filter(alarmPV -> {
+                            return alarmPV.getInfo().getRoot().equalsIgnoreCase(config);
+                        }).forEach(pv -> {
+                            pv.disconnected();
+                        });
+            }
+        }
+
+        @Override
+        public void serverModeChanged(boolean maintenance_mode)
+        {
+
+        }
+
+        @Override
+        public void serverDisableNotifyChanged(boolean disable_notify)
+        {
+
+        }
+
+        @Override
+        public void itemAdded(AlarmTreeItem<?> item)
+        {
+            if(pvs.containsKey(item.getPathName()))
+            {
+                pvs.get(item.getPathName()).updateValue(item);
+            }
+        }
+
+        @Override
+        public void itemRemoved(AlarmTreeItem<?> item)
+        {
+            if(pvs.containsKey(item.getPathName()))
+            {
+                pvs.get(item.getPathName()).disconnected();
+            }
+        }
+
+        @Override
+        public void itemUpdated(AlarmTreeItem<?> item)
+        {
+            if(pvs.containsKey(item.getPathName()))
+            {
+                pvs.get(item.getPathName()).updateValue(item);
+            }
         }
     }
 }

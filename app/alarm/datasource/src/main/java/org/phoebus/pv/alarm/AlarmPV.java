@@ -8,7 +8,6 @@ import org.epics.vtype.VString;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.pv.PV;
-import org.phoebus.pv.loc.LocalPVFactory;
 
 /**
  * A Connection to a node of leaf of the phoebus alarm tree
@@ -44,6 +43,10 @@ public class AlarmPV extends PV
         }
     }
 
+    public void disconnected() {
+        notifyListenersOfDisconnect();
+    }
+
     @Override
     protected void close()
     {
@@ -51,9 +54,9 @@ public class AlarmPV extends PV
         AlarmPVFactory.releaseAlarmPV(this);
     }
 
-
-    public void disconnected() {
-        notifyListenersOfDisconnect();
+    @Override
+    public boolean isReadonly() {
+        return super.isReadonly();
     }
 
     private static Alarm processState(BasicState state)
