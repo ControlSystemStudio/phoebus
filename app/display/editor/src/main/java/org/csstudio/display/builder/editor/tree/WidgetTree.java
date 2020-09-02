@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -31,6 +32,7 @@ import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget;
 import org.csstudio.display.builder.model.widgets.VisibleWidget;
+import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget.TabItemProperty;
 import org.phoebus.ui.javafx.TreeHelper;
 
@@ -92,6 +94,16 @@ public class WidgetTree
     {
         final Widget widget = property.getWidget();
         logger.log(Level.FINE, "{0} changed visibility", widget);
+
+        final TreeItem<WidgetOrTab> item = Objects.requireNonNull(widget2tree.get(widget));
+        Platform.runLater(() -> TreeHelper.triggerTreeItemRefresh(item));
+    };
+
+    /** Listener to changes of Widget's embedded_model */
+    private final WidgetPropertyListener<DisplayModel> embedded_listener = (property, old, new_name) ->
+    {
+        final Widget widget = property.getWidget();
+        logger.log(Level.FINE, "{0} changed embedded model", widget);
 
         final TreeItem<WidgetOrTab> item = Objects.requireNonNull(widget2tree.get(widget));
         Platform.runLater(() -> TreeHelper.triggerTreeItemRefresh(item));
@@ -411,6 +423,9 @@ public class WidgetTree
         added_widget.propName().addPropertyListener(name_listener);
         if (added_widget instanceof VisibleWidget)
             ((VisibleWidget)added_widget).propVisible().addPropertyListener(visible_listener);
+        Optional<WidgetProperty<DisplayModel>> embedded = added_widget.checkProperty(EmbeddedDisplayWidget.runtimeModel.getName());
+        if (embedded.isPresent())
+            embedded.get().addPropertyListener(embedded_listener);
 
         if (added_widget instanceof TabsWidget)
         {
@@ -474,6 +489,9 @@ public class WidgetTree
         removed_widget.propName().removePropertyListener(name_listener);
         if (removed_widget instanceof VisibleWidget)
             ((VisibleWidget)removed_widget).propVisible().removePropertyListener(visible_listener);
+        Optional<WidgetProperty<DisplayModel>> embedded = removed_widget.checkProperty(EmbeddedDisplayWidget.runtimeModel.getName());
+        if (embedded.isPresent())
+            embedded.get().removePropertyListener(embedded_listener);
 
         final ChildrenProperty children = ChildrenProperty.getChildren(removed_widget);
         if (children != null)

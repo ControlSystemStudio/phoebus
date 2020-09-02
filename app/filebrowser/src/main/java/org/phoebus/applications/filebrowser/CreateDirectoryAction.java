@@ -41,7 +41,7 @@ public class CreateDirectoryAction extends MenuItem
             final File file = item.getValue().file;
             final TextInputDialog prompt = new TextInputDialog(file.getName());
             prompt.setTitle(getText());
-            prompt.setHeaderText(Messages.CreateDirectoryHdr + item.getValue());
+            prompt.setHeaderText(Messages.CreateDirectoryHdr + item.getValue().file.getName());
             DialogHelper.positionDialog(prompt, node, 0, 0);
             final String new_name = prompt.showAndWait().orElse(null);
             if (new_name == null)

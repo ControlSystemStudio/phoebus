@@ -23,16 +23,16 @@ public class PVAByteArray extends PVAData implements PVAArray
     private final boolean unsigned;
     private volatile byte[] value;
 
-    public PVAByteArray(final String name, final boolean unsigned, final byte[] value)
+    /** Construct variable-size array
+     *  @param name Data item name
+     *  @param unsigned Unsigned data?
+     *  @param value Initial value
+     */
+    public PVAByteArray(final String name, final boolean unsigned, final byte... value)
     {
         super(name);
         this.unsigned = unsigned;
         this.value = value;
-    }
-
-    public PVAByteArray(final String name, final boolean unsigned)
-    {
-        this(name, unsigned, new byte[0]);
     }
 
     /** @return Is value unsigned? */

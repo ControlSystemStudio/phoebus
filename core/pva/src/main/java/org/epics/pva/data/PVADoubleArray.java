@@ -22,15 +22,14 @@ public class PVADoubleArray extends PVAData implements PVAArray
 {
     private volatile double[] value;
 
-    public PVADoubleArray(final String name, final double[] value)
+    /** Construct variable-size array
+     *  @param name Data item name
+     *  @param value Initial value
+     */
+    public PVADoubleArray(final String name, final double... value)
     {
         super(name);
         this.value = value;
-    }
-
-    public PVADoubleArray(final String name)
-    {
-        this(name, new double[0]);
     }
 
     /** @return Current value */

@@ -20,6 +20,7 @@ public class EmailPreferences
     public static final int mailport;
     public static final String username;
     public static final String password;
+    public static final String from;
 
     /** @return Is email supported? */
     public static final boolean isEmailSupported()
@@ -35,5 +36,6 @@ public class EmailPreferences
         mailport = prefs.getInt("mailport");
         username = prefs.get("username");
         password = prefs.get("password");
+        from = prefs.get("from");
     }
 }

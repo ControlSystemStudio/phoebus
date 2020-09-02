@@ -20,8 +20,33 @@
 package org.csstudio.apputil.formula.array;
 
 import org.csstudio.apputil.formula.spi.FormulaFunction;
+import org.epics.util.array.ArrayDouble;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VDoubleArray;
+import org.epics.vtype.VString;
 
+/**
+ * Abstract base class taking care of returning the category identifier for
+ * all sub-classes.
+ */
 public abstract class BaseArrayFunction implements FormulaFunction {
+
+    protected static VDouble DEFAULT_NAN_DOUBLE = VDouble.of(Double.NaN,
+            Alarm.none(),
+            Time.now(),
+            Display.none());
+
+    protected static VDoubleArray DEFAULT_NAN_DOUBLE_ARRAY = VDoubleArray.of(ArrayDouble.of(Double.NaN),
+            Alarm.none(),
+            Time.now(),
+            Display.none());
+
+    protected static VString DEFAULT_EMPTY_STRING =
+            VString.of("", Alarm.none(), Time.now());
+
     @Override
     public String getCategory() {
         return "array";

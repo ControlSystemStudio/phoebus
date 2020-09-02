@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
  * @author <a href="mailto:changj@frib.msu.edu">Genie Jhang</a>
  */
 
-public class SaveSetSelectionWithSplitController implements Initializable, ISelectedNodeProvider {
+public class SaveSetSelectionWithSplitController extends BaseSaveSetSelectionController implements Initializable {
 
     private SaveAndRestoreService saveAndRestoreService = (SaveAndRestoreService) ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().getBean("saveAndRestoreService");
 
@@ -118,7 +118,7 @@ public class SaveSetSelectionWithSplitController implements Initializable, ISele
             listView.getItems().add(newSaveset);
             listView.getSelectionModel().selectFirst();
 
-            if (!savesets.isEmpty()) {
+            if (!savesets.isEmpty() && !isDisabledSavesetSelection) {
                 listView.getItems().addAll(savesets);
             }
         });

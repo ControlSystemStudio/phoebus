@@ -1,0 +1,1 @@
+ALTER TABLE node MODIFY name VARCHAR(512);

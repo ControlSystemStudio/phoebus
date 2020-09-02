@@ -30,6 +30,7 @@ import org.csstudio.display.builder.runtime.pv.RuntimePVListener;
 import org.epics.vtype.VType;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.MacroValueProvider;
+import org.phoebus.pv.PV;
 
 /** Handler for one script of a widget.
  *
@@ -44,7 +45,8 @@ public class RuntimeScriptHandler implements RuntimePVListener
     private final Widget widget;
     private final List<ScriptPV> infos;
     private final Script script;
-    private final boolean check_connections;
+    private final boolean is_rule;
+    private volatile boolean check_connections;
 
     /** 'pvs' is aligned with 'infos', i.e. pvs[i] goes with infos.get(i) */
     private final RuntimePV[] pvs;
@@ -128,7 +130,7 @@ public class RuntimeScriptHandler implements RuntimePVListener
      */
     public RuntimeScriptHandler(final Widget widget, final ScriptInfo script_info) throws Exception
     {
-        this(widget, compileScript(widget, widget.getMacrosOrProperties(), script_info), script_info.getCheckConnections(), script_info.getPVs());
+        this(widget, compileScript(widget, widget.getMacrosOrProperties(), script_info), script_info.getCheckConnections(), false, script_info.getPVs());
     }
 
     /** @param widget Widget on which the rule is invoked
@@ -137,7 +139,7 @@ public class RuntimeScriptHandler implements RuntimePVListener
      */
     public RuntimeScriptHandler(final Widget widget, final RuleInfo rule_info) throws Exception
     {
-        this(widget, compileScript(widget, rule_info), true, rule_info.getPVs());
+        this(widget, compileScript(widget, rule_info), true, true, rule_info.getPVs());
     }
 
     /** @param widget Widget on which the script is invoked
@@ -146,11 +148,12 @@ public class RuntimeScriptHandler implements RuntimePVListener
      *  @param infos PV infos
      *  @throws Exception on error
      */
-    private RuntimeScriptHandler(final Widget widget, final Script script, final boolean check_connections, final List<ScriptPV> infos) throws Exception
+    private RuntimeScriptHandler(final Widget widget, final Script script, final boolean check_connections, final boolean is_rule, final List<ScriptPV> infos) throws Exception
     {
         this.widget = widget;
         this.infos = infos;
         this.script = script;
+        this.is_rule = is_rule;
         this.check_connections = check_connections;
         pvs = new RuntimePV[infos.size()];
         subscribed = new AtomicBoolean[infos.size()];
@@ -219,7 +222,7 @@ public class RuntimeScriptHandler implements RuntimePVListener
         // Skip script execution unless all PVs are connected?
         if (check_connections)
             for (RuntimePV p : pvs)
-                if (p.read() == null)
+                if (PV.isDisconnected(pv.read()))
                     return;
 
         // If this is a trigger PV, execute the script.
@@ -239,6 +242,10 @@ public class RuntimeScriptHandler implements RuntimePVListener
             if (executed_once.getAndSet(true))
                 return;
         }
+
+        // Do not check connections for rule after the first run
+        if (is_rule && check_connections)
+            check_connections = false;
 
         // Request execution of script
         script.submit(widget, pvs);

@@ -40,6 +40,8 @@ public class DirectoryUtilities {
 
     private static final Logger LOG = Logger.getLogger(SaveAndRestoreService.class.getName());
 
+    public static final String HIERARCHY_SPLITTER = "▶";
+
     /**
      * Creates location string in the form of "A ▶ B ▶ ... ▶ C"
      *
@@ -62,7 +64,7 @@ public class DirectoryUtilities {
                 if (locationString.isEmpty()) {
                     locationString = parentNode.getName();
                 } else {
-                    locationString = parentNode.getName() + " ▶ " + locationString;
+                    locationString = parentNode.getName() + " " + HIERARCHY_SPLITTER + " " + locationString;
                 }
                 node = parentNode;
             } catch (Exception e) {
@@ -102,7 +104,7 @@ public class DirectoryUtilities {
                 if (locationString.isEmpty()) {
                     locationString = parentNode.getName();
                 } else {
-                    locationString = parentNode.getName() + " ▶ " + locationString;
+                    locationString = parentNode.getName() + " " + HIERARCHY_SPLITTER + " " + locationString;
                 }
 
                 node = parentNode;

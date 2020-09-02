@@ -33,6 +33,7 @@ import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
+import org.csstudio.display.builder.model.widgets.PlaceholderWidget;
 import org.csstudio.display.builder.representation.spi.WidgetRepresentationsService;
 
 /** Representation for a toolkit.
@@ -300,7 +301,8 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
             WidgetRepresentationFactory<TWP, TW> factory = (WidgetRepresentationFactory<TWP, TW>) factories.get(widget.getType());
             if (factory == null)
             {
-                logger.log(Level.SEVERE, "Lacking representation for " + widget.getType());
+                if (! (widget instanceof PlaceholderWidget))
+                    logger.log(Level.SEVERE, "Lacking representation for " + widget.getType());
                 // Check for a generic "unknown" representation
                 factory = (WidgetRepresentationFactory<TWP, TW>) factories.get(WidgetRepresentationFactory.UNKNOWN);
                 if (factory == null)

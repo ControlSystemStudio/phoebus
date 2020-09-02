@@ -60,6 +60,11 @@ public class Messages
     public static String MoveToFront;
     public static String MoveUp;
     public static String NewDisplay;
+    public static String NewDisplayFailed;
+    public static String NewDisplayTargetFolderWriteProtected;
+    public static String NewDisplaySelectionEmpty;
+    public static String NewDisplayOverwriteExisting;
+    public static String NewDisplayOverwriteExistingTitle;
     public static String OpenInExternalEditor;
     public static String Order;
     public static String Paste;

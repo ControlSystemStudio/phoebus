@@ -17,6 +17,9 @@ import java.util.logging.Level;
 import org.epics.pva.client.ClientChannelState;
 import org.epics.pva.client.PVAChannel;
 import org.epics.pva.data.PVAStructure;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Time;
+import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.pv.PV;
 
@@ -84,6 +87,7 @@ public class PVA_PV extends PV
             catch (Exception ex)
             {
                 logger.log(Level.WARNING, "Cannot decode " + channel + " = " + data, ex);
+                notifyListenersOfValue(VString.of("Cannot decode " + data.formatType(), Alarm.noValue(), Time.now()));
             }
         }
 

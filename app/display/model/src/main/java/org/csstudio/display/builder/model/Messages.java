@@ -296,6 +296,7 @@ public class Messages
     public static String WidgetProperties_StretchToFit;
     public static String WidgetProperties_Symbol;
     public static String WidgetProperties_Symbols;
+    public static String WidgetProperties_SymbolValue;
     public static String WidgetProperties_SyncedKnob;
     public static String WidgetProperties_TagColor;
     public static String WidgetProperties_TagVisible;

@@ -10,7 +10,6 @@ package org.csstudio.display.builder.model.widgets;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineWidth;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPoints;
 
 import java.util.Arrays;
 import java.util.List;
@@ -23,7 +22,6 @@ import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.XMLTags;
-import org.csstudio.display.builder.model.properties.Points;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
@@ -32,7 +30,7 @@ import org.w3c.dom.Element;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PolygonWidget extends MacroWidget
+public class PolygonWidget extends PolyBaseWidget
 {
     /** Legacy polygon used 1.0.0 */
     private static final Version version = new Version(2, 0, 0);
@@ -107,7 +105,6 @@ public class PolygonWidget extends MacroWidget
     private volatile WidgetProperty<WidgetColor> background_color;
     private volatile WidgetProperty<WidgetColor> line_color;
     private volatile WidgetProperty<Integer> line_width;
-    private volatile WidgetProperty<Points> points;
 
     public PolygonWidget()
     {
@@ -121,7 +118,6 @@ public class PolygonWidget extends MacroWidget
         properties.add(line_width = propLineWidth.createProperty(this, 3));
         properties.add(line_color = propLineColor.createProperty(this, new WidgetColor(0, 0, 255)));
         properties.add(background_color = propBackgroundColor.createProperty(this, new WidgetColor(50, 50, 255)));
-        properties.add(points = propPoints.createProperty(this, new Points()));
     }
 
     @Override
@@ -156,11 +152,5 @@ public class PolygonWidget extends MacroWidget
     public WidgetProperty<Integer> propLineWidth()
     {
         return line_width;
-    }
-
-    /** @return 'points' property */
-    public WidgetProperty<Points> propPoints()
-    {
-        return points;
     }
 }

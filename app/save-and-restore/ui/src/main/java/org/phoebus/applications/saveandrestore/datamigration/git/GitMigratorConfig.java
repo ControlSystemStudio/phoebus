@@ -95,6 +95,9 @@ public class GitMigratorConfig {
     public Boolean keepSavesetWithNoSnapshot() { return preferencesReader.getBoolean("keepSavesetWithNoSnapshot"); }
 
     @Bean
+    public Boolean ignoreDuplicateSnapshots() { return preferencesReader.getBoolean("ignoreDuplicateSnapshots"); }
+
+    @Bean
     public JMasarJerseyClient jmasarClient(){
         JMasarJerseyClient jMasarJerseyClient = new JMasarJerseyClient();
         jMasarJerseyClient.setServiceUrl(preferencesReader.get("jmasar.service.url"));

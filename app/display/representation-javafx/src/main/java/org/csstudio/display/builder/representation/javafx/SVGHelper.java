@@ -85,8 +85,13 @@ public class SVGHelper {
         BufferedImageTranscoder bufferedImageTranscoder = new BufferedImageTranscoder();
         TranscoderInput input = new TranscoderInput(fileStream);
         try{
-            bufferedImageTranscoder.addTranscodingHint(ImageTranscoder.KEY_WIDTH, (float)width);
-            bufferedImageTranscoder.addTranscodingHint(ImageTranscoder.KEY_HEIGHT, (float)height);
+            /*
+             * If one of the sizes is not set then aspect ratio is kept
+             */
+            if (width != 0.0)
+                bufferedImageTranscoder.addTranscodingHint(ImageTranscoder.KEY_WIDTH, (float)width);
+            if (height != 0.0)
+                bufferedImageTranscoder.addTranscodingHint(ImageTranscoder.KEY_HEIGHT, (float)height);
             bufferedImageTranscoder.transcode(input, null);
 
             return SwingFXUtils.toFXImage(bufferedImageTranscoder.getBufferedImage(), null);

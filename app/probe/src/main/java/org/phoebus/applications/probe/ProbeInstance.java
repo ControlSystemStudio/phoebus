@@ -40,8 +40,7 @@ public class ProbeInstance implements AppInstance {
     public Node create() {
         try {
             final URL fxml = getClass().getResource("view/ProbeView.fxml");
-            final InputStream iStream = NLS.getMessages(ProbeInstance.class);
-            final ResourceBundle bundle = new PropertyResourceBundle(iStream);
+            final ResourceBundle bundle = NLS.getMessages(ProbeInstance.class);
             loader = new FXMLLoader(fxml, bundle);
             return loader.load();
         } catch (IOException e) {

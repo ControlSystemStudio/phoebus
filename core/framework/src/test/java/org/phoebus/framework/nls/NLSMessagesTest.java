@@ -25,6 +25,8 @@ public class NLSMessagesTest
     // A 'Messages' type of class needs public static String member variables
     public static String Hello;
     public static String Bye;
+    public static String HowAreYou;
+    public static String MissingMessage;
 
     private Locale original;
 
@@ -65,6 +67,37 @@ public class NLSMessagesTest
         System.out.println("Messages for '" + Locale.getDefault().getLanguage() + "': " + Hello + ", " + Bye);
         assertThat(Hello, equalTo("Moin"));
         assertThat(Bye, equalTo("Tschüss"));
+    }
+
+    /** Check if we fall back to english if a localization is missing */
+    @Test
+    public void testMissingLocalization()
+    {
+        Locale.setDefault(Locale.FRENCH);
+        NLS.initializeMessages(NLSMessagesTest.class);
+        System.out.println("Messages for the nonexistent '" + Locale.getDefault().getLanguage() + "' localization: " + Hello + ", " + Bye);
+        assertThat(Hello, equalTo("Hello"));
+        assertThat(Bye, equalTo("Bye"));
+    }
+
+    /** Check if we fall back to english if a localization is incomplete */
+    @Test
+    public void testIncompleteLocalization()
+    {
+        Locale.setDefault(Locale.GERMANY);
+        NLS.initializeMessages(NLSMessagesTest.class);
+        System.out.println("Message missing from '" + Locale.getDefault().getLanguage() + "': " + HowAreYou);
+        assertThat(HowAreYou, equalTo("How are you?"));
+    }
+
+    /** Check missing messages */
+    @Test
+    public void testMissingMessages()
+    {
+        Locale.setDefault(Locale.GERMANY);
+        NLS.initializeMessages(NLSMessagesTest.class);
+        System.out.println("Message missing from all localizations: " + MissingMessage);
+        assertThat(MissingMessage, equalTo("<MissingMessage>"));
     }
 
     @After

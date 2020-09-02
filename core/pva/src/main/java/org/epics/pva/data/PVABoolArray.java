@@ -22,15 +22,14 @@ public class PVABoolArray extends PVAData implements PVAArray
 {
     private volatile boolean[] value;
 
-    public PVABoolArray(final String name, final boolean[] value)
+    /** Construct variable-size array
+     *  @param name Data item name
+     *  @param value Initial value
+     */
+    public PVABoolArray(final String name, final boolean... value)
     {
         super(name);
         this.value = value;
-    }
-
-    public PVABoolArray(final String name)
-    {
-        this(name, new boolean[0]);
     }
 
     /** @return Current value */

@@ -7,6 +7,8 @@
  ******************************************************************************/
 package org.phoebus.pv;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
@@ -129,13 +131,43 @@ public class FormulaTest
         dumpPool();
     }
 
-    // Formula with missing PV needs to be 'disconnected'
     @Test
     public void initialDisconnect() throws Exception
     {
-        final PV pv = PVPool.getPV("= `missing_PV` + 5");
+        // Formula with missing PV needs to be 'disconnected'
+        PV pv = PVPool.getPV("= `missing_PV` + 5");
 
-        final VType value = pv.read();
+        VType value = pv.read();
+        System.out.println(pv.getName() + " = " + value);
+
+        assertTrue(PV.isDisconnected(value));
+        PVPool.releasePV(pv);
+
+
+        // 'if' still evaluates OK, since the missing PV is not used
+        pv = PVPool.getPV("= 1 ? 42 : `missing_PV`");
+
+        value = pv.read();
+        System.out.println(pv.getName() + " = " + value);
+
+        assertEquals(42.0, VTypeHelper.toDouble(value), 0.1);
+        assertFalse(PV.isDisconnected(value));
+        PVPool.releasePV(pv);
+
+
+        // This gets an error because the missing PV _is_ used
+        pv = PVPool.getPV("= 0 ? 42 : `missing_PV`");
+
+        value = pv.read();
+        System.out.println(pv.getName() + " = " + value);
+
+        assertTrue(PV.isDisconnected(value));
+        PVPool.releasePV(pv);
+
+        // Error because missing PV is needed for the condition
+        pv = PVPool.getPV("=`missing_PV` ? 0 : 1");
+
+        value = pv.read();
         System.out.println(pv.getName() + " = " + value);
 
         assertTrue(PV.isDisconnected(value));

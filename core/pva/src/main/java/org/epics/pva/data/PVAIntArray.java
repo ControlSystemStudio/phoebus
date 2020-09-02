@@ -23,16 +23,16 @@ public class PVAIntArray extends PVAData implements PVAArray
     private final boolean unsigned;
     private volatile int[] value;
 
-    public PVAIntArray(final String name, final boolean unsigned, final int[] value)
+    /** Construct variable-size array
+     *  @param name Data item name
+     *  @param unsigned Unsigned data?
+     *  @param value Initial value
+     */
+    public PVAIntArray(final String name, final boolean unsigned, final int... value)
     {
         super(name);
         this.unsigned = unsigned;
         this.value = value;
-    }
-
-    public PVAIntArray(final String name, final boolean unsigned)
-    {
-        this(name, unsigned, new int[0]);
     }
 
     /** @return Is value unsigned? */

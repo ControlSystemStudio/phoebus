@@ -12,7 +12,6 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineStyle;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineWidth;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPoints;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,7 +30,6 @@ import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
 import org.csstudio.display.builder.model.properties.LineStyle;
-import org.csstudio.display.builder.model.properties.Points;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Document;
@@ -41,7 +39,7 @@ import org.w3c.dom.Element;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PolylineWidget extends MacroWidget
+public class PolylineWidget extends PolyBaseWidget
 {
     /** Legacy polyline used 1.0.0 */
     private static final Version version = new Version(2, 0, 0);
@@ -143,7 +141,6 @@ public class PolylineWidget extends MacroWidget
     private volatile WidgetProperty<WidgetColor> line_color;
     private volatile WidgetProperty<Integer> line_width;
     private volatile WidgetProperty<LineStyle> line_style;
-    private volatile WidgetProperty<Points> points;
     private volatile WidgetProperty<Arrows> arrows;
     private volatile WidgetProperty<Integer> arrow_length;
 
@@ -167,7 +164,6 @@ public class PolylineWidget extends MacroWidget
         properties.add(line_style = propLineStyle.createProperty(this, LineStyle.SOLID));
         properties.add(arrows = propArrows.createProperty(this, Arrows.NONE));
         properties.add(arrow_length = propArrowLength.createProperty(this, 20));
-        properties.add(points = propPoints.createProperty(this, new Points()));
     }
 
     @Override
@@ -219,11 +215,5 @@ public class PolylineWidget extends MacroWidget
     public WidgetProperty<Integer> propArrowLength()
     {
         return arrow_length;
-    }
-
-    /** @return 'points' property */
-    public WidgetProperty<Points> propPoints()
-    {
-        return points;
     }
 }

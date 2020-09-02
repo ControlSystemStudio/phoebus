@@ -83,4 +83,13 @@ public class LEDRepresentation extends BaseLEDRepresentation<LEDWidget>
             return model_widget.propOnLabel().getValue();
         return model_widget.propOffLabel().getValue();
     }
+
+    @Override
+    protected String computeLabel()
+    {
+        if (model_widget.propOnLabel().getValue().contentEquals(model_widget.propOffLabel().getValue()))
+            return model_widget.propOnLabel().getValue();
+
+        return "";
+    }
 }

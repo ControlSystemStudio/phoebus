@@ -97,4 +97,10 @@ public class MultiStateLEDRepresentation extends BaseLEDRepresentation<MultiStat
             return states.get(color_index).label().getValue();
         return model_widget.propFallbackLabel().getValue();
     }
+
+    @Override
+    protected String computeLabel()
+    {
+        return model_widget.propFallbackLabel().getValue();
+    }
 }

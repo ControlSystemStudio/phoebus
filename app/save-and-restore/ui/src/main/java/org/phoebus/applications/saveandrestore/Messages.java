@@ -60,6 +60,7 @@ public class Messages {
     public static String toolTipShowLiveReadback;
     public static String toolTipShowStoredReadback;
     public static String toolTipShowTreeTable;
+    public static String toolTipShowHideDeltaPercentageToggleButton;
     public static String toolTipShowHideEqualToggleButton;
     public static String toolTipTableColumnPVName;
     public static String toolTipTableColumnReadbackPVName;
@@ -71,6 +72,7 @@ public class Messages {
     public static String toolTipTableColumnPVValues;
     public static String toolTipUnionOfSetpointPVNames;
     public static String toolTipTableColumnBaseSetpointValue;
+    public static String labelThreshold;
     public static String labelMultiplier;
     public static String toolTipMultiplierSpinner;
     public static String saveSnapshotErrorContent;
@@ -89,6 +91,10 @@ public class Messages {
     public static String tagSearchTableCreatedColumn;
     public static String tagSearchTableCreatorColumn;
     public static String tagSearchEntryToolTip;
+    public static String importSaveSetLabel;
+    public static String exportSaveSetLabel;
+    public static String importSnapshotLabel;
+    public static String exportSnapshotLabel;
 
     static
     {

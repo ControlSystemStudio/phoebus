@@ -225,14 +225,24 @@ public class ArchiveFetchJob implements JobRunnable
 
         monitor.beginTask("Pending...");
 
+        // When a model is loaded, items added,
+        // or user zooms/pans, this can result in jobs being added
+        // and then soon canceled to add updated jobs.
+        // Wait a little to then check if we're already cancelled,
+        // instead of starting the request right away only to then
+        // have a hard time cancelling the ongoing query.
+        // (For zoom/pan, this delay is actually used twice:
+        //  before starting the fetch job, then right here)
+        TimeUnit.MILLISECONDS.sleep(Preferences.archive_fetch_delay);
+
+        // Cancelled before even started the worker?
+        if (monitor.isCanceled())
+            return;
+
         concurrent_requests.acquire();
         try
         {
             monitor.beginTask(Messages.ArchiveFetchStart);
-
-            // Cancelled before even started the worker?
-            if (monitor.isCanceled())
-                return;
 
             final WorkerThread worker = new WorkerThread();
             final Future<?> done = Activator.thread_pool.submit(worker);

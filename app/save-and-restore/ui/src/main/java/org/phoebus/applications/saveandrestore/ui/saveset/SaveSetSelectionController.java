@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
  * @author <a href="mailto:changj@frib.msu.edu">Genie Jhang</a>
  */
 
-public class SaveSetSelectionController implements Initializable, ISelectedNodeProvider {
+public class SaveSetSelectionController extends BaseSaveSetSelectionController implements Initializable {
 
     private SaveAndRestoreService saveAndRestoreService = (SaveAndRestoreService) ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().getBean("saveAndRestoreService");
 
@@ -127,7 +127,7 @@ public class SaveSetSelectionController implements Initializable, ISelectedNodeP
     private void RecursiveAddNode(TreeItem<Node> parentItem) {
         List<Node> childNodes = saveAndRestoreService.getChildNodes(parentItem.getValue());
         List<TreeItem<Node>> childItems = childNodes.stream()
-                .filter(node -> !node.getNodeType().equals(NodeType.SNAPSHOT))
+                .filter(node -> isDisabledSavesetSelection ? !(node.getNodeType().equals(NodeType.CONFIGURATION) || node.getNodeType().equals(NodeType.SNAPSHOT)) : !node.getNodeType().equals(NodeType.SNAPSHOT) )
                 .map(node -> {
                     TreeItem<Node> treeItem = createNode(node);
                     if (node.getNodeType().equals(NodeType.FOLDER)) {

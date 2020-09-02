@@ -23,16 +23,15 @@ public class PVAShortArray extends PVAData implements PVAArray
     private final boolean unsigned;
     private volatile short[] value;
 
-    public PVAShortArray(final String name, final boolean unsigned, final short[] value)
+    /** Construct variable-size array
+     *  @param name Data item name
+     *  @param value Initial value
+     */
+    public PVAShortArray(final String name, final boolean unsigned, final short... value)
     {
         super(name);
         this.unsigned = unsigned;
         this.value = value;
-    }
-
-    public PVAShortArray(final String name, final boolean unsigned)
-    {
-        this(name, unsigned, new short[0]);
     }
 
     /** @return Is value unsigned? */

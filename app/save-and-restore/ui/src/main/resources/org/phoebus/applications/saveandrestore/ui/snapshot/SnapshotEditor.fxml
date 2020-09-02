@@ -29,6 +29,7 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
             <ToggleButton fx:id="showStoredReadbackButton" mnemonicParsing="false" />
             <ToggleButton fx:id="showTreeTableButton" mnemonicParsing="false" />
             <Pane HBox.hgrow="ALWAYS" />
+         <ToggleButton fx:id="showHideDeltaPercentageButton" mnemonicParsing="false" />
             <ToggleButton fx:id="hideShowEqualItemsButton" mnemonicParsing="false" />
         </items>
     </ToolBar>
@@ -134,6 +135,8 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
          <CheckBox fx:id="preserveSelectionCheckBox" mnemonicParsing="false" text="Preserve selection after" />
          <Label text="Filter:" />
          <TextField fx:id="filterTextField" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="26.0" HBox.hgrow="ALWAYS" />
+         <Label fx:id="thresholdLabel" text="Δ Threshold (%)" />
+         <Spinner fx:id="thresholdSpinner" editable="true" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" />
          <Label fx:id="multiplierLabel" text="Restore with scale" />
          <Spinner fx:id="multiplierSpinner" editable="true" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" />
       </items>

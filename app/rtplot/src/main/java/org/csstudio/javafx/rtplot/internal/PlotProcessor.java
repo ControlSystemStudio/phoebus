@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,7 +11,6 @@ import static org.csstudio.javafx.rtplot.Activator.logger;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
@@ -74,41 +73,19 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                     throw new TimeoutException("Cannot lock data for " + trace + ": " + data);
                 try
                 {
+                    // Position range tends to be ordered, which would allow to simply
+                    // use position 0 and N-1, but order is not guaranteed...
                     final int N = data.size();
-                    if (N <= 0)
-                        continue;
-                    // Try to only check the first and last position,
-                    // assuming all samples are ordered as common
-                    // for a time axis or position axis
-                    XTYPE pos = data.get(0).getPosition();
-                    // If first sample is Double (not Instant), AND NaN/inf, skip this trace
-                    if ((pos instanceof Double)  &&  !Double.isFinite((Double) pos))
-                        continue;
-                    if (start == null  ||  start.compareTo(pos) > 0)
-                        start = pos;
-                    if (end == null  ||  end.compareTo(pos) < 0)
-                        end = pos;
-                    // Last position
-                    pos = data.get(N-1).getPosition();
-                    if ((pos instanceof Double)  &&  !Double.isFinite((Double) pos))
-                        continue;
-                    if (start.compareTo(pos) > 0)
-                        start = pos;
-                    if (end.compareTo(pos) < 0)
-                        end = pos;
-                    // Need to check all values?
-                    if (Objects.equals(start, end))
+                    for (int i=0; i<N; ++i)
                     {
-                        for (int i=N-2; i>0; --i)
-                        {
-                            pos = data.get(i).getPosition();
-                            if ((pos instanceof Double)  &&  !Double.isFinite((Double) pos))
-                                continue;
-                            if (start.compareTo(pos) > 0)
-                                start = pos;
-                            if (end.compareTo(pos) < 0)
-                                end = pos;
-                        }
+                        XTYPE pos = data.get(i).getPosition();
+                        // If sample is Double (not Instant), AND NaN/inf, skip this trace
+                        if ((pos instanceof Double)  &&  !Double.isFinite((Double) pos))
+                            continue;
+                        if (start == null  ||  start.compareTo(pos) > 0)
+                            start = pos;
+                        if (end == null  ||  end.compareTo(pos) < 0)
+                            end = pos;
                     }
                 }
                 finally
@@ -122,7 +99,24 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
         return new AxisRange<>(start, end);
     }
 
-
+    /** @param data {@link PlotDataProvider} with values
+     *  @return <code>true</code> if the 'positions' are in order
+     */
+    private boolean isOrdered(final PlotDataProvider<XTYPE> data)
+    {
+        final int N = data.size();
+        if (N <= 0)
+            return false;
+        XTYPE prev = data.get(0).getPosition();
+        for (int i=1; i<N; ++i)
+        {
+            final XTYPE current = data.get(i).getPosition();
+            if (prev.compareTo(current) > 0)
+                return false;
+            prev = current;
+        }
+        return true;
+    }
 
     /** Submit background job to determine value range
      *  @param data {@link PlotDataProvider} with values
@@ -146,17 +140,29 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                 {
                     if (data.size() > 0)
                     {
-                        // Consider first sample at-or-before start
-                        int start = search.findSampleLessOrEqual(data, position_range.getLow());
-                        if (start < 0)
+                        int start, stop;
+                        if (isOrdered(data))
+                        {
+                            // Find start..stop indices from ordered positions to match axis range.
+                            // Consider first sample at-or-before start
+                            start = search.findSampleLessOrEqual(data, position_range.getLow());
+                            if (start < 0)
+                                start = 0;
+                            // Last sample is the one just inside end of range.
+                            stop = search.findSampleLessOrEqual(data, position_range.getHigh());
+                            if (stop < 0)
+                                stop = 0;
+                            if (logger.isLoggable(Level.FINE))
+                                logger.log(Level.FINE, "For " + data.size() + " samples, checking elements " + start + " .. " + stop +
+                                           " which are positioned within " + position_range.getLow() + " .. " + position_range.getHigh());
+                        }
+                        else
+                        {
+                            // Data does not have ordered 'positions', so consider all samples
                             start = 0;
-                        // Last sample is the one just inside end of range.
-                        int stop = search.findSampleLessOrEqual(data, position_range.getHigh());
-                        if (stop < 0)
-                            stop = 0;
-                        if (logger.isLoggable(Level.FINE))
-                            logger.log(Level.FINE, "For " + data.size() + " samples, checking elements " + start + " .. " + stop +
-                                       " which are positioned within " + position_range.getLow() + " .. " + position_range.getHigh());
+                            stop = data.size()-1;
+                        }
+
                         // If data is completely outside the position_range,
                         // we end up using just data[0]
                         // Check [start .. stop], including stop
@@ -402,8 +408,7 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                 final AxisRange<XTYPE> range = determinePositionRange(all_y_axes);
                 if (range != null)
                 {
-                    if (logger.isLoggable(Level.FINE))
-                        logger.log(Level.FINE, plot.getXAxis().getName() + " range " + range.getLow() + " .. " + range.getHigh());
+                    logger.log(Level.FINE, () -> plot.getXAxis().getName() + " range " + range.getLow() + " .. " + range.getHigh());
                     plot.getXAxis().setValueRange(range.getLow(), range.getHigh());
                     plot.fireXAxisChange();
                 }
