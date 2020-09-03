@@ -100,7 +100,8 @@ public class PhoebusApplication extends Application {
                                DEFAULT_APPLICATION = "default_application",
                                SHOW_TABS = "show_tabs",
                                SHOW_MENU = "show_menu",
-                               SHOW_TOOLBAR = "show_toolbar";
+                               SHOW_TOOLBAR = "show_toolbar",
+                               SHOW_STATUSBAR = "show_statusbar";
 
     /** Menu item for top resources */
     private Menu top_resources_menu;
@@ -116,6 +117,9 @@ public class PhoebusApplication extends Application {
 
     /** Menu item to show/hide toolbar */
     private CheckMenuItem show_toolbar;
+
+    /** Menu item to show/hide status bar */
+    private CheckMenuItem show_statusbar;
 
     /** Menu item to save layout */
     private SaveLayoutMenuItem save_layout;
@@ -267,6 +271,7 @@ public class PhoebusApplication extends Application {
         // Update items now that methods like isToolbarVisible()
         // can function since the scene has been populated
         show_toolbar.setSelected(isToolbarVisible());
+        show_statusbar.setSelected(isStatusbarVisible());
 
         // Main stage may still be moved, resized, and restored apps are added.
         // --> Would be nice to _not_ show it, yet.
@@ -449,12 +454,16 @@ public class PhoebusApplication extends Application {
         show_toolbar = new CheckMenuItem(Messages.ShowToolbar);
         show_toolbar.setOnAction(event -> showToolbar(show_toolbar.isSelected()));
 
+        show_statusbar = new CheckMenuItem(Messages.ShowStatusbar);
+        show_statusbar.setOnAction(event -> showStatusbar(show_statusbar.isSelected()));
+
         save_layout = new SaveLayoutMenuItem(this, memento_files);
         delete_layouts = new DeleteLayoutsMenuItem(this, memento_files);
 
         final Menu menu = new Menu(Messages.Window, null,
                 show_tabs,
                 show_toolbar,
+                show_statusbar,
                 new SeparatorMenuItem(),
                 save_layout,
                 load_layout,
@@ -742,6 +751,13 @@ public class PhoebusApplication extends Application {
         return top.getChildren().contains(toolbar);
     }
 
+    /** @return <code>true</code> if status bar is visible */
+    boolean isStatusbarVisible()
+    {
+        final BorderPane layout = DockStage.getLayout(main_stage);
+        return layout.getBottom() == StatusBar.getInstance();
+    }
+
     private void showToolbar(final boolean show)
     {
         final BorderPane layout = DockStage.getLayout(main_stage);
@@ -757,6 +773,15 @@ public class PhoebusApplication extends Application {
         }
         else
             top.getChildren().remove(toolbar);
+    }
+
+    private void showStatusbar(final boolean show)
+    {
+        final BorderPane layout = DockStage.getLayout(main_stage);
+        if (show)
+            layout.setBottom(StatusBar.getInstance());
+        else
+            layout.setBottom(null);
     }
 
     /** @param resource Resource
@@ -1005,6 +1030,11 @@ public class PhoebusApplication extends Application {
                 showToolbar(show);
                 show_toolbar.setSelected(show);
             });
+            memento.getBoolean(SHOW_STATUSBAR).ifPresent(show ->
+            {
+                showStatusbar(show);
+                show_statusbar.setSelected(show);
+            });
 
             // Settings for each stage
             for (MementoTree stage_memento : memento.getChildren())
@@ -1063,7 +1093,7 @@ public class PhoebusApplication extends Application {
         // Save current state, _before_ tabs are closed and thus
         // there's nothing left to save
         final File memfile = XMLMementoTree.getDefaultFile();
-        MementoHelper.saveState(memfile, last_opened_file, default_application, isMenuVisible(), isToolbarVisible());
+        MementoHelper.saveState(memfile, last_opened_file, default_application, isMenuVisible(), isToolbarVisible(), isStatusbarVisible());
 
         if (!closeStages(stages))
             return false;
