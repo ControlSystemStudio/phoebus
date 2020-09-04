@@ -11,6 +11,7 @@ import java.io.File;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.phoebus.ui.Preferences;
 import javafx.application.Platform;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -58,6 +59,7 @@ public class SaveAsDialog
 
     private File doPromptForFile(final Window window, final String title, File file, final ExtensionFilter[] filters)
     {
+        File initial_directory;
         final FileChooser dialog = new FileChooser();
         dialog.setTitle(title);
 
@@ -70,6 +72,11 @@ public class SaveAsDialog
         }
         if (filters != null)
             dialog.getExtensionFilters().addAll(filters);
+
+        if (!Preferences.default_save_path.isEmpty()){
+            initial_directory = new File(Preferences.default_save_path);
+            dialog.setInitialDirectory(initial_directory);
+        }
         return doExecuteDialog(window, dialog);
     }
 
