@@ -41,14 +41,16 @@ import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.javafx.ToolbarHelper;
 
 import javafx.application.Platform;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.ButtonBase;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.Label;
 import javafx.scene.control.ToolBar;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
 /** PV Table Application
@@ -463,10 +465,18 @@ public class DisplayRuntimeInstance implements AppInstance
     {
         Platform.runLater(() ->
         {
-            final TextArea text = new TextArea(message);
-            text.setEditable(false);
-            text.setPrefSize(800, 600);
-            JFXRepresentation.getChildren(representation.getModelParent()).setAll(text);
+            final Label text = new Label(message);
+            final Parent parent = representation.getModelParent();
+            text.setWrapText(true);
+            text.setAlignment(Pos.TOP_LEFT);
+            if (parent instanceof Pane)
+            {
+                text.prefWidthProperty().bind(((Pane)parent).widthProperty());
+                text.prefHeightProperty().bind(((Pane)parent).heightProperty());
+            }
+            else
+                text.setPrefSize(800, 600);
+            JFXRepresentation.getChildren(parent).setAll(text);
         });
     }
 
