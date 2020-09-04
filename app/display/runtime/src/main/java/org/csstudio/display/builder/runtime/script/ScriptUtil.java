@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2016-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -432,6 +432,7 @@ public class ScriptUtil
      *  @return Location in local file system or <code>null</code>
      *  @deprecated There is no more "workspace", so no need to get local path
      */
+    @Deprecated
     public static String workspacePathToSysPath(final String workspace_path)
     {
         return ModelResourceUtil.getLocalPath(workspace_path);
@@ -500,5 +501,37 @@ public class ScriptUtil
         final File file = new File(resolved);
         final URI resource = ResourceParser.getURI(file);
         ToolkitRepresentation.getToolkit(display).execute(() -> ApplicationLauncherService.openResource(resource, false, null));
+    }
+
+    /** Open a web link in the default tool.
+     *
+     *  @param widget Widget used to obtain toolkit
+     *  @param url Web address
+     *  @throws Exception on error launching the web browser.
+     *          Once the web browser has been launched,
+     *          it might run into follow-up errors when opening
+     *          the web link, but such errors would then be displayed
+     *          in the web browser.
+     */
+    public static void openWeb(final Widget widget, final String url) throws Exception
+    {
+        final DisplayModel top_model = widget.getTopDisplayModel();
+        final ToolkitRepresentation<Object, Object> toolkit = ToolkitRepresentation.getToolkit(top_model);
+        final CompletableFuture<Void> done = new CompletableFuture<>();
+        toolkit.execute(() ->
+        {
+            try
+            {
+                toolkit.openWebBrowser(url);
+                done.complete(null);
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Cannot open " + url, ex);
+                done.completeExceptionally(new Exception("Cannot open " + url, ex));
+            }
+        });
+
+        done.get();
     }
 }
