@@ -167,7 +167,7 @@ public class AlarmContext
      * @param path
      * @return
      */
-    private static String encodedURLPath(String path)
+    static String encodedURLPath(String path)
     {
         return String.valueOf(path).replace("://", encodecDelimiter).replace(":", encodedColon);
     }
@@ -177,7 +177,7 @@ public class AlarmContext
      * @param path
      * @return
      */
-    private static String decodedURLPath(String path)
+    static String decodedURLPath(String path)
     {
         return String.valueOf(path).replace(encodecDelimiter, "://").replace(encodedColon, ":");
     }
@@ -187,7 +187,7 @@ public class AlarmContext
      * @param path
      * @return
      */
-    private static String encodedKafkaPath(String path)
+    static String encodedKafkaPath(String path)
     {
         return path;
     }
@@ -197,7 +197,7 @@ public class AlarmContext
      * @param path
      * @return
      */
-    private static String decodedKafaPath(String path)
+    static String decodedKafaPath(String path)
     {
         return path;
     }
