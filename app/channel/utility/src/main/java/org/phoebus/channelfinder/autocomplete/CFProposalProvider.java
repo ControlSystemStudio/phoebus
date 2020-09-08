@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.phoebus.channelfinder.ChannelFinderClient;
+import org.phoebus.channelfinder.ChannelFinderException;
 import org.phoebus.channelfinder.ChannelFinderService;
 import org.phoebus.framework.autocomplete.Proposal;
 import org.phoebus.framework.spi.PVProposalProvider;
@@ -37,6 +38,11 @@ public class CFProposalProvider implements PVProposalProvider {
                 client.getAllTags();
             } catch (Exception e) {
                 active = false;
+                Throwable cause = e.getCause();
+                while (cause != null && ! (cause instanceof ChannelFinderException))
+                    cause = cause.getCause();
+                if (cause != null)
+                    e = (Exception)cause;
                 log.log(Level.INFO, "Failed to create Channel Finder PVProposalProvider", e);
             }
         }
