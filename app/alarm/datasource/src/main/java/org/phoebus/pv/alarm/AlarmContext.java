@@ -6,6 +6,8 @@ import org.phoebus.applications.alarm.client.AlarmClientListener;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -46,10 +48,10 @@ public class AlarmContext
                 // find the child
                 if (alarmPV.getInfo().getPath().isPresent())
                 {
-                    Iterator<Path> it = Path.of(alarmPV.getInfo().getPath().get()).iterator();
+                    Iterator<Path> it = Path.of(encodedURLPath(alarmPV.getInfo().getPath().get())).iterator();
                     while (it.hasNext() && node != null)
                     {
-                        node = node.getChild(it.next().toString());
+                        node = node.getChild(decodedURLPath(it.next().toString()));
                     }
                 }
                 pvs.get(alarmPV.getInfo().getCompletePath()).updateValue(node);
@@ -80,6 +82,7 @@ public class AlarmContext
 
     private static class AlarmClientDatasourceListener implements AlarmClientListener
     {
+        // The alarm configuration this listener is used to monitor
         private final String config;
 
         private AlarmClientDatasourceListener(String config) {
@@ -91,6 +94,7 @@ public class AlarmContext
         {
             if(!alive)
             {
+                // Disconnect AlarmPVs associated with this config only
                 pvs.values().stream()
                         .filter(alarmPV -> {
                             return alarmPV.getInfo().getRoot().equalsIgnoreCase(config);
@@ -138,5 +142,63 @@ public class AlarmContext
                 pvs.get(item.getPathName()).updateValue(item);
             }
         }
+
+        /**
+         * Normalize the path encoded in the by the kafka messages.
+         * @param path
+         * @return normalized path of the
+         */
+        private static String normalizeItemPath(String path)
+        {
+            String normalizedPath = path;
+            return normalizedPath;
+        }
+    }
+
+    // A set of methods to handle the encoding and decoding of special chars and escaped chars in the config path
+    // of alarm messages.
+
+    private static final String delimiter ="://";
+
+    private static final String encodedColon = URLEncoder.encode(":", Charset.defaultCharset());
+    private static final String encodecDelimiter = URLEncoder.encode("://", Charset.defaultCharset());
+    /**
+     *
+     * @param path
+     * @return
+     */
+    private static String encodedURLPath(String path)
+    {
+        return String.valueOf(path).replace("://", encodecDelimiter).replace(":", encodedColon);
+    }
+
+    /**
+     *
+     * @param path
+     * @return
+     */
+    private static String decodedURLPath(String path)
+    {
+        return String.valueOf(path).replace(encodecDelimiter, "://").replace(encodedColon, ":");
+    }
+
+    /**
+     *
+     * @param path
+     * @return
+     */
+    private static String encodedKafkaPath(String path)
+    {
+        return path;
+    }
+
+    /**
+     *
+     * @param path
+     * @return
+     */
+    private static String decodedKafaPath(String path)
+    {
+        return path;
     }
 }
