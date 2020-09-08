@@ -58,6 +58,7 @@ public class AlarmContext
             }
             else
             {
+                // TODO error initializing an alarm pv which does not exist as yet
 
             }
 
@@ -78,6 +79,36 @@ public class AlarmContext
         {
             pvs.remove(alarmPV.getInfo().getCompletePath());
         }
+    }
+
+    public static synchronized void acknowledgePV(AlarmPV alarmPV, boolean ack)
+    {
+        if (alarmModels.containsKey(alarmPV.getInfo().getRoot()))
+        {
+            if(pvs.containsKey(alarmPV.getInfo().getCompletePath()))
+            {
+                AlarmClientNode root = alarmModels.get(alarmPV.getInfo().getRoot()).getRoot();
+                AlarmTreeItem<?> node = root;
+                // find the child
+                if (alarmPV.getInfo().getPath().isPresent())
+                {
+                    Iterator<Path> it = Path.of(encodedURLPath(alarmPV.getInfo().getPath().get())).iterator();
+                    while (it.hasNext() && node != null)
+                    {
+                        node = node.getChild(decodedURLPath(it.next().toString()));
+                    }
+                    if (node != null)
+                    {
+                        alarmModels.get(alarmPV.getInfo().getRoot()).acknowledge(node, ack);
+                    }
+                }
+            }
+        }
+    }
+
+    public static synchronized void enablePV(AlarmPV alarmPV, boolean enable)
+    {
+        // TODO
     }
 
     private static class AlarmClientDatasourceListener implements AlarmClientListener

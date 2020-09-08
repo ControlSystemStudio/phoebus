@@ -4,7 +4,10 @@ import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Time;
+import org.epics.vtype.VBoolean;
+import org.epics.vtype.VNumber;
 import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.pv.PV;
@@ -56,7 +59,37 @@ public class AlarmPV extends PV
 
     @Override
     public boolean isReadonly() {
-        return super.isReadonly();
+        // TODO enable write based on auth
+        return false;
+    }
+
+    @Override
+    public void write(Object new_value) throws Exception {
+        if (new_value instanceof String)
+        {
+            switch (((String)new_value).toLowerCase())
+            {
+                case "ack":
+                case "acknowledge":
+                    AlarmContext.acknowledgePV(this, true);
+                    break;
+                case "unack":
+                case "unacknowledge":
+                    AlarmContext.acknowledgePV(this, false);
+                    break;
+                default:
+                    // Unknown value
+                    throw new IllegalArgumentException("cannot write " + new_value + "  to " + this.info.getCompletePath());
+            }
+        }
+        else if (new_value instanceof Number)
+        {
+            AlarmContext.acknowledgePV(this, ((Number)new_value).intValue() != 0);
+        }
+        else if (new_value instanceof Boolean)
+        {
+            AlarmContext.acknowledgePV(this, (Boolean)new_value);
+        }
     }
 
     private static Alarm processState(BasicState state)
