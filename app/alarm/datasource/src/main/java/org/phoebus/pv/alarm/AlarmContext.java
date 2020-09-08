@@ -119,27 +119,27 @@ public class AlarmContext
         @Override
         public void itemAdded(AlarmTreeItem<?> item)
         {
-            if(pvs.containsKey(item.getPathName()))
+            if(pvs.containsKey(decodedKafaPath(item.getPathName())))
             {
-                pvs.get(item.getPathName()).updateValue(item);
+                pvs.get(decodedKafaPath(item.getPathName())).updateValue(item);
             }
         }
 
         @Override
         public void itemRemoved(AlarmTreeItem<?> item)
         {
-            if(pvs.containsKey(item.getPathName()))
+            if(pvs.containsKey(decodedKafaPath(item.getPathName())))
             {
-                pvs.get(item.getPathName()).disconnected();
+                pvs.get(decodedKafaPath(item.getPathName())).disconnected();
             }
         }
 
         @Override
         public void itemUpdated(AlarmTreeItem<?> item)
         {
-            if(pvs.containsKey(item.getPathName()))
+            if(pvs.containsKey(decodedKafaPath(item.getPathName())))
             {
-                pvs.get(item.getPathName()).updateValue(item);
+                pvs.get(decodedKafaPath(item.getPathName())).updateValue(item);
             }
         }
 
@@ -199,6 +199,6 @@ public class AlarmContext
      */
     static String decodedKafaPath(String path)
     {
-        return path;
+        return path.replace("\\/","/");
     }
 }
