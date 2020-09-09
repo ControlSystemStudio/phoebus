@@ -124,7 +124,6 @@ public class RectangleRepresentation extends JFXBaseRepresentation<Rectangle, Re
             jfx_node.setStrokeType(StrokeType.INSIDE);
             final int line_width = Math.max(1, model_widget.propLineWidth().getValue());
             final ObservableList<Double> dashes = jfx_node.getStrokeDashArray();
-            System.out.println(dashes);
             // Scale dashes, dots and gaps by line width;
             // matches legacy opibuilder resp. Draw2D
             switch (model_widget.propLineStyle().getValue())
