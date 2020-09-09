@@ -164,7 +164,17 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                     } else if (item instanceof VEnum) {
                         return ((VEnum) item).getValue();
                     } else if (item instanceof VTypePair) {
-                        return ((VTypePair)item).value.toString();
+                        VType value = ((VTypePair) item).value;
+
+                        if (value instanceof VNumber) {
+                            return ((VNumber) value).getValue().toString();
+                        } else if (value instanceof VNumberArray) {
+                            return ((VNumberArray) value).getData().toString();
+                        } else if (value instanceof VEnum) {
+                            return ((VEnum) value).getValue();
+                        } else {
+                            return value.toString();
+                        }
                     } else {
                         return item.toString();
                     }
@@ -288,12 +298,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                     } else if (pair.value == VNoData.INSTANCE) {
                         setText(pair.value.toString());
                     } else {
-                        Utilities.VTypeComparison vtc = Utilities.valueToCompareString(pair.value, pair.base, pair.threshold);
-                        setText(vtc.getString());
-                        if (!vtc.isWithinThreshold()) {
-                            getStyleClass().add("diff-cell");
-                            setGraphic(new ImageView(WARNING_IMAGE));
-                        }
+                        setText(Utilities.valueToString(pair.value));
                     }
 
                     tooltip.setText(item.toString());
