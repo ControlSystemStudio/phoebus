@@ -70,12 +70,12 @@ public class ChannelTableController extends ChannelFinderController {
     private Collection<String> properties;
     private Collection<String> tags;
 
-    public static final boolean showActiveButton;
+    public static final boolean showActiveCb;
 
     static
     {
         final PreferencesReader prefs = new PreferencesReader(ChannelTableController.class, "/cv_preferences.properties");
-        showActiveButton = prefs.getBoolean("show_active_button");
+        showActiveCb = prefs.getBoolean("show_active_cb");
     }
 
     @SuppressWarnings("unchecked")
@@ -97,7 +97,7 @@ public class ChannelTableController extends ChannelFinderController {
         ownerCol.setCellValueFactory(new PropertyValueFactory<Channel, String>("owner"));
         tableView.getColumns().addAll(nameCol, ownerCol);
 
-	if (showActiveButton) {
+	if (showActiveCb) {
 	    showactive.setSelected(true);
 	} else {
 	    gridp.getChildren().remove(showactive);
@@ -111,7 +111,7 @@ public class ChannelTableController extends ChannelFinderController {
 
     @FXML
     public void search() {
-        if (showActiveButton) {
+        if (showActiveCb) {
             String currentQuery = query.getText();
             String updatedQuery = currentQuery + " pvStatus=" + (showactive.isSelected() ? "Active" : "*");
             super.search(updatedQuery);
