@@ -63,7 +63,8 @@ public class PropertyPanel extends TabPane
         final Tab time_axis = new TimeAxisTab(model, undo);
         final Tab value_axes = new AxesTab(model, undo);
         final Tab misc = new MiscTab(model, undo);
-        getTabs().setAll(traces, time_axis, value_axes, misc);
+        final Tab statistics = new StatisticsTab(model);
+        getTabs().setAll(traces, time_axis, value_axes, misc, statistics);
         for (Tab tab : getTabs())
             tab.setClosable(false);
     }
