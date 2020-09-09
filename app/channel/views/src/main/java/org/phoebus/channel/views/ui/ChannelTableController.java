@@ -97,11 +97,11 @@ public class ChannelTableController extends ChannelFinderController {
         ownerCol.setCellValueFactory(new PropertyValueFactory<Channel, String>("owner"));
         tableView.getColumns().addAll(nameCol, ownerCol);
 
-	if (showActiveCb) {
-	    showactive.setSelected(true);
-	} else {
-	    gridp.getChildren().remove(showactive);
-	}
+        if (showActiveCb) {
+            showactive.setSelected(true);
+        } else {
+            gridp.getChildren().remove(showactive);
+        }
     }
 
     public void setQuery(String string) {
@@ -117,7 +117,7 @@ public class ChannelTableController extends ChannelFinderController {
             super.search(updatedQuery);
         } else {
             super.search(query.getText());
-	}
+        }
     }
 
     private Job addPropertyJob;
