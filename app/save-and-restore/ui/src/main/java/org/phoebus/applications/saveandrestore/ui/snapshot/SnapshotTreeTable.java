@@ -1012,6 +1012,18 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                     menu.show(deltaCol.label, e.getScreenX(), e.getScreenY());
                 }
             });
+            deltaCol.setComparator((pair1, pair2) -> {
+                Utilities.VTypeComparison vtc1 = Utilities.valueToCompareString(pair1.value, pair1.base, pair1.threshold);
+                Utilities.VTypeComparison vtc2 = Utilities.valueToCompareString(pair2.value, pair2.base, pair2.threshold);
+
+                if (!vtc1.isWithinThreshold() && vtc2.isWithinThreshold()) {
+                    return -1;
+                } else if (vtc1.isWithinThreshold() && !vtc2.isWithinThreshold()) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            });
             baseSnapshotCol.getColumns().addAll(deltaCol);
             storedValueColumn.getColumns().addAll(baseSnapshotCol, new DividerTreeTableColumn());
         }
