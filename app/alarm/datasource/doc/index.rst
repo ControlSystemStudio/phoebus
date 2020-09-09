@@ -10,7 +10,7 @@ to take a set of actions needed to effectively handle an alarm.
 
 The alarm datasource provides a subsection of the alarm information and functionality.
 This makes it possible for user to access beast alarm information of any other cs-studio application.
-OPI screens can now embeded information about weather of not an alarm has been acknowledged, etc..
+OPI screens can now embed informatino about from the alarm server, like the acknowledgement state of a pv, etc..
 
 PV syntax
 ---------
@@ -48,10 +48,8 @@ e.g.
 | returns
 | "Diagnostics = MINOR"
 
-returns a VString, with the value describing the alarm state. The Alarm meta data of the pv also
+The return value is a VString, with the string value describing the alarm state of the node. The Alarm meta data of the pv also
 matches the alarm state.
-
-
 
 .. image:: images/alarm_datasource.png
    :width: 80%
@@ -62,7 +60,7 @@ matches the alarm state.
 | returns
 | "LN-TS{EVR}Alrm:Link-Sts = OK/OK (Normal), 2020-08-25 12:46:06.842, current OK/NO_ALARM"
 
-returns a VString, with the value describing the alarm state along with a description of the
+The return value is a VString, with the string value describing the alarm state along with a description of the
 pv's alarm value if present and its current alarm value. The Alarm meta data of the pv also
 matches the alarm state.
 
@@ -74,9 +72,10 @@ matches the alarm state.
 Writing to alarm pv's
 =====================
 
-alarm://NSLS2_OPR/SR/Vacuum
+``alarm://NSLS2_OPR/SR/Vacuum``
 
-The alarm pvs can be users to acknowledge or unacknowledge parts of the alarm tree. The alarm pvs accept String, boolean, and Number values.
+The alarm pvs can be usered to acknowledge or unacknowledge parts of the alarm tree.
+The alarm pvs accept String, boolean, and Number values which are interpreted as follows:
 
 When writing **strings**
 
