@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
 import org.csstudio.display.builder.editor.Messages;
+import org.csstudio.display.builder.editor.util.CreateNewDisplayJob;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.editor.Preferences;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
@@ -53,27 +54,11 @@ public class NewDisplayMenuEntry implements MenuEntry
     {
         // Prompt for file
         final File file = DisplayEditorApplication.promptForFilename(Messages.NewDisplay);
-        if (file == null)
+        if (file == null) {
             return null;
+        }
 
-        JobManager.schedule(Messages.NewDisplay, monitor ->
-        {
-            // Create file with example content
-            InputStream content;
-            try
-            {
-                content = ModelResourceUtil.openResourceStream(Preferences.new_display_template);
-            }
-            catch (Exception e)
-            {
-                content = ModelResourceUtil.openResourceStream("examples:/initial.bob");
-            }
-            Files.copy(content, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
-
-            // Open editor on UI thread
-            Platform.runLater(() ->
-                ApplicationService.createInstance(DisplayEditorApplication.NAME, file.toURI()));
-        });
+        JobManager.schedule(Messages.NewDisplay, new CreateNewDisplayJob(file));
 
         return null;
     }

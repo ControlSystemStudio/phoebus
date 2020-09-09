@@ -165,6 +165,9 @@ public class Widget
     /** Map of user data */
     protected final Map<String, Object> user_data = new ConcurrentHashMap<>(4); // Reserve room for "representation", "runtime"
 
+    /** Loaded without errors? */
+    protected volatile Boolean clean;
+
     /** Widget constructor.
      *  @param type Widget type
      */
@@ -330,6 +333,40 @@ public class Widget
                return model;
            model = embedder.getTopDisplayModel();
        }
+    }
+
+    public final void setConfiguratorResult(final WidgetConfigurator configurator)
+    {
+        if (this.clean != null)
+            throw new RuntimeException("Cannot change cleanliness of Widget");
+
+        // Only set it if not clean; DisplayModel needs to update it when all the children are loaded
+        if (configurator.isClean() == false)
+            this.clean = Boolean.valueOf(configurator.isClean());
+    }
+
+    /** @return <code>true</code> if this widget was loaded without errors,
+     *          <code>false</code> if there were errors
+     */
+    public boolean isClean()
+    {
+        Boolean safe = clean;
+
+        if (safe != null && ! safe.booleanValue())
+            return false;
+
+        java.util.Optional<WidgetProperty<DisplayModel>> child_dm_prop = checkProperty(EmbeddedDisplayWidget.runtimeModel.getName());
+        if (child_dm_prop.isPresent())
+        {
+            final DisplayModel child_dm = child_dm_prop.get().getValue();
+            if (child_dm != null && child_dm.isClean() == false)
+            {
+                clean = Boolean.valueOf(false);
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /** Called on construction to define widget's properties.

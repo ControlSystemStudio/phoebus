@@ -15,8 +15,10 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.Optional;
 
 import org.csstudio.display.builder.editor.Messages;
+import org.csstudio.display.builder.editor.util.CreateNewDisplayJob;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.WidgetClassSupport;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
@@ -39,6 +41,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Window;
 import javafx.util.Duration;
+import org.phoebus.util.FileExtensionUtil;
 
 /** Display Runtime Application
  *  @author Kay Kasemir
@@ -133,15 +136,22 @@ public class DisplayEditorApplication implements AppResourceDescriptor
         return instance;
     }
 
-    /** Prompt for a file name to "save".
+    /**
+     *  Prompt for a file name to "save".
      *
-     *  <p>Used to download a remote file,
-     *  or to create a new file.
-     *
-     *  <p>File extension will be enforced.
+     *  There are some corner cases to consider.
+     *  <ol>
+     *      <li>If user selects an existing file (irrespective of its file name extension), the native file
+     *      chooser will prompt for overwrite. If user accepts to overwrite, a {@link File} object for
+     *      that file will be returned.</li>
+     *      <li>If user specifies a file name corresponding to an existing file when the .bob extension
+     *      has been added, user will be presented with a prompt to confirm overwrite or cancel. If overwrite
+     *      is selected, a {@link File} object for the existing file will be returned. If user does not wish
+     *      to overwrite, <code>null</code> is returned.</li>
+     *  </ol>
      *
      *  @param title Dialog title
-     *  @return File with proper file extension, or <code>null</code>
+     *  @return A {@link File} object, or <code>null</code> (e.g. if file selection was cancelled).
      */
     static File promptForFilename(final String title)
     {
@@ -153,9 +163,28 @@ public class DisplayEditorApplication implements AppResourceDescriptor
                 last_local_file = null;
         }
         File file = new SaveAsDialog().promptForFile(window, title, last_local_file, FilenameSupport.file_extensions);
-        if (file == null)
+        if (file == null) {
             return null;
-        file = ModelResourceUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
+        }
+        // Check if file exists on the file system. This is true only if user selects to overwrite an existing file
+        // when prompted by the native file chooser.
+        if(file.exists()){
+            return file;
+        }
+        file = FileExtensionUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
+        // Check if the file exists on the file system when .bob extension has been enforced.
+        // If it does, prompt user to cancel or overwrite.
+        if(file.exists()){
+            final Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle(Messages.NewDisplayOverwriteExistingTitle);
+            alert.setHeaderText(MessageFormat.format(Messages.NewDisplayOverwriteExisting, file.getName(), file.getParentFile().getName()));
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get().equals(ButtonType.CANCEL)) {
+                // User selects Cancel, or dismisses prompt
+                return null;
+            }
+        }
+
         last_local_file = file;
         return file;
     }

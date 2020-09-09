@@ -118,6 +118,7 @@ public class Messages
     public static String SavingHdr;
     public static String ScreenshotErrHdr;
     public static String ScreenshotErrMsg;
+    public static String ShowStatusbar;
     public static String ShowToolbar;
     public static String Time12h;
     public static String Time1d;

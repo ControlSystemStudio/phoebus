@@ -24,8 +24,7 @@ public abstract class BaseSaveAndRestoreController implements Initializable, Nod
     protected void openTagSearchWindow() {
         try {
             if (tagSearchWindow == null) {
-                final InputStream iStream = NLS.getMessages(SaveAndRestoreApplication.class);
-                final ResourceBundle bundle = new PropertyResourceBundle(iStream);
+                final ResourceBundle bundle = NLS.getMessages(SaveAndRestoreApplication.class);
                 SpringFxmlLoader loader = new SpringFxmlLoader();
 
                 tagSearchWindow = new Stage();

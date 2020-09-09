@@ -131,9 +131,13 @@ public class EditorGUI
         // Those keys are often used when editing text,
         // and it's easy to accidentally loose input focus
         // and then delete a widget instead of a character.
+        // Also check if property panel has focus; don't want to delete
+        // widget when its name is edited and the mouse happens to be
+        // inside the editor
         final boolean in_editor = editor.getContextMenuNode()
                                         .getLayoutBounds()
-                                        .contains(mouse_x, mouse_y);
+                                        .contains(mouse_x, mouse_y) &&
+                                  ! property_panel.hasFocus();
 
         // Use Ctrl-C .. except on Mac, where it's Command-C ..
         final boolean meta = event.isShortcutDown();
@@ -477,21 +481,23 @@ public class EditorGUI
             {
                 canon_path = file.getCanonicalPath();
                 model = ModelLoader.loadModel(new FileInputStream(file), canon_path);
+                this.file = file;
             }
             catch (final Exception ex)
             {
                 canon_path = null;
                 logger.log(Level.SEVERE, "Cannot load model from " + file, ex);
                 ExceptionDetailsErrorDialog.openError("Creating empty file",
-                        "Cannot load model from\n" + file + "\n\nCreating new, empty file", ex);
+                        "Cannot load model from\n" + file + "\n\nCreating new, empty model", ex);
                 model = new DisplayModel();
                 model.propName().setValue("Empty");
+                // Don't associate this editor with the file we've failed to load
+                this.file = null;
             }
 
             if (! file.canWrite())
                 model.setUserData(DisplayModel.USER_DATA_READONLY, Boolean.TRUE.toString());
             setModel(model);
-            this.file = file;
 
             try
             {
@@ -512,7 +518,9 @@ public class EditorGUI
             if (canon_path != null && model.isClean() == false)
             {
                 ExceptionDetailsErrorDialog.openError("Errors while loading model",
-                        "There were some errors while loading model from " + file + "\nNot all widgets are displayed correctly; saving the display in this state might lead to losing those widgets. Please check the log for details.", null);
+                        "There were some errors while loading model from " + file + "\nNot all widgets are displayed correctly; " +
+                        "saving the display in this state might lead to losing those widgets or some of their properties." +
+                        "\nPlease check the log for details.", null);
             }
 
         });

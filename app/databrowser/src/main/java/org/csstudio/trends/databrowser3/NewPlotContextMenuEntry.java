@@ -16,52 +16,53 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.csstudio.display.builder.editor.app;
+package org.csstudio.trends.databrowser3;
+
+import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
+import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Window;
-import org.csstudio.display.builder.editor.Messages;
-import org.csstudio.display.builder.editor.util.CreateNewDisplayJob;
-import org.csstudio.display.builder.model.DisplayModel;
-import org.csstudio.display.builder.model.util.ModelResourceUtil;
-import org.csstudio.display.builder.representation.javafx.FilenameSupport;
+import org.csstudio.trends.databrowser3.model.Model;
+import org.csstudio.trends.databrowser3.persistence.XMLPersistence;
 import org.phoebus.framework.adapter.AdapterService;
-import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.dialog.SaveAsDialog;
 import org.phoebus.ui.docking.DockPane;
-import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.ContextMenuEntry;
 import org.phoebus.util.FileExtensionUtil;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.text.MessageFormat;
 import java.util.Optional;
 
 /**
- * Context menu entry to create a new display. Selection must be a writable folder.
+ * Context menu entry for creating a new plot.
  */
-public class NewDisplayContextMenuEntry implements ContextMenuEntry {
+public class NewPlotContextMenuEntry implements ContextMenuEntry {
 
     @Override
     public String getName()
     {
-        return Messages.NewDisplay;
+        return Messages.NewPlot;
     }
 
     @Override
     public Class<?> getSupportedType()
     {
-       return File.class;
+        return File.class;
     }
 
     @Override
     public Image getIcon()
     {
-        return ImageCache.getImage(DisplayModel.class, "/icons/display.png");
+        return Activator.getImage("databrowser");
     }
 
     @Override
@@ -70,7 +71,7 @@ public class NewDisplayContextMenuEntry implements ContextMenuEntry {
                 AdapterService.adapt(SelectionService.getInstance().getSelection().getSelections().get(0),
                         File.class);
         if(file.isEmpty()){
-            ExceptionDetailsErrorDialog.openError(Messages.NewDisplayFailed, Messages.NewDisplaySelectionEmpty, null);
+            ExceptionDetailsErrorDialog.openError(Messages.NewPlotFailed, Messages.NewPlotSelectionEmpty, null);
             return;
         }
 
@@ -79,35 +80,39 @@ public class NewDisplayContextMenuEntry implements ContextMenuEntry {
             targetFolder = targetFolder.getParentFile();
         }
         if(!targetFolder.canWrite()){
-            ExceptionDetailsErrorDialog.openError(Messages.NewDisplayFailed, Messages.NewDisplayTargetFolderWriteProtected, null);
+            ExceptionDetailsErrorDialog.openError(Messages.NewPlotFailed, Messages.NewPlotTargetFolderWriteProtected, null);
             return;
         }
 
+        ExtensionFilter[] fileExtensions = new ExtensionFilter[]
+        {
+                new ExtensionFilter(Messages.FileTypeAll, "*.*"),
+                new ExtensionFilter(Messages.FileTypePlot, "*.plt")
+        };
         final Window window = DockPane.getActiveDockPane().getScene().getWindow();
         final File targetFile = new SaveAsDialog().promptForFile(window,
-                Messages.NewDisplay,
-                new File(targetFolder, "new_display"),
-                FilenameSupport.file_extensions);
-
+                Messages.NewPlot,
+                new File(targetFolder, "new_plot"),
+                fileExtensions);
         if (targetFile == null) {
             return;
         }
 
-        File newDisplayFile;
+        File newPlotFile;
 
         // Check if file exists on the file system. This is true only if user selects to overwrite an existing file
         // when prompted by the native file chooser.
         if(targetFile.exists()){
-            newDisplayFile = targetFile;
+            newPlotFile = targetFile;
         }
         else{
-            newDisplayFile = FileExtensionUtil.enforceFileExtension(targetFile, DisplayModel.FILE_EXTENSION);
-            // Check if the file exists on the file system when .bob extension has been enforced.
+            newPlotFile = FileExtensionUtil.enforceFileExtension(targetFile, "plt");
+            // Check if the file exists on the file system when .plt extension has been enforced.
             // If it does, prompt user to cancel or overwrite.
-            if(newDisplayFile.exists()){
+            if(newPlotFile.exists()){
                 final Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                alert.setTitle(Messages.NewDisplayOverwriteExistingTitle);
-                alert.setHeaderText(MessageFormat.format(Messages.NewDisplayOverwriteExisting, newDisplayFile.getName(), newDisplayFile.getParentFile().getName()));
+                alert.setTitle(Messages.NewPlotOverwriteExistingTitle);
+                alert.setHeaderText(MessageFormat.format(Messages.NewPlotOverwriteExisting, newPlotFile.getName(), newPlotFile.getParentFile().getName()));
                 Optional<ButtonType> result = alert.showAndWait();
                 if (result.isPresent() && result.get().equals(ButtonType.CANCEL)) {
                     // User selects Cancel, or dismisses prompt
@@ -116,6 +121,19 @@ public class NewDisplayContextMenuEntry implements ContextMenuEntry {
             }
         }
 
-        JobManager.schedule(Messages.NewDisplay, new CreateNewDisplayJob(newDisplayFile));
+        try{
+            Model model = new Model();
+            try(final BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(newPlotFile)))
+            {
+                XMLPersistence.write(model, out);
+            }
+        }
+        catch(Exception e){
+            ExceptionDetailsErrorDialog.openError(Messages.NewPlotFailed, Messages.NewPlotFileCreateFailed, e);
+            return;
+        }
+
+        Platform.runLater(() ->
+                ApplicationService.createInstance(DataBrowserApp.NAME, newPlotFile.toURI()));
     }
 }

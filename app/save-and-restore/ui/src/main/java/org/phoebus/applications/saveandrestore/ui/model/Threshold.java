@@ -56,7 +56,7 @@ public class Threshold<T extends Number> implements Serializable {
         } else if (n instanceof Float) {
             return (U) Float.valueOf(-n.floatValue());
         } else if (n instanceof Double) {
-            return (U) Double.valueOf(-n.byteValue());
+            return (U) Double.valueOf(-n.doubleValue());
         }
         throw new IllegalArgumentException(String.format("Cannot negate the value %s.", String.valueOf(n)));
     }

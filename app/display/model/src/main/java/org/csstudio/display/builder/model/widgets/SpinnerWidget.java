@@ -7,17 +7,6 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.widgets;
 
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFormat;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propIncrement;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLimitsFromPV;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMaximum;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMinimum;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPrecision;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propShowUnits;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -31,16 +20,21 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
+import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
+import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.phoebus.ui.vtype.FormatOption;
+
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.*;
 
 /** Widget that represents a spinner
  *  @author Amanda Carpenter
  */
 @SuppressWarnings("nls")
-public class SpinnerWidget extends PVWidget
+public class SpinnerWidget extends WritablePVWidget
 {
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
@@ -73,6 +67,7 @@ public class SpinnerWidget extends PVWidget
     private volatile WidgetProperty<Double> increment;
     private volatile WidgetProperty<Boolean> buttons_on_left;
     private volatile WidgetProperty<Boolean> enabled;
+    private volatile WidgetProperty<WidgetFont> font;
 
     public SpinnerWidget()
     {
@@ -83,6 +78,7 @@ public class SpinnerWidget extends PVWidget
     protected void defineProperties(final List<WidgetProperty<?>> properties)
     {
         super.defineProperties(properties);
+        properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(format = propFormat.createProperty(this, FormatOption.DECIMAL));
         properties.add(precision = propPrecision.createProperty(this, -1));
         properties.add(show_units = propShowUnits.createProperty(this, false));
@@ -166,5 +162,10 @@ public class SpinnerWidget extends PVWidget
     public WidgetProperty<Boolean> propEnabled()
     {
         return enabled;
+    }
+
+    public WidgetProperty<WidgetFont> propFont()
+    {
+        return font;
     }
 }

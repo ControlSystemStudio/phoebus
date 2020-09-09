@@ -41,6 +41,7 @@ import javafx.scene.paint.Color;
 final class FileTreeCell extends TreeTableCell<FileInfo, File> {
     static final Image file_icon = ImageCache.getImage(ImageCache.class, "/icons/file_obj.png");
     static final Image folder_icon = ImageCache.getImage(ImageCache.class, "/icons/fldr_obj.png");
+    static final Image newDisplayIcon = ImageCache.getImage(ImageCache.class, "/icons/display.png");
 
     private static final Border BORDER = new Border(new BorderStroke(Color.GREEN, BorderStrokeStyle.SOLID,
                                                     new CornerRadii(5.0), BorderStroke.THIN));

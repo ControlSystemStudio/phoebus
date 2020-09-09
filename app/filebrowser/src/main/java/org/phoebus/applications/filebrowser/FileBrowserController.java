@@ -10,7 +10,9 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
+import org.phoebus.framework.adapter.AdapterService;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
@@ -428,21 +430,24 @@ public class FileBrowserController {
                 if (file.isDirectory())
                 {
                     contextMenu.getItems().add(new SetBaseDirectory(file, this::setRoot));
+                    contextMenu.getItems().add(new SeparatorMenuItem());
+                }
 
-                    SelectionService.getInstance().setSelection(this, Arrays.asList(file));
-                    // Search for SPI contributions to the context menu
-                    List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
-                    supported.stream().forEach(action -> {
-                        MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
-                        menuItem.setOnAction((event) -> {
-                            try {
-                                action.call(SelectionService.getInstance().getSelection());
-                            } catch (Exception ex) {
-                                logger.log(Level.WARNING, "Failed to exectute " + action.getName() + " from file browser", ex);
-                            }
-                        });
-                        contextMenu.getItems().add(menuItem);
+                SelectionService.getInstance().setSelection(this, Arrays.asList(file));
+                List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+                supported.stream().forEach(action -> {
+                    MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
+                    menuItem.setOnAction((ee) -> {
+                        try {
+                            action.call(SelectionService.getInstance().getSelection());
+                        } catch (Exception ex) {
+                            logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from file browser.", ex);
+                        }
                     });
+                    contextMenu.getItems().add(menuItem);
+                });
+                if(!supported.isEmpty()){
+                    contextMenu.getItems().add(new SeparatorMenuItem());
                 }
             }
 
@@ -474,7 +479,6 @@ public class FileBrowserController {
             }
 
             contextMenu.getItems().add(new DeleteAction(treeView, selectedItems));
-
             contextMenu.getItems().add(new SeparatorMenuItem());
 
             if (is_file)
@@ -483,9 +487,9 @@ public class FileBrowserController {
                 contextMenu.getItems().add(new RefreshAction(treeView, item));
         }
 
-        if (selectedItems.size() == 1)
+        if (selectedItems.size() == 1){
             contextMenu.getItems().addAll(new PropertiesAction(treeView,  selectedItems.get(0)));
-
+        }
         contextMenu.show(treeView.getScene().getWindow(), e.getScreenX(), e.getScreenY());
     }
 

@@ -59,6 +59,7 @@ import javafx.scene.control.Control;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.ContextMenuEvent;
+import org.phoebus.util.FileExtensionUtil;
 
 /** Display Editor Instance
  *  @author Kay Kasemir
@@ -363,6 +364,11 @@ public class DisplayEditorInstance implements AppInstance
 
     private void handleNewModel(final DisplayModel model)
     {
+        // When the model cannot not be loaded then a new, empty one is created
+        // Let's clear dock_item's input to not overwrite whatever we tried
+        // to load as a model
+        if (editor_gui.getFile() == null)
+            dock_item.setInput(null);
         model.propName().addPropertyListener(model_name_listener);
         model_name_listener.propertyChanged(model.propName(), null, null);
     }
@@ -399,13 +405,13 @@ public class DisplayEditorInstance implements AppInstance
 
             // Check if it's a class file (*.bcf)
             File proper;
-            if(model.isClassModel())
+            if (model.isClassModel())
             {
-                proper = ModelResourceUtil.enforceFileExtension(file, WidgetClassSupport.FILE_EXTENSION);
+                proper = FileExtensionUtil.enforceFileExtension(file, WidgetClassSupport.FILE_EXTENSION);
             }
             else
             {
-                proper = ModelResourceUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
+                proper = FileExtensionUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
             }
 
             if (file.equals(proper))

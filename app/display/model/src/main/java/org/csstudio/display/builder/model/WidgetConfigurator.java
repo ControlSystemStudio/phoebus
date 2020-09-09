@@ -69,10 +69,20 @@ public class WidgetConfigurator
      */
     protected final Version xml_version;
 
+    /** True if the widget was parsed without errors or warnings
+     */
+    protected boolean clean_parse;
+
     /**@param xml_version Version of the XML */
     public WidgetConfigurator(final Version xml_version)
     {
         this.xml_version = xml_version;
+        clean_parse = true;
+    }
+
+    public boolean isClean()
+    {
+        return clean_parse;
     }
 
     /** Configure widget based on data persisted in XML.
@@ -91,6 +101,15 @@ public class WidgetConfigurator
     {
         // System.out.println("Reading " + widget + " from saved V" + xml_version);
         configureAllPropertiesFromMatchingXML(model_reader, widget, xml);
+
+        // Check this _after_ reading the properties so that when can log the widget's name
+        if (xml_version.getMajor() > widget.getVersion().getMajor())
+        {
+            clean_parse = false;
+            logger.log(Level.WARNING,
+                       "Widget " + widget + " has version " + xml_version.getMajor() + " expected " + widget.getVersion().getMajor());
+        }
+
         return true;
     }
 
@@ -118,6 +137,7 @@ public class WidgetConfigurator
             }
             catch (Exception ex)
             {
+                clean_parse = false;
                 logger.log(Level.SEVERE,
                            "Error reading widget " + widget + " property <" + property.getName() +
                            ">, line " + XMLUtil.getLineInfo(prop_xml), ex);

@@ -145,6 +145,8 @@ public class Messages
     public static String FileLoadErr;
     public static String FileLoadJobName;
     public static String FileOpenErr;
+    public static String FileTypeAll;
+    public static String FileTypePlot;
     public static String FontBtnBold;
     public static String FontBtnExample;
     public static String FontBtnItalics;
@@ -239,6 +241,13 @@ public class Messages
     public static String Name;
     public static String NameLbl;
     public static String NegErrColumn;
+    public static String NewPlot;
+    public static String NewPlotFailed;
+    public static String NewPlotSelectionEmpty;
+    public static String NewPlotTargetFolderWriteProtected;
+    public static String NewPlotFileCreateFailed;
+    public static String NewPlotOverwriteExisting;
+    public static String NewPlotOverwriteExistingTitle;
     public static String NotApplicable;
     public static String OpenDataBrowserPerspective;
     public static String OpenExportView;

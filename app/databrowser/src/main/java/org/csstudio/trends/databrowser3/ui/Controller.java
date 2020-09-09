@@ -466,9 +466,10 @@ public class Controller
             }
 
             @Override
-            public void changedItemDataConfig(final PVItem item)
+            public void changedItemDataConfig(final PVItem item, final boolean archive_invalid)
             {
-                getArchivedData(item);
+                if (archive_invalid)
+                    getArchivedData(item);
             }
 
             @Override

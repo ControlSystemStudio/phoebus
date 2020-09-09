@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -110,7 +110,7 @@ public class PVItem extends ModelItem
         if (index < 0)
             index = 0;
         if (waveform_index.getAndSet(index) != index)
-            fireItemDataConfigChanged();
+            fireItemDataConfigChanged(false);
     }
 
     /** Set new item name, which changes the underlying PV name
@@ -155,7 +155,7 @@ public class PVItem extends ModelItem
         this.period = period;
         if (running)
             start();
-        fireItemDataConfigChanged();
+        fireItemDataConfigChanged(false);
     }
 
     /** {@inheritDoc} */
@@ -184,7 +184,7 @@ public class PVItem extends ModelItem
     public void setLiveCapacity(final int new_capacity) throws Exception
     {
         samples.setLiveCapacity(new_capacity);
-        fireItemDataConfigChanged();
+        fireItemDataConfigChanged(false);
     }
 
     /** @return Archive data sources for this item */
@@ -199,7 +199,7 @@ public class PVItem extends ModelItem
         archives.clear();
         for (ArchiveDataSource arch : Preferences.archives)
             archives.add(arch);
-        fireItemDataConfigChanged();
+        fireItemDataConfigChanged(true);
     }
 
     /** @param archive Archive data source
@@ -221,7 +221,7 @@ public class PVItem extends ModelItem
         if (hasArchiveDataSource(archive))
             throw new Error("Duplicate archive " + archive);
         archives.add(archive);
-        fireItemDataConfigChanged();
+        fireItemDataConfigChanged(true);
     }
 
     /**
@@ -237,14 +237,15 @@ public class PVItem extends ModelItem
                 archives.add(archive);
             }
         if (change)
-            fireItemDataConfigChanged();
+            fireItemDataConfigChanged(true);
     }
 
     /** @param archive Archive to remove as a source from this item. */
     public void removeArchiveDataSource(final ArchiveDataSource archive)
     {
+        // Archive removed -> (Probably) no need to get new data
         if (archives.remove(archive))
-            fireItemDataConfigChanged();
+            fireItemDataConfigChanged(false);
     }
 
     /** @param archs Archives to remove as a source from this item. Ignored when not used. */
@@ -255,7 +256,7 @@ public class PVItem extends ModelItem
             if (archives.remove(archive))
                 change = true;
         if (change)
-            fireItemDataConfigChanged();
+            fireItemDataConfigChanged(false);
     }
 
     /** Replace existing archive data sources with given archives
@@ -280,7 +281,7 @@ public class PVItem extends ModelItem
         archives.clear();
         for (ArchiveDataSource arch : archs)
             archives.add(arch);
-        fireItemDataConfigChanged();
+        fireItemDataConfigChanged(true);
     }
 
     /** @return Archive data request type */
@@ -295,14 +296,17 @@ public class PVItem extends ModelItem
         if (this.request_type == request_type)
             return;
         this.request_type = request_type;
-        fireItemDataConfigChanged();
+        fireItemDataConfigChanged(true);
     }
 
-    /** Notify listeners */
-    private void fireItemDataConfigChanged()
+    /** Notify listeners
+     *  @param archive_invalid Was a data source added, do we need to get new archived data?
+     *                         Or does the change not affect archived data?
+     */
+    private void fireItemDataConfigChanged(final boolean archive_invalid)
     {
         if (model.isPresent())
-            model.get().fireItemDataConfigChanged(this);
+            model.get().fireItemDataConfigChanged(this, archive_invalid);
     }
 
     /** Connect control system PV, start scanning, ...

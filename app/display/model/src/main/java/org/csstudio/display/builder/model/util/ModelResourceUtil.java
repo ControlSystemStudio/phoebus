@@ -57,25 +57,6 @@ public class ModelResourceUtil
 
     private static int timeout_ms = Preferences.read_timeout;
 
-    /** Enforce a file extension
-     *
-     *  @param file File with any or no extension
-     *  @param desired_extension Desired file extension
-     *  @return {@link File} with the desired file extension
-     */
-    public static File enforceFileExtension(final File file, final String desired_extension)
-    {
-        final String path = file.getPath();
-        final int sep = path.lastIndexOf('.');
-        if (sep < 0)
-            return new File(path + "." + desired_extension);
-        final String ext = path.substring(sep + 1);
-        if (! ext.equals(desired_extension))
-            return new File(path.substring(0, sep) + "." + desired_extension);
-
-        return file;
-    }
-
     // Many basic String operations since paths
     // may include " ", which URL won't handle,
     // or start with "https://", which File won't handle.
