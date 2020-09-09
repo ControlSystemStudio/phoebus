@@ -121,6 +121,7 @@
     <ant dir="app/alarm/model"/>
     <ant dir="app/alarm/ui"/>
     <ant dir="app/alarm/logging-ui"/>
+    <ant dir="app/alarm/datasource"/>
     <ant dir="app/update"/>
     <ant dir="app/console"/>
   </target>
