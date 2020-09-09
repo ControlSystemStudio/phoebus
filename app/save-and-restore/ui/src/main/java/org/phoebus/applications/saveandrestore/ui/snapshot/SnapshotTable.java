@@ -647,6 +647,18 @@ class SnapshotTable extends TableView<TableEntry> {
             return vDeltaCellEditor;
         });
         delta.setEditable(false);
+        delta.setComparator((pair1, pair2) -> {
+            Utilities.VTypeComparison vtc1 = Utilities.valueToCompareString(pair1.value, pair1.base, pair1.threshold);
+            Utilities.VTypeComparison vtc2 = Utilities.valueToCompareString(pair2.value, pair2.base, pair2.threshold);
+
+            if (!vtc1.isWithinThreshold() && vtc2.isWithinThreshold()) {
+                return -1;
+            } else if (vtc1.isWithinThreshold() && !vtc2.isWithinThreshold()) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
         storedValueBaseColumn.getColumns().add(delta);
 
         snapshotTableEntries.add(storedValueBaseColumn);
@@ -738,6 +750,18 @@ class SnapshotTable extends TableView<TableEntry> {
         delta.setCellValueFactory(e -> e.getValue().valueProperty());
         delta.setCellFactory(e -> new VDeltaCellEditor<>());
         delta.setEditable(false);
+        delta.setComparator((pair1, pair2) -> {
+            Utilities.VTypeComparison vtc1 = Utilities.valueToCompareString(pair1.value, pair1.base, pair1.threshold);
+            Utilities.VTypeComparison vtc2 = Utilities.valueToCompareString(pair2.value, pair2.base, pair2.threshold);
+
+            if (!vtc1.isWithinThreshold() && vtc2.isWithinThreshold()) {
+                return -1;
+            } else if (vtc1.isWithinThreshold() && !vtc2.isWithinThreshold()) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
         baseCol.getColumns().add(delta);
 
         storedValueColumn.getColumns().addAll(baseCol, new DividerTableColumn());
