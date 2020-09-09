@@ -935,7 +935,14 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
             return treeTableEntry.tableEntry.valueProperty();
         });
-        delta.setCellFactory(e -> new VDeltaTreeCellEditor<>());
+        delta.setCellFactory(e -> {
+            VDeltaTreeCellEditor vDeltaCellEditor = new VDeltaTreeCellEditor<>();
+            if (showDeltaPercentage) {
+                vDeltaCellEditor.setShowDeltaPercentage();
+            }
+
+            return vDeltaCellEditor;
+        });
         delta.setEditable(false);
         delta.setComparator((pair1, pair2) -> {
             Utilities.VTypeComparison vtc1 = Utilities.valueToCompareString(pair1.value, pair1.base, pair1.threshold);
@@ -1010,7 +1017,14 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
                 return e.getValue().getValue().tableEntry.compareValueProperty(snapshotIndex);
             });
-            deltaCol.setCellFactory(e -> new VDeltaTreeCellEditor<>());
+            deltaCol.setCellFactory(e -> {
+                VDeltaTreeCellEditor vDeltaCellEditor = new VDeltaTreeCellEditor<>();
+                if (showDeltaPercentage) {
+                    vDeltaCellEditor.setShowDeltaPercentage();
+                }
+
+                return vDeltaCellEditor;
+            });
             deltaCol.setEditable(false);
             deltaCol.label.setOnMouseReleased(e -> {
                 if (e.getButton() == MouseButton.SECONDARY) {

@@ -753,7 +753,14 @@ class SnapshotTable extends TableView<TableEntry> {
                 "", 100);
 
         delta.setCellValueFactory(e -> e.getValue().valueProperty());
-        delta.setCellFactory(e -> new VDeltaCellEditor<>());
+        delta.setCellFactory(e -> {
+            VDeltaCellEditor vDeltaCellEditor = new VDeltaCellEditor<>();
+            if (showDeltaPercentage) {
+                vDeltaCellEditor.setShowDeltaPercentage();
+            }
+
+            return vDeltaCellEditor;
+        });
         delta.setEditable(false);
         delta.setComparator((pair1, pair2) -> {
             Utilities.VTypeComparison vtc1 = Utilities.valueToCompareString(pair1.value, pair1.base, pair1.threshold);
@@ -809,7 +816,14 @@ class SnapshotTable extends TableView<TableEntry> {
                 "Setpoint PVV value when the " + snapshotName + " snapshot was taken", 50);
             deltaCol.label.setContextMenu(menu);
             deltaCol.setCellValueFactory(e -> e.getValue().compareValueProperty(snapshotIndex));
-            deltaCol.setCellFactory(e -> new VDeltaCellEditor<>());
+            deltaCol.setCellFactory(e -> {
+                VDeltaCellEditor vDeltaCellEditor = new VDeltaCellEditor<>();
+                if (showDeltaPercentage) {
+                    vDeltaCellEditor.setShowDeltaPercentage();
+                }
+
+                return vDeltaCellEditor;
+            });
             deltaCol.setEditable(false);
             deltaCol.label.setOnMouseReleased(e -> {
                 if (e.getButton() == MouseButton.SECONDARY) {
