@@ -18,6 +18,7 @@
 
 package org.csstudio.trends.databrowser3.ui.properties;
 
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
@@ -32,10 +33,17 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Callback;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.model.ModelListener;
+import org.csstudio.trends.databrowser3.model.PlotSample;
+import org.csstudio.trends.databrowser3.model.PlotSamples;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 
 public class StatisticsTabController {
@@ -56,6 +64,17 @@ public class StatisticsTabController {
     @FXML
     private TableColumn<ModelItem, String> countColumn;
 
+    @FXML
+    private TableColumn<ModelItem, String> meanColumn;
+
+    @FXML
+    private TableColumn<ModelItem, String> medianColumn;
+
+    @FXML
+    private TableColumn<ModelItem, String> stdDevColumn;
+
+    private HashMap<String, ItemStatistics> itemStatistics = new HashMap<>();
+
     public StatisticsTabController(Model model){
         this.model = model;
     }
@@ -67,12 +86,17 @@ public class StatisticsTabController {
         tracesTable.setPlaceholder(new Label(Messages.TraceTableEmpty));
         createTable();
 
-
-
         model.addListener(new ModelListener() {
             @Override
             public void itemAdded(ModelItem item) {
+                ItemStatistics statistics = new ItemStatistics();
+                itemStatistics.put(item.getResolvedName(), statistics);
                 tracesTable.getItems().setAll(model.getItems());
+            }
+
+            @Override
+            public void changedItemLook(ModelItem item){
+                tracesTable.refresh();
             }
         });
     }
@@ -85,7 +109,7 @@ public class StatisticsTabController {
 
     private void createTable(){
 
-        displayNameColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getResolvedName()));
+        displayNameColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getDisplayName()));
         displayNameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
 
         buttonColumn.setCellValueFactory(column -> {
@@ -102,11 +126,26 @@ public class StatisticsTabController {
             }
         });
 
-        countColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        countColumn.setCellValueFactory(cell -> {
+            return itemStatistics.get(cell.getValue().getResolvedName()).getCount();
+        });
+
+        meanColumn.setCellValueFactory(cell -> {
+            return itemStatistics.get(cell.getValue().getResolvedName()).getMean();
+        });
+
+        medianColumn.setCellValueFactory(cell -> {
+            return itemStatistics.get(cell.getValue().getResolvedName()).getMedian();
+        });
+
+        stdDevColumn.setCellValueFactory(cell -> {
+            return itemStatistics.get(cell.getValue().getResolvedName()).getStdDev();
+        });
+        //countColumn.setCellFactory(TextFieldTableCell.forTableColumn());
     }
 
     private void refresh(ModelItem modelItem){
-       
+       itemStatistics.get(modelItem.getResolvedName()).update(modelItem);
     }
 
     private class ColorIndicator extends Rectangle{
@@ -117,6 +156,44 @@ public class StatisticsTabController {
             setWidth(10);
             setHeight(10);
             setFill(color);
+        }
+    }
+
+    private class ItemStatistics{
+        private SimpleStringProperty count = new SimpleStringProperty();
+        private SimpleStringProperty mean = new SimpleStringProperty();
+        private SimpleStringProperty median = new SimpleStringProperty();
+        private SimpleStringProperty stdDev = new SimpleStringProperty();
+
+        public void update(ModelItem modelItem){
+            DescriptiveStatistics statistics = new DescriptiveStatistics();
+
+            PlotSamples plotSamples = modelItem.getSamples();
+            plotSamples.getLock().lock();
+            count.set(String.valueOf(modelItem.getSamples().size()));
+            for(int i = 0; i < modelItem.getSamples().size(); i++){
+                statistics.addValue(plotSamples.get(i).getValue());
+            }
+            plotSamples.getLock().unlock();
+            mean.set(String.valueOf(statistics.getMean()));
+            median.set(String.valueOf(statistics.getPercentile(50)));
+            stdDev.set(String.valueOf(statistics.getStandardDeviation()));
+        }
+
+        public SimpleStringProperty getCount() {
+            return count;
+        }
+
+        public SimpleStringProperty getStdDev() {
+            return stdDev;
+        }
+
+        public SimpleStringProperty getMean() {
+            return mean;
+        }
+
+        public SimpleStringProperty getMedian() {
+            return median;
         }
     }
 }
