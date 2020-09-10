@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
+import javafx.scene.text.TextAlignment;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
@@ -216,6 +217,8 @@ public class AlarmAreaView extends StackPane implements AlarmClientListener
         label.setAlignment(Pos.CENTER);
         label.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         label.setFont(font);
+        label.setWrapText(true);
+        label.setTextAlignment(TextAlignment.CENTER);
         GridPane.setHgrow(label, Priority.ALWAYS);
         GridPane.setVgrow(label, Priority.ALWAYS);
         return label;
