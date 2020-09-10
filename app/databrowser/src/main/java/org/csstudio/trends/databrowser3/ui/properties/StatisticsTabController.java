@@ -18,19 +18,24 @@
 
 package org.csstudio.trends.databrowser3.ui.properties;
 
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.util.Callback;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
+import org.csstudio.trends.databrowser3.model.ModelListener;
 
 
 public class StatisticsTabController {
@@ -43,10 +48,17 @@ public class StatisticsTabController {
     private TableView<ModelItem> tracesTable;
 
     @FXML
-    private TableColumn<ModelItem, Void> buttonColumn;
+    private TableColumn<ModelItem, Button> buttonColumn;
 
     @FXML
     private TableColumn<ModelItem, String> displayNameColumn;
+
+    @FXML
+    private TableColumn<ModelItem, String> countColumn;
+
+    public StatisticsTabController(Model model){
+        this.model = model;
+    }
 
 
     @FXML
@@ -54,11 +66,17 @@ public class StatisticsTabController {
         refreshAll.setText(Messages.RefreshAll);
         tracesTable.setPlaceholder(new Label(Messages.TraceTableEmpty));
         createTable();
+
+
+
+        model.addListener(new ModelListener() {
+            @Override
+            public void itemAdded(ModelItem item) {
+                tracesTable.getItems().setAll(model.getItems());
+            }
+        });
     }
 
-    public void setModel(Model model){
-        this.model = model;
-    }
 
     @FXML
     public void refreshAll(){
@@ -70,33 +88,35 @@ public class StatisticsTabController {
         displayNameColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getResolvedName()));
         displayNameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
 
-        Callback<TableColumn<ModelItem, Void>, TableCell<ModelItem, Void>> cellFactory = new Callback<TableColumn<ModelItem, Void>, TableCell<ModelItem, Void>>() {
+        buttonColumn.setCellValueFactory(column -> {
+            Button button = new Button(Messages.Refresh);
+            button.setOnAction(e -> refresh(column.getValue()));
+            button.setGraphic(new ColorIndicator(column.getValue().getPaintColor()));
+            return new SimpleObjectProperty<>(button);
+        });
+        buttonColumn.setCellFactory(column -> new TableCell<>(){
             @Override
-            public TableCell<ModelItem, Void> call(final TableColumn<ModelItem, Void> param) {
-                final TableCell<ModelItem, Void> cell = new TableCell<ModelItem, Void>() {
-
-                    private final Button btn = new Button("Refresh");
-
-                    {
-                        btn.setOnAction((ActionEvent event) -> {
-                            // TODO
-                        });
-                    }
-
-                    @Override
-                    public void updateItem(Void item, boolean empty) {
-                        super.updateItem(item, empty);
-                        if (empty) {
-                            setGraphic(null);
-                        } else {
-                            setGraphic(btn);
-                        }
-                    }
-                };
-                return cell;
+            public void updateItem(final Button button, final boolean empty){
+                super.updateItem(button, empty);
+                setGraphic(empty ? null : button);
             }
-        };
+        });
 
-        buttonColumn.setCellFactory(cellFactory);
+        countColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+    }
+
+    private void refresh(ModelItem modelItem){
+       
+    }
+
+    private class ColorIndicator extends Rectangle{
+        public ColorIndicator(Color color){
+            super();
+            setX(0);
+            setY(0);
+            setWidth(10);
+            setHeight(10);
+            setFill(color);
+        }
     }
 }

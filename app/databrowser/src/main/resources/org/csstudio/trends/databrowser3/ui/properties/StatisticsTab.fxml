@@ -31,9 +31,8 @@
     </ToolBar>
     <TableView fx:id="tracesTable" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" VBox.vgrow="ALWAYS">
       <columns>
-        <TableColumn fx:id="buttonColumn" prefWidth="75.0" />
-        <TableColumn fx:id="displayNameColumn" prefWidth="100.0" text="Display Name"/>
-        <TableColumn fx:id="colorColumn" prefWidth="75.0" text="Color" />
+        <TableColumn fx:id="buttonColumn" prefWidth="100.0" />
+        <TableColumn fx:id="displayNameColumn" prefWidth="130.0" text="Display Name"/>
         <TableColumn fx:id="countColumn" prefWidth="100.0" text="Sample Count" />
         <TableColumn fx:id="meanColumn" prefWidth="100.0" text="Mean" />
         <TableColumn fx:id="medianColumn" prefWidth="100.0" text="Median" />
