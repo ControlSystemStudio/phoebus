@@ -789,32 +789,32 @@ class SnapshotTable extends TableView<TableEntry> {
 
             snapshotName = snapshots.get(snapshotIndex).getSnapshot().get().getName() + " (" +
                     String.valueOf(snapshots.get(snapshotIndex)) + ")";
-            final ContextMenu menu = createContextMenu(snapshotIndex);
+//            final ContextMenu menu = createContextMenu(snapshotIndex);
 
             TooltipTableColumn<VTypePair> baseSnapshotCol = new TooltipTableColumn<>(snapshotName,
                     "Setpoint PV value when the " + snapshotName + " snapshot was taken", 100);
-            baseSnapshotCol.label.setContextMenu(menu);
+//            baseSnapshotCol.label.setContextMenu(menu);
             baseSnapshotCol.getStyleClass().add("second-level");
 
             TooltipTableColumn<VTypePair> setpointValueCol = new TooltipTableColumn<>(
                     "Setpoint",
                     "Setpoint PV value when the " + snapshotName + " snapshot was taken", 66);
 
-            setpointValueCol.label.setContextMenu(menu);
+//            setpointValueCol.label.setContextMenu(menu);
             setpointValueCol.setCellValueFactory(e -> e.getValue().compareValueProperty(snapshotIndex));
             setpointValueCol.setCellFactory(e -> new VTypeCellEditor<>());
             setpointValueCol.setEditable(false);
-            setpointValueCol.label.setOnMouseReleased(e -> {
-                if (e.getButton() == MouseButton.SECONDARY) {
-                    menu.show(setpointValueCol.label, e.getScreenX(), e.getScreenY());
-                }
-            });
+//            setpointValueCol.label.setOnMouseReleased(e -> {
+//                if (e.getButton() == MouseButton.SECONDARY) {
+//                    menu.show(setpointValueCol.label, e.getScreenX(), e.getScreenY());
+//                }
+//            });
             baseSnapshotCol.getColumns().add(setpointValueCol);
 
             TooltipTableColumn<VTypePair> deltaCol = new TooltipTableColumn<>(
                  Utilities.DELTA_CHAR + " Base Setpoint",
                 "Setpoint PVV value when the " + snapshotName + " snapshot was taken", 50);
-            deltaCol.label.setContextMenu(menu);
+//            deltaCol.label.setContextMenu(menu);
             deltaCol.setCellValueFactory(e -> e.getValue().compareValueProperty(snapshotIndex));
             deltaCol.setCellFactory(e -> {
                 VDeltaCellEditor vDeltaCellEditor = new VDeltaCellEditor<>();
@@ -825,11 +825,11 @@ class SnapshotTable extends TableView<TableEntry> {
                 return vDeltaCellEditor;
             });
             deltaCol.setEditable(false);
-            deltaCol.label.setOnMouseReleased(e -> {
-                if (e.getButton() == MouseButton.SECONDARY) {
-                    menu.show(deltaCol.label, e.getScreenX(), e.getScreenY());
-                }
-            });
+//            deltaCol.label.setOnMouseReleased(e -> {
+//                if (e.getButton() == MouseButton.SECONDARY) {
+//                    menu.show(deltaCol.label, e.getScreenX(), e.getScreenY());
+//                }
+//            });
             deltaCol.setComparator((pair1, pair2) -> {
                 Utilities.VTypeComparison vtc1 = Utilities.valueToCompareString(pair1.value, pair1.base, pair1.threshold);
                 Utilities.VTypeComparison vtc2 = Utilities.valueToCompareString(pair2.value, pair2.base, pair2.threshold);
