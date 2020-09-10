@@ -554,6 +554,7 @@ public class SnapshotController implements NodeChangedListener {
                 }
                 snapshotRestorableProperty.set(true);
 
+                dirtySnapshotEntries.clear();
                 vSnapshot.getEntries().stream().forEach(item -> {
                     item.getValueProperty().addListener((observableValue, vType, newVType) -> {
                         if (!Utilities.areVTypesIdentical(newVType, item.getStoredValue(), false)) {
