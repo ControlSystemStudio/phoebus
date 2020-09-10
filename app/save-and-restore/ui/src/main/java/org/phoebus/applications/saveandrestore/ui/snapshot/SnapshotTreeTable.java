@@ -918,6 +918,12 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
             ObjectProperty<VTypePair> value = treeTableEntry.tableEntry.valueProperty();
             value.setValue(new VTypePair(value.get().base, e.getNewValue(), value.get().threshold));
+            controller.updateSnapshot(0, e.getRowValue().getValue().tableEntry, e.getNewValue());
+
+            for (int i = 1; i < snapshots.size(); i++) {
+                ObjectProperty<VTypePair> compareValue = e.getRowValue().getValue().tableEntry.compareValueProperty(i);
+                compareValue.setValue(new VTypePair(e.getNewValue(), compareValue.get().value, compareValue.get().threshold));
+            }
         });
 
         baseCol.getColumns().add(storedBaseSetpointValueColumn);
@@ -986,18 +992,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                 return treeTableEntry.tableEntry.compareValueProperty(snapshotIndex);
             });
             setpointValueCol.setCellFactory(e -> new VTypeTreeCellEditor<>());
-            setpointValueCol.setEditable(true);
-            setpointValueCol.setOnEditCommit(e -> {
-                TreeTableEntry treeTableEntry = e.getRowValue().getValue();
-                if (treeTableEntry.folder) {
-                    return;
-                }
-
-                ObjectProperty<VTypePair> value = e.getRowValue().getValue().tableEntry.compareValueProperty(snapshotIndex);
-                value.setValue(new VTypePair(value.get().base, e.getNewValue().value, value.get().threshold));
-                controller.updateSnapshot(snapshotIndex, e.getRowValue().getValue().tableEntry, e.getNewValue().value);
-//                controller.resume();
-            });
+            setpointValueCol.setEditable(false);
             setpointValueCol.label.setOnMouseReleased(e -> {
                 if (e.getButton() == MouseButton.SECONDARY) {
                     menu.show(setpointValueCol.label, e.getScreenX(), e.getScreenY());

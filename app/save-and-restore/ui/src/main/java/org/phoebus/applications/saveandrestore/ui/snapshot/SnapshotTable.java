@@ -743,6 +743,12 @@ class SnapshotTable extends TableView<TableEntry> {
         storedBaseSetpointValueColumn.setOnEditCommit(e -> {
             ObjectProperty<VTypePair> value = e.getRowValue().valueProperty();
             value.setValue(new VTypePair(value.get().base, e.getNewValue(), value.get().threshold));
+            controller.updateSnapshot(0, e.getRowValue(), e.getNewValue());
+
+            for (int i = 1; i < snapshots.size(); i++) {
+                ObjectProperty<VTypePair> compareValue = e.getRowValue().compareValueProperty(i);
+                compareValue.setValue(new VTypePair(e.getNewValue(), compareValue.get().value, compareValue.get().threshold));
+            }
         });
 
         baseCol.getColumns().add(storedBaseSetpointValueColumn);
@@ -797,13 +803,7 @@ class SnapshotTable extends TableView<TableEntry> {
             setpointValueCol.label.setContextMenu(menu);
             setpointValueCol.setCellValueFactory(e -> e.getValue().compareValueProperty(snapshotIndex));
             setpointValueCol.setCellFactory(e -> new VTypeCellEditor<>());
-            setpointValueCol.setEditable(true);
-            setpointValueCol.setOnEditCommit(e -> {
-                ObjectProperty<VTypePair> value = e.getRowValue().compareValueProperty(snapshotIndex);
-                value.setValue(new VTypePair(value.get().base, e.getNewValue().value, value.get().threshold));
-                controller.updateSnapshot(snapshotIndex, e.getRowValue(), e.getNewValue().value);
-//                controller.resume();
-            });
+            setpointValueCol.setEditable(false);
             setpointValueCol.label.setOnMouseReleased(e -> {
                 if (e.getButton() == MouseButton.SECONDARY) {
                     menu.show(setpointValueCol.label, e.getScreenX(), e.getScreenY());
