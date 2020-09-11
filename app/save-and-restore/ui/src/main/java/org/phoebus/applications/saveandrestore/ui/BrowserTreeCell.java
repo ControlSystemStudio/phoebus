@@ -74,6 +74,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
 		if (empty) {
 			setGraphic(null);
 			setText(null);
+			setContextMenu(null);
 			return;
 		}
 
