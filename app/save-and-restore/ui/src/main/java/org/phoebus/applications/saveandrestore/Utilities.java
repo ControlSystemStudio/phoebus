@@ -924,14 +924,18 @@ public final class Utilities {
 
             double percentage = newd/data*100;
 
-            if (!Double.isFinite(percentage) || Double.compare(percentage, 0) == 0) {
+            if (Double.compare(newd, 0) == 0) {
                 return "";
+            } else if (Double.compare(base, 0) == 0) {
+                return "0 Live";
+            } else if (Double.compare(data, 0) == 0) {
+                return "0 Stored";
             }
 
             NumberFormat format = NumberFormat.getNumberInstance();
             format.setMaximumFractionDigits(2);
 
-            return format.format(percentage);
+            return format.format(percentage) + "%";
         }
 
         return "";

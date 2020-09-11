@@ -69,10 +69,10 @@ import org.phoebus.ui.javafx.ImageCache;
 import java.lang.reflect.Field;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Formatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -164,7 +164,17 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                     } else if (item instanceof VEnum) {
                         return ((VEnum) item).getValue();
                     } else if (item instanceof VTypePair) {
-                        return ((VTypePair)item).value.toString();
+                        VType value = ((VTypePair) item).value;
+
+                        if (value instanceof VNumber) {
+                            return ((VNumber) value).getValue().toString();
+                        } else if (value instanceof VNumberArray) {
+                            return ((VNumberArray) value).getData().toString();
+                        } else if (value instanceof VEnum) {
+                            return ((VEnum) value).getValue();
+                        } else {
+                            return value.toString();
+                        }
                     } else {
                         return item.toString();
                     }
@@ -288,12 +298,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                     } else if (pair.value == VNoData.INSTANCE) {
                         setText(pair.value.toString());
                     } else {
-                        Utilities.VTypeComparison vtc = Utilities.valueToCompareString(pair.value, pair.base, pair.threshold);
-                        setText(vtc.getString());
-                        if (!vtc.isWithinThreshold()) {
-                            getStyleClass().add("diff-cell");
-                            setGraphic(new ImageView(WARNING_IMAGE));
-                        }
+                        setText(Utilities.valueToString(pair.value));
                     }
 
                     tooltip.setText(item.toString());
@@ -364,9 +369,8 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                         Utilities.VTypeComparison vtc = Utilities.deltaValueToString(pair.value, pair.base, pair.threshold);
                         String percentage = Utilities.deltaValueToPercentage(pair.value, pair.base);
                         if (!percentage.isEmpty() && showDeltaPercentage) {
-                            NumberFormat numberFormat = NumberFormat.getNumberInstance();
-                            numberFormat.setMaximumFractionDigits(6);
-                            setText(numberFormat.format(Double.parseDouble(vtc.getString())) + " (" + percentage + "%)");
+                            Formatter formatter = new Formatter();
+                            setText(formatter.format("%g", Double.parseDouble(vtc.getString())) + " (" + percentage + ")");
                         } else {
                             setText(vtc.getString());
                         }
@@ -377,66 +381,6 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                     }
 
                     tooltip.setText(item.toString());
-                    setTooltip(tooltip);
-                }
-            }
-        }
-    }
-
-    private static class VSetpointTreeCellEditor<T> extends VTypeTreeCellEditor<T> {
-
-        private static final Image DISCONNECTED_IMAGE = new Image(
-                SnapshotController.class.getResourceAsStream("/icons/showerr_tsk.png"));
-        private final Tooltip tooltip = new Tooltip();
-
-        VSetpointTreeCellEditor(SnapshotController cntrl) {
-            super();
-        }
-
-        @Override
-        public void updateItem(T item, boolean empty) {
-            super.updateItem(item, empty);
-            getStyleClass().remove("diff-cell");
-
-            TreeTableEntry entry = getTreeTableRow().getItem();
-            if (item == null || empty) {
-                setText("");
-                setTooltip(null);
-                setGraphic(null);
-            } else if (entry.folder) {
-                setText("");
-                setTooltip(null);
-                setGraphic(null);
-            } else {
-                if (item == VDisconnectedData.INSTANCE) {
-                    setText(VDisconnectedData.DISCONNECTED);
-                    setGraphic(new ImageView(DISCONNECTED_IMAGE));
-                    tooltip.setText("No Value Available");
-                    setTooltip(tooltip);
-                    getStyleClass().add("diff-cell");
-                } else if (item == VNoData.INSTANCE) {
-                    setText(item.toString());
-                    tooltip.setText("No Value Available");
-                    setTooltip(tooltip);
-                } else if (item instanceof VType) {
-                    setText(Utilities.valueToString((VType) item));
-                    setGraphic(null);
-                    tooltip.setText(item.toString());
-                    setTooltip(tooltip);
-                } else if (item instanceof VTypePair) {
-                    VTypePair pair = (VTypePair) item;
-                    if (pair.value == VDisconnectedData.INSTANCE) {
-                        setText(VDisconnectedData.DISCONNECTED);
-                        if (pair.base != VDisconnectedData.INSTANCE) {
-                            getStyleClass().add("diff-cell");
-                        }
-                        setGraphic(new ImageView(DISCONNECTED_IMAGE));
-                    } else if (pair.value == VNoData.INSTANCE) {
-                        setText(pair.value.toString());
-                    } else {
-                        setText(Utilities.valueToString(pair.value));
-                    }
-                    tooltip.setText(pair.value.toString());
                     setTooltip(tooltip);
                 }
             }
@@ -868,6 +812,18 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
             return vDeltaTreeCellEditor;
         });
         delta.setEditable(false);
+        delta.setComparator((pair1, pair2) -> {
+            Utilities.VTypeComparison vtc1 = Utilities.valueToCompareString(pair1.value, pair1.base, pair1.threshold);
+            Utilities.VTypeComparison vtc2 = Utilities.valueToCompareString(pair2.value, pair2.base, pair2.threshold);
+
+            if (!vtc1.isWithinThreshold() && vtc2.isWithinThreshold()) {
+                return -1;
+            } else if (vtc1.isWithinThreshold() && !vtc2.isWithinThreshold()) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
         storedValueBaseColumn.getColumns().add(delta);
 
         snapshotTreeTableColumns.add(storedValueBaseColumn);
@@ -962,6 +918,12 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
             ObjectProperty<VTypePair> value = treeTableEntry.tableEntry.valueProperty();
             value.setValue(new VTypePair(value.get().base, e.getNewValue(), value.get().threshold));
+            controller.updateSnapshot(0, e.getRowValue().getValue().tableEntry, e.getNewValue());
+
+            for (int i = 1; i < snapshots.size(); i++) {
+                ObjectProperty<VTypePair> compareValue = e.getRowValue().getValue().tableEntry.compareValueProperty(i);
+                compareValue.setValue(new VTypePair(e.getNewValue(), compareValue.get().value, compareValue.get().threshold));
+            }
         });
 
         baseCol.getColumns().add(storedBaseSetpointValueColumn);
@@ -979,8 +941,27 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
             return treeTableEntry.tableEntry.valueProperty();
         });
-        delta.setCellFactory(e -> new VDeltaTreeCellEditor<>());
+        delta.setCellFactory(e -> {
+            VDeltaTreeCellEditor vDeltaCellEditor = new VDeltaTreeCellEditor<>();
+            if (showDeltaPercentage) {
+                vDeltaCellEditor.setShowDeltaPercentage();
+            }
+
+            return vDeltaCellEditor;
+        });
         delta.setEditable(false);
+        delta.setComparator((pair1, pair2) -> {
+            Utilities.VTypeComparison vtc1 = Utilities.valueToCompareString(pair1.value, pair1.base, pair1.threshold);
+            Utilities.VTypeComparison vtc2 = Utilities.valueToCompareString(pair2.value, pair2.base, pair2.threshold);
+
+            if (!vtc1.isWithinThreshold() && vtc2.isWithinThreshold()) {
+                return -1;
+            } else if (vtc1.isWithinThreshold() && !vtc2.isWithinThreshold()) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
         baseCol.getColumns().add(delta);
 
         storedValueColumn.getColumns().addAll(baseCol, new DividerTreeTableColumn());
@@ -990,18 +971,18 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
             snapshotName = snapshots.get(snapshotIndex).getSnapshot().get().getName() + " (" +
                     String.valueOf(snapshots.get(snapshotIndex)) + ")";
-            final ContextMenu menu = createContextMenu(snapshotIndex);
+//            final ContextMenu menu = createContextMenu(snapshotIndex);
 
             TooltipTreeTableColumn<VTypePair> baseSnapshotCol = new TooltipTreeTableColumn<>(snapshotName,
                     "Setpoint PV value when the " + snapshotName + " snapshot was taken", 100);
-            baseSnapshotCol.label.setContextMenu(menu);
+//            baseSnapshotCol.label.setContextMenu(menu);
             baseSnapshotCol.getStyleClass().add("second-level");
 
             TooltipTreeTableColumn<VTypePair> setpointValueCol = new TooltipTreeTableColumn<>(
                     "Setpoint",
                     "Setpoint PV value when the " + snapshotName + " snapshot was taken", 66);
 
-            setpointValueCol.label.setContextMenu(menu);
+//            setpointValueCol.label.setContextMenu(menu);
             setpointValueCol.setCellValueFactory(e -> {
                 TreeTableEntry treeTableEntry = e.getValue().getValue();
                 if (treeTableEntry.folder) {
@@ -1011,29 +992,18 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                 return treeTableEntry.tableEntry.compareValueProperty(snapshotIndex);
             });
             setpointValueCol.setCellFactory(e -> new VTypeTreeCellEditor<>());
-            setpointValueCol.setEditable(true);
-            setpointValueCol.setOnEditCommit(e -> {
-                TreeTableEntry treeTableEntry = e.getRowValue().getValue();
-                if (treeTableEntry.folder) {
-                    return;
-                }
-
-                ObjectProperty<VTypePair> value = e.getRowValue().getValue().tableEntry.compareValueProperty(snapshotIndex);
-                value.setValue(new VTypePair(value.get().base, e.getNewValue().value, value.get().threshold));
-                controller.updateSnapshot(snapshotIndex, e.getRowValue().getValue().tableEntry, e.getNewValue().value);
-//                controller.resume();
-            });
-            setpointValueCol.label.setOnMouseReleased(e -> {
-                if (e.getButton() == MouseButton.SECONDARY) {
-                    menu.show(setpointValueCol.label, e.getScreenX(), e.getScreenY());
-                }
-            });
+            setpointValueCol.setEditable(false);
+//            setpointValueCol.label.setOnMouseReleased(e -> {
+//                if (e.getButton() == MouseButton.SECONDARY) {
+//                    menu.show(setpointValueCol.label, e.getScreenX(), e.getScreenY());
+//                }
+//            });
             baseSnapshotCol.getColumns().add(setpointValueCol);
 
             TooltipTreeTableColumn<VTypePair> deltaCol = new TooltipTreeTableColumn<>(
                  Utilities.DELTA_CHAR + " Base Setpoint",
                 "Setpoint PVV value when the " + snapshotName + " snapshot was taken", 50);
-            deltaCol.label.setContextMenu(menu);
+//            deltaCol.label.setContextMenu(menu);
             deltaCol.setCellValueFactory(e -> {
                 TreeTableEntry treeTableEntry = e.getValue().getValue();
                 if (treeTableEntry.folder) {
@@ -1042,11 +1012,30 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
                 return e.getValue().getValue().tableEntry.compareValueProperty(snapshotIndex);
             });
-            deltaCol.setCellFactory(e -> new VDeltaTreeCellEditor<>());
+            deltaCol.setCellFactory(e -> {
+                VDeltaTreeCellEditor vDeltaCellEditor = new VDeltaTreeCellEditor<>();
+                if (showDeltaPercentage) {
+                    vDeltaCellEditor.setShowDeltaPercentage();
+                }
+
+                return vDeltaCellEditor;
+            });
             deltaCol.setEditable(false);
-            deltaCol.label.setOnMouseReleased(e -> {
-                if (e.getButton() == MouseButton.SECONDARY) {
-                    menu.show(deltaCol.label, e.getScreenX(), e.getScreenY());
+//            deltaCol.label.setOnMouseReleased(e -> {
+//                if (e.getButton() == MouseButton.SECONDARY) {
+//                    menu.show(deltaCol.label, e.getScreenX(), e.getScreenY());
+//                }
+//            });
+            deltaCol.setComparator((pair1, pair2) -> {
+                Utilities.VTypeComparison vtc1 = Utilities.valueToCompareString(pair1.value, pair1.base, pair1.threshold);
+                Utilities.VTypeComparison vtc2 = Utilities.valueToCompareString(pair2.value, pair2.base, pair2.threshold);
+
+                if (!vtc1.isWithinThreshold() && vtc2.isWithinThreshold()) {
+                    return -1;
+                } else if (vtc1.isWithinThreshold() && !vtc2.isWithinThreshold()) {
+                    return 1;
+                } else {
+                    return 0;
                 }
             });
             baseSnapshotCol.getColumns().addAll(deltaCol);
