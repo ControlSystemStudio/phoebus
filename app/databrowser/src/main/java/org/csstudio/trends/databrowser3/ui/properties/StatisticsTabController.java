@@ -40,8 +40,13 @@ import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.model.ModelListener;
 import org.csstudio.trends.databrowser3.model.PlotSample;
 import org.csstudio.trends.databrowser3.model.PlotSamples;
+import org.phoebus.util.time.TimeRelativeInterval;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -98,6 +103,7 @@ public class StatisticsTabController {
             public void changedItemLook(ModelItem item){
                 tracesTable.refresh();
             }
+
         });
     }
 
@@ -145,7 +151,7 @@ public class StatisticsTabController {
     }
 
     private void refresh(ModelItem modelItem){
-       itemStatistics.get(modelItem.getResolvedName()).update(modelItem);
+        itemStatistics.get(modelItem.getResolvedName()).update(modelItem);
     }
 
     private class ColorIndicator extends Rectangle{
@@ -170,14 +176,38 @@ public class StatisticsTabController {
 
             PlotSamples plotSamples = modelItem.getSamples();
             plotSamples.getLock().lock();
-            count.set(String.valueOf(modelItem.getSamples().size()));
-            for(int i = 0; i < modelItem.getSamples().size(); i++){
+            TimeRelativeInterval timeRelativeInterval = model.getTimerange();
+            long start;
+            long end;
+            if(timeRelativeInterval.getAbsoluteEnd().isPresent()){
+                start = 1000 * timeRelativeInterval.getAbsoluteStart().get().getEpochSecond();
+                end = 1000 *  timeRelativeInterval.getAbsoluteEnd().get().getEpochSecond();
+            }
+            else{
+                long now = System.currentTimeMillis();
+                start = now - 1000 * timeRelativeInterval.getRelativeStart().get().get(ChronoUnit.SECONDS);
+                end = now - 1000 * timeRelativeInterval.getRelativeEnd().get().get(ChronoUnit.SECONDS);
+            }
+            int length = modelItem.getSamples().size();
+            int counter = 0;
+            for(int i = 0; i < length; i++){
+
+                if(plotSamples.get(i).getPosition().isBefore(Instant.ofEpochMilli(start))){
+                    continue;
+                }
+                else if(plotSamples.get(i).getPosition().isAfter(Instant.ofEpochMilli(end))){
+                    break;
+                }
+                counter++;
                 statistics.addValue(plotSamples.get(i).getValue());
             }
             plotSamples.getLock().unlock();
+            count.set(String.valueOf(counter));
+
             mean.set(String.valueOf(statistics.getMean()));
             median.set(String.valueOf(statistics.getPercentile(50)));
             stdDev.set(String.valueOf(statistics.getStandardDeviation()));
+
         }
 
         public SimpleStringProperty getCount() {
