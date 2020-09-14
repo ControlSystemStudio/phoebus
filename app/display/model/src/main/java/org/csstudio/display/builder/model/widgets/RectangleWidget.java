@@ -9,6 +9,7 @@ package org.csstudio.display.builder.model.widgets;
 
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineColor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineStyle;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineWidth;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propTransparent;
 
@@ -25,6 +26,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
+import org.csstudio.display.builder.model.properties.LineStyle;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 
 /** Widget that displays a static rectangle
@@ -59,6 +61,7 @@ public class RectangleWidget extends MacroWidget
     private volatile WidgetProperty<Boolean> transparent;
     private volatile WidgetProperty<WidgetColor> line_color;
     private volatile WidgetProperty<Integer> line_width;
+    private volatile WidgetProperty<LineStyle> line_style;
     private volatile WidgetProperty<Integer> corner_width;
     private volatile WidgetProperty<Integer> corner_height;
 
@@ -73,6 +76,7 @@ public class RectangleWidget extends MacroWidget
         super.defineProperties(properties);
         properties.add(line_width = propLineWidth.createProperty(this, 3));
         properties.add(line_color = propLineColor.createProperty(this, new WidgetColor(0, 0, 255)));
+        properties.add(line_style = propLineStyle.createProperty(this, LineStyle.SOLID));
         properties.add(background = propBackgroundColor.createProperty(this, new WidgetColor(30, 144, 255)));
         properties.add(transparent = propTransparent.createProperty(this, false));
         properties.add(corner_width = propCornerWidth.createProperty(this, 0));
@@ -108,6 +112,12 @@ public class RectangleWidget extends MacroWidget
     public WidgetProperty<Integer> propLineWidth()
     {
         return line_width;
+    }
+
+    /** @return 'line_style' property */
+    public WidgetProperty<LineStyle> propLineStyle()
+    {
+        return line_style;
     }
 
     /** @return 'corner_width' property */
