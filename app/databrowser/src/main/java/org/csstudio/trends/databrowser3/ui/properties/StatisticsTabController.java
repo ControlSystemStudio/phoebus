@@ -30,6 +30,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Callback;
@@ -40,6 +41,7 @@ import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.model.ModelListener;
 import org.csstudio.trends.databrowser3.model.PlotSample;
 import org.csstudio.trends.databrowser3.model.PlotSamples;
+import org.phoebus.framework.jobs.Job;
 import org.phoebus.util.time.TimeRelativeInterval;
 
 import java.time.Instant;
@@ -54,29 +56,31 @@ import java.util.List;
 public class StatisticsTabController {
     private Model model;
 
+    private static Color border = Color.color(0.71, 0.71, 0.71);
+
     @FXML
     private Button refreshAll;
 
     @FXML
     private TableView<ModelItem> tracesTable;
-
     @FXML
-    private TableColumn<ModelItem, Button> buttonColumn;
-
+    private TableColumn<ModelItem, ColorIndicator> indicatorColumn;
     @FXML
     private TableColumn<ModelItem, String> displayNameColumn;
-
     @FXML
     private TableColumn<ModelItem, String> countColumn;
-
     @FXML
     private TableColumn<ModelItem, String> meanColumn;
-
     @FXML
     private TableColumn<ModelItem, String> medianColumn;
-
     @FXML
     private TableColumn<ModelItem, String> stdDevColumn;
+    @FXML
+    private TableColumn<ModelItem, String> minColumn;
+    @FXML
+    private TableColumn<ModelItem, String> maxColumn;
+    @FXML
+    private TableColumn<ModelItem, String> sumColumn;
 
     private HashMap<String, ItemStatistics> itemStatistics = new HashMap<>();
 
@@ -87,10 +91,11 @@ public class StatisticsTabController {
 
     @FXML
     public void initialize() {
-        refreshAll.setText(Messages.RefreshAll);
+
+        refreshAll.setText(Messages.Refresh);
+        refreshAll.setOnAction(e -> refreshAll());
         tracesTable.setPlaceholder(new Label(Messages.TraceTableEmpty));
         createTable();
-
         model.addListener(new ModelListener() {
             @Override
             public void itemAdded(ModelItem item) {
@@ -103,58 +108,60 @@ public class StatisticsTabController {
             public void changedItemLook(ModelItem item){
                 tracesTable.refresh();
             }
-
         });
     }
-
 
     @FXML
     public void refreshAll(){
-
+        model.getItems().stream().forEach(item -> refresh(item));
     }
 
     private void createTable(){
-
+        displayNameColumn.setText(Messages.TraceDisplayName);
         displayNameColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getDisplayName()));
         displayNameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
 
-        buttonColumn.setCellValueFactory(column -> {
-            Button button = new Button(Messages.Refresh);
-            button.setOnAction(e -> refresh(column.getValue()));
-            button.setGraphic(new ColorIndicator(column.getValue().getPaintColor()));
-            return new SimpleObjectProperty<>(button);
-        });
-        buttonColumn.setCellFactory(column -> new TableCell<>(){
+        indicatorColumn.setCellValueFactory(column ->
+             new SimpleObjectProperty<>(new ColorIndicator(column.getValue().getPaintColor()))
+        );
+
+        indicatorColumn.setCellFactory(column -> new TableCell<>(){
             @Override
-            public void updateItem(final Button button, final boolean empty){
-                super.updateItem(button, empty);
-                setGraphic(empty ? null : button);
+            public void updateItem(final ColorIndicator colorIndicator, final boolean empty){
+                super.updateItem(colorIndicator, empty);
+                setGraphic(empty ? null : colorIndicator);
+                setStyle( "-fx-alignment: CENTER-LEFT;");
             }
         });
 
-        countColumn.setCellValueFactory(cell -> {
-            return itemStatistics.get(cell.getValue().getResolvedName()).getCount();
-        });
-
-        meanColumn.setCellValueFactory(cell -> {
-            return itemStatistics.get(cell.getValue().getResolvedName()).getMean();
-        });
-
-        medianColumn.setCellValueFactory(cell -> {
-            return itemStatistics.get(cell.getValue().getResolvedName()).getMedian();
-        });
-
-        stdDevColumn.setCellValueFactory(cell -> {
-            return itemStatistics.get(cell.getValue().getResolvedName()).getStdDev();
-        });
-        //countColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        countColumn.setText(Messages.StatisticsSampleCount);
+        countColumn.setCellValueFactory(cell ->
+                itemStatistics.get(cell.getValue().getResolvedName()).getCount());
+        meanColumn.setText(Messages.StatisticsMean);
+        meanColumn.setCellValueFactory(cell ->
+            itemStatistics.get(cell.getValue().getResolvedName()).getMean());
+        meanColumn.setText(Messages.StatisticsMedian);
+        medianColumn.setCellValueFactory(cell ->
+                itemStatistics.get(cell.getValue().getResolvedName()).getMedian());
+        stdDevColumn.setText(Messages.StatisticsStdDev);
+        stdDevColumn.setCellValueFactory(cell ->
+                itemStatistics.get(cell.getValue().getResolvedName()).getStdDev());
+        minColumn.setText(Messages.StatisticsMin);
+        minColumn.setCellValueFactory(cell ->
+                itemStatistics.get(cell.getValue().getResolvedName()).getMin());
+        maxColumn.setText(Messages.StatisticsMax);
+        maxColumn.setCellValueFactory(cell ->
+                itemStatistics.get(cell.getValue().getResolvedName()).getMax());
+        sumColumn.setText(Messages.StatisticsSum);
+        sumColumn.setCellValueFactory(cell ->
+                itemStatistics.get(cell.getValue().getResolvedName()).getSum());
     }
 
     private void refresh(ModelItem modelItem){
         itemStatistics.get(modelItem.getResolvedName()).update(modelItem);
     }
 
-    private class ColorIndicator extends Rectangle{
+    private class ColorIndicator extends Rectangle {
         public ColorIndicator(Color color){
             super();
             setX(0);
@@ -162,6 +169,7 @@ public class StatisticsTabController {
             setWidth(10);
             setHeight(10);
             setFill(color);
+            setStroke(border);
         }
     }
 
@@ -170,6 +178,9 @@ public class StatisticsTabController {
         private SimpleStringProperty mean = new SimpleStringProperty();
         private SimpleStringProperty median = new SimpleStringProperty();
         private SimpleStringProperty stdDev = new SimpleStringProperty();
+        private SimpleStringProperty min = new SimpleStringProperty();
+        private SimpleStringProperty max = new SimpleStringProperty();
+        private SimpleStringProperty sum = new SimpleStringProperty();
 
         public void update(ModelItem modelItem){
             DescriptiveStatistics statistics = new DescriptiveStatistics();
@@ -207,7 +218,9 @@ public class StatisticsTabController {
             mean.set(String.valueOf(statistics.getMean()));
             median.set(String.valueOf(statistics.getPercentile(50)));
             stdDev.set(String.valueOf(statistics.getStandardDeviation()));
-
+            min.set(String.valueOf(statistics.getMin()));
+            max.set(String.valueOf(statistics.getMax()));
+            sum.set(String.valueOf(statistics.getSum()));
         }
 
         public SimpleStringProperty getCount() {
@@ -224,6 +237,18 @@ public class StatisticsTabController {
 
         public SimpleStringProperty getMedian() {
             return median;
+        }
+
+        public SimpleStringProperty getMin() {
+            return min;
+        }
+
+        public SimpleStringProperty getMax() {
+            return max;
+        }
+
+        public SimpleStringProperty getSum() {
+            return sum;
         }
     }
 }
