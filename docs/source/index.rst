@@ -32,6 +32,7 @@ Developer Documentation:
    locations
    help_system
    preference_properties
+   changelog
 
 Appendix
 ========
