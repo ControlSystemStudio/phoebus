@@ -69,7 +69,7 @@ public class ChannelTableController extends ChannelFinderController {
     
     private Collection<String> properties;
     private Collection<String> tags;
-
+    private boolean isCBSelected = true;
     public static final boolean showActiveCb;
 
     static
@@ -98,7 +98,7 @@ public class ChannelTableController extends ChannelFinderController {
         tableView.getColumns().addAll(nameCol, ownerCol);
 
         if (showActiveCb) {
-            showactive.setSelected(true);
+            showactive.setSelected(isCBSelected);
         } else {
             gridp.getChildren().remove(showactive);
         }
@@ -114,6 +114,7 @@ public class ChannelTableController extends ChannelFinderController {
         if (showActiveCb) {
             String currentQuery = query.getText();
             String updatedQuery = currentQuery + " pvStatus=" + (showactive.isSelected() ? "Active" : "*");
+            isCBSelected = showactive.isSelected();
             super.search(updatedQuery);
         } else {
             super.search(query.getText());
