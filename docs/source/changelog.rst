@@ -3,7 +3,7 @@ Change Log
 
 A list of API changes, major features, and bug fixes included in each release.
 
-The list is compiled by phoebus developers to document the most important changes associated with each release. For minor bug fixes and patches please refer to github issues and PR's
+The list is compiled by phoebus developers to document the most important changes associated with each release. For minor bug fixes and patches please refer to github issues and PRs.
 
 
 Release 4.6.4 (Current development version)
@@ -11,7 +11,7 @@ Release 4.6.4 (Current development version)
 Date:
 
 * Alarm Datasource
-* Simplification of the API's for the ContextMenuService, SelectionService, and AdapterService
+* Simplification of the APIs for the `ContextMenuService`, `SelectionService`, and `AdapterService`.
 * File browser context menu items to create new display or data browser plot.
 * Array operations in formula functions.
 
