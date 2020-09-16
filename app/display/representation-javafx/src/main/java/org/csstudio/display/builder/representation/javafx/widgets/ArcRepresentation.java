@@ -13,9 +13,12 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.widgets.ArcWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 
+import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Arc;
 import javafx.scene.shape.ArcType;
+import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.shape.StrokeLineJoin;
 
 /** Creates JavaFX item for model widget
  *  @author Kay Kasemir
@@ -35,6 +38,8 @@ public class ArcRepresentation extends JFXBaseRepresentation<Arc, ArcWidget>
     public Arc createJFXNode() throws Exception
     {
         final Arc arc = new Arc();
+        arc.setStrokeLineJoin(StrokeLineJoin.ROUND);
+        arc.setStrokeLineCap(StrokeLineCap.BUTT);
         updateColors();
         updateAngles();
         return arc;
@@ -53,6 +58,7 @@ public class ArcRepresentation extends JFXBaseRepresentation<Arc, ArcWidget>
         model_widget.propWidth().addUntypedPropertyListener(positionChangedListener);
         model_widget.propHeight().addUntypedPropertyListener(positionChangedListener);
         model_widget.propLineWidth().addUntypedPropertyListener(positionChangedListener);
+        model_widget.propLineStyle().addUntypedPropertyListener(positionChangedListener);
 
         model_widget.propBackgroundColor().addUntypedPropertyListener(lookChangedListener);
         model_widget.propTransparent().addUntypedPropertyListener(lookChangedListener);
@@ -72,6 +78,7 @@ public class ArcRepresentation extends JFXBaseRepresentation<Arc, ArcWidget>
         model_widget.propWidth().removePropertyListener(positionChangedListener);
         model_widget.propHeight().removePropertyListener(positionChangedListener);
         model_widget.propLineWidth().removePropertyListener(positionChangedListener);
+        model_widget.propLineStyle().removePropertyListener(positionChangedListener);
 
         model_widget.propBackgroundColor().removePropertyListener(lookChangedListener);
         model_widget.propTransparent().removePropertyListener(lookChangedListener);
@@ -134,6 +141,33 @@ public class ArcRepresentation extends JFXBaseRepresentation<Arc, ArcWidget>
                 jfx_node.setRadiusX((w-lw)/2);
                 jfx_node.setRadiusY((h-lw)/2);
                 jfx_node.setStrokeWidth(lw);
+                jfx_node.setStrokeWidth(lw);
+                final int line_width = Math.max(1, lw);
+                final ObservableList<Double> dashes = jfx_node.getStrokeDashArray();
+                // Scale dashes, dots and gaps by line width;
+                // matches legacy opibuilder resp. Draw2D
+                switch (model_widget.propLineStyle().getValue())
+                {
+                case DASH:
+                    dashes.setAll(3.0*line_width, 1.0*line_width);
+                    break;
+                case DOT:
+                    dashes.setAll(1.0*line_width, 1.0*line_width);
+                    break;
+                case DASHDOT:
+                    dashes.setAll(3.0*line_width, 1.0*line_width,
+                                  1.0*line_width, 1.0*line_width);
+                    break;
+                case DASHDOTDOT:
+                    dashes.setAll(3.0*line_width, 1.0*line_width,
+                                  1.0*line_width, 1.0*line_width,
+                                  1.0*line_width, 1.0*line_width);
+                    break;
+                case SOLID:
+                default:
+                    dashes.setAll(/* Nothing for solid line */);
+                    break;
+                }
             }
             else
                 jfx_node.setVisible(false);

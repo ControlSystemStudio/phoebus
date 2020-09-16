@@ -20,6 +20,7 @@
     <classpathentry combineaccessrules="false" kind="src" path="/app-alarm-ui"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-alarm-logging-ui"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-alarm-model"/>
+    <classpathentry combineaccessrules="false" kind="src" path="/app-alarm-datasource"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-scan-ui"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-scan-model"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-scan-client"/>

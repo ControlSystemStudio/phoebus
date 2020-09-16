@@ -13,8 +13,11 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.widgets.RectangleWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 
+import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 
 /** Creates JavaFX item for model widget
@@ -33,6 +36,8 @@ public class RectangleRepresentation extends JFXBaseRepresentation<Rectangle, Re
     public Rectangle createJFXNode() throws Exception
     {
         final Rectangle rect = new Rectangle();
+        rect.setStrokeLineJoin(StrokeLineJoin.ROUND);
+        rect.setStrokeLineCap(StrokeLineCap.BUTT);
         updateColors();
         return rect;
     }
@@ -50,6 +55,7 @@ public class RectangleRepresentation extends JFXBaseRepresentation<Rectangle, Re
         model_widget.propTransparent().addUntypedPropertyListener(lookChangedListener);
         model_widget.propLineColor().addUntypedPropertyListener(lookChangedListener);
         model_widget.propLineWidth().addUntypedPropertyListener(lookChangedListener);
+        model_widget.propLineStyle().addUntypedPropertyListener(lookChangedListener);
     }
 
     @Override
@@ -63,6 +69,7 @@ public class RectangleRepresentation extends JFXBaseRepresentation<Rectangle, Re
         model_widget.propTransparent().removePropertyListener(lookChangedListener);
         model_widget.propLineColor().removePropertyListener(lookChangedListener);
         model_widget.propLineWidth().removePropertyListener(lookChangedListener);
+        model_widget.propLineStyle().removePropertyListener(lookChangedListener);
         super.unregisterListeners();
     }
 
@@ -115,6 +122,32 @@ public class RectangleRepresentation extends JFXBaseRepresentation<Rectangle, Re
             jfx_node.setStroke(line_color);
             jfx_node.setStrokeWidth(model_widget.propLineWidth().getValue());
             jfx_node.setStrokeType(StrokeType.INSIDE);
+            final int line_width = Math.max(1, model_widget.propLineWidth().getValue());
+            final ObservableList<Double> dashes = jfx_node.getStrokeDashArray();
+            // Scale dashes, dots and gaps by line width;
+            // matches legacy opibuilder resp. Draw2D
+            switch (model_widget.propLineStyle().getValue())
+            {
+            case DASH:
+                dashes.setAll(3.0*line_width, 1.0*line_width);
+                break;
+            case DOT:
+                dashes.setAll(1.0*line_width, 1.0*line_width);
+                break;
+            case DASHDOT:
+                dashes.setAll(3.0*line_width, 1.0*line_width,
+                              1.0*line_width, 1.0*line_width);
+                break;
+            case DASHDOTDOT:
+                dashes.setAll(3.0*line_width, 1.0*line_width,
+                              1.0*line_width, 1.0*line_width,
+                              1.0*line_width, 1.0*line_width);
+                break;
+            case SOLID:
+            default:
+                dashes.setAll(/* Nothing for solid line */);
+                break;
+            }
         }
     }
 }
