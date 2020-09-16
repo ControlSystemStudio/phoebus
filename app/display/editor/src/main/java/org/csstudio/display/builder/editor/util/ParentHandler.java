@@ -19,6 +19,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.widgets.ArrayWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget;
+import org.csstudio.display.builder.model.widgets.VisibleWidget;
 
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Group;
@@ -155,7 +156,19 @@ public class ParentHandler
                     else
                         continue;
                 }
-                if (checkIfWidgetWithinBounds(widget))
+                // block accepting drop into parent if parent is not visible - skip invisible widgets
+                // widget in edit pane is always a VisibleWidget
+                boolean isVisible = true;
+                Widget w = widget;
+                while (w instanceof VisibleWidget)
+                    if (!((VisibleWidget)w).propVisible().getValue())
+                    {
+                        isVisible = false;
+                        break;
+                    }
+                    else
+                        w = w.getParent().get();
+                if (checkIfWidgetWithinBounds(widget) && isVisible)
                     result.update(child_prop, depth);
                 result.update(new ParentWidgetSearch(bounds, child_prop.getValue(), ignore, depth + 1).compute());
             }
