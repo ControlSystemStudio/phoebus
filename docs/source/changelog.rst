@@ -14,6 +14,9 @@ Date:
 * Simplification of the APIs for the `ContextMenuService`, `SelectionService`, and `AdapterService`.
 * File browser context menu items to create new display or data browser plot.
 * Array operations in formula functions.
+* Display Builder:
+    * The symbol widget shows a semi-transparent rectangle with the color "INVALID" for disconnected PVs.
+    * The LED widget shows the label when the PV is disconnected and both the "On" and "Off" labels are the same.
 
 Release 4.6.3
 -------------
