@@ -181,6 +181,8 @@ public class StatisticsTabController {
         private SimpleStringProperty min = new SimpleStringProperty();
         private SimpleStringProperty max = new SimpleStringProperty();
         private SimpleStringProperty sum = new SimpleStringProperty();
+        private SimpleObjectProperty colorIndicator = new SimpleObjectProperty();
+        private SimpleStringProperty traceName = new SimpleStringProperty();
 
         public void update(ModelItem modelItem){
             DescriptiveStatistics statistics = new DescriptiveStatistics();
