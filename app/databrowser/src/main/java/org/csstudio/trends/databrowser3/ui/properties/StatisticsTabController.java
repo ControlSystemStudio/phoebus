@@ -18,71 +18,65 @@
 
 package org.csstudio.trends.databrowser3.ui.properties;
 
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tab;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.TextFieldTableCell;
-import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.util.Callback;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.model.ModelListener;
-import org.csstudio.trends.databrowser3.model.PlotSample;
 import org.csstudio.trends.databrowser3.model.PlotSamples;
-import org.phoebus.framework.jobs.Job;
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.jobs.JobMonitor;
+import org.phoebus.framework.jobs.JobRunnable;
 import org.phoebus.util.time.TimeRelativeInterval;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
 
-
-public class StatisticsTabController {
+/**
+ * Tab showing statistics data for traces. User needs to actively request computation of the statistical data.
+ * Only samples visible in the plot are considered in the calculation. For instance, if the time axis changes
+ * to show a subset of loaded samples, the calculation will not consider non-visible portions of the trace.
+ */
+public class StatisticsTabController implements ModelListener{
     private Model model;
 
-    private static Color border = Color.color(0.71, 0.71, 0.71);
+    private static Color colorIndicatorBorderColor =
+            Color.color(0.71, 0.71, 0.71);
 
     @FXML
     private Button refreshAll;
 
     @FXML
-    private TableView<ModelItem> tracesTable;
+    private TableView<ModelItemStatistics> tracesTable;
     @FXML
-    private TableColumn<ModelItem, ColorIndicator> indicatorColumn;
+    private TableColumn<ModelItemStatistics, ColorIndicator> indicatorColumn;
     @FXML
-    private TableColumn<ModelItem, String> displayNameColumn;
+    private TableColumn<ModelItemStatistics, String> displayNameColumn;
     @FXML
-    private TableColumn<ModelItem, String> countColumn;
+    private TableColumn<ModelItemStatistics, String> countColumn;
     @FXML
-    private TableColumn<ModelItem, String> meanColumn;
+    private TableColumn<ModelItemStatistics, String> meanColumn;
     @FXML
-    private TableColumn<ModelItem, String> medianColumn;
+    private TableColumn<ModelItemStatistics, String> medianColumn;
     @FXML
-    private TableColumn<ModelItem, String> stdDevColumn;
+    private TableColumn<ModelItemStatistics, String> stdDevColumn;
     @FXML
-    private TableColumn<ModelItem, String> minColumn;
+    private TableColumn<ModelItemStatistics, String> minColumn;
     @FXML
-    private TableColumn<ModelItem, String> maxColumn;
+    private TableColumn<ModelItemStatistics, String> maxColumn;
     @FXML
-    private TableColumn<ModelItem, String> sumColumn;
-
-    private HashMap<String, ItemStatistics> itemStatistics = new HashMap<>();
+    private TableColumn<ModelItemStatistics, String> sumColumn;
 
     public StatisticsTabController(Model model){
         this.model = model;
@@ -95,35 +89,46 @@ public class StatisticsTabController {
         refreshAll.setText(Messages.Refresh);
         refreshAll.setOnAction(e -> refreshAll());
         tracesTable.setPlaceholder(new Label(Messages.TraceTableEmpty));
+        model.addListener(this);
         createTable();
-        model.addListener(new ModelListener() {
-            @Override
-            public void itemAdded(ModelItem item) {
-                ItemStatistics statistics = new ItemStatistics();
-                itemStatistics.put(item.getResolvedName(), statistics);
-                tracesTable.getItems().setAll(model.getItems());
-            }
+    }
 
-            @Override
-            public void changedItemLook(ModelItem item){
-                tracesTable.refresh();
-            }
-        });
+    @Override
+    public void itemAdded(ModelItem modelItem) {
+        ModelItemStatistics statistics = new ModelItemStatistics(modelItem);
+        tracesTable.getItems().add(statistics);
+    }
+
+    @Override
+    public void changedItemLook(ModelItem modelItem){
+        ModelItemStatistics statistics =
+                tracesTable.getItems().stream().filter(item -> item.getUniqueItemId().equals(modelItem.getUniqueId())).findAny().orElse(null);
+        if(statistics != null){
+            statistics.setTraceName(modelItem.getResolvedDisplayName());
+            statistics.setColorIndicator(modelItem.getPaintColor());
+        }
+    }
+
+    @Override
+    public void itemRemoved(ModelItem modelItem) {
+        ModelItemStatistics statistics =
+                tracesTable.getItems().stream().filter(item -> item.getUniqueItemId().equals(modelItem.getUniqueId())).findAny().orElse(null);
+        if(statistics != null){
+            tracesTable.getItems().remove(statistics);
+        }
     }
 
     @FXML
     public void refreshAll(){
-        model.getItems().stream().forEach(item -> refresh(item));
+        tracesTable.getItems().stream().forEach(item -> item.update(model.getItemByUniqueId(item.getUniqueItemId())));
     }
 
     private void createTable(){
         displayNameColumn.setText(Messages.TraceDisplayName);
-        displayNameColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getDisplayName()));
+        displayNameColumn.setCellValueFactory(cell -> cell.getValue().getTraceName());
         displayNameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
 
-        indicatorColumn.setCellValueFactory(column ->
-             new SimpleObjectProperty<>(new ColorIndicator(column.getValue().getPaintColor()))
-        );
+        indicatorColumn.setCellValueFactory(column -> column.getValue().getColorIndicator());
 
         indicatorColumn.setCellFactory(column -> new TableCell<>(){
             @Override
@@ -135,45 +140,45 @@ public class StatisticsTabController {
         });
 
         countColumn.setText(Messages.StatisticsSampleCount);
-        countColumn.setCellValueFactory(cell ->
-                itemStatistics.get(cell.getValue().getResolvedName()).getCount());
+        countColumn.setCellValueFactory(cell -> cell.getValue().getCount());
         meanColumn.setText(Messages.StatisticsMean);
-        meanColumn.setCellValueFactory(cell ->
-            itemStatistics.get(cell.getValue().getResolvedName()).getMean());
-        meanColumn.setText(Messages.StatisticsMedian);
-        medianColumn.setCellValueFactory(cell ->
-                itemStatistics.get(cell.getValue().getResolvedName()).getMedian());
+        meanColumn.setCellValueFactory(cell -> cell.getValue().getMean());
+        medianColumn.setText(Messages.StatisticsMedian);
+        medianColumn.setCellValueFactory(cell -> cell.getValue().getMedian());
         stdDevColumn.setText(Messages.StatisticsStdDev);
-        stdDevColumn.setCellValueFactory(cell ->
-                itemStatistics.get(cell.getValue().getResolvedName()).getStdDev());
+        stdDevColumn.setCellValueFactory(cell -> cell.getValue().getStdDev());
         minColumn.setText(Messages.StatisticsMin);
-        minColumn.setCellValueFactory(cell ->
-                itemStatistics.get(cell.getValue().getResolvedName()).getMin());
+        minColumn.setCellValueFactory(cell -> cell.getValue().getMin());
         maxColumn.setText(Messages.StatisticsMax);
-        maxColumn.setCellValueFactory(cell ->
-                itemStatistics.get(cell.getValue().getResolvedName()).getMax());
+        maxColumn.setCellValueFactory(cell -> cell.getValue().getMax());
         sumColumn.setText(Messages.StatisticsSum);
-        sumColumn.setCellValueFactory(cell ->
-                itemStatistics.get(cell.getValue().getResolvedName()).getSum());
+        sumColumn.setCellValueFactory(cell -> cell.getValue().getSum());
     }
 
-    private void refresh(ModelItem modelItem){
-        itemStatistics.get(modelItem.getResolvedName()).update(modelItem);
+    public void removeModelListener(){
+        model.removeListener(this);
     }
 
+    /**
+     * Simple color indicator used to identify the trace in the table.
+     */
     private class ColorIndicator extends Rectangle {
         public ColorIndicator(Color color){
             super();
             setX(0);
             setY(0);
-            setWidth(10);
-            setHeight(10);
+            setWidth(12);
+            setHeight(12);
             setFill(color);
-            setStroke(border);
+            setStroke(colorIndicatorBorderColor);
         }
     }
 
-    private class ItemStatistics{
+    /**
+     * Wraps statistical data plus name and color indicator for a trace. This is
+     * the data model for the table.
+     */
+    private class ModelItemStatistics {
         private SimpleStringProperty count = new SimpleStringProperty();
         private SimpleStringProperty mean = new SimpleStringProperty();
         private SimpleStringProperty median = new SimpleStringProperty();
@@ -184,45 +189,70 @@ public class StatisticsTabController {
         private SimpleObjectProperty colorIndicator = new SimpleObjectProperty();
         private SimpleStringProperty traceName = new SimpleStringProperty();
 
-        public void update(ModelItem modelItem){
+        private String uniqueItemId;
+
+        public ModelItemStatistics(ModelItem modelItem){
+            uniqueItemId = modelItem.getUniqueId();
+            setColorIndicator(modelItem.getPaintColor());
+            setTraceName(modelItem.getResolvedDisplayName());
+        }
+
+        /**
+         * Updates the statistics data using background {@link org.phoebus.framework.jobs.Job}.
+         * @param modelItem
+         */
+        public void update(final ModelItem modelItem){
+            if(modelItem == null){ // Should not happen...?
+                return;
+            }
             DescriptiveStatistics statistics = new DescriptiveStatistics();
 
-            PlotSamples plotSamples = modelItem.getSamples();
-            plotSamples.getLock().lock();
-            TimeRelativeInterval timeRelativeInterval = model.getTimerange();
-            long start;
-            long end;
-            if(timeRelativeInterval.getAbsoluteEnd().isPresent()){
-                start = 1000 * timeRelativeInterval.getAbsoluteStart().get().getEpochSecond();
-                end = 1000 *  timeRelativeInterval.getAbsoluteEnd().get().getEpochSecond();
-            }
-            else{
-                long now = System.currentTimeMillis();
-                start = now - 1000 * timeRelativeInterval.getRelativeStart().get().get(ChronoUnit.SECONDS);
-                end = now - 1000 * timeRelativeInterval.getRelativeEnd().get().get(ChronoUnit.SECONDS);
-            }
-            int length = modelItem.getSamples().size();
-            int counter = 0;
-            for(int i = 0; i < length; i++){
+            JobManager.schedule("Compute trace statistics", new JobRunnable() {
+                @Override
+                public void run(JobMonitor monitor){
+                    PlotSamples plotSamples = modelItem.getSamples();
+                    plotSamples.getLock().lock();
+                    TimeRelativeInterval timeRelativeInterval = model.getTimerange();
+                    long start;
+                    long end;
+                    if(timeRelativeInterval.getAbsoluteEnd().isPresent()){
+                        start = 1000 * timeRelativeInterval.getAbsoluteStart().get().getEpochSecond();
+                        end = 1000 *  timeRelativeInterval.getAbsoluteEnd().get().getEpochSecond();
+                    }
+                    else{
+                        long now = System.currentTimeMillis();
+                        start = now - 1000 * timeRelativeInterval.getRelativeStart().get().get(ChronoUnit.SECONDS);
+                        end = now - 1000 * timeRelativeInterval.getRelativeEnd().get().get(ChronoUnit.SECONDS);
+                    }
+                    int length = modelItem.getSamples().size();
+                    for(int i = 0; i < length; i++){
 
-                if(plotSamples.get(i).getPosition().isBefore(Instant.ofEpochMilli(start))){
-                    continue;
+                        if(plotSamples.get(i).getPosition().isBefore(Instant.ofEpochMilli(start))){
+                            continue;
+                        }
+                        else if(plotSamples.get(i).getPosition().isAfter(Instant.ofEpochMilli(end))){
+                            break;
+                        }
+                        statistics.addValue(plotSamples.get(i).getValue());
+                    }
+                    plotSamples.getLock().unlock();
+                    count.set(String.valueOf(statistics.getN()));
+                    mean.set(String.valueOf(statistics.getMean()));
+                    median.set(String.valueOf(statistics.getPercentile(50)));
+                    stdDev.set(String.valueOf(statistics.getStandardDeviation()));
+                    min.set(String.valueOf(statistics.getMin()));
+                    max.set(String.valueOf(statistics.getMax()));
+                    sum.set(String.valueOf(statistics.getSum()));
                 }
-                else if(plotSamples.get(i).getPosition().isAfter(Instant.ofEpochMilli(end))){
-                    break;
-                }
-                counter++;
-                statistics.addValue(plotSamples.get(i).getValue());
-            }
-            plotSamples.getLock().unlock();
-            count.set(String.valueOf(counter));
+            });
+        }
 
-            mean.set(String.valueOf(statistics.getMean()));
-            median.set(String.valueOf(statistics.getPercentile(50)));
-            stdDev.set(String.valueOf(statistics.getStandardDeviation()));
-            min.set(String.valueOf(statistics.getMin()));
-            max.set(String.valueOf(statistics.getMax()));
-            sum.set(String.valueOf(statistics.getSum()));
+        public void setTraceName(String traceName){
+            this.traceName.set(traceName);
+        }
+
+        public void setColorIndicator(Color color){
+            colorIndicator.set(new ColorIndicator(color));
         }
 
         public SimpleStringProperty getCount() {
@@ -251,6 +281,31 @@ public class StatisticsTabController {
 
         public SimpleStringProperty getSum() {
             return sum;
+        }
+
+        public SimpleObjectProperty getColorIndicator() {
+            return colorIndicator;
+        }
+
+        public SimpleStringProperty getTraceName() {
+            return traceName;
+        }
+
+        public String getUniqueItemId(){
+            return uniqueItemId;
+        }
+
+        @Override
+        public boolean equals(Object other){
+            if(!(other instanceof ModelItemStatistics)){
+                return false;
+            }
+            return uniqueItemId.equals(((ModelItemStatistics)other).getUniqueItemId());
+        }
+
+        @Override
+        public int hashCode(){
+            return uniqueItemId.hashCode();
         }
     }
 }
