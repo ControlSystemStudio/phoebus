@@ -38,12 +38,14 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.phoebus.applications.saveandrestore.ApplicationContextProvider;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
+import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SpringFxmlLoader;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVCommon;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
@@ -164,6 +166,11 @@ public class SaveSetFromSelectionController implements Initializable {
 
                         nodeListInFolder.clear();
                         saveAndRestoreService.getChildNodes(parentNode).forEach(item -> nodeListInFolder.add(item.getName()));
+
+                        saveButton.setDisable(false);
+
+                        saveSetName.getStyleClass().remove("input-error");
+                        saveSetName.setTooltip(null);
                     } else {
                         saveSetName.setText("");
                         description.setText("");
@@ -175,6 +182,9 @@ public class SaveSetFromSelectionController implements Initializable {
 
                         nodeListInFolder.clear();
                         saveAndRestoreService.getChildNodes(newNode).forEach(item -> nodeListInFolder.add(item.getName()));
+
+                        saveSetName.getStyleClass().remove("input-error");
+                        saveSetName.setTooltip(null);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -214,8 +224,17 @@ public class SaveSetFromSelectionController implements Initializable {
         });
 
         saveSetName.setPromptText(savesetTimeFormat.format(Instant.now()));
+        saveSetName.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         saveSetName.textProperty().addListener((observableValue, oldName, newName) -> {
             saveButton.setDisable(nodeListInFolder.contains(newName));
+
+            if (saveButton.isDisabled()) {
+                saveSetName.getStyleClass().add("input-error");
+                saveSetName.setTooltip(new Tooltip(Messages.toolTipSaveSetExists + (!isDisabledSaveSetSelectionInBrowsing ? System.lineSeparator() + Messages.toolTipSaveSetExistsOption : "")));
+            } else {
+                saveSetName.getStyleClass().remove("input-error");
+                saveSetName.setTooltip(null);
+            }
         });
 
         description.setPromptText("Saveset created at " + savesetTimeFormat.format(Instant.now()));
@@ -355,6 +374,14 @@ public class SaveSetFromSelectionController implements Initializable {
                 e.printStackTrace();
             }
         } else { // NodeType.CONFIGURATION
+            Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
+            confirmation.setContentText(Messages.alertAddingPVsToSaveset + selectedNode.getName() + System.lineSeparator() + Messages.alertContinue);
+            Optional<ButtonType> confirmationResponse = confirmation.showAndWait();
+
+            if (confirmationResponse.isPresent() && confirmationResponse.get() != ButtonType.OK) {
+                return;
+            }
+
             Node parentNode = null;
             try {
                 parentNode = saveAndRestoreService.getParentNode(selectedNode.getUniqueId());

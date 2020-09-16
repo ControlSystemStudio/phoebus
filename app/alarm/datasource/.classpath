@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="target/classes" path="src/main/java"/>
+	<classpathentry kind="src" output="target/classes" path="src/main/resources"/>
+	<classpathentry kind="src" output="target/classes" path="src/test/java"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/phoebus-target"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-framework"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-types"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-pv"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-util"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-security"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/core-ui"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/app-alarm-model"/>
+	<classpathentry kind="output" path="target/classes"/>
+</classpath>
