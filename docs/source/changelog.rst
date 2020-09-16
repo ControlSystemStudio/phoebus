@@ -12,6 +12,8 @@ Date:
 
 * Alarm Datasource
 * Simplification of the API's for the ContextMenuService, SelectionService, and AdapterService
+* File browser context menu items to create new display or data browser plot.
+* Array operations in formula functions.
 
 Release 4.6.3
 -------------
