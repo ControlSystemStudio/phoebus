@@ -34,6 +34,7 @@
     <postgresql.driver.version>42.2.9</postgresql.driver.version>
     <lombok.version>1.18.12</lombok.version>
     <jetty.version>9.4.30.v20200611</jetty.version>
+    <apache.commons.math.version>3.6.1</apache.commons.math.version>
     <!--<maven.repo.local>${project.build.directory}/.m2</maven.repo.local> -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
