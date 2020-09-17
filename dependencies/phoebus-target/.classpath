@@ -139,6 +139,7 @@
     <classpathentry exported="true" kind="lib" path="target/lib/vtype-1.0.3.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/xml-apis-ext-1.3.04.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/xmlgraphics-commons-2.4.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/commons-math3-3.6.1.jar"/>
 
     <!-- On Windows, need to add this:
     <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-14.jar"/>

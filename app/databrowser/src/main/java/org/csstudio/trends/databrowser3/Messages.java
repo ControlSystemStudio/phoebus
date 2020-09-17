@@ -280,6 +280,7 @@ public class Messages
     public static String PVName;
     public static String PVUsedInFormulaFmt;
     public static String Refresh;
+    public static String RefreshAll;
     public static String RegularExpression;
     public static String RegularExpressionTT;
     public static String RemoveEmptyAxes;
@@ -326,6 +327,14 @@ public class Messages
     public static String StartEndDialogTT;
     public static String StartTimeLbl;
     public static String StartTimeTT;
+    public static String StatisticsTab;
+    public static String StatisticsMean;
+    public static String StatisticsMedian;
+    public static String StatisticsStdDev;
+    public static String StatisticsMin;
+    public static String StatisticsMax;
+    public static String StatisticsSum;
+    public static String StatisticsSampleCount;
     public static String StatusColumn;
     public static String TimeAxis;
     public static String TimeColumn;
