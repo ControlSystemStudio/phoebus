@@ -18,6 +18,8 @@
 
 package org.csstudio.trends.databrowser3.ui.properties;
 
+import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
@@ -30,18 +32,20 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.csstudio.javafx.rtplot.data.PlotDataSearch;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.model.ModelListener;
+import org.csstudio.trends.databrowser3.model.PlotSample;
 import org.csstudio.trends.databrowser3.model.PlotSamples;
+import org.epics.vtype.VString;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.JobRunnable;
 import org.phoebus.util.time.TimeRelativeInterval;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 
 /**
  * Tab showing statistics data for traces. User needs to actively request computation of the statistical data.
@@ -82,6 +86,7 @@ public class StatisticsTabController implements ModelListener{
         this.model = model;
     }
 
+    private SimpleBooleanProperty refreshDisabled = new SimpleBooleanProperty(false);
 
     @FXML
     public void initialize() {
@@ -91,6 +96,7 @@ public class StatisticsTabController implements ModelListener{
         tracesTable.setPlaceholder(new Label(Messages.TraceTableEmpty));
         model.addListener(this);
         createTable();
+        refreshAll.disableProperty().bind(refreshDisabled);
     }
 
     @Override
@@ -120,7 +126,18 @@ public class StatisticsTabController implements ModelListener{
 
     @FXML
     public void refreshAll(){
-        tracesTable.getItems().stream().forEach(item -> item.update(model.getItemByUniqueId(item.getUniqueItemId())));
+        JobManager.schedule("Compute trace statistics", new JobRunnable() {
+            @Override
+            public void run(JobMonitor monitor) {
+                try {
+                    refreshDisabled.set(true);
+                    tracesTable.getItems().stream().forEach(item -> item.update(model.getItemByUniqueId(item.getUniqueItemId())));
+                }
+                finally {
+                    refreshDisabled.set(false);
+                }
+            }
+        });
     }
 
     private void createTable(){
@@ -198,6 +215,34 @@ public class StatisticsTabController implements ModelListener{
         }
 
         /**
+         * Clears all statistics fields, can be used to indicate that there
+         * is nothing to show (e.g. no plot samples in range)
+         */
+        private void clear(){
+            Platform.runLater(() -> {
+                count.set(null);
+                mean.set(null);
+                median.set(null);
+                stdDev.set(null);
+                min.set(null);
+                max.set(null);
+                sum.set(null);
+            });
+        }
+
+        private void set(DescriptiveStatistics statistics){
+            Platform.runLater(() -> {
+                count.set(String.valueOf(statistics.getN()));
+                mean.set(String.valueOf(statistics.getMean()));
+                median.set(String.valueOf(statistics.getPercentile(50)));
+                stdDev.set(String.valueOf(statistics.getStandardDeviation()));
+                min.set(String.valueOf(statistics.getMin()));
+                max.set(String.valueOf(statistics.getMax()));
+                sum.set(String.valueOf(statistics.getSum()));
+            });
+        }
+
+        /**
          * Updates the statistics data using background {@link org.phoebus.framework.jobs.Job}.
          * @param modelItem
          */
@@ -206,45 +251,40 @@ public class StatisticsTabController implements ModelListener{
                 return;
             }
             DescriptiveStatistics statistics = new DescriptiveStatistics();
+            PlotSamples plotSamples = modelItem.getSamples();
 
-            JobManager.schedule("Compute trace statistics", new JobRunnable() {
-                @Override
-                public void run(JobMonitor monitor){
-                    PlotSamples plotSamples = modelItem.getSamples();
-                    plotSamples.getLock().lock();
-                    TimeRelativeInterval timeRelativeInterval = model.getTimerange();
-                    long start;
-                    long end;
-                    if(timeRelativeInterval.getAbsoluteEnd().isPresent()){
-                        start = 1000 * timeRelativeInterval.getAbsoluteStart().get().getEpochSecond();
-                        end = 1000 *  timeRelativeInterval.getAbsoluteEnd().get().getEpochSecond();
-                    }
-                    else{
-                        long now = System.currentTimeMillis();
-                        start = now - 1000 * timeRelativeInterval.getRelativeStart().get().get(ChronoUnit.SECONDS);
-                        end = now - 1000 * timeRelativeInterval.getRelativeEnd().get().get(ChronoUnit.SECONDS);
-                    }
-                    int length = modelItem.getSamples().size();
-                    for(int i = 0; i < length; i++){
-
-                        if(plotSamples.get(i).getPosition().isBefore(Instant.ofEpochMilli(start))){
-                            continue;
-                        }
-                        else if(plotSamples.get(i).getPosition().isAfter(Instant.ofEpochMilli(end))){
-                            break;
-                        }
-                        statistics.addValue(plotSamples.get(i).getValue());
-                    }
+            TimeRelativeInterval timeRelativeInterval = model.getTimerange();
+            int startIndex;
+            int endIndex;
+            PlotDataSearch plotDataSearch = new PlotDataSearch();
+            plotSamples.getLock().lock();
+            if(timeRelativeInterval.getAbsoluteEnd().isPresent()){
+                startIndex = plotDataSearch.findSampleLessOrEqual(plotSamples, timeRelativeInterval.getAbsoluteStart().get());
+                endIndex = plotDataSearch.findSampleLessOrEqual(plotSamples, timeRelativeInterval.getAbsoluteEnd().get());
+            }
+            else{
+                Instant now = Instant.now();
+                startIndex = plotDataSearch.findSampleLessOrEqual(plotSamples, now.minus(timeRelativeInterval.getRelativeStart().get()));
+                endIndex = plotDataSearch.findSampleLessOrEqual(plotSamples, now.minus(timeRelativeInterval.getRelativeEnd().get()));
+            }
+            if(startIndex == -1){ // First sample after start time...
+                startIndex = 0;
+                if(endIndex == -1){//...and last sample after end time
                     plotSamples.getLock().unlock();
-                    count.set(String.valueOf(statistics.getN()));
-                    mean.set(String.valueOf(statistics.getMean()));
-                    median.set(String.valueOf(statistics.getPercentile(50)));
-                    stdDev.set(String.valueOf(statistics.getStandardDeviation()));
-                    min.set(String.valueOf(statistics.getMin()));
-                    max.set(String.valueOf(statistics.getMax()));
-                    sum.set(String.valueOf(statistics.getSum()));
+                    clear();
+                    return; // No samples found in time range
                 }
-            });
+            }
+            for(int i = startIndex; i <= endIndex; i++){
+                PlotSample plotSample = plotSamples.get(i);
+                // Exclude VString samples, e.g. due to disconnected PV
+                if(plotSample.getVType() instanceof VString){
+                    continue;
+                }
+                statistics.addValue(plotSample.getValue());
+            }
+            plotSamples.getLock().unlock();
+            set(statistics);
         }
 
         public void setTraceName(String traceName){

@@ -23,15 +23,8 @@ import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.Model;
-import org.phoebus.logbook.ui.write.AttachmentsViewController;
-import org.phoebus.logbook.ui.write.FieldsViewController;
-import org.phoebus.logbook.ui.write.LogEntryCompletionHandler;
-import org.phoebus.logbook.ui.write.LogEntryEditorController;
-import org.phoebus.logbook.ui.write.LogEntryEditorStage;
-import org.phoebus.logbook.ui.write.LogEntryModel;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
