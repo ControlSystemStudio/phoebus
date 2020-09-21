@@ -1035,14 +1035,14 @@ public class ImagePlot extends PlotCanvasBase
         // Is there a cursor listener?
         if (plot_listener == null)
             return;
-        
+
         final Point2D last_pos = crosshair_position;
         if (last_pos == null)
         {
             plot_listener.changedCursorInfo(Double.NaN, Double.NaN, -1, -1, Double.NaN);
             return;
         }
-        
+
         final double x_val = last_pos.getX(), y_val = last_pos.getY();
 
         // Location as coordinate in image
@@ -1287,34 +1287,26 @@ public class ImagePlot extends PlotCanvasBase
             // Location on axes, i.e. what user configured as horizontal and vertical values
             final double x_val = x_axis.getValue(screen_x);
             final double y_val = y_axis.getValue(screen_y);
-            setCrosshairLocation(x_val, y_val, plot_listener);
+            setCrosshairLocation(x_val, y_val, true);
         }
         else
-            setCrosshairLocation(Double.NaN, Double.NaN, plot_listener);
+            setCrosshairLocation(Double.NaN, Double.NaN, true);
     }
 
     /** Set location of crosshair
-     *  @param x_val
-     *  @param y_val
+     *  @param x_val Mouse coordinate
+     *  @param y_val ..
+     *  @param notify_listener Notify cursor listener?
      */
-    public void setCrosshairLocation(final double x_val, final double y_val)
-    {
-        setCrosshairLocation(x_val, y_val, null);
-    }
-
-    /** Set location of crosshair
-     *  @param x_val
-     *  @param y_val
-     */
-    public void setCrosshairLocation(final double x_val, final double y_val, final RTImagePlotListener listener)
+    public void setCrosshairLocation(final double x_val, final double y_val, final boolean notify_listener)
     {
         if (Double.isNaN(x_val)  ||  Double.isNaN(y_val))
         {
             if (crosshair_position == null)
                 return;
             crosshair_position = null;
-            if (listener != null)
-                listener.changedCursorInfo(Double.NaN, Double.NaN, -1, -1, Double.NaN);
+            if (notify_listener  &&  plot_listener != null)
+                plot_listener.changedCursorInfo(Double.NaN, Double.NaN, -1, -1, Double.NaN);
             requestRedraw();
             return;
         }
@@ -1323,8 +1315,8 @@ public class ImagePlot extends PlotCanvasBase
         if (pos.equals(crosshair_position))
             return;
         crosshair_position = pos;
-        if (listener != null)
-            listener.changedCrosshair(x_val, y_val);
+        if (notify_listener  &&  plot_listener != null)
+            plot_listener.changedCrosshair(x_val, y_val);
 
         // New cursor location needs redrawn crosshair and update of cursor listener
         // (redraw with current image data, not full update of image itself)
