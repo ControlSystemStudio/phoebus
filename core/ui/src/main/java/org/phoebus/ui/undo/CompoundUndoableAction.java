@@ -20,7 +20,7 @@ import java.util.logging.Level;
 @SuppressWarnings("nls")
 public class CompoundUndoableAction extends UndoableAction
 {
-    final private List<UndoableAction> steps = new ArrayList<>();
+    final protected List<UndoableAction> steps = new ArrayList<>();
 
     /** @param name Name used to show action in undo/redo UI */
     public CompoundUndoableAction(final String name)

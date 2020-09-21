@@ -36,6 +36,7 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.NumericInputDialog;
 import org.phoebus.ui.javafx.PlatformInfo;
 import org.phoebus.ui.undo.CompoundUndoableAction;
+import org.phoebus.ui.undo.CompoundReversedUndoableAction;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.geometry.Point2D;
@@ -160,9 +161,11 @@ public abstract class ActionDescription
             // -- move 'b' up -> [ b, a, c ]
             // -- move 'c' up -> [ b, c, a ]
             // Doing this in reverse original order would leave the list unchanged.
-            final List<Widget> widgets = orderWidgetsByIndex(editor.getWidgetSelectionHandler().getSelection());
+            List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
             if (widgets.isEmpty())
                 return;
+            if (widgets.size() > 1)
+                widgets = orderWidgetsByIndex(widgets);
             final CompoundUndoableAction compound = new CompoundUndoableAction(Messages.MoveUp);
             for (Widget widget : widgets)
             {
@@ -171,7 +174,8 @@ public abstract class ActionDescription
                 if (orig > 0)
                     compound.add(new UpdateWidgetOrderAction(widget, orig, orig-1));
                 else
-                    compound.add(new UpdateWidgetOrderAction(widget, orig, -1));
+                    // This would result in moving this widget to the bottom, let's not move at all
+                    return;
             }
             editor.getUndoableActionManager().execute(compound);
         }
@@ -184,10 +188,24 @@ public abstract class ActionDescription
         @Override
         public void run(final DisplayEditor editor, final boolean selected)
         {
-            final List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
+            List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
             if (widgets.isEmpty())
                 return;
-            final CompoundUndoableAction compound = new CompoundUndoableAction(Messages.MoveToBack);
+            if (widgets.size() > 1)
+            {
+                // When multiple widgets are selected, they are moved to back
+                // in reverse original order:
+                // Move 'b, c' to back in [ a, b, c ]
+                // -- move 'c' to back -> [ c, a, b ]
+                // -- move 'b' to back -> [ b, c, a ]
+                // Doing this in the original order would reverse the order of selection.
+                widgets = orderWidgetsByIndex(widgets);
+                Collections.reverse(widgets);
+            }
+
+            // Without CompoundReversedUndoableAction, widgets would actually end up in back,
+            // but un-doing the operation would then misplace them.
+            final CompoundReversedUndoableAction compound = new CompoundReversedUndoableAction(Messages.MoveToBack);
             for (Widget widget : widgets)
                 compound.add(new UpdateWidgetOrderAction(widget, 0));
             editor.getUndoableActionManager().execute(compound);
@@ -210,8 +228,11 @@ public abstract class ActionDescription
             List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
             if (widgets.isEmpty())
                 return;
-            widgets = orderWidgetsByIndex(widgets);
-            Collections.reverse(widgets);
+            if (widgets.size() > 1)
+            {
+                widgets = orderWidgetsByIndex(widgets);
+                Collections.reverse(widgets);
+            }
 
             final CompoundUndoableAction compound = new CompoundUndoableAction(Messages.MoveDown);
             for (Widget widget : widgets)
@@ -221,7 +242,8 @@ public abstract class ActionDescription
                 if (orig < children.size()-1)
                     compound.add(new UpdateWidgetOrderAction(widget, orig, orig+1));
                 else
-                    compound.add(new UpdateWidgetOrderAction(widget, orig, 0));
+                    // This would result in moving this widget to the top, let's not move at all
+                    return;
             }
             editor.getUndoableActionManager().execute(compound);
         }
@@ -234,15 +256,21 @@ public abstract class ActionDescription
         @Override
         public void run(final DisplayEditor editor, final boolean selected)
         {
+            // When multiple widgets are selected, they are moved to front
+            // in their original order:
+            // Move 'a, b' up in [ a, b, c ]
+            // -- move 'a' up -> [ b, c, a ]
+            // -- move 'b' up -> [ c, a, b ]
+            // Doing this in reverse original order would reverse the order of selection
             List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
             if (widgets.isEmpty())
                 return;
-            // Same reasoning as in MOVE_DOWN
-            // Without reversing, widgets would actually end up in front,
-            // but un-doing the operation would them misplace them.
-            widgets = orderWidgetsByIndex(widgets);
-            Collections.reverse(widgets);
-            final CompoundUndoableAction compound = new CompoundUndoableAction(Messages.MoveToFront);
+            if (widgets.size() > 1)
+                widgets = orderWidgetsByIndex(widgets);
+            // Same reasoning as in TO_BACK;
+            // Without CompoundReversedUndoableAction, widgets would actually end up in front,
+            // but un-doing the operation would then misplace them.
+            final CompoundReversedUndoableAction compound = new CompoundReversedUndoableAction(Messages.MoveToFront);
             for (Widget widget : widgets)
                 compound.add(new UpdateWidgetOrderAction(widget, -1));
             editor.getUndoableActionManager().execute(compound);
