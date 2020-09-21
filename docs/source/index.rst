@@ -31,6 +31,7 @@ Developer Documentation:
    architecture
    locations
    help_system
+   localization
    preference_properties
    changelog
 

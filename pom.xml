@@ -205,6 +205,41 @@
         </plugins>
       </build>
     </profile>
+    <!-- Profile for generating L10n status report. Execute mvn site -P l10n-status.
+         The report will be located at target/site/l10n-status.html -->
+    <profile>
+      <id>l10n-status</id>
+      <reporting>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>l10n-maven-plugin</artifactId>
+            <version>1.0-alpha-2</version>
+            <configuration>
+              <aggregate>true</aggregate>
+              <includes>**/messages*.properties</includes>
+              <locales>
+                <locale>de</locale>
+                <locale>es</locale>
+                <locale>fr</locale>
+              </locales>
+            </configuration>
+          </plugin>
+          <!-- Disable all other reports for performance -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-project-info-reports-plugin</artifactId>
+            <version>3.0.0</version>
+            <reportSets>
+              <reportSet>
+                <reports>
+                </reports>
+              </reportSet>
+            </reportSets>
+          </plugin>
+        </plugins>
+      </reporting>
+    </profile>
     <!-- A profile for preparing and releasing phoebus.
      Please refer to http://maven.apache.org/maven-release/maven-release-plugin/index.html
       for the detailed description of the steps involved. -->
