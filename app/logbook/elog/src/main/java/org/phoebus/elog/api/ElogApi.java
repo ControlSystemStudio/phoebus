@@ -348,6 +348,132 @@ public class ElogApi {
     return att;
   }
 
+  /**
+   * Get list of available types
+   *
+   * @return Collection<String>
+   */
+  public Collection<String> getTypes() throws LogbookException {
+    Map<String, Object> cookies = new HashMap<>();
+    cookies.put( "unm", this.username );
+    cookies.put( "upwd", this.password );
+
+    Response<String> resp = Requests.get( this.url + "?cmd=new" )
+                                    .cookies(cookies)
+                                    .followRedirect(false)
+                                    .verify(false)
+                                    .send()
+                                    .toTextResponse();
+    //validateResponse( resp );
+    //validateResponse does not work here, as the response body contains
+    // "form name=form1"....
+    int statuscode  = resp.statusCode();
+    if( statuscode != 200 && statuscode != 302 ) {
+      final Pattern pattern = Pattern.compile("<td.*?class=\"errormsg\".*?>(.*?)</td>");
+      Matcher m = pattern.matcher( resp.getBody() );
+      if( m.matches() ) {
+        String err = m.group();
+        throw new LogbookException("Rejected because of: " + err);
+      } else {
+        throw new LogbookException("Rejected because of unknown error.");
+      }
+    } else {
+      String location = resp.getHeader( "Location" );
+      if( location != null && !location.isEmpty() ) {
+        if( location.contains( "has moved" )) {
+          throw new LogbookException("Logbook server has moved to another location.");
+        } else if( location.contains( "fail" )) {
+          throw new LogbookException("Failed to submit log entry, invalid credentials.");
+        }
+      }
+    }
+
+    List<String> types = new ArrayList<String>();
+
+    try {
+      TagNode tagNode = new HtmlCleaner().clean( resp.getBody() );
+      org.w3c.dom.Document doc = new DomSerializer( new CleanerProperties()).createDOM(tagNode);
+      XPath xpath = XPathFactory.newInstance().newXPath();
+      NodeList typenodes = (NodeList) xpath.evaluate( "//tr/td[@class=\"attribvalue\"]/select[@name=\"Type\"]/option/@value", doc, XPathConstants.NODESET );
+      for( int i = 0; i < typenodes.getLength(); i++ ) {
+        String t = typenodes.item(i).getNodeValue();
+        if( !t.isEmpty() ) {
+          types.add( t );
+        }
+      }
+    } catch (XPathExpressionException e) {
+      throw new LogbookException( e.getMessage() );
+    } catch (ParserConfigurationException e) {
+      throw new LogbookException( e.getMessage() );
+    }
+
+    return types;
+  }
+
+  /**
+   * Get list of available categories
+   *
+   * @return Collection<String>
+   */
+  public Collection<String> getCategories() throws LogbookException {
+    Map<String, Object> cookies = new HashMap<>();
+    cookies.put( "unm", this.username );
+    cookies.put( "upwd", this.password );
+
+    Response<String> resp = Requests.get( this.url + "?cmd=new" )
+                                    .cookies(cookies)
+                                    .followRedirect(false)
+                                    .verify(false)
+                                    .send()
+                                    .toTextResponse();
+    //validateResponse( resp );
+    //validateResponse does not work here, as the response body contains
+    // "form name=form1"....
+    int statuscode  = resp.statusCode();
+    if( statuscode != 200 && statuscode != 302 ) {
+      final Pattern pattern = Pattern.compile("<td.*?class=\"errormsg\".*?>(.*?)</td>");
+      Matcher m = pattern.matcher( resp.getBody() );
+      if( m.matches() ) {
+        String err = m.group();
+        throw new LogbookException("Rejected because of: " + err);
+      } else {
+        throw new LogbookException("Rejected because of unknown error.");
+      }
+    } else {
+      String location = resp.getHeader( "Location" );
+      if( location != null && !location.isEmpty() ) {
+        if( location.contains( "has moved" )) {
+          throw new LogbookException("Logbook server has moved to another location.");
+        } else if( location.contains( "fail" )) {
+          throw new LogbookException("Failed to submit log entry, invalid credentials.");
+        }
+      }
+    }
+
+    List<String> categories = new ArrayList<String>();
+
+    try {
+      TagNode tagNode = new HtmlCleaner().clean( resp.getBody() );
+      org.w3c.dom.Document doc = new DomSerializer( new CleanerProperties()).createDOM(tagNode);
+      XPath xpath = XPathFactory.newInstance().newXPath();
+      NodeList catnodes = (NodeList) xpath.evaluate( "//tr/td[@class=\"attribvalue\"]/select[@name=\"Category\"]/option/@value", doc, XPathConstants.NODESET );
+      for( int i = 0; i < catnodes.getLength(); i++ ) {
+        String c = catnodes.item(i).getNodeValue();
+        if( !c.isEmpty() ) {
+          categories.add( c );
+        }
+      }
+    } catch (XPathExpressionException e) {
+      throw new LogbookException( e.getMessage() );
+    } catch (ParserConfigurationException e) {
+      throw new LogbookException( e.getMessage() );
+    }
+
+    return categories;
+  }
+
+
+
 
   /**
    * Try to load page for specific message.

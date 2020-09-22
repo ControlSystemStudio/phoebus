@@ -52,7 +52,6 @@ public class ElogClient implements LogClient{
     private final ElogApi service;
     private Collection<Tag> categories;
     private Collection<Logbook> types;
-
     private static FileNameMap fileNameMap = URLConnection.getFileNameMap();
 
     /**
@@ -116,18 +115,23 @@ public class ElogClient implements LogClient{
             this.username = ifNullReturnPreferenceValue(this.username, "username");
             this.password = ifNullReturnPreferenceValue(this.password, "password");
 
-            List<Logbook> types = new ArrayList<Logbook>();
+            List<Logbook> types = null;
             String types_prop = this.properties.getPreferenceValue("types");
-            for( String s: types_prop.split("\\s*,\\s*") ){
-                types.add( LogbookImpl.of( s ) );
+            if( !types_prop.isEmpty() ) {
+                types = new ArrayList<Logbook>();
+                for( String s: types_prop.split("\\s*,\\s*") ){
+                    types.add( LogbookImpl.of( s ) );
+                }
             }
 
-            List<Tag> categories = new ArrayList<Tag>();
+            List<Tag> categories = null;
             String categories_prop = this.properties.getPreferenceValue("categories");
-            for( String s: categories_prop.split("\\s*,\\s*") ){
-                categories.add( TagImpl.of( s ) );
+            if( !categories_prop.isEmpty() ) {
+                categories = new ArrayList<Tag>();
+                for( String s: categories_prop.split("\\s*,\\s*") ){
+                    categories.add( TagImpl.of( s ) );
+                }
             }
-
             ElogApi service = new ElogApi( this.elogURI, this.username, this.password );
             return new ElogClient( service, categories, types );
         }
@@ -144,9 +148,31 @@ public class ElogClient implements LogClient{
 
 
     private ElogClient( ElogApi service, Collection<Tag> categories, Collection<Logbook> types ) {
-        this.service    = service;
-        this.categories = categories;
-        this.types      = types;
+        this.service = service;
+        if( types == null ) {
+            this.types = new ArrayList<Logbook>();
+            try {
+                for( String t : service.getTypes() ) {
+                    this.types.add( LogbookImpl.of( t ));
+                }
+            } catch(LogbookException e){
+                e.printStackTrace();
+            }
+        } else {
+            this.types = types;
+        }
+        if( categories == null ) {
+            this.categories = new ArrayList<Tag>();
+            try {
+                for( String c : service.getCategories() ) {
+                    this.categories.add( TagImpl.of( c ));
+                }
+            } catch(LogbookException e){
+                e.printStackTrace();
+            }
+        } else {
+            this.categories = categories;
+        }
     }
 
 
@@ -455,6 +481,28 @@ public class ElogClient implements LogClient{
             throw new LogbookException( e.getMessage() );
         }
         throw new LogbookException( "Message " + logId + " has no matching attachment" );
+    }
+
+
+    @Override
+    public Tag set(Tag tag) throws LogbookException {
+        // there is no HTTP request to add new Categories to the Elog.
+        // This can only be done by posting a new entry with a new Category value
+        // This only works if "Extendable Options = Category" is set in Elog config
+        this.categories.add( tag );
+        return tag;
+        //throw new LogbookException(new UnsupportedOperationException());
+    }
+
+
+    @Override
+    public Logbook set(Logbook Logbook) throws LogbookException {
+        // there is no HTTP request to add new Types to the Elog.
+        // This can only be done by posting a new entry with a new Type value
+        // This only works if "Extendable Options = Type" is set in Elog config
+        this.types.add( Logbook );
+        return Logbook;
+        //throw new LogbookException(new UnsupportedOperationException());
     }
 
 
