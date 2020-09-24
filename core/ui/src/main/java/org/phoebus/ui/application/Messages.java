@@ -98,8 +98,10 @@ public class Messages
     public static String PVListPlaceholder;
     public static String PVListRefreshTT;
     public static String PVListTblConnected;
+    public static String PVListTblDisconnected;
     public static String PVListTblPVName;
     public static String PVListTblReferences;
+    public static String PVListTblValue;
     public static String Save;
     public static String SaveAs;
     public static String SaveAsErrHdr;
