@@ -346,6 +346,9 @@ public class MementoHelper
     }
 
     /** Close a DockPane or SplitDock and all tabs held within.
+     * 
+     *  <p>Dock items must have been prepared to close.
+     *  
      *  @param node Node, either a dock item or split pane, that will be closed.
      *  @return boolean <code>true</code> if all the tabs close successfully.
      */
@@ -357,11 +360,7 @@ public class MementoHelper
             final DockPane pane = (DockPane) node;
             final List<DockItem> items = pane.getDockItems();
             for (final DockItem item : items)
-            {
-                // If it refuses to close, return false.
-                if (! item.close())
-                    return false;
-            }
+                item.close();
         }
         else if (node instanceof SplitDock)
         {
