@@ -528,8 +528,9 @@ public class EditorGUI
 
     /** Save model to file
      *  @param file File into which to save the model
+     *  @throws Exception on error
      */
-    public void saveModelAs(final File file)
+    public void saveModelAs(final File file) throws Exception
     {
         logger.log(Level.FINE, "Save as {0}", file);
         try
@@ -545,7 +546,7 @@ public class EditorGUI
         }
         catch (Exception ex)
         {
-            logger.log(Level.SEVERE, "Cannot save as " + file, ex);
+            throw new Exception("Cannot save as " + file, ex);
         }
     }
 
