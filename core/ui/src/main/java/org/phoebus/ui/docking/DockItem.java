@@ -560,7 +560,8 @@ public class DockItem extends Tab
     public boolean prepareToClose() throws Exception
     {
         if (Platform.isFxApplicationThread())
-            throw new IllegalStateException("Must not be called on UI thread because it can block/deadlock");
+            logger.log(Level.SEVERE, "'prepareToClose' must not be called on UI thread because it can block/deadlock", new Exception("Stack Trace"));
+
         if (close_check != null)
             for (Supplier<Future<Boolean>> check : close_check)
             {

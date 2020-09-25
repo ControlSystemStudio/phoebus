@@ -302,17 +302,16 @@ public class PhoebusApplication extends Application {
             handleClientParameters(parameters);
         });
 
-        // Closing the primary window is like calling File/Exit.
-        // When the primary window is the only open stage, that's OK.
-        // If there are other stages still open,
-        // closing them all might be unexpected to the user,
-        // so prompt for confirmation.
+        // DockStage.configureStage() installs an OnCloseRequest
+        // handler that will close the associated stage/window.
+        // For the primary window, replace with one that is like calling File/Exit,
+        // i.e. it closes _all_ stages and ends the application.
         main_stage.setOnCloseRequest(event ->
         {
             // Prevent closing right now..
             event.consume();
             // .. but schedule preparation to close
-            closeMainStage(main_stage);
+            closeMainStage();
         });
 
         DockPane.addListener(dock_pane_listener);
@@ -410,7 +409,7 @@ public class PhoebusApplication extends Application {
         file_save_as.setOnAction(event ->JobManager.schedule(Messages.SaveAs, monitor -> active_item_with_input.get().save_as(monitor)));
 
         final MenuItem exit = new MenuItem(Messages.Exit);
-        exit.setOnAction(event -> closeMainStage(null));
+        exit.setOnAction(event -> closeMainStage());
 
         final Menu file = new Menu(Messages.File, null,
                                    open,
@@ -941,7 +940,14 @@ public class PhoebusApplication extends Application {
             Platform.runLater(() ->
             {
                 for (Stage stage : stages)
+                {
                     DockStage.closeItems(stage);
+                    // Don't wait for Platform.runLater-based tab handlers
+                    // that will merge splits and eventually close the empty panes,
+                    // but close all non-main stages right away
+                    if (stage != main_stage)
+                        stage.close();
+                }
 
                 // Go into the main stage and close all of the tabs. If any of them refuse, return.
                 final Node node = DockStage.getPaneOrSplit(main_stage);
@@ -949,7 +955,6 @@ public class PhoebusApplication extends Application {
                     return;
 
                 // Allow handlers for tab changes etc. to run as everything closed.
-
                 // On next UI tick, load content from memento file.
                 Platform.runLater(() -> restoreState(memento));
             });
@@ -1008,7 +1013,7 @@ public class PhoebusApplication extends Application {
             stages.stream().map(DockStage::getDockPanes).count() > 1)
         {
             // More than one stage, or a stage with more than one pane
-            logger.log(Level.WARNING, "Expected single, empty stage for restoring state");
+            logger.log(Level.WARNING, "Expected single, empty stage for restoring state", new Exception("Stack Trace"));
             final StringBuilder buf = new StringBuilder();
             buf.append("Found:\n");
             for (Stage stage : stages)
@@ -1066,17 +1071,15 @@ public class PhoebusApplication extends Application {
      *
      *  <p>If there are more stages open, warn user that they will be closed.
      *
-     *  <p>When called from the onCloseRequested handler of the primary stage, we must
-     *  _not_ send another close request to it because that would create an infinite
-     *  loop.
-     *
-     *  @param main_stage_already_closing  TODO Remove??
-     *            Primary stage when called from its onCloseRequested handler, else <code>null</code>
+     *  <p>Then save memento, close _all_ stages and stop application.
      */
-    private void closeMainStage(final Stage main_stage_already_closing)
+    private void closeMainStage()
     {
         final List<Stage> stages = DockStage.getDockStages();
 
+        // If there are other stages still open,
+        // closing them all might be unexpected to the user,
+        // so prompt for confirmation.
         if (stages.size() > 1)
         {
             final Alert dialog = new Alert(AlertType.CONFIRMATION);
@@ -1092,6 +1095,13 @@ public class PhoebusApplication extends Application {
         // there's nothing left to save
         final File memfile = XMLMementoTree.getDefaultFile();
         MementoHelper.saveState(memfile, last_opened_file, default_application, isMenuVisible(), isToolbarVisible(), isStatusbarVisible());
+
+        // TODO Necessary to close main_stage last?
+        if (stages.contains(main_stage))
+        {
+            stages.remove(main_stage);
+            stages.add(main_stage);
+        }
 
         JobManager.schedule("Close all stages", monitor->
         {
@@ -1137,13 +1147,15 @@ public class PhoebusApplication extends Application {
     /**
      * Stop all applications
      */
-    private void stopApplications() {
+    private void stopApplications()
+    {
         for (AppDescriptor app : ApplicationService.getApplications())
             app.stop();
     }
 
     @Override
-    public void stop() {
+    public void stop()
+    {
         stopApplications();
 
         if (freezeup_check != null)
