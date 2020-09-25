@@ -32,7 +32,6 @@ import org.phoebus.ui.javafx.Styles;
 
 import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -125,6 +124,9 @@ public class DockItem extends Tab
     /** Called to check if OK to close the tab */
     private List<Supplier<Future<Boolean>>> close_check = new ArrayList<>();
 
+    /** Has 'prepareToClose' been called? */
+    private volatile boolean prepared_do_close = false;
+
     /** Called after tab was closed */
     private List<Runnable> closed_callback = null;
 
@@ -168,7 +170,7 @@ public class DockItem extends Tab
 
         createContextMenu();
 
-        setOnClosed(this::handleClosed);
+        setOnClosed(event -> handleClosed());
     }
 
     /** This tab should be in a DockPane, not a plain TabPane
@@ -262,7 +264,7 @@ public class DockItem extends Tab
     }
 
     /** @param tabs Tabs to prepare and then close */
-    private void close(final List<DockItem> tabs)
+    private static void close(final List<DockItem> tabs)
     {
         JobManager.schedule("Close", monitor ->
         {
@@ -584,7 +586,7 @@ public class DockItem extends Tab
                     return false;
             }
 
-        close_check.clear();
+        prepared_do_close = true;
         return true;
     }
 
@@ -599,8 +601,15 @@ public class DockItem extends Tab
         closed_callback.add(closed);
     }
 
-    /** Tab has been closed */
-    protected void handleClosed(final Event event)
+    /** Tab has been closed
+     *
+     *  <p>Called via 'ON_CLOSED' event,
+     *  and programmatically from close().
+     *
+     *  Implementation must be idempotent,
+     *  since it might be called several times.
+     */
+    protected void handleClosed()
     {
         // If there are callbacks, invoke them
         if (closed_callback != null)
@@ -626,10 +635,22 @@ public class DockItem extends Tab
      */
     public void close()
     {
-        if (! close_check.isEmpty())
+        // Helper for detecting errors in the handling of prepareToClose() and close().
+        //
+        // Check if prepareToClose() has been called at least once
+        // before close()ing the dock item.
+        // Log a warning to maintainers, but otherwise continue.
+        //
+        // Check is imperfect.
+        // Assume closing a window with many dock items, several of them 'dirty'.
+        // User attempts to close the window, prepareToClose() prompts user "Do you want to save?",
+        // user cancels. The "prepared_do_close" flag remains set,
+        // and if we later close the panel by other means we won't really check if
+        // prepareToClose() has been called again.
+        if (! prepared_do_close)
             logger.log(Level.SEVERE, "Failed to call prepareToClose", new Exception("Stack Trace"));
 
-        handleClosed(null);
+        handleClosed();
 
         getDockPane().getTabs().remove(this);
     }

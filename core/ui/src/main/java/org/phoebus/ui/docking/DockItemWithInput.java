@@ -31,7 +31,6 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.dialog.SaveAsDialog;
 
 import javafx.application.Platform;
-import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -431,11 +430,13 @@ public class DockItemWithInput extends DockItem
      * {@inheritDoc}
      * */
     @Override
-    protected void handleClosed(final Event event)
+    final protected void handleClosed()
     {
-        // Do the same as in the parent class, DockItem.handleClosed, but clean up save_handler.
-        super.handleClosed(event);
+        // Do the same as in the parent class, DockItem.handleClosed...
+        super.handleClosed();
 
+        // Remove save_handler to avoid memory leaks.
+        // Side benefit is detecting erroneous 'save' after item has been closed.
         save_handler = null;
     }
 
