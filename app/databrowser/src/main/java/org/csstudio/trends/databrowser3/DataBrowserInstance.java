@@ -15,7 +15,6 @@ import java.io.FileOutputStream;
 import java.net.URI;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 import org.csstudio.trends.databrowser3.model.AxisConfig;
@@ -146,11 +145,7 @@ public class DataBrowserInstance implements AppInstance
         dock_item = new DockItemWithInput(this, perspective, null, file_extensions, this::doSave);
         DockPane.getActiveDockPane().addTab(dock_item);
 
-        dock_item.addCloseCheck(() ->
-        {
-            dispose();
-            return CompletableFuture.completedFuture(true);
-        });
+        dock_item.addClosedNotification(this::dispose);
 
         perspective.getModel().addListener(model_listener);
     }
