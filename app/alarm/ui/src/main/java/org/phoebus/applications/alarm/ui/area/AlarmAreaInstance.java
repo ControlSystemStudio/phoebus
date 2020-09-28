@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,6 +10,7 @@ package org.phoebus.applications.alarm.ui.area;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.net.URI;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.AlarmSystem;
@@ -47,7 +48,7 @@ public class AlarmAreaInstance implements AppInstance
         tab.addCloseCheck(() ->
         {
             dispose();
-            return true;
+            return CompletableFuture.completedFuture(true);
         });
         DockPane.getActiveDockPane().addTab(tab);
     }

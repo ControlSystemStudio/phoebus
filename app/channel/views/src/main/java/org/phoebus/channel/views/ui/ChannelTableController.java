@@ -7,7 +7,6 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import javafx.scene.control.Label;
 import org.phoebus.channel.views.ChannelTableApp;
 import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.ChannelUtil;
@@ -19,6 +18,7 @@ import org.phoebus.channelfinder.utility.RemovePropertyChannelsJob;
 import org.phoebus.channelfinder.utility.RemoveTagChannelsJob;
 import org.phoebus.framework.adapter.AdapterService;
 import org.phoebus.framework.jobs.Job;
+import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -31,6 +31,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
@@ -42,6 +43,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.GridPane;
 import javafx.util.Callback;
 
 import static org.phoebus.channel.views.ui.ChannelFinderController.logger;
@@ -59,13 +61,22 @@ public class ChannelTableController extends ChannelFinderController {
     @FXML
     Button search;
     @FXML
-    TableView<Channel> tableView;
-
+    CheckBox showactive;
     @FXML
-    Label count;
-
+    TableView<Channel> tableView;
+    @FXML
+    GridPane gridp;
+    
     private Collection<String> properties;
     private Collection<String> tags;
+    private boolean isCBSelected = true;
+    public static final boolean showActiveCb;
+
+    static
+    {
+        final PreferencesReader prefs = new PreferencesReader(ChannelTableController.class, "/cv_preferences.properties");
+        showActiveCb = prefs.getBoolean("show_active_cb");
+    }
 
     @SuppressWarnings("unchecked")
     @FXML
@@ -85,6 +96,12 @@ public class ChannelTableController extends ChannelFinderController {
         TableColumn<Channel, String> ownerCol = new TableColumn<>("Owner");
         ownerCol.setCellValueFactory(new PropertyValueFactory<Channel, String>("owner"));
         tableView.getColumns().addAll(nameCol, ownerCol);
+
+        if (showActiveCb) {
+            showactive.setSelected(isCBSelected);
+        } else {
+            gridp.getChildren().remove(showactive);
+        }
     }
 
     public void setQuery(String string) {
@@ -94,7 +111,14 @@ public class ChannelTableController extends ChannelFinderController {
 
     @FXML
     public void search() {
-        super.search(query.getText());
+        if (showActiveCb) {
+            String currentQuery = query.getText();
+            String updatedQuery = currentQuery + " pvStatus=" + (showactive.isSelected() ? "Active" : "*");
+            isCBSelected = showactive.isSelected();
+            super.search(updatedQuery);
+        } else {
+            super.search(query.getText());
+        }
     }
 
     private Job addPropertyJob;
@@ -268,14 +292,6 @@ public class ChannelTableController extends ChannelFinderController {
         tableView.getColumns().addAll(propColumns);
         tableView.getColumns().addAll(tagColumns);
         tableView.setItems(FXCollections.observableArrayList(channels));
-
-        // the channel finder queries are limited to 10k by default
-        // TODO update check for the situation where the max size is set up user
-        if(channels.size() >= 10000) {
-            count.setText(String.valueOf(channels.size() + "+"));
-        } else {
-            count.setText(String.valueOf(channels.size()));
-        }
     }
 
 }

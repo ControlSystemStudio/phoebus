@@ -413,7 +413,11 @@
       <artifactId>xmlgraphics-commons</artifactId>
       <version>2.4</version>
     </dependency>
-
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-math3</artifactId>
+      <version>${apache.commons.math.version}</version>
+    </dependency>
 
     <!-- MQTT client library -->
     <dependency>

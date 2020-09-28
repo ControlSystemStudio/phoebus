@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,11 +19,13 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Level;
 
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Styles;
 
+import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -141,8 +143,15 @@ public class DockStage
 
         stage.setOnCloseRequest(event ->
         {
-            if (! isStageOkToClose(stage))
-                event.consume();
+            // Prevent closing of the stage right now
+            event.consume();
+            // In background, prepare to close items,
+            // and on success close them
+            JobManager.schedule("Close " + stage.getTitle(), monitor ->
+            {
+                if (prepareToCloseItems(stage))
+                    Platform.runLater(() -> closeItems(stage));
+            });
         });
 
         DockPane.setActiveDockPane(pane);
@@ -200,20 +209,20 @@ public class DockStage
         return null;
     }
 
-    /** Gracefully close all DockItems when stage closes
+    /** Prepare all DockItems to be closed
      *
-     *  <p>When user closes the stage,
-     *  offer dock items a chance to save changes,
-     *  or abort the close request.
+     *  <p>Must be called off the UI thread.
+     *  Might take time if dock items need to "save" their content
      *
      *  @param stage {@link Stage} with {@link DockPane}
+     *  @throws Exception on error
      */
-    public static boolean isStageOkToClose(final Stage stage)
+    public static boolean prepareToCloseItems(final Stage stage) throws Exception
     {
         for (DockPane pane : getDockPanes(stage))
         {
             for (DockItem item : pane.getDockItems())
-                if (! item.close())
+                if (! item.prepareToClose())
                     // Abort the close request
                     return false;
         }
@@ -221,6 +230,19 @@ public class DockStage
         // All tabs either saved or don't care to save,
         // so this stage will be closed
         return true;
+    }
+
+    /** Close all DockItems of this stage
+     *
+     *  <p>Should be called after {@link DockStage#prepareToCloseItems}
+     *
+     *  @param stage {@link Stage} with {@link DockPane}
+     */
+    public static void closeItems(final Stage stage)
+    {
+        for (DockPane pane : getDockPanes(stage))
+            for (DockItem item : pane.getDockItems())
+                item.close();
     }
 
     /** @param stage Stage that supports docking

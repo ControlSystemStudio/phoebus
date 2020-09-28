@@ -1,11 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
 package org.phoebus.applications.errlog;
+
+import java.util.concurrent.CompletableFuture;
 
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
@@ -46,7 +48,7 @@ class ErrLogInstance implements AppInstance
         {
             errlog.close();
             INSTANCE = null;
-            return true;
+            return CompletableFuture.completedFuture(true);
         });
         DockPane.getActiveDockPane().addTab(tab);
     }

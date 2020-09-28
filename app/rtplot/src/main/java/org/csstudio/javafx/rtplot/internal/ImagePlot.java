@@ -1023,6 +1023,73 @@ public class ImagePlot extends PlotCanvasBase
                 }
             }
         }
+
+        // Performed either a complete image and cursor redraw,
+        // or just a cursor update over existing image.
+        // In any case, the cursor listener needs to receive new location and/or image pixel
+        notifyCursorListener();
+    }
+
+    private void notifyCursorListener()
+    {
+        // Is there a cursor listener?
+        if (plot_listener == null)
+            return;
+
+        final Point2D last_pos = crosshair_position;
+        if (last_pos == null)
+        {
+            plot_listener.changedCursorInfo(Double.NaN, Double.NaN, -1, -1, Double.NaN);
+            return;
+        }
+
+        final double x_val = last_pos.getX(), y_val = last_pos.getY();
+
+        // Location as coordinate in image
+        // No "+0.5" rounding! Truncate to get full pixel offsets,
+        // don't jump to next pixel when mouse moves beyond 'half' of the current pixel.
+        // Use -1 to mark location outside of data width resp. height.
+        int image_x = (int) (data_width * (x_val - min_x) / (max_x - min_x));
+        if (image_x < 0)
+            image_x = -1;
+        else if (image_x >= data_width)
+            image_x = -1;
+
+        // Mouse and image coords for Y go 'down'
+        int image_y = (int) (data_height * (max_y - y_val) / (max_y - min_y));
+        if (image_y < 0)
+            image_y = -1;
+        else if (image_y >= data_height)
+            image_y = -1;
+
+        final ListNumber data = image_data;
+        double pixel = Double.NaN;
+        if (data != null  &&  image_x >= 0  &&  image_y >= 0)
+        {
+            final int offset = image_x + image_y * data_width;
+            try
+            {
+                if (unsigned_data)
+                {
+                    if (data instanceof ArrayByte)
+                        pixel = Byte.toUnsignedInt(data.getByte(offset));
+                    else if (data instanceof ArrayShort)
+                        pixel = Short.toUnsignedInt(data.getShort(offset));
+                    else if (data instanceof ArrayInteger)
+                        pixel = Integer.toUnsignedLong(data.getInt(offset));
+                    else
+                        pixel = data.getDouble(offset);
+                }
+                else
+                    pixel = data.getDouble(offset);
+            }
+            catch (Throwable ex)
+            {   // Catch ArrayIndexOutOfBoundsException or other internal errors of ListNumber
+                logger.log(Level.WARNING, "Error accessing pixel " + image_x + ", " + image_y + " of data with size " + data.size());
+                // leave pixel == Double.NaN;
+            }
+        }
+        plot_listener.changedCursorInfo(x_val, y_val, image_x, image_y, pixel);
     }
 
     /** onMousePressed */
@@ -1220,34 +1287,26 @@ public class ImagePlot extends PlotCanvasBase
             // Location on axes, i.e. what user configured as horizontal and vertical values
             final double x_val = x_axis.getValue(screen_x);
             final double y_val = y_axis.getValue(screen_y);
-            setCrosshairLocation(x_val, y_val, plot_listener);
+            setCrosshairLocation(x_val, y_val, true);
         }
         else
-            setCrosshairLocation(Double.NaN, Double.NaN, plot_listener);
+            setCrosshairLocation(Double.NaN, Double.NaN, true);
     }
 
     /** Set location of crosshair
-     *  @param x_val
-     *  @param y_val
+     *  @param x_val Mouse coordinate
+     *  @param y_val ..
+     *  @param notify_listener Notify cursor listener?
      */
-    public void setCrosshairLocation(final double x_val, final double y_val)
-    {
-        setCrosshairLocation(x_val, y_val, null);
-    }
-
-    /** Set location of crosshair
-     *  @param x_val
-     *  @param y_val
-     */
-    public void setCrosshairLocation(final double x_val, final double y_val, final RTImagePlotListener listener)
+    public void setCrosshairLocation(final double x_val, final double y_val, final boolean notify_listener)
     {
         if (Double.isNaN(x_val)  ||  Double.isNaN(y_val))
         {
             if (crosshair_position == null)
                 return;
             crosshair_position = null;
-            if (listener != null)
-                listener.changedCursorInfo(Double.NaN, Double.NaN, -1, -1, Double.NaN);
+            if (notify_listener  &&  plot_listener != null)
+                plot_listener.changedCursorInfo(Double.NaN, Double.NaN, -1, -1, Double.NaN);
             requestRedraw();
             return;
         }
@@ -1256,55 +1315,11 @@ public class ImagePlot extends PlotCanvasBase
         if (pos.equals(crosshair_position))
             return;
         crosshair_position = pos;
-        if (listener != null)
-            listener.changedCrosshair(x_val, y_val);
+        if (notify_listener  &&  plot_listener != null)
+            plot_listener.changedCrosshair(x_val, y_val);
 
-        // Location as coordinate in image
-        // No "+0.5" rounding! Truncate to get full pixel offsets,
-        // don't jump to next pixel when mouse moves beyond 'half' of the current pixel.
-        // Use -1 to mark location outside of data width resp. height.
-        int image_x = (int) (data_width * (x_val - min_x) / (max_x - min_x));
-        if (image_x < 0)
-            image_x = -1;
-        else if (image_x >= data_width)
-            image_x = -1;
-
-        // Mouse and image coords for Y go 'down'
-        int image_y = (int) (data_height * (max_y - y_val) / (max_y - min_y));
-        if (image_y < 0)
-            image_y = -1;
-        else if (image_y >= data_height)
-            image_y = -1;
-
-        final ListNumber data = image_data;
-        double pixel = Double.NaN;
-        if (data != null  &&  image_x >= 0  &&  image_y >= 0)
-        {
-            final int offset = image_x + image_y * data_width;
-            try
-            {
-                if (unsigned_data)
-                {
-                    if (data instanceof ArrayByte)
-                        pixel = Byte.toUnsignedInt(data.getByte(offset));
-                    else if (data instanceof ArrayShort)
-                        pixel = Short.toUnsignedInt(data.getShort(offset));
-                    else if (data instanceof ArrayInteger)
-                        pixel = Integer.toUnsignedLong(data.getInt(offset));
-                    else
-                        pixel = data.getDouble(offset);
-                }
-                else
-                    pixel = data.getDouble(offset);
-            }
-            catch (Throwable ex)
-            {   // Catch ArrayIndexOutOfBoundsException or other internal errors of ListNumber
-                logger.log(Level.WARNING, "Error accessing pixel " + image_x + ", " + image_y + " of data with size " + data.size());
-                // leave pixel == Double.NaN;
-            }
-        }
-        if (listener != null)
-            listener.changedCursorInfo(x_val, y_val, image_x, image_y, pixel);
+        // New cursor location needs redrawn crosshair and update of cursor listener
+        // (redraw with current image data, not full update of image itself)
         requestRedraw();
     }
 

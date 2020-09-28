@@ -74,5 +74,11 @@
       <artifactId>pbrawclient</artifactId>
       <version>0.0.8</version>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-math3 -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-math3</artifactId>
+      <version>${apache.commons.math.version}</version>
+    </dependency>
   </dependencies>
 </project>

@@ -9,6 +9,7 @@ package org.csstudio.display.builder.model.widgets;
 
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineColor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineStyle;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineWidth;
 
 import java.util.Arrays;
@@ -22,6 +23,7 @@ import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.XMLTags;
+import org.csstudio.display.builder.model.properties.LineStyle;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
@@ -105,6 +107,7 @@ public class PolygonWidget extends PolyBaseWidget
     private volatile WidgetProperty<WidgetColor> background_color;
     private volatile WidgetProperty<WidgetColor> line_color;
     private volatile WidgetProperty<Integer> line_width;
+    private volatile WidgetProperty<LineStyle> line_style;
 
     public PolygonWidget()
     {
@@ -117,6 +120,7 @@ public class PolygonWidget extends PolyBaseWidget
         super.defineProperties(properties);
         properties.add(line_width = propLineWidth.createProperty(this, 3));
         properties.add(line_color = propLineColor.createProperty(this, new WidgetColor(0, 0, 255)));
+        properties.add(line_style = propLineStyle.createProperty(this, LineStyle.SOLID));
         properties.add(background_color = propBackgroundColor.createProperty(this, new WidgetColor(50, 50, 255)));
     }
 
@@ -152,5 +156,11 @@ public class PolygonWidget extends PolyBaseWidget
     public WidgetProperty<Integer> propLineWidth()
     {
         return line_width;
+    }
+
+    /** @return 'line_style' property */
+    public WidgetProperty<LineStyle> propLineStyle()
+    {
+        return line_style;
     }
 }

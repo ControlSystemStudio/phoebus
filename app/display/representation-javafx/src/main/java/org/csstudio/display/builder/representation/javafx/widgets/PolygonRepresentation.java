@@ -13,6 +13,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.widgets.PolygonWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 
+import javafx.collections.ObservableList;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
@@ -45,6 +46,7 @@ public class PolygonRepresentation extends PolyBaseRepresentation<Polygon, Polyg
         model_widget.propBackgroundColor().addUntypedPropertyListener(displayChangedListener);
         model_widget.propLineColor().addUntypedPropertyListener(displayChangedListener);
         model_widget.propLineWidth().addUntypedPropertyListener(displayChangedListener);
+        model_widget.propLineStyle().addUntypedPropertyListener(displayChangedListener);
         model_widget.propPoints().addUntypedPropertyListener(displayChangedListener);
     }
 
@@ -59,6 +61,7 @@ public class PolygonRepresentation extends PolyBaseRepresentation<Polygon, Polyg
         model_widget.propBackgroundColor().removePropertyListener(displayChangedListener);
         model_widget.propLineColor().removePropertyListener(displayChangedListener);
         model_widget.propLineWidth().removePropertyListener(displayChangedListener);
+        model_widget.propLineStyle().removePropertyListener(displayChangedListener);
         model_widget.propPoints().removePropertyListener(displayChangedListener);
     }
 
@@ -82,6 +85,32 @@ public class PolygonRepresentation extends PolyBaseRepresentation<Polygon, Polyg
                 jfx_node.setFill(JFXUtil.convert(model_widget.propBackgroundColor().getValue()));
                 jfx_node.setStroke(JFXUtil.convert(model_widget.propLineColor().getValue()));
                 jfx_node.setStrokeWidth(model_widget.propLineWidth().getValue());
+                final int line_width = Math.max(1, model_widget.propLineWidth().getValue());
+                final ObservableList<Double> dashes = jfx_node.getStrokeDashArray();
+                // Scale dashes, dots and gaps by line width;
+                // matches legacy opibuilder resp. Draw2D
+                switch (model_widget.propLineStyle().getValue())
+                {
+                case DASH:
+                    dashes.setAll(3.0*line_width, 1.0*line_width);
+                    break;
+                case DOT:
+                    dashes.setAll(1.0*line_width, 1.0*line_width);
+                    break;
+                case DASHDOT:
+                    dashes.setAll(3.0*line_width, 1.0*line_width,
+                                  1.0*line_width, 1.0*line_width);
+                    break;
+                case DASHDOTDOT:
+                    dashes.setAll(3.0*line_width, 1.0*line_width,
+                                  1.0*line_width, 1.0*line_width,
+                                  1.0*line_width, 1.0*line_width);
+                    break;
+                case SOLID:
+                default:
+                    dashes.setAll(/* Nothing for solid line */);
+                    break;
+                }
             }
             else
                 jfx_node.setVisible(false);

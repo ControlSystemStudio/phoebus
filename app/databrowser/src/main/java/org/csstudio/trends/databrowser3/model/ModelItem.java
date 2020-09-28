@@ -10,6 +10,7 @@ package org.csstudio.trends.databrowser3.model;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 import javax.xml.stream.XMLStreamWriter;
 
@@ -77,6 +78,12 @@ abstract public class ModelItem
     /** Sample that is currently selected, for example via cursor */
     private volatile Optional<PlotDataItem<Instant>> selected_sample = Optional.empty();
 
+    /**
+     * Unique string id that identifies this item. A random UUID is set upon instantiation,
+     * and there is no setter method.
+     */
+    private String uniqueId;
+
     /** Initialize
      *  @param name Name of the PV or the formula
      */
@@ -84,6 +91,15 @@ abstract public class ModelItem
     {
         this.name = name;
         this.display_name = name;
+        this.uniqueId = UUID.randomUUID().toString();
+    }
+
+    public ModelItem(){
+        this.uniqueId = UUID.randomUUID().toString();
+    }
+
+    public String getUniqueId(){
+        return uniqueId;
     }
 
     /** @return Model that contains this item */

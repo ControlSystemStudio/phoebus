@@ -85,8 +85,8 @@
     -fx-background-color: #fff8d2;
 }
 
-.scale-error {
-    -fx-control-inner-background: #ff0000;
+.input-error {
+    -fx-control-inner-background: #ff6c65;
 }
 
 .custom-menu-item .label {

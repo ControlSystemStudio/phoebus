@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,6 +15,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -30,7 +31,6 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.dialog.SaveAsDialog;
 
 import javafx.application.Platform;
-import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -202,15 +202,12 @@ public class DockItemWithInput extends DockItem
     }
 
     /** Called when user tries to close the tab
-     *
-     *  <p>Derived class may override.
-     *
      *  @return Should the tab close? Otherwise it stays open.
      */
-    protected boolean okToClose()
+    private Future<Boolean> okToClose()
     {
         if (! isDirty())
-            return true;
+            return CompletableFuture.completedFuture(true);
 
         final String text = MessageFormat.format(Messages.DockAlertMsg, getLabel());
         final Alert prompt = new Alert(AlertType.NONE,
@@ -224,16 +221,21 @@ public class DockItemWithInput extends DockItem
 
         // Cancel the close request
         if (result == ButtonType.CANCEL)
-            return false;
+            return CompletableFuture.completedFuture(false);
 
         // Close without saving?
         if (result == ButtonType.NO)
-            return true;
+            return CompletableFuture.completedFuture(true);
 
         // Save in background job ...
-        JobManager.schedule(Messages.Save, monitor -> save(monitor));
-        // .. and leave the tab open, so user can then try to close again
-        return false;
+        final CompletableFuture<Boolean> done = new CompletableFuture<>();
+        JobManager.schedule(Messages.Save, monitor ->
+        {
+            save(monitor);
+            // Indicate if we may close, or need to stay open because of error
+            done.complete(! isDirty());
+        });
+        return done;
     }
 
     /** Save the content of the item to its current 'input'
@@ -428,11 +430,13 @@ public class DockItemWithInput extends DockItem
      * {@inheritDoc}
      * */
     @Override
-    protected void handleClosed(final Event event)
+    final protected void handleClosed()
     {
-        // Do the same as in the parent class, DockItem.handleClosed, but clean up save_handler.
-        super.handleClosed(event);
+        // Do the same as in the parent class, DockItem.handleClosed...
+        super.handleClosed();
 
+        // Remove save_handler to avoid memory leaks.
+        // Side benefit is detecting erroneous 'save' after item has been closed.
         save_handler = null;
     }
 

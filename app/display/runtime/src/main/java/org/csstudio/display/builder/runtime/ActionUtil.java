@@ -79,18 +79,20 @@ public class ActionUtil
             logger.log(Level.WARNING, "Action without file: {0}", action);
             return;
         }
+        String parent_file = "";
+        String expanded_path = "";
         try
         {
             // Path to resolve, after expanding macros of source widget and action
             final Macros expanded = new Macros(action.getMacros());
             expanded.expandValues(source_widget.getEffectiveMacros());
             final Macros macros = Macros.merge(source_widget.getEffectiveMacros(), expanded);
-            final String expanded_path = MacroHandler.replace(macros, action.getFile());
+            expanded_path = MacroHandler.replace(macros, action.getFile());
             logger.log(Level.FINER, "{0}, effective macros {1} ({2})", new Object[] { action, macros, expanded_path });
 
             // Resolve new display file relative to the source widget model (not 'top'!)
             final DisplayModel widget_model = source_widget.getDisplayModel();
-            final String parent_file = widget_model.getUserData(DisplayModel.USER_DATA_INPUT_FILE);
+            parent_file = widget_model.getUserData(DisplayModel.USER_DATA_INPUT_FILE);
 
             // Load new model. If that fails, no reason to continue.
             final DisplayModel new_model = ModelLoader.resolveAndLoadModel(parent_file, expanded_path);
@@ -166,12 +168,13 @@ public class ActionUtil
         catch (final Exception ex)
         {
             logger.log(Level.WARNING, "Error handling " + action, ex);
-
+            // Compute the full file path for the error dialog
+            String fullFilePath = ModelResourceUtil.resolveResource(parent_file, expanded_path);
             final String message;
             if (action.getFile().endsWith(".opi"))
-                message = "Cannot open " + action.getFile() + " or .bob.\n\nSee log for details.";
+                message = "Cannot open " + fullFilePath + " or .bob.\n\nSee log for details.";
             else
-                message = "Cannot open " + action.getFile() + ".\n\nSee log for details.";
+                message = "Cannot open " + fullFilePath + ".\n\nSee log for details.";
             ScriptUtil.showErrorDialog(source_widget, message);
         }
     }

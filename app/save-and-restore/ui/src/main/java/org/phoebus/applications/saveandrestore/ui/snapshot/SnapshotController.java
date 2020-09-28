@@ -281,7 +281,7 @@ public class SnapshotController implements NodeChangedListener {
         thresholdSpinner.getEditor().setAlignment(Pos.CENTER_RIGHT);
         thresholdSpinner.getEditor().getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         thresholdSpinner.getEditor().textProperty().addListener((a, o, n) -> {
-            thresholdSpinner.getEditor().getStyleClass().remove("scale-error");
+            thresholdSpinner.getEditor().getStyleClass().remove("input-error");
             thresholdSpinner.setTooltip(null);
 
             Double parsedNumber = null;
@@ -289,7 +289,7 @@ public class SnapshotController implements NodeChangedListener {
                 parsedNumber = Double.parseDouble(n.trim());
                 updateThreshold(parsedNumber);
             } catch (Exception e) {
-                thresholdSpinner.getEditor().getStyleClass().add("scale-error");
+                thresholdSpinner.getEditor().getStyleClass().add("input-error");
                 thresholdSpinner.setTooltip(new Tooltip(Messages.toolTipMultiplierSpinner));
             }
         });
@@ -303,7 +303,7 @@ public class SnapshotController implements NodeChangedListener {
         multiplierSpinner.getEditor().getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         multiplierSpinner.getEditor().textProperty()
                 .addListener((a, o, n) -> {
-                    multiplierSpinner.getEditor().getStyleClass().remove("scale-error");
+                    multiplierSpinner.getEditor().getStyleClass().remove("input-error");
                     multiplierSpinner.setTooltip(null);
                     snapshotRestorableProperty.set(true);
 
@@ -312,7 +312,7 @@ public class SnapshotController implements NodeChangedListener {
                         parsedNumber = Double.parseDouble(n.trim());
                         updateSnapshot(parsedNumber);
                     } catch (NumberFormatException e) {
-                        multiplierSpinner.getEditor().getStyleClass().add("scale-error");
+                        multiplierSpinner.getEditor().getStyleClass().add("input-error");
                         multiplierSpinner.setTooltip(new Tooltip(Messages.toolTipMultiplierSpinner));
                         snapshotRestorableProperty.set(false);
                     }
@@ -554,6 +554,7 @@ public class SnapshotController implements NodeChangedListener {
                 }
                 snapshotRestorableProperty.set(true);
 
+                dirtySnapshotEntries.clear();
                 vSnapshot.getEntries().stream().forEach(item -> {
                     item.getValueProperty().addListener((observableValue, vType, newVType) -> {
                         if (!Utilities.areVTypesIdentical(newVType, item.getStoredValue(), false)) {

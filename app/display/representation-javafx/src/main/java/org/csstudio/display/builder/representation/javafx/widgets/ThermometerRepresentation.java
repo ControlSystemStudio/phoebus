@@ -247,11 +247,10 @@ public class ThermometerRepresentation extends RegionBaseRepresentation<Region, 
             max_val = 100.0;
         }
 
-        // Determine percentage of value within the min..max range
         final double value = VTypeUtil.getValueNumber(vtype).doubleValue();
         min = min_val;
         max = max_val;
-        val = value;
+        val = Math.min(max, value); // Avoid rendering value beyond maximum
         dirty_value.mark();
         toolkit.scheduleUpdate(this);
     }

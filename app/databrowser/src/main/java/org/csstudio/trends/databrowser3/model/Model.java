@@ -724,7 +724,7 @@ public class Model
         return show_toolbar;
     }
 
-    /** @param visible Should toolbar be visible? */
+    /** @param toolbar Should toolbar be visible? */
     public void setToolbarVisible(final boolean toolbar)
     {
         if (show_toolbar == toolbar)
@@ -740,7 +740,7 @@ public class Model
         return show_legend;
     }
 
-    /** @param visible Should legend be visible? */
+    /** @param legend Should legend be visible? */
     public void setLegendVisible(final boolean legend)
     {
         if (show_legend == legend)
@@ -756,7 +756,7 @@ public class Model
         return show_grid;
     }
 
-    /** @param visible Should grid be visible? */
+    /** @param grid Should grid be visible? */
     public void setGridVisible(final boolean grid)
     {
         if (show_grid == grid)
@@ -963,5 +963,16 @@ public class Model
         listeners.clear();
         // .. as all items are removed:
         clear();
+    }
+
+    /**
+     * @param uniqueId Non-null unique id.
+     * @return A {@link ModelItem} matching the specified unique id, or null.
+     */
+    public ModelItem getItemByUniqueId(String uniqueId){
+        if(uniqueId == null){
+            return null;
+        }
+        return items.stream().filter(item -> uniqueId.equals(item.getUniqueId())).findAny().orElse(null);
     }
 }

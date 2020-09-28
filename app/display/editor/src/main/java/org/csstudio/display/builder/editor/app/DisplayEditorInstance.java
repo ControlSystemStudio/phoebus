@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 import org.csstudio.display.builder.editor.DisplayEditor;
 import org.csstudio.display.builder.editor.EditorGUI;
@@ -29,7 +30,6 @@ import org.csstudio.display.builder.model.WidgetClassSupport;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.persist.WidgetClassesService;
-import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
@@ -46,6 +46,7 @@ import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.ToolbarHelper;
+import org.phoebus.util.FileExtensionUtil;
 
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
@@ -59,7 +60,6 @@ import javafx.scene.control.Control;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.ContextMenuEvent;
-import org.phoebus.util.FileExtensionUtil;
 
 /** Display Editor Instance
  *  @author Kay Kasemir
@@ -457,7 +457,7 @@ public class DisplayEditorInstance implements AppInstance
         }
     }
 
-    private boolean okToClose()
+    private Future<Boolean> okToClose()
     {
         if (save_job != null)
         {
@@ -467,10 +467,10 @@ public class DisplayEditorInstance implements AppInstance
             prompt.setHeaderText(Messages.AbortSave);
             DialogHelper.positionDialog(prompt, dock_item.getTabPane(), -200, -200);
             if (prompt.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK)
-                return false;
+                return CompletableFuture.completedFuture(false);
         }
 
-        return true;
+        return CompletableFuture.completedFuture(true);
     }
 
     private void dispose()

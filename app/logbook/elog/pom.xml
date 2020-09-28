@@ -1,0 +1,31 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.phoebus</groupId>
+    <artifactId>app-logbook</artifactId>
+    <version>4.6.4-SNAPSHOT</version>
+  </parent>
+  <artifactId>app-logbook-elog</artifactId>
+  <dependencies>
+    <!-- https://mvnrepository.com/artifact/com.sun.jersey/jersey-core -->
+    <!-- https://mvnrepository.com/artifact/com.sun.jersey.contribs/jersey-multipart -->
+    <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations -->
+    <!-- https://mvnrepository.com/artifact/com.sun.xml.bind/jaxb-impl -->
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>core-logbook</artifactId>
+      <version>4.6.4-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+        <groupId>net.dongliu</groupId>
+        <artifactId>requests</artifactId>
+        <version>5.0.8</version>
+    </dependency>
+    <dependency>
+        <groupId>net.sourceforge.htmlcleaner</groupId>
+        <artifactId>htmlcleaner</artifactId>
+        <version>2.24</version>
+    </dependency>
+
+  </dependencies>
+</project>

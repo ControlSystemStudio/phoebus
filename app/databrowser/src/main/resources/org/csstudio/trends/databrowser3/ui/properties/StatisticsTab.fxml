@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!--
+  ~ Copyright (C) 2020 European Spallation Source ERIC.
+  ~
+  ~  This program is free software; you can redistribute it and/or
+  ~  modify it under the terms of the GNU General Public License
+  ~  as published by the Free Software Foundation; either version 2
+  ~  of the License, or (at your option) any later version.
+  ~
+  ~  This program is distributed in the hope that it will be useful,
+  ~  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~  GNU General Public License for more details.
+  ~
+  ~  You should have received a copy of the GNU General Public License
+  ~  along with this program; if not, write to the Free Software
+  ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+  -->
+
+<GridPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.csstudio.trends.databrowser3.ui.properties.StatisticsTabController">
+   <children>
+
+    <ToolBar minHeight="-Infinity" minWidth="-Infinity" prefHeight="40.0" prefWidth="600.0" VBox.vgrow="NEVER">
+      <items>
+        <Button fx:id="refreshAll" mnemonicParsing="false" onAction="#refreshAll" text="Refresh All" />
+      </items>
+    </ToolBar>
+    <TableView fx:id="tracesTable" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" VBox.vgrow="ALWAYS">
+      <columns>
+        <TableColumn fx:id="indicatorColumn" prefWidth="22.0" />
+        <TableColumn fx:id="displayNameColumn" prefWidth="130.0" text="Display Name"/>
+        <TableColumn fx:id="countColumn" prefWidth="100.0" text="Sample Count" />
+        <TableColumn fx:id="meanColumn" prefWidth="100.0" text="Mean" />
+        <TableColumn fx:id="medianColumn" prefWidth="100.0" text="Median" />
+        <TableColumn fx:id="stdDevColumn" prefWidth="100.0" text="Standard Deviation" />
+        <TableColumn fx:id="minColumn" prefWidth="100.0" text="Min Value" />
+        <TableColumn fx:id="maxColumn" prefWidth="100.0" text="Max Value" />
+        <TableColumn fx:id="sumColumn" prefWidth="100.0" text="Sum" />
+      </columns>
+    </TableView>
+   </children>
+   <columnConstraints>
+      <ColumnConstraints />
+   </columnConstraints>
+   <rowConstraints>
+      <RowConstraints />
+      <RowConstraints />
+   </rowConstraints>
+</GridPane>
