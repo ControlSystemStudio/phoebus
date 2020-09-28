@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,10 +15,13 @@ import java.awt.PointerInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.security.authorization.AuthorizationService;
@@ -29,7 +32,6 @@ import org.phoebus.ui.javafx.Styles;
 
 import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -76,6 +78,9 @@ import javafx.stage.Window;
  *  {@link Tab#setOnClosed(EventHandler)}
  *  are used internally and should not be called.
  *
+ *  <p>Instead of `setOnCloseRequest`, use {@link DockItem#addCloseCheck}.
+ *  <p>Instead of `setOnClosed`, use {@link DockItem#addClosedNotification}.
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -117,7 +122,10 @@ public class DockItem extends Tab
     protected final Label name_tab;
 
     /** Called to check if OK to close the tab */
-    private List<BooleanSupplier> close_check = null;
+    private List<Supplier<Future<Boolean>>> close_check = new ArrayList<>();
+
+    /** Has 'prepareToClose' been called? */
+    private volatile boolean prepared_do_close = false;
 
     /** Called after tab was closed */
     private List<Runnable> closed_callback = null;
@@ -162,7 +170,7 @@ public class DockItem extends Tab
 
         createContextMenu();
 
-        setOnClosed(this::handleClosed);
+        setOnClosed(event -> handleClosed());
     }
 
     /** This tab should be in a DockPane, not a plain TabPane
@@ -191,18 +199,20 @@ public class DockItem extends Tab
         split_vert.setOnAction(event -> split(false));
 
         final MenuItem close = new MenuItem(Messages.DockClose, new ImageView(DockPane.close_icon));
-        close.setOnAction(event -> close());
+        close.setOnAction(event -> close(List.of(this)));
 
         final MenuItem close_other = new MenuItem(Messages.DockCloseOthers, new ImageView(close_many_icon));
         close_other.setOnAction(event ->
         {
             // Close all other tabs in non-fixed panes of this window
             final Stage stage = (Stage) getDockPane().getScene().getWindow();
+            final List<DockItem> tabs = new ArrayList<>();
             for (DockPane pane : DockStage.getDockPanes(stage))
                 if (! pane.isFixed())
                     for (Tab tab : new ArrayList<>(pane.getTabs()))
                         if ((tab instanceof DockItem)  &&  tab != DockItem.this)
-                            ((DockItem)tab).close();
+                            tabs.add((DockItem)tab);
+            close(tabs);
         });
 
         final MenuItem close_all = new MenuItem(Messages.DockCloseAll, new ImageView(close_many_icon));
@@ -210,13 +220,14 @@ public class DockItem extends Tab
         {
             // Close all tabs in non-fixed panes of this window
             final Stage stage = (Stage) getDockPane().getScene().getWindow();
+            final List<DockItem> tabs = new ArrayList<>();
             for (DockPane pane : DockStage.getDockPanes(stage))
                 if (! pane.isFixed())
                     for (Tab tab : new ArrayList<>(pane.getTabs()))
                         if ((tab instanceof DockItem))
-                            ((DockItem)tab).close();
+                            tabs.add((DockItem)tab);
+            close(tabs);
         });
-
 
         final ContextMenu menu = new ContextMenu(info);
 
@@ -250,6 +261,23 @@ public class DockItem extends Tab
         });
 
         name_tab.setContextMenu(menu);
+    }
+
+    /** @param tabs Tabs to prepare and then close */
+    private static void close(final List<DockItem> tabs)
+    {
+        JobManager.schedule("Close", monitor ->
+        {
+            for (DockItem tab : tabs)
+                if (! tab.prepareToClose())
+                    return;
+
+            Platform.runLater(() ->
+            {
+                for (DockItem tab : tabs)
+                    tab.close();
+            });
+        });
     }
 
     /** @return Unique ID of this dock item */
@@ -492,29 +520,74 @@ public class DockItem extends Tab
 
     /** Register check for closing the tab
      *
-     *  @param ok_to_close Will be called when tab is about to close.
-     *                     Should return <code>true</code> if OK to close,
+     *  @param ok_to_close Will be called when tab prepares to close.
+     *                     Will be invoked on the UI thread, so it may
+     *                     prompt for "Do you want to save?".
+     *                     May return a completed future right away,
+     *                     or start a background thread to for example
+     *                     save the tab's content which will complete
+     *                     the future when done.
+     *                     Future must be <code>true</code> if OK to close,
      *                     <code>false</code> to leave the tab open.
      */
-    public void addCloseCheck(final BooleanSupplier ok_to_close)
+    public void addCloseCheck(final Supplier<Future<Boolean>> ok_to_close)
     {
-        if (close_check == null)
-        {
-            close_check = new ArrayList<>();
+        if (getOnCloseRequest() == null)
             setOnCloseRequest(event ->
             {
-                for (BooleanSupplier check : close_check)
-                    if (! check.getAsBoolean())
-                    {
-                        event.consume();
-                        return;
-                    }
-                // Clear entries, but don't reset to null
-                // since onCloseRequest handler still registered
-                close_check.clear();
+                // For now, prevent closing
+                event.consume();
+
+                // Invoke all the ok-to-close checks in background threads
+                // since those that save files might take time.
+                JobManager.schedule("Close " + getLabel(), monitor ->
+                {
+                    if (prepareToClose())
+                        Platform.runLater(() -> close());
+                });
             });
-        }
+
         close_check.add(ok_to_close);
+    }
+
+    /** Prepare dock item to close
+     *
+     *  Invokes all ok-to-close checks,
+     *  which may start "save" threads and take some time
+     *  before returning result.
+     *
+     *  @return <code>true</code> when OK to close
+     *  @throws Exception on error
+     */
+    public boolean prepareToClose() throws Exception
+    {
+        if (Platform.isFxApplicationThread())
+            logger.log(Level.SEVERE, "'prepareToClose' must not be called on UI thread because it can block/deadlock", new Exception("Stack Trace"));
+
+        if (close_check != null)
+            for (Supplier<Future<Boolean>> check : close_check)
+            {
+                // Invoke each actual ok-to-close check on UI thread,
+                // since it may open dialogs etc. before starting a "save" thread
+                final CompletableFuture<Boolean> result = new CompletableFuture<>();
+                Platform.runLater(() ->
+                {
+                    try
+                    {
+                        result.complete(check.get().get());
+                    }
+                    catch (Exception ex)
+                    {
+                        result.completeExceptionally(ex);
+                    }
+                });
+                // .. then await result of check started in UI thread
+                if (! result.get())
+                    return false;
+            }
+
+        prepared_do_close = true;
+        return true;
     }
 
     /** Register for notification when tab was closed
@@ -528,8 +601,15 @@ public class DockItem extends Tab
         closed_callback.add(closed);
     }
 
-    /** Tab has been closed */
-    protected void handleClosed(final Event event)
+    /** Tab has been closed
+     *
+     *  <p>Called via 'ON_CLOSED' event,
+     *  and programmatically from close().
+     *
+     *  Implementation must be idempotent,
+     *  since it might be called several times.
+     */
+    protected void handleClosed()
     {
         // If there are callbacks, invoke them
         if (closed_callback != null)
@@ -548,27 +628,31 @@ public class DockItem extends Tab
 
     /** Programmatically close this tab
      *
-     *  <p>Will invoke on-close-request handler that can abort the action,
-     *  otherwise invoke the on-closed handler and remove the tab
+     *  <p>Should be called after {@link #prepareToClose) has been used
+     *  to allow "save".
      *
      *  @return <code>true</code> if tab closed, <code>false</code> if it remained open
      */
-    public boolean close()
+    public void close()
     {
-        EventHandler<Event> handler = getOnCloseRequest();
-        if (handler != null)
-        {
-            final Event event = new Event(Tab.TAB_CLOSE_REQUEST_EVENT);
-            handler.handle(event);
-            if (event.isConsumed())
-                return false;
-        }
+        // Helper for detecting errors in the handling of prepareToClose() and close().
+        //
+        // Check if prepareToClose() has been called at least once
+        // before close()ing the dock item.
+        // Log a warning to maintainers, but otherwise continue.
+        //
+        // Check is imperfect.
+        // Assume closing a window with many dock items, several of them 'dirty'.
+        // User attempts to close the window, prepareToClose() prompts user "Do you want to save?",
+        // user cancels. The "prepared_do_close" flag remains set,
+        // and if we later close the panel by other means we won't really check if
+        // prepareToClose() has been called again.
+        if (! prepared_do_close)
+            logger.log(Level.SEVERE, "Failed to call prepareToClose", new Exception("Stack Trace"));
 
-        handleClosed(null);
+        handleClosed();
 
         getDockPane().getTabs().remove(this);
-
-        return true;
     }
 
     @Override
