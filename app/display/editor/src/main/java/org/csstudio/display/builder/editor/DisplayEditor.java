@@ -868,6 +868,7 @@ public class DisplayEditor
 
     public void dispose()
     {
+        autoScrollHandler.enable(false);
         if (model != null)
             toolkit.disposeRepresentation(model);
         model = null;
