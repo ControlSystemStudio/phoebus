@@ -78,6 +78,9 @@ public class AutoScrollHandler {
     public void enable(final boolean enabled)
     {
         this.enabled = enabled;
+        // When disabled, stop any ongoing 'scroll'
+        if (! enabled)
+            canceTimeline();
     }
 
     /**
