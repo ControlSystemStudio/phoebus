@@ -9,6 +9,7 @@
 <?import javafx.scene.control.TreeTableView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 
 <GridPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.channel.views.ui.ChannelTreeController">
@@ -22,6 +23,7 @@
   <rowConstraints>
     <RowConstraints minHeight="10.0" prefHeight="30.0" />
     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
+      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
   </rowConstraints>
   <children>
     <Label maxHeight="-Infinity" minHeight="-Infinity" prefHeight="25.0" text="Query: " GridPane.halignment="RIGHT" />
@@ -43,7 +45,7 @@
             <Insets left="2.0" right="2.0" />
          </GridPane.margin>
       </CheckBox>
-      <TreeTableView fx:id="treeTableView" onContextMenuRequested="#createContextMenu" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="5" GridPane.rowIndex="1">
+      <TreeTableView fx:id="treeTableView" onContextMenuRequested="#createContextMenu" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="5" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
         <columns>
           <TreeTableColumn fx:id="node" minWidth="150.0" prefWidth="150.0" />
           <TreeTableColumn fx:id="value" minWidth="100.0" prefWidth="100.0" />
@@ -52,5 +54,22 @@
             <TreeTableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
          </columnResizePolicy>
       </TreeTableView>
+      <HBox maxHeight="-Infinity" prefHeight="25.0" prefWidth="200.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="2">
+         <children>
+            <Label text="channel count:">
+               <padding>
+                  <Insets bottom="2.0" />
+               </padding>
+            </Label>
+            <Label fx:id="count" text="0">
+               <padding>
+                  <Insets left="2.0" />
+               </padding>
+            </Label>
+         </children>
+         <padding>
+            <Insets left="2.0" />
+         </padding>
+      </HBox>
   </children>
 </GridPane>

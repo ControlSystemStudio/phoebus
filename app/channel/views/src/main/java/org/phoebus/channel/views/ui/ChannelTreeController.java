@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import javafx.scene.control.Label;
 import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.ChannelUtil;
 import org.phoebus.framework.adapter.AdapterService;
@@ -52,6 +53,9 @@ public class ChannelTreeController extends ChannelFinderController {
     CheckBox connect;
     @FXML
     TreeTableView<ChannelTreeByPropertyNode> treeTableView;
+
+    @FXML
+    Label count;
 
     @FXML
     TreeTableColumn<ChannelTreeByPropertyNode, String> node;
@@ -103,6 +107,14 @@ public class ChannelTreeController extends ChannelFinderController {
     public void setChannels(Collection<Channel> channels) {
         this.channels = channels;
         reconstructTree();
+
+        // the channel finder queries are limited to 10k by default
+        // TODO update check for the situation where the max size is set up user
+        if(channels.size() >= 10000) {
+            count.setText(String.valueOf(channels.size() + "+"));
+        } else {
+            count.setText(String.valueOf(channels.size()));
+        }
     }
 
     /**
