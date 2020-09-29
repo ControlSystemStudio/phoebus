@@ -8,11 +8,12 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
-public class ListSelectionDemo extends Application {
+public class ListSelectionDemo extends ApplicationWrapper {
 
     public static void main(String[] args) {
-        launch(args);
+        launch(ListSelectionDemo.class, args);
     }
 
     @Override

@@ -167,7 +167,7 @@ public class Channel {
 		}
 	}
 
-	Channel(XmlChannel channel) {
+	public Channel(XmlChannel channel) {
 		this.name = channel.getName();
 		this.owner = channel.getOwner();
 		Map<String, Tag> newTags = new HashMap<String, Tag>();

@@ -6,6 +6,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.phoebus.channelfinder.Channel;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
 import static org.phoebus.channelfinder.Property.Builder.property;
 import static org.phoebus.channelfinder.Tag.Builder.tag;
@@ -13,10 +14,10 @@ import static org.phoebus.channelfinder.Tag.Builder.tag;
 import java.io.IOException;
 import java.util.Arrays;
 
-public class ChannelInfoTreeDemo extends Application {
+public class ChannelInfoTreeDemo extends ApplicationWrapper {
 
     public static void main(String[] args) {
-        launch(args);
+        launch(ChannelInfoTreeDemo.class, args);
     }
 
     @Override
