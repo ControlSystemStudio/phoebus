@@ -70,6 +70,12 @@ public class UpdateThrottleTest
         {
             // NOP
         }
+
+        @Override
+        public void updateOrder()
+        {
+            // NOP
+        }
     }
 
     @Test
