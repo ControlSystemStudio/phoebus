@@ -542,5 +542,7 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Pane, Spinne
     {
         // Use the formatted text for "$(pv_value)"
         TooltipSupport.attach(jfx_node, model_widget.propTooltip(), () -> value_text);
+        // Show the tooltip for the editor part too
+        TooltipSupport.attach(spinner.getEditor(), model_widget.propTooltip(), () -> value_text);
     }
 }
