@@ -137,13 +137,35 @@ public abstract class PropertyChangeHandler<T extends Object>
    protected void firePropertyChange(final WidgetProperty<T> property,
                                      final T old_value, final T new_value)
    {
+       firePropertyChange(property, old_value, new_value, false);
+   }
+
+    /** Notify listeners of property change.
+    *
+    *  <p>New value usually matches <code>property.getValue()</code>,
+    *  but in multi-threaded context value might already have changed
+    *  _again_ by the time this executes.
+    *
+    *  <p>Suppresses notifications where old_value equals new_value,
+    *  unless both values are null or forceNotify is true.
+    *
+    *  @param property Property that changed, or <code>null</code> for "many"
+    *  @param old_value Original value
+    *  @param new_value New value
+    *  @param forceNotify Force notification even if old_value and new_value are the same
+    */
+   @SuppressWarnings("unchecked")
+   protected void firePropertyChange(final WidgetProperty<T> property,
+                                     final T old_value, final T new_value,
+                                     final boolean forceNotify)
+   {
        // Does anybody care?
        final List<BaseWidgetPropertyListener> safe_copy = listeners;
        if (safe_copy == null)
            return;
 
        // Any change at all?
-       if (new_value != null  &&  old_value != null  &&  new_value.equals(old_value))
+       if (new_value != null  &&  old_value != null  &&  !forceNotify  &&  new_value.equals(old_value))
            return;
 
        // If a property listener changes the property,
