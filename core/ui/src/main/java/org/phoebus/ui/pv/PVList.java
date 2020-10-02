@@ -18,6 +18,7 @@ import org.epics.vtype.VByteArray;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
 import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.pv.PV;
@@ -220,12 +221,9 @@ public class PVList extends BorderPane
         if (vtype == null)
             text = Messages.PVListTblDisconnected;
         else
-        {   // Formatting arrays can be very slow,
-            // so only show the basic type info
-            if (vtype instanceof VNumberArray)
-                text = vtype.toString();
-            else if (vtype instanceof VByteArray){
-                    text = FormatOptionHandler.format(vtype, FormatOption.STRING, -1, false);
+        {   // For arrays, show up to 10 elements.
+            if (vtype instanceof VNumberArray) {
+                text = VTypeHelper.formatArray((VNumberArray) vtype, 10);
             }
             else {
                 text = FormatOptionHandler.format(vtype, FormatOption.DEFAULT, -1, true);
