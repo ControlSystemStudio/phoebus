@@ -342,6 +342,7 @@ public class EditorGUI
         Label header = new Label("Widgets");
         header.setMaxWidth(Double.MAX_VALUE);
         header.getStyleClass().add("header");
+        tree.configureHeaderDnD(header);
 
         final Control tree_control = tree.create();
         VBox.setVgrow(tree_control, Priority.ALWAYS);
