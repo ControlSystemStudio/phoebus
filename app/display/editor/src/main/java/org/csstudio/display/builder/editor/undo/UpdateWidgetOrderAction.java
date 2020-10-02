@@ -67,10 +67,6 @@ public class UpdateWidgetOrderAction extends UndoableAction
     {
         final ChildrenProperty children = ChildrenProperty.getParentsChildren(widget);
 
-        children.removeChild(widget);
-        if (index < 0)
-            children.addChild(widget);
-        else
-            children.addChild(index, widget);
+        children.moveChildTo(index, widget);
     }
 }

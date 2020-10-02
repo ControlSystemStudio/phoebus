@@ -7,6 +7,7 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import javafx.scene.control.Label;
 import org.phoebus.channel.views.ChannelTableApp;
 import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.ChannelUtil;
@@ -66,7 +67,10 @@ public class ChannelTableController extends ChannelFinderController {
     TableView<Channel> tableView;
     @FXML
     GridPane gridp;
-    
+
+    @FXML
+    Label count;
+
     private Collection<String> properties;
     private Collection<String> tags;
     private boolean isCBSelected = true;
@@ -292,6 +296,14 @@ public class ChannelTableController extends ChannelFinderController {
         tableView.getColumns().addAll(propColumns);
         tableView.getColumns().addAll(tagColumns);
         tableView.setItems(FXCollections.observableArrayList(channels));
+
+        // the channel finder queries are limited to 10k by default
+        // TODO update check for the situation where the max size is set up user
+        if(channels.size() >= 10000) {
+            count.setText(String.valueOf(channels.size() + "+"));
+        } else {
+            count.setText(String.valueOf(channels.size()));
+        }
     }
 
 }

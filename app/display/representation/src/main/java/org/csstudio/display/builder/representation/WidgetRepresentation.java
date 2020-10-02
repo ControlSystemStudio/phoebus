@@ -69,6 +69,13 @@ abstract public class WidgetRepresentation<TWP, TW, MW extends Widget>
      */
     abstract public void updateChanges();
 
+    /** Update the order of widget to match model.
+     *
+     * <p>Invoked by toolkit when the widget's order changes
+     *
+     */
+    abstract public void updateOrder();
+
     /** Remove toolkit items.
      *
      *  <p>Called when model widget has been removed.

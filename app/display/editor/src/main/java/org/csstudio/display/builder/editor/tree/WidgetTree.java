@@ -10,6 +10,7 @@ package org.csstudio.display.builder.editor.tree;
 import static org.csstudio.display.builder.editor.Plugin.logger;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -158,6 +159,33 @@ public class WidgetTree
         {
             // Update must be on UI thread.
             // Even if already on UI thread, decouple.
+            if (removed != null && added != null && removed.size() == 1 && removed.equals(added))
+            {
+                // This was a move up/down of a widget
+                // Need to determine the index of moved item in model _now_,
+                // not in decoupled thread.
+                final Widget widget = removed.get(0);
+                final int model_index = p.getValue().indexOf(widget);
+
+                Platform.runLater(() ->
+                {
+                    active.set(true);
+                    try
+                    {
+                        moveWidget(widget, model_index);
+                    }
+                    finally
+                    {
+                        active.set(false);
+                    }
+                    // Restore tree's selection to match model
+                    // after removing/adding items may have changed it.
+                    setSelectedWidgets(editor.getWidgetSelectionHandler().getSelection());
+                });
+
+                return;
+            }
+
             if (removed != null)
                 Platform.runLater(() ->
                 {
@@ -402,6 +430,57 @@ public class WidgetTree
         else
             return ChildrenProperty.getChildren(widget_parent).getValue().indexOf(widget);
         return -1;
+    }
+
+    /** Moves a widget to match its position in the model
+     *  @param widget The widget that was moved in the model
+     *  @param model_index Index of widget in model's parent
+     */
+    private void moveWidget(final Widget widget, final int model_index)
+    {
+        final TreeItem<WidgetOrTab> item = widget2tree.get(widget);
+        final Widget widget_parent = Objects.requireNonNull(widget.getParent().get());
+        List children = null;
+        int current_index = -1;
+
+        if (widget_parent instanceof TabsWidget)
+        {
+            for (TreeItem<WidgetOrTab> cit : widget2tree.get(widget_parent).getChildren())
+            {
+                WidgetOrTab wot = cit.getValue();
+                if (wot.isWidget())
+                    continue;
+
+                if ((current_index = cit.getChildren().indexOf(item)) != -1)
+                {
+                    children = cit.getChildren();
+                    break;
+                }
+            }
+        }
+        else
+        {
+            children = widget2tree.get(widget_parent).getChildren();
+            current_index = children.indexOf(item);
+        }
+
+        if (current_index == -1)
+        {
+            logger.log(Level.SEVERE, "Couldn't find widget to move in Widget Tree: " + widget);
+            return;
+        }
+
+        final int index_diff = model_index - current_index;
+        if (index_diff == 1 || index_diff == -1)
+        {
+            // Move up/down by 1 step
+            Collections.swap(children, current_index, model_index);
+        }
+        else
+        {
+            // Move to front/back
+            Collections.rotate(children.subList(java.lang.Math.min(model_index, current_index), java.lang.Math.max(model_index, current_index) + 1), index_diff);
+        }
     }
 
     /** Add widget to existing model & tree
