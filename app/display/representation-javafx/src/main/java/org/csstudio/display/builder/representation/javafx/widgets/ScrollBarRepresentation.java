@@ -16,12 +16,14 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.ScrollBarWidget;
+import org.csstudio.display.builder.representation.javafx.Cursors;
 import org.epics.vtype.Display;
 import org.epics.vtype.VType;
 import org.phoebus.ui.javafx.Styles;
 
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Orientation;
+import javafx.scene.Cursor;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyEvent;
@@ -78,8 +80,24 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
         });
         if (! toolkit.isEditMode())
         {
+            scrollbar.addEventFilter(KeyEvent.ANY, e ->
+            {
+                if (!enabled)
+                {
+                    // Since we cannot disable the widget we have to consume the
+                    // keypresses
+                    e.consume();
+                }
+            });
             scrollbar.addEventFilter(MouseEvent.ANY, e ->
             {
+                if (e.getButton() != MouseButton.NONE && !enabled)
+                {
+                    // Since we cannot disable the widget we have to consume the
+                    // mouse clicks
+                    e.consume();
+                }
+
                 if (e.getButton() == MouseButton.SECONDARY)
                 {
                     // Disable the contemporary triggering of a value change and of the
@@ -302,10 +320,11 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
         super.updateChanges();
         if (dirty_enablement.checkAndClear())
         {
-            // Do not disable in edit mode, it will no longer be possible to select the widget
-            if (! toolkit.isEditMode())
-                jfx_node.setDisable(! enabled);
+            // Don't disable the widget, because that would also remove the
+            // context menu etc.
+            // Just apply a style that matches the disabled look.
             Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
+            jfx_node.setCursor(enabled ? Cursor.DEFAULT : Cursors.NO_WRITE);
         }
         if (dirty_size.checkAndClear())
         {
