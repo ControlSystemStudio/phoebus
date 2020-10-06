@@ -252,6 +252,7 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
     private boolean updateLimits(boolean limitsFromPV)
     {
         boolean somethingChanged = false;
+        boolean fromPV = false;
 
         //  Model's values.
         double min_val = model_widget.propMinimum().getValue();
@@ -276,9 +277,7 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
                     min_val = display_info.getDisplayRange().getMinimum();
                     max_val = display_info.getDisplayRange().getMaximum();
                 }
-                final double delta = ( max_val - min_val );
-                block_val = delta / 10.0;
-                step_val = delta / 100.0;
+                fromPV = true;
             }
         }
 
@@ -287,6 +286,12 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
         {
             min_val = 0.0;
             max_val = 100.0;
+            if (fromPV)
+            {
+                final double delta = ( max_val - min_val );
+                block_val = delta / 10.0;
+                step_val = delta / 100.0;
+            }
         }
 
         if (min != min_val)
