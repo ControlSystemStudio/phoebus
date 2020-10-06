@@ -130,6 +130,7 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
         model_widget.propHorizontal().addPropertyListener(orientationChangedListener);
 
         model_widget.propEnabled().addPropertyListener(enablementChangedListener);
+        model_widget.runtimePropPVWritable().addPropertyListener(enablementChangedListener);
 
         //Since both the widget's PV value and the ScrollBar node's value property might be
         //written to independently during runtime, both must be listened to.
@@ -151,6 +152,7 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
         model_widget.propIncrement().removePropertyListener(limitsChangedListener);
         model_widget.propHorizontal().removePropertyListener(orientationChangedListener);
         model_widget.propEnabled().removePropertyListener(enablementChangedListener);
+        model_widget.runtimePropPVWritable().removePropertyListener(enablementChangedListener);
         model_widget.runtimePropValue().removePropertyListener(valueChangedListener);
         model_widget.runtimePropConfigure().removePropertyListener(runtimeConfChangedListener);
         super.unregisterListeners();
@@ -300,7 +302,9 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
         super.updateChanges();
         if (dirty_enablement.checkAndClear())
         {
-            jfx_node.setDisable(! enabled);
+            // Do not disable in edit mode, it will no longer be possible to select the widget
+            if (! toolkit.isEditMode())
+                jfx_node.setDisable(! enabled);
             Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
         }
         if (dirty_size.checkAndClear())
