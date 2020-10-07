@@ -11,9 +11,7 @@ import org.csstudio.archive.writer.rdb.TimestampHelper;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
-import org.epics.vtype.Display;
 import org.epics.vtype.Time;
-import org.epics.vtype.VDouble;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.core.vtypes.VTypeHelper;
@@ -91,12 +89,5 @@ public class ValueButcher
                .append(alarm.getStatus())
                .append(']');
         return buf.toString();
-    }
-
-    public static void main(String[] args)
-    {
-        System.out.println(format(VDouble.of(3.15, Alarm.none(), Time.now(), Display.none())));
-        System.out.println(format(VDouble.of(3.15, Alarm.high(), Time.now(), Display.none())));
-        System.out.println(format(null));
     }
 }
