@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,9 +22,9 @@ import org.csstudio.archive.ThrottledLogger;
 import org.epics.vtype.Time;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
-import org.phoebus.core.vtypes.VTypeHelper;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.disposables.Disposable;
@@ -287,7 +287,7 @@ abstract public class ArchiveChannel
     /** @return Most recent value of the channel's PV as a string*/
     final public String getCurrentValueAsString()
     {
-        return VTypeHelper.toString(most_recent_value);
+        return ValueButcher.format(most_recent_value);
     }
 
     /** @return Count of received values */
@@ -305,7 +305,7 @@ abstract public class ArchiveChannel
     /** @return Last value written to archive as a string*/
     final public String getLastArchivedValueAsString()
     {
-        return VTypeHelper.toString(last_archived_value);
+        return ValueButcher.format(last_archived_value);
     }
 
     /** @return Sample buffer */
@@ -454,8 +454,8 @@ abstract public class ArchiveChannel
             // carries the old, original time stamp of the PV,
             // and that's back in time...
             trouble_sample_log.log(getName() + " skips back-in-time:\n" +
-                    "last: " + VTypeHelper.toString(last_value) + "\n" +
-                    "new : " + VTypeHelper.toString(value));
+                    "last: " + ValueButcher.format(last_value) + "\n" +
+                    "new : " + ValueButcher.format(value));
             return false;
         }
         // else ...
