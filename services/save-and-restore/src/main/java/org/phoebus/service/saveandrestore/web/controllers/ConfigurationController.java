@@ -35,6 +35,7 @@ import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.UpdateConfigHolder;
 import org.phoebus.service.saveandrestore.services.IServices;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 public class ConfigurationController extends BaseController {
@@ -196,6 +197,7 @@ public class ConfigurationController extends BaseController {
 	 * or if the node in question is the root node (0).
 	 * 
 	 * @param uniqueNodeId Node id of the node to rename. Must be non-zero.
+	 * @param customTimeForMigration Self-explanatory
 	 * @param nodeToUpdate {@link Node} object containing updated data. Only name and properties may be changed. The user name
 	 * should be set by the client in an automated fashion and will be updated by the persistence layer.
 	 * @return A {@link Node} object representing the updated node.
@@ -210,5 +212,42 @@ public class ConfigurationController extends BaseController {
 	@GetMapping("/config/{uniqueNodeId}/items")
 	public List<ConfigPv> getConfigPvs(@PathVariable String uniqueNodeId) {
 		return services.getConfigPvs(uniqueNodeId);
+	}
+
+	/**
+	 * Retrieves the "full path" of the specified node, e.g. /topLevelFolder/folder/nodeName,
+	 * where nodeName is the name of the node uniquely identified by <code>unqiueNodeId</code>,
+	 * and any preceding path elements are the names of parent folders all the way up to the root.
+	 * The root folder corresponds to a single "/".
+	 * @param uniqueNodeId Non-null unique node id of the node for which the client wishes to get the
+	 *                     full path.
+	 * @return A string like /topLevelFolder/folder/nodeName if the node exists, otherwise HTTP 404
+	 * is returned.
+	 *
+	 */
+	@GetMapping("/path/{uniqueNodeId}")
+	public String getFullPath(@PathVariable String uniqueNodeId){
+		String fullPath = services.getFullPath(uniqueNodeId);
+		if(fullPath == null){
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+		}
+		return fullPath;
+	}
+
+	/**
+	 * Retrieves the node(s) corresponding to the specified "full path". Since a folder node may
+	 * contain a folder node and a save set (configuration) node with the same name, this end point will - as long
+	 * as the specified path is valid - return a list with one or two node objects.
+	 * @param path Non-null path that must start with a forward slash and not end in a forward slash.
+	 * @return A {@link List} containing one or two {@link Node}s. If the specified path is invalid or
+	 * cannot be resolved to an existing node, HTTP 404 is returned.
+	 */
+	@GetMapping("/path")
+	public List<Node> getFromPath(@RequestParam(value = "path") String path){
+		List<Node> nodes = services.getFromPath(path);
+		if(nodes == null){
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+		}
+		return nodes;
 	}
 }

@@ -60,4 +60,19 @@ public interface IServices {
 	public List<Tag> getTags(String uniqueSnapshotId);
 
 	public List<Tag> getAllTags();
+
+	/**
+	 * See {@link org.phoebus.service.saveandrestore.persistence.dao.NodeDAO#getFromPath(String)}
+	 * @param path A full path like /topLevelFolder/folderNode/node
+	 * @return A list of {@link Node} objects if the full path is valid, otherwise <code>null</code>.
+	 */
+	public List<Node> getFromPath(String path);
+
+	/**
+	 * See {@link org.phoebus.service.saveandrestore.persistence.dao.NodeDAO#getFullPath(String)}
+	 * @param uniqueNodeId Non-null unique node id.
+	 * @return A full path like /topLevelFolder/folderNode/node corresponding to the specified unique
+	 * node id, or <code>null</code> if the full path is invalid.
+	 */
+	public String getFullPath(String uniqueNodeId);
 }
