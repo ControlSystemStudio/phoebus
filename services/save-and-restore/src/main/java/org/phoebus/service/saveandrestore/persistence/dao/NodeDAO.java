@@ -144,4 +144,26 @@ public interface NodeDAO {
 	public List<Tag> getAllTags();
 
 	public List<Tag> getTags(String uniqueSnapshotId);
+
+	/**
+	 * Given a file path like /node1/node2/nodeX, find matching node(s). Since a folder node may
+	 * contain a folder node and a save set node with the same name, the returned list may
+	 * contain one or two {@link Node} objects, or will be <code>null</code> if the path does not correspond
+	 * to an existing node.
+	 * @param path A non-null "file path" that must start with a forward slash, otherwise an empty list
+	 *            is returned. Search will start at the
+	 *             tree root, i.e. the top level folder named "Save &amp; Restore Root".
+	 * @return A {@link List	} one or two elements, or <code>null</code>.
+	 */
+	public List<Node> getFromPath(String path);
+
+	/**
+	 * Given an unique node id, find the full path of the node matching the node id. The
+	 * returned string will start with a forward slash and omit the name of the top level root
+	 * node named "Save &amp; Restore Root". If the specified node id does not exist, <code>null</code>
+	 * is returned.
+	 * @param uniqueNodeId Unique id of a {@link Node}.
+	 * @return Full path of the {@link Node} if found, otherwise <code>null</code>.
+	 */
+	public String getFullPath(String uniqueNodeId);
 }
