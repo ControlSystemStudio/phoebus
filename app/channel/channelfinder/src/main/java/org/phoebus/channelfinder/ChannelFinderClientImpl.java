@@ -116,7 +116,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
         /**
          * Creates a {@link CFCBuilder} for a CF client to Default URL in the
-         * channelfinder.properties.
+         * channelfinder_preferences.properties.
          * 
          * @return {@link CFCBuilder}
          */
