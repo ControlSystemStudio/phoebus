@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2016-2020 Oak Ridge National Laboratory.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
 package org.csstudio.display.builder.runtime.app;
 
 import java.net.URI;
@@ -25,9 +32,7 @@ import javafx.stage.Window;
 @SuppressWarnings("nls")
 public class DockItemRepresentation extends JFXRepresentation
 {
-    // TODO This is ~RCP_JFXRepresentation
     private final DisplayRuntimeInstance app_instance;
-
 
     public DockItemRepresentation(final DisplayRuntimeInstance app_instance)
     {
@@ -37,13 +42,14 @@ public class DockItemRepresentation extends JFXRepresentation
 
     @Override
     public ToolkitRepresentation<Parent, Node> openNewWindow(final DisplayModel model,
-            final Consumer<DisplayModel> close_handler)
+                                                             final Consumer<DisplayModel> close_handler)
     {
         // If a display has already been opened, reuse it by bringing it to the front.
-        DockItemWithInput existing = DockStage.getDockItemWithInput(DisplayRuntimeApplication.NAME,
-                DisplayInfo.forModel(model).toURI());
-        if(existing != null){
-            DisplayRuntimeInstance instance = existing.getApplication();
+        final DockItemWithInput existing = DockStage.getDockItemWithInput(DisplayRuntimeApplication.NAME,
+                                                                          DisplayInfo.forModel(model).toURI());
+        if (existing != null)
+        {
+            final DisplayRuntimeInstance instance = existing.getApplication();
             instance.raise();
             return instance.getRepresentation();
         }
@@ -88,8 +94,8 @@ public class DockItemRepresentation extends JFXRepresentation
 
     @Override
     public ToolkitRepresentation<Parent, Node> openPanel(final DisplayModel model,
-            final String name,
-            final Consumer<DisplayModel> close_handler) throws Exception
+                                                         final String name,
+                                                         final Consumer<DisplayModel> close_handler) throws Exception
     {
         // By default, open in the pane used by this display
         DockPane pane = app_instance.getDockItem().getDockPane();
@@ -138,9 +144,19 @@ public class DockItemRepresentation extends JFXRepresentation
     @Override
     public void closeWindow(final DisplayModel model) throws Exception
     {
+        // Is called from ScriptUtil, i.e. scripts, from background thread
         final Parent model_parent = Objects.requireNonNull(model.getUserData(Widget.USER_DATA_TOOLKIT_PARENT));
         if (model_parent.getProperties().get(DisplayRuntimeInstance.MODEL_PARENT_DISPLAY_RUNTIME) == app_instance)
+        {
+            // Prepare-to-close, which might take time and must be called off the UI thread
+            final DisplayRuntimeInstance instance = (DisplayRuntimeInstance) app_instance.getRepresentation().getModelParent().getProperties().get(DisplayRuntimeInstance.MODEL_PARENT_DISPLAY_RUNTIME);
+            if (instance != null)
+                instance.getDockItem().prepareToClose();
+            else
+                logger.log(Level.SEVERE, "Missing DisplayRuntimeInstance to prepare closing", new Exception("Stack Trace"));
+            // 'close' on the UI thread
             execute(() -> app_instance.close());
+        }
         else
             throw new Exception("Wrong model");
     }
