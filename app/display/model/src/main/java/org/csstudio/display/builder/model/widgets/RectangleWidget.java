@@ -7,14 +7,9 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.widgets;
 
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineColor;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineStyle;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineWidth;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propTransparent;
-
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.csstudio.display.builder.model.Messages;
 import org.csstudio.display.builder.model.Version;
@@ -25,9 +20,16 @@ import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
+import org.csstudio.display.builder.model.persist.ModelReader;
+import org.csstudio.display.builder.model.persist.NamedWidgetColors;
+import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.LineStyle;
 import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.phoebus.framework.persistence.XMLUtil;
+import org.w3c.dom.Element;
+
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.*;
 
 /** Widget that displays a static rectangle
  *  @author Kay Kasemir
@@ -87,7 +89,7 @@ public class RectangleWidget extends MacroWidget
     public WidgetConfigurator getConfigurator(final Version persisted_version)
             throws Exception
     {
-        return new MacroWidget.LegacyWidgetConfigurator(persisted_version);
+        return new CustomWidgetConfigurator(persisted_version);
     }
 
     /** @return 'background_color' property */
@@ -130,5 +132,84 @@ public class RectangleWidget extends MacroWidget
     public WidgetProperty<Integer> propCornerHeight()
     {
         return corner_height;
+    }
+
+
+    private static class CustomWidgetConfigurator extends LegacyWidgetConfigurator
+    {
+
+        public CustomWidgetConfigurator(Version xml_version) {
+            super(xml_version);
+        }
+
+        @Override
+        public boolean configureFromXML(ModelReader model_reader, Widget widget, Element widget_xml) throws Exception {
+            if (! super.configureFromXML(model_reader, widget, widget_xml))
+                return false;
+
+            if (xml_version.getMajor() < 2)
+            {
+                // Style tends to be a number, but could also be "None".
+                final Optional<String> style_text = XMLUtil.getChildString(widget_xml, "border_style");
+                if (! style_text.isPresent())
+                    return true;
+
+                if ("none".equalsIgnoreCase(style_text.get()))
+                    return true;
+
+                final int style;
+                try
+                {
+                    style = Integer.parseInt(style_text.get());
+                }
+                catch (NumberFormatException ex)
+                {
+                    throw new Exception("Invalid border_style '" + style_text.get() + "'");
+                }
+
+                final Optional<Integer> xml_width = XMLUtil.getChildInteger(widget_xml, "border_width");
+
+                switch (style)
+                {
+                    case  0: // NONE
+                    case 15: // EMPTY
+                    case  3: // LOWERED
+                        widget.getProperty(propLineWidth).setValue(0);
+                        return true;
+                    case  1: // LINE
+                    case  2: // RAISED
+                    case  4: // ETCHED
+                    case  5: // RIDGED
+                    case  6: // BUTTON_RAISED
+                    case  7: // BUTTON_PRESSED
+                        xml_width.ifPresent( w -> { widget.getProperty(propLineWidth).setValue(w); } );
+                        widget.getProperty(propLineColor).setValue(WidgetColorService.getColor(NamedWidgetColors.TEXT));
+                        break;
+                    case  8: // DOTTED
+                        widget.getProperty(propLineStyle).setValue(LineStyle.DOT);
+                        xml_width.ifPresent( w -> { widget.getProperty(propLineWidth).setValue(w); } );
+                        widget.getProperty(propLineColor).setValue(WidgetColorService.getColor(NamedWidgetColors.TEXT));
+                        break;
+                    case  9: // DASHED
+                        widget.getProperty(propLineStyle).setValue(LineStyle.DASH);
+                        xml_width.ifPresent( w -> { widget.getProperty(propLineWidth).setValue(w); } );
+                        widget.getProperty(propLineColor).setValue(WidgetColorService.getColor(NamedWidgetColors.TEXT));
+                        break;
+                    case  10: // DASH_DOT
+                        widget.getProperty(propLineStyle).setValue(LineStyle.DASHDOT);
+                        xml_width.ifPresent( w -> { widget.getProperty(propLineWidth).setValue(w); } );
+                        widget.getProperty(propLineColor).setValue(WidgetColorService.getColor(NamedWidgetColors.TEXT));
+                        break;
+                    case  11: // DASH_DOT_DOT
+                        widget.getProperty(propLineStyle).setValue(LineStyle.DASHDOTDOT);
+                        xml_width.ifPresent( w -> { widget.getProperty(propLineWidth).setValue(w); } );
+                        widget.getProperty(propLineColor).setValue(WidgetColorService.getColor(NamedWidgetColors.TEXT));
+                        break;
+                }
+
+            }
+
+            return true;
+        }
     }
 }
