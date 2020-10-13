@@ -22,8 +22,10 @@ import org.csstudio.display.builder.model.WidgetCategory;
 import org.csstudio.display.builder.model.WidgetConfigurator;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.properties.LineStyle;
 import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.w3c.dom.Element;
 
 /** Widget that displays a static ellipse
  *  @author Kay Kasemir
@@ -72,7 +74,7 @@ public class EllipseWidget extends MacroWidget
     public WidgetConfigurator getConfigurator(final Version persisted_version)
             throws Exception
     {
-        return new MacroWidget.LegacyWidgetConfigurator(persisted_version);
+        return new CustomWidgetConfigurator(persisted_version);
     }
 
     /** @return 'background_color' property */
@@ -103,5 +105,30 @@ public class EllipseWidget extends MacroWidget
     public WidgetProperty<LineStyle> propLineStyle()
     {
         return line_style;
+    }
+
+    /** Handle legacy XML format */
+    private static class CustomWidgetConfigurator extends LegacyWidgetConfigurator
+    {
+        public CustomWidgetConfigurator(Version xml_version)
+        {
+            super(xml_version);
+        }
+
+        @Override
+        public boolean configureFromXML(ModelReader model_reader, Widget widget, Element widget_xml) throws Exception
+        {
+            if (! super.configureFromXML(model_reader, widget, widget_xml))
+            {
+                return false;
+            }
+
+            if (xml_version.getMajor() < 2)
+            {
+                // Map border properties to out'line'
+                OutlineSupport.handleLegacyBorder(widget, widget_xml);
+            }
+            return true;
+        }
     }
 }

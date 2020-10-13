@@ -64,25 +64,27 @@ public class ArcWidget extends MacroWidget
         }
 
         @Override
-        public boolean configureFromXML(final ModelReader model_reader, final Widget widget, final Element xml)
+        public boolean configureFromXML(final ModelReader model_reader, final Widget widget, final Element widget_xml)
                 throws Exception
         {
-            if (! super.configureFromXML(model_reader, widget, xml))
+            if (! super.configureFromXML(model_reader, widget, widget_xml))
                 return false;
 
             if (xml_version.getMajor() < 2)
             {
                 final ArcWidget arc = (ArcWidget) widget;
                 // Foreground color has been renamed to line color
-                final Element el = XMLUtil.getChildElement(xml, "foreground_color");
+                final Element el = XMLUtil.getChildElement(widget_xml, "foreground_color");
                 if (el != null)
                     arc.propLineColor().readFromXML(model_reader, el);
 
                 // 'Fill' is similar to the new 'transparent' option
-                XMLUtil.getChildBoolean(xml, "fill")
+                XMLUtil.getChildBoolean(widget_xml, "fill")
                        .ifPresent(fill -> arc.propTransparent().setValue(! fill));
 
-                MacroWidget.importPVName(model_reader, widget, xml);
+                MacroWidget.importPVName(model_reader, widget, widget_xml);
+                // Map border properties to out'line'
+                OutlineSupport.handleLegacyBorder(widget, widget_xml);
             }
             return true;
         }

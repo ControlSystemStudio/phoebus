@@ -7,12 +7,6 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.widgets;
 
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineColor;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineStyle;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineWidth;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propTransparent;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -25,9 +19,13 @@ import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
+import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.LineStyle;
 import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.w3c.dom.Element;
+
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.*;
 
 /** Widget that displays a static rectangle
  *  @author Kay Kasemir
@@ -87,7 +85,7 @@ public class RectangleWidget extends MacroWidget
     public WidgetConfigurator getConfigurator(final Version persisted_version)
             throws Exception
     {
-        return new MacroWidget.LegacyWidgetConfigurator(persisted_version);
+        return new CustomWidgetConfigurator(persisted_version);
     }
 
     /** @return 'background_color' property */
@@ -130,5 +128,31 @@ public class RectangleWidget extends MacroWidget
     public WidgetProperty<Integer> propCornerHeight()
     {
         return corner_height;
+    }
+
+    /** Handle legacy XML format */
+    private static class CustomWidgetConfigurator extends LegacyWidgetConfigurator
+    {
+
+        public CustomWidgetConfigurator(Version xml_version)
+        {
+            super(xml_version);
+        }
+
+        @Override
+        public boolean configureFromXML(ModelReader model_reader, Widget widget, Element widget_xml) throws Exception
+        {
+            if (! super.configureFromXML(model_reader, widget, widget_xml))
+            {
+                return false;
+            }
+
+            if (xml_version.getMajor() < 2)
+            {
+                // Map border properties to out'line'
+                OutlineSupport.handleLegacyBorder(widget, widget_xml);
+            }
+            return true;
+        }
     }
 }
