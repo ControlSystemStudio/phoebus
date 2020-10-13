@@ -142,17 +142,12 @@ public class RectangleWidget extends MacroWidget
         @Override
         public boolean configureFromXML(ModelReader model_reader, Widget widget, Element widget_xml) throws Exception
         {
-            if (! super.configureFromXML(model_reader, widget, widget_xml))
-            {
-                return false;
-            }
-
             if (xml_version.getMajor() < 2)
             {
                 // Map border properties to out'line'
                 OutlineSupport.handleLegacyBorder(widget, widget_xml);
             }
-            return true;
+            return super.configureFromXML(model_reader, widget, widget_xml);
         }
     }
 }
