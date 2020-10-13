@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.properties.HorizontalAlignment;
+import org.csstudio.display.builder.model.properties.LineStyle;
 import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
@@ -213,5 +214,34 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
         // This depends on the order of 'Pos' and uses Pos.BOTTOM_*, not Pos.BASELINE_*.
         // Could use if/switch orgy to be independent from 'Pos' ordinals.
         return Pos.values()[vert.ordinal() * 3 + horiz.ordinal()];
+    }
+
+    /**returns double[] array for given line style scaled by line_width
+     * 
+     * @param style - actual line style
+     * @param line_width - actual line width
+     * @return double[] with segment lengths
+     */
+    public static Double[] getDashArray(LineStyle style, double line_width)
+    {
+        final Double seg_short = line_width > 4. || style == LineStyle.DOT ? line_width : 4.;
+        final Double seg_long  = line_width > 4. ? 3. * line_width : 12.;
+        switch (style)
+        {
+        case DASH:
+            return new Double[] {seg_long, seg_short};
+        case DOT:
+            return new Double[] {seg_short, seg_short};
+        case DASHDOT:
+            return new Double[] {seg_long, seg_short,
+                                 seg_short, seg_short};
+        case DASHDOTDOT:
+            return new Double[] {seg_long, seg_short,
+                                 seg_short, seg_short,
+                                 seg_short, seg_short};
+        case SOLID:
+        default:
+            return new Double[] {/* Nothing for solid line */};
+        }
     }
 }

@@ -146,28 +146,7 @@ public class ArcRepresentation extends JFXBaseRepresentation<Arc, ArcWidget>
                 final ObservableList<Double> dashes = jfx_node.getStrokeDashArray();
                 // Scale dashes, dots and gaps by line width;
                 // matches legacy opibuilder resp. Draw2D
-                switch (model_widget.propLineStyle().getValue())
-                {
-                case DASH:
-                    dashes.setAll(3.0*line_width, 1.0*line_width);
-                    break;
-                case DOT:
-                    dashes.setAll(1.0*line_width, 1.0*line_width);
-                    break;
-                case DASHDOT:
-                    dashes.setAll(3.0*line_width, 1.0*line_width,
-                                  1.0*line_width, 1.0*line_width);
-                    break;
-                case DASHDOTDOT:
-                    dashes.setAll(3.0*line_width, 1.0*line_width,
-                                  1.0*line_width, 1.0*line_width,
-                                  1.0*line_width, 1.0*line_width);
-                    break;
-                case SOLID:
-                default:
-                    dashes.setAll(/* Nothing for solid line */);
-                    break;
-                }
+                dashes.setAll(JFXUtil.getDashArray(model_widget.propLineStyle().getValue(), line_width));
             }
             else
                 jfx_node.setVisible(false);
