@@ -98,7 +98,7 @@ public class PolygonWidget extends PolyBaseWidget
                 widget_xml.setAttribute(XMLTags.VERSION, version.toString());
 
                 MacroWidget.importPVName(model_reader, widget, widget_xml);
-                // Map border properties to out'line'
+                // TODO fix the Mapping of the border properties to out'line'
                 OutlineSupport.handleLegacyBorder(widget, widget_xml);
             }
             // Parse updated XML
