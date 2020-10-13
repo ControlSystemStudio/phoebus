@@ -10,6 +10,7 @@ package org.csstudio.display.builder.editor.tree;
 import static org.csstudio.display.builder.editor.Plugin.logger;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -23,6 +24,7 @@ import org.csstudio.display.builder.editor.EditorUtil;
 import org.csstudio.display.builder.editor.actions.ActionDescription;
 import org.csstudio.display.builder.editor.app.CreateGroupAction;
 import org.csstudio.display.builder.editor.app.RemoveGroupAction;
+import org.csstudio.display.builder.editor.undo.UpdateWidgetOrderAction;
 import org.csstudio.display.builder.model.ArrayWidgetProperty;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.DisplayModel;
@@ -35,6 +37,7 @@ import org.csstudio.display.builder.model.widgets.VisibleWidget;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget.TabItemProperty;
 import org.phoebus.ui.javafx.TreeHelper;
+import org.phoebus.ui.undo.CompoundReversedUndoableAction;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -46,7 +49,13 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DataFormat;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
 import javafx.util.Callback;
 
 /** Tree view of widget hierarchy
@@ -134,12 +143,49 @@ public class WidgetTree
     public WidgetTree(final DisplayEditor editor)
     {
         this.editor = editor;
-        cell_factory = cell ->  new WidgetTreeCell(editor.getUndoableActionManager());
+        cell_factory = cell -> 
+        {
+            WidgetTreeCell tc = new WidgetTreeCell(editor.getUndoableActionManager());
+            tc.setOnDragDetected((MouseEvent event) -> dragDetected(event, tc));
+            tc.setOnDragOver((DragEvent event) -> dragOver(event, tc));
+            tc.setOnDragDropped((DragEvent event) -> drop(event, tc, null));
+            tc.setOnDragDone((DragEvent event) -> clearDropLocation());
+            tc.setOnDragExited((DragEvent event) -> clearDropLocation());
+            tc.setOnDragEntered((DragEvent event) -> decorateDropZone());
+            return tc;
+        };
 
         children_listener = (p, removed, added) ->
         {
             // Update must be on UI thread.
             // Even if already on UI thread, decouple.
+            if (removed != null && added != null && removed.size() == 1 && removed.equals(added))
+            {
+                // This was a move up/down of a widget
+                // Need to determine the index of moved item in model _now_,
+                // not in decoupled thread.
+                final Widget widget = removed.get(0);
+                final int model_index = p.getValue().indexOf(widget);
+
+                Platform.runLater(() ->
+                {
+                    active.set(true);
+                    try
+                    {
+                        moveWidget(widget, model_index);
+                    }
+                    finally
+                    {
+                        active.set(false);
+                    }
+                    // Restore tree's selection to match model
+                    // after removing/adding items may have changed it.
+                    setSelectedWidgets(editor.getWidgetSelectionHandler().getSelection());
+                });
+
+                return;
+            }
+
             if (removed != null)
                 Platform.runLater(() ->
                 {
@@ -386,6 +432,57 @@ public class WidgetTree
         return -1;
     }
 
+    /** Moves a widget to match its position in the model
+     *  @param widget The widget that was moved in the model
+     *  @param model_index Index of widget in model's parent
+     */
+    private void moveWidget(final Widget widget, final int model_index)
+    {
+        final TreeItem<WidgetOrTab> item = widget2tree.get(widget);
+        final Widget widget_parent = Objects.requireNonNull(widget.getParent().get());
+        List children = null;
+        int current_index = -1;
+
+        if (widget_parent instanceof TabsWidget)
+        {
+            for (TreeItem<WidgetOrTab> cit : widget2tree.get(widget_parent).getChildren())
+            {
+                WidgetOrTab wot = cit.getValue();
+                if (wot.isWidget())
+                    continue;
+
+                if ((current_index = cit.getChildren().indexOf(item)) != -1)
+                {
+                    children = cit.getChildren();
+                    break;
+                }
+            }
+        }
+        else
+        {
+            children = widget2tree.get(widget_parent).getChildren();
+            current_index = children.indexOf(item);
+        }
+
+        if (current_index == -1)
+        {
+            logger.log(Level.SEVERE, "Couldn't find widget to move in Widget Tree: " + widget);
+            return;
+        }
+
+        final int index_diff = model_index - current_index;
+        if (index_diff == 1 || index_diff == -1)
+        {
+            // Move up/down by 1 step
+            Collections.swap(children, current_index, model_index);
+        }
+        else
+        {
+            // Move to front/back
+            Collections.rotate(children.subList(java.lang.Math.min(model_index, current_index), java.lang.Math.max(model_index, current_index) + 1), index_diff);
+        }
+    }
+
     /** Add widget to existing model & tree
      *  @param added_widget Widget to add
      *  @param index Index of widget within parent. -1 to add at end
@@ -553,5 +650,156 @@ public class WidgetTree
     public void collapseAllTreeItems()
     {
         TreeHelper.setExpandedEx(tree_view, false);
+    }
+
+    // DragDrop Implementation
+    private static final String TREE_ID = "text/DisplayBuiderEditor-TreeView-Id";
+    private static final DataFormat TREE_FORMAT = new DataFormat(TREE_ID);
+    private static final String DROP_HINT_STYLE = "-fx-border-color: #eea82f; -fx-border-width: 0 0 2 0; -fx-padding: 3 3 1 3";
+    private TreeItem<WidgetOrTab> draggedItem;
+    private TreeCell<WidgetOrTab> dropZone;
+
+    /**Code executed when a drag from a WidgetTreeCell is detected 
+     * 
+     * @param event - source event
+     * @param treeCell - dragged cell
+     */
+    private void dragDetected(MouseEvent event, WidgetTreeCell treeCell) {
+        draggedItem = treeCell.getTreeItem();
+
+        // root can't be dragged
+        if (draggedItem.getParent() == null) return;
+        Dragboard db = treeCell.startDragAndDrop(TransferMode.MOVE);
+
+        ClipboardContent content = new ClipboardContent();
+        content.put(TREE_FORMAT, TREE_ID);
+        db.setContent(content);
+        db.setDragView(treeCell.snapshot(null, null));
+        event.consume();
+    }
+
+    /**Code executed when a drag over a WidgetTreeCell is detected 
+     * 
+     * @param event - source event
+     * @param treeCell - possibly destination cell
+     */
+    private void dragOver(DragEvent event, WidgetTreeCell treeCell) {
+        if (!event.getDragboard().hasContent(TREE_FORMAT)) return;
+        if (!event.getDragboard().getContent(TREE_FORMAT).equals(TREE_ID)) return;
+
+        TreeItem<WidgetOrTab> thisItem = treeCell.getTreeItem();
+
+        // can't drop on itself
+        if (draggedItem == null || thisItem == null || thisItem == draggedItem) return;
+        // ignore if not common Parent and not Parent itself 
+        if (!Objects.equals(draggedItem.getParent(), thisItem.getParent()) && !Objects.equals(draggedItem.getParent(), thisItem)) {
+            clearDropLocation();
+            return;
+        }
+
+        // Not supported the case of multiple widgets selected: too much effort for edge cases
+        // (drag of discontinuous selection sets dropped inside selection etc.)
+        if (editor.getWidgetSelectionHandler().getSelection().size() > 1) {
+            clearDropLocation();
+            return;
+        }
+
+        event.acceptTransferModes(TransferMode.MOVE);
+        if (!Objects.equals(dropZone, treeCell)) {
+            clearDropLocation();
+            this.dropZone = treeCell;
+            decorateDropZone();
+        }
+    }
+
+    /**Paint a decoration under drop target cell
+     * 
+     */
+    private void decorateDropZone()
+    {
+        if (dropZone != null && editor.getWidgetSelectionHandler().getSelection().size() <= 1)
+            dropZone.setStyle(DROP_HINT_STYLE);
+    }
+
+    /**Clear a decoration under drop target cell
+     * 
+     */
+    private void clearDropLocation() {
+        if (dropZone != null) dropZone.setStyle("");
+    }
+
+    /**Code executed when a drop to a WidgetTreeCell is detected
+     * Actual implementation uses selection from editor and relies on changes in model updating the tree
+     * @param event - source event
+     * @param treeCell - possibly destination cell, if null, alternItem is used
+     * @param alternItem - alternatively to treeCell use this TreeItem
+     */
+    private void drop(DragEvent event, WidgetTreeCell treeCell, TreeItem<WidgetOrTab> alternItem) {
+        boolean success = false;
+
+        if (!event.getDragboard().hasContent(TREE_FORMAT)) return;
+        if (!event.getDragboard().getContent(TREE_FORMAT).equals(TREE_ID)) return;
+        final TreeItem<WidgetOrTab> thisItem;
+        if (treeCell == null)
+            thisItem = alternItem;
+        else
+            thisItem = treeCell.getTreeItem();
+        if (draggedItem == null || thisItem == null) return;
+
+        final TreeItem<WidgetOrTab> droppedItemParent = draggedItem.getParent();
+
+        // dropping on parent node makes it the first child
+        if (Objects.equals(droppedItemParent, thisItem)) {
+            reorder(editor, 0, droppedItemParent.getChildren().size());
+        }
+        else {
+            int frIndex = draggedItem.getParent().getChildren().indexOf(draggedItem);
+            int toIndex = thisItem.getParent().getChildren().indexOf(thisItem);
+            reorder(editor, toIndex + (frIndex > toIndex ? 1 : 0), droppedItemParent.getChildren().size());
+        }
+        // All actual tree changes will be done as a reaction to the reorder action
+        event.setDropCompleted(success);
+        event.consume();
+    }
+
+    /**Reordering widgets in model, as UndoableAction
+     * 
+     * @param editor - needed to get the getUndoableActionManager
+     * @param toIndex - target index for widgets
+     */
+    public void reorder(final DisplayEditor editor, int toIndex, int listSize)
+    {
+        List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
+        if (widgets.isEmpty())
+            return;
+        // Not supported the case of multiple widgets selected: too much effort for edge cases
+        // (drag of discontinuous selection sets dropped inside selection etc.)
+        if (widgets.size() > 1)
+            return;
+
+        // Using compound action to be prepared for possible extension to multiple selection case
+        final CompoundReversedUndoableAction compound = new CompoundReversedUndoableAction("TreeView Reorder");
+        compound.add(new UpdateWidgetOrderAction(widgets.get(0), toIndex));
+        editor.getUndoableActionManager().execute(compound);
+    }
+
+    /**Configuring external control for drop
+     * To resolve an issue when it is not possible to drop to treeWiew root when it is not shown,
+     * enable drop to the pane header.
+     * The header control (actually a Label) must be configured for that, see EditorGUI
+     */
+    public void configureHeaderDnD(Control header)
+    {
+        header.setOnDragDropped((DragEvent event) -> drop(event, null, tree_view.getRoot()));
+        header.setOnDragOver((DragEvent event) -> 
+        {
+            if (!event.getDragboard().hasContent(TREE_FORMAT)) return;
+            if (!event.getDragboard().getContent(TREE_FORMAT).equals(TREE_ID)) return;
+
+            // ignore if Parent is not Root 
+            if (draggedItem == null || !Objects.equals(draggedItem.getParent(), tree_view.getRoot())) return;
+
+            event.acceptTransferModes(TransferMode.MOVE);
+        });
     }
 }

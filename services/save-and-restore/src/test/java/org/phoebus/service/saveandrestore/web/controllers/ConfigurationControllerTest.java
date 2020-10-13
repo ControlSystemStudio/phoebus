@@ -42,10 +42,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -484,5 +486,39 @@ public class ConfigurationControllerTest {
 		// Make sure response contains expected data
 		objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<List<ConfigPv>>() {
 		});
+	}
+
+	@Test
+	public void testGetFromPath() throws Exception{
+		when(services.getFromPath("/a/b/c")).thenReturn(null);
+		MockHttpServletRequestBuilder request = get("/path?path=/a/b/c");
+		mockMvc.perform(request).andExpect(status().isNotFound());
+
+		request = get("/path");
+		mockMvc.perform(request).andExpect(status().isBadRequest());
+
+		Node node = Node.builder().name("name").uniqueId("uniqueId").build();
+		when(services.getFromPath("/a/b/c")).thenReturn(Arrays.asList(node));
+		request = get("/path?path=/a/b/c");
+		MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
+
+		List<Node> nodes = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<List<Node>>() {
+		});
+
+		assertEquals(1, nodes.size());
+	}
+
+	@Test
+	public void testGetFullPath() throws Exception{
+		when(services.getFullPath("nonexisting")).thenReturn(null);
+		MockHttpServletRequestBuilder request = get("/path/nonexsiting");
+		mockMvc.perform(request).andExpect(status().isNotFound());
+
+		when(services.getFullPath("existing")).thenReturn("/a/b/c");
+		request = get("/path/existing");
+		MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
+
+		assertEquals("/a/b/c", result.getResponse().getContentAsString());
+
 	}
 }

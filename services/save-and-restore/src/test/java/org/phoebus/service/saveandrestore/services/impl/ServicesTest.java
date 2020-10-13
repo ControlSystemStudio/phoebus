@@ -299,9 +299,20 @@ public class ServicesTest {
 	
 	@Test
 	public void testSaveSnapshot() {
-		
 		when(nodeDAO.saveSnapshot("a", Collections.emptyList(), "b", "c", "d")).thenReturn(Node.builder().nodeType(NodeType.SNAPSHOT).build());
-		
 		assertNotNull(services.saveSnapshot("a", Collections.emptyList(), "b", "d", "c"));
+	}
+
+	@Test
+	public void testGetFromPath(){
+		Node node = Node.builder().name("SomeFolder").build();
+		when(nodeDAO.getFromPath("path")).thenReturn(Arrays.asList(node));
+		assertEquals("SomeFolder", services.getFromPath("path").get(0).getName());
+	}
+
+	@Test
+	public void testGetFullPath(){
+		when(nodeDAO.getFullPath("nodeId")).thenReturn("/a/b/c");
+		assertEquals("/a/b/c", nodeDAO.getFullPath("nodeId"));
 	}
 }

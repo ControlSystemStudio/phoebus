@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
 import org.phoebus.channelfinder.ChannelFinderClient;
 import org.phoebus.channelfinder.ChannelFinderException;
 import org.phoebus.channelfinder.ChannelFinderService;
+import org.phoebus.channelfinder.utility.ConnectionCheckJob;
 import org.phoebus.framework.autocomplete.Proposal;
 import org.phoebus.framework.spi.PVProposalProvider;
 
@@ -22,7 +24,8 @@ import org.phoebus.framework.spi.PVProposalProvider;
  */
 public class CFProposalProvider implements PVProposalProvider {
 
-    private static final Logger log = Logger.getLogger(CFProposalProvider.class.getName());
+    public static final Logger logger = Logger.getLogger(CFProposalProvider.class.getName());
+
     private ChannelFinderClient client = null;
     private boolean active = true;
     private static List<Proposal> EMPTY_RESULT = Collections.emptyList();
@@ -31,20 +34,22 @@ public class CFProposalProvider implements PVProposalProvider {
         if (client == null) {
             client = ChannelFinderService.getInstance().getClient();
             if(client == null){
-                log.log(Level.WARNING, "CF proposal provider got null CF client!");
+                logger.log(Level.WARNING, "CF proposal provider got null CF client!");
                 return;
             }
-            try {
-                client.getAllTags();
-            } catch (Exception e) {
-                active = false;
-                Throwable cause = e.getCause();
-                while (cause != null && ! (cause instanceof ChannelFinderException))
-                    cause = cause.getCause();
-                if (cause != null)
-                    e = (Exception)cause;
-                log.log(Level.INFO, "Failed to create Channel Finder PVProposalProvider", e);
-            }
+
+            ConnectionCheckJob.submit(this.client, new BiConsumer<String, Exception>() {
+                @Override
+                public void accept(String s, Exception e) {
+                    active = false;
+                    Throwable cause = e.getCause();
+                    while (cause != null && ! (cause instanceof ChannelFinderException))
+                        cause = cause.getCause();
+                    if (cause != null)
+                        e = (Exception)cause;
+                    CFProposalProvider.logger.log(Level.INFO, "Failed to create Channel Finder PVProposalProvider", e);
+                }
+            });
         }
     }
 

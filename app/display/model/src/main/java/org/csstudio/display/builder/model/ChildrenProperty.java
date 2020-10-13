@@ -229,6 +229,37 @@ public class ChildrenProperty extends RuntimeWidgetProperty<List<Widget>>
         return index;
     }
 
+    public int moveChildTo(int index, final Widget child)
+    {
+        if (child == null)
+            throw new NullPointerException("Cannot move null in " + getWidget());
+        final List<Widget> list = value;
+        final int current_index;
+        synchronized (list)
+        {
+            current_index = list.indexOf(child);
+            if (current_index < 0)
+                throw new IllegalArgumentException("Widget hierarchy error: " + child + " is not known to " + this);
+            if (index < 0)
+                index = list.size() - 1;
+
+            final int index_diff = index - current_index;
+            if (index_diff == 1 || index_diff == -1)
+            {
+                // Move up/down by 1 step
+                Collections.swap(list, current_index, index);
+            }
+            else
+            {
+                // Move to front/back
+                Collections.rotate(list.subList(java.lang.Math.min(index, current_index), java.lang.Math.max(index, current_index) + 1), index_diff);
+            }
+        }
+        final List change = Arrays.asList(child);
+        firePropertyChange(change, change, true);
+        return index;
+    }
+
     @Override
     public void writeToXML(final ModelWriter model_writer, final XMLStreamWriter writer) throws Exception
     {

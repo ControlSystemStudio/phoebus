@@ -342,6 +342,7 @@ public class EditorGUI
         Label header = new Label("Widgets");
         header.setMaxWidth(Double.MAX_VALUE);
         header.getStyleClass().add("header");
+        tree.configureHeaderDnD(header);
 
         final Control tree_control = tree.create();
         VBox.setVgrow(tree_control, Priority.ALWAYS);
@@ -528,8 +529,9 @@ public class EditorGUI
 
     /** Save model to file
      *  @param file File into which to save the model
+     *  @throws Exception on error
      */
-    public void saveModelAs(final File file)
+    public void saveModelAs(final File file) throws Exception
     {
         logger.log(Level.FINE, "Save as {0}", file);
         try
@@ -545,7 +547,7 @@ public class EditorGUI
         }
         catch (Exception ex)
         {
-            logger.log(Level.SEVERE, "Cannot save as " + file, ex);
+            throw new Exception("Cannot save as " + file, ex);
         }
     }
 

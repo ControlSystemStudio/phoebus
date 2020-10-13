@@ -18,10 +18,12 @@ import org.csstudio.display.builder.model.WidgetFactory;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
+import org.epics.util.array.ListInteger;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.ui.javafx.ReadOnlyTextCell;
 import org.phoebus.ui.pv.SeverityColors;
@@ -93,7 +95,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
 
     /** Create dialog
      *  @param widget {@link Widget}
-     *  @param pvs {@link RuntimePV}s, may be empty
+     *  @param pvs {@link Collection<NameStateValue>}s, may be empty
      */
     public WidgetInfoDialog(final Widget widget, final Collection<NameStateValue> pvs)
     {
@@ -176,10 +178,10 @@ public class WidgetInfoDialog extends Dialog<Boolean>
             if (vtype == null)
                 text = Messages.WidgetInfoDialog_Disconnected;
             else
-            {   // Formatting arrays can be very slow,
-                // so only show the basic type info
+            {
+                // For arrays, show up to 10 elements.
                 if (vtype instanceof VNumberArray)
-                    text = vtype.toString();
+                    text = VTypeHelper.formatArray((VNumberArray)vtype, 10);
                 else
                     text = VTypeUtil.getValueString(vtype, true);
                 final Alarm alarm = Alarm.alarmOf(vtype);

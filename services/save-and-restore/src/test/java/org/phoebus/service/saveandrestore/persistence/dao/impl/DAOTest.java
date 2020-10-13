@@ -980,7 +980,6 @@ public class DAOTest {
 	public void testUniqueKeyOnNode() {
 
 		Node root = nodeDAO.getRootNode();
-
 		nodeDAO.createNode(root.getUniqueId(), Node.builder().uniqueId("b").name("n1").userName("g").build());
 		nodeDAO.createNode(root.getUniqueId(), Node.builder().uniqueId("b").name("n2").userName("g").build());
 	}
@@ -990,12 +989,9 @@ public class DAOTest {
 	public void testSetRootNodeProperty() {
 
 		Node rootNode = nodeDAO.getRootNode();
-
 		Map<String, String> props = new HashMap<>();
 		props.put("root", "true");
-
 		Node node = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().properties(props).name("a").build());
-
 		assertNull(node.getProperty("root"));
 	}
 
@@ -1003,9 +999,7 @@ public class DAOTest {
 	@FlywayTest(invokeCleanDB = true)
 	public void testSaveSnapshot() {
 		Node rootNode = nodeDAO.getRootNode();
-
 		Node config = Node.builder().name("My config 3").nodeType(NodeType.CONFIGURATION).build();
-
 		config = nodeDAO.createNode(rootNode.getUniqueId(), config);
 		nodeDAO.updateConfiguration(config, Arrays.asList(ConfigPv.builder().pvName("whatever").build()));
 
@@ -1014,9 +1008,7 @@ public class DAOTest {
 				.build();
 
 		Node snapshotNode = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshotName", "comment", "userName");
-
 		List<SnapshotItem> snapshotItems = nodeDAO.getSnapshotItems(snapshotNode.getUniqueId());
-
 		assertTrue(snapshotItems.size() == 1);
 
 	}
@@ -1025,9 +1017,7 @@ public class DAOTest {
 	@FlywayTest(invokeCleanDB = true)
 	public void testCreateSnapshotInFolderParent() {
 		Node rootNode = nodeDAO.getRootNode();
-
 		Node snapshot = Node.builder().name("Snapshot").nodeType(NodeType.SNAPSHOT).build();
-
 		nodeDAO.createNode(rootNode.getUniqueId(), snapshot);
 	}
 
@@ -1035,11 +1025,133 @@ public class DAOTest {
 	@FlywayTest(invokeCleanDB = true)
 	public void testCreateNodeWithNonNullUNiqueId() {
 		Node rootNode = nodeDAO.getRootNode();
-
 		Node folder = Node.builder().name("Folder").nodeType(NodeType.FOLDER).uniqueId("uniqueid").build();
-
 		folder = nodeDAO.createNode(rootNode.getUniqueId(), folder);
-
 		assertEquals("uniqueid", folder.getUniqueId());
+	}
+
+	@Test
+	public void testGetFromPathInvalidPath(){
+		List<Node> nodes = nodeDAO.getFromPath(null);
+		assertNull(nodes);
+		nodes = nodeDAO.getFromPath("doesNotStartWithForwardSlash");
+		assertNull(nodes);
+		nodes = nodeDAO.getFromPath("/endsInSlash/");
+		assertNull(nodes);
+		nodes = nodeDAO.getFromPath("/");
+		assertNull(nodes);
+	}
+
+	@Test
+	@FlywayTest(invokeCleanDB = true)
+	public void testFindParentFromPathElements() {
+		Node rootNode = nodeDAO.getRootNode();
+		Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
+		Node b = nodeDAO.createNode(a.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("b").build());
+		Node c = nodeDAO.createNode(b.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("c").build());
+
+		Node found = nodeDAO.findParentFromPathElements(rootNode, "/a/b/c".split("/"), 1);
+		assertEquals(found.getUniqueId(), b.getUniqueId());
+
+		found = nodeDAO.findParentFromPathElements(rootNode, "/a/b/d".split("/"), 1);
+		assertEquals(found.getUniqueId(), b.getUniqueId());
+
+		found = nodeDAO.findParentFromPathElements(rootNode, "/a/b".split("/"), 1);
+		assertEquals(found.getUniqueId(), a.getUniqueId());
+
+		found = nodeDAO.findParentFromPathElements(rootNode, "/a".split("/"), 1);
+		assertEquals(found.getUniqueId(), rootNode.getUniqueId());
+
+		found = nodeDAO.findParentFromPathElements(rootNode, "/a/d/c".split("/"), 1);
+		assertNull(found);
+	}
+
+	@Test
+	@FlywayTest(invokeCleanDB = true)
+	public void testGetFromPathTwoNodes() {
+		Node rootNode = nodeDAO.getRootNode();
+		Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
+		Node b = nodeDAO.createNode(a.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("b").build());
+		Node c = nodeDAO.createNode(b.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("c").build());
+		Node cc = nodeDAO.createNode(b.getUniqueId(), Node.builder().nodeType(NodeType.CONFIGURATION).name("c").build());
+
+		List<Node> nodes = nodeDAO.getFromPath("/a/b/c");
+		assertEquals(2, nodes.size());
+	}
+
+	@Test
+	@FlywayTest(invokeCleanDB = true)
+	public void testGetFromPathOneNode() {
+		Node rootNode = nodeDAO.getRootNode();
+		Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
+		Node b = nodeDAO.createNode(a.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("b").build());
+		Node c = nodeDAO.createNode(b.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("c").build());
+
+		List<Node> nodes = nodeDAO.getFromPath("/a/b/c");
+		assertEquals(1, nodes.size());
+		assertEquals(c.getUniqueId(), nodes.get(0).getUniqueId());
+
+		nodes = nodeDAO.getFromPath("/a/b");
+		assertEquals(1, nodes.size());
+		assertEquals(b.getUniqueId(), nodes.get(0).getUniqueId());
+
+		nodes = nodeDAO.getFromPath("/a");
+		assertEquals(1, nodes.size());
+		assertEquals(a.getUniqueId(), nodes.get(0).getUniqueId());
+	}
+
+	@Test
+	@FlywayTest(invokeCleanDB = true)
+	public void testGetFromPathZeroNodes() {
+		Node rootNode = nodeDAO.getRootNode();
+		Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
+		Node b = nodeDAO.createNode(a.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("b").build());
+		nodeDAO.createNode(b.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("c").build());
+
+		List<Node> nodes = nodeDAO.getFromPath("/a/b/d");
+		assertNull(nodes);
+
+		nodes = nodeDAO.getFromPath("/a/x/c");
+		assertNull(nodes);
+	}
+
+	@Test
+	public void testGetFullPathInvalidNodeId(){
+		assertNull(nodeDAO.getFullPath(null));
+		assertNull(nodeDAO.getFullPath(""));
+		assertNull(nodeDAO.getFullPath("invalid"));
+	}
+
+	@Test
+	@FlywayTest(invokeCleanDB = true)
+	public void testGetFullPathNonExistingNode() {
+		Node rootNode = nodeDAO.getRootNode();
+		Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
+		Node b = nodeDAO.createNode(a.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("b").build());
+		nodeDAO.createNode(b.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("c").build());
+
+		assertNull(nodeDAO.getFullPath("nonExisting"));
+	}
+
+	@Test
+	@FlywayTest(invokeCleanDB = true)
+	public void testGetFullPathRootNode() {
+		Node rootNode = nodeDAO.getRootNode();
+		Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
+		Node b = nodeDAO.createNode(a.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("b").build());
+		nodeDAO.createNode(b.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("c").build());
+
+		assertEquals("/", nodeDAO.getFullPath(rootNode.getUniqueId()));
+	}
+
+	@Test
+	@FlywayTest(invokeCleanDB = true)
+	public void testGetFullPath() {
+		Node rootNode = nodeDAO.getRootNode();
+		Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
+		Node b = nodeDAO.createNode(a.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("b").build());
+		Node c = nodeDAO.createNode(b.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("c").build());
+
+		assertEquals("/a/b/c", nodeDAO.getFullPath(c.getUniqueId()));
 	}
 }

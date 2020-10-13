@@ -116,7 +116,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
         /**
          * Creates a {@link CFCBuilder} for a CF client to Default URL in the
-         * channelfinder.properties.
+         * channelfinder_preferences.properties.
          * 
          * @return {@link CFCBuilder}
          */
@@ -1017,12 +1017,12 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
             } catch (Exception e) {
             	log.log(Level.WARNING, "Error creating channels:", e);
             }
-            log.log(Level.INFO, "Finished mapping to xml : " + String.valueOf(System.currentTimeMillis()-start));
+            log.log(Level.FINE, "Finished mapping to xml : " + String.valueOf(System.currentTimeMillis()-start));
             start = System.currentTimeMillis();
             for (XmlChannel xmlchannel : xmlchannels) {
                 channels.add(new Channel(xmlchannel));
             }
-            log.log(Level.INFO, "Finished creating new channels : " + String.valueOf(System.currentTimeMillis()-start));
+            log.log(Level.FINE, "Finished creating new channels : " + String.valueOf(System.currentTimeMillis()-start));
             return Collections.unmodifiableCollection(channels);
         }
     }

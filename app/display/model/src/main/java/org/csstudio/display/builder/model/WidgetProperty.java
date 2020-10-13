@@ -331,7 +331,25 @@ public abstract class WidgetProperty<T extends Object> extends PropertyChangeHan
      */
     protected void firePropertyChange(final T old_value, final T new_value)
     {
-        firePropertyChange(this, old_value, new_value);
+        firePropertyChange(this, old_value, new_value, false);
+    }
+
+    /** Notify listeners of property change.
+     *
+     *  <p>New value usually matches <code>property.getValue()</code>,
+     *  but in multi-threaded context value might already have changed
+     *  _again_ by the time this executes.
+     *
+     *  <p>Suppresses notifications where old_value equals new_value,
+     *  unless the values are null or forceNotify is true.
+     *
+     *  @param old_value Original value
+     *  @param new_value New value
+     *  @param forceNotify Force notification
+     */
+    protected void firePropertyChange(final T old_value, final T new_value, final boolean forceNotify)
+    {
+        firePropertyChange(this, old_value, new_value, forceNotify);
     }
 
     /** @return Debug representation */

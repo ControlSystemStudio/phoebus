@@ -1,0 +1,9 @@
+<project default="app-elog">
+  <import file="../../../dependencies/ant_settings.xml"/>
+
+  <target name="app-elog" depends="compile-app">
+    <jar destfile="${build}/elog-${version}.jar">
+      <fileset dir="${classes}"/>
+    </jar>
+  </target>
+</project>

@@ -8,5 +8,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/core-framework"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-util"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-ui"/>
+	<classpathentry kind="lib" path="/dependencies/phoebus-target/target/lib/epics-util-1.0.3.jar"/>
+	<classpathentry kind="lib" path="/dependencies/phoebus-target/target/lib/vtype-1.0.3.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

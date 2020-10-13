@@ -38,11 +38,14 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * @author georgweiss
@@ -702,5 +705,84 @@ public class NodeJdbcDAO implements NodeDAO {
 						tag.getSnapshotId(), tag.getName(), tag.getComment(), tag.getCreated(), tag.getUserName());
 			}
 		});
+	}
+
+
+	public List<Node> getFromPath(String path){
+		if(path == null || !path.startsWith("/") || path.endsWith("/")){
+			return null;
+		}
+		String[] splitPath = path.split("/");
+		Node parentOfLastPathElement = findParentFromPathElements(getRootNode(), splitPath, 1);
+		if(parentOfLastPathElement == null){ // Path is "invalid"
+			return null;
+		}
+		List<Node> childNodes = getChildNodes(parentOfLastPathElement.getUniqueId());
+		List<Node> foundNodes = childNodes.stream()
+				.filter(node -> node.getName().equals(splitPath[splitPath.length - 1])).collect(Collectors.toList());
+		if(foundNodes.isEmpty()){
+			return null;
+		}
+		return foundNodes;
+	}
+
+	/**
+	 * Finds the {@link Node} corresponding to the parent of last element in the split path. For instance, given a
+	 * path like /pathelement1/pathelement2/pathelement3/pathelement4, this method returns the {@link Node}
+	 * for pathelement3. For the special case /pathelement1, this method returns the root {@link Node}.
+	 * If any of the path elements cannot be found, or if the last path
+	 * element is not a folder, <code>null</code> is returned.
+	 * @param parentNode The parent node from which to continue search.
+	 * @param splitPath An array of path elements assumed to be ordered from top level
+	 *                  folder and downwards.
+	 * @param index The index in the <code>splitPath</code> to match node names.
+	 * @return The {@link Node} corresponding to the last path element, or <code>null</code>.
+	 */
+	protected Node findParentFromPathElements(Node parentNode, String[] splitPath, int index){
+		if(index == splitPath.length - 1) {
+			return parentNode;
+		}
+		String nextPathElement = splitPath[index];
+		List<Node> childNodes = getChildNodes(parentNode.getUniqueId());
+		for(Node node : childNodes){
+			if(node.getName().equals(nextPathElement) && node.getNodeType().equals(NodeType.FOLDER)){
+				return findParentFromPathElements(node, splitPath, ++index);
+			}
+		}
+		return null;
+	}
+
+	public String getFullPath(String uniqueNodeId){
+		if(uniqueNodeId == null || uniqueNodeId.isEmpty()){
+			return null;
+		}
+		Node node = getNode(uniqueNodeId);
+		if(node == null){
+			return null;
+		}
+		else if(node.getId() == Node.ROOT_NODE_ID){
+			return "/";
+		}
+
+		return prependParent("", node);
+	}
+
+	/**
+	 * Prepends the name of the parent node and - if the parent
+	 * node is not the root node - recursively calls this method to continue up
+	 * the hierarchy until the root node is reached.
+	 * @param path Non-null path to be prepended with the name of the parent.
+	 * @param node Non-null {@link Node} object as retrieved from the persistence layer.
+	 * @return The name of the specified node, prepended by its parent's name.
+	 */
+	protected String prependParent(String path, Node node){
+		path = "/" + node.getName() + path;
+		Node parentNode = getParentNode(node.getUniqueId());
+		if(parentNode.getId() == Node.ROOT_NODE_ID){
+			return path;
+		}
+		else{
+			return prependParent(path, parentNode);
+		}
 	}
 }

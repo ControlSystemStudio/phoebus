@@ -166,4 +166,14 @@ public class Services implements IServices {
 
 		return nodeDAO.getAllTags();
 	}
+
+	@Override
+	public List<Node> getFromPath(String path){
+		return nodeDAO.getFromPath(path);
+	}
+
+	@Override
+	public String getFullPath(String uniqueNodeId){
+		return nodeDAO.getFullPath(uniqueNodeId);
+	}
 }

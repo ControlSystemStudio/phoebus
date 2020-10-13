@@ -79,6 +79,18 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
     /** Add/remove representations for child elements as model changes */
     private final WidgetPropertyListener<List<Widget>> container_children_listener = (children, removed, added) ->
     {
+        // Only the order of the widgets have changed
+        if (removed != null && added != null && removed.size() == 1 && removed.equals(added))
+        {
+            final Widget widget = added.get(0);
+            execute(() ->
+            {
+                final WidgetRepresentation<TWP, TW, Widget> representation = widget.getUserData(Widget.USER_DATA_REPRESENTATION);
+                representation.updateOrder();
+            });
+            return;
+        }
+
         // Move to toolkit thread.
         // May already be on toolkit, for example in drag/drop,
         // but updating the representation 'later' may reduce blocking.

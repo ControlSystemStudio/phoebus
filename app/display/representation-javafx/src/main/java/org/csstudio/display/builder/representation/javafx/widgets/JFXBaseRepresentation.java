@@ -54,6 +54,44 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
     private final DirtyFlag dirty_position = new DirtyFlag();
     private final UntypedWidgetPropertyListener positionChangedListener = this::positionChanged;
 
+    private void addToParent(final Parent parent)
+    {
+        // Order JFX children same as model widgets within their container
+        int index = -1;
+        final Optional<Widget> container = model_widget.getParent();
+        if (container.isPresent())
+        {
+            if (container.get() instanceof TabsWidget)
+            {   // Locate model_widget inside one of the Tab's children
+                final List<TabItemProperty> tabs = ((TabsWidget) container.get()).propTabs().getValue();
+                for (TabItemProperty tab : tabs)
+                {
+                    final int i = tab.children().getValue().indexOf(model_widget);
+                    if (i >= 0)
+                    {
+                        index = i;
+                        break;
+                    }
+                }
+            }
+            else
+                index = container.get().getProperty(ChildrenProperty.DESCRIPTOR).getValue().indexOf(model_widget);
+        }
+
+        final ObservableList<Node> children = JFXRepresentation.getChildren(parent);
+        if (index < 0)
+            children.add(jfx_node);
+        else if (index <= children.size())
+            children.add(index, jfx_node);
+        else
+        {
+            // If one of the other sibling widgets cannot be represented,
+            // the 'index' will be useless.
+            logger.log(Level.WARNING, "Cannot represent " + model_widget + " at index " + index + " within parent, which has only " + children.size() + " nodes");
+            children.add(jfx_node);
+        }
+    }
+
     /** {@inheritDoc} */
     @Override
     public Parent createComponents(final Parent parent) throws Exception
@@ -66,40 +104,7 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
             registerListeners();
             updateChanges();
 
-            // Order JFX children same as model widgets within their container
-            int index = -1;
-            final Optional<Widget> container = model_widget.getParent();
-            if (container.isPresent())
-            {
-                if (container.get() instanceof TabsWidget)
-                {   // Locate model_widget inside one of the Tab's children
-                    final List<TabItemProperty> tabs = ((TabsWidget) container.get()).propTabs().getValue();
-                    for (TabItemProperty tab : tabs)
-                    {
-                        final int i = tab.children().getValue().indexOf(model_widget);
-                        if (i >= 0)
-                        {
-                            index = i;
-                            break;
-                        }
-                    }
-                }
-                else
-                    index = container.get().getProperty(ChildrenProperty.DESCRIPTOR).getValue().indexOf(model_widget);
-            }
-
-            final ObservableList<Node> children = JFXRepresentation.getChildren(parent);
-            if (index < 0)
-                children.add(jfx_node);
-            else if (index <= children.size())
-                children.add(index, jfx_node);
-            else
-            {
-                // If one of the other sibling widgets cannot be represented,
-                // the 'index' will be useless.
-                logger.log(Level.WARNING, "Cannot represent " + model_widget + " at index " + index + " within parent, which has only " + children.size() + " nodes");
-                children.add(jfx_node);
-            }
+            addToParent(parent);
 
             if (toolkit.isEditMode())
             {   // Any visible item can be 'clicked' to allow editor to 'select' it
@@ -336,6 +341,20 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
                               model_widget.propY().getValue());
             if (visible != null)
                 jfx_node.setVisible(visible.getValue());
+        }
+    }
+
+    @Override
+    public void updateOrder()
+    {
+        final Parent parent = jfx_node.getParent();
+        if (parent == null)
+            logger.log(Level.WARNING, "Missing JFX parent for " + model_widget);
+        else
+        {
+            // Cannot use Collections.swap() because it results in an IllegalArgumentException: Children: duplicate children added
+            JFXRepresentation.getChildren(parent).remove(jfx_node);
+            addToParent(parent);
         }
     }
 }
