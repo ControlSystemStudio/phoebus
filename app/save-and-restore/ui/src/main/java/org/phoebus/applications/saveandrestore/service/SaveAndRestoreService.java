@@ -198,6 +198,16 @@ public class SaveAndRestoreService {
         return future.get();
     }
 
+    public List<Node> getFromPath(String path) throws Exception {
+        Future<List<Node>> future = executor.submit(() -> dataProvider.getFromPath(path));
+        return future.get();
+    }
+
+    public String getFullPath(String uniqueNodeId) throws Exception {
+        Future<String> future = executor.submit(() -> dataProvider.getFullPath(uniqueNodeId));
+        return future.get();
+    }
+
     public Node tagSnapshotAsGolden(final Node node, boolean golden) throws Exception {
         Future<Node> future = executor.submit(() -> {
             node.getProperties().put("golden", golden ? "true" : "false");

@@ -99,7 +99,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.awaitility.Awaitility.await;
 
 public class SnapshotController implements NodeChangedListener {
@@ -199,6 +199,9 @@ public class SnapshotController implements NodeChangedListener {
     private PreferencesReader preferencesReader = (PreferencesReader) ApplicationContextProvider.getApplicationContext().getBean("preferencesReader");
     private final SimpleBooleanProperty showTreeTable = new SimpleBooleanProperty(false);
     private boolean isTreeTableViewEnabled = preferencesReader.getBoolean("treeTableView.enable");
+    private final int cagetTimeoutMs = preferencesReader.getInt("ca.cagetTimeout");
+    private final int caputTimeoutMs = preferencesReader.getInt("ca.caputTimeout");
+    private final int pvConnectTimeoutMs = preferencesReader.getInt("ca.pvConnectTimeout");
 
     private Node config;
 
@@ -539,6 +542,23 @@ public class SnapshotController implements NodeChangedListener {
         }
     }
 
+    private Node retrieveNodeFromMasar(String path) {
+        try {
+            final List<Node> nodes = saveAndRestoreService.getFromPath(path);
+
+            final Optional<Node> folderNode = nodes.stream()
+                    .filter(node -> node.getNodeType() == NodeType.FOLDER)
+                    .findAny();
+
+            return folderNode.orElse(null);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     /**
      * Creates a folder node, generates saveset node in created folder and saves snapshot node. All created nodes have the same name.
      *
@@ -549,21 +569,45 @@ public class SnapshotController implements NodeChangedListener {
      *                                 if any of the nodes can not be created.
      */
     public void generateSaveSet(String saveSetName, String comment, List<String> pvList) throws SaveAndRestoreException {
+        generateSaveSet(saveSetName, comment, pvList, null);
+    }
+
+    /**
+     * Creates a folder node, generates saveset node in created folder and saves snapshot node. All created nodes have the same name.
+     *
+     * @param saveSetName name of the saveset node
+     * @param comment     saveset comment
+     * @param pvList      list of PVs to save
+     * @param path        directory path where the saveset will be created, e.g. /topLevelFolder/folder
+     * @throws SaveAndRestoreException if node with saveset name already exists.
+     *                                 if any of the nodes can not be created.
+     */
+    public void generateSaveSet(String saveSetName, String comment, List<String> pvList, String path)
+            throws SaveAndRestoreException {
 
         List<ConfigPv> saveSetEntries = new ArrayList<ConfigPv>();
 
-        saveAndRestoreService.findNode(saveSetName, false);
-
-        //CREATE FOLDER
-        Node root = saveAndRestoreService.getRootNode();
-        Node newFolder = Node.builder()
-                .nodeType(NodeType.FOLDER)
-                .name(saveSetName)
-                .build();
         Node newFolderNode;
 
         try {
-            newFolderNode = saveAndRestoreService.createNode(root.getUniqueId(), newFolder);
+            if (path == null) {
+                // Create folder for the new saveset in the root directory.
+                Node root = saveAndRestoreService.getRootNode();
+                Node newFolder = Node.builder()
+                        .nodeType(NodeType.FOLDER)
+                        .name(saveSetName)
+                        .build();
+                newFolderNode = saveAndRestoreService.createNode(root.getUniqueId(), newFolder);
+            } else {
+                newFolderNode = retrieveNodeFromMasar(path);
+            }
+
+            if (newFolderNode == null) {
+                throw new SaveAndRestoreException(String.format("Could not find a node with the specified path. (%s)", path));
+            }
+
+            // This call will throw an exception if a saveset with the same name already exists.
+            saveAndRestoreService.findNode(saveSetName, false);
 
             //CREATE CONFIGURATION
             Node newSateSetNode = Node.builder()
@@ -607,13 +651,9 @@ public class SnapshotController implements NodeChangedListener {
                     readers.add(readerPv);
                 }
 
-                try {
-                    await().atMost(2, SECONDS).until(() -> readers.stream().allMatch(x -> x.isConnected()));
-                } catch (ConditionTimeoutException ex) {
+                if (!countdownLatch.await(cagetTimeoutMs, MILLISECONDS)) {
                     LOGGER.log(Level.WARNING, "Some PVs could not be saved because they are disconnected");
                 }
-
-                countdownLatch.await(1, SECONDS);
             } finally {
                 for (PVReader<VType> reader : readers) {
                     reader.close();
@@ -707,8 +747,8 @@ public class SnapshotController implements NodeChangedListener {
             final PV pv = myPvs.get(entry.getPVName());
             if (entry.getValue() != null) {
 
-                // Waiting for pv to connect.
-                await().atMost(5, SECONDS).until(() -> pv.pv.isWriteConnected());
+                // Waiting for pv to connect before writing to them.
+                await().atMost(pvConnectTimeoutMs, MILLISECONDS).until(() -> pv.pv.isWriteConnected());
 
                 pv.pv.write(entry.getValue(), (event, pvWriter) -> {
                     if (event.getType().contains(PVEvent.Type.WRITE_SUCCEEDED)) {
@@ -724,7 +764,7 @@ public class SnapshotController implements NodeChangedListener {
             }
         }
         try {
-            boolean success = countDownLatch.await(2, SECONDS);
+            boolean success = countDownLatch.await(caputTimeoutMs, SECONDS);
             if (!success) throw new SaveAndRestoreException("Restoring snapshot timed out");
         } catch (InterruptedException e) {
             throw new SaveAndRestoreException(e);
