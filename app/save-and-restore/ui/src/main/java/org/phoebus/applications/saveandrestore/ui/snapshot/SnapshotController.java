@@ -764,7 +764,7 @@ public class SnapshotController implements NodeChangedListener {
             }
         }
         try {
-            boolean success = countDownLatch.await(caputTimeoutMs, SECONDS);
+            boolean success = countDownLatch.await(caputTimeoutMs, MILLISECONDS);
             if (!success) throw new SaveAndRestoreException("Restoring snapshot timed out");
         } catch (InterruptedException e) {
             throw new SaveAndRestoreException(e);
