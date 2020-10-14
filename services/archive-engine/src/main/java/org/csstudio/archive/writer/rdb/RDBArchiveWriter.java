@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import org.csstudio.archive.Preferences;
 import org.csstudio.archive.writer.ArchiveWriter;
@@ -39,6 +40,7 @@ import org.epics.vtype.VFloat;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VString;
+import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
 import org.phoebus.framework.rdb.RDBInfo;
 import org.phoebus.framework.rdb.RDBInfo.Dialect;
@@ -295,6 +297,16 @@ public class RDBArchiveWriter implements ArchiveWriter
             batchLongSample(channel, stamp, severity, status, ((VEnum)sample).getIndex());
         else if (sample instanceof VString)
             batchTextSamples(channel, stamp, severity, status, ((VString)sample).getValue());
+        else if (sample instanceof VStringArray)
+        {
+            // Store as comma-separated elements, omitting blank elements
+            final VStringArray strings = (VStringArray) sample;
+            final String text = strings.getData()
+                                       .stream()
+                                       .filter(element -> ! element.isBlank())
+                                       .collect(Collectors.joining(", "));
+            batchTextSamples(channel, stamp, severity, status, text);
+        }
         else // Handle possible other types as strings
             batchTextSamples(channel, stamp, severity, status, sample.toString());
     }
