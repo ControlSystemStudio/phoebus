@@ -332,7 +332,7 @@ public class EditorGUI
 
     private Parent createElements()
     {
-        editor = new DisplayEditor(toolkit, 50);
+        editor = new DisplayEditor(toolkit, org.csstudio.display.builder.editor.Preferences.undoStackSize);
 
         tree = new WidgetTree(editor);
 

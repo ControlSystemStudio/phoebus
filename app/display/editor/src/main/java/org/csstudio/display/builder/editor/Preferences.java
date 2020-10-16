@@ -9,6 +9,7 @@ package org.csstudio.display.builder.editor;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.phoebus.framework.preferences.PreferencesReader;
 
@@ -20,9 +21,11 @@ public class Preferences
 {
     public static final String HIDDEN_WIDGETS = "hidden_widget_types";
     public static final String NEW_DISPLAY_TEMPLATE = "new_display_template";
+    public static final String UNDO_STACK_SIZE = "undo_stack_size";
     
     public static Set<String> hidden_widget_types = new HashSet<>();
     public static String new_display_template;
+    public static int undoStackSize = 50;
 
     static
     {
@@ -36,5 +39,13 @@ public class Preferences
                 hidden_widget_types.add(type);
         }
         new_display_template = prefs.get(NEW_DISPLAY_TEMPLATE);
+
+        final String undoStack = prefs.get(UNDO_STACK_SIZE);
+        try {
+            undoStackSize = Integer.parseInt(undoStack);
+        } catch (NumberFormatException e) {
+            Logger.getLogger(Preferences.class.getName())
+                    .info(String.format("Unable to parse \"%s\" as a undo stack size, falling back to %d.", undoStack, undoStackSize));
+        }
     }
 }
