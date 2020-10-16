@@ -21,7 +21,7 @@ public class Preferences
 {
     public static final String HIDDEN_WIDGETS = "hidden_widget_types";
     public static final String NEW_DISPLAY_TEMPLATE = "new_display_template";
-    public static final String UNDO_STACK_SIZE = "undo_stack.size";
+    public static final String UNDO_STACK_SIZE = "undo_stack_size";
     
     public static Set<String> hidden_widget_types = new HashSet<>();
     public static String new_display_template;
