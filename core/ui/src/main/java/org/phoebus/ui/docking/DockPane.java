@@ -345,7 +345,13 @@ public class DockPane extends TabPane
         else if (key == KeyCode.W)
         {
             if (!isFixed())
-                item.close();
+            {
+                JobManager.schedule("Close " + item.getLabel(), monitor ->
+                {
+                    if (item.prepareToClose())
+                        Platform.runLater(item::close);
+                });
+            }
             event.consume();
         }
     }
