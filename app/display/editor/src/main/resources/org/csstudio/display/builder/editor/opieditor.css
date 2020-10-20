@@ -172,16 +172,8 @@
 
 .widget_pane_unfocused{
     -fx-border-color: #F4F4F4;
-    -fx-border-style: solid;
-    -fx-border-width: 1px;
 }
 
 .widget_pane_focused{
     -fx-border-color: #00A0D8;
-    -fx-border-style: solid;
-    -fx-border-width: 1px;
-}
-
-.no-border{
-    -fx-border-width: 0px;
 }
