@@ -24,9 +24,8 @@ public class PVAString extends PVAData
      */
     public static int getEncodedSize(final String string)
     {
-        // null string will be encoded as one byte with value -1 for size
         if (string == null)
-            return 1;
+            return PVASize.size(-1);
 
         final int len = string.getBytes().length;
         return PVASize.size(len) + len;
