@@ -18,6 +18,15 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.prefs.Preferences;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.paint.Color;
 import org.csstudio.display.builder.editor.actions.ActionDescription;
 import org.csstudio.display.builder.editor.app.DisplayEditorInstance;
 import org.csstudio.display.builder.editor.palette.Palette;
@@ -159,6 +168,7 @@ public class DisplayEditor
 
     private static final Preferences prefs = PhoebusPreferenceService.userNodeForClass(DisplayEditorInstance.class);
 
+
     /** @param toolkit JFX Toolkit
      *  @param stack_size Number of undo/redo entries
      */
@@ -180,6 +190,7 @@ public class DisplayEditor
     public Parent create ()
     {
         model_root = toolkit.createModelRoot();
+        model_root.getStyleClass().add("widget_pane_unfocused");
         autoScrollHandler = new AutoScrollHandler(model_root);
 
         final Group scroll_body = (Group) model_root.getContent();
@@ -198,12 +209,20 @@ public class DisplayEditor
         toolbar = createToolbar();
 
         root.setCenter(model_and_palette);
+        root.getStyleClass().add("no-border");
 
         configureReadonly(false);
         setGrid(prefs.getBoolean(SNAP_GRID, true));
         setSnap(prefs.getBoolean(SNAP_WIDGETS, true));
         setCoords(prefs.getBoolean(SHOW_COORDS, true));
 
+        model_root.focusedProperty().addListener((observableValue, aBoolean, focused) -> {
+            if (focused) {
+                model_root.getStyleClass().add("widget_pane_focused");
+            } else {
+                model_root.getStyleClass().remove("widget_pane_focused");
+            }
+        });
         return root;
     }
 
@@ -404,6 +423,7 @@ public class DisplayEditor
             logger.log(Level.FINE, "Mouse pressed in 'editor', de-select all widgets");
             event.consume();
             selection.clear();
+            model_root.requestFocus(); // Request focus to be able to intercept CTRL/CMD+A
         });
 
         new Rubberband(model_root, edit_tools, this::handleRubberbandSelection);
@@ -420,7 +440,13 @@ public class DisplayEditor
     {
         if (isReadonly())
             return;
-        WidgetTree.handleGroupOrOrderKeys(event, this);
+
+        if (event.isShortcutDown() && event.getCode().equals(KeyCode.A)) {
+            getWidgetSelectionHandler().setSelection(model.getChildren());
+        }
+        else {
+            WidgetTree.handleGroupOrOrderKeys(event, this);
+        }
     }
 
     private void handleRubberbandSelection(final Rectangle2D region, final boolean update_existing)
