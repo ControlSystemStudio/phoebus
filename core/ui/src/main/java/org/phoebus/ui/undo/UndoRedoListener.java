@@ -15,7 +15,7 @@ package org.phoebus.ui.undo;
 public interface UndoRedoListener
 {
     /** @param to_undo Description of action to undo or <code>null</code>
-     *  @param to_redoDescription of action to re-do or <code>null</code>
+     *  @param to_redo of action to re-do or <code>null</code>
      */
-    public void operationsHistoryChanged(final String to_undo, final String to_redo);
+    public void operationsHistoryChanged(final String to_undo, final String to_redo, int changeCount);
 }
