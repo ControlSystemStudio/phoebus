@@ -80,6 +80,7 @@ import org.epics.vtype.ValueFormat;
 import org.phoebus.applications.saveandrestore.ui.model.Threshold;
 import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.model.VNoData;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 import java.math.BigInteger;
 import java.text.DateFormat;
@@ -308,11 +309,6 @@ public final class Utilities {
                     throw new IllegalArgumentException(String.format("'%s' is not a valid enum value.",data));
                 }
             }
-            if (labels.size() <= idx) {
-                for (int i = labels.size(); i <= idx; i++) {
-                    labels.add(String.valueOf(i));
-                }
-            }
             return VEnum.of(idx, EnumDisplay.of(labels), alarm, time);
         } else if (type instanceof VString) {
             return VString.of(data, alarm, time);
@@ -353,7 +349,7 @@ public final class Utilities {
             return ((VEnumArray) type).getData();
         } else if (type instanceof VStringArray) {
             List<String> data = ((VStringArray) type).getData();
-            return data == null ? new String[0] : data.toArray(new String[data.size()]);
+            return data.toArray(new String[data.size()]);
         } else if (type instanceof VBooleanArray) {
             return ((VBooleanArray) type).getData();
         } else if (type instanceof VNumber) {
@@ -493,8 +489,8 @@ public final class Utilities {
             return String.valueOf(((VBoolean) type).getValue());
         }
         // no support for MultiScalars (VMultiDouble, VMultiInt, VMultiString, VMultiEnum), VStatistics, VTable and
-        // VImage)
-        return null;
+        // VImage), no support for VStringArray
+        return "Type " + VType.typeOf(type).getSimpleName() + " not supported";
     }
 
     /**
@@ -1098,7 +1094,7 @@ public final class Utilities {
                 return true;
             } else if (v1 instanceof VUIntArray && v2 instanceof VUIntArray) {
                 ListUInteger b = ((VUIntArray) v1).getData();
-                ListUInteger c = ((VUIntArray) v1).getData();
+                ListUInteger c = ((VUIntArray) v2).getData();
                 int size = b.size();
                 if (size != c.size()) {
                     return false;
@@ -1137,8 +1133,8 @@ public final class Utilities {
                 return true;
             }
         }
-        // no support for MultiScalars (VMultiDouble, VMultiInt, VMultiString, VMultiEnum), VStatistics, VTable and
-        // VImage)
+        // no support for MultiScalars (VMultiDouble, VMultiInt, VMultiString, VMultiEnum), VStatistics, VTable,
+        // VImage and VStringArray)
         return false;
     }
 
@@ -1162,6 +1158,7 @@ public final class Utilities {
         if (compareAlarmAndTime && !isAlarmAndTimeEqual(v1, v2)) {
             return false;
         }
+
         if (v1 instanceof VNumber && v2 instanceof VNumber) {
             if (v1 instanceof VDouble && v2 instanceof VDouble) {
                 double data = ((VDouble) v1).getValue();
@@ -1297,6 +1294,13 @@ public final class Utilities {
         else if (a1 instanceof VNumberArray && a2 instanceof VNumber) {
             VNumberArray vn1 = (VNumberArray)a1;
             VNumber vn2 = (VNumber)a2;
+            return vn1.getAlarm().getName().equals(vn2.getAlarm().getName()) &&
+                    vn1.getAlarm().getSeverity().equals(vn2.getAlarm().getSeverity()) &&
+                    vn1.getTime().getTimestamp().equals(vn2.getTime().getTimestamp());
+        }
+        else if (a1 instanceof VEnum && a2 instanceof VEnum) {
+            VEnum vn1 = (VEnum)a1;
+            VEnum vn2 = (VEnum)a2;
             return vn1.getAlarm().getName().equals(vn2.getAlarm().getName()) &&
                     vn1.getAlarm().getSeverity().equals(vn2.getAlarm().getSeverity()) &&
                     vn1.getTime().getTimestamp().equals(vn2.getTime().getTimestamp());
