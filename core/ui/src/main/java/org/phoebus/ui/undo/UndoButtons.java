@@ -38,7 +38,7 @@ public class UndoButtons
         redo_btn.setOnAction(event -> undo_manager.redoLast());
 
         // Automatically enable/disable based on what's possible
-        undo_manager.addListener((to_undo, to_redo) ->
+        undo_manager.addListener((to_undo, to_redo, changeCount) ->
             Platform.runLater(()->
             {
                 undo_btn.setDisable(to_undo == null);
