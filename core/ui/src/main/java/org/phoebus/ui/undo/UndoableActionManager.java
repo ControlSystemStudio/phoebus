@@ -24,6 +24,12 @@ public class UndoableActionManager
     private final SizeLimitedStack<UndoableAction> undoStack;
     private final SizeLimitedStack<UndoableAction> redoStack;
     private final List<UndoRedoListener> listeners = new CopyOnWriteArrayList<>();
+
+    /**
+     * Keeps track of changes when actions are put on the undo stack and redo stack.
+     * This can be used to determine if a resource has changes even if the
+     * undo stack is empty.
+     */
     private int changeCount;
 
     /** @param stack_size Number of undo/redo entries */
