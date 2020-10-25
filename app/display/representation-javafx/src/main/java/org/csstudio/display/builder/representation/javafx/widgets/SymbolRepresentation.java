@@ -86,6 +86,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
     private static final double INDEX_LABEL_SIZE = 32.0;
 
     private int                                  arrayIndex             = 0;
+    private boolean                              defaultSymbolVisible   = false;
     private volatile boolean                     autoSize               = false;
     private Symbol                               symbol;
     private final Symbol                         defaultSymbol;
@@ -380,7 +381,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
             }
 
-            value = model_widget.propShowIndex().getValue();
+            value = model_widget.propShowIndex().getValue() || defaultSymbolVisible;
 
             if ( !Objects.equals(value, indexLabel.isVisible()) ) {
                 indexLabel.setVisible((boolean) value);
@@ -609,8 +610,21 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         Image image = symbol.getImage();
 
         if ( image == null ) {
-            return setDefault ? getDefaultSymbolNode() : imageView;
+            if (!setDefault)
+                return imageView;
+
+            if (!defaultSymbolVisible) {
+                defaultSymbolVisible = true;
+                dirtyStyle.mark();
+            }
+
+            return getDefaultSymbolNode();
         } else {
+
+            if (defaultSymbolVisible) {
+                defaultSymbolVisible = false;
+                dirtyStyle.mark();
+            }
 
             imageView.setImage(image);
 
