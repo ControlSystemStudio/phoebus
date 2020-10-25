@@ -215,6 +215,14 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         symbols.set(null);
     }
 
+    private void setArrayIndex ( ) {
+        Object value = model_widget.propArrayIndex().getValue();
+
+        if ( !Objects.equals(value, arrayIndex) ) {
+            arrayIndex = Math.max(0, (int) value);
+        }
+    }
+
     @Override
     public void updateChanges ( ) {
 
@@ -225,11 +233,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         //  Must be the first "if" statement to be executed, because it select the array index for the value.
         if ( dirtyContent.checkAndClear() ) {
 
-            value = model_widget.propArrayIndex().getValue();
-
-            if ( !Objects.equals(value, arrayIndex) ) {
-                arrayIndex = Math.max(0, (int) value);
-            }
+            setArrayIndex();
 
             dirtyValue.mark();
 
@@ -413,9 +417,10 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         WidgetColor rect_color = WidgetColorService.getColor(NamedWidgetColors.ALARM_INVALID);
         WidgetColor arect_color = new WidgetColor(rect_color.getRed(), rect_color.getGreen(), rect_color.getBlue(), 128);
         disconnectedRectangle.setFill(JFXUtil.convert(arect_color));
-        disconnectedRectangle.setVisible(false);
+        if (toolkit.isEditMode())
+            disconnectedRectangle.setVisible(false);
 
-        symbolPane.getChildren().addAll(getSymbolNode(), indexLabelBackground, indexLabel, disconnectedRectangle);
+        symbolPane.getChildren().addAll(getSymbolNode(false), indexLabelBackground, indexLabel, disconnectedRectangle);
 
         if ( model_widget.propTransparent().getValue() ) {
             symbolPane.setBackground(null);
@@ -425,9 +430,15 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
         enabled = model_widget.propEnabled().getValue();
 
+        // Set array index here so that we can clear dirtyContent --> dirtyContent sets dirtyValue and we don't want that
+        setArrayIndex();
+        dirtyContent.checkAndClear();
+
         Styles.update(symbolPane, Styles.NOT_ENABLED, !enabled);
 
-        initialIndexChanged(null, null, null);
+        // Clear dirtyValue, we have nothing to show yet
+        dirtyValue.checkAndClear();
+
         symbolChanged(null, null, null);
 
         return symbolPane;
@@ -461,13 +472,8 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         model_widget.propShowIndex().addUntypedPropertyListener(styleListener);
         model_widget.propTransparent().addUntypedPropertyListener(styleListener);
 
-        if (toolkit.isEditMode())
-            dirtyValue.checkAndClear();
-        else
-        {
+        if (!toolkit.isEditMode())
             model_widget.runtimePropValue().addPropertyListener(valueListener);
-            valueChanged(null, null, null);
-        }
     }
 
     @Override
@@ -598,12 +604,12 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         return defaultSymbolNode;
     }
 
-    Node getSymbolNode ( ) {
+    Node getSymbolNode ( boolean setDefault ) {
 
         Image image = symbol.getImage();
 
         if ( image == null ) {
-            return getDefaultSymbolNode();
+            return setDefault ? getDefaultSymbolNode() : imageView;
         } else {
 
             imageView.setImage(image);
