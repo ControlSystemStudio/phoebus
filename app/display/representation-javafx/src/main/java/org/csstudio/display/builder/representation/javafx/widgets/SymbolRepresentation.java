@@ -122,29 +122,6 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         return imageIndex;
     }
 
-    private void setImageIndex ( int imageIndex ) {
-
-        int oldIndex = getImageIndex();
-        List<Symbol> symbolsList = symbols.get();
-
-        if ( imageIndex < 0 || symbolsList.isEmpty() ) {
-            symbol = getDefaultSymbol();
-        } else {
-            symbol = symbolsList.get(Math.min(imageIndex, symbolsList.size() - 1));
-        }
-
-        if ( oldIndex != imageIndex ) {
-            dirtyGeometry.mark();
-            toolkit.scheduleUpdate(SymbolRepresentation.this);
-        }
-
-        toolkit.execute(() -> {
-            this.imageIndex.set(imageIndex);
-            jfx_node.getChildren().set(0, getSymbolNode());
-        });
-
-    }
-
     /**
      * Compute the maximum width and height of the given {@code widget} based on
      * the its set of symbol images.
@@ -303,16 +280,34 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
                     }
                 } else if (! toolkit.isEditMode()) {
                     disconnectedRectangle.setVisible(true);
+                } else {
+                    idx = model_widget.propInitialIndex().getValue();
                 }
 
             } finally {
                 updatingValue.set(false);
             }
 
-            if ( idx != Integer.MIN_VALUE ) {
-                // Valid value.
-                setImageIndex(idx);
+            List<Symbol> symbolsList = symbols.get();
+            int oldIndex = getImageIndex();
+
+            if ( idx == Integer.MIN_VALUE ) {
+                // Keep current index
+                idx = Math.min(Math.max(oldIndex, 0), symbolsList.size() - 1);
             }
+
+            if ( idx < 0 || symbolsList.isEmpty() ) {
+                symbol = getDefaultSymbol();
+            } else {
+                symbol = symbolsList.get(Math.min(idx, symbolsList.size() - 1));
+            }
+
+            if ( oldIndex != idx ) {
+                dirtyGeometry.mark();
+            }
+
+            imageIndex.set(idx);
+            jfx_node.getChildren().set(0, getSymbolNode(true));
 
         }
 
@@ -665,7 +660,6 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         List<Symbol> symbolsList = new ArrayList<>(fileNames.size());
         Map<String, Symbol> symbolsMap = new HashMap<>(fileNames.size());
         Map<String, Symbol> currentSymbolsMap = symbols.get().stream().distinct().collect(Collectors.toMap(Symbol::getFileName, sc -> sc));
-        int currentIndex = getImageIndex();
 
         try {
 
@@ -696,17 +690,12 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
         } finally {
 
-            int newImageIndex = Math.min(Math.max(currentIndex, 0), symbolsList.size() - 1);
-
             maxSize = new Dimension2D(
                 symbolsList.stream().mapToDouble(Symbol::getOriginalWidth).max().orElse(0.0),
                 symbolsList.stream().mapToDouble(Symbol::getOriginalHeight).max().orElse(0.0)
             );
 
             symbols.set(symbolsList);
-
-            setImageIndex(-1);
-            setImageIndex(newImageIndex);
 
             dirtyGeometry.mark();
             dirtyValue.mark();
