@@ -19,10 +19,10 @@ package org.phoebus.applications.saveandrestore;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
+import org.epics.vtype.gson.GsonMessageBodyHandler;
 import org.phoebus.applications.saveandrestore.data.DataProvider;
 import org.phoebus.applications.saveandrestore.data.providers.jmasar.JMasarDataProvider;
 import org.phoebus.applications.saveandrestore.data.providers.jmasar.JMasarJerseyClient;
@@ -38,7 +38,6 @@ import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotController;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.pv.PVFactory;
-import org.phoebus.pv.ca.JCA_PVFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -178,7 +177,7 @@ public class AppConfig {
         DefaultClientConfig defaultClientConfig = new DefaultClientConfig();
         defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_READ_TIMEOUT, readTimeout);
         defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, connectTimeout);
-        defaultClientConfig.getClasses().add(JacksonJsonProvider.class);
+        defaultClientConfig.getClasses().add(GsonMessageBodyHandler.class);
         return Client.create(defaultClientConfig);
     }
 
