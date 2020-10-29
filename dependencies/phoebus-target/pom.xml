@@ -109,11 +109,11 @@
     </dependency>
 
     <!--  Includes
-          jca-2.4.2.jar
-          epics-util-1.0.0.jar
-          epics-pvdata-6.1.2.jar
-          epics-pvaccess-5.1.2.jar
-          epics-ntypes-0.3.2.jar
+          jca-2.4.6.jar
+          epics-util-1.0.4.jar
+          epics-pvdata-6.1.6.jar
+          epics-pvaccess-5.1.6.jar
+          epics-ntypes-0.3.6.jar
      -->
     <dependency>
       <groupId>org.epics</groupId>

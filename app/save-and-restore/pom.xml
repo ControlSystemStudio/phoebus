@@ -8,7 +8,7 @@
     <version>4.6.4-SNAPSHOT</version>
   </parent>
   <properties>
-    <gpclient.version>1.0.4</gpclient.version>
+    <gpclient.version>1.0.5</gpclient.version>
   </properties>
   <modules>
     <module>model</module>
