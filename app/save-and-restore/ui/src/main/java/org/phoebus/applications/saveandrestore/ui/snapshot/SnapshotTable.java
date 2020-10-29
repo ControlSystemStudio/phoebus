@@ -18,7 +18,6 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -43,6 +42,7 @@ import org.epics.vtype.Time;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
@@ -118,8 +118,6 @@ class SnapshotTable extends TableView<TableEntry> {
      * @param <T> {@link org.epics.vtype.VType} or {@link org.phoebus.applications.saveandrestore.ui.model.VTypePair}
      */
     private static class VTypeCellEditor<T> extends MultitypeTableCell<TableEntry, T> {
-        private static final Image WARNING_IMAGE = new Image(
-            SnapshotController.class.getResourceAsStream("/icons/hprio_tsk.png"));
         private static final Image DISCONNECTED_IMAGE = new Image(
                 SnapshotController.class.getResourceAsStream("/icons/showerr_tsk.png"));
         private final Tooltip tooltip = new Tooltip();
@@ -137,16 +135,17 @@ class SnapshotTable extends TableView<TableEntry> {
                         return ((VNumberArray) item).getData().toString();
                     } else if (item instanceof VEnum) {
                         return ((VEnum) item).getValue();
-                    } else if (item instanceof VTypePair) {
+                    }
+                    else if (item instanceof VTypePair) {
                         VType value = ((VTypePair) item).value;
-
                         if (value instanceof VNumber) {
                             return ((VNumber) value).getValue().toString();
                         } else if (value instanceof VNumberArray) {
                             return ((VNumberArray) value).getData().toString();
                         } else if (value instanceof VEnum) {
                             return ((VEnum) value).getValue();
-                        } else {
+                        }
+                        else {
                             return value.toString();
                         }
                     } else {
@@ -176,8 +175,6 @@ class SnapshotTable extends TableView<TableEntry> {
                             return item;
                         }
                     } catch (IllegalArgumentException e) {
-//                        FXMessageDialog.openError(controller.getSnapshotReceiver().getShell(), "Editing Error",
-//                            e.getMessage());
                         return item;
                     }
                 }
@@ -381,9 +378,7 @@ class SnapshotTable extends TableView<TableEntry> {
                 setPrefWidth(prefWidth);
             }
             setResizable(resizable);
-//            setOnEditStart(e -> controller.suspend());
-//            setOnEditCancel(e -> controller.resume());
-//            setOnEditCommit(e -> controller.resume());
+
             this.text = text;
         }
 
@@ -789,32 +784,26 @@ class SnapshotTable extends TableView<TableEntry> {
 
             snapshotName = snapshots.get(snapshotIndex).getSnapshot().get().getName() + " (" +
                     String.valueOf(snapshots.get(snapshotIndex)) + ")";
-//            final ContextMenu menu = createContextMenu(snapshotIndex);
+
 
             TooltipTableColumn<VTypePair> baseSnapshotCol = new TooltipTableColumn<>(snapshotName,
                     "Setpoint PV value when the " + snapshotName + " snapshot was taken", 100);
-//            baseSnapshotCol.label.setContextMenu(menu);
             baseSnapshotCol.getStyleClass().add("second-level");
 
             TooltipTableColumn<VTypePair> setpointValueCol = new TooltipTableColumn<>(
                     "Setpoint",
                     "Setpoint PV value when the " + snapshotName + " snapshot was taken", 66);
 
-//            setpointValueCol.label.setContextMenu(menu);
+
             setpointValueCol.setCellValueFactory(e -> e.getValue().compareValueProperty(snapshotIndex));
             setpointValueCol.setCellFactory(e -> new VTypeCellEditor<>());
             setpointValueCol.setEditable(false);
-//            setpointValueCol.label.setOnMouseReleased(e -> {
-//                if (e.getButton() == MouseButton.SECONDARY) {
-//                    menu.show(setpointValueCol.label, e.getScreenX(), e.getScreenY());
-//                }
-//            });
+
             baseSnapshotCol.getColumns().add(setpointValueCol);
 
             TooltipTableColumn<VTypePair> deltaCol = new TooltipTableColumn<>(
                  Utilities.DELTA_CHAR + " Base Setpoint",
                 "Setpoint PVV value when the " + snapshotName + " snapshot was taken", 50);
-//            deltaCol.label.setContextMenu(menu);
             deltaCol.setCellValueFactory(e -> e.getValue().compareValueProperty(snapshotIndex));
             deltaCol.setCellFactory(e -> {
                 VDeltaCellEditor vDeltaCellEditor = new VDeltaCellEditor<>();
@@ -825,11 +814,7 @@ class SnapshotTable extends TableView<TableEntry> {
                 return vDeltaCellEditor;
             });
             deltaCol.setEditable(false);
-//            deltaCol.label.setOnMouseReleased(e -> {
-//                if (e.getButton() == MouseButton.SECONDARY) {
-//                    menu.show(deltaCol.label, e.getScreenX(), e.getScreenY());
-//                }
-//            });
+
             deltaCol.setComparator((pair1, pair2) -> {
                 Utilities.VTypeComparison vtc1 = Utilities.valueToCompareString(pair1.value, pair1.base, pair1.threshold);
                 Utilities.VTypeComparison vtc2 = Utilities.valueToCompareString(pair2.value, pair2.base, pair2.threshold);
@@ -857,27 +842,6 @@ class SnapshotTable extends TableView<TableEntry> {
 
         getColumns().addAll(list);
     }
-
-    private ContextMenu createContextMenu(final int snapshotIndex) {
-        MenuItem removeItem = new MenuItem("Remove");
-//        removeItem.setOnAction(ev -> SaveAndRestoreService.getInstance().execute("Remove Snapshot",
-//            () -> update(controller.removeSnapshot(snapshotIndex))));
-        MenuItem setAsBaseItem = new MenuItem("Set As Base");
-//        setAsBaseItem.setOnAction(ev -> SaveAndRestoreService.getInstance().execute("Set new base Snapshot",
-//            () -> update(controller.setAsBase(snapshotIndex))));
-        MenuItem moveToNewEditor = new MenuItem("Move To New Editor");
-//        moveToNewEditor.setOnAction(ev -> SaveAndRestoreService.getInstance().execute("Open Snapshot",
-//            () -> update(controller.moveSnapshotToNewEditor(snapshotIndex))));
-        return new ContextMenu(removeItem, setAsBaseItem, new SeparatorMenuItem(), moveToNewEditor);
-    }
-
-//    private void update(final List<TableEntry> entries) {
-//        final List<Snapshot> snaps = controller.getAllSnapshots();
-//        // the readback properties are changed on the UI thread, however they are just flags, which do not have any
-//        // effect on the data model, so they can be read by anyone at anytime
-//        Platform.runLater(
-//            () -> updateTable(entries, snaps, controller.isShowReadbacks(), controller.isShowStoredReadbacks()));
-//    }
 
     /**
      * Updates the table by setting new content, including the structure. The table is always recreated, even if the new

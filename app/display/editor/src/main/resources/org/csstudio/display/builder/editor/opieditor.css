@@ -169,3 +169,11 @@
 	-fx-content-display: graphic-only;
 	-fx-snap-to-pixel: false
 }
+
+.widget_pane_unfocused{
+    -fx-border-color: #F4F4F4;
+}
+
+.widget_pane_focused{
+    -fx-border-color: #00A0D8;
+}

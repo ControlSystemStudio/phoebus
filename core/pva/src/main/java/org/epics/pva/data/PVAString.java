@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -24,7 +24,10 @@ public class PVAString extends PVAData
      */
     public static int getEncodedSize(final String string)
     {
-        final int len = string.length();
+        if (string == null)
+            return PVASize.size(-1);
+
+        final int len = string.getBytes().length;
         return PVASize.size(len) + len;
     }
 
@@ -37,8 +40,9 @@ public class PVAString extends PVAData
             PVASize.encodeSize(-1, buffer);
         else
         {
-            PVASize.encodeSize(string.length(), buffer);
-            buffer.put(string.getBytes());
+            final byte[] bytes = string.getBytes();
+            PVASize.encodeSize(bytes.length, buffer);
+            buffer.put(bytes);
         }
     }
 
@@ -167,6 +171,6 @@ public class PVAString extends PVAData
         if (! (obj instanceof PVAString))
             return false;
         final PVAString other = (PVAString) obj;
-        return other.value.equals(value);
+        return Objects.equals(other.value, value);
     }
 }

@@ -25,6 +25,13 @@ public class UndoableActionManager
     private final SizeLimitedStack<UndoableAction> redoStack;
     private final List<UndoRedoListener> listeners = new CopyOnWriteArrayList<>();
 
+    /**
+     * Keeps track of changes when actions are put on the undo stack and redo stack.
+     * This can be used to determine if a resource has changes even if the
+     * undo stack is empty.
+     */
+    private int changeCount;
+
     /** @param stack_size Number of undo/redo entries */
     public UndoableActionManager(final int stack_size)
     {
@@ -74,6 +81,7 @@ public class UndoableActionManager
     /** @param action Action that has already been performed, which can be un-done */
     public void add(final UndoableAction action)
     {
+        changeCount++;
         undoStack.push(action);
         redoStack.clear();
         fireOperationsHistoryChanged();
@@ -89,6 +97,7 @@ public class UndoableActionManager
         final UndoableAction action = undoStack.pop();
         try
         {
+            changeCount--;
             logger.log(Level.FINE, "Undo {0}", action);
             action.undo();
         }
@@ -109,6 +118,7 @@ public class UndoableActionManager
     {
         if (redoStack.isEmpty())
             return null;
+        changeCount++;
         final UndoableAction action = redoStack.pop();
         logger.log(Level.FINE, "Redo {0}", action);
         action.run();
@@ -122,6 +132,7 @@ public class UndoableActionManager
     {
         undoStack.clear();
         redoStack.clear();
+        changeCount = 0;
         fireOperationsHistoryChanged();
     }
 
@@ -130,7 +141,7 @@ public class UndoableActionManager
         final String to_undo = undoStack.isEmpty() ? null : undoStack.peek().toString();
         final String to_redo = redoStack.isEmpty() ? null : redoStack.peek().toString();
         for (final UndoRedoListener listener : listeners)
-            listener.operationsHistoryChanged(to_undo, to_redo);
+            listener.operationsHistoryChanged(to_undo, to_redo, changeCount);
     }
 
     /**

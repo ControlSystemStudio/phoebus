@@ -59,7 +59,7 @@ public class ScanEditorInstance  implements AppInstance
 
         DockPane.getActiveDockPane().addTab(tab);
 
-        editor.getUndo().addListener((undo, redo) ->  tab.setDirty(undo != null));
+        editor.getUndo().addListener((undo, redo, changeCount) ->  tab.setDirty(undo != null || changeCount > 0));
     }
 
     @Override

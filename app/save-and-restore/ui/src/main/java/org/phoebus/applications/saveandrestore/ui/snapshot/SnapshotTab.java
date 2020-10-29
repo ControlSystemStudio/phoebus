@@ -55,34 +55,28 @@ public class SnapshotTab extends Tab {
         }
 
         SpringFxmlLoader springFxmlLoader = new SpringFxmlLoader();
-        try {
 
-            VBox borderPane = (VBox)springFxmlLoader.load("ui/snapshot/SnapshotEditor.fxml");
-            setContent(borderPane);
+        VBox borderPane = (VBox)springFxmlLoader.load("ui/snapshot/SnapshotEditor.fxml");
+        setContent(borderPane);
 
-            regularImage = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/snapshot.png");
-            goldenImage = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/snapshot-golden.png");
+        regularImage = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/snapshot.png");
+        goldenImage = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/snapshot-golden.png");
 
-            HBox container = new HBox();
-            ImageView imageView = new ImageView();
-            imageView.imageProperty().bind(tabGraphicImageProperty);
-            Label label = new Label("");
-            label.textProperty().bind(tabTitleProperty);
-            HBox.setMargin(label, new Insets(1, 0, 0,5));
-            container.getChildren().addAll(imageView, label);
+        HBox container = new HBox();
+        ImageView imageView = new ImageView();
+        imageView.imageProperty().bind(tabGraphicImageProperty);
+        Label label = new Label("");
+        label.textProperty().bind(tabTitleProperty);
+        HBox.setMargin(label, new Insets(1, 0, 0,5));
+        container.getChildren().addAll(imageView, label);
 
-            setGraphic(container);
+        setGraphic(container);
 
-            snapshotController = springFxmlLoader.getLoader().getController();
-            snapshotController.setSnapshotTab(this);
-            tabTitleProperty.set(node.getNodeType().equals(NodeType.SNAPSHOT) ? node.getName() : Messages.unnamedSnapshot);
+        snapshotController = springFxmlLoader.getLoader().getController();
+        snapshotController.setSnapshotTab(this);
+        tabTitleProperty.set(node.getNodeType().equals(NodeType.SNAPSHOT) ? node.getName() : Messages.unnamedSnapshot);
 
-            tabGraphicImageProperty.set(Boolean.parseBoolean(node.getProperty("golden")) ? goldenImage : regularImage);
-
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        tabGraphicImageProperty.set(Boolean.parseBoolean(node.getProperty("golden")) ? goldenImage : regularImage);
 
         setOnCloseRequest(event -> {
             if(!snapshotController.handleSnapshotTabClosed()){

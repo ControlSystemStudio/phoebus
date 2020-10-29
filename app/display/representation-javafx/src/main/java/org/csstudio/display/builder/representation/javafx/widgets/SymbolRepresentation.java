@@ -86,6 +86,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
     private static final double INDEX_LABEL_SIZE = 32.0;
 
     private int                                  arrayIndex             = 0;
+    private boolean                              defaultSymbolVisible   = false;
     private volatile boolean                     autoSize               = false;
     private Symbol                               symbol;
     private final Symbol                         defaultSymbol;
@@ -120,29 +121,6 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
     private IntegerProperty imageIndexProperty ( ) {
         return imageIndex;
-    }
-
-    private void setImageIndex ( int imageIndex ) {
-
-        int oldIndex = getImageIndex();
-        List<Symbol> symbolsList = symbols.get();
-
-        if ( imageIndex < 0 || symbolsList.isEmpty() ) {
-            symbol = getDefaultSymbol();
-        } else {
-            symbol = symbolsList.get(Math.min(imageIndex, symbolsList.size() - 1));
-        }
-
-        if ( oldIndex != imageIndex ) {
-            dirtyGeometry.mark();
-            toolkit.scheduleUpdate(SymbolRepresentation.this);
-        }
-
-        toolkit.execute(() -> {
-            this.imageIndex.set(imageIndex);
-            jfx_node.getChildren().set(0, getSymbolNode());
-        });
-
     }
 
     /**
@@ -238,6 +216,14 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         symbols.set(null);
     }
 
+    private void setArrayIndex ( ) {
+        Object value = model_widget.propArrayIndex().getValue();
+
+        if ( !Objects.equals(value, arrayIndex) ) {
+            arrayIndex = Math.max(0, (int) value);
+        }
+    }
+
     @Override
     public void updateChanges ( ) {
 
@@ -248,11 +234,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         //  Must be the first "if" statement to be executed, because it select the array index for the value.
         if ( dirtyContent.checkAndClear() ) {
 
-            value = model_widget.propArrayIndex().getValue();
-
-            if ( !Objects.equals(value, arrayIndex) ) {
-                arrayIndex = Math.max(0, (int) value);
-            }
+            setArrayIndex();
 
             dirtyValue.mark();
 
@@ -303,16 +285,34 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
                     }
                 } else if (! toolkit.isEditMode()) {
                     disconnectedRectangle.setVisible(true);
+                } else {
+                    idx = model_widget.propInitialIndex().getValue();
                 }
 
             } finally {
                 updatingValue.set(false);
             }
 
-            if ( idx != Integer.MIN_VALUE ) {
-                // Valid value.
-                setImageIndex(idx);
+            List<Symbol> symbolsList = symbols.get();
+            int oldIndex = getImageIndex();
+
+            if ( idx == Integer.MIN_VALUE ) {
+                // Keep current index
+                idx = Math.min(Math.max(oldIndex, 0), symbolsList.size() - 1);
             }
+
+            if ( idx < 0 || symbolsList.isEmpty() ) {
+                symbol = getDefaultSymbol();
+            } else {
+                symbol = symbolsList.get(Math.min(idx, symbolsList.size() - 1));
+            }
+
+            if ( oldIndex != idx ) {
+                dirtyGeometry.mark();
+            }
+
+            imageIndex.set(idx);
+            jfx_node.getChildren().set(0, getSymbolNode(true));
 
         }
 
@@ -381,7 +381,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
             }
 
-            value = model_widget.propShowIndex().getValue();
+            value = model_widget.propShowIndex().getValue() || defaultSymbolVisible;
 
             if ( !Objects.equals(value, indexLabel.isVisible()) ) {
                 indexLabel.setVisible((boolean) value);
@@ -418,9 +418,10 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         WidgetColor rect_color = WidgetColorService.getColor(NamedWidgetColors.ALARM_INVALID);
         WidgetColor arect_color = new WidgetColor(rect_color.getRed(), rect_color.getGreen(), rect_color.getBlue(), 128);
         disconnectedRectangle.setFill(JFXUtil.convert(arect_color));
-        disconnectedRectangle.setVisible(false);
+        if (toolkit.isEditMode())
+            disconnectedRectangle.setVisible(false);
 
-        symbolPane.getChildren().addAll(getSymbolNode(), indexLabelBackground, indexLabel, disconnectedRectangle);
+        symbolPane.getChildren().addAll(getSymbolNode(false), indexLabelBackground, indexLabel, disconnectedRectangle);
 
         if ( model_widget.propTransparent().getValue() ) {
             symbolPane.setBackground(null);
@@ -430,9 +431,15 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
         enabled = model_widget.propEnabled().getValue();
 
+        // Set array index here so that we can clear dirtyContent --> dirtyContent sets dirtyValue and we don't want that
+        setArrayIndex();
+        dirtyContent.checkAndClear();
+
         Styles.update(symbolPane, Styles.NOT_ENABLED, !enabled);
 
-        initialIndexChanged(null, null, null);
+        // Clear dirtyValue, we have nothing to show yet
+        dirtyValue.checkAndClear();
+
         symbolChanged(null, null, null);
 
         return symbolPane;
@@ -466,13 +473,8 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         model_widget.propShowIndex().addUntypedPropertyListener(styleListener);
         model_widget.propTransparent().addUntypedPropertyListener(styleListener);
 
-        if (toolkit.isEditMode())
-            dirtyValue.checkAndClear();
-        else
-        {
+        if (!toolkit.isEditMode())
             model_widget.runtimePropValue().addPropertyListener(valueListener);
-            valueChanged(null, null, null);
-        }
     }
 
     @Override
@@ -603,13 +605,26 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         return defaultSymbolNode;
     }
 
-    Node getSymbolNode ( ) {
+    Node getSymbolNode ( boolean setDefault ) {
 
         Image image = symbol.getImage();
 
         if ( image == null ) {
+            if (!setDefault)
+                return imageView;
+
+            if (!defaultSymbolVisible) {
+                defaultSymbolVisible = true;
+                dirtyStyle.mark();
+            }
+
             return getDefaultSymbolNode();
         } else {
+
+            if (defaultSymbolVisible) {
+                defaultSymbolVisible = false;
+                dirtyStyle.mark();
+            }
 
             imageView.setImage(image);
 
@@ -665,7 +680,6 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         List<Symbol> symbolsList = new ArrayList<>(fileNames.size());
         Map<String, Symbol> symbolsMap = new HashMap<>(fileNames.size());
         Map<String, Symbol> currentSymbolsMap = symbols.get().stream().distinct().collect(Collectors.toMap(Symbol::getFileName, sc -> sc));
-        int currentIndex = getImageIndex();
 
         try {
 
@@ -696,17 +710,12 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
         } finally {
 
-            int newImageIndex = Math.min(Math.max(currentIndex, 0), symbolsList.size() - 1);
-
             maxSize = new Dimension2D(
                 symbolsList.stream().mapToDouble(Symbol::getOriginalWidth).max().orElse(0.0),
                 symbolsList.stream().mapToDouble(Symbol::getOriginalHeight).max().orElse(0.0)
             );
 
             symbols.set(symbolsList);
-
-            setImageIndex(-1);
-            setImageIndex(newImageIndex);
 
             dirtyGeometry.mark();
             dirtyValue.mark();
