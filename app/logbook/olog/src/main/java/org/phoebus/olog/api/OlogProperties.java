@@ -8,7 +8,7 @@ public class OlogProperties {
 
     OlogProperties() {
 
-        prefs = new PreferencesReader(OlogProperties.class, "/olog.properties");
+        prefs = new PreferencesReader(OlogProperties.class, "/olog_preferences.properties");
     }
 
     /**
