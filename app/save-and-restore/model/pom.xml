@@ -36,6 +36,12 @@
 			<version>${vtype.version}</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.epics</groupId>
+			<artifactId>vtype-gson</artifactId>
+			<version>${vtype.version}</version>
+		</dependency>
+
 		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
