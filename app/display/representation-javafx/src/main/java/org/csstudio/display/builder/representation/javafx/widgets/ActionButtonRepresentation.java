@@ -118,6 +118,14 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     /** @param event Mouse event to check for target modifier keys */
     private void checkModifiers(final MouseEvent event)
     {
+        if (! enabled)
+        {
+            // Do not let the user click a disabled button
+            event.consume();
+            base.disarm();
+            return;
+        }
+
         // 'control' ('command' on Mac OS X)
         if (event.isShortcutDown())
             target_modifier = Optional.of(OpenDisplayActionInfo.Target.TAB);
@@ -198,12 +206,11 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
 
         // Monitor keys that modify the OpenDisplayActionInfo.Target.
         // Use filter to capture event that's otherwise already handled.
-        result.addEventFilter(MouseEvent.MOUSE_PRESSED, this::checkModifiers);
+        if (! toolkit.isEditMode())
+            result.addEventFilter(MouseEvent.MOUSE_PRESSED, this::checkModifiers);
 
         // Need to attach TT to the specific button, not the common jfx_node Pane
         TooltipSupport.attach(result, model_widget.propTooltip());
-
-        result.setCursor(Cursor.HAND);
 
         return result;
     }
@@ -290,6 +297,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     /** @param action Action that the user invoked */
     private void handleAction(ActionInfo action)
     {
+        // Keyboard presses are not supressed so check if the widget is enabled
         if (! enabled)
             return;
         logger.log(Level.FINE, "{0} pressed", model_widget);
@@ -454,9 +462,11 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         }
         if (dirty_enablement.checkAndClear())
         {
-            base.setDisable(! enabled);
+            // Don't disable the widget, because that would also remove the
+            // tooltip
+            // Just apply a style that matches the disabled look.
             Styles.update(base, Styles.NOT_ENABLED, !enabled);
-            jfx_node.setCursor(enabled ? Cursor.DEFAULT : Cursors.NO_WRITE);
+            base.setCursor(enabled ? Cursor.HAND : Cursors.NO_WRITE);
         }
     }
 }
