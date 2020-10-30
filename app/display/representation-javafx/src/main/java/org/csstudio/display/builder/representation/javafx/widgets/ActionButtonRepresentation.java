@@ -284,7 +284,12 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
             if (actions.size() < 1)
                 return Messages.ActionButton_NoActions;
             if (actions.size() > 1)
+            {
+                if (model_widget.propActions().getValue().isExecutedAsOne())
+                    return MessageFormat.format(Messages.ActionButton_N_ActionsAsOneFmt, actions.size());
+
                 return MessageFormat.format(Messages.ActionButton_N_ActionsFmt, actions.size());
+            }
             return makeActionText(actions.get(0));
         }
         else

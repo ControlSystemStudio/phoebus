@@ -15,6 +15,7 @@ import org.phoebus.framework.nls.NLS;
 public class Messages
 {
     // Keep in alphabetical order, synchronized with messages.properties
+    public static String ActionButton_N_ActionsAsOneFmt;
     public static String ActionButton_N_ActionsFmt;
     public static String ActionButton_NoActions;
     public static String ActionsDialog_Actions;
