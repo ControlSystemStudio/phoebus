@@ -385,30 +385,6 @@ public class EditorGUI
         // Handle copy/paste/...
         layout.addEventFilter(KeyEvent.KEY_PRESSED, key_handler);
 
-        // We used to request keyboard focus when mouse enters,
-        // to allow copy/paste between two windows.
-        // Without this filter, user first needs to select some widget in the 'other'
-        // before 'paste' is possible in the 'other' window.
-        //   layout.addEventFilter(MouseEvent.MOUSE_ENTERED, event -> layout.requestFocus());
-        // The side effect, however, is that this breaks the natural focus handling:
-        // Use edits some property, for example a Label's text.
-        // Mouse moves by accident out and back into the window
-        // -> Focus now on 'layout', and that means the next Delete or Backspace
-        // meant to edit the text will instead delete the widget.
-        // https://github.com/kasemir/org.csstudio.display.builder/issues/486
-        // Using mouse-pressed works and is also quite natural:
-        // 1) Copy widgets in some other window
-        // 2) Click in layout to indicate paste position (and get focus)
-        // 3) Ctrl-V or context menu to paste
-        layout.addEventFilter(MouseEvent.MOUSE_PRESSED, event ->
-        {
-            // Don't steal the focus from an active inline editor,
-            // since that would close/commit it,
-            // and not allow clicking into editor to set cursor
-            if (! this.editor.getSelectedWidgetUITracker().isInlineEditorActive())
-                layout.requestFocus();
-        });
-
         return layout;
     }
 
