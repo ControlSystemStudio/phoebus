@@ -17,6 +17,15 @@ Date:
 * Display Builder:
     * The symbol widget shows a semi-transparent rectangle with the color "INVALID" for disconnected PVs.
     * The LED widget shows the label when the PV is disconnected and both the "On" and "Off" labels are the same.
+* Statistics tab in Databrowser.
+* PV status column (value, invalid, disconnected etc) in PV List.
+* Number of undo/redo actions in display editor configurable (org.csstudio.display.builder.editor/undo_stack_size)
+* Save & Restore enhancements
+    * Set point may be edited prior to restore.
+    * Display filter in snapshot view.
+    * Integration with Channel Finder.
+    * Support for additional data types.
+    * Extended server API to enable use of "file paths".
 
 Release 4.6.3
 -------------
