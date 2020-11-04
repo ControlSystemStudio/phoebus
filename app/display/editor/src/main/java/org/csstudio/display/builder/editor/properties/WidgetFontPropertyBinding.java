@@ -39,25 +39,31 @@ public class WidgetFontPropertyBinding
     /** Update model from user input */
     private final EventHandler<ActionEvent> action_handler = event ->
     {
-        if (popover == null)
-            popover = new WidgetFontPopOver(widget_property, font ->
+        final WidgetFontPopOver previous = popover;
+        popover = null;
+        if (previous != null)
+        {
+            if (previous.isShowing())
             {
-                undo.execute(new SetWidgetPropertyAction<>(widget_property, font));
-                if (! other.isEmpty())
+                previous.hide();
+                return;
+            }
+        }
+        popover = new WidgetFontPopOver(widget_property, font ->
+        {
+            undo.execute(new SetWidgetPropertyAction<>(widget_property, font));
+            if (! other.isEmpty())
+            {
+                final String path = widget_property.getPath();
+                for (final Widget w : other)
                 {
-                    final String path = widget_property.getPath();
-                    for (final Widget w : other)
-                    {
-                        final FontWidgetProperty other_prop = (FontWidgetProperty) w.getProperty(path);
-                        undo.execute(new SetWidgetPropertyAction<>(other_prop, font));
-                    }
+                    final FontWidgetProperty other_prop = (FontWidgetProperty) w.getProperty(path);
+                    undo.execute(new SetWidgetPropertyAction<>(other_prop, font));
                 }
-            });
+            }
+        });
 
-        if (popover.isShowing())
-            popover.hide();
-        else
-            popover.show(jfx_node);
+        popover.show(jfx_node);
     };
 
     public WidgetFontPropertyBinding(final UndoableActionManager undo,
