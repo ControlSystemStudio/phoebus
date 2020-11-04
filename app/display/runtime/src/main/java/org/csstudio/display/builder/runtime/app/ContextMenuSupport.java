@@ -106,28 +106,33 @@ class ContextMenuSupport
         {
             if (info.getType() == ActionType.OPEN_DISPLAY)
             {
-                // Add variant for all the available Target types: Replace, new Tab, ...
                 final OpenDisplayActionInfo open_info = (OpenDisplayActionInfo) info;
+                // Expand macros in action description
+                String desc;
+                try
+                {
+                    desc = MacroHandler.replace(widget.getEffectiveMacros(), open_info.getDescription());
+                }
+                catch (Exception ex)
+                {
+                    logger.log(Level.WARNING, "Cannot expand macros in action description '" + open_info.getDescription() + "'", ex);
+                    desc = open_info.getDescription();
+                }
+
+                // Add the requested target as default
+                final Target requestedTarget = open_info.getTarget();
+                items.add(createMenuItem(widget,
+                               new OpenDisplayActionInfo(desc, open_info.getFile(),
+                                                         open_info.getMacros(), requestedTarget)));
+
+                // Add variant for all the available Target types: Replace, new Tab, ...
                 for (Target target : Target.values())
                 {
-                    if (target == Target.STANDALONE)
+                    if (target == Target.STANDALONE || target == requestedTarget)
                         continue;
-                    // Expand macros in action description
-                    String desc;
-                    try
-                    {
-                        desc = MacroHandler.replace(widget.getEffectiveMacros(), open_info.getDescription());
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.log(Level.WARNING, "Cannot expand macros in action description '" + open_info.getDescription() + "'", ex);
-                        desc = open_info.getDescription();
-                    }
-                    // Mention non-default targets
-                    if (target != Target.REPLACE)
-                        desc += " (" + target + ")";
+                    // Mention non-default targets in the description
                     items.add(createMenuItem(widget,
-                                   new OpenDisplayActionInfo(desc, open_info.getFile(),
+                                   new OpenDisplayActionInfo(desc + " (" + target + ")", open_info.getFile(),
                                                              open_info.getMacros(), target)));
                 }
             }
