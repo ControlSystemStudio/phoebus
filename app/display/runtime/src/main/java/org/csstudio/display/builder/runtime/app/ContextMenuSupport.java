@@ -249,6 +249,14 @@ class ContextMenuSupport
 
         final ImageView icon = new ImageView(new Image(info.getType().getIconURL().toExternalForm()));
         final MenuItem item = new MenuItem(desc, icon);
+
+        final Optional<WidgetProperty<Boolean>> enabled_prop = widget.checkProperty(CommonWidgetProperties.propEnabled);
+        if (enabled_prop.isPresent() && ! enabled_prop.get().getValue())
+        {
+            item.setDisable(true);
+            return item;
+        }
+
         item.setOnAction(event -> ActionUtil.handleAction(widget, info));
         return item;
     }
