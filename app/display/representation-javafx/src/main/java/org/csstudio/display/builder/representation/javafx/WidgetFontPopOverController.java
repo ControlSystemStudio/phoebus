@@ -173,9 +173,26 @@ public class WidgetFontPopOverController implements Initializable {
         //  Listeners to font change.
         fontProperty().addListener(( observable, oldValue, newValue ) -> {
 
-            if ( newValue instanceof NamedWidgetFont && !fontNamesUpdater.isUpdating() ) {
-                fontNames.getSelectionModel().select((NamedWidgetFont) newValue);
-                fontNames.scrollTo(fontNames.getSelectionModel().getSelectedItem());
+            if ( !fontNamesUpdater.isUpdating() ) {
+                NamedWidgetFont namedFont = null;
+                if ( newValue instanceof NamedWidgetFont)
+                    namedFont = (NamedWidgetFont) newValue;
+                else {
+                    // Try to find a named font for the currently selected family,style,size combination
+                    for (NamedWidgetFont font: namedFontsList) {
+                        if ( newValue.equals(font) ) {
+                            namedFont = font;
+                            break;
+                        }
+                    }
+                }
+
+                if ( namedFont != null ) {
+                    fontNames.getSelectionModel().select(namedFont);
+                    fontNames.scrollTo(fontNames.getSelectionModel().getSelectedItem());
+                } else
+                    // This font has no name, clear the name selection
+                    fontNames.getSelectionModel().clearSelection();
             }
 
             if ( !familiesUpdater.isUpdating() ) {
@@ -187,7 +204,9 @@ public class WidgetFontPopOverController implements Initializable {
                 styles.getSelectionModel().select(newValue.getStyle());
             }
 
-            sizes.getSelectionModel().select(newValue.getSize());
+            if ( !sizesUpdater.isUpdating()) {
+                sizes.getSelectionModel().select(newValue.getSize());
+            }
 
             preview.setFont(JFXUtil.convert(newValue));
 
