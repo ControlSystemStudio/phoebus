@@ -142,52 +142,52 @@
     <classpathentry exported="true" kind="lib" path="target/lib/commons-math3-3.6.1.jar"/>
 
     <!-- On Windows, need to add this:
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-14.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-14-win.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-14.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-14-win.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-14.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-14-win.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-14.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-14-win.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-14.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-14-win.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-14.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-14-win.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-14.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-14-win.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-15.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-15-win.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-15.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-15-win.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-15.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-15-win.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-15.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-15-win.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-15.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-15-win.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-15.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-15-win.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-15.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-15-win.jar"/>
     -->
     <!-- On Linux, need to add this:
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-14.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-14-linux.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-14.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-14-linux.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-14.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-14-linux.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-14.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-14-linux.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-14.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-14-linux.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-14.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-14-linux.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-14.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-14-linux.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-15.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-15-linux.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-15.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-15-linux.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-15.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-15-linux.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-15.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-15-linux.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-15.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-15-linux.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-15.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-15-linux.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-15.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-15-linux.jar"/>
     -->
     <!-- On Mac, need to add this:
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-14-mac.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-14.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-14-mac.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-14.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-14-mac.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-14.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-14-mac.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-14.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-14-mac.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-14.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-14-mac.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-14.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-14-mac.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-14.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-15-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-15.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-15-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-15.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-15-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-15.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-15-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-15.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-15-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-15.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-15-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-15.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-15-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-15.jar"/>
     -->
 
     <classpathentry kind="output" path="target/classes"/>
