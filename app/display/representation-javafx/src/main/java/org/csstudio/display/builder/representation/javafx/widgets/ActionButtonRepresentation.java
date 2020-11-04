@@ -238,6 +238,18 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         return result;
     }
 
+    /** Called by ContextMenuSupport when an action menu is selected */
+    public void handleContextMenuAction(ActionInfo action)
+    {
+        if (action instanceof WritePVActionInfo && ! writable)
+        {
+            logger.log(Level.FINE, "{0} ignoring WritePVActionInfo because of readonly PV", model_widget);
+            return;
+        }
+
+        confirm(() -> toolkit.fireAction(model_widget, action));
+    }
+
     private void confirm(final Runnable action)
     {
         Platform.runLater(() ->

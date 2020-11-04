@@ -23,7 +23,9 @@ import org.csstudio.display.builder.model.properties.ActionInfo.ActionType;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
 import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo.Target;
+import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.builder.representation.ToolkitListener;
+import org.csstudio.display.builder.representation.javafx.widgets.ActionButtonRepresentation;
 import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
 import org.csstudio.display.builder.runtime.ActionUtil;
 import org.csstudio.display.builder.runtime.Messages;
@@ -255,6 +257,16 @@ class ContextMenuSupport
         {
             item.setDisable(true);
             return item;
+        }
+
+        if (widget instanceof ActionButtonWidget)
+        {
+            ActionButtonRepresentation button = (ActionButtonRepresentation)widget.getUserData(Widget.USER_DATA_REPRESENTATION);
+            if (button != null)
+            {
+                item.setOnAction(event -> button.handleContextMenuAction(info));
+                return item;
+            }
         }
 
         item.setOnAction(event -> ActionUtil.handleAction(widget, info));
