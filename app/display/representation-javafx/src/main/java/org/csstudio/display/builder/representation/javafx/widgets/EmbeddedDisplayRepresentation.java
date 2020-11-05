@@ -197,6 +197,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
         {
             final int content_width = content_model.propWidth().getValue();
             final int content_height = content_model.propHeight().getValue();
+            zoom_factor_x = zoom_factor_y = 1.0;
             if (resize == Resize.ResizeContent)
             {
                 final double zoom_x = content_width  > 0 ? (double) widget_width  / content_width : 1.0;
@@ -205,7 +206,6 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
             }
             else if (resize == Resize.SizeToContent)
             {
-                zoom_factor_x = zoom_factor_y = 1.0;
                 resizing = true;
                 if (content_width > 0)
                     model_widget.propWidth().setValue(content_width);
@@ -322,6 +322,11 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
         try
         {
             sizesChanged(null, null, null);
+
+            // Set the zoom factor here so that content_model is represented with the correct size
+            zoom.setX(zoom_factor_x);
+            zoom.setY(zoom_factor_y);
+
             toolkit.representModel(inner, content_model);
             backgroundChanged(null, null, null);
         }
@@ -387,29 +392,18 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
             else
                 jfx_node.setClip(null);
 
+            zoom.setX(zoom_factor_x);
+            zoom.setY(zoom_factor_y);
+
             if (resize == Resize.None)
             {
                 // Need a scroll pane (which disables itself as needed)
                 jfx_node.getChildren().setAll(scroll);
                 scroll.setContent(inner);
-
-                zoom.setX(1.0);
-                zoom.setY(1.0);
             }
             else
             {   // Don't use a scroll pane
                 jfx_node.getChildren().setAll(inner);
-
-                if (resize == Resize.ResizeContent  ||  resize == Resize.StretchContent )
-                {
-                    zoom.setX(zoom_factor_x);
-                    zoom.setY(zoom_factor_y);
-                }
-                else // Resize.Crop, SizeToContent
-                {
-                    zoom.setX(1.0);
-                    zoom.setY(1.0);
-                }
             }
         }
         if (dirty_background.checkAndClear())
