@@ -3,14 +3,26 @@ package org.phoebus.pv.alarm;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.EnumDisplay;
 import org.epics.vtype.Time;
 import org.epics.vtype.VBoolean;
+import org.epics.vtype.VEnum;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
+import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.BasicState;
+import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.pv.PV;
+import org.phoebus.util.time.TimestampFormats;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.phoebus.pv.alarm.AlarmPVInfo.*;
 
 /**
  * A Connection to a node of leaf of the phoebus alarm tree
@@ -38,11 +50,17 @@ public class AlarmPV extends PV
             notifyListenersOfDisconnect();
         }
         else {
-            // Process alarm
-            VString alarm = VString.of(item.toString(),
-                    processState(item.getState()),
-                    Time.now());
-            notifyListenersOfValue(alarm);
+            // Process alarm fields if they are present
+            if (info.getField().isPresent())
+            {
+                notifyListenersOfValue(processField(info, item));
+            }
+            else {
+                VString alarm = VString.of(item.toString(),
+                        processState(item.getState()),
+                        Time.now());
+                notifyListenersOfValue(alarm);
+            }
         }
     }
 
@@ -111,6 +129,34 @@ public class AlarmPV extends PV
         else
         {
             return Alarm.of(AlarmSeverity.NONE, AlarmStatus.UNDEFINED, state.toString());
+        }
+    }
+
+    private static EnumDisplay alarmLabels = EnumDisplay.of(List.of(SeverityLevel.values()).stream().map(SeverityLevel::toString).collect(Collectors.toList()));
+
+    private static VType processField(AlarmPVInfo alarmPVInfo, AlarmTreeItem item)
+    {
+        switch (alarmPVInfo.getField().get())
+        {
+            case activeField:
+                return VBoolean.of(item.getState().severity.isActive(), processState(item.getState()), Time.now());
+            case stateField:
+                return VEnum.of(alarmLabels.getChoices().indexOf(item.getState().getSeverity().toString()),
+                        alarmLabels,
+                        processState(item.getState()),
+                        Time.now());
+            case enableField:
+                return null;
+            case durationField:
+                if (item instanceof AlarmClientLeaf)
+                {
+                    AlarmClientLeaf leaf = (AlarmClientLeaf) item;
+                    Instant time = leaf.getState().time;
+                    return VString.of(TimestampFormats.MILLI_FORMAT.format(time), processState(leaf.getState()), Time.of(time));
+                }
+                return null;
+            default:
+                return null;
         }
     }
 
