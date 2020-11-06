@@ -1,0 +1,21 @@
+<project default="app-channel-views">
+  <import file="../../../dependencies/ant_settings.xml"/>
+
+  <target name="app-channel-views">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}" debug="${debug}">
+      <src path="${src}"/>
+      <classpath>
+      	<pathelement path="../utility/${build}/app-channel-utility-${version}.jar"/>      	
+      	<pathelement path="../channelfinder/${build}/app-channel-channelfinder-${version}.jar"/>      	
+        <path refid="app-classpath"/>
+      </classpath>
+    </javac>
+  	
+    <jar destfile="${build}/app-channel-views-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+	
+</project>
