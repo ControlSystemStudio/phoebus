@@ -94,9 +94,10 @@ public class WidgetFontPopOverController implements Initializable {
     private final CountDownLatch                  namesLoaded            = new CountDownLatch(2);
     private WidgetFont                            originalFont           = null;
     private PopOver                               popOver;
+    private AtomicBoolean                         settingFont            = new AtomicBoolean(false);
 
     private final Updater<String> familiesUpdater = new Updater<>(newValue -> {
-        if ( newValue != null ) {
+        if ( newValue != null && !settingFont.get() ) {
             setFont(new WidgetFont(
                 newValue,
                 defaultIfNull(styles.getSelectionModel().getSelectedItem(), WidgetFontStyle.REGULAR),
@@ -113,12 +114,12 @@ public class WidgetFontPopOverController implements Initializable {
         (nc1, nc2) -> String.CASE_INSENSITIVE_ORDER.compare(nc1.getName(), nc2.getName())
     ));
     private final Updater<WidgetFont> fontNamesUpdater = new Updater<>(newValue -> {
-        if ( newValue != null ) {
+        if ( newValue != null && !settingFont.get() ) {
             setFont(newValue);
         }
     });
     private final Updater<Double> sizesUpdater = new Updater<>(newValue -> {
-        if ( newValue != null ) {
+        if ( newValue != null && !settingFont.get() ) {
             setFont(new WidgetFont(
                 defaultIfNull(families.getSelectionModel().getSelectedItem(), Font.font(10.0).getFamily()),
                 defaultIfNull(styles.getSelectionModel().getSelectedItem(), WidgetFontStyle.REGULAR),
@@ -127,7 +128,7 @@ public class WidgetFontPopOverController implements Initializable {
         }
     });
     private final Updater<WidgetFontStyle> stylesUpdater = new Updater<>(newValue -> {
-        if ( newValue != null ) {
+        if ( newValue != null && !settingFont.get() ) {
             setFont(new WidgetFont(
                 defaultIfNull(families.getSelectionModel().getSelectedItem(), Font.font(10.0).getFamily()),
                 newValue,
@@ -161,7 +162,12 @@ public class WidgetFontPopOverController implements Initializable {
     }
 
     void setFont( WidgetFont font ) {
-        this.font.set(font);
+        try {
+            settingFont.set(true);
+            this.font.set(font);
+        } finally {
+            settingFont.set(false);
+        }
     }
 
     /*
@@ -173,9 +179,26 @@ public class WidgetFontPopOverController implements Initializable {
         //  Listeners to font change.
         fontProperty().addListener(( observable, oldValue, newValue ) -> {
 
-            if ( newValue instanceof NamedWidgetFont && !fontNamesUpdater.isUpdating() ) {
-                fontNames.getSelectionModel().select((NamedWidgetFont) newValue);
-                fontNames.scrollTo(fontNames.getSelectionModel().getSelectedItem());
+            if ( !fontNamesUpdater.isUpdating() ) {
+                NamedWidgetFont namedFont = null;
+                if ( newValue instanceof NamedWidgetFont)
+                    namedFont = (NamedWidgetFont) newValue;
+                else {
+                    // Try to find a named font for the currently selected family,style,size combination
+                    for (NamedWidgetFont font: namedFontsList) {
+                        if ( newValue.equals(font) ) {
+                            namedFont = font;
+                            break;
+                        }
+                    }
+                }
+
+                if ( namedFont != null ) {
+                    fontNames.getSelectionModel().select(namedFont);
+                    fontNames.scrollTo(fontNames.getSelectionModel().getSelectedItem());
+                } else
+                    // This font has no name, clear the name selection
+                    fontNames.getSelectionModel().clearSelection();
             }
 
             if ( !familiesUpdater.isUpdating() ) {
@@ -187,7 +210,9 @@ public class WidgetFontPopOverController implements Initializable {
                 styles.getSelectionModel().select(newValue.getStyle());
             }
 
-            sizes.getSelectionModel().select(newValue.getSize());
+            if ( !sizesUpdater.isUpdating()) {
+                sizes.getSelectionModel().select(newValue.getSize());
+            }
 
             preview.setFont(JFXUtil.convert(newValue));
 
