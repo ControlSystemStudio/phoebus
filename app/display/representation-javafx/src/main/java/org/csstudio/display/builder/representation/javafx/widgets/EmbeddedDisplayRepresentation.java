@@ -403,6 +403,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
             }
             else
             {   // Don't use a scroll pane
+                scroll.setContent(null);
                 jfx_node.getChildren().setAll(inner);
             }
         }
