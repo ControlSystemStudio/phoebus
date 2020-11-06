@@ -165,6 +165,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
         model_widget.propMacros().addUntypedPropertyListener(fileChangedListener);
 
         model_widget.propTransparent().addUntypedPropertyListener(backgroundChangedListener);
+
         fileChanged(null, null, null);
     }
 
@@ -188,8 +189,6 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
 
         final int widget_width = model_widget.propWidth().getValue();
         final int widget_height = model_widget.propHeight().getValue();
-        inner.setMinWidth(widget_width);
-        inner.setMinHeight(widget_height);
 
         final Resize resize = model_widget.propResize().getValue();
         final DisplayModel content_model = active_content_model.get();
@@ -381,7 +380,18 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
         {
             final Integer width = model_widget.propWidth().getValue();
             final Integer height = model_widget.propHeight().getValue();
-            scroll.setPrefSize(width, height);
+
+            // zoom also applies to width and height so we have to de-scale them
+            final Double scaled_width = width / zoom_factor_x;
+            final Double scaled_height = height / zoom_factor_y;
+
+            // update minimum size with zoom factor applied 'in reverse'
+            inner.setMinSize(scaled_width, scaled_height);
+
+            // set minimum and maximum size of jfx_node
+            // to match the requested size
+            jfx_node.setMinSize(width, height);
+            jfx_node.setMaxSize(width, height);
 
             final Resize resize = model_widget.propResize().getValue();
 
@@ -399,6 +409,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
             {
                 // Need a scroll pane (which disables itself as needed)
                 jfx_node.getChildren().setAll(scroll);
+                scroll.setPrefSize(width, height);
                 scroll.setContent(inner);
             }
             else
