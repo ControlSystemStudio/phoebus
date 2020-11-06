@@ -330,12 +330,15 @@ public class DisplayRuntimeInstance implements AppInstance
                         "Cannot load model from\n" + info.getPath() + exception_message, ex);
 
                 display_info = Optional.empty();
-                Platform.runLater(() ->
-                {
-                    final Parent parent = representation.getModelParent();
-                    JFXRepresentation.getChildren(parent).clear();
-                    close();
-                });
+                
+                if (dock_item.prepareToClose())
+	                Platform.runLater(() ->
+	                {
+	                    final Parent parent = representation.getModelParent();
+	                    JFXRepresentation.getChildren(parent).clear();
+	                    
+	                    close();
+	                });
                 return;
             }
         });
