@@ -395,12 +395,13 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
 
             final Resize resize = model_widget.propResize().getValue();
 
-            // Does jfx_node need to crop,
+            // Does inner need to crop,
             // or will resizing resp. scroll pane handle it?
+            // crop inner so jfx_node can properly show a border
             if (resize == Resize.Crop)
-                jfx_node.setClip(new Rectangle(width, height));
+                inner.setClip(new Rectangle(scaled_width, scaled_height));
             else
-                jfx_node.setClip(null);
+                inner.setClip(null);
 
             zoom.setX(zoom_factor_x);
             zoom.setY(zoom_factor_y);
