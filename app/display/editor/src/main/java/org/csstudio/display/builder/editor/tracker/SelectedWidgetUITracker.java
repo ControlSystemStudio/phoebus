@@ -17,6 +17,7 @@ import java.util.concurrent.RecursiveTask;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import javafx.application.Platform;
 import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.editor.WidgetSelectionHandler;
 import org.csstudio.display.builder.editor.undo.SetMacroizedWidgetPropertyAction;
@@ -633,7 +634,8 @@ public class SelectedWidgetUITracker extends Tracker
         bindToWidgets();
 
         // Get focus to allow use of arrow keys
-        tracker.requestFocus();
+        Platform.runLater(() -> tracker.requestFocus());
+
     }
 
     @Override
