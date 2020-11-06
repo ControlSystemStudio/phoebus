@@ -395,14 +395,6 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
 
             final Resize resize = model_widget.propResize().getValue();
 
-            // Does inner need to crop,
-            // or will resizing resp. scroll pane handle it?
-            // crop inner so jfx_node can properly show a border
-            if (resize == Resize.Crop)
-                inner.setClip(new Rectangle(scaled_width, scaled_height));
-            else
-                inner.setClip(null);
-
             zoom.setX(zoom_factor_x);
             zoom.setY(zoom_factor_y);
 
@@ -411,12 +403,19 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
                 // Need a scroll pane (which disables itself as needed)
                 jfx_node.getChildren().setAll(scroll);
                 scroll.setPrefSize(width, height);
+                inner.setClip(null);
                 scroll.setContent(inner);
             }
             else
             {   // Don't use a scroll pane
                 scroll.setContent(null);
                 jfx_node.getChildren().setAll(inner);
+
+                // During runtime or if the resize property is set to Crop we clip inner
+                // but allow 'overdrawing' in edit mode so the out-of-region widgets are visible to the user
+                // One day we should be able to visibly mark these widgets
+                if (resize == Resize.Crop || !toolkit.isEditMode())
+                    inner.setClip(new Rectangle(scaled_width, scaled_height));
             }
         }
         if (dirty_background.checkAndClear())
