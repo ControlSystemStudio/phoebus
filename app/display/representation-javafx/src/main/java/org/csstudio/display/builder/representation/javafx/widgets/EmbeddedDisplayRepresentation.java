@@ -165,6 +165,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
         model_widget.propMacros().addUntypedPropertyListener(fileChangedListener);
 
         model_widget.propTransparent().addUntypedPropertyListener(backgroundChangedListener);
+
         fileChanged(null, null, null);
     }
 
@@ -188,8 +189,6 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
 
         final int widget_width = model_widget.propWidth().getValue();
         final int widget_height = model_widget.propHeight().getValue();
-        inner.setMinWidth(widget_width);
-        inner.setMinHeight(widget_height);
 
         final Resize resize = model_widget.propResize().getValue();
         final DisplayModel content_model = active_content_model.get();
@@ -197,6 +196,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
         {
             final int content_width = content_model.propWidth().getValue();
             final int content_height = content_model.propHeight().getValue();
+            zoom_factor_x = zoom_factor_y = 1.0;
             if (resize == Resize.ResizeContent)
             {
                 final double zoom_x = content_width  > 0 ? (double) widget_width  / content_width : 1.0;
@@ -205,7 +205,6 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
             }
             else if (resize == Resize.SizeToContent)
             {
-                zoom_factor_x = zoom_factor_y = 1.0;
                 resizing = true;
                 if (content_width > 0)
                     model_widget.propWidth().setValue(content_width);
@@ -322,6 +321,11 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
         try
         {
             sizesChanged(null, null, null);
+
+            // Set the zoom factor here so that content_model is represented with the correct size
+            zoom.setX(zoom_factor_x);
+            zoom.setY(zoom_factor_y);
+
             toolkit.representModel(inner, content_model);
             backgroundChanged(null, null, null);
         }
@@ -376,40 +380,42 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
         {
             final Integer width = model_widget.propWidth().getValue();
             final Integer height = model_widget.propHeight().getValue();
-            scroll.setPrefSize(width, height);
+
+            // zoom also applies to width and height so we have to de-scale them
+            final Double scaled_width = width / zoom_factor_x;
+            final Double scaled_height = height / zoom_factor_y;
+
+            // update minimum size with zoom factor applied 'in reverse'
+            inner.setMinSize(scaled_width, scaled_height);
+
+            // set minimum and maximum size of jfx_node
+            // to match the requested size
+            jfx_node.setMinSize(width, height);
+            jfx_node.setMaxSize(width, height);
 
             final Resize resize = model_widget.propResize().getValue();
 
-            // Does jfx_node need to crop,
-            // or will resizing resp. scroll pane handle it?
-            if (resize == Resize.Crop)
-                jfx_node.setClip(new Rectangle(width, height));
-            else
-                jfx_node.setClip(null);
+            zoom.setX(zoom_factor_x);
+            zoom.setY(zoom_factor_y);
 
             if (resize == Resize.None)
             {
                 // Need a scroll pane (which disables itself as needed)
                 jfx_node.getChildren().setAll(scroll);
+                scroll.setPrefSize(width, height);
+                inner.setClip(null);
                 scroll.setContent(inner);
-
-                zoom.setX(1.0);
-                zoom.setY(1.0);
             }
             else
             {   // Don't use a scroll pane
+                scroll.setContent(null);
                 jfx_node.getChildren().setAll(inner);
 
-                if (resize == Resize.ResizeContent  ||  resize == Resize.StretchContent )
-                {
-                    zoom.setX(zoom_factor_x);
-                    zoom.setY(zoom_factor_y);
-                }
-                else // Resize.Crop, SizeToContent
-                {
-                    zoom.setX(1.0);
-                    zoom.setY(1.0);
-                }
+                // During runtime or if the resize property is set to Crop we clip inner
+                // but allow 'overdrawing' in edit mode so the out-of-region widgets are visible to the user
+                // One day we should be able to visibly mark these widgets
+                if (resize == Resize.Crop || !toolkit.isEditMode())
+                    inner.setClip(new Rectangle(scaled_width, scaled_height));
             }
         }
         if (dirty_background.checkAndClear())
