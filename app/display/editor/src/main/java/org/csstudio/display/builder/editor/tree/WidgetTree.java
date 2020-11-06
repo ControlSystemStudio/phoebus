@@ -138,7 +138,7 @@ public class WidgetTree
     private final Callback<TreeView<WidgetOrTab>, TreeCell<WidgetOrTab>> cell_factory;
 
     /** Construct widget tree
-     *  @param selection Handler of selected widgets
+     *  @param editor Handler of selected widgets
      */
     public WidgetTree(final DisplayEditor editor)
     {
@@ -388,7 +388,7 @@ public class WidgetTree
     /** Called by selection handler when selected widgets have changed, or on new model
      *  @param widgets Widgets to select in tree
      */
-    public void setSelectedWidgets(final List<Widget> widgets)
+    private void setSelectedWidgets(final List<Widget> widgets)
     {
         if (! active.compareAndSet(false, true))
             return;
@@ -603,7 +603,7 @@ public class WidgetTree
     }
 
     /** Recursively remove model widget listeners
-     *  @param container Widgets to unlink
+     *  @param widget Widgets to unlink
      */
     private void removeWidgetListeners(final Widget widget)
     {
