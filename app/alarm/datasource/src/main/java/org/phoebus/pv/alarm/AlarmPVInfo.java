@@ -17,7 +17,7 @@ public class AlarmPVInfo {
 
     public static final String activeField = "active";
     public static final String stateField = "state";
-    public static final String enableField = "enable";
+    public static final String enableField = "enabled";
     public static final String durationField = "duration";
 
     private static List<String> specialFields = List.of(activeField, stateField, enableField, durationField);

@@ -68,13 +68,42 @@ matches the alarm state.
    :width: 80%
    :align: center
 
+--------------
+Special Fields
+--------------
+
+The alarm pvs have a few additional fields which can be used to access specific attributes of the alarm node/leaf
+
+These fields can be used by appending the following field tag at the end the alarm pv.
+
+e.g.
+
+| ``alarm://NSLS2_OPR/Linac/Controls.state``
+
+
+| **.state**
+| Returns an Enum indicating the current alarm state of the alarm node/leaf.
+
+| **.active**
+| Return a Boolean true if the alarm pv is active. An active alarm pv is one which is currently in an alarm state which AND it has not been acknowledged.
+
+| **.enabled**
+| Returns a Boolean true if the alarm pv is enabled. This is a writeable field which can be used to enabled or disabled the associated alarm element in the tree.
+
+| **.duration**
+| Returns a String with the duration since this alarm pv has been in an alarm state.
+
 =====================
 Writing to alarm pv's
 =====================
 
 ``alarm://NSLS2_OPR/SR/Vacuum``
 
-The alarm pvs can be usered to acknowledge or unacknowledge parts of the alarm tree.
+------------
+acknowledge
+------------
+
+The alarm pvs can be used to acknowledge or unacknowledge parts of the alarm tree.
 The alarm pvs accept String, boolean, and Number values which are interpreted as follows:
 
 When writing **strings**
@@ -94,3 +123,18 @@ Writing any non zero number is treated as an acknowledge while 0 will unacknowle
 When writing **booleans**
 
 A "true" value is to acknowledge an alarm while a "false" value will unacknowledge an alarm
+
+-------
+enable
+-------
+
+The alarm pvs can be used to enable or disable parts of the alarm tree.
+The alarm pvs accept String values which are interpreted as follows:
+
+When writing **strings**
+
+| "enable"
+| Enable all alarms associated with the node or leaf of the alarm tree associated with this alarm pv
+
+| "disable"
+| Disable all the alarms associated with the node or leaf of the alarm tree associated with this alarm pv
