@@ -108,7 +108,27 @@ public class AlarmContext
 
     public static synchronized void enablePV(AlarmPV alarmPV, boolean enable)
     {
-        // TODO
+        if (alarmModels.containsKey(alarmPV.getInfo().getRoot()))
+        {
+            if(pvs.containsKey(alarmPV.getInfo().getCompletePath()))
+            {
+                AlarmClientNode root = alarmModels.get(alarmPV.getInfo().getRoot()).getRoot();
+                AlarmTreeItem<?> node = root;
+                // find the child
+                if (alarmPV.getInfo().getPath().isPresent())
+                {
+                    Iterator<Path> it = Path.of(encodedURLPath(alarmPV.getInfo().getPath().get())).iterator();
+                    while (it.hasNext() && node != null)
+                    {
+                        node = node.getChild(decodedURLPath(it.next().toString()));
+                    }
+                    if (node != null)
+                    {
+
+                    }
+                }
+            }
+        }
     }
 
     private static class AlarmClientDatasourceListener implements AlarmClientListener

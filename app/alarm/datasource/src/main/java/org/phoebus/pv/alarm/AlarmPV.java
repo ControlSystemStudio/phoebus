@@ -83,30 +83,37 @@ public class AlarmPV extends PV
 
     @Override
     public void write(Object new_value) throws Exception {
-        if (new_value instanceof String)
+        if (this.getInfo().getField().isPresent())
         {
-            switch (((String)new_value).toLowerCase())
+
+        }
+        else
+        {
+            if (new_value instanceof String)
             {
-                case "ack":
-                case "acknowledge":
-                    AlarmContext.acknowledgePV(this, true);
-                    break;
-                case "unack":
-                case "unacknowledge":
-                    AlarmContext.acknowledgePV(this, false);
-                    break;
-                default:
-                    // Unknown value
-                    throw new IllegalArgumentException("cannot write " + new_value + "  to " + this.info.getCompletePath());
+                switch (((String)new_value).toLowerCase())
+                {
+                    case "ack":
+                    case "acknowledge":
+                        AlarmContext.acknowledgePV(this, true);
+                        break;
+                    case "unack":
+                    case "unacknowledge":
+                        AlarmContext.acknowledgePV(this, false);
+                        break;
+                    default:
+                        // Unknown value
+                        throw new IllegalArgumentException("cannot write " + new_value + "  to " + this.info.getCompletePath());
+                }
             }
-        }
-        else if (new_value instanceof Number)
-        {
-            AlarmContext.acknowledgePV(this, ((Number)new_value).intValue() != 0);
-        }
-        else if (new_value instanceof Boolean)
-        {
-            AlarmContext.acknowledgePV(this, (Boolean)new_value);
+            else if (new_value instanceof Number)
+            {
+                AlarmContext.acknowledgePV(this, ((Number)new_value).intValue() != 0);
+            }
+            else if (new_value instanceof Boolean)
+            {
+                AlarmContext.acknowledgePV(this, (Boolean)new_value);
+            }
         }
     }
 
@@ -146,7 +153,11 @@ public class AlarmPV extends PV
                         processState(item.getState()),
                         Time.now());
             case enableField:
-                return null;
+                if (item instanceof AlarmClientLeaf)
+                {
+                    AlarmClientLeaf leaf = (AlarmClientLeaf) item;
+                    return VBoolean.of(leaf.isEnabled(), processState(leaf.getState()), Time.now());
+                }
             case durationField:
                 if (item instanceof AlarmClientLeaf)
                 {
@@ -160,4 +171,8 @@ public class AlarmPV extends PV
         }
     }
 
+    private static void writeToField(AlarmPVInfo alarmPVInfo, Object value)
+    {
+
+    }
 }
