@@ -72,7 +72,7 @@ public class AlarmPVInfoTest {
 
     String activeField = "active";
     String stateField = "state";
-    String enableField ="enable";
+    String enableField ="enabled";
     String durationField ="duration";
 
     /**
