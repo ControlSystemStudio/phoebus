@@ -2,15 +2,19 @@ package org.phoebus.pv.alarm;
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
+import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.framework.jobs.JobManager;
 
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -124,10 +128,39 @@ public class AlarmContext
                     }
                     if (node != null)
                     {
-
+                        AlarmTreeItem<?> finalNode = node;
+                        JobManager.schedule("getText()", monitor ->
+                        {
+                            final List<AlarmClientLeaf> pvs = new ArrayList<>();
+                            findAffectedPVs(finalNode, pvs);
+                            for (AlarmClientLeaf pv : pvs)
+                            {
+                                final AlarmClientLeaf copy = pv.createDetachedCopy();
+                                if (copy.setEnabled(enable))
+                                    alarmModels.get(alarmPV.getInfo().getRoot()).sendItemConfigurationUpdate(pv.getPathName(), copy);
+                            }
+                        });
                     }
                 }
             }
+        }
+    }
+
+    /** @param item Node where to start recursing for PVs that would be affected
+     *  @param pvs Array to update with PVs that would be affected
+     */
+    private static void findAffectedPVs(final AlarmTreeItem<?> item, final List<AlarmClientLeaf> pvs)
+    {
+        if (item instanceof AlarmClientLeaf)
+        {
+            final AlarmClientLeaf pv = (AlarmClientLeaf) item;
+            if (!pvs.contains(pv))
+                pvs.add(pv);
+        }
+        else
+        {
+            for (AlarmTreeItem<?> sub : item.getChildren())
+                findAffectedPVs(sub, pvs);
         }
     }
 
