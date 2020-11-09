@@ -7,10 +7,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -21,22 +19,14 @@ import java.util.stream.Collectors;
 import javafx.scene.Node;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.ui.LogbookQueryUtil.Keys;
 import org.phoebus.logbook.ui.write.AttachmentsViewController;
-import org.phoebus.logbook.ui.write.FieldsViewController;
-import org.phoebus.logbook.ui.write.LogEntryCompletionHandler;
-import org.phoebus.logbook.ui.write.LogEntryEditorController;
-import org.phoebus.logbook.ui.write.LogEntryEditorStage;
 import org.phoebus.logbook.ui.write.LogEntryModel;
-import org.phoebus.logbook.ui.write.PropertiesTab;
 import org.phoebus.ui.dialog.PopOver;
-import org.phoebus.ui.javafx.FilesTab;
 import org.phoebus.ui.javafx.ImageCache;
-import org.phoebus.ui.javafx.ImagesTab;
 import org.phoebus.ui.time.TimeRelativeIntervalPane;
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
@@ -57,16 +47,13 @@ import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
-import javafx.scene.control.Accordion;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
-import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
@@ -89,7 +76,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     static final Image tag = ImageCache.getImage(LogEntryController.class, "/icons/add_tag.png");
     static final Image logbook = ImageCache.getImage(LogEntryController.class, "/icons/logbook-16.png");
-    String styles = "-fx-background-color: #0000ff;" + "-fx-border-color: #ff0000;";
 
     @FXML
     Button resize;
@@ -580,7 +566,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
     }
 
     private void refresh() {
-        if (logEntries != null && !logEntries.isEmpty()) {
+        if (logEntries != null) {
             ObservableList<LogEntry> logsList = FXCollections.observableArrayList();
             logsList.addAll(logEntries.stream().collect(Collectors.toList()));
             tableView.setItems(logsList);
