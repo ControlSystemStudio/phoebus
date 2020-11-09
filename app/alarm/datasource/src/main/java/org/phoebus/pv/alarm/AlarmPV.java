@@ -32,10 +32,10 @@ public class AlarmPV extends PV
 {
     private final AlarmPVInfo info;
 
-    public AlarmPV(String name, String base_name)
+    public AlarmPV(String name, String baseName)
     {
         super(name);
-        info = AlarmPVInfo.of(base_name);
+        info = AlarmPVInfo.of(baseName);
     }
 
     public AlarmPVInfo getInfo()
@@ -53,7 +53,7 @@ public class AlarmPV extends PV
             // Process alarm fields if they are present
             if (info.getField().isPresent())
             {
-                notifyListenersOfValue(processField(info, item));
+                notifyListenersOfValue(processField(item));
             }
             else {
                 VString alarm = VString.of(item.toString(),
@@ -78,20 +78,32 @@ public class AlarmPV extends PV
     @Override
     public boolean isReadonly() {
         // TODO enable write based on auth
+        if(this.info.getField().isPresent())
+        {
+            // Only the enable field is writeable.
+            if(info.getField().get().equalsIgnoreCase(enableField))
+            {
+                return false;
+            } else {
+                return true;
+            }
+        }
         return false;
     }
 
     @Override
-    public void write(Object new_value) throws Exception {
+    public void write(Object newValue) throws Exception {
+        // write specific values to alarm pvs with fields
         if (this.getInfo().getField().isPresent())
         {
-
+            writeToField(newValue);
         }
+        // basic write
         else
         {
-            if (new_value instanceof String)
+            if (newValue instanceof String)
             {
-                switch (((String)new_value).toLowerCase())
+                switch (((String)newValue).toLowerCase())
                 {
                     case "ack":
                     case "acknowledge":
@@ -101,18 +113,24 @@ public class AlarmPV extends PV
                     case "unacknowledge":
                         AlarmContext.acknowledgePV(this, false);
                         break;
+                    case "enable":
+                        AlarmContext.enablePV(this, true);
+                        break;
+                    case "disable":
+                        AlarmContext.enablePV(this, false);
+                        break;
                     default:
                         // Unknown value
-                        throw new IllegalArgumentException("cannot write " + new_value + "  to " + this.info.getCompletePath());
+                        throw new IllegalArgumentException("cannot write " + newValue + "  to " + this.info.getCompletePath());
                 }
             }
-            else if (new_value instanceof Number)
+            else if (newValue instanceof Number)
             {
-                AlarmContext.acknowledgePV(this, ((Number)new_value).intValue() != 0);
+                AlarmContext.acknowledgePV(this, ((Number)newValue).intValue() != 0);
             }
-            else if (new_value instanceof Boolean)
+            else if (newValue instanceof Boolean)
             {
-                AlarmContext.acknowledgePV(this, (Boolean)new_value);
+                AlarmContext.acknowledgePV(this, (Boolean)newValue);
             }
         }
     }
@@ -141,9 +159,9 @@ public class AlarmPV extends PV
 
     private static EnumDisplay alarmLabels = EnumDisplay.of(List.of(SeverityLevel.values()).stream().map(SeverityLevel::toString).collect(Collectors.toList()));
 
-    private static VType processField(AlarmPVInfo alarmPVInfo, AlarmTreeItem item)
+    private VType processField(AlarmTreeItem item)
     {
-        switch (alarmPVInfo.getField().get())
+        switch (info.getField().get())
         {
             case activeField:
                 return VBoolean.of(item.getState().severity.isActive(), processState(item.getState()), Time.now());
@@ -165,14 +183,42 @@ public class AlarmPV extends PV
                     Instant time = leaf.getState().time;
                     return VString.of(TimestampFormats.MILLI_FORMAT.format(time), processState(leaf.getState()), Time.of(time));
                 }
-                return null;
             default:
                 return null;
         }
     }
 
-    private static void writeToField(AlarmPVInfo alarmPVInfo, Object value)
+    private void writeToField(Object newValue)
     {
-
+        switch (info.getField().get())
+        {
+            // only enable field is writeable
+            case enableField:
+                if (newValue instanceof String)
+                {
+                    switch (((String)newValue).toLowerCase())
+                    {
+                        case "enable":
+                            AlarmContext.enablePV(this, true);
+                            break;
+                        case "disable":
+                            AlarmContext.enablePV(this, false);
+                            break;
+                        default:
+                            // Unknown value
+                            throw new IllegalArgumentException("cannot write " + newValue + "  to " + this.info.getCompletePath());
+                    }
+                }
+                else if (newValue instanceof Number)
+                {
+                    AlarmContext.enablePV(this, ((Number)newValue).intValue() != 0);
+                }
+                else if (newValue instanceof Boolean)
+                {
+                    AlarmContext.enablePV(this, (Boolean)newValue);
+                }
+            default:
+                // TODO throw write error
+        }
     }
 }
