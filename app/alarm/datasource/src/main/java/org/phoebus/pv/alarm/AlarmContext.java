@@ -27,7 +27,7 @@ import static org.phoebus.pv.alarm.AlarmPVFactory.logger;
 public class AlarmContext
 {
     private static Map<String, AlarmClient> alarmModels = new HashMap<>();
-    private static Map<String, AlarmPV> pvs = new HashMap<>();
+    private static Map<String, List<AlarmPV>> pvs = new HashMap<>();
 
     private static synchronized void initializeAlarmClient(String config)
     {
@@ -58,7 +58,9 @@ public class AlarmContext
                         node = node.getChild(decodedURLPath(it.next().toString()));
                     }
                 }
-                pvs.get(alarmPV.getInfo().getCompletePath()).updateValue(node);
+                pvs.get(alarmPV.getInfo().getCompletePath())
+                        .get(pvs.get(alarmPV.getInfo().getCompletePath()).indexOf(alarmPV))
+                        .updateValue(node);
             }
             else
             {
@@ -71,7 +73,11 @@ public class AlarmContext
 
     public static synchronized void registerPV(AlarmPV alarmPV)
     {
-        pvs.put(alarmPV.getInfo().getCompletePath(), alarmPV);
+        if(!pvs.containsKey(alarmPV.getInfo().getCompletePath()))
+        {
+            pvs.put(alarmPV.getInfo().getCompletePath(), new ArrayList<AlarmPV>());
+        }
+        pvs.get(alarmPV.getInfo().getCompletePath()).add(alarmPV);
         // Check if the alarm client associated with the root is created and running
         initializeAlarmClient(alarmPV.getInfo().getRoot());
         initializeAlarmPV(alarmPV);
@@ -81,7 +87,7 @@ public class AlarmContext
     {
         if(pvs.containsKey(alarmPV.getInfo().getCompletePath()))
         {
-            pvs.remove(alarmPV.getInfo().getCompletePath());
+            pvs.get(alarmPV.getInfo().getCompletePath()).remove(alarmPV);
         }
     }
 
@@ -181,9 +187,11 @@ public class AlarmContext
                 // Disconnect AlarmPVs associated with this config only
                 pvs.values().stream()
                         .filter(alarmPV -> {
-                            return alarmPV.getInfo().getRoot().equalsIgnoreCase(config);
+                            // Since all the pvs share the same root, only checking ths first one.
+                            // TODO a more elegant solution required.
+                            return alarmPV.get(0).getInfo().getRoot().equalsIgnoreCase(config);
                         }).forEach(pv -> {
-                            pv.disconnected();
+                            pv.forEach(AlarmPV::disconnected);
                         });
             }
         }
@@ -205,7 +213,7 @@ public class AlarmContext
         {
             if(pvs.containsKey(decodedKafaPath(item.getPathName())))
             {
-                pvs.get(decodedKafaPath(item.getPathName())).updateValue(item);
+                pvs.get(decodedKafaPath(item.getPathName())).forEach(pv -> {pv.updateValue(item);});
             }
         }
 
@@ -214,7 +222,7 @@ public class AlarmContext
         {
             if(pvs.containsKey(decodedKafaPath(item.getPathName())))
             {
-                pvs.get(decodedKafaPath(item.getPathName())).disconnected();
+                pvs.get(decodedKafaPath(item.getPathName())).forEach(AlarmPV::disconnected);
             }
         }
 
@@ -223,7 +231,7 @@ public class AlarmContext
         {
             if(pvs.containsKey(decodedKafaPath(item.getPathName())))
             {
-                pvs.get(decodedKafaPath(item.getPathName())).updateValue(item);
+                pvs.get(decodedKafaPath(item.getPathName())).forEach(pv -> {pv.updateValue(item);});
             }
         }
 

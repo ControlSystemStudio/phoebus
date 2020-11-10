@@ -58,9 +58,9 @@ public class AlarmPVInfo {
             this.root = name;
             this.path = Optional.ofNullable(null);
         }
-
         // parse and add the path as it appears in the alarm items
         this.completePath = "/" + name;
+
     }
 
     /**
