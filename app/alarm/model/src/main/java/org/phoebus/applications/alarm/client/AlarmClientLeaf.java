@@ -122,7 +122,7 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
         return annunciating.get();
     }
 
-    /** @param latch Annunciate alarms from the PV?
+    /** @param annunciate Annunciate alarms from the PV?
      *  @return <code>true</code> if this is a change
      */
     @Override

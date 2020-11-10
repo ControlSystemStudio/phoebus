@@ -2,15 +2,19 @@ package org.phoebus.pv.alarm;
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
+import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.framework.jobs.JobManager;
 
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -23,7 +27,7 @@ import static org.phoebus.pv.alarm.AlarmPVFactory.logger;
 public class AlarmContext
 {
     private static Map<String, AlarmClient> alarmModels = new HashMap<>();
-    private static Map<String, AlarmPV> pvs = new HashMap<>();
+    private static Map<String, List<AlarmPV>> pvs = new HashMap<>();
 
     private static synchronized void initializeAlarmClient(String config)
     {
@@ -54,7 +58,9 @@ public class AlarmContext
                         node = node.getChild(decodedURLPath(it.next().toString()));
                     }
                 }
-                pvs.get(alarmPV.getInfo().getCompletePath()).updateValue(node);
+                pvs.get(alarmPV.getInfo().getCompletePath())
+                        .get(pvs.get(alarmPV.getInfo().getCompletePath()).indexOf(alarmPV))
+                        .updateValue(node);
             }
             else
             {
@@ -67,7 +73,11 @@ public class AlarmContext
 
     public static synchronized void registerPV(AlarmPV alarmPV)
     {
-        pvs.put(alarmPV.getInfo().getCompletePath(), alarmPV);
+        if(!pvs.containsKey(alarmPV.getInfo().getCompletePath()))
+        {
+            pvs.put(alarmPV.getInfo().getCompletePath(), new ArrayList<AlarmPV>());
+        }
+        pvs.get(alarmPV.getInfo().getCompletePath()).add(alarmPV);
         // Check if the alarm client associated with the root is created and running
         initializeAlarmClient(alarmPV.getInfo().getRoot());
         initializeAlarmPV(alarmPV);
@@ -77,7 +87,11 @@ public class AlarmContext
     {
         if(pvs.containsKey(alarmPV.getInfo().getCompletePath()))
         {
-            pvs.remove(alarmPV.getInfo().getCompletePath());
+            pvs.get(alarmPV.getInfo().getCompletePath()).remove(alarmPV);
+            if (pvs.get(alarmPV.getInfo().getCompletePath()).isEmpty())
+            {
+                pvs.remove(alarmPV.getInfo().getCompletePath());
+            }
         }
     }
 
@@ -108,7 +122,56 @@ public class AlarmContext
 
     public static synchronized void enablePV(AlarmPV alarmPV, boolean enable)
     {
-        // TODO
+        if (alarmModels.containsKey(alarmPV.getInfo().getRoot()))
+        {
+            if(pvs.containsKey(alarmPV.getInfo().getCompletePath()))
+            {
+                AlarmClientNode root = alarmModels.get(alarmPV.getInfo().getRoot()).getRoot();
+                AlarmTreeItem<?> node = root;
+                // find the child
+                if (alarmPV.getInfo().getPath().isPresent())
+                {
+                    Iterator<Path> it = Path.of(encodedURLPath(alarmPV.getInfo().getPath().get())).iterator();
+                    while (it.hasNext() && node != null)
+                    {
+                        node = node.getChild(decodedURLPath(it.next().toString()));
+                    }
+                    if (node != null)
+                    {
+                        AlarmTreeItem<?> finalNode = node;
+                        JobManager.schedule("getText()", monitor ->
+                        {
+                            final List<AlarmClientLeaf> pvs = new ArrayList<>();
+                            findAffectedPVs(finalNode, pvs);
+                            for (AlarmClientLeaf pv : pvs)
+                            {
+                                final AlarmClientLeaf copy = pv.createDetachedCopy();
+                                if (copy.setEnabled(enable))
+                                    alarmModels.get(alarmPV.getInfo().getRoot()).sendItemConfigurationUpdate(pv.getPathName(), copy);
+                            }
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    /** @param item Node where to start recursing for PVs that would be affected
+     *  @param pvs Array to update with PVs that would be affected
+     */
+    private static void findAffectedPVs(final AlarmTreeItem<?> item, final List<AlarmClientLeaf> pvs)
+    {
+        if (item instanceof AlarmClientLeaf)
+        {
+            final AlarmClientLeaf pv = (AlarmClientLeaf) item;
+            if (!pvs.contains(pv))
+                pvs.add(pv);
+        }
+        else
+        {
+            for (AlarmTreeItem<?> sub : item.getChildren())
+                findAffectedPVs(sub, pvs);
+        }
     }
 
     private static class AlarmClientDatasourceListener implements AlarmClientListener
@@ -128,9 +191,11 @@ public class AlarmContext
                 // Disconnect AlarmPVs associated with this config only
                 pvs.values().stream()
                         .filter(alarmPV -> {
-                            return alarmPV.getInfo().getRoot().equalsIgnoreCase(config);
+                            // Since all the pvs share the same root, only checking ths first one.
+                            // TODO a more elegant solution required.
+                            return alarmPV.get(0).getInfo().getRoot().equalsIgnoreCase(config);
                         }).forEach(pv -> {
-                            pv.disconnected();
+                            pv.forEach(AlarmPV::disconnected);
                         });
             }
         }
@@ -152,7 +217,7 @@ public class AlarmContext
         {
             if(pvs.containsKey(decodedKafaPath(item.getPathName())))
             {
-                pvs.get(decodedKafaPath(item.getPathName())).updateValue(item);
+                pvs.get(decodedKafaPath(item.getPathName())).forEach(pv -> {pv.updateValue(item);});
             }
         }
 
@@ -161,7 +226,7 @@ public class AlarmContext
         {
             if(pvs.containsKey(decodedKafaPath(item.getPathName())))
             {
-                pvs.get(decodedKafaPath(item.getPathName())).disconnected();
+                pvs.get(decodedKafaPath(item.getPathName())).forEach(AlarmPV::disconnected);
             }
         }
 
@@ -170,7 +235,7 @@ public class AlarmContext
         {
             if(pvs.containsKey(decodedKafaPath(item.getPathName())))
             {
-                pvs.get(decodedKafaPath(item.getPathName())).updateValue(item);
+                pvs.get(decodedKafaPath(item.getPathName())).forEach(pv -> {pv.updateValue(item);});
             }
         }
 
