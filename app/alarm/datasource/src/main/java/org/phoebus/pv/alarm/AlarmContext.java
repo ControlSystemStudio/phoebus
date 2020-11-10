@@ -88,6 +88,10 @@ public class AlarmContext
         if(pvs.containsKey(alarmPV.getInfo().getCompletePath()))
         {
             pvs.get(alarmPV.getInfo().getCompletePath()).remove(alarmPV);
+            if (pvs.get(alarmPV.getInfo().getCompletePath()).isEmpty())
+            {
+                pvs.remove(alarmPV.getInfo().getCompletePath());
+            }
         }
     }
 
