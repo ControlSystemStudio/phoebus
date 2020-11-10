@@ -64,6 +64,13 @@ public class PersistenceConfiguration {
 	}
 
 	@Bean
+	public SimpleJdbcInsert snapshotPvLargeStoreInsert() {
+		DataSource dataSource = dataSource();
+
+		return new SimpleJdbcInsert(dataSource).withTableName("snapshot_node_pv_large_store");
+	}
+
+	@Bean
 	public JdbcTemplate jdbcTemplate() {
 		DataSource dataSource = dataSource();
 		return new JdbcTemplate(dataSource);

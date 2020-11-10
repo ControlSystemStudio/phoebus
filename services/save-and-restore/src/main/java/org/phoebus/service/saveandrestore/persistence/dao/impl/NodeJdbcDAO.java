@@ -40,7 +40,6 @@ import java.time.Instant;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +69,10 @@ public class NodeJdbcDAO implements NodeDAO {
 
 	@Autowired
 	private SimpleJdbcInsert snapshotPvInsert;
+
+	@Autowired
+	private SimpleJdbcInsert snapshotPvLargeStoreInsert;
+
 
 	private static final int NO_ID = -1;
 
@@ -541,10 +544,13 @@ public class NodeJdbcDAO implements NodeDAO {
 				.nodeType(NodeType.SNAPSHOT)
 				.build());
 
-		Map<String, Object> params = new HashMap<>(6);
-		params.put("snapshot_node_id", snapshotNode.getId());
-
+		List<Map<String, Object>> paramsForBatch = new ArrayList<>();
+		List<Map<String, Object>> paramsForBatchLargeStore = new ArrayList<>();
 		for (SnapshotItem snapshotItem : snapshotItems) {
+			Map<String, Object> params = new HashMap<>(6);
+			Map<String, Object> paramsLargeStore = new HashMap<>(4);
+			params.put("snapshot_node_id", snapshotNode.getId());
+
 			params.put("config_pv_id", snapshotItem.getConfigPv().getId());
 			// Should not happen, but if the snapshot value has not been set, continue...
 			if(snapshotItem.getValue() == null){
@@ -558,7 +564,15 @@ public class NodeJdbcDAO implements NodeDAO {
 			params.put("timens", snapshotPv.getTimens());
 			params.put("sizes", snapshotPv.getSizes());
 			params.put("data_type", snapshotPv.getDataType().toString());
-			params.put("value", snapshotPv.getValue());
+			if (snapshotPv.getValue().length() > Short.MAX_VALUE*2) {
+				params.put("value", "STORED_IN_LARGE_STORE");
+
+				paramsLargeStore.put("snapshot_node_id", snapshotNode.getId());
+				paramsLargeStore.put("config_pv_id", snapshotItem.getConfigPv().getId());
+				paramsLargeStore.put("value", snapshotPv.getValue());
+			} else {
+				params.put("value", snapshotPv.getValue());
+			}
 
 			if (snapshotItem.getReadbackValue() != null) {
 				SnapshotPv snapshotReadbackPv = SnapshotDataConverter.fromVType(snapshotItem.getReadbackValue());
@@ -568,9 +582,23 @@ public class NodeJdbcDAO implements NodeDAO {
 				params.put("readback_timens", snapshotReadbackPv.getTimens());
 				params.put("readback_sizes", snapshotReadbackPv.getSizes());
 				params.put("readback_data_type", snapshotReadbackPv.getDataType().toString());
-				params.put("readback_value", snapshotReadbackPv.getValue());
+
+				if (snapshotPv.getValue().length() > Short.MAX_VALUE*2) {
+					params.put("readback_value", "STORED_IN_LARGE_STORE");
+
+					paramsLargeStore.put("readback", snapshotReadbackPv.getValue());
+				} else {
+					params.put("readback_value", snapshotReadbackPv.getValue());
+				}
 			}
-			snapshotPvInsert.execute(params);
+			paramsForBatch.add(params);
+			if (!paramsLargeStore.isEmpty()) {
+				paramsForBatchLargeStore.add(paramsLargeStore);
+			}
+		}
+		snapshotPvInsert.executeBatch(paramsForBatch.toArray(new Map[paramsForBatch.size()]));
+		if (!paramsForBatchLargeStore.isEmpty()) {
+			snapshotPvLargeStoreInsert.executeBatch(paramsForBatchLargeStore.toArray(new Map[paramsForBatchLargeStore.size()]));
 		}
 
 		jdbcTemplate.update("update node set name=?, username=?, last_modified=? where unique_id=?", snapshotName, userName, Timestamp.from(Instant.now()), snapshotNode.getUniqueId());
@@ -603,11 +631,12 @@ public class NodeJdbcDAO implements NodeDAO {
 	@Override
 	public List<SnapshotItem> getSnapshotItems(String snapshotUniqueId){
 
-		List<SnapshotItem> snapshotItems = jdbcTemplate.query("select snp.*, pv1.name, pv2.name as readback_name, cp.readonly, cp.id as id from snapshot_node_pv as snp " +
+		List<SnapshotItem> snapshotItems = jdbcTemplate.query("select snp.*, pv1.name, pv2.name as readback_name, cp.readonly, cp.id as id, ls.value as value_ls, ls.readback_value as readback_value_ls from snapshot_node_pv as snp " +
 			"join config_pv as cp on snp.config_pv_id=cp.id " +
 			"left join pv pv1 on cp.pv_id=pv1.id " +
 			"left join pv pv2 on cp.readback_pv_id=pv2.id " +
-				"where snapshot_node_id=(select id from node where unique_id=?)",
+			"left join snapshot_node_pv_large_store ls on snp.config_pv_id=ls.config_pv_id and snp.snapshot_node_id=ls.snapshot_node_id " +
+				"where snp.snapshot_node_id=(select id from node where unique_id=?)",
 				new Object[] {snapshotUniqueId},
 				new SnapshotItemRowMapper());
 
