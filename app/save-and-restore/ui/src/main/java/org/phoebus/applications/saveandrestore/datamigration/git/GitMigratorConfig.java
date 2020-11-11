@@ -20,10 +20,10 @@ package org.phoebus.applications.saveandrestore.datamigration.git;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
+import org.epics.vtype.gson.GsonMessageBodyHandler;
 import org.phoebus.applications.saveandrestore.ApplicationContextProvider;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.data.DataProvider;
@@ -98,6 +98,10 @@ public class GitMigratorConfig {
     public Boolean ignoreDuplicateSnapshots() { return preferencesReader.getBoolean("ignoreDuplicateSnapshots"); }
 
     @Bean
+    public Boolean addPVsForIncompatibleSaveset() { return preferencesReader.getBoolean("addPVsForIncompatibleSaveset"); }
+
+
+    @Bean
     public JMasarJerseyClient jmasarClient(){
         JMasarJerseyClient jMasarJerseyClient = new JMasarJerseyClient();
         jMasarJerseyClient.setServiceUrl(preferencesReader.get("jmasar.service.url"));
@@ -145,7 +149,7 @@ public class GitMigratorConfig {
         DefaultClientConfig defaultClientConfig = new DefaultClientConfig();
         defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_READ_TIMEOUT, readTimeout);
         defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, connectTimeout);
-        defaultClientConfig.getClasses().add(JacksonJsonProvider.class);
+        defaultClientConfig.getClasses().add(GsonMessageBodyHandler.class);
         return Client.create(defaultClientConfig);
     }
 

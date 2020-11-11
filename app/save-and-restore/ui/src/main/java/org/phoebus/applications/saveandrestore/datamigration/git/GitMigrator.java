@@ -78,6 +78,10 @@ import java.util.*;
  * Add the following setting to the setting file to ignore duplicate snapshots (same commit time)
  * org.phoebus.applications.saveandrestore.datamigration.git/ignoreDuplicateSnapshots=true
  *
+ * Add the following setting to the setting file to add PVs for incompatible saveset to correclt migrate snapshots
+ * with the newer version of saveset modified by user after older snapshots are taken with older version of saveset
+ * org.phoebus.applications.saveandrestore.datamigration.git/addPVsForIncompatibleSaveset=true
+ *
  */
 public class GitMigrator {
 
@@ -92,6 +96,9 @@ public class GitMigrator {
 
     @Autowired
     private Boolean ignoreDuplicateSnapshots;
+
+    @Autowired
+    private Boolean addPVsForIncompatibleSaveset;
 
     private Git git;
     private File gitRoot;
@@ -311,24 +318,14 @@ public class GitMigrator {
                             snapshotItems = setConfigPvIds(saveSetNode, snapshotItems);
 
                             List<Node> nodeList = saveAndRestoreService.getChildNodes(saveSetNode);
-                            boolean isDuplicateSnapshotName = nodeList.stream().anyMatch(item -> item.getName().equals(snapshotName));
-                            int postfixNumber = 2;
-                            String postfixString = "";
+                            final String snapshotNameForChecking = snapshotName;
+                            boolean isDuplicateSnapshotName = nodeList.stream().anyMatch(item -> item.getName().equals(snapshotNameForChecking));
                             if (isDuplicateSnapshotName) {
                                 if (ignoreDuplicateSnapshots) {
                                     continue;
                                 }
 
-                                while (true) {
-                                    postfixString = String.format(" (%d)", postfixNumber);
-                                    String newSnapshotName = String.format("%s %s", snapshotName, postfixString);
-
-                                    if (!nodeList.stream().anyMatch(item -> item.getName().equals(newSnapshotName))) {
-                                        break;
-                                    }
-
-                                    postfixNumber++;
-                                }
+                                String newSnapshotName = String.format("%s (%s)", snapshotName, commit.getName().substring(0, 6));
 
                                 System.out.println("------------------------------------------------------------------------------------");
                                 System.out.println(" Duplicate snapshot found!");
@@ -336,13 +333,15 @@ public class GitMigrator {
                                 System.out.println("   Commit: " + commit.getName());
                                 System.out.println("  Saveset: " + DirectoryUtilities.CreateLocationString(saveSetNode, false));
                                 System.out.println(" Snapshot: " + snapshotName);
-                                System.out.println(" New name: " + snapshotName + postfixString);
+                                System.out.println(" New name: " + newSnapshotName);
                                 System.out.println("------------------------------------------------------------------------------------");
+
+                                snapshotName = newSnapshotName;
                             }
 
                             Node snapshotNode = saveAndRestoreService.saveSnapshot(saveSetNode,
                                     snapshotItems,
-                                    snapshotName + postfixString,
+                                    snapshotName,
                                     commit.getFullMessage());
 
                             snapshotNode = saveAndRestoreService.getNode(snapshotNode.getUniqueId());
@@ -415,32 +414,41 @@ public class GitMigrator {
 
     private List<SnapshotItem> setConfigPvIds(Node saveSetNode, List<SnapshotItem> snapshotItems) throws Exception{
         List<ConfigPv> configPvs = saveAndRestoreService.getConfigPvs(saveSetNode.getUniqueId());
-        for(SnapshotItem snapshotItem : snapshotItems){
-            String pvName = snapshotItem.getConfigPv().getPvName();
-            for(ConfigPv configPv : configPvs){
-                if(configPv.getPvName().equals(pvName)){
-                    snapshotItem.setConfigPv(configPv);
-                    break;
-                }
-            }
-        }
+        snapshotItems.forEach(snapshotItem -> configPvs.stream().filter(configPv -> configPv.equals(snapshotItem.getConfigPv())).findFirst().ifPresent(snapshotItem::setConfigPv));
 
         return snapshotItems;
     }
 
     private boolean isSnapshotCompatibleWithSaveSet(Node saveSetNode, List<SnapshotItem> snapshotItems) throws Exception{
-        int compatibilityCount = 0;
         List<ConfigPv> configPvs = saveAndRestoreService.getConfigPvs(saveSetNode.getUniqueId());
-        for(SnapshotItem snapshotItem : snapshotItems) {
-            String pvName = snapshotItem.getConfigPv().getPvName();
-            for(ConfigPv configPv : configPvs){
-                if(configPv.getPvName().equals(pvName)){
-                    compatibilityCount++;
-                    break;
+
+        if (addPVsForIncompatibleSaveset) {
+            List<ConfigPv> newConfigPvs = new ArrayList<>();
+
+            snapshotItems.forEach(snapshotItem -> {
+                if (configPvs.stream().noneMatch(configPv -> configPv.equals(snapshotItem.getConfigPv()))) {
+                    newConfigPvs.add(snapshotItem.getConfigPv());
+                }
+            });
+
+            if (!newConfigPvs.isEmpty()) {
+                configPvs.addAll(newConfigPvs);
+                saveAndRestoreService.updateSaveSet(saveSetNode, configPvs);
+            }
+
+            return true;
+        } else {
+            int compatibilityCount = 0;
+            for (SnapshotItem snapshotItem : snapshotItems) {
+                for (ConfigPv configPv : configPvs) {
+                    if (configPv.equals(snapshotItem.getConfigPv())) {
+                        compatibilityCount++;
+                        break;
+                    }
                 }
             }
+            return compatibilityCount == snapshotItems.size();
         }
-        return compatibilityCount == snapshotItems.size();
     }
 
     public static void main(String[] args) throws Exception{
