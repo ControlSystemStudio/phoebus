@@ -71,9 +71,6 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
         model_widget.propRotation().addUntypedPropertyListener(styleChangedListener);
 //      styleChanged() will be called by contentChanged()
 
-        // This is one of those weird cases where getValue calls setValue and fires the listener.
-        // So register listener after getValue called
-        final String img_name = model_widget.propFile().getValue();
         model_widget.propFile().addPropertyListener(contentChangedListener);
         /*
          * Must clear the flags, JFXBaseRepresentation will call updateChanges() but we are not initialized yet
@@ -81,7 +78,7 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
          */
         dirty_style.checkAndClear();
         dirty_content.checkAndClear();
-        ModelThreadPool.getExecutor().execute(() -> contentChanged(null, null, img_name));
+        ModelThreadPool.getExecutor().execute(() -> contentChanged(null, null, null));
     }
 
     @Override
@@ -107,14 +104,15 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
         // Subsequent Scheduled image update would not happen.
 
         boolean load_failed = false;
+        final String img_name = model_widget.propFile().getValue();
 
         try
         {
-            img_path = resolveImageFile(new_value);
+            img_path = resolveImageFile(img_name);
         }
         catch (Exception e)
         {
-            logger.log(Level.WARNING, "Failure resolving image path from base path: " + new_value, e);
+            logger.log(Level.WARNING, "Failure resolving image path from base path: " + img_name, e);
             load_failed = true;
         }
 
