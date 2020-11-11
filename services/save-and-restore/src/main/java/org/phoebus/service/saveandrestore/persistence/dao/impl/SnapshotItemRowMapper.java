@@ -44,16 +44,13 @@ public class SnapshotItemRowMapper implements RowMapper<SnapshotItem> {
 				.alarmStatus(resultSet.getString("status") ==  null ? null : AlarmStatus.valueOf(resultSet.getString("status")))
 				.time(resultSet.getLong("time"))
 				.timens(resultSet.getInt("timens"))
-				.value(resultSet.getString("value").equals("STORED_IN_LARGE_STORE") ? resultSet.getString("value_ls") : resultSet.getString("value"))
+				.value(resultSet.getString("value"))
 				.sizes(resultSet.getString("sizes"))
 				.dataType(resultSet.getString("data_type") == null ? null : SnapshotPvDataType.valueOf(resultSet.getString("data_type")))
 				.build();
 
 		SnapshotPv readbackPvValue = null;
 		String readbackValue = resultSet.getString("readback_value");
-		if (readbackValue != null) {
-			readbackValue = readbackValue.equals("STORED_IN_LARGE_STORE") ? resultSet.getString("readback_value_ls") : resultSet.getString("readback_value");
-		}
 
 		if(readbackValue != null){
 			readbackPvValue = SnapshotPv.builder()
