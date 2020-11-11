@@ -24,7 +24,6 @@ public class Messages
                          CurrentDate,
                          Date,
                          High,
-                         Level,
                          Logbooks,
                          LogbookServiceUnavailableTitle,
                          LogbookServiceHasNoLogbooks,
