@@ -75,7 +75,6 @@ import org.w3c.dom.Element;
 @SuppressWarnings("nls")
 public class ModelReader
 {
-    private final static int MAX_PARSE_AGAIN = Preferences.max_reparse;
     private final Element root;
     private final Version version;
     private final String xml_file;
@@ -176,7 +175,7 @@ public class ModelReader
         // Save the number of errors we had so far
         int saved_widget_errors_during_parse = widget_errors_during_parse;
         // Limit the number of retries to avoid infinite loop
-        for (int retries=0; retries < MAX_PARSE_AGAIN; ++retries)
+        for (int retries=0; retries < Preferences.max_reparse_iterations; ++retries)
         {
             final List<Widget> widgets = readWidgetsAllowingRetry(parent_xml);
             if (widgets != null)
@@ -190,7 +189,7 @@ public class ModelReader
             }
         }
 
-        throw new IllegalStateException("Too many requests to parse again, limited to " + MAX_PARSE_AGAIN + " requests");
+        throw new IllegalStateException("Too many requests to parse again, limited to " + Preferences.max_reparse_iterations + " requests");
     }
 
     /** Read all '&lt;widget>..' child entries

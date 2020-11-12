@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,7 +7,8 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx;
 
-import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.framework.preferences.AnnotatedPreferences;
+import org.phoebus.framework.preferences.Preference;
 
 /** Preference settings
  *  @author Kay Kasemir
@@ -15,11 +16,10 @@ import org.phoebus.framework.preferences.PreferencesReader;
 @SuppressWarnings("nls")
 public class JFXPreferences
 {
-    public static boolean inc_dec_slider;
+    @Preference public static boolean inc_dec_slider;
 
     static
     {
-        final PreferencesReader prefs = new PreferencesReader(JFXPreferences.class, "/jfx_repr_preferences.properties");
-        inc_dec_slider = prefs.getBoolean("inc_dec_slider");
+    	AnnotatedPreferences.initialize(JFXPreferences.class, "/jfx_repr_preferences.properties");
     }
 }
