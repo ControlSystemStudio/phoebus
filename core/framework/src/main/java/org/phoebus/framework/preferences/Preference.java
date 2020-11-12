@@ -29,8 +29,9 @@ import java.lang.annotation.Target;
  *  <li>boolean
  *  <li>String
  *  <li>File
- *  <li>int[]  - Parses comma-separated int values from preference string
- *  <li>String[]  - Parses comma-separated text values from preference string
+ *  <li>enum     - Preference string must match one of the enum labels/names
+ *  <li>int[]    - Parses comma-separated int values from preference string
+ *  <li>String[] - Parses comma-separated text values from preference string
  *  </ul>
  *  
  *  <p>Fields set from preferences may be 'public' as well as 'private'.
