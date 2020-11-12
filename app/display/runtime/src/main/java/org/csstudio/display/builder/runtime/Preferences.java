@@ -16,6 +16,7 @@ import java.util.regex.PatternSyntaxException;
 
 import org.phoebus.framework.preferences.AnnotatedPreferences;
 import org.phoebus.framework.preferences.Preference;
+import org.phoebus.framework.preferences.PreferencesReader;
 
 /** Preference settings
  *
@@ -27,16 +28,17 @@ public class Preferences
     @Preference public static String python_path;
     @Preference(name="update_throttle") public static int update_throttle_ms;
     @Preference public static String probe_display;
-    @Preference(name="pv_name_patches") private static String patch_spec;
-    public static List<TextPatch> pv_name_patches = new ArrayList<>();
+    public static final List<TextPatch> pv_name_patches = new ArrayList<>();
 
     static
     {
-    	AnnotatedPreferences.initialize(Preferences.class, "/display_runtime_preferences.properties");
-        if (! patch_spec.isEmpty())
+    	final PreferencesReader prefs = AnnotatedPreferences.initialize(Preferences.class, "/display_runtime_preferences.properties");
+        
+    	final String setting = prefs.get("pv_name_patches");
+    	if (! setting.isEmpty())
         {
             // Split on '@', except if preceded by '[' to skip '[@]'
-            final String[] config = patch_spec.split("(?<!\\[)@");
+            final String[] config = setting.split("(?<!\\[)@");
             if (config.length % 2 == 0)
             {
                 for (int i=0; i<config.length; i+=2)
