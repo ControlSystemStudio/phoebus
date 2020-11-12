@@ -19,7 +19,8 @@ import org.phoebus.channelfinder.utility.RemovePropertyChannelsJob;
 import org.phoebus.channelfinder.utility.RemoveTagChannelsJob;
 import org.phoebus.framework.adapter.AdapterService;
 import org.phoebus.framework.jobs.Job;
-import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.framework.preferences.AnnotatedPreferences;
+import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -74,12 +75,11 @@ public class ChannelTableController extends ChannelFinderController {
     private Collection<String> properties;
     private Collection<String> tags;
     private boolean isCBSelected = true;
-    public static final boolean showActiveCb;
+    @Preference(name="show_active_cb") public static boolean showActiveCb;
 
     static
     {
-        final PreferencesReader prefs = new PreferencesReader(ChannelTableController.class, "/cv_preferences.properties");
-        showActiveCb = prefs.getBoolean("show_active_cb");
+    	AnnotatedPreferences.initialize(ChannelTableController.class, "/cv_preferences.properties");
     }
 
     @SuppressWarnings("unchecked")

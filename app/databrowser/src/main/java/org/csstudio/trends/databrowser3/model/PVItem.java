@@ -499,7 +499,7 @@ public class PVItem extends ModelItem
         final double period = XMLUtil.getChildDouble(node, XMLPersistence.TAG_SCAN_PERIOD).orElse(0.0);
 
         final PVItem item = new PVItem(name, period);
-        final int buffer_size = XMLUtil.getChildInteger(node, XMLPersistence.TAG_LIVE_SAMPLE_BUFFER_SIZE).orElse(Preferences.buffer_size);
+        final int buffer_size = XMLUtil.getChildInteger(node, XMLPersistence.TAG_LIVE_SAMPLE_BUFFER_SIZE).orElse(Preferences.live_buffer_size);
         item.setLiveCapacity(buffer_size);
 
         final String req_txt = XMLUtil.getChildString(node, XMLPersistence.TAG_REQUEST).orElse(RequestType.OPTIMIZED.name());

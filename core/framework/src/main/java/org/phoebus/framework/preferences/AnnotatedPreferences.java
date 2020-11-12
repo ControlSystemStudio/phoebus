@@ -47,8 +47,8 @@ public class AnnotatedPreferences
 						               ? field.getName()
 						               : anno.name();
 
-			    // Does 'private' field need to be made accessible?
-			    final boolean make_accessible = (field.getModifiers() & Modifier.PRIVATE) != 0;
+			    // Does non-public field need to be made accessible?
+			    final boolean make_accessible = (field.getModifiers() & Modifier.PUBLIC) == 0;
 			    if (make_accessible)
 		        	field.setAccessible(true);
 			    
@@ -87,8 +87,20 @@ public class AnnotatedPreferences
 					}
 					else if (field.getType() == File.class)
 						field.set(clazz, new File(prefs.get(pref_name)));
+					else if (field.getType().isEnum())
+					{
+						// Find matching enum option
+						final String value = prefs.get(pref_name);
+						for (Object option : field.getType().getEnumConstants())
+							if (option.toString().equals(value))
+							{
+								field.set(clazz, option);
+								return prefs;
+							}
+						throw new Exception("Cannot determine enum option for value '" + value + "'");
+					}
 					else
-						throw new Exception("Cannot handle annotated preference of type " + field.getType());
+						throw new Exception("Cannot handle fields of type " + field.getType());
 				}
 				finally
 				{

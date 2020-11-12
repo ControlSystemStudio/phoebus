@@ -60,6 +60,12 @@ public class AnnotatedPreferencesTest
 	private static String first_last_spec;
 	
 	public static String[] example_first_last;
+	
+	
+	static enum ExampleEnum { RED, GREEN, BLUE };
+	
+	@Preference
+	public static ExampleEnum example_enum;
 		
 	static
 	{
@@ -87,5 +93,7 @@ public class AnnotatedPreferencesTest
 		example_first_last = first_last_spec.split("\\s*,\\s*");
 		assertEquals("Fred Jason", example_first_last[0]);
 		assertEquals("Miller", example_first_last[1]);
+
+		assertEquals(ExampleEnum.BLUE, example_enum);
 	}
 }

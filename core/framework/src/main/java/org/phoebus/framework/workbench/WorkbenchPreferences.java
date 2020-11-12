@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.phoebus.framework.preferences.AnnotatedPreferences;
+import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.preferences.PreferencesReader;
 
 /** Workbench Preferences
@@ -23,14 +25,12 @@ public class WorkbenchPreferences
     /** Logger for the 'workbench' package */
     public static final Logger logger = Logger.getLogger(WorkbenchPreferences.class.getPackageName());
 
-
+    @Preference public static File external_apps_directory;
     public static final Collection<String> external_apps;
-    public static final File external_apps_directory;
 
     static
     {
-        final PreferencesReader prefs = new PreferencesReader(WorkbenchPreferences.class, "/workbench_preferences.properties");
-        external_apps_directory = new File(prefs.get("external_apps_directory"));
+        final PreferencesReader prefs = AnnotatedPreferences.initialize(WorkbenchPreferences.class, "/workbench_preferences.properties");
         external_apps = prefs.getKeys("external_app_.*").stream().map(prefs::get).collect(Collectors.toList());
     }
 }
