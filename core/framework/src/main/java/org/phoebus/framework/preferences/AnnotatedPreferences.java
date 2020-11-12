@@ -92,11 +92,14 @@ public class AnnotatedPreferences
 						// Find matching enum option
 						final String value = prefs.get(pref_name);
 						for (Object option : field.getType().getEnumConstants())
-							if (option.toString().equals(value))
+						{
+							final String name = ((Enum<?>) option).name();
+							if (name.equals(value))
 							{
 								field.set(clazz, option);
 								return prefs;
 							}
+						}
 						throw new Exception("Cannot determine enum option for value '" + value + "'");
 					}
 					else

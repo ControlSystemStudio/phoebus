@@ -69,11 +69,11 @@ public class Preferences
     @Preference public static boolean use_trace_names;
     @Preference public static boolean prompt_for_raw_data_request;
     @Preference public static boolean prompt_for_visibility;
-    @Preference public static List<TimePreset> time_presets;
+    public static final List<TimePreset> time_presets = new ArrayList<>();
 
     static
     {
-        final PreferencesReader prefs = AnnotatedPreferences.initialize(Activator.class, "/databrowser_preferences.properties");
+        final PreferencesReader prefs = AnnotatedPreferences.initialize(Preferences.class, "/databrowser_preferences.properties");
 
         // Allow at least one at a time
         if (concurrent_requests < 1)
@@ -85,7 +85,6 @@ public class Preferences
         scroll_step = Duration.ofSeconds( Math.max(1, prefs.getInt("scroll_step")) );
         time_span = Duration.ofSeconds( Math.round( Math.max(prefs.getDouble("time_span"), 1.0) ) );
 
-        time_presets = new ArrayList<>();
         for (String preset : prefs.get("time_span_shortcuts").split("\\|"))
         {
             final String[] label_span = preset.split(",");
