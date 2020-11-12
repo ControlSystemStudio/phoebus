@@ -47,8 +47,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.util.Callback;
 
-import static org.phoebus.channel.views.ui.ChannelFinderController.logger;
-
 /**
  * Controller for the file browser app
  * 
@@ -111,6 +109,10 @@ public class ChannelTableController extends ChannelFinderController {
     public void setQuery(String string) {
         query.setText(string);
         search();
+    }
+
+    public String getQuery() {
+        return query.getText();
     }
 
     @FXML
