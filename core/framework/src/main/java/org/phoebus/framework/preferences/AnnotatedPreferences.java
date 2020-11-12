@@ -26,8 +26,10 @@ public class AnnotatedPreferences
 	 *  
 	 *  @param clazz Class to be initialized, also sets the package name for preference keys
 	 *  @param preferences_properties_filename Preference properties file, loaded as resource of the `clazz`
+	 *  
+	 *  @return {@link PreferencesReader} in case caller wants to directly read some items for special handling
 	 */
-	public static void initialize(final Class<?> clazz, final String preferences_properties_filename)
+	public static PreferencesReader initialize(final Class<?> clazz, final String preferences_properties_filename)
 	{
 		final PreferencesReader prefs = new PreferencesReader(clazz, preferences_properties_filename);
 
@@ -55,6 +57,8 @@ public class AnnotatedPreferences
 				{
 					if (field.getType() == int.class)
 						field.setInt(clazz, prefs.getInt(pref_name));
+					else if (field.getType() == long.class)
+						field.setLong(clazz, prefs.getLong(pref_name));
 					else if (field.getType() == String.class)
 						field.set(clazz, prefs.get(pref_name));
 					else if (field.getType() == double.class)
@@ -100,6 +104,8 @@ public class AnnotatedPreferences
 				    	   ex);
 			}
 		}
+		
+		return prefs;
 	}
 
 }

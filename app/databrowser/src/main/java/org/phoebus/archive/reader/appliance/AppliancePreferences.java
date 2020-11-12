@@ -7,7 +7,8 @@
  ******************************************************************************/
 package org.phoebus.archive.reader.appliance;
 
-import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.framework.preferences.AnnotatedPreferences;
+import org.phoebus.framework.preferences.Preference;
 
 /**
  * Settings for Appliance archive reader
@@ -16,15 +17,10 @@ import org.phoebus.framework.preferences.PreferencesReader;
  */
 @SuppressWarnings("nls")
 public class AppliancePreferences {
-    static final String USESTATS = "useStatisticsForOptimizedData";
-    static final String USEOPTIMIZED = "useNewOptimizedOperator";
-
-    static boolean useStatisticsForOptimizedData;
-    static boolean useNewOptimizedOperator;
+    @Preference static boolean useStatisticsForOptimizedData;
+    @Preference static boolean useNewOptimizedOperator;
 
     static {
-        final PreferencesReader prefs = new PreferencesReader(AppliancePreferences.class, "/appliance_preferences.properties");
-        useStatisticsForOptimizedData = prefs.getBoolean(USESTATS);
-        useNewOptimizedOperator = prefs.getBoolean(USEOPTIMIZED);
+    	AnnotatedPreferences.initialize(AppliancePreferences.class, "/appliance_preferences.properties");
     }
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,7 +7,8 @@
  ******************************************************************************/
 package org.phoebus.applications.errlog;
 
-import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.framework.preferences.AnnotatedPreferences;
+import org.phoebus.framework.preferences.Preference;
 
 /** LineLog preference settings
  *  @author Kay Kasemir
@@ -15,11 +16,10 @@ import org.phoebus.framework.preferences.PreferencesReader;
 @SuppressWarnings("nls")
 public class Preferences
 {
-    public static int max_lines;
+    @Preference public static int max_lines;
 
     static
     {
-        final PreferencesReader prefs = new PreferencesReader(Preferences.class, "/errlog_preferences.properties");
-        max_lines = prefs.getInt("max_lines");
+    	AnnotatedPreferences.initialize(Preferences.class, "/errlog_preferences.properties");
     }
 }

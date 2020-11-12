@@ -80,7 +80,7 @@ class AlarmTableInstance implements AppInstance
             client.addListener(mediator);
             client.start();
 
-            if (AlarmSystem.config_names.size() > 0)
+            if (AlarmSystem.config_names.length > 0)
             {
                 final AlarmConfigSelector configs = new AlarmConfigSelector(config_name, this::changeConfig);
                 // Place after "Active Alarms: 12" and strut

@@ -116,8 +116,8 @@ public class RDBArchiveReader implements ArchiveReader
             addForCancellation(statement);
             try
             {
-                if (RDBPreferences.timeout > 0)
-                    statement.setQueryTimeout(RDBPreferences.timeout);
+                if (RDBPreferences.timeout_secs > 0)
+                    statement.setQueryTimeout(RDBPreferences.timeout_secs);
                 statement.setFetchSize(100);
                 final ResultSet result = statement.executeQuery(sql.sel_stati);
                 while (result.next())
@@ -150,8 +150,8 @@ public class RDBArchiveReader implements ArchiveReader
             addForCancellation(statement);
             try
             {
-                if (RDBPreferences.timeout > 0)
-                    statement.setQueryTimeout(RDBPreferences.timeout);
+                if (RDBPreferences.timeout_secs > 0)
+                    statement.setQueryTimeout(RDBPreferences.timeout_secs);
                 statement.setFetchSize(100);
                 final ResultSet result = statement.executeQuery(sql.sel_severities);
                 while (result.next())
@@ -330,8 +330,8 @@ public class RDBArchiveReader implements ArchiveReader
             addForCancellation(statement);
             try
             {
-                if (RDBPreferences.timeout > 0)
-                    statement.setQueryTimeout(RDBPreferences.timeout);
+                if (RDBPreferences.timeout_secs > 0)
+                    statement.setQueryTimeout(RDBPreferences.timeout_secs);
                 statement.setString(1, name);
                 final ResultSet result = statement.executeQuery();
                 if (!result.next())

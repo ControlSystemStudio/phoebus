@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,7 +11,8 @@ import java.io.File;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
-import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.framework.preferences.AnnotatedPreferences;
+import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.util.RingBuffer;
 
 import javafx.application.Platform;
@@ -42,28 +43,20 @@ public class Console
     /** Logger for all Terminal code */
     public static final Logger logger = Logger.getLogger(Console.class.getPackageName());
 
-    private static final int output_line_limit;
-    private static final int history_size;
-    private static final String font_name;
-    private static final int font_size;
-    private static final String prompt;
-    private static final String prompt_info;
-    static final String shell;
-    static final File directory;
+    @Preference private static int output_line_limit;
+    @Preference private static int history_size;
+    @Preference private static String font_name;
+    @Preference private static int font_size;
+    @Preference private static String prompt;
+    @Preference private static String prompt_info;
+    @Preference static String shell;
+    @Preference static File directory;
 
     /** Preferences */
     static
     {
-        PreferencesReader prefs = new PreferencesReader(Console.class, "/console_preferences.properties");
-        output_line_limit = prefs.getInt("output_line_limit");
-        history_size = prefs.getInt("history_size");
-        font_name = prefs.get("font_name");
-        font_size = prefs.getInt("font_size");
-        prompt = prefs.get("prompt");
-        prompt_info = prefs.get("prompt_info");
-        shell = prefs.get("shell");
-        directory = new File(prefs.get("directory"));
-    }
+    	AnnotatedPreferences.initialize(Console.class, "/console_preferences.properties");
+   }
 
     public enum LineType
     {

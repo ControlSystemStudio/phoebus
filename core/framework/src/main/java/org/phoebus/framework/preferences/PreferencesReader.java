@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -160,6 +160,17 @@ public class PreferencesReader
         if (value.isBlank())
             return 0;
         return Integer.parseInt(value);
+    }
+
+    /** @param key Key for preference setting
+     *  @return Long value from preferences, defaulting to value from property file
+     */
+    public long getLong(final String key)
+    {
+        final String value = get(key);
+        if (value.isBlank())
+            return 0;
+        return Long.parseLong(value);
     }
 
     /** @param key Key for preference setting
