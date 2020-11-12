@@ -40,7 +40,6 @@ import java.time.Instant;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -541,10 +540,11 @@ public class NodeJdbcDAO implements NodeDAO {
 				.nodeType(NodeType.SNAPSHOT)
 				.build());
 
-		Map<String, Object> params = new HashMap<>(6);
-		params.put("snapshot_node_id", snapshotNode.getId());
-
+		List<Map<String, Object>> paramsForBatch = new ArrayList<>();
 		for (SnapshotItem snapshotItem : snapshotItems) {
+			Map<String, Object> params = new HashMap<>(6);
+			params.put("snapshot_node_id", snapshotNode.getId());
+
 			params.put("config_pv_id", snapshotItem.getConfigPv().getId());
 			// Should not happen, but if the snapshot value has not been set, continue...
 			if(snapshotItem.getValue() == null){
@@ -570,8 +570,9 @@ public class NodeJdbcDAO implements NodeDAO {
 				params.put("readback_data_type", snapshotReadbackPv.getDataType().toString());
 				params.put("readback_value", snapshotReadbackPv.getValue());
 			}
-			snapshotPvInsert.execute(params);
+			paramsForBatch.add(params);
 		}
+		snapshotPvInsert.executeBatch(paramsForBatch.toArray(new Map[paramsForBatch.size()]));
 
 		jdbcTemplate.update("update node set name=?, username=?, last_modified=? where unique_id=?", snapshotName, userName, Timestamp.from(Instant.now()), snapshotNode.getUniqueId());
 		insertOrUpdateProperty(snapshotNode.getId(), new AbstractMap.SimpleEntry<String, String>("comment", comment));

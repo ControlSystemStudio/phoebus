@@ -17,8 +17,8 @@
  */
 package org.phoebus.service.saveandrestore.persistence.config;
 
-import javax.sql.DataSource;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
@@ -28,8 +28,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zaxxer.hikari.HikariDataSource;
+import javax.sql.DataSource;
 
 @Configuration
 @PropertySource("classpath:/${dbengine}.properties")
