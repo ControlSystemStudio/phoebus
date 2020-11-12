@@ -25,6 +25,7 @@ public class LogbookUiPreferences
     public static final String   logbook_factory;
     public static final boolean  is_supported;
     public static final String calendarViewItemStylesheet;
+    public static final String levelFieldName;
 
     static
     {
@@ -35,6 +36,7 @@ public class LogbookUiPreferences
         save_credentials = prefs.getBoolean("save_credentials");
         logbook_factory  = prefs.get("logbook_factory");
         calendarViewItemStylesheet = prefs.get("calendar_view_item_stylesheet");
+        levelFieldName = prefs.get("level_field_name");
 
         if (logbook_factory.isEmpty())
         {
