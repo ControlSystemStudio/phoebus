@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,7 +13,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Logger;
 
 import org.phoebus.framework.jobs.NamedThreadFactory;
-import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.framework.preferences.AnnotatedPreferences;
+import org.phoebus.framework.preferences.Preference;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.image.Image;
@@ -26,6 +27,7 @@ public class Activator
 {
     final public static Logger logger = Logger.getLogger(Activator.class.getPackageName());
 
+    @Preference(name="shady_future") private static int[] rgba;
     public static final Color shady_future;
 
     /** Thread pool for scrolling, throttling updates
@@ -37,9 +39,8 @@ public class Activator
 
     static
     {
-        final PreferencesReader prefs = new PreferencesReader(Activator.class, "/rt_plot_preferences.properties");
-        final String[] rgba = prefs.get("shady_future").split("\\s*,\\s*");
-        shady_future = new Color(Integer.parseInt(rgba[0]),Integer.parseInt(rgba[1]), Integer.parseInt(rgba[2]), Integer.parseInt(rgba[3]));
+    	AnnotatedPreferences.initialize(Activator.class, "/rt_plot_preferences.properties");
+        shady_future = new Color(rgba[0], rgba[1], rgba[2], rgba[3]);
     }
 
     public static Image getIcon(final String base_name)

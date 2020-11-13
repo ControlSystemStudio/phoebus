@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,7 +15,8 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.logging.Level;
 
-import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.framework.preferences.AnnotatedPreferences;
+import org.phoebus.framework.preferences.Preference;
 import org.phoebus.pv.RefCountMap.ReferencedEntry;
 import org.phoebus.pv.formula.FormulaPVFactory;
 
@@ -62,7 +63,7 @@ public class PVPool
     final private static Map<String, PVFactory> factories = new HashMap<>();
 
     /** Default PV name type prefix */
-    private static String default_type = "ca";
+    @Preference(name="default") private static String default_type;
 
     static
     {
@@ -76,8 +77,7 @@ public class PVPool
                 factories.put(type, factory);
             }
 
-            final PreferencesReader prefs = new PreferencesReader(PVPool.class, "/pv_preferences.properties");
-            default_type = prefs.get(DEFAULT);
+            AnnotatedPreferences.initialize(PVPool.class, "/pv_preferences.properties");
 
             logger.log(Level.INFO, "Default PV type " + default_type + "://");
         }

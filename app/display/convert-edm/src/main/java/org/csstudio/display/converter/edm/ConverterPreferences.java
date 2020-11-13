@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,6 +19,8 @@ import java.util.prefs.Preferences;
 import java.util.regex.Pattern;
 
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
+import org.phoebus.framework.preferences.AnnotatedPreferences;
+import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.preferences.PreferencesReader;
 
 /** Phoebus application for EDM converter
@@ -27,7 +29,8 @@ import org.phoebus.framework.preferences.PreferencesReader;
 @SuppressWarnings("nls")
 public class ConverterPreferences
 {
-    public static String colors_list;
+    @Preference public static String colors_list;
+    @Preference private static String edm_paths_config;
 
     public static final List<String> paths = new ArrayList<>();
 
@@ -48,8 +51,7 @@ public class ConverterPreferences
 
     static
     {
-        final PreferencesReader prefs = new PreferencesReader(ConverterPreferences.class, "/edm_converter_preferences.properties");
-        colors_list = prefs.get("colors_list");
+        final PreferencesReader prefs = AnnotatedPreferences.initialize(ConverterPreferences.class, "/edm_converter_preferences.properties");
 
         try
         {
@@ -60,7 +62,6 @@ public class ConverterPreferences
             logger.log(Level.WARNING, "Cannot parse font_mappings", ex);
         }
 
-        final String edm_paths_config = prefs.get("edm_paths_config").trim();
         if (! edm_paths_config.isEmpty())
             try
             {

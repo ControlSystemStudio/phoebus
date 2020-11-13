@@ -23,7 +23,8 @@ public class PreferencesTest
     }
 
     @Test
-    public void testUndoStackSize(){
-        assertEquals(50, Preferences.undoStackSize);
+    public void testUndoStackSize()
+    {
+        assertEquals(50, Preferences.undo_stack_size);
     }
 }

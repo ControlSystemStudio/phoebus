@@ -170,7 +170,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
         // find the css file
 
         try {
-            String styleSheetResource = LogbookUiPreferences.calendarViewItemStylesheet;
+            String styleSheetResource = LogbookUiPreferences.calendar_view_item_stylesheet;
             agenda.getStylesheets().add(this.getClass().getResource(styleSheetResource).toString());
         } catch (Exception e) {
             logger.log(Level.WARNING, "Failed to set css style", e);

@@ -11,6 +11,8 @@ import static org.phoebus.ui.application.PhoebusApplication.logger;
 
 import java.util.logging.Level;
 
+import org.phoebus.framework.preferences.AnnotatedPreferences;
+import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.logbook.LogService;
 
@@ -20,23 +22,16 @@ import org.phoebus.logbook.LogService;
 @SuppressWarnings("nls")
 public class LogbookUiPreferences
 {
-    public static final String[] default_logbooks;
-    public static final boolean  save_credentials;
-    public static final String   logbook_factory;
-    public static final boolean  is_supported;
-    public static final String calendarViewItemStylesheet;
-    public static final String levelFieldName;
+    @Preference public static String[] default_logbooks;
+    @Preference public static boolean  save_credentials;
+    @Preference public static String   logbook_factory;
+    @Preference public static boolean  is_supported;
+    @Preference public static String calendar_view_item_stylesheet;
+    @Preference public static String level_field_name;
 
     static
     {
-        final PreferencesReader prefs = new PreferencesReader(LogbookUiPreferences.class, "/log_ui_preferences.properties");
-
-        // Split the comma separated list.
-        default_logbooks = prefs.get("default_logbooks").split("(\\s)*,(\\s)*");
-        save_credentials = prefs.getBoolean("save_credentials");
-        logbook_factory  = prefs.get("logbook_factory");
-        calendarViewItemStylesheet = prefs.get("calendar_view_item_stylesheet");
-        levelFieldName = prefs.get("level_field_name");
+        final PreferencesReader prefs = AnnotatedPreferences.initialize(LogbookUiPreferences.class, "/log_ui_preferences.properties");
 
         if (logbook_factory.isEmpty())
         {
