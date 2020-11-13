@@ -4,7 +4,7 @@ Preference Settings
 When you run Phoebus, you may find that it cannot connect to your control system
 because for example the EPICS Channel Access address list is not configured.
 
-To locate available preferences, refer to the complete list of
+To locate available preferences, refer to the complete 
 :ref:`preference_settings`
 or check the source code for files named ``*preferences.properties``,
 for example in the ``core-pv`` sources::
@@ -118,7 +118,35 @@ In that file, list the available settings, with explanatory comments::
    # Enable some feature, allowed values are true or false
    my_other_setting=true
 
-Load that as the default, then read the ``java.util.prefs.Preferences`` like this::
+In your application code, you can most conveniently access them like this::
+
+    package org.phoebus.applications.my_app
+
+    import org.phoebus.framework.preferences.AnnotatedPreferences;
+    import org.phoebus.framework.preferences.Preference;
+
+    class MyAppSettings
+    {
+        @Preference public static String my_setting;
+        @Preference public static boolean my_other_setting;
+
+        static
+        {
+            AnnotatedPreferences.initialize(MyAppSettings.class, "/my_app_preferences.properties");
+        }
+    }
+
+
+The ``AnnotatedPreferences`` helper will read your ``*preferences.properties``,
+apply updates from ``java.util.prefs.Preferences``, and then set the values
+of all static fields annotated with ``@Preference``.
+It handles basic types like ``int``, ``long``, ``double``, ``boolean``, ``String``,
+``File``. It can also parse comma-separated items into ``int[]`` or ``String[]``.
+
+By default, it uses the name of the field as the name of the preference setting,
+which can be overridden via ``@Preference(name="name_of_settings")``.
+If more elaborate settings need to be handled, ``AnnotatedPreferences.initialize``
+returns a ``PreferencesReader``, or you could directly use that lower level API like this::
 
     package org.phoebus.applications.my_app
     
@@ -129,7 +157,9 @@ Load that as the default, then read the ``java.util.prefs.Preferences`` like thi
     
     String pref1 = prefs.get("my_setting");
     Boolean pref2 = prefs.getBoolean("my_other_setting");
-    // .. use getInt, getDouble as needed
+    // .. use getInt, getDouble as needed.
+    // For more complex settings, use `get()` to fetch the string
+    // and parse as desired.
 
 The ``PreferencesReader`` loads defaults from the property file,
 then allows overrides via the ``java.util.prefs.Preferences`` API.
