@@ -237,7 +237,7 @@ public class AutomatedActionTest
     {
         System.out.println("testAutomatedEmailFollowup");
 
-        if (! AlarmSystem.automated_action_followup.contains("mailto:"))
+        if (! List.of(AlarmSystem.automated_action_followup).contains("mailto:"))
         {
             System.out.println("Skipping test of automated email follow up");
             return;

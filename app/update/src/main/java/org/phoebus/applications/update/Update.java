@@ -26,6 +26,8 @@ import java.util.zip.ZipFile;
 
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.SubJobMonitor;
+import org.phoebus.framework.preferences.AnnotatedPreferences;
+import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.workbench.FileHelper;
 import org.phoebus.framework.workbench.Locations;
@@ -51,32 +53,28 @@ public class Update
     public static final Logger logger = Logger.getLogger(Update.class.getPackageName());
 
     /** Initial delay to allow other apps to start */
-    public static final int delay;
+    @Preference public static int delay;
 
     /** Current version, or <code>null</code> if not set */
     public static final Instant current_version;
 
     /** Update URL, or empty if not set */
-    public static final String update_url;
+    @Preference public static String update_url;
 
     /** Path removals */
     public static final PathWrangler wrangler;
 
     static
     {
-        final PreferencesReader prefs = new PreferencesReader(Update.class, "/update_preferences.properties");
+        final PreferencesReader prefs = AnnotatedPreferences.initialize(Update.class, "/update_preferences.properties");
         current_version = TimestampFormats.parse(prefs.get("current_version"));
 
-        delay = prefs.getInt("delay");
-
-        String url = prefs.get("update_url");
         if (PlatformInfo.is_linux)
-            url = url.replace("$(arch)", "linux");
+        	update_url = update_url.replace("$(arch)", "linux");
         else if (PlatformInfo.is_mac_os_x)
-            url = url.replace("$(arch)", "mac");
+        	update_url = update_url.replace("$(arch)", "mac");
         else
-            url = url.replace("$(arch)", "win");
-        update_url = url;
+        	update_url = update_url.replace("$(arch)", "win");
 
         wrangler = new PathWrangler(prefs.get("removals"));
     }

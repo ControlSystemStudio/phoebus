@@ -98,6 +98,10 @@ public class ChannelTreeController extends ChannelFinderController {
         search();
     }
 
+    public String getQuery() {
+        return query.getText();
+    }
+
     public void setOrderedProperties(List<String> orderedProperties) {
         this.orderedProperties = orderedProperties;
         reconstructTree();

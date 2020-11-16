@@ -56,7 +56,7 @@ public class EditMultipleItemsAction extends MenuItem
         private final TextField period = new TextField("0.0");
 
         private final CheckBox set_buffer = new CheckBox(Messages.LiveSampleBufferSize);
-        private final TextField buffer = new TextField(Integer.toString(Preferences.buffer_size));
+        private final TextField buffer = new TextField(Integer.toString(Preferences.live_buffer_size));
 
         private final CheckBox set_axis = new CheckBox(Messages.Axis);
         private final ComboBox<String> axis = new ComboBox<>();

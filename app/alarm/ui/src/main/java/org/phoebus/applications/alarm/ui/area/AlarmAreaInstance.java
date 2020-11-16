@@ -71,7 +71,7 @@ public class AlarmAreaInstance implements AppInstance
             final AlarmAreaView area_view = new AlarmAreaView(client);
             client.start();
 
-            if (AlarmSystem.config_names.size() > 0)
+            if (AlarmSystem.config_names.length > 0)
             {
                 final AlarmConfigSelector select = new AlarmConfigSelector(config_name, new_config_name ->
                 {

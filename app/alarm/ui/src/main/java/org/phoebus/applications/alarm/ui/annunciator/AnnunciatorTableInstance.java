@@ -76,7 +76,7 @@ public class AnnunciatorTableInstance implements AppInstance
             annunciatorTable = new AnnunciatorTable(client);
             client.start();
 
-            if (AlarmSystem.config_names.size() > 0)
+            if (AlarmSystem.config_names.length > 0)
             {
                 final AlarmConfigSelector configs = new AlarmConfigSelector(config_name, this::changeConfig);
                 annunciatorTable.getToolbar().getItems().add(0, configs);
