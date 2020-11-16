@@ -20,7 +20,6 @@ package org.phoebus.logbook.ui;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
@@ -28,6 +27,8 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
@@ -51,9 +52,15 @@ import java.util.stream.Collectors;
 
 import static org.phoebus.ui.time.TemporalAmountPane.Type.TEMPORAL_AMOUNTS_AND_NOW;
 
+/**
+ * Controller for the advanced search UI in the log applications, i.e. log table view and log calendar view.
+ */
 public class AdvancedSearchViewController {
 
     static final Logger logger = Logger.getLogger(AdvancedSearchViewController.class.getName());
+
+    @FXML
+    Label levelLabel;
 
     @FXML
     GridPane timePane;
@@ -61,6 +68,10 @@ public class AdvancedSearchViewController {
     TextField startTime;
     @FXML
     TextField endTime;
+    @FXML
+    TextField searchTitle;
+    @FXML
+    TextField searchAuthor;
 
     PopOver timeSearchPopover;
 
@@ -72,10 +83,13 @@ public class AdvancedSearchViewController {
     PopOver logbookSearchPopover;
 
     @FXML
+    ComboBox<String> levelSelector;
+
+    @FXML
     TextField searchTags;
     PopOver tagSearchPopover;
 
-    private LogClient logClient;
+    private final LogClient logClient;
 
     private ListSelectionController tagController;
     private ListSelectionController logbookController;
@@ -95,6 +109,8 @@ public class AdvancedSearchViewController {
 
     @FXML
     public void initialize() {
+
+        levelLabel.setText(LogbookUiPreferences.levelFieldName);
 
         advancedSearchPane.minWidthProperty().set(0);
         advancedSearchPane.maxWidthProperty().set(0);
@@ -220,67 +236,52 @@ public class AdvancedSearchViewController {
                     }
                 });
 
-        searchLogbooks.focusedProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue,
-                                Boolean newPropertyValue) {
-                if (newPropertyValue) {
-                    if(logbookNames == null) {
-                        logbookNames = logClient.listLogbooks().stream().map(Logbook::getName).sorted().collect(Collectors.toList());
-                    }
-                    logbookController.setAvailable(logbookNames);
-                    logbookSearchPopover.show(searchLogbooks);
-                } else if (logbookSearchPopover.isShowing()) {
-                    logbookSearchPopover.hide();
+        searchLogbooks.focusedProperty().addListener((arg0, oldPropertyValue, newPropertyValue) -> {
+            if (newPropertyValue) {
+                if(logbookNames == null) {
+                    logbookNames = logClient.listLogbooks().stream().map(Logbook::getName).sorted().collect(Collectors.toList());
                 }
+                logbookController.setAvailable(logbookNames);
+                logbookSearchPopover.show(searchLogbooks);
+            } else if (logbookSearchPopover.isShowing()) {
+                logbookSearchPopover.hide();
             }
         });
-
 
         searchText.textProperty().addListener((observable, oldValue, newValue) -> {
             searchParameters.put(Keys.SEARCH, newValue);
         });
+
+        searchAuthor.textProperty().addListener((observable, oldValue, newValue) -> {
+            searchParameters.put(Keys.AUTHOR, newValue);
+        });
+
+        searchTitle.textProperty().addListener((observable, oldValue, newValue) -> {
+            searchParameters.put(Keys.TITLE, newValue);
+        });
+
+        List<String> levelList = logClient.listLevels().stream().collect(Collectors.toList());
+        levelSelector.getItems().add("");
+        levelSelector.getItems().addAll(levelList);
+
     }
 
     @FXML
-    void setSearchText() {
-    }
-
-    @FXML
-    public void showTimeSelection() {
-        if (timeSearchPopover.isShowing())
-            timeSearchPopover.hide();
-        else
-            timeSearchPopover.show(timePane);
-    }
-
-    @FXML
-    public void showTagSelection() {
-        if (tagSearchPopover.isShowing())
-            tagSearchPopover.hide();
-        else
-            tagSearchPopover.show(searchTags);
-    }
-
-    @FXML
-    public void showLogbookSelection() {
-        if (logbookSearchPopover.isShowing())
-            logbookSearchPopover.hide();
-        else
-            logbookSearchPopover.show(searchLogbooks);
+    public void setLevel(){
+        if(levelSelector.getSelectionModel().getSelectedItem().isEmpty()){
+            searchParameters.remove(Keys.LEVEL);
+        }
+        else{
+            searchParameters.put(Keys.LEVEL, levelSelector.getSelectionModel().getSelectedItem());
+        }
     }
 
     public void setSearchParameters(ObservableMap<Keys, String> params){
         searchParameters = params;
-        searchParameters.addListener(new MapChangeListener<Keys, String>() {
-            @Override
-            public void onChanged(Change<? extends Keys, ? extends String> change) {
-                Platform.runLater(() -> {
-                    searchLogbooks.setText(searchParameters.get(Keys.LOGBOOKS));
-                    searchTags.setText(searchParameters.get(Keys.TAGS));
-                });
-            }
-        });
+        searchParameters.addListener((MapChangeListener<Keys, String>) change -> Platform.runLater(() -> {
+            searchLogbooks.setText(searchParameters.get(Keys.LOGBOOKS));
+            searchTags.setText(searchParameters.get(Keys.TAGS));
+        }));
 
         startTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.STARTTIME));
         endTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.ENDTIME));

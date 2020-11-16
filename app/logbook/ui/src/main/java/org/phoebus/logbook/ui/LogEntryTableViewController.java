@@ -1,16 +1,13 @@
 package org.phoebus.logbook.ui;
 
-import static org.phoebus.ui.time.TemporalAmountPane.Type.TEMPORAL_AMOUNTS_AND_NOW;
 import static org.phoebus.util.time.TimestampFormats.SECONDS_FORMAT;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,28 +23,20 @@ import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.ui.LogbookQueryUtil.Keys;
 import org.phoebus.logbook.ui.write.AttachmentsViewController;
 import org.phoebus.logbook.ui.write.LogEntryModel;
-import org.phoebus.ui.dialog.PopOver;
 import org.phoebus.ui.javafx.ImageCache;
-import org.phoebus.ui.time.TimeRelativeIntervalPane;
 import org.phoebus.util.time.TimeParser;
-import org.phoebus.util.time.TimeRelativeInterval;
-import org.phoebus.util.time.TimestampFormats;
+
 
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
-import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
@@ -57,12 +46,9 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
@@ -72,8 +58,6 @@ import javafx.util.Duration;
  *
  */
 public class LogEntryTableViewController extends LogbookSearchController {
-
-    static final Logger logger = Logger.getLogger(LogEntryTableViewController.class.getName());
 
     static final Image tag = ImageCache.getImage(LogEntryController.class, "/icons/add_tag.png");
     static final Image logbook = ImageCache.getImage(LogEntryController.class, "/icons/logbook-16.png");
@@ -121,47 +105,32 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
         resize.setText("<");
 
-        searchParameters = FXCollections.<Keys, String>observableHashMap();
+        searchParameters = FXCollections.observableHashMap();
         searchParameters.put(Keys.SEARCH, "*");
         searchParameters.put(Keys.STARTTIME, TimeParser.format(java.time.Duration.ofHours(8)));
         searchParameters.put(Keys.ENDTIME, TimeParser.format(java.time.Duration.ZERO));
         advancedSearchViewController.setSearchParameters(searchParameters);
 
-        // XXX ideally using binding like the example underneath would be ideal.
-        //
-        // query.textProperty().bind(Bindings.createStringBinding(() -> {
-        // return searchParameters.entrySet().stream().map((e) -> {
-        // return e.getKey().trim() + ":" + e.getValue().trim();
-        // }).collect(Collectors.joining(","));
-        // }, searchParameters));
+        query.setText(searchParameters.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
+                .collect(Collectors.joining("&")));
 
-        query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
-            return e.getKey().getName().trim() + "=" + e.getValue().trim();
-        }).collect(Collectors.joining("&")));
-
-        searchParameters.addListener(new MapChangeListener<Keys, String>() {
-            @Override
-            public void onChanged(Change<? extends Keys, ? extends String> change) {
-                query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
-                    return e.getKey().getName().trim() + "=" + e.getValue().trim();
-                }).collect(Collectors.joining("&")));
-            }
-        });
+        searchParameters.addListener((MapChangeListener<Keys, String>) change -> query.setText(searchParameters.entrySet().stream()
+                .sorted(Entry.comparingByKey())
+                .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
+                .collect(Collectors.joining("&"))));
 
         // The display table.
         tableView.getColumns().clear();
         tableView.setEditable(false);
 
-        timeOwnerCol = new TableColumn<LogEntry, LogEntry>("Time");
-
-        descriptionCol = new TableColumn<LogEntry, LogEntry>("Log");
-
-        metaCol = new TableColumn<LogEntry, LogEntry>("Logbook/Tags");
+        timeOwnerCol = new TableColumn<>("Time");
+        descriptionCol = new TableColumn<>("Log");
+        metaCol = new TableColumn<>("Logbook/Tags");
 
         timeOwnerCol.setMaxWidth(1f * Integer.MAX_VALUE * 25);
-        timeOwnerCol.setCellValueFactory(col -> {
-            return new SimpleObjectProperty(col.getValue());
-        });
+        timeOwnerCol.setCellValueFactory(col -> new SimpleObjectProperty(col.getValue()));
         timeOwnerCol.setCellFactory(col -> {
             final GridPane pane = new GridPane();
             final Label timeText = new Label();
@@ -169,7 +138,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
             final Label ownerText = new Label();
             pane.addColumn(0, timeText, ownerText);
 
-            return new TableCell<LogEntry, LogEntry>() {
+            return new TableCell<>() {
                 @Override
                 public void updateItem(LogEntry logEntry, boolean empty) {
                     super.updateItem(logEntry, empty);
@@ -187,9 +156,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         });
 
         descriptionCol.setMaxWidth(1f * Integer.MAX_VALUE * 50);
-        descriptionCol.setCellValueFactory(col -> {
-            return new SimpleObjectProperty(col.getValue());
-        });
+        descriptionCol.setCellValueFactory(col -> new SimpleObjectProperty(col.getValue()));
         descriptionCol.setCellFactory(col -> {
             final GridPane pane = new GridPane();
             final Label titleText = new Label();
@@ -208,7 +175,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
                         return attachmentsViewController;
                     }
                 } catch (Exception e) {
-                    Logger.getLogger(LogEntryTableViewController.class.getName()).log(Level.SEVERE, "Failed to contruct controller for attachments view", e);
+                    Logger.getLogger(LogEntryTableViewController.class.getName()).log(Level.SEVERE, "Failed to construct controller for attachments view", e);
                 }
                 return null;
             });
@@ -224,14 +191,13 @@ public class LogEntryTableViewController extends LogbookSearchController {
             cc.setHgrow(Priority.ALWAYS);
             pane.getColumnConstraints().add(cc);
 
-            return new TableCell<LogEntry, LogEntry>() {
+            return new TableCell<>() {
                 @Override
                 public void updateItem(LogEntry logEntry, boolean empty) {
                     super.updateItem(logEntry, empty);
                     if (empty) {
                         setGraphic(null);
                     } else {
-
                         if (logEntry.getTitle() == null || logEntry.getTitle().isEmpty()) {
                             titleText.setVisible(false);
                         } else {
@@ -253,9 +219,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         });
 
         metaCol.setMaxWidth(1f * Integer.MAX_VALUE * 25);
-        metaCol.setCellValueFactory(col -> {
-            return new SimpleObjectProperty(col.getValue());
-        });
+        metaCol.setCellValueFactory(col -> new SimpleObjectProperty(col.getValue()));
         metaCol.setCellFactory(col -> {
             final GridPane pane = new GridPane();
             final Label logbooks = new Label();
@@ -263,7 +227,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
             final Label tags = new Label();
             pane.addColumn(0, logbooks, seperator, tags);
 
-            return new TableCell<LogEntry, LogEntry>() {
+            return new TableCell<>() {
                 @Override
                 public void updateItem(LogEntry logEntry, boolean empty) {
                     super.updateItem(logEntry, empty);
@@ -347,10 +311,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
     @Override
     public void setLogs(List<LogEntry> logs) {
         List<LogEntry> copy = logs.stream()
+                .sorted((one, two) -> two.getCreatedDate().compareTo(one.getCreatedDate()))
                 .collect(Collectors.toList());
-        Collections.sort(copy, (one, two) -> {
-            return two.getCreatedDate().compareTo(one.getCreatedDate());
-        });
 
         this.logEntries = copy;
         refresh();
@@ -365,7 +327,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
     private void refresh() {
         if (logEntries != null) {
             ObservableList<LogEntry> logsList = FXCollections.observableArrayList();
-            logsList.addAll(logEntries.stream().collect(Collectors.toList()));
+            logsList.addAll(new ArrayList<>(logEntries));
             tableView.setItems(logsList);
         }
     }

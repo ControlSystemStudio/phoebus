@@ -40,6 +40,7 @@ public class XmlLog implements LogEntry {
     private String owner;
     private String source;
     private String level;
+    private String title;
     private String md5Entry;
     private String md5Recent;
     private Long tableId;
@@ -71,8 +72,6 @@ public class XmlLog implements LogEntry {
     /**
      * Creates a new instance of XmlLog.
      *
-     * @param subject
-     *            log subject
      * @param owner
      *            log owner
      */
@@ -133,8 +132,7 @@ public class XmlLog implements LogEntry {
 
     @Override
     public String getTitle() {
-        // Not supported
-        return null;
+        return title;
     }
 
     /**
@@ -265,7 +263,7 @@ public class XmlLog implements LogEntry {
     /**
      * Setter for MD5 entry.
      *
-     * @param description
+     * @param md5entry
      *            the value to set
      */
     public void setMD5Entry(String md5entry) {

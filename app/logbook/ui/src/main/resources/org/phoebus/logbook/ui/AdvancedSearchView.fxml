@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-
 
 <!--
   ~ Copyright (C) 2020 European Spallation Source ERIC.
@@ -22,11 +22,7 @@
   ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
   -->
 
-<?import javafx.geometry.Insets?>
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="org.phoebus.logbook.ui.AdvancedSearchViewController"
-            fx:id="advancedSearchPane">
+<AnchorPane fx:id="advancedSearchPane" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.ui.AdvancedSearchViewController">
 
         <children>
             <GridPane layoutX="18.0" layoutY="95.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
@@ -48,20 +44,21 @@
                     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
                     <RowConstraints />
                     <RowConstraints />
+            <RowConstraints />
                 </rowConstraints>
                 <children>
-                    <Label text="Title:" GridPane.rowIndex="0"/>
-                    <TextField GridPane.columnSpan="2" GridPane.rowIndex="1" />
-                    <Label text="Text:" GridPane.rowIndex="2"/>
-                    <TextField fx:id="searchText" onAction="#setSearchText" GridPane.columnSpan="2" GridPane.rowIndex="3"/>
-                    <Label text="Level:" GridPane.rowIndex="4" />
-                    <TextField GridPane.columnSpan="2" GridPane.rowIndex="5" />
-                    <Label text="Logbooks:" GridPane.rowIndex="6"/>
-                    <TextField fx:id="searchLogbooks" GridPane.columnSpan="2" GridPane.rowIndex="7"/>
-                    <Label text="Tags:" GridPane.rowIndex="8"/>
-                    <TextField fx:id="searchTags" GridPane.columnSpan="2" GridPane.rowIndex="9"/>
+                    <Label text="Title:" GridPane.rowIndex="0" />
+                    <TextField fx:id="searchTitle" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+                    <Label text="Text:" GridPane.rowIndex="2" />
+                    <TextField fx:id="searchText" GridPane.columnSpan="2" GridPane.rowIndex="3" />
+                    <Label fx:id="levelLabel" text="Level:" GridPane.rowIndex="4" />
+                    <ComboBox fx:id="levelSelector" onAction="#setLevel" prefWidth="150.0" GridPane.columnSpan="2" GridPane.rowIndex="5" />
+                    <Label text="Logbooks:" GridPane.rowIndex="6" />
+                    <TextField fx:id="searchLogbooks" GridPane.columnSpan="2" GridPane.rowIndex="7" />
+                    <Label text="Tags:" GridPane.rowIndex="8" />
+                    <TextField fx:id="searchTags" GridPane.columnSpan="2" GridPane.rowIndex="9" />
                     <Label text="Author:" GridPane.rowIndex="10" />
-                    <TextField fx:id="searchAuthor" GridPane.columnSpan="2" GridPane.rowIndex="11"/>
+                    <TextField fx:id="searchAuthor" GridPane.columnSpan="2" GridPane.rowIndex="11" />
                     <Label text="Time:" GridPane.columnSpan="2" GridPane.rowIndex="12">
                         <GridPane.margin>
                             <Insets top="5.0" />
