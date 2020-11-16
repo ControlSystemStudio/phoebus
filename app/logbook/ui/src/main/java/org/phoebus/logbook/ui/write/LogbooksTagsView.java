@@ -16,8 +16,6 @@ import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.control.Button;
@@ -56,6 +54,9 @@ public class LogbooksTagsView extends VBox
     private final ToggleButton logbookSelector, tagSelector; // Opens context menu (dropDown).
     private final Button       addLogbook, addTag;
 
+    /** Width of labels on views leftmost column. */
+    private static final int LABEL_WIDTH = 80;
+
     /**
      * Constructor.
      * @param model - Log Entry Application Model
@@ -93,7 +94,7 @@ public class LogbooksTagsView extends VBox
         Tooltip tooltip = new Tooltip(Messages.LogbooksTooltip);
         addLogbook.setTooltip(tooltip);
         logbookSelector.setTooltip(tooltip);
-        logbookLabel.setPrefWidth(LogEntryEditorStage.labelWidth);
+        logbookLabel.setPrefWidth(LABEL_WIDTH);
         logbookLabel.setTextFill(Color.RED);
         logbookField.textProperty().addListener((changeListener, oldVal, newVal) ->
         {
@@ -149,7 +150,7 @@ public class LogbooksTagsView extends VBox
         Tooltip tooltip = new Tooltip(Messages.TagsTooltip);
         addTag.setTooltip(tooltip);
         tagSelector.setTooltip(tooltip);
-        tagLabel.setPrefWidth(LogEntryEditorStage.labelWidth);
+        tagLabel.setPrefWidth(LABEL_WIDTH);
         tagSelector.setOnAction(actionEvent ->
         {
             if (tagSelector.isSelected())
@@ -202,14 +203,14 @@ public class LogbooksTagsView extends VBox
         model.addLogbookListener((ListChangeListener.Change<? extends String> c) ->
         {
             if (c.next())
-                c.getAddedSubList().forEach(newLogbook -> addToLogbookDropDown(newLogbook));
+                c.getAddedSubList().forEach(this::addToLogbookDropDown);
             FXCollections.sort(logbookDropDown.getItems(), comp);
         });
 
         model.addTagListener((ListChangeListener.Change<? extends String> c) ->
         {
             if (c.next())
-                c.getAddedSubList().forEach(newTag -> addToTagDropDown(newTag));
+                c.getAddedSubList().forEach(this::addToTagDropDown);
             FXCollections.sort(tagDropDown.getItems(), comp);
         });
 
@@ -229,27 +230,21 @@ public class LogbooksTagsView extends VBox
         CheckBox checkBox = new CheckBox(item);
         CustomMenuItem newLogbook = new CustomMenuItem(checkBox);
         newLogbook.setHideOnClick(false);
-        checkBox.setOnAction(new EventHandler<ActionEvent>()
-        {
-            @Override
-            public void handle(ActionEvent e)
+        checkBox.setOnAction(e -> {
+            CheckBox source = (CheckBox) e.getSource();
+            String text = source.getText();
+            if (source.isSelected())
             {
-                CheckBox source = (CheckBox) e.getSource();
-                String text = source.getText();
-                if (source.isSelected())
+                if (! model.hasSelectedLogbook(text))
                 {
-                    if (! model.hasSelectedLogbook(text))
-                    {
-                        model.addSelectedLogbook(text);
-                    }
-                    setFieldText(logbookDropDown, model.getSelectedLogbooks(), logbookField);
-                }
-                else
-                {
-                    model.removeSelectedLogbook(text);
-                    setFieldText(logbookDropDown, model.getSelectedLogbooks(), logbookField);
+                    model.addSelectedLogbook(text);
                 }
             }
+            else
+            {
+                model.removeSelectedLogbook(text);
+            }
+            setFieldText(logbookDropDown, model.getSelectedLogbooks(), logbookField);
         });
         if (model.hasSelectedLogbook(item))
             checkBox.fire();
@@ -265,27 +260,21 @@ public class LogbooksTagsView extends VBox
         CheckBox checkBox = new CheckBox(item);
         CustomMenuItem newTag = new CustomMenuItem(checkBox);
         newTag.setHideOnClick(false);
-        checkBox.setOnAction(new EventHandler<ActionEvent>()
-        {
-            @Override
-            public void handle(ActionEvent e)
+        checkBox.setOnAction(e -> {
+            CheckBox source = (CheckBox) e.getSource();
+            String text = source.getText();
+            if (source.isSelected())
             {
-                CheckBox source = (CheckBox) e.getSource();
-                String text = source.getText();
-                if (source.isSelected())
+                if (! model.hasSelectedTag(text))
                 {
-                    if (! model.hasSelectedTag(text))
-                    {
-                        model.addSelectedTag(text);
-                    }
-                    setFieldText(tagDropDown, model.getSelectedTags(), tagField);
-                }
-                else
-                {
-                    model.removeSelectedTag(text);
-                    setFieldText(tagDropDown, model.getSelectedTags(), tagField);
+                    model.addSelectedTag(text);
                 }
             }
+            else
+            {
+                model.removeSelectedTag(text);
+            }
+            setFieldText(tagDropDown, model.getSelectedTags(), tagField);
         });
         if (model.hasSelectedTag(item))
             checkBox.fire();

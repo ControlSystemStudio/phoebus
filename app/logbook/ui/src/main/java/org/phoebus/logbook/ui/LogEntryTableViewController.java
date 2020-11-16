@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import javafx.scene.Node;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
@@ -83,29 +84,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
     Button search;
     @FXML
     TextField query;
-    @FXML
-    AnchorPane AdavanceSearchPane;
 
     // elements associated with the various search
     @FXML
     GridPane ViewSearchPane;
-    @FXML
-    TextField searchText;
-    @FXML
-    TextField searchLogbooks;
-    PopOver logbookSearchpopover;
-
-    @FXML
-    TextField searchTags;
-    PopOver tagSearchpopover;
-
-    @FXML
-    GridPane timePane;
-    @FXML
-    TextField startTime;
-    @FXML
-    TextField endTime;
-    PopOver timeSearchpopover;
 
     // elements related to the table view of the log entires
     @FXML
@@ -121,30 +103,29 @@ public class LogEntryTableViewController extends LogbookSearchController {
     @FXML
     private Node topLevelNode;
 
+    @FXML
+    private AdvancedSearchViewController advancedSearchViewController;
+
     // Model
     List<LogEntry> logEntries;
-    List<String> logbookNames;
-    List<String> tagNames;
-
-    private ListSelectionController tagController;
-    private ListSelectionController logbookController;
 
     // Search parameters
     ObservableMap<Keys, String> searchParameters;
 
+    public LogEntryTableViewController(LogClient logClient){
+        setClient(logClient);
+    }
+
     @FXML
     public void initialize() {
-        // initialize the list of searchable parameters like logbooks, tags, etc...
 
-        // initially set the search pane collapsed
-        AdavanceSearchPane.minWidthProperty().set(0);
-        AdavanceSearchPane.maxWidthProperty().set(0);
         resize.setText("<");
 
         searchParameters = FXCollections.<Keys, String>observableHashMap();
         searchParameters.put(Keys.SEARCH, "*");
         searchParameters.put(Keys.STARTTIME, TimeParser.format(java.time.Duration.ofHours(8)));
         searchParameters.put(Keys.ENDTIME, TimeParser.format(java.time.Duration.ZERO));
+        advancedSearchViewController.setSearchParameters(searchParameters);
 
         // XXX ideally using binding like the example underneath would be ideal.
         //
@@ -154,163 +135,18 @@ public class LogEntryTableViewController extends LogbookSearchController {
         // }).collect(Collectors.joining(","));
         // }, searchParameters));
 
-        searchParameters.addListener(new MapChangeListener<Keys, String>() {
-            @Override
-            public void onChanged(Change<? extends Keys, ? extends String> change) {
-                Platform.runLater(() -> {
-                    query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
-                        return e.getKey().getName().trim() + "=" + e.getValue().trim();
-                    }).collect(Collectors.joining("&")));
-                    searchText.setText(searchParameters.get(Keys.SEARCH));
-                    searchLogbooks.setText(searchParameters.get(Keys.LOGBOOKS));
-                    searchTags.setText(searchParameters.get(Keys.TAGS));
-                });
-            }
-        });
-
-        startTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.STARTTIME));
-        endTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.ENDTIME));
-
-        searchText.setText(searchParameters.get(Keys.SEARCH));
         query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
             return e.getKey().getName().trim() + "=" + e.getValue().trim();
         }).collect(Collectors.joining("&")));
 
-        FXMLLoader logbookSelectionLoader = new FXMLLoader();
-        logbookSelectionLoader.setLocation(this.getClass().getResource("ListSelection.fxml"));
-        try {
-            logbookSelectionLoader.load();
-            logbookController = logbookSelectionLoader.getController();
-            logbookController.setOnApply((List<String> t) -> {
-                Platform.runLater(() -> {
-                    searchParameters.put(Keys.LOGBOOKS, t.stream().collect(Collectors.joining(",")));
-                    //searchLogbooks.setText(t.stream().collect(Collectors.joining(",")));
-                    if (logbookSearchpopover.isShowing())
-                        logbookSearchpopover.hide();
-                });
-                return true;
-            });
-            logbookController.setOnCancel((List<String> t) -> {
-                if (logbookSearchpopover.isShowing())
-                    logbookSearchpopover.hide();
-                return true;
-            });
-            logbookSearchpopover = new PopOver(logbookSelectionLoader.getRoot());
-        } catch (IOException e) {
-            logger.log(Level.WARNING, "failed to open logbook search dialog", e);
-        }
-        searchLogbooks.focusedProperty().addListener(new ChangeListener<Boolean>() {
+        searchParameters.addListener(new MapChangeListener<Keys, String>() {
             @Override
-            public void changed(ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue,
-                    Boolean newPropertyValue) {
-                if (newPropertyValue) {
-                    if(logbookNames == null) {
-                        logbookNames = getClient().listLogbooks().stream().map(Logbook::getName).sorted().collect(Collectors.toList());
-                    }
-                    logbookController.setAvailable(logbookNames);
-                    logbookSearchpopover.show(searchLogbooks);
-                } else if (logbookSearchpopover.isShowing()) {
-                    logbookSearchpopover.hide();
-                }
+            public void onChanged(Change<? extends Keys, ? extends String> change) {
+                query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
+                    return e.getKey().getName().trim() + "=" + e.getValue().trim();
+                }).collect(Collectors.joining("&")));
             }
         });
-
-        FXMLLoader tagSelectionLoader = new FXMLLoader();
-        tagSelectionLoader.setLocation(this.getClass().getResource("ListSelection.fxml"));
-        try {
-            tagSelectionLoader.load();
-            tagController = tagSelectionLoader.getController();
-            tagController.setOnApply((List<String> t) -> {
-                Platform.runLater(() -> {
-                    searchParameters.put(Keys.TAGS, t.stream().collect(Collectors.joining(",")));
-                    //searchTags.setText(t.stream().collect(Collectors.joining(",")));
-                    if (tagSearchpopover.isShowing())
-                        tagSearchpopover.hide();
-                });
-                return true;
-            });
-            tagController.setOnCancel((List<String> t) -> {
-                if (tagSearchpopover.isShowing())
-                    tagSearchpopover.hide();
-                return true;
-            });
-            tagSearchpopover = new PopOver(tagSelectionLoader.getRoot());
-        } catch (IOException e) {
-            logger.log(Level.WARNING, "failed to open tag search dialog", e);
-        }
-        searchTags.focusedProperty().addListener(
-                (ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
-                    if (newPropertyValue) {
-                        if(tagNames == null) {
-                            tagNames = getClient().listTags().stream().map(Tag::getName).sorted().collect(Collectors.toList());
-                        }
-                        tagController.setAvailable(tagNames);
-                        tagSearchpopover.show(searchTags);
-                    } else if (tagSearchpopover.isShowing()) {
-                        tagSearchpopover.hide();
-                    }
-                });
-
-        VBox timeBox = new VBox();
-
-        TimeRelativeIntervalPane timeSelectionPane = new TimeRelativeIntervalPane(TEMPORAL_AMOUNTS_AND_NOW);
-
-        // TODO needs to be initialized from the values in the search parameters
-        TimeRelativeInterval initial = TimeRelativeInterval.of(java.time.Duration.ofHours(8), java.time.Duration.ZERO);
-        timeSelectionPane.setInterval(initial);
-
-        HBox hbox = new HBox();
-        hbox.setSpacing(5);
-        hbox.setAlignment(Pos.CENTER_RIGHT);
-        Button apply = new Button();
-        apply.setText("Apply");
-        apply.setPrefWidth(80);
-        apply.setOnAction((event) -> {
-            Platform.runLater(() -> {
-                TimeRelativeInterval interval = timeSelectionPane.getInterval();
-                if (interval.isStartAbsolute()) {
-                    searchParameters.put(Keys.STARTTIME,
-                            TimestampFormats.MILLI_FORMAT.format(interval.getAbsoluteStart().get()));
-                } else {
-                    searchParameters.put(Keys.STARTTIME, TimeParser.format(interval.getRelativeStart().get()));
-                }
-                if (interval.isEndAbsolute()) {
-                    searchParameters.put(Keys.ENDTIME,
-                            TimestampFormats.MILLI_FORMAT.format(interval.getAbsoluteEnd().get()));
-                } else {
-                    searchParameters.put(Keys.ENDTIME, TimeParser.format(interval.getRelativeEnd().get()));
-                }
-                if (timeSearchpopover.isShowing())
-                    timeSearchpopover.hide();
-            });
-        });
-        Button cancel = new Button();
-        cancel.setText("Cancel");
-        cancel.setPrefWidth(80);
-        cancel.setOnAction((event) -> {
-            if (timeSearchpopover.isShowing())
-                timeSearchpopover.hide();
-        });
-        hbox.getChildren().addAll(apply, cancel);
-        timeBox.getChildren().addAll(timeSelectionPane, hbox);
-        timeSearchpopover = new PopOver(timeBox);
-        startTime.focusedProperty().addListener(
-                (ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
-                    if (newPropertyValue) {
-                        timeSearchpopover.show(timePane);
-                    } else if (timeSearchpopover.isShowing()) {
-                        timeSearchpopover.hide();
-                    }
-                });
-
-        endTime.focusedProperty().addListener(
-                (ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
-                    if (newPropertyValue) {
-                        timeSearchpopover.show(timePane);
-                    } else if (timeSearchpopover.isShowing()) {
-                        timeSearchpopover.hide();
-                    }
-                });
 
         // The display table.
         tableView.getColumns().clear();
@@ -467,8 +303,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
         if (!moving.compareAndExchangeAcquire(false, true)) {
             if (resize.getText().equals(">")) {
                 Duration cycleDuration = Duration.millis(400);
-                KeyValue kv = new KeyValue(AdavanceSearchPane.minWidthProperty(), 0);
-                KeyValue kv2 = new KeyValue(AdavanceSearchPane.maxWidthProperty(), 0);
+                KeyValue kv = new KeyValue(advancedSearchViewController.getPane().minWidthProperty(), 0);
+                KeyValue kv2 = new KeyValue(advancedSearchViewController.getPane().maxWidthProperty(), 0);
                 Timeline timeline = new Timeline(new KeyFrame(cycleDuration, kv, kv2));
                 timeline.play();
                 timeline.setOnFinished(event -> {
@@ -478,8 +314,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
             } else {
                 Duration cycleDuration = Duration.millis(400);
                 double width = ViewSearchPane.getWidth() / 3;
-                KeyValue kv = new KeyValue(AdavanceSearchPane.minWidthProperty(), width);
-                KeyValue kv2 = new KeyValue(AdavanceSearchPane.prefWidthProperty(), width);
+                KeyValue kv = new KeyValue(advancedSearchViewController.getPane().minWidthProperty(), width);
+                KeyValue kv2 = new KeyValue(advancedSearchViewController.getPane().prefWidthProperty(), width);
                 Timeline timeline = new Timeline(new KeyFrame(cycleDuration, kv, kv2));
                 timeline.play();
                 timeline.setOnFinished(event -> {
@@ -508,45 +344,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
         super.search(LogbookQueryUtil.parseQueryString(query.getText()));
     }
 
-    @FXML
-    void setSearchText() {
-        searchParameters.put(Keys.SEARCH, searchText.getText());
-    }
-
-    @FXML
-    void setSelectedLogbooks() {
-
-    }
-
-    @FXML
-    void setSelectedTags() {
-
-    }
-
-    @FXML
-    public void showLogbookSelection() {
-        if (logbookSearchpopover.isShowing())
-            logbookSearchpopover.hide();
-        else
-            logbookSearchpopover.show(searchLogbooks);
-    }
-
-    @FXML
-    public void showTagSelection() {
-        if (tagSearchpopover.isShowing())
-            tagSearchpopover.hide();
-        else
-            tagSearchpopover.show(searchTags);
-    }
-
-    @FXML
-    public void showTimeSelection() {
-        if (timeSearchpopover.isShowing())
-            timeSearchpopover.hide();
-        else
-            timeSearchpopover.show(timePane);
-    }
-
     @Override
     public void setLogs(List<LogEntry> logs) {
         List<LogEntry> copy = logs.stream()
@@ -570,15 +367,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
             ObservableList<LogEntry> logsList = FXCollections.observableArrayList();
             logsList.addAll(logEntries.stream().collect(Collectors.toList()));
             tableView.setItems(logsList);
-        }
-    }
-
-    private Image createImage(final File imageFile) {
-        try {
-            return new Image(new FileInputStream(imageFile), 0, 0, true, true);
-        } catch (FileNotFoundException e) {
-            LogEntryTable.log.log(Level.WARNING, "failed to create image from attachement", e);
-            return null;
         }
     }
 }

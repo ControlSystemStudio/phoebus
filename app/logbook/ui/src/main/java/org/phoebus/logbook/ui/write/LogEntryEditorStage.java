@@ -22,22 +22,16 @@ package org.phoebus.logbook.ui.write;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.image.Image;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.util.Callback;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class LogEntryEditorStage extends Stage
 {
-
-    /** Width of labels on views leftmost column. */
-    public static final int labelWidth = 80;
 
     /**
      * A stand-alone window containing components needed to create a logbook entry.
@@ -53,24 +47,19 @@ public class LogEntryEditorStage extends Stage
         fxmlLoader.setControllerFactory(clazz -> {
             try {
                 if(clazz.isAssignableFrom(LogEntryEditorController.class)){
-                    LogEntryEditorController logEntryEditorController =
-                            (LogEntryEditorController)clazz.getConstructor(Node.class, LogEntryModel.class, LogEntryCompletionHandler.class)
+                    return clazz.getConstructor(Node.class, LogEntryModel.class, LogEntryCompletionHandler.class)
                             .newInstance(parent, logEntryModel, completionHandler);
-                    return logEntryEditorController;
                 }
                 else if(clazz.isAssignableFrom(FieldsViewController.class)){
-                    FieldsViewController fieldsViewController = (FieldsViewController)clazz.getConstructor(LogEntryModel.class)
+                    return clazz.getConstructor(LogEntryModel.class)
                             .newInstance(logEntryModel);
-                    return fieldsViewController;
                 }
                 else if(clazz.isAssignableFrom(AttachmentsViewController.class)){
-                    AttachmentsViewController attachmentsViewController =
-                            (AttachmentsViewController)clazz.getConstructor(Node.class, List.class, List.class, Boolean.class)
+                    return clazz.getConstructor(Node.class, List.class, List.class, Boolean.class)
                                     .newInstance(parent, logEntryModel.getImages(), logEntryModel.getFiles(), true);
-                    return attachmentsViewController;
                 }
             } catch (Exception e) {
-                Logger.getLogger(LogEntryEditorStage.class.getName()).log(Level.SEVERE, "Failed to contruct controller for log editor UI", e);
+                Logger.getLogger(LogEntryEditorStage.class.getName()).log(Level.SEVERE, "Failed to construct controller for log editor UI", e);
             }
             return null;
         });
@@ -79,7 +68,7 @@ public class LogEntryEditorStage extends Stage
             fxmlLoader.load();
         } catch (
                 IOException exception) {
-            Logger.getLogger(LogEntryEditorStage.class.getName()).log(Level.WARNING, "Unable to load fxml for log entry editor", exception);
+            Logger.getLogger(LogEntryEditorStage.class.getName()).log(Level.WARNING, "Unable to load fxml for log entry editor UI", exception);
         }
 
         Scene scene = new Scene(fxmlLoader.getRoot());
