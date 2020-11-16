@@ -41,7 +41,7 @@ public class StringWidgetProperty extends MacroizedWidgetProperty<String>
     @Override
     protected String parseExpandedSpecification(final String text) throws Exception
     {
-        return text;
+        return text.replaceAll("\\\\n", "\n").replaceAll("\\\\t", "\t");
     }
 
     @Override
