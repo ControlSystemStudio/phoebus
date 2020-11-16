@@ -30,6 +30,7 @@ import javafx.scene.paint.Stop;
 import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
+import javafx.scene.text.TextAlignment;
 
 /** Base for LED type widgets
  *  @author Kay Kasemir
@@ -82,6 +83,8 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
         label = new Label();
         label.getStyleClass().add("led_label");
         label.setAlignment(Pos.CENTER);
+        label.setTextAlignment(TextAlignment.CENTER);
+        label.setWrapText(true);
         label.setManaged(false);
 
         jfx_node.getChildren().addAll(led, label);
