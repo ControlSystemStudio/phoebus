@@ -19,6 +19,7 @@ import java.util.logging.Logger;
  */
 public class AnnotatedPreferences
 {
+
 	/** Initialize static fields of a class from preferences.
 	 * 
 	 *  <p>Fields to be set from preferences need to be marked
@@ -31,9 +32,26 @@ public class AnnotatedPreferences
 	 */
 	public static PreferencesReader initialize(final Class<?> clazz, final String preferences_properties_filename)
 	{
-		final PreferencesReader prefs = new PreferencesReader(clazz, preferences_properties_filename);
+		return initialize(clazz, clazz, preferences_properties_filename);
+	}	
+	
+	
+	/** Initialize static fields of a class from preferences.
+	 * 
+	 *  <p>Fields to be set from preferences need to be marked
+	 *  as @{@link Preference}
+	 *  
+	 *  @param package_class Class used to determine package name for preference keys and to read the default settings
+	 *  @param preference_clazz Class to be initialized
+	 *  @param preferences_properties_filename Preference properties file, loaded as resource of the `package_class`
+	 *  
+	 *  @return {@link PreferencesReader} in case caller wants to directly read some items for special handling
+	 */
+	public static PreferencesReader initialize(final Class<?> package_class, final Class<?> preference_clazz,final String preferences_properties_filename)
+	{
+		final PreferencesReader prefs = new PreferencesReader(package_class, preferences_properties_filename);
 
-		for (Field field : clazz.getDeclaredFields())
+		for (Field field : preference_clazz.getDeclaredFields())
 		{
 			try
 			{
@@ -56,15 +74,15 @@ public class AnnotatedPreferences
 				try
 				{
 					if (field.getType() == int.class)
-						field.setInt(clazz, prefs.getInt(pref_name));
+						field.setInt(preference_clazz, prefs.getInt(pref_name));
 					else if (field.getType() == long.class)
-						field.setLong(clazz, prefs.getLong(pref_name));
+						field.setLong(preference_clazz, prefs.getLong(pref_name));
 					else if (field.getType() == String.class)
-						field.set(clazz, prefs.get(pref_name));
+						field.set(preference_clazz, prefs.get(pref_name));
 					else if (field.getType() == double.class)
-						field.setDouble(clazz, prefs.getDouble(pref_name));
+						field.setDouble(preference_clazz, prefs.getDouble(pref_name));
 					else if (field.getType() == boolean.class)
-						field.setBoolean(clazz, prefs.getBoolean(pref_name));
+						field.setBoolean(preference_clazz, prefs.getBoolean(pref_name));
 					else if (field.getType() == int[].class)
 					{
 						final String[] items = prefs.get(pref_name).split("\\s*,\\s*");
@@ -73,7 +91,7 @@ public class AnnotatedPreferences
 						final int nums[] = new int[items.length];
 						for (int i=0; i<nums.length; ++i)
 							nums[i] = Integer.parseInt(items[i]);
-						field.set(clazz, nums);
+						field.set(preference_clazz, nums);
 
 					}
 					else if (field.getType() == String[].class)
@@ -83,10 +101,10 @@ public class AnnotatedPreferences
 				        if (items.length == 0  ||  (items.length == 1 && items[0].isEmpty()))
 				        	items = new String[0];
 
-						field.set(clazz, items);
+						field.set(preference_clazz, items);
 					}
 					else if (field.getType() == File.class)
-						field.set(clazz, new File(prefs.get(pref_name)));
+						field.set(preference_clazz, new File(prefs.get(pref_name)));
 					else if (field.getType().isEnum())
 					{
 						// Find matching enum option
@@ -97,7 +115,7 @@ public class AnnotatedPreferences
 							final String name = ((Enum<?>) option).name();
 							if (name.equals(value))
 							{
-								field.set(clazz, option);
+								field.set(preference_clazz, option);
 								found = true;
 								break;
 							}
@@ -118,7 +136,7 @@ public class AnnotatedPreferences
 			{
 				Logger.getLogger(AnnotatedPreferences.class.getPackageName())
 				      .log(Level.WARNING,
-				    	   "Failed to assign value to annotated preference " + clazz.getName() + " field " + field.getName(),
+				    	   "Failed to assign value to annotated preference " + preference_clazz.getName() + " field " + field.getName(),
 				    	   ex);
 			}
 		}

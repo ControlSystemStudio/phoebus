@@ -73,7 +73,7 @@ public class Preferences
 
     static
     {
-        final PreferencesReader prefs = AnnotatedPreferences.initialize(Preferences.class, "/databrowser_preferences.properties");
+        final PreferencesReader prefs = AnnotatedPreferences.initialize(Activator.class, Preferences.class, "/databrowser_preferences.properties");
 
         // Allow at least one at a time
         if (concurrent_requests < 1)
