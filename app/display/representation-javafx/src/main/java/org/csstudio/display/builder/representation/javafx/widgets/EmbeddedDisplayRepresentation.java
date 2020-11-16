@@ -66,14 +66,26 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
             ), CornerRadii.EMPTY, Insets.EMPTY
         ));
 
+    private static final Background EDIT_OVERDRAWN_BACKGROUND = new Background(new BackgroundFill(
+            new LinearGradient(
+                10, 0, 0, 10, false, CycleMethod.REPEAT,
+                new Stop(0.0, Color.TRANSPARENT),
+                new Stop(0.5, Color.TRANSPARENT),
+                new Stop(0.5, new Color(0.93, 0.1, 0.1, 0.45)),
+                new Stop(1.0, new Color(0.93, 0.1, 0.1, 0.45))
+            ), CornerRadii.EMPTY, Insets.EMPTY
+        ));
+
     private final DirtyFlag dirty_sizes = new DirtyFlag();
     private final DirtyFlag dirty_background = new DirtyFlag();
+    private final DirtyFlag get_size_again = new DirtyFlag();
     private final UntypedWidgetPropertyListener backgroundChangedListener = this::backgroundChanged;
     private final UntypedWidgetPropertyListener fileChangedListener = this::fileChanged;
     private final UntypedWidgetPropertyListener sizesChangedListener = this::sizesChanged;
 
     private volatile double zoom_factor_x = 1.0;
     private volatile double zoom_factor_y = 1.0;
+
 
     /** Inner pane that holds child widgets
      *
@@ -142,6 +154,8 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
         scroll.getStyleClass().addAll("embedded_display", "edge-to-edge");
         // Panning tends to 'jerk' the content when clicked
         // scroll.setPannable(true);
+
+        get_size_again.checkAndClear();
 
         return new Pane(scroll);
     }
@@ -220,6 +234,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
         }
 
         dirty_sizes.mark();
+        get_size_again.mark();
         toolkit.scheduleUpdate(this);
     }
 
@@ -416,6 +431,40 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
                 // One day we should be able to visibly mark these widgets
                 if (resize == Resize.Crop || !toolkit.isEditMode())
                     inner.setClip(new Rectangle(scaled_width, scaled_height));
+
+                // Check for overdrawing
+                if (toolkit.isEditMode())
+                {
+                    // Give the UI thread a chance to render the contents and update the width/height
+                    if (get_size_again.checkAndClear())
+                    {
+                        dirty_sizes.mark();
+                        toolkit.scheduleUpdate(this);
+                    }
+                    else if (inner.getHeight() != 0.0 && inner.getWidth() != 0.0)
+                    {
+                        // Check if higher than allowed
+                        if ((int)inner.getHeight() > scaled_height.intValue())
+                        {
+                            Pane rect = new Pane();
+                            rect.setManaged(false);
+                            rect.resizeRelocate(0, scaled_height, inner.getWidth(), inner.getHeight() - scaled_height);
+                            rect.setBackground(EDIT_OVERDRAWN_BACKGROUND);
+                            inner.getChildren().addAll(rect);
+                        }
+
+                        // Check if wider than allowed
+                        if ((int)inner.getWidth() > scaled_width.intValue())
+                        {
+                            Pane rect = new Pane();
+                            rect.setManaged(false);
+                            rect.resizeRelocate(scaled_width, 0, inner.getWidth() - scaled_width, inner.getHeight());
+                            rect.setBackground(EDIT_OVERDRAWN_BACKGROUND);
+                            inner.getChildren().addAll(rect);
+                        }
+                    }
+                }
+
             }
         }
         if (dirty_background.checkAndClear())
