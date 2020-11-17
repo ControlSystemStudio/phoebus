@@ -428,16 +428,14 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
 
                 // During runtime or if the resize property is set to Crop we clip inner
                 // but allow 'overdrawing' in edit mode so the out-of-region widgets are visible to the user
-                // One day we should be able to visibly mark these widgets
                 if (resize == Resize.Crop || !toolkit.isEditMode())
                     inner.setClip(new Rectangle(scaled_width, scaled_height));
-
-                // Check for overdrawing
-                if (toolkit.isEditMode())
+                else
                 {
-                    // Give the UI thread a chance to render the contents and update the width/height
+                    // Check for overdrawing
                     if (get_size_again.checkAndClear())
                     {
+                        // Give the UI thread a chance to render the contents and update the width/height
                         dirty_sizes.mark();
                         toolkit.scheduleUpdate(this);
                     }
