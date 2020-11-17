@@ -2,11 +2,20 @@ package org.phoebus.logbook.ui;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javafx.scene.Node;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.ui.write.AttachmentsViewController;
+import org.phoebus.logbook.ui.write.FieldsViewController;
+import org.phoebus.logbook.ui.write.LogEntryCompletionHandler;
+import org.phoebus.logbook.ui.write.LogEntryEditorController;
+import org.phoebus.logbook.ui.write.LogEntryEditorStage;
+import org.phoebus.logbook.ui.write.LogEntryModel;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
@@ -23,14 +32,23 @@ public class LogEntryTable implements AppInstance {
         try {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(this.getClass().getResource("LogEntryTableView.fxml"));
+            loader.setControllerFactory(clazz -> {
+                try {
+                    if(clazz.isAssignableFrom(LogEntryTableViewController.class)){
+                        return clazz.getConstructor(LogClient.class)
+                                .newInstance(app.getClient());
+                    }
+                    else if(clazz.isAssignableFrom(AdvancedSearchViewController.class)){
+                        return clazz.getConstructor(LogClient.class)
+                                .newInstance(app.getClient());
+                    }
+                } catch (Exception e) {
+                    Logger.getLogger(LogEntryEditorStage.class.getName()).log(Level.SEVERE, "Failed to construct controller for log table view", e);
+                }
+                return null;
+            });
             loader.load();
             controller = loader.getController();
-            if (this.app.getClient() != null) {
-                controller.setClient(this.app.getClient());
-            } else {
-                log.log(Level.SEVERE, "Failed to acquire a valid logbook client");
-            }
-
             DockItem tab = new DockItem(this, loader.getRoot());
             DockPane.getActiveDockPane().addTab(tab);
         } catch (IOException e) {

@@ -15,7 +15,9 @@ import java.util.stream.Collectors;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.ui.write.LogEntryEditorStage;
 import org.phoebus.logbook.utility.LogbookSearchJob;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockItem;
@@ -47,6 +49,21 @@ public class LogEntryCalender implements AppInstance {
         try {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(this.getClass().getResource("LogEntryCalenderView.fxml"));
+            loader.setControllerFactory(clazz -> {
+                try {
+                    if(clazz.isAssignableFrom(LogEntryCalenderViewController.class)){
+                        return clazz.getConstructor(LogClient.class)
+                                .newInstance(app.getClient());
+                    }
+                    else if(clazz.isAssignableFrom(AdvancedSearchViewController.class)){
+                        return clazz.getConstructor(LogClient.class)
+                                .newInstance(app.getClient());
+                    }
+                } catch (Exception e) {
+                    Logger.getLogger(LogEntryEditorStage.class.getName()).log(Level.SEVERE, "Failed to construct controller for log calendar view", e);
+                }
+                return null;
+            });
             loader.load();
             controller = loader.getController();
             if (this.app.getClient() != null) {
