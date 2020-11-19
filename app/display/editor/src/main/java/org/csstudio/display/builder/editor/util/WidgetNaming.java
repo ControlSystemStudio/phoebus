@@ -16,7 +16,7 @@ import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetFactory;
-import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
+import org.csstudio.display.builder.model.properties.StringWidgetProperty;
 
 /** Helper for naming widgets
  *  @author Kay Kasemir
@@ -71,7 +71,10 @@ public class WidgetNaming
         if (widget_model == model)
             throw new IllegalStateException(widget + " already in model " + model);
 
-        String name = widget.getName();
+        final StringWidgetProperty propName = (StringWidgetProperty) widget.propName();
+        String name = propName.getValue();
+        final String specification = propName.getSpecification();
+        final boolean has_macro = ! name.contentEquals(specification);
 
         // Default to human-readable widget type
         if (name.isEmpty())
@@ -110,7 +113,17 @@ public class WidgetNaming
             }
             max_used_instance.put(base, number);
         }
-        widget.setPropertyValue(CommonWidgetProperties.propName, name);
+        // Preserve the macro specification if there is a macro in the name
+        if (has_macro)
+        {
+            final Matcher spec_matcher = pattern.matcher(specification);
+            if (spec_matcher.matches())
+                propName.setSpecification(spec_matcher.group(1) + "_" + number);
+            else
+                propName.setSpecification(specification + "_" + number);
+        }
+        else
+            propName.setSpecification(name);
 
         final ChildrenProperty children = ChildrenProperty.getChildren(widget);
         if (children != null)
