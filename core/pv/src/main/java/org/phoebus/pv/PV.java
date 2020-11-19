@@ -119,6 +119,7 @@ public class PV
         catch (Exception ex)
         {
             logger.log(Level.SEVERE, "Cannot lock " + name, ex);
+            return;
         }
 
         try
@@ -297,6 +298,7 @@ public class PV
         catch (Exception ex)
         {
             logger.log(Level.SEVERE, "Cannot lock " + name, ex);
+            return;
         }
 
         try
