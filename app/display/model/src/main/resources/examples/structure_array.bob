@@ -30,7 +30,7 @@ can also write to their respective array element.</text>
     <y>190</y>
     <width>250</width>
     <height>200</height>
-    <pv_name>loc://&lt;VStringArray&gt;("Monitor 1", "Monitor 2", "Monitor 3", "Monitor 4", "Monitor 5", "Monitor 6")</pv_name>
+    <pv_name>loc://textarray&lt;VStringArray&gt;("Monitor 1", "Monitor 2", "Monitor 3", "Monitor 4", "Monitor 5", "Monitor 6")</pv_name>
     <widget type="textupdate" version="2.0.0">
       <name>Text Update</name>
       <width>230</width>
@@ -121,7 +121,7 @@ all child widgets.
     <y>190</y>
     <width>250</width>
     <height>200</height>
-    <pv_name>loc://&lt;VStringArray&gt;("Monitor 1", "Monitor 2", "Monitor 3", "Monitor 4", "Monitor 5", "Monitor 6")</pv_name>
+    <pv_name>loc://textarray&lt;VStringArray&gt;("Monitor 1", "Monitor 2", "Monitor 3", "Monitor 4", "Monitor 5", "Monitor 6")</pv_name>
     <widget type="textentry" version="3.0.0">
       <name>Text Entry_1</name>
       <width>230</width>
