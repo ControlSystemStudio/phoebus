@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -43,6 +46,29 @@ public class PV
     public static final Logger logger = Logger.getLogger(PV.class.getPackage().getName());
 
     final private String name;
+
+    /** Lock for value notifications
+     *
+     *  A value could arrive while in addSubscription().
+     *  We don't want to miss it,
+     *  nor do we want to notify twice,
+     *  so we lock both in there and in notifyListenersOfValue().
+     *
+     *  This does raise the possibility of deadlocks
+     *  if a client adds PVs or cancels subscriptions inside
+     *  the value notification handler.
+     *
+     *  To avoid a catastrophic deadlock, use a try-lock.
+     *
+     *  An alternative to strict locking would be locking,
+     *  but only queuing notifications to be performed by
+     *  a new thread. That solves the deadlock, but
+     *  changes the behavior of "loc://" PVs which would
+     *  no longer react to write access via immediate notification
+     *  in the calling thread, which impacts unit tests and
+     *  other code that depends on this long standing behavior.
+     */
+    final private Lock value_notification_lock = new ReentrantLock();
 
     final private List<ValueEventHandler.Subscription> value_subs = new CopyOnWriteArrayList<>();
 
@@ -85,11 +111,39 @@ public class PV
      */
     void addSubscription(final ValueEventHandler.Subscription value_sub)
     {
-        // If there is a known value, perform initial update
-        final VType value = last_value;
-        if (value != null)
-            value_sub.update(value);
-        value_subs.add(value_sub);
+        try
+        {
+            if (! value_notification_lock.tryLock(20, TimeUnit.SECONDS))
+                throw new Exception("Timeout");
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.SEVERE, "Cannot lock " + name, ex);
+            return;
+        }
+
+        try
+        {
+            // Register subscription so we get notified of value updates
+            value_subs.add(value_sub);
+
+            // Lock prevents notifications right now,
+            // avoiding double updates for an initial value
+
+            // If there is a known value, perform initial update
+            final VType value = last_value;
+            if (value != null)
+                value_sub.update(value);
+
+            // Lock also asserts that this initial update completes
+            // before another update happens,
+            // avoiding a possible delay of this initial update
+            // which could then be delivered _after_ what's really a new value.
+        }
+        finally
+        {
+            value_notification_lock.unlock();
+        }
     }
 
     /** @param value_sub Listener that will no longer receive value updates */
@@ -236,17 +290,35 @@ public class PV
      */
     protected void notifyListenersOfValue(final VType value)
     {
-        last_value = value;
-        for (ValueEventHandler.Subscription sub : value_subs)
+        try
         {
-            try
+            if (! value_notification_lock.tryLock(20, TimeUnit.SECONDS))
+                throw new Exception("Timeout");
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.SEVERE, "Cannot lock " + name, ex);
+            return;
+        }
+
+        try
+        {
+            last_value = value;
+            for (ValueEventHandler.Subscription sub : value_subs)
             {
-                sub.update(value);
+                try
+                {
+                    sub.update(value);
+                }
+                catch (Throwable ex)
+                {
+                    logger.log(Level.WARNING, name + " value update error", ex);
+                }
             }
-            catch (Throwable ex)
-            {
-                logger.log(Level.WARNING, name + " value update error", ex);
-            }
+        }
+        finally
+        {
+            value_notification_lock.unlock();
         }
     }
 

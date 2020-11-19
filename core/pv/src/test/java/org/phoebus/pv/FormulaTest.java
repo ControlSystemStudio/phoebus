@@ -13,6 +13,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -172,5 +173,54 @@ public class FormulaTest
 
         assertTrue(PV.isDisconnected(value));
         PVPool.releasePV(pv);
+    }
+
+    // Demo code for race condition
+    //
+    // Original PV.addSubscription
+    // 1) first checked for an initial value,
+    // 2) then added the new subscriber.
+    // When initial update arrived between those steps,
+    // it was lost because the subscriber was not known
+    // in PV.notifyListenersOfValue.
+    //
+    // Swapping 1&2:
+    // 1) Add the new subscriber,
+    // 2) check for an initial value .. and send it.
+    // results in two initial updates when the value arrives
+    // between those steps.
+    // Worse, this could happen:
+    // 1) addSubscription adds the new subscriber,
+    // 2a) finds an initial value and is about to send it to subscriber,
+    // .. but just before doing that, new value arrives, is sent to subscriber
+    // 2b) ... the _old_ initial value is sent
+    //
+    // https://github.com/ControlSystemStudio/phoebus/issues/1387
+
+    // Skip:
+    // This demo requires an actual PV,
+    // and either delays or breakpoints inside PV.addSubscription
+    // to demonstrate the original issue
+    //
+    // @Test
+    public void raceDemo() throws Exception
+    {
+        final PV pv = PVPool.getPV("=`DTL_LLRF:FCM1:cavAmpSet`");
+        final AtomicInteger updates = new AtomicInteger();
+
+        final Disposable sub = pv.onValueEvent().subscribe(value ->
+        {
+            updates.incrementAndGet();
+            System.out.println(pv.getName() + " = " + value);
+        });
+
+        TimeUnit.SECONDS.sleep(5);
+
+        sub.dispose();
+        PVPool.releasePV(pv);
+
+        // With formula, typically get initial DISCONNECTED then first value update.
+        // With plain but real PV, often get the initial value right away.
+        assertEquals(2, updates.get());
     }
 }
