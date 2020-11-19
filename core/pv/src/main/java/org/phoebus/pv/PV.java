@@ -113,7 +113,7 @@ public class PV
     {
         try
         {
-            if (! value_notification_lock.tryLock(1, TimeUnit.MINUTES))
+            if (! value_notification_lock.tryLock(20, TimeUnit.SECONDS))
                 throw new Exception("Timeout");
         }
         catch (Exception ex)
@@ -291,7 +291,7 @@ public class PV
     {
         try
         {
-            if (! value_notification_lock.tryLock(1, TimeUnit.MINUTES))
+            if (! value_notification_lock.tryLock(20, TimeUnit.SECONDS))
                 throw new Exception("Timeout");
         }
         catch (Exception ex)

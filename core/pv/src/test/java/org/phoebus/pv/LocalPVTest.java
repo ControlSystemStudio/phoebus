@@ -15,11 +15,16 @@ import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VType;
 import org.junit.Test;
 import org.phoebus.pv.loc.LocalPVFactory;
 import org.phoebus.pv.loc.ValueHelper;
+
+import io.reactivex.disposables.Disposable;
 
 /** @author Kay Kasemir */
 @SuppressWarnings("nls")
@@ -115,4 +120,46 @@ public class LocalPVTest
 
         pv1.close();
     }
+
+    /** For local PVs, assert that notifications happen right away
+     *  inside the calling thread.
+     *
+     *  Some other tests as well as the 'ArrayPVDispatcher' used in the display runtime
+     *  depend on 'write' to a local PV having an immediate effect,
+     *  not decoupled to another thread.
+     */
+    @Test
+    public void testLocalPVNotifications() throws Exception
+    {
+        Thread.currentThread().setName("TestThread");
+        final PV pv = PVPool.getPV("loc://event_demo(1)");
+
+        System.out.println("Running local PV test on " + Thread.currentThread());
+
+        // Count received values and track on which thread we receive them
+        final AtomicReference<String> update_thread_name = new AtomicReference<>("none");
+        final AtomicInteger updates = new AtomicInteger();
+        final Disposable sub = pv.onValueEvent().subscribe(value ->
+        {
+            System.out.println(pv + " = " + value + " on " + Thread.currentThread());
+            updates.incrementAndGet();
+            update_thread_name.set(Thread.currentThread().getName());
+        });
+
+        // Expect initial value update right away on calling thread
+        assertThat(updates.get(), equalTo(1));
+        assertThat(update_thread_name.get(), equalTo("TestThread"));
+
+        pv.write(42);
+        // Expect update for newly written value right away on calling thread
+        assertThat(updates.get(), equalTo(2));
+        assertThat(update_thread_name.get(), equalTo("TestThread"));
+        final VType value = pv.read();
+        assertThat(value, instanceOf(VDouble.class));
+        assertThat(((VDouble)value).getValue(), equalTo(42.0));
+
+        sub.dispose();
+        PVPool.releasePV(pv);
+    }
+
 }
