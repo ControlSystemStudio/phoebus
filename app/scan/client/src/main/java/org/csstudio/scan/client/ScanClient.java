@@ -260,17 +260,8 @@ public class ScanClient
         try
         {
             checkResponse(connection);
-            final Element root_node = parseXML(connection.getInputStream());
-            if (! "scans".equals(root_node.getNodeName()))
-                throw new Exception("Expected <scans/>");
-
-            final List<ScanInfo> infos = new ArrayList<>();
-            for (Element node : XMLUtil.getChildElements(root_node, "scan"))
-            {
-                final ScanInfo info = parseScanInfo(node);
-                infos.add(info);
-            }
-            return infos;
+            final ScanInfoParser parser = new ScanInfoParser(connection.getInputStream());
+            return parser.getScanInfos();
         }
         finally
         {
