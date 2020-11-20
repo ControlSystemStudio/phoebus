@@ -222,7 +222,7 @@ public class RuntimeScriptHandler implements RuntimePVListener
         // Skip script execution unless all PVs are connected?
         if (check_connections)
             for (RuntimePV p : pvs)
-                if (PV.isDisconnected(pv.read()))
+                if (PV.isDisconnected(p.read()))
                     return;
 
         // If this is a trigger PV, execute the script.
