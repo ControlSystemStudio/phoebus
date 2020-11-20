@@ -60,7 +60,7 @@ class ScanInfoParser
         private State parse_state = State.NeedScans;
 
         /** Most recently parsed XML text data */
-        private String cdata;
+        private StringBuilder cdata = new StringBuilder();
 
         private int id;
         private String name;
@@ -78,7 +78,7 @@ class ScanInfoParser
         public void startElement(final String uri, final String localName, final String qName,
                 final Attributes attributes) throws SAXException
         {
-            cdata = "";
+            cdata.setLength(0);
 
             switch (parse_state)
             {
@@ -118,27 +118,27 @@ class ScanInfoParser
 
             // Handle all the elements of a scan
             if ("id".equals(qName))
-                id = Integer.parseInt(cdata);
+                id = Integer.parseInt(cdata.toString());
             else if ("name".equals(qName))
-                name = cdata;
+                name = cdata.toString();
             else if ("created".equals(qName))
-                created = Instant.ofEpochMilli(Long.parseLong(cdata));
+                created = Instant.ofEpochMilli(Long.parseLong(cdata.toString()));
             else if ("state".equals(qName))
-                state = ScanState.valueOf(cdata);
+                state = ScanState.valueOf(cdata.toString());
             else if ("error".equals(qName))
-                error = Optional.of(cdata);
+                error = Optional.of(cdata.toString());
             else if ("runtime".equals(qName))
-                runtime_ms = Long.parseLong(cdata);
+                runtime_ms = Long.parseLong(cdata.toString());
             else if ("total_work_units".equals(qName))
-                total_work_units = Long.parseLong(cdata);
+                total_work_units = Long.parseLong(cdata.toString());
             else if ("performed_work_units".equals(qName))
-                performed_work_units = Long.parseLong(cdata);
+                performed_work_units = Long.parseLong(cdata.toString());
             else if ("finish".equals(qName))
-                finishtime_ms = Long.parseLong(cdata);
+                finishtime_ms = Long.parseLong(cdata.toString());
             else if ("address".equals(qName))
-                current_address = Long.parseLong(cdata);
+                current_address = Long.parseLong(cdata.toString());
             else if ("command".equals(qName))
-                current_commmand = cdata;
+                current_commmand = cdata.toString();
 
             // Wrap up collected info for this scan
             else if ("scan".equals(qName))
@@ -157,7 +157,7 @@ class ScanInfoParser
         public void characters(final char[] ch, final int start, final int length)
                 throws SAXException
         {
-            cdata = new String(ch, start, length);
+            cdata.append(ch, start, length);
         }
     }
 
