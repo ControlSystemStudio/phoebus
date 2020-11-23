@@ -84,11 +84,13 @@ public class UndoableActionManager
     /** @param action Action that has already been performed, which can be un-done */
     public void add(final UndoableAction action)
     {
-        changeCount++;
         // Change count may not be set to zero here as that would suggest the underlying
         // resource is clean. See {@link #changeCount}.
-        if(changeCount == 0){
-            changeCount = 1;
+        if(changeCount >= 0){
+            changeCount++;
+        }
+        else{
+            changeCount = undoStack.size() + 1;
         }
         undoStack.push(action);
         redoStack.clear();
