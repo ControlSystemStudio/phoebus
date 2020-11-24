@@ -3,17 +3,18 @@ package org.phoebus.channel.views.ui;
 import java.io.IOException;
 import java.util.Arrays;
 
-import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
-public class ListSelectionDemo extends ApplicationWrapper {
+import static org.phoebus.channelfinder.Property.Builder.*;
+
+public class AddPropertyDemo extends ApplicationWrapper {
 
     public static void main(String[] args) {
-        launch(ListSelectionDemo.class, args);
+        launch(AddPropertyDemo.class, args);
     }
 
     @Override
@@ -24,7 +25,9 @@ public class ListSelectionDemo extends ApplicationWrapper {
         loader.load();
 
         AddPropertyController controller = loader.getController();
-        controller.setAvaibleOptions(Arrays.asList("prop1", "prop2", "prop3"));
+        controller.setAvaibleOptions(Arrays.asList(property("prop1").owner("owner1").build(),
+                                                   property("prop2").owner("owner2").build(),
+                                                   property("prop3").owner("owner3").build()));
 
         Parent root = loader.getRoot();
         primaryStage.setScene(new Scene(root, 400, 400));
