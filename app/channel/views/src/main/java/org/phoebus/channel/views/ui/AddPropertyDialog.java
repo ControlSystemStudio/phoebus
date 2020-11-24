@@ -22,7 +22,7 @@ import static org.phoebus.channel.views.ui.ChannelFinderController.logger;
  */
 public class AddPropertyDialog extends Dialog<Property> {
 
-    public AddPropertyDialog(final Node parent, final Collection<String> properties) {
+    public AddPropertyDialog(final Node parent, final Collection<Property> properties) {
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         setResizable(true);
         FXMLLoader loader = new FXMLLoader();
@@ -33,7 +33,7 @@ public class AddPropertyDialog extends Dialog<Property> {
             controller.setAvaibleOptions(properties);
             setResultConverter(button -> {
                 return button == ButtonType.OK
-                        ? Property.Builder.property(controller.getProperty(), controller.getValue()).build()
+                        ? controller.getProperty()
                         : null;
             });
 
