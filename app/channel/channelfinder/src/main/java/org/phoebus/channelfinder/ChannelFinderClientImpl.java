@@ -284,7 +284,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
      * 
      * @return list of names of all existing {@link Property}s.
      */
-    public Collection<String> getAllProperties() {
+    public Collection<String> getAllPropertyNames() {
         return wrappedSubmit(new Callable<Collection<String>>() {
             private final ObjectMapper mapper = new ObjectMapper();
             @Override
@@ -303,6 +303,31 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
                     allProperties.add(xmlproperty.getName());
                 }
                 return allProperties;
+            }
+        });
+    }
+
+    /**
+     * Get a list of all the properties currently present on the
+     * channelfinder service.
+     *
+     * @return list of all existing {@link Property}s.
+     */
+    public Collection<Property> getAllProperties() {
+        return wrappedSubmit(new Callable<List<Property>>() {
+            private final ObjectMapper mapper = new ObjectMapper();
+            @Override
+            public List<Property> call() throws Exception {
+                List<XmlProperty> xmlproperties = new ArrayList<>();
+                try {
+                    xmlproperties = mapper.readValue(
+                            service.path(resourceProperties).accept(MediaType.APPLICATION_JSON).get(String.class),
+                            new TypeReference<List<XmlProperty>>() {
+                            });
+                } catch (Exception e) {
+                    log.log(Level.WARNING, "Failed to retrieve channelfinder properties", e);
+                }
+                return xmlproperties.stream().map(xmlProperty -> {return new Property(xmlProperty);}).collect(Collectors.toList());
             }
         });
     }
