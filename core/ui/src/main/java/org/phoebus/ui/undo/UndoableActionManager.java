@@ -29,8 +29,11 @@ public class UndoableActionManager
      * Keeps track of changes when actions are put on the undo stack and redo stack.
      * This can be used to determine if a resource has changes even if the
      * undo stack is empty.
+     * NOTE: the value will become negative if user after saving a resource invokes
+     * undo (CTRL/CMD+Z) commands.
      */
     private int changeCount;
+
 
     /** @param stack_size Number of undo/redo entries */
     public UndoableActionManager(final int stack_size)
@@ -81,7 +84,14 @@ public class UndoableActionManager
     /** @param action Action that has already been performed, which can be un-done */
     public void add(final UndoableAction action)
     {
-        changeCount++;
+        // Change count may not be set to zero here as that would suggest the underlying
+        // resource is clean. See {@link #changeCount}.
+        if(changeCount >= 0){
+            changeCount++;
+        }
+        else{
+            changeCount = undoStack.size() + 1;
+        }
         undoStack.push(action);
         redoStack.clear();
         fireOperationsHistoryChanged();
@@ -127,11 +137,13 @@ public class UndoableActionManager
         return action;
     }
 
-    /** Clear all undo/redo operations */
+    /**
+     * Resets the change change counter to indicate that underlying resource
+     * is clean. The undo/redo stack is not cleared to allow undo/redo operations
+     * after save.
+     */
     public void clear()
     {
-        undoStack.clear();
-        redoStack.clear();
         changeCount = 0;
         fireOperationsHistoryChanged();
     }
