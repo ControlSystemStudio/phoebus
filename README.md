@@ -23,20 +23,21 @@ They could be obtained by expanding a zip-ed phoebus target from an existing bui
 mvn clean verify -f dependencies/pom.xml
 ```
 
-
 ## Building with maven
 
-### Quickstart (Build & run)  
-
-To build and run the phoebus product  
-
+Define the JAVA_HOME environment variable to point to your Java installation directory. 
+Mac OS users should use something like:
 ```
-mvn clean install
-cd phoebus-product
-mvn exec:java
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-11.0.5+10/Contents/Home
+```
+Verify through:
+```
+$JAVA_HOME/bin/java -version
 ```
 
-### Building  
+Make sure your PATH environment variable includes JAVA_HOME and the path to the Maven executable.
+
+### Build
 
 To build the entire phoebus stack
 
@@ -54,18 +55,11 @@ or build with `mvn -DskipTests ...` to skip tests.
 
 ### Running the phoebus application  
 
-To run with maven
-```
-cd phoebus-product
-mvn exec:java
-```
 To run the product jar
 ```
 cd phoebus-product/target
 java -jar product-*-SNAPSHOT.jar
 ```
-
-
 
 ## Building with ant
 
@@ -123,16 +117,14 @@ Can now start product/src/main/java/org.phoebus.product/Launcher.java.
 
 ## Developing with Intellij IDEA
 
-First, download the target platform as described above.
-
 To import the project:
 
-* Start Intellij
+* Start IntelliJ. Make sure to install the Lombok plugin.
 * Import Project
 * Select the Phoebus directory
 * Import project from external model: Maven
 * Accept the default options and click Next twice
-* Ensure that the JDK is version 9 or above
+* Ensure that the JDK is version 11 or above
 * Change the project name to Phoebus and click finish
 
 To run the Phoebus application:
