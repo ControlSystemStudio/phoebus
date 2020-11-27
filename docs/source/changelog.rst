@@ -19,8 +19,9 @@ Release 4.6.5
 
 Release 4.6.4 
 -------------------------------------------
-**NOTE:** Bug in archiver settings handling causing the client to use default URL instead of the configured one.
 Date: Nov 16, 2020
+
+**NOTE:** Bug in archiver settings handling causing the client to use default URL instead of the configured one.
 
 * Alarm Datasource
 * Simplification of the APIs for the `ContextMenuService`, `SelectionService`, and `AdapterService`.
