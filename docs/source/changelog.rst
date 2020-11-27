@@ -5,8 +5,9 @@ A list of API changes, major features, and bug fixes included in each release.
 
 The list is compiled by phoebus developers to document the most important changes associated with each release. For minor bug fixes and patches please refer to github issues and PRs.
 
-Release 4.6.5
+Release 4.6.5 (current development version)
 -------------------------------------------
+Date: TBD
 
 * Optimized display builder file save implementation.
 * Display builder and scan editor undo stack maintained after file save.
