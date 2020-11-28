@@ -81,7 +81,7 @@
     <classpathentry exported="true" kind="lib" path="target/lib/joda-time-2.10.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jopt-simple-5.0.2.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jsr311-api-1.1.1.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/junit-4.12.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/junit-4.13.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jython-standalone-2.7.2.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/kafka-clients-2.0.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/kafka-streams-2.0.0.jar"/>
