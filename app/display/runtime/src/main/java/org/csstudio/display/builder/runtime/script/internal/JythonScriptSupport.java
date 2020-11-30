@@ -169,6 +169,10 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
             // ==> Not using state = new PySystemState();
             final PySystemState state = null;
             python = new PythonInterpreter(null, state);
+
+            // Initialize variables that will be set when running script
+            python.set("widget", null);
+            python.set("pvs", null);
         }
         final long end = System.currentTimeMillis();
         logger.log(Level.FINE, "Time to create jython: {0} ms", (end - start));
@@ -178,6 +182,10 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
     private void addToPythonPath(final String path)
     {
         // Prevent concurrent modification
+        // Since PyList (path) has many synchronized methods,
+        // always lock JythonScriptSupport.class before touching path,
+        // or rely on just the PyList locks,
+        // but don't invert the lock order
         synchronized (JythonScriptSupport.class)
         {
             // Since using default PySystemState (see above), check if already in paths
@@ -243,29 +251,17 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
             try
             {
                 // Executor is single-threaded.
-                // Should be OK to set 'widget' etc.
-                // of the shared python interpreter
+                // Should be OK to update 'widget' & 'pvs', which already exist
+                // in the python interpreter shared by all scripts of this display,
                 // because only one script will execute at a time.
-                // Still, occasionally saw NullPointerException at
+                // Occasionally saw NullPointerException at
                 // org.python.core.PyType$MROMergeState.isMerged(PyType.java:2094)
-                // from the set("widget"..) call.
-                // Moving those into sync. section to see if that makes a difference
-                synchronized (JythonScriptSupport.class)
-                {
-                    python.set("widget", widget);
-                    python.set("pvs", pvs);
-                    logger.log(Level.INFO, () -> "Exec " + script + " for " + widget + " in " + python + ", locals: " + python.getLocals());
+                // from the set("widget"..) call, but that was before jython 2.7.2.
+                python.set("widget", widget);
+                python.set("pvs", pvs);
+                logger.log(Level.WARNING, () -> "Exec " + script + " for " + widget + " in " + python + ", locals (" + System.identityHashCode(python.getLocals())  + "): " + python.getLocals());
 
-                    // Run the compiled script with lock held,
-                    // preventing another script to run concurrently,
-                    // and also preventing another script to compile.
-                    // Scripts for a given display won't be concurrent, anyway,
-                    // because of the single-threaded executor.
-                    // Compilation vs. running could suffer,
-                    // but seems necessary because of implied lock inside 'import',
-                    // used both for compilation and runtime.
-                    python.exec(script.getCode());
-                }
+                python.exec(script.getCode());
             }
             catch (final Throwable ex)
             {
