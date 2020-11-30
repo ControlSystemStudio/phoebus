@@ -188,14 +188,11 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
     private void addToPythonPath(final String path)
     {
         // Prevent concurrent modification
-        // Since PyList (path) has many synchronized methods,
-        // always lock JythonScriptSupport.class before touching path,
-        // or rely on just the PyList locks,
-        // but don't invert the lock order
-        synchronized (JythonScriptSupport.class)
+        // 'paths' is actually shared across all jython interpreters
+        final PyList paths = python.getSystemState().path;
+        synchronized (paths)
         {
             // Since using default PySystemState (see above), check if already in paths
-            final PyList paths = python.getSystemState().path;
             final int index = paths.indexOf(path);
 
             // Warn about "examples:/... path that won't really work.
