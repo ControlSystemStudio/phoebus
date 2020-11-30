@@ -7,4 +7,4 @@
  * TODO: This is for overall documentation
  * TODO: Add copyright notice to all classes, using the above as template
  */
-package org.phoebus.olog.es.api;
+package phoebus.olog.es.api;

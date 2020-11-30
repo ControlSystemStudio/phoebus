@@ -1,12 +1,12 @@
-package org.phoebus.applications.logbook;
+package phoebus.applications.logbook;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogFactory;
-import org.phoebus.olog.es.api.OlogClient;
-import org.phoebus.olog.es.api.OlogClient.OlogClientBuilder;
+import phoebus.olog.es.api.OlogClient;
+import phoebus.olog.es.api.OlogClient.OlogClientBuilder;
 import org.phoebus.security.tokens.SimpleAuthenticationToken;
 /**
  * Logbook client for the new es based olog.

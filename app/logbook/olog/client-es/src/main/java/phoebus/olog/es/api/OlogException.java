@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.phoebus.olog.es.api;
+package phoebus.olog.es.api;
 
 
 import com.sun.jersey.api.client.ClientResponse.Status;

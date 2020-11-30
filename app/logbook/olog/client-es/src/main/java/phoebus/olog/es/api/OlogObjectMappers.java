@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.phoebus.olog.es.api;
+package phoebus.olog.es.api;
 
 import java.io.File;
 import java.io.IOException;

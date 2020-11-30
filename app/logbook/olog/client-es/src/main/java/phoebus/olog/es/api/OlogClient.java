@@ -1,9 +1,5 @@
-package org.phoebus.olog.es.api;
+package phoebus.olog.es.api;
 
-import static org.phoebus.olog.es.api.OlogObjectMappers.logEntryDeserializer;
-import static org.phoebus.olog.es.api.OlogObjectMappers.logEntrySerializer;
-
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -16,7 +12,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -260,11 +255,11 @@ public class OlogClient implements LogClient {
                     .type(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_XML)
                     .accept(MediaType.APPLICATION_JSON)
-                    .put(ClientResponse.class, logEntrySerializer.writeValueAsString(log));
+                    .put(ClientResponse.class, OlogObjectMappers.logEntrySerializer.writeValueAsString(log));
 
             if (clientResponse.getStatus() < 300)
             {
-                XmlLog createdLog = logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), XmlLog.class);
+                XmlLog createdLog = OlogObjectMappers.logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), XmlLog.class);
                 log.getAttachments().stream().forEach(attachment -> {
                     FormDataMultiPart form = new FormDataMultiPart();
                     form.bodyPart(new FileDataBodyPart("file", attachment.getFile()));
@@ -287,7 +282,7 @@ public class OlogClient implements LogClient {
                         .type(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .get(ClientResponse.class);
-                return logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), XmlLog.class);
+                return OlogObjectMappers.logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), XmlLog.class);
             }
             else if(clientResponse.getStatus() == 401){
                 logger.log(Level.SEVERE, "Submission of log entry returned HTTP status, invalid credentials");
@@ -348,7 +343,7 @@ public class OlogClient implements LogClient {
         }
         try {
             // Convert List<XmlLog> into List<LogEntry>
-            final List<XmlLog> xmls = logEntryDeserializer.readValue(
+            final List<XmlLog> xmls = OlogObjectMappers.logEntryDeserializer.readValue(
                     service.path("logs").queryParams(mMap)
                     .accept(MediaType.APPLICATION_JSON)
                     .get(String.class),
@@ -463,7 +458,7 @@ public class OlogClient implements LogClient {
     @Override
     public Collection<Logbook> listLogbooks() {
         try {
-            List<Logbook> logbooks = logEntryDeserializer.readValue(
+            List<Logbook> logbooks = OlogObjectMappers.logEntryDeserializer.readValue(
                     service.path("logbooks").accept(MediaType.APPLICATION_JSON).get(String.class),
                     new TypeReference<List<Logbook>>() {
             });
@@ -477,7 +472,7 @@ public class OlogClient implements LogClient {
     @Override
     public Collection<Property> listProperties() {
         try {
-            List<Property> properties = logEntryDeserializer.readValue(
+            List<Property> properties = OlogObjectMappers.logEntryDeserializer.readValue(
                     service.path("properties").accept(MediaType.APPLICATION_JSON).get(String.class),
                     new TypeReference<List<Property>>() {
             });
@@ -491,7 +486,7 @@ public class OlogClient implements LogClient {
     @Override
     public Collection<Tag> listTags() {
         try {
-            List<Tag> tags = logEntryDeserializer.readValue(
+            List<Tag> tags = OlogObjectMappers.logEntryDeserializer.readValue(
                     service.path("tags").accept(MediaType.APPLICATION_JSON).get(String.class),
                     new TypeReference<List<Tag>>() {
             });
