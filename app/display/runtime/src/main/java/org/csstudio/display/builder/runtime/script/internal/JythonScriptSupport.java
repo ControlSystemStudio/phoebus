@@ -177,12 +177,11 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
     /** @param path Path to add to head of python search path */
     private void addToPythonPath(final String path)
     {
-        // Since using default PySystemState (see above), check if already in paths
-        final PyList paths = python.getSystemState().path;
-
         // Prevent concurrent modification
         synchronized (JythonScriptSupport.class)
         {
+            // Since using default PySystemState (see above), check if already in paths
+            final PyList paths = python.getSystemState().path;
             final int index = paths.indexOf(path);
 
             // Warn about "examples:/... path that won't really work.
@@ -255,10 +254,18 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
                 {
                     python.set("widget", widget);
                     python.set("pvs", pvs);
+                    logger.log(Level.INFO, () -> "Exec " + script + " for " + widget + " in " + python + ", locals: " + python.getLocals());
+
+                    // Run the compiled script with lock held,
+                    // preventing another script to run concurrently,
+                    // and also preventing another script to compile.
+                    // Scripts for a given display won't be concurrent, anyway,
+                    // because of the single-threaded executor.
+                    // Compilation vs. running could suffer,
+                    // but seems necessary because of implied lock inside 'import',
+                    // used both for compilation and runtime.
+                    python.exec(script.getCode());
                 }
-                logger.log(Level.INFO, () -> "Exec " + script + " for " + widget + " in " + python + ", locals: " + python.getLocals());
-                // .. but don't want to block for the duration of the script
-                python.exec(script.getCode());
             }
             catch (final Throwable ex)
             {
