@@ -262,7 +262,7 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
                 // from the set("widget"..) call, but that was before jython 2.7.2.
                 python.set("widget", widget);
                 python.set("pvs", pvs);
-                logger.log(Level.WARNING, () -> "Exec " + script + " for " + widget + " in " + python + ", locals (" + System.identityHashCode(python.getLocals())  + "): " + python.getLocals());
+                logger.log(Level.INFO, () -> "Exec " + script + " for " + widget + " in " + python + ", locals (" + System.identityHashCode(python.getLocals())  + "): " + python.getLocals());
 
                 python.exec(script.getCode());
             }
