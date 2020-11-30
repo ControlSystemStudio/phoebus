@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.phoebus.olog.api;
+package phoebus.olog.api;
 
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.html.HTML.Tag;

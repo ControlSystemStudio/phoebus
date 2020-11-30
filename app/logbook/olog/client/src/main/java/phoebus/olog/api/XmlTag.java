@@ -4,7 +4,7 @@
  * Subject to license terms and conditions.
  */
 
-package org.phoebus.olog.api;
+package phoebus.olog.api;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;

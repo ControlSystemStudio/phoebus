@@ -1,5 +1,5 @@
 
-package org.phoebus.olog.api;
+package phoebus.olog.api;
 
 import java.util.ArrayList;
 import java.util.Collection;

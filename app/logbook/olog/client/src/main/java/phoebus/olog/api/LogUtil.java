@@ -1,11 +1,10 @@
 /**
  * 
  */
-package org.phoebus.olog.api;
+package phoebus.olog.api;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 
 import org.phoebus.logbook.LogEntry;

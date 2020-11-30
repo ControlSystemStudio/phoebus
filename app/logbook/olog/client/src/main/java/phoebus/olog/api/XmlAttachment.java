@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package org.phoebus.olog.api;
+package phoebus.olog.api;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;

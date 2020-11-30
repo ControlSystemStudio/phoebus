@@ -1,11 +1,11 @@
-package org.phoebus.applications.logbook;
+package phoebus.applications.logbook;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogFactory;
-import org.phoebus.olog.api.OlogClient.OlogClientBuilder;
+import phoebus.olog.api.OlogClient.OlogClientBuilder;
 import org.phoebus.security.tokens.SimpleAuthenticationToken;
 
 public class OlogLogbook implements LogFactory {

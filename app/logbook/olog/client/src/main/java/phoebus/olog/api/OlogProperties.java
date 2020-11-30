@@ -1,4 +1,4 @@
-package org.phoebus.olog.api;
+package phoebus.olog.api;
 
 import org.phoebus.framework.preferences.PreferencesReader;
 

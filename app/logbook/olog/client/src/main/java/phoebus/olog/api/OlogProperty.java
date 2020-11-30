@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package org.phoebus.olog.api;
+package phoebus.olog.api;
 
 import java.util.Collection;
 import java.util.Collections;

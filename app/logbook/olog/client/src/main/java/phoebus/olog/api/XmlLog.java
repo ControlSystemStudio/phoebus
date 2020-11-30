@@ -3,9 +3,8 @@
  * Copyright (c) 2010 Helmholtz-Zentrum Berlin fuer Materialien und Energie GmbH
  * Subject to license terms and conditions.
  */
-package org.phoebus.olog.api;
+package phoebus.olog.api;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.xml.bind.annotation.XmlRootElement;

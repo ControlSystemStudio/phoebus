@@ -1,4 +1,4 @@
-package org.phoebus.olog.api;
+package phoebus.olog.api;
 /**
  * Taken from http://java.sun.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html
  *

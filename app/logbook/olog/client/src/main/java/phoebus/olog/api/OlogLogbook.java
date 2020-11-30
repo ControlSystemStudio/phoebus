@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.phoebus.olog.api;
+package phoebus.olog.api;
 
 import org.phoebus.logbook.Logbook;
 

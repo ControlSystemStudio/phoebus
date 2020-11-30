@@ -1,6 +1,6 @@
-package org.phoebus.olog.api;
+package phoebus.olog.api;
 
-import static org.phoebus.olog.api.OlogClient.OlogClientBuilder.*;
+import static phoebus.olog.api.OlogClient.OlogClientBuilder.*;
 
 import org.phoebus.logbook.LogClient;
 

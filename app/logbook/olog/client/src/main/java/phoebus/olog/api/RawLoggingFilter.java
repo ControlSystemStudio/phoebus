@@ -40,7 +40,7 @@
  */
 
 
-package org.phoebus.olog.api;
+package phoebus.olog.api;
 
 import com.sun.jersey.api.client.AbstractClientRequestAdapter;
 import com.sun.jersey.api.client.ClientHandlerException;
