@@ -173,6 +173,12 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
             // Initialize variables that will be set when running script
             python.set("widget", null);
             python.set("pvs", null);
+
+            // This triggers 'imp.load("encodings")',
+            // which takes the import lock, traverses the path,
+            // so forcing it now avoids it being called later
+            // and potentially deadlocking
+            python.getSystemState().getCodecState();
         }
         final long end = System.currentTimeMillis();
         logger.log(Level.FINE, "Time to create jython: {0} ms", (end - start));
