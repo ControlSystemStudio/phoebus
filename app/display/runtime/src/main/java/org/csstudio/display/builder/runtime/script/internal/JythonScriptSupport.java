@@ -177,12 +177,12 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
     /** @param path Path to add to head of python search path */
     private void addToPythonPath(final String path)
     {
-        // Since using default PySystemState (see above), check if already in paths
-        final PyList paths = python.getSystemState().path;
-
         // Prevent concurrent modification
         synchronized (JythonScriptSupport.class)
         {
+            // Since using default PySystemState (see above), check if already in paths
+            final PyList paths = python.getSystemState().path;
+
             final int index = paths.indexOf(path);
 
             // Warn about "examples:/... path that won't really work.
