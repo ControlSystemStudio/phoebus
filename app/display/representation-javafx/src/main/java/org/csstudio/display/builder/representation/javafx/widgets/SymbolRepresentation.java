@@ -298,7 +298,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
             if ( idx == Integer.MIN_VALUE ) {
                 // Keep current index
-                idx = Math.min(Math.max(oldIndex, 0), symbolsList.size() - 1);
+                idx = oldIndex;
             }
 
             if ( idx < 0 || symbolsList.isEmpty() ) {
