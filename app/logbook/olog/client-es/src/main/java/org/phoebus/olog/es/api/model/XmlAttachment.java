@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package org.phoebus.olog.es.api;
+package org.phoebus.olog.es.api.model;
 
 import java.io.File;
 
@@ -127,7 +127,7 @@ public class XmlAttachment implements Attachment {
         return file;
     }
 
-    void setFile(File file) {
+    public void setFile(File file) {
         this.file = file;
     }
 

@@ -1,4 +1,4 @@
-package org.phoebus.olog.es.api;
+package org.phoebus.olog.es.api.model;
 
 import java.io.IOException;
 import java.time.Instant;

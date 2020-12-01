@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.phoebus.olog.es.api;
+package org.phoebus.olog.es.api.model;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,9 +33,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
  */
 public class OlogObjectMappers {
 
-    static ObjectMapper logEntryDeserializer = new ObjectMapper().registerModule(new JavaTimeModule());
-
-    static ObjectMapper logEntrySerializer = new ObjectMapper().registerModule(new JavaTimeModule());
+    public static ObjectMapper logEntryDeserializer = new ObjectMapper().registerModule(new JavaTimeModule());
+    public static ObjectMapper logEntrySerializer = new ObjectMapper().registerModule(new JavaTimeModule());
     
     static SimpleModule module = new SimpleModule("CustomModel", Version.unknownVersion());
     static SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();

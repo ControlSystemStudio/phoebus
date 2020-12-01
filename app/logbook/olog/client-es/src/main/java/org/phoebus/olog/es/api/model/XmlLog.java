@@ -3,7 +3,7 @@
  * Copyright (c) 2010 Helmholtz-Zentrum Berlin fuer Materialien und Energie GmbH
  * Subject to license terms and conditions.
  */
-package org.phoebus.olog.es.api;
+package org.phoebus.olog.es.api.model;
 
 import java.time.Instant;
 import java.util.ArrayList;

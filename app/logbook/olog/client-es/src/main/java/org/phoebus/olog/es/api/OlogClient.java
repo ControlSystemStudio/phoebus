@@ -50,6 +50,9 @@ import com.sun.jersey.multipart.FormDataBodyPart;
 import com.sun.jersey.multipart.FormDataMultiPart;
 import com.sun.jersey.multipart.file.FileDataBodyPart;
 import com.sun.jersey.multipart.impl.MultiPartWriter;
+import org.phoebus.olog.es.api.model.OlogObjectMappers;
+import org.phoebus.olog.es.api.model.XmlAttachment;
+import org.phoebus.olog.es.api.model.XmlLog;
 
 /**
  * A client to the Olog-es webservice
