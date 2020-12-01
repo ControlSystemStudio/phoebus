@@ -2,7 +2,7 @@
   <import file="../../../dependencies/ant_settings.xml"/>
 
   <target name="app-olog-es" depends="compile-app">
-    <jar destfile="${build}/olog-clinet-es-${version}.jar">
+    <jar destfile="${build}/olog-client-es-${version}.jar">
       <fileset dir="${classes}"/>
     </jar>
   </target>
