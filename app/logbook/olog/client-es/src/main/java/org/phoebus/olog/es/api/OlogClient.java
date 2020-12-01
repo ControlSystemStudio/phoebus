@@ -57,9 +57,9 @@ import com.sun.jersey.multipart.impl.MultiPartWriter;
  * @author Eric Berryman taken from shroffk
  */
 public class OlogClient implements LogClient {
-    private final WebResource service;
+    private static final Logger logger = Logger.getLogger(OlogClient.class.getName());
 
-    private Logger logger = Logger.getLogger(OlogClient.class.getPackageName());
+    private final WebResource service;
 
     /**
      * Builder Class to help create a olog client.
@@ -343,11 +343,11 @@ public class OlogClient implements LogClient {
         }
         try {
             // Convert List<XmlLog> into List<LogEntry>
-            final List<XmlLog> xmls = OlogObjectMappers.logEntryDeserializer.readValue(
+            final List <XmlLog> xmls = OlogObjectMappers.logEntryDeserializer.readValue(
                     service.path("logs").queryParams(mMap)
                     .accept(MediaType.APPLICATION_JSON)
                     .get(String.class),
-                    new TypeReference<List<XmlLog>>() {
+                    new TypeReference<List <XmlLog>>() {
                     });
             for (XmlLog xml : xmls)
                 logs.add(xml);

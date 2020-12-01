@@ -58,6 +58,8 @@ import java.util.stream.Collectors;
  */
 public class OlogClient implements LogClient {
 
+    private static final Logger logger = Logger.getLogger(OlogClient.class.getName());
+
     private final WebResource service;
     private final ExecutorService executor;
 
@@ -634,7 +636,7 @@ public class OlogClient implements LogClient {
                                     a.setFile(temp.toFile());
                                     temp.toFile().deleteOnExit();
                                 } catch (IOException e) {
-                                    phoebus.applications.logbook.OlogLogbook.logger.log(Level.WARNING, "failed to retrieve attachment file " + a.getName(), e);
+                                    logger.log(Level.WARNING, "failed to retrieve attachment file " + a.getName(), e);
                                 }
                                 return a;
                             }).collect(Collectors.toList());

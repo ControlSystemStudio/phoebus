@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogFactory;
-import phoebus.olog.api.OlogClient.OlogClientBuilder;
+import org.phoebus.olog.api.OlogClient.OlogClientBuilder;
 import org.phoebus.security.tokens.SimpleAuthenticationToken;
 
 public class OlogLogbook implements LogFactory {

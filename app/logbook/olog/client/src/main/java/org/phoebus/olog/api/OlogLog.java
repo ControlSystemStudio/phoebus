@@ -57,7 +57,6 @@ public class OlogLog implements LogEntry {
     /**
      * Creates a new instance of XmlLog.
      *
-     * @param subject log subject
      * @param owner   log owner
      */
     public OlogLog(String owner) {
@@ -151,7 +150,7 @@ public class OlogLog implements LogEntry {
     /**
      * Setter for log owner.
      *
-     * @param owner
+     * @param owner owner
      */
     public void setOwner(String owner) {
         this.owner = owner;
@@ -170,7 +169,7 @@ public class OlogLog implements LogEntry {
     /**
      * Setter for log owner.
      *
-     * @param level
+     * @param level level
      */
     public void setLevel(String level) {
         this.level = level;
@@ -189,7 +188,7 @@ public class OlogLog implements LogEntry {
     /**
      * Setter for log created date.
      *
-     * @param createdDate
+     * @param createdDate create date
      */
     public void setCreatedDate(Instant createdDate) {
         this.createdDate = createdDate;
@@ -208,7 +207,7 @@ public class OlogLog implements LogEntry {
     /**
      * Setter for log modified date.
      *
-     * @param modifiedDate
+     * @param modifiedDate modify date
      */
     public void setModifiedDate(Instant modifiedDate) {
         this.modifiedDate = modifiedDate;
@@ -264,7 +263,7 @@ public class OlogLog implements LogEntry {
     /**
      * Setter for MD5 entry.
      *
-     * @param description the value to set
+     * @param md5entry the value to set
      */
     public void setMD5Entry(String md5entry) {
         this.md5Entry = md5entry;
@@ -282,7 +281,7 @@ public class OlogLog implements LogEntry {
     /**
      * Setter for Table id.
      *
-     * @param Table id to set
+     * @param tableId id to set
      */
     public void setTableId(Long tableId) {
         this.tableId = tableId;
