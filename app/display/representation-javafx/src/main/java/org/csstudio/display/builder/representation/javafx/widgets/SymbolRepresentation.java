@@ -224,6 +224,14 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         }
     }
 
+    private Symbol getSymbol (final int idx, final List<Symbol> symbolsList) {
+        if ( idx < 0 || symbolsList.isEmpty() ) {
+            return getDefaultSymbol();
+        }
+
+        return symbolsList.get(Math.min(idx, symbolsList.size() - 1));
+    }
+
     @Override
     public void updateChanges ( ) {
 
@@ -301,13 +309,14 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
             if ( idx == Integer.MIN_VALUE ) {
                 // Keep current index
                 idx = oldIndex;
+
+                // PV is disconnected (or has no valid value) so let's switch to the initial index if current image is null
+                // This tries to mimic what a rule changing the visibility would do
+                if ( getSymbol(idx, symbolsList).isHidden() )
+                    idx = model_widget.propInitialIndex().getValue();
             }
 
-            if ( idx < 0 || symbolsList.isEmpty() ) {
-                symbol = getDefaultSymbol();
-            } else {
-                symbol = symbolsList.get(Math.min(idx, symbolsList.size() - 1));
-            }
+            symbol = getSymbol(idx, symbolsList);
 
             if ( oldIndex != idx ) {
                 dirtyGeometry.mark();
@@ -614,6 +623,11 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
         Image image = symbol.getImage();
 
+        if ( symbol.isHidden() ) {
+            imageView.setImage(null);
+            return imageView;
+        }
+
         if ( image == null ) {
             if (!setDefault)
                 return imageView;
@@ -645,7 +659,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
     }
 
     void setSymbolSize ( double width, double height, boolean preserveRatio ) {
-        if ( symbol != null ) {
+        if ( symbol != null  &&  !symbol.isHidden() ) {
             if ( symbol.getImage() == null ) {
                 getDefaultSymbolNode().setSize(width, height);
             }else{
@@ -793,6 +807,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         private Image image = null;
         private double originalHeight = 100;
         private double originalWidth = 100;
+        private boolean hidden = false;
 
         Symbol ( ) {
             fileName = null;
@@ -802,7 +817,15 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
             this.fileName = fileName;
 
-            String imageFileName = resolveImageFile(model_widget, fileName);
+            final String imageFileName;
+            // an empty filename means 'display no image'
+            if ( fileName.isEmpty() ) {
+                hidden = true;
+                originalWidth = width;
+                originalHeight = height;
+                imageFileName = null;
+            } else
+                imageFileName = resolveImageFile(model_widget, fileName);
 
             if ( imageFileName != null ) {
                 if (toolkit.isEditMode()) {
@@ -810,7 +833,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
                 }
 
                 if(imageFileName.toLowerCase().endsWith("svg")){
-                    image = loadSVG(width, height);
+                    image = loadSVG(imageFileName, width, height);
                 }
                 else{
                     image = ImageCache.cache(imageFileName, () ->
@@ -831,6 +854,10 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
                     originalHeight = image.getHeight();
                 }
             }
+        }
+
+        boolean isHidden ( ) {
+            return hidden;
         }
 
         String getFileName ( ) {
@@ -857,7 +884,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
          */
         void resize(double width, double height, boolean preserveRatio){
             if(fileName.toLowerCase().endsWith("svg")) {
-                image = loadSVG(width, height);
+                image = loadSVG(resolveImageFile(model_widget, fileName), width, height);
                 imageView.setImage(image);
             }
             imageView.setFitWidth(width);
@@ -873,8 +900,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
          * @param height
          * @return An {@link Image} or <code>null</code>.
          */
-        Image loadSVG(double width, double height){
-            String imageFileName = resolveImageFile(model_widget, fileName);
+        Image loadSVG(final String imageFileName, double width, double height){
             return SVGHelper.loadSVG(imageFileName, width, height);
         }
     }
