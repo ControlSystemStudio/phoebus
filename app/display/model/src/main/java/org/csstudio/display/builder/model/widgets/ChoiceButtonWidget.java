@@ -79,12 +79,9 @@ public class ChoiceButtonWidget extends WritablePVWidget
 
     private static ArrayWidgetProperty.Descriptor<WidgetProperty<String>> choiceItemDescriptor =
             new ArrayWidgetProperty.Descriptor<>(WidgetPropertyCategory.BEHAVIOR, "items", "Items",
-                    (widget, index) -> {
-                        int size = ((ChoiceButtonWidget)widget).propItems().getValue().size();
-                        return CommonWidgetProperties.newStringPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR,
+                    (widget, index) -> CommonWidgetProperties.newStringPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR,
                                 "item",
-                                Messages.ComboWidget_Item).createProperty(widget, Messages.ComboWidget_Item + " " + (size + 1));
-                    });
+                                Messages.ComboWidget_Item).createProperty(widget, Messages.ComboWidget_Item + " " + (index + 1)));
 
     @Override
     protected void defineProperties(final List<WidgetProperty<?>> properties)

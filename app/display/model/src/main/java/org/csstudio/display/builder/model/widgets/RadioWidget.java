@@ -68,12 +68,10 @@ public class RadioWidget extends WritablePVWidget
 
     private static ArrayWidgetProperty.Descriptor<WidgetProperty<String>> radioItemDescriptor =
             new ArrayWidgetProperty.Descriptor<>(WidgetPropertyCategory.BEHAVIOR, "items", "Items",
-                    (widget, index) -> {
-                        int size = ((RadioWidget)widget).propItems().getValue().size();
-                        return CommonWidgetProperties.newStringPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR,
+                    (widget, index) ->
+                        CommonWidgetProperties.newStringPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR,
                                 "item",
-                                Messages.ComboWidget_Item).createProperty(widget, Messages.ComboWidget_Item + " " + (size + 1));
-                    });
+                                Messages.ComboWidget_Item).createProperty(widget, Messages.ComboWidget_Item + " " + (index + 1)));
 
 
     public RadioWidget()
