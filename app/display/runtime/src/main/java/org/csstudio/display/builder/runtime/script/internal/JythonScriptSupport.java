@@ -169,6 +169,16 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
             // ==> Not using state = new PySystemState();
             final PySystemState state = null;
             python = new PythonInterpreter(null, state);
+
+            // Initialize variables that will be set when running script
+            python.set("widget", null);
+            python.set("pvs", null);
+
+            // This triggers 'imp.load("encodings")',
+            // which takes the import lock, traverses the path,
+            // so forcing it now avoids it being called later
+            // and potentially deadlocking
+            python.getSystemState().getCodecState();
         }
         final long end = System.currentTimeMillis();
         logger.log(Level.FINE, "Time to create jython: {0} ms", (end - start));
@@ -177,12 +187,12 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
     /** @param path Path to add to head of python search path */
     private void addToPythonPath(final String path)
     {
-        // Since using default PySystemState (see above), check if already in paths
-        final PyList paths = python.getSystemState().path;
-
         // Prevent concurrent modification
-        synchronized (JythonScriptSupport.class)
+        // 'paths' is actually shared across all jython interpreters
+        final PyList paths = python.getSystemState().path;
+        synchronized (paths)
         {
+            // Since using default PySystemState (see above), check if already in paths
             final int index = paths.indexOf(path);
 
             // Warn about "examples:/... path that won't really work.
@@ -244,20 +254,16 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
             try
             {
                 // Executor is single-threaded.
-                // Should be OK to set 'widget' etc.
-                // of the shared python interpreter
+                // Should be OK to update 'widget' & 'pvs', which already exist
+                // in the python interpreter shared by all scripts of this display,
                 // because only one script will execute at a time.
-                // Still, occasionally saw NullPointerException at
+                // Occasionally saw NullPointerException at
                 // org.python.core.PyType$MROMergeState.isMerged(PyType.java:2094)
-                // from the set("widget"..) call.
-                // Moving those into sync. section to see if that makes a difference
-                synchronized (JythonScriptSupport.class)
-                {
-                    python.set("widget", widget);
-                    python.set("pvs", pvs);
-                }
-                logger.log(Level.INFO, () -> "Exec " + script + " for " + widget + " in " + python + ", locals: " + python.getLocals());
-                // .. but don't want to block for the duration of the script
+                // from the set("widget"..) call, but that was before jython 2.7.2.
+                python.set("widget", widget);
+                python.set("pvs", pvs);
+                logger.log(Level.INFO, () -> "Exec " + script + " for " + widget + " in " + python + ", locals (" + System.identityHashCode(python.getLocals())  + "): " + python.getLocals());
+
                 python.exec(script.getCode());
             }
             catch (final Throwable ex)
