@@ -260,7 +260,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
                         try {
                             idx = Integer.parseInt(( (VString) value ).getValue());
                         } catch ( NumberFormatException nfex ) {
-                            logger.log(Level.FINE, "Failure parsing the string value: {0} [{1}].", new Object[] { ( (VString) value ).getValue(), nfex.getMessage() });
+                            logger.log(Level.SEVERE, "Failure parsing the string value: {0} [{1}].", new Object[] { ( (VString) value ).getValue(), nfex.getMessage() });
                         }
                     } else if ( value instanceof VNumber ) {
                         idx = ( (VNumber) value ).getValue().intValue();
@@ -282,6 +282,8 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
                             idx = array.getInt(Math.min(arrayIndex, array.size() - 1));
                         }
 
+                    } else {
+                        logger.log(Level.SEVERE, "Cannot interpret value: " + value);
                     }
                 } else if (! toolkit.isEditMode()) {
                     disconnectedRectangle.setVisible(true);
