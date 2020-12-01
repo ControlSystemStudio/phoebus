@@ -1,33 +1,5 @@
 package org.phoebus.applications.email.ui;
 
-import static org.phoebus.applications.email.EmailApp.logger;
-
-import java.io.File;
-import java.lang.reflect.Method;
-import java.time.Instant;
-import java.util.List;
-import java.util.prefs.Preferences;
-
-import javax.activation.DataHandler;
-import javax.activation.FileDataSource;
-import javax.mail.BodyPart;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Multipart;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-
-import org.phoebus.applications.email.EmailApp;
-import org.phoebus.email.EmailPreferences;
-import org.phoebus.framework.preferences.PhoebusPreferenceService;
-import org.phoebus.framework.workbench.ApplicationService;
-import org.phoebus.ui.javafx.FilesTab;
-import org.phoebus.ui.javafx.ImagesTab;
-import org.phoebus.util.time.TimestampFormats;
-
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -49,6 +21,28 @@ import javafx.scene.web.HTMLEditor;
 import javafx.scene.web.HTMLEditorSkin;
 import javafx.scene.web.HTMLEditorSkin.Command;
 import javafx.stage.Stage;
+import org.phoebus.applications.email.EmailApp;
+import org.phoebus.email.EmailPreferences;
+import org.phoebus.email.EmailService;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.ui.javafx.FilesTab;
+import org.phoebus.ui.javafx.ImagesTab;
+import org.phoebus.util.time.TimestampFormats;
+
+import javax.activation.DataHandler;
+import javax.activation.FileDataSource;
+import javax.mail.BodyPart;
+import javax.mail.MessagingException;
+import javax.mail.Multipart;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMultipart;
+import java.io.File;
+import java.lang.reflect.Method;
+import java.time.Instant;
+import java.util.List;
+import java.util.prefs.Preferences;
+
+import static org.phoebus.applications.email.EmailApp.logger;
 
 /**
  * Controller for dialog to create and send emails
@@ -107,10 +101,6 @@ public class EmailDialogController {
         // TODO move to a job and move to Email service
 
         try {
-            // Create a default MimeMessage object.
-            EmailApp app = ApplicationService.findApplication(EmailApp.NAME);
-            Message message = new MimeMessage(app.getSession());
-
             // Set To: header field of the header.
             String txt = txtTo.getText().trim();
             if (txt.isEmpty())
@@ -118,7 +108,7 @@ public class EmailDialogController {
                 Platform.runLater(txtTo::requestFocus);
                 return;
             }
-            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(txt));
+            String to = txt;
 
             // Set From: header field of the header.
             txt = txtFrom.getText().trim();
@@ -127,7 +117,7 @@ public class EmailDialogController {
                 Platform.runLater(txtFrom::requestFocus);
                 return;
             }
-            message.setFrom(new InternetAddress(txt));
+            String from = txt;
 
             // Set Subject: header field
             txt = txtSubject.getText().trim();
@@ -136,9 +126,9 @@ public class EmailDialogController {
                 Platform.runLater(txtSubject::requestFocus);
                 return;
             }
-            message.setSubject(txt);
+            String subject = txt;
 
-            Multipart multipart = new MimeMultipart();
+            Multipart body = new MimeMultipart();
 
             // Create the message part
             // This will depend on the body type
@@ -149,13 +139,13 @@ public class EmailDialogController {
                 messageBodyPart = new MimeBodyPart();
                 String htmlText = htmlEditor.getHtmlText();
                 messageBodyPart.setContent(htmlText, "text/html");
-                multipart.addBodyPart(messageBodyPart);
+                body.addBodyPart(messageBodyPart);
                 break;
             default:
                 // Text
                 messageBodyPart = new MimeBodyPart();
                 messageBodyPart.setText(textArea.getText());
-                multipart.addBodyPart(messageBodyPart);
+                body.addBodyPart(messageBodyPart);
                 // Attachments
                 // TODO Fix access to javax.annotations that clashes with JDK9 module, see #52
                 final String date = TimestampFormats.SECONDS_FORMAT.format(Instant.now());
@@ -164,7 +154,7 @@ public class EmailDialogController {
                     messageBodyPart = new MimeBodyPart();
                     messageBodyPart.setDataHandler(new DataHandler(new ImageDataSource(image)));
                     messageBodyPart.setFileName("Image" + (++i) + "_" + date + ".png");
-                    multipart.addBodyPart(messageBodyPart);
+                    body.addBodyPart(messageBodyPart);
                 }
 
                 for (File file : att_files.getFiles())
@@ -172,15 +162,12 @@ public class EmailDialogController {
                     messageBodyPart = new MimeBodyPart();
                     messageBodyPart.setDataHandler(new DataHandler(new FileDataSource(file)));
                     messageBodyPart.setFileName(file.getName());
-                    multipart.addBodyPart(messageBodyPart);
+                    body.addBodyPart(messageBodyPart);
                 }
                 break;
             }
 
-            // Send the complete message parts
-            message.setContent(multipart);
-            // Send message
-            Transport.send(message);
+            EmailService.send(to, from, subject, body);
             logger.info("Sent message successfully....");
 
             prefs.put(LAST_TO, txtTo.getText());
