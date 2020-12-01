@@ -31,7 +31,7 @@ public class TimeParserTest {
     }
 
     /**
-     * Test the times Duration ← relative
+     * Test the times Duration from relative
      */
     @Test
     public void getDuration() {

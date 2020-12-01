@@ -12,7 +12,6 @@
     <module>utility</module>
     <module>ui</module>
     <module>olog</module>
-    <module>olog-es</module>
     <module>elog</module>
   </modules>
 </project>
