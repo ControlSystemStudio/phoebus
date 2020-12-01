@@ -40,13 +40,13 @@ public class OlogObjectMappers {
     static SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
 
     /**
-     * A json deserializer which maps the new olog properties to {@link XmlProperty}
+     * A json deserializer which maps the new olog properties to {@link OlogProperty}
      * @author Kunal Shroff
      */
-    static class PropertyDeserializer extends JsonDeserializer<XmlProperty> {
+    static class PropertyDeserializer extends JsonDeserializer<OlogProperty> {
 
         @Override
-        public XmlProperty deserialize(JsonParser jp, DeserializationContext ctxt) 
+        public OlogProperty deserialize(JsonParser jp, DeserializationContext ctxt)
           throws IOException, JsonProcessingException {
             JsonNode node = jp.getCodec().readTree(jp);
             String name = node.get("name").asText();
@@ -56,24 +56,24 @@ public class OlogObjectMappers {
             node.get("attributes").iterator().forEachRemaining(n -> {
                 attributes.put(n.get("name").asText(), n.get("value").asText());
             });
-            return new XmlProperty(name, attributes);
+            return new OlogProperty(name, attributes);
         }
     }
 
     /**
-     * A json deserializer which maps the new attachment to {@link XmlAttachment}
+     * A json deserializer which maps the new attachment to {@link OlogAttachment}
      * @author Kunal Shroff
      */
-    static class AttachmentDeserializer extends JsonDeserializer<XmlAttachment> {
+    static class AttachmentDeserializer extends JsonDeserializer<OlogAttachment> {
 
         @Override
-        public XmlAttachment deserialize(JsonParser jp, DeserializationContext ctxt) 
+        public OlogAttachment deserialize(JsonParser jp, DeserializationContext ctxt)
           throws IOException, JsonProcessingException {
             JsonNode node = jp.getCodec().readTree(jp);
             String id = node.get("id").asText();
             String filename = node.get("filename").asText();
             String fileMetadataDescription = node.get("fileMetadataDescription").asText();
-            XmlAttachment a = new XmlAttachment();
+            OlogAttachment a = new OlogAttachment();
             a.setFileName(filename);
             a.setContentType(fileMetadataDescription);
             return a;
@@ -81,24 +81,24 @@ public class OlogObjectMappers {
     }
 
     static {
-        resolver.addMapping(Logbook.class, XmlLogbook.class);
-        resolver.addMapping(Tag.class, XmlTag.class);
-        resolver.addMapping(Property.class, XmlProperty.class);
-        resolver.addMapping(Attachment.class, XmlAttachment.class);
+        resolver.addMapping(Logbook.class, OlogLogbook.class);
+        resolver.addMapping(Tag.class, OlogTag.class);
+        resolver.addMapping(Property.class, OlogProperty.class);
+        resolver.addMapping(Attachment.class, OlogAttachment.class);
         module.setAbstractTypes(resolver);
 
-        module.addDeserializer(XmlProperty.class, new PropertyDeserializer());
-        module.addDeserializer(XmlAttachment.class, new AttachmentDeserializer());
+        module.addDeserializer(OlogProperty.class, new PropertyDeserializer());
+        module.addDeserializer(OlogAttachment.class, new AttachmentDeserializer());
         logEntryDeserializer.registerModule(module);
         logEntryDeserializer.addMixIn(Attachment.class, AttachmentMixIn.class);
         logEntryDeserializer.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     static {
-        resolver.addMapping(Logbook.class, XmlLogbook.class);
-        resolver.addMapping(Tag.class, XmlTag.class);
-        resolver.addMapping(Property.class, XmlProperty.class);
-        resolver.addMapping(Attachment.class, XmlAttachment.class);
+        resolver.addMapping(Logbook.class, OlogLogbook.class);
+        resolver.addMapping(Tag.class, OlogTag.class);
+        resolver.addMapping(Property.class, OlogProperty.class);
+        resolver.addMapping(Attachment.class, OlogAttachment.class);
         module.setAbstractTypes(resolver);
 
         logEntrySerializer.registerModule(module);

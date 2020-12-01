@@ -51,8 +51,8 @@ import com.sun.jersey.multipart.FormDataMultiPart;
 import com.sun.jersey.multipart.file.FileDataBodyPart;
 import com.sun.jersey.multipart.impl.MultiPartWriter;
 import org.phoebus.olog.es.api.model.OlogObjectMappers;
-import org.phoebus.olog.es.api.model.XmlAttachment;
-import org.phoebus.olog.es.api.model.XmlLog;
+import org.phoebus.olog.es.api.model.OlogAttachment;
+import org.phoebus.olog.es.api.model.OlogLog;
 
 /**
  * A client to the Olog-es webservice
@@ -262,7 +262,7 @@ public class OlogClient implements LogClient {
 
             if (clientResponse.getStatus() < 300)
             {
-                XmlLog createdLog = OlogObjectMappers.logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), XmlLog.class);
+                OlogLog createdLog = OlogObjectMappers.logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), OlogLog.class);
                 log.getAttachments().stream().forEach(attachment -> {
                     FormDataMultiPart form = new FormDataMultiPart();
                     form.bodyPart(new FileDataBodyPart("file", attachment.getFile()));
@@ -285,7 +285,7 @@ public class OlogClient implements LogClient {
                         .type(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .get(ClientResponse.class);
-                return OlogObjectMappers.logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), XmlLog.class);
+                return OlogObjectMappers.logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), OlogLog.class);
             }
             else if(clientResponse.getStatus() == 401){
                 logger.log(Level.SEVERE, "Submission of log entry returned HTTP status, invalid credentials");
@@ -315,12 +315,12 @@ public class OlogClient implements LogClient {
 
     @Override
     public LogEntry findLogById(Long logId) {
-        XmlLog xmlLog = service
+        OlogLog xmlLog = service
                 .path("logs")
                 .path(logId.toString())
                 .accept(MediaType.APPLICATION_XML)
                 .accept(MediaType.APPLICATION_JSON)
-                .get(XmlLog.class);
+                .get(OlogLog.class);
         return xmlLog;
     }
 
@@ -346,13 +346,13 @@ public class OlogClient implements LogClient {
         }
         try {
             // Convert List<XmlLog> into List<LogEntry>
-            final List <XmlLog> xmls = OlogObjectMappers.logEntryDeserializer.readValue(
+            final List <OlogLog> xmls = OlogObjectMappers.logEntryDeserializer.readValue(
                     service.path("logs").queryParams(mMap)
                     .accept(MediaType.APPLICATION_JSON)
                     .get(String.class),
-                    new TypeReference<List <XmlLog>>() {
+                    new TypeReference<List <OlogLog>>() {
                     });
-            for (XmlLog xml : xmls)
+            for (OlogLog xml : xmls)
                 logs.add(xml);
             logs.forEach(log -> {
                 // fetch attachment??
@@ -363,7 +363,7 @@ public class OlogClient implements LogClient {
                           return attachment.getName() != null && !attachment.getName().isEmpty();
                       })
                       .map((attachment) -> {
-                        XmlAttachment fileAttachment = new XmlAttachment();
+                        OlogAttachment fileAttachment = new OlogAttachment();
                         fileAttachment.setContentType(attachment.getContentType());
                         fileAttachment.setThumbnail(false);
                         try {
@@ -376,7 +376,7 @@ public class OlogClient implements LogClient {
                         }
                         return fileAttachment;
                     }).collect(Collectors.toList());
-                    ((XmlLog)log).setXmlAttachments(populatedAttachment);
+                    ((OlogLog)log).setAttachments(populatedAttachment);
                 }
             });
         } catch (UniformInterfaceException | ClientHandlerException | IOException e) {

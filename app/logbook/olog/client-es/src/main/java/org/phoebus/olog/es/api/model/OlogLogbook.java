@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @XmlRootElement(name = "logbook")
-public class XmlLogbook implements Logbook{
+public class OlogLogbook implements Logbook{
 
     private String name = null;
     private String owner = null;
@@ -29,7 +29,7 @@ public class XmlLogbook implements Logbook{
      * Creates a new instance of XmlLogbook.
      *
      */
-    public XmlLogbook() {
+    public OlogLogbook() {
     }
 
     /**
@@ -38,12 +38,12 @@ public class XmlLogbook implements Logbook{
      * @param name
      * @param owner
      */
-    public XmlLogbook(String name, String owner) {
+    public OlogLogbook(String name, String owner) {
         this.owner = owner;
         this.name = name;
     }
 
-    public XmlLogbook(Logbook logbook) {
+    public OlogLogbook(Logbook logbook) {
         this.name = logbook.getName();
         this.owner = logbook.getOwner();
     }

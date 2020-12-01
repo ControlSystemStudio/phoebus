@@ -27,7 +27,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @XmlType
 @XmlRootElement(name = "attachment")
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class XmlAttachment implements Attachment {
+public class OlogAttachment implements Attachment {
 
     @XmlTransient
     protected String fileName;
@@ -46,7 +46,7 @@ public class XmlAttachment implements Attachment {
     /**
      * Creates a new instance of XmlAttachment
      */
-    public XmlAttachment() {
+    public OlogAttachment() {
         this.thumbnail = false;
     }
 
@@ -118,7 +118,7 @@ public class XmlAttachment implements Attachment {
      *            the XmlAttach to log
      * @return string representation for log
      */
-    public static String toLog(XmlAttachment data) {
+    public static String toLog(OlogAttachment data) {
         return data.getFileName() + "(" + data.getContentType() + ")";
     }
 

@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @XmlRootElement(name = "property")
-public class XmlProperty implements Property{
+public class OlogProperty implements Property{
 
     private int id;
     private int groupingNum;
@@ -32,7 +32,7 @@ public class XmlProperty implements Property{
      * Creates a new instance of XmlProperty.
      * 
      */
-    public XmlProperty() {
+    public OlogProperty() {
     }
 
     /**
@@ -41,7 +41,7 @@ public class XmlProperty implements Property{
      * @param name
      * @param value
      */
-    public XmlProperty(String name) {
+    public OlogProperty(String name) {
         this.name = name;
     }
 
@@ -49,7 +49,7 @@ public class XmlProperty implements Property{
      * @param name
      * @param attributes
      */
-    public XmlProperty(String name, Map<String, String> attributes) {
+    public OlogProperty(String name, Map<String, String> attributes) {
         this.name = name;
         this.attributes = attributes;
     }

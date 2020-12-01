@@ -19,14 +19,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @XmlRootElement(name = "tag")
-public class XmlTag implements Tag {
+public class OlogTag implements Tag {
     private String name = null;
     private String state = "Active";
     /**
      * Creates a new instance of XmlTag.
      *
      */
-    public XmlTag() {
+    public OlogTag() {
     }
 
     /**
@@ -34,7 +34,7 @@ public class XmlTag implements Tag {
      *
      * @param name
      */
-    public XmlTag(String name) {
+    public OlogTag(String name) {
         this.name = name;
     }
 
@@ -44,12 +44,12 @@ public class XmlTag implements Tag {
      * @param name
      * @param state
      */
-    public XmlTag(String name, String state) {
+    public OlogTag(String name, String state) {
         this.name = name;
         this.state = state;
     }
 
-    public XmlTag(Tag tag) {
+    public OlogTag(Tag tag) {
         this.name = tag.getName();
         this.state = tag.getState();
     }

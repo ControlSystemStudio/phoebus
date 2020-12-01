@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlRootElement(name = "log")
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class XmlLog implements LogEntry {
+public class OlogLog implements LogEntry {
 
     private Long id;
     private int version;
@@ -41,9 +41,6 @@ public class XmlLog implements LogEntry {
     private String source;
     private String level;
     private String title;
-    private String md5Entry;
-    private String md5Recent;
-    private Long tableId;
     @JsonDeserialize(using = UnixTimestampDeserializer.class)
     private Instant createdDate;
     @JsonDeserialize(using = UnixTimestampDeserializer.class)
@@ -56,38 +53,34 @@ public class XmlLog implements LogEntry {
     private Collection<Property> properties;
 
     /** Creates a new instance of XmlLog */
-    public XmlLog() {
+    public OlogLog() {
     }
 
     /**
      * Creates a new instance of XmlLog.
      *
-     * @param logId
-     *            log id
+     * @param logId log id
      */
-    public XmlLog(Long logId) {
+    public OlogLog(Long logId) {
         this.id = logId;
     }
 
     /**
      * Creates a new instance of XmlLog.
      *
-     * @param owner
-     *            log owner
+     * @param owner log owner
      */
-    public XmlLog(String owner) {
+    public OlogLog(String owner) {
         this.owner = owner;
     }
 
     /**
      * Creates a new instance of XmlLog.
      *
-     * @param logId
-     *            log id
-     * @param owner
-     *            log owner
+     * @param logId log id
+     * @param owner log owner
      */
-    public XmlLog(Long logId, String owner) {
+    public OlogLog(Long logId, String owner) {
         this.id = logId;
         this.owner = owner;
     }
@@ -174,6 +167,14 @@ public class XmlLog implements LogEntry {
     }
 
     /**
+     * Setter for log title.
+     *
+     * @param title title
+     */
+    public void setTitle(String title) {
+        this.title = title;
+    }
+    /**
      * Getter for log created date.
      *
      * @return createdDate
@@ -224,8 +225,7 @@ public class XmlLog implements LogEntry {
     /**
      * Setter for log source IP.
      *
-     * @param source
-     *            IP
+     * @param source IP
      */
     public void setSource(String source) {
         this.source = source;
@@ -244,53 +244,15 @@ public class XmlLog implements LogEntry {
     /**
      * Setter for log description.
      *
-     * @param description
-     *            the value to set
+     * @param description the value to set
      */
     public void setDescription(String description) {
         this.description = description;
     }
 
-    /**
-     * Getter for MD5 entry.
-     *
-     * @return description
-     */
-    public String getMD5Entry() {
-        return md5Entry;
-    }
-
-    /**
-     * Setter for MD5 entry.
-     *
-     * @param md5entry
-     *            the value to set
-     */
-    public void setMD5Entry(String md5entry) {
-        this.md5Entry = md5entry;
-    }
-
-    /**
-     * Getter for Table id.
-     *
-     * @return table id
-     */
-    public Long getTableId() {
-        return tableId;
-    }
-
-    /**
-     * Setter for Table id.
-     *
-     * @param tableId to set
-     */
-    public void setTableId(Long tableId) {
-        this.tableId = tableId;
-    }
-
     @Override
     @XmlElementWrapper(name = "properties")
-    @XmlElement(type = XmlProperty.class, name = "property", nillable = true)
+    @XmlElement(type = OlogProperty.class, name = "property", nillable = true)
     public Collection<Property> getProperties() {
         return properties == null ? new ArrayList<Property>() : properties;
     }
@@ -301,18 +263,17 @@ public class XmlLog implements LogEntry {
     }
 
     /**
-     * Setter for log's XmlProperties.
-     * 
-     * @param properties
-     *            XmlProperties
+     * Setter for log's Properties.
+     *
+     * @param properties properties
      */
-    public void setXmlProperties(Collection<Property> properties) {
+    public void setProperties(Collection<Property> properties) {
         this.properties = properties;
     }
 
     @Override
     @XmlElementWrapper(name = "logbooks")
-    @XmlElement(type = XmlLogbook.class, name = "logbook")
+    @XmlElement(type = OlogLogbook.class, name = "logbook")
     public Collection<Logbook> getLogbooks() {
         return logbooks == null ? new ArrayList<Logbook>() : logbooks;
     }
@@ -332,16 +293,15 @@ public class XmlLog implements LogEntry {
      * @return XmlTags for this log
      */
     @XmlElementWrapper(name = "tags")
-    @XmlElement(type = XmlTag.class, name = "tag")
+    @XmlElement(type = OlogTag.class, name = "tag")
     public Collection<Tag> getTags() {
         return tags == null ? new ArrayList<Tag>() : tags;
     }
 
     /**
-     * Setter for the log's XmlTags.
+     * Setter for the log's Tags.
      *
-     * @param tags
-     *            XmlTags
+     * @param tags Tags
      */
     public void setTags(Collection<Tag> tags) {
         this.tags = tags;
@@ -354,12 +314,11 @@ public class XmlLog implements LogEntry {
     }
 
     /**
-     * Setter for the log's XmlAttachments.
+     * Setter for the log's attachments.
      *
-     * @param attachments
-     *            XmlAttachments
+     * @param attachments attachments
      */
-    public void setXmlAttachments(Collection<Attachment> attachments) {
+    public void setAttachments(Collection<Attachment> attachments) {
         this.attachments = attachments;
     }
 
