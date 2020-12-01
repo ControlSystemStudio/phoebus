@@ -110,8 +110,9 @@ public class Update
                 while (! done.await(1, TimeUnit.SECONDS))
                 {
                     final long size = file.length();
-                    monitor.updateTaskName(String.format("Downloaded " + distribution_url + ": %.3f MB", size/1.0e6));
+                    monitor.updateTaskName(String.format("Downloading " + distribution_url + ": %.3f MB", size/1.0e6));
                 }
+                monitor.updateTaskName(String.format("Download Finished"));
             }
             catch (Exception ex)
             {
