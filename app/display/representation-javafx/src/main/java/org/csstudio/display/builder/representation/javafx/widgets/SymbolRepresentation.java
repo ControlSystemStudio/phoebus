@@ -431,6 +431,9 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
         enabled = model_widget.propEnabled().getValue();
 
+        // Initialize imageIndex to inital_index
+        imageIndex.set(model_widget.propInitialIndex().getValue());
+
         // Set array index here so that we can clear dirtyContent --> dirtyContent sets dirtyValue and we don't want that
         setArrayIndex();
         dirtyContent.checkAndClear();
