@@ -139,6 +139,8 @@ public class ModelResourceUtil
             String pathafter = pathsplit[1];
             pathafter = Paths.get(pathafter).normalize().toString();
             path = pathbefore + ":" + pathafter;
+        }else{
+            path = Paths.get(path).normalize().toString();
         }
 
         // Pattern: '\(?!\)', i.e. backslash _not_ followed by another one.
