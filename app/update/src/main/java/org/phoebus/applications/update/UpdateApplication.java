@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -103,6 +103,13 @@ public class UpdateApplication implements AppDescriptor
         prompt.setResizable(true);
         DialogHelper.positionDialog(prompt, node, -600, -350);
         prompt.getDialogPane().setPrefSize(600, 300);
+
+        // Remove the update button (after it was used to position dialog):
+        // During update, prevent starting another update.
+        // When declined, don't bother until restart of phoebus.
+        StatusBar.getInstance().removeItem(start_update);
+        start_update = null;
+
         if (prompt.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK)
         {
             // Show job manager to display progress
@@ -115,12 +122,6 @@ public class UpdateApplication implements AppDescriptor
                 if (! monitor.isCanceled())
                     Platform.runLater(() -> restart(node));
             });
-        }
-        else
-        {
-            // Remove the update button
-            StatusBar.getInstance().removeItem(start_update);
-            start_update = null;
         }
     }
 
