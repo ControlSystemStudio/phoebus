@@ -232,7 +232,7 @@ public class EmailDialogController {
         // Set initial focus
         // Don't check subject/title:
         // It's OK to leave that empty,
-        // and it's usually set by the calling code via setTitle,
+        // and it's usually set by the calling code via setSubject,
         // i.e. it's empty right now but will soon be set.
         // User may change, but doesn't have to.
         // Body is most likely to require changes.
@@ -252,8 +252,8 @@ public class EmailDialogController {
         att_images.setSnapshotNode(node);
     }
 
-    /** @param text Title (subject) */
-    public void setTitle(final String text)
+    /** @param text Subject (subject) */
+    public void setSubject(final String text)
     {
         txtSubject.setText(text);
     }

@@ -76,8 +76,8 @@ public class ContextCreateEmail implements ContextMenuEntry {
                     Parent root = loader.load();
                     final EmailDialogController controller = loader.getController();
 
-                    if (emailEntry.getTitle() != null)
-                        controller.setTitle(emailEntry.getTitle());
+                    if (emailEntry.getSubject() != null)
+                        controller.setSubject(emailEntry.getSubject());
                     if (emailEntry.getBody() != null)
                         controller.setBody(emailEntry.getBody());
                     if (!emailEntry.getImages().isEmpty())
