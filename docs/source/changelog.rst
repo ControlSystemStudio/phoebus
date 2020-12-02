@@ -9,6 +9,8 @@ Release 4.6.5 (current development version)
 -------------------------------------------
 Date: TBD
 
+* Avoid deadlock in script compilation and execution.
+* Logbook modules restructured.
 * Optimized display builder file save implementation.
 * Display builder and scan editor undo stack maintained after file save.
 * Logbook search cancellable.
