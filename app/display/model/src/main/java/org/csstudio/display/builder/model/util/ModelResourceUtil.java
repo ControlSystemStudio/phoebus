@@ -133,7 +133,15 @@ public class ModelResourceUtil
         path = path.replaceAll("\\\\(?!\\\\)", "/");
 
         // Collapse "something/../" into "something/"
-        path = Paths.get(path).normalize().toString();
+        if(path.contains(":")){
+            String[] pathsplit = path.split(":");
+            String pathbefore = pathsplit[0];
+            String pathafter = pathsplit[1];
+            pathafter = Paths.get(pathafter).normalize().toString();
+            path = pathbefore + ":" + pathafter;
+        }else{
+            path = Paths.get(path).normalize().toString();
+        }
 
         // Pattern: '\(?!\)', i.e. backslash _not_ followed by another one.
         // Each \ is doubled as \\ to get one '\' into the string,
