@@ -61,6 +61,8 @@ public interface IServices {
 
 	public List<Tag> getAllTags();
 
+	public List<Node> getAllSnapshots();
+
 	/**
 	 * See {@link org.phoebus.service.saveandrestore.persistence.dao.NodeDAO#getFromPath(String)}
 	 * @param path A full path like /topLevelFolder/folderNode/node

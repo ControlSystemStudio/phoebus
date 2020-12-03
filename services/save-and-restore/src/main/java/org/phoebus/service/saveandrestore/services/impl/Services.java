@@ -24,7 +24,6 @@ import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.services.IServices;
-import org.phoebus.service.saveandrestore.services.exception.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.services.exception.SnapshotNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -165,6 +164,13 @@ public class Services implements IServices {
 		logger.info("Getting all tags");
 
 		return nodeDAO.getAllTags();
+	}
+
+	@Override
+	public List<Node> getAllSnapshots() {
+		logger.info("Getting all snapshots");
+
+		return nodeDAO.getAllSnapshots();
 	}
 
 	@Override
