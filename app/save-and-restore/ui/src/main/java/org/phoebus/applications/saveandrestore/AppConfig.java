@@ -29,7 +29,7 @@ import org.phoebus.applications.saveandrestore.data.providers.jmasar.JMasarJerse
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreWithSplitController;
-import org.phoebus.applications.saveandrestore.ui.TagSearchController;
+import org.phoebus.applications.saveandrestore.ui.SearchController;
 import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetController;
 import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetFromSelectionController;
 import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetSelectionController;
@@ -138,8 +138,8 @@ public class AppConfig {
 
     @Bean
     @Scope("prototype")
-    public TagSearchController tagSearchController() {
-        return new TagSearchController();
+    public SearchController searchController() {
+        return new SearchController();
     }
 
     @Bean

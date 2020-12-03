@@ -52,7 +52,6 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -62,6 +61,7 @@ import javafx.util.Pair;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.ApplicationContextProvider;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.data.DataProvider;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVExporter;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVImporter;
@@ -83,7 +83,14 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.ResourceBundle;
+import java.util.Stack;
 import java.util.concurrent.Executor;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -92,18 +99,6 @@ import java.util.stream.Collectors;
 public class SaveAndRestoreWithSplitController extends BaseSaveAndRestoreController {
 
     private static Executor UI_EXECUTOR = Platform::runLater;
-
-    public static final Image folderIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/save-and-restore/folder.png");
-    public static final Image saveSetIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/save-and-restore/saveset.png");
-    public static final Image editSaveSetIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/save-and-restore/edit_saveset.png");
-    public static final Image deleteIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/delete.png");
-    public static final Image renameIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/rename_col.png");
-    public static final Image snapshotIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/save-and-restore/snapshot.png");
-    public static final Image snapshotGoldenIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/save-and-restore/snapshot-golden.png");
-    public static final Image compareSnapshotIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/save-and-restore/compare.png");
-    public static final Image snapshotTagsWithCommentIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/save-and-restore/snapshot-tags.png");
-    public static final Image csvImportIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/csv_import.png");
-    public static final Image csvExportIcon = ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/csv_export.png");
 
     @FXML
     private TreeView<Node> treeView;
@@ -118,7 +113,7 @@ public class SaveAndRestoreWithSplitController extends BaseSaveAndRestoreControl
     private Button reconnectButton;
 
     @FXML
-    private Button tagSearchButton;
+    private Button searchButton;
 
     @FXML
     private Label emptyTreeInstruction;
@@ -161,15 +156,15 @@ public class SaveAndRestoreWithSplitController extends BaseSaveAndRestoreControl
     public void initialize(URL url, ResourceBundle resourceBundle) {
         preferencesReader = (PreferencesReader) ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().getBean("preferencesReader");
 
-        reconnectButton.setGraphic(ImageCache.getImageView(SaveAndRestoreWithSplitController.class, "/icons/refresh.png"));
+        reconnectButton.setGraphic(ImageCache.getImageView(SaveAndRestoreApplication.class, "/icons/refresh.png"));
         reconnectButton.setTooltip(new Tooltip(Messages.buttonRefresh));
 
-        ImageView tagSearchButtonImageView = ImageCache.getImageView(SaveAndRestoreWithSplitController.class, "/icons/tagSearch.png");
-        tagSearchButtonImageView.setFitWidth(16);
-        tagSearchButtonImageView.setFitHeight(16);
+        ImageView searchButtonImageView = ImageCache.getImageView(SaveAndRestoreApplication.class, "/icons/sar-search.png");
+        searchButtonImageView.setFitWidth(16);
+        searchButtonImageView.setFitHeight(16);
 
-        tagSearchButton.setGraphic(tagSearchButtonImageView);
-        tagSearchButton.setTooltip(new Tooltip(Messages.buttonTagSearch));
+        searchButton.setGraphic(searchButtonImageView);
+        searchButton.setTooltip(new Tooltip(Messages.buttonSearch));
 
         emptyTreeInstruction.textProperty().setValue(Messages.labelCreateFolderEmptyTree);
 
@@ -1014,10 +1009,12 @@ public class SaveAndRestoreWithSplitController extends BaseSaveAndRestoreControl
 
         treeView.getSelectionModel().clearSelection();
         treeView.getSelectionModel().select(parentTreeItem);
+        treeView.scrollTo(treeView.getSelectionModel().getSelectedIndex());
 
         Node currentNode = nodeStack.pop();
         listView.getSelectionModel().clearSelection();
         listView.getSelectionModel().select(currentNode);
+        listView.scrollTo(listView.getSelectionModel().getSelectedIndex());
     }
 
     private void saveTreeState(){
