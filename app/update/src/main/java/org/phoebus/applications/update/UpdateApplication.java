@@ -104,13 +104,15 @@ public class UpdateApplication implements AppDescriptor
         DialogHelper.positionDialog(prompt, node, -600, -350);
         prompt.getDialogPane().setPrefSize(600, 300);
 
-        // Remove the update button (after it was used to position dialog):
-        // During update, prevent starting another update.
+        final boolean do_update = prompt.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK;
+        // Remove the update button (after it was used to position dialog)
+        // to prevent starting another update.
         // When declined, don't bother until restart of phoebus.
+        // In any case, button can only be removed after dialog ran because of DialogHelper.positionDialog
         StatusBar.getInstance().removeItem(start_update);
         start_update = null;
 
-        if (prompt.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK)
+        if (do_update)
         {
             // Show job manager to display progress
             ApplicationService.findApplication(JobViewerApplication.NAME).create();
