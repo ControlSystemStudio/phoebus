@@ -13,7 +13,7 @@ import javafx.scene.image.Image;
  */
 public class EmailEntry {
 
-    private String title;
+    private String subject;
     private String body;
     private List<Image> images = Collections.emptyList();
     private List<File> files = Collections.emptyList();
@@ -22,32 +22,32 @@ public class EmailEntry {
     {
     }
 
-    public EmailEntry(String title, String body, List<Image> images)
+    public EmailEntry(String subject, String body, List<Image> images)
     {
         super();
-        this.title = title;
+        this.subject = subject;
         this.body = body;
         this.images = images;
     }
 
-    public EmailEntry(String title, String body, List<Image> images, List<File> files)
+    public EmailEntry(String subject, String body, List<Image> images, List<File> files)
     {
         super();
-        this.title = title;
+        this.subject = subject;
         this.body = body;
         this.images = images;
         this.files = files;
     }
 
 
-    public String getTitle()
+    public String getSubject()
     {
-        return title;
+        return subject;
     }
 
-    public void setTitle(String title)
+    public void setSubject(String subject)
     {
-        this.title = title;
+        this.subject = subject;
     }
 
     public String getBody()

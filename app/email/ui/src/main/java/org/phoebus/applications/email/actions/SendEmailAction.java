@@ -53,7 +53,7 @@ public class SendEmailAction extends MenuItem
                     final EmailDialogController controller = loader.getController();
 
                     if (title != null)
-                        controller.setTitle(title);
+                        controller.setSubject(title);
                     if (get_body != null)
                         controller.setBody(get_body.get());
                     if (get_image != null)

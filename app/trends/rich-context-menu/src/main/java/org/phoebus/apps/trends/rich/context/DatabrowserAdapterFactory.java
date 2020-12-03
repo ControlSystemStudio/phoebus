@@ -50,7 +50,7 @@ public class DatabrowserAdapterFactory implements AdapterFactory {
             StringBuffer title = new StringBuffer();
             title.append("Databrowser Plot");
             databrowserSelection.getPlotTitle().ifPresent(title::append);
-            emailEntry.setTitle(title.toString());
+            emailEntry.setSubject(title.toString());
 
             StringBuffer body = new StringBuffer();
             databrowserSelection.getPlotTitle().ifPresent(body::append);

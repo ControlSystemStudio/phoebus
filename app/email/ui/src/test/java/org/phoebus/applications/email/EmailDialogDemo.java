@@ -7,10 +7,9 @@
  *******************************************************************************/
 package org.phoebus.applications.email;
 
+import javafx.stage.Stage;
 import org.phoebus.applications.email.actions.SendEmailAction;
 import org.phoebus.ui.javafx.ApplicationWrapper;
-
-import javafx.stage.Stage;
 
 public class EmailDialogDemo extends ApplicationWrapper
 {
