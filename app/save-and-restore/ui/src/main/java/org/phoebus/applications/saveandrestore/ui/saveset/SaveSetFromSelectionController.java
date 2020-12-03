@@ -54,6 +54,7 @@ import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.ui.javafx.ImageCache;
 
 import java.net.URL;
 import java.text.NumberFormat;
@@ -200,6 +201,7 @@ public class SaveSetFromSelectionController implements Initializable {
 
                 Stage dialog = new Stage();
                 dialog.setTitle("Choose a folder, a saveset, or create one");
+                dialog.getIcons().add(ImageCache.getImage(ImageCache.class, "/icons/logo.png"));
                 dialog.initModality(Modality.APPLICATION_MODAL);
                 if (preferencesReader.getBoolean("splitSaveset")) {
                     dialog.setScene(new Scene((Parent) springFxmlLoader.load("ui/saveset/SaveSetSelectorWithSplit.fxml")));
