@@ -59,10 +59,5 @@
       <artifactId>app-logbook-ui</artifactId>
       <version>4.6.5-SNAPSHOT</version>
     </dependency>
-    <dependency>
-      <groupId>org.phoebus</groupId>
-      <artifactId>app-email-ui</artifactId>
-      <version>4.6.5-SNAPSHOT</version>
-    </dependency>
   </dependencies>
 </project>

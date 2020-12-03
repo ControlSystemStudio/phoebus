@@ -9,6 +9,7 @@ package org.csstudio.display.builder.runtime.app;
 
 import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -33,9 +34,8 @@ import org.csstudio.display.builder.runtime.RuntimeAction;
 import org.csstudio.display.builder.runtime.RuntimeUtil;
 import org.csstudio.display.builder.runtime.WidgetRuntime;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
-import org.phoebus.applications.email.actions.SendEmailAction;
+import org.csstudio.trends.databrowser3.Activator;
 import org.phoebus.core.types.ProcessVariable;
-import org.phoebus.email.EmailPreferences;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
@@ -43,6 +43,7 @@ import org.phoebus.logbook.ui.LogbookUiPreferences;
 import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.PrintAction;
@@ -56,6 +57,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import org.phoebus.ui.spi.ContextMenuEntry;
 
 /** Context menu for a widget or the display
  *  @author Kay Kasemir
@@ -217,13 +219,26 @@ class ContextMenuSupport
                 display_info = "Display '" + name + "'";
             else
                 display_info = "Display '" + name + "' (" + input + ")";
+
+            SelectionService.getInstance().setSelection(this, Arrays.asList(SelectionInfo.forModel(model, model_parent)));
+            List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+            supported.stream().forEach(action -> {
+                MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
+                menuItem.setOnAction((e) -> {
+                    try {
+                        action.call(model_parent, SelectionService.getInstance().getSelection());
+                    } catch (Exception ex) {
+                        Activator.logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from display builder.", ex);
+                    }
+                });
+                items.add(menuItem);
+            });
         }
         catch (Exception ex)
         {
             display_info = "See attached display";
         }
-        if (EmailPreferences.isEmailSupported())
-            items.add(new SendEmailAction(model_parent, "Display Screenshot", display_info, () ->  Screenshot.imageFromNode(model_parent)));
+
         if (LogbookUiPreferences.is_supported)
             items.add(new SendLogbookAction(model_parent, "Display Screenshot", display_info, () ->  Screenshot.imageFromNode(model_parent)));
         items.add(new SeparatorMenuItem());

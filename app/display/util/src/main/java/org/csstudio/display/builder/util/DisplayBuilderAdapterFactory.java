@@ -42,11 +42,11 @@ public class DisplayBuilderAdapterFactory implements AdapterFactory {
 
             SelectionInfo selectionInfo = ((SelectionInfo) adaptableObject);
             StringBuffer title = new StringBuffer();
-            title.append("Display Builder runtime for : " + selectionInfo.getName());
+            title.append("Display Screenshot for : " + selectionInfo.getName());
             emailEntry.setSubject(title.toString());
 
             StringBuffer body = new StringBuffer();
-            body.append("Display Builder for the resource :" + System.lineSeparator());
+            body.append("Display Screenshot for the resource :" + System.lineSeparator());
             body.append(selectionInfo.toURI());
             body.append(System.lineSeparator());
             emailEntry.setBody(body.toString());
