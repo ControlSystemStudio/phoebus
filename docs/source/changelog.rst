@@ -5,10 +5,26 @@ A list of API changes, major features, and bug fixes included in each release.
 
 The list is compiled by phoebus developers to document the most important changes associated with each release. For minor bug fixes and patches please refer to github issues and PRs.
 
-
-Release 4.6.4 (Current development version)
+Release 4.6.5 (current development version)
 -------------------------------------------
-Date:
+Date: TBD
+
+* Avoid deadlock in script compilation and execution.
+* Logbook modules restructured.
+* Optimized display builder file save implementation.
+* Display builder and scan editor undo stack maintained after file save.
+* Logbook search cancellable.
+* Fix for channel finder property editor.
+* Scan infor parser performance improvement.
+* PV race condition fix.
+* Highlight overdrawn area of embedded display in edit mode.
+
+
+Release 4.6.4 
+-------------------------------------------
+Date: Nov 16, 2020
+
+**NOTE:** Bug in archiver settings handling causing the client to use default URL instead of the configured one.
 
 * Alarm Datasource
 * Simplification of the APIs for the `ContextMenuService`, `SelectionService`, and `AdapterService`.

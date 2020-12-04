@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app-logbook</artifactId>
-    <version>4.6.5-SNAPSHOT</version>
+    <version>4.6.6-SNAPSHOT</version>
   </parent>
   <artifactId>app-logbook-elog</artifactId>
   <dependencies>
@@ -14,7 +14,7 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-logbook</artifactId>
-      <version>4.6.5-SNAPSHOT</version>
+      <version>4.6.6-SNAPSHOT</version>
     </dependency>
     <dependency>
         <groupId>net.dongliu</groupId>

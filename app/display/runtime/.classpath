@@ -22,6 +22,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/core-framework"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-logbook"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-logbook-ui"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/app-email"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/app-email-ui"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

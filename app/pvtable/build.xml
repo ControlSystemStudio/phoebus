@@ -8,7 +8,7 @@
   	    <classpath>
   	      <path refid="app-classpath"/>
   	      <pathelement path="../logbook/ui/${build}/app-logbook-ui-${version}.jar"/>
-  	      <pathelement path="../email/${build}/app-email-${version}.jar"/>
+  	      <pathelement path="../email/ui/${build}/app-email-ui-${version}.jar"/>
   	      </classpath>
   	  </javac>
     <jar destfile="${build}/app-pvtable-${version}.jar">

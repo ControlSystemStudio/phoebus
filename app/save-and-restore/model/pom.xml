@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.phoebus</groupId>
 		<artifactId>app-save-and-restore</artifactId>
-		<version>4.6.5-SNAPSHOT</version>
+		<version>4.6.6-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>app-save-and-restore-model</artifactId>
@@ -67,7 +67,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.12</version>
+			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

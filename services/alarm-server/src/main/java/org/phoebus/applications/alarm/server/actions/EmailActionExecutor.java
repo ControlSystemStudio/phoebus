@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,23 +7,11 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.server.actions;
 
-// Eclipse may report that "javax.mail.Session" and "Transport" are not accessible,
-// but it still compiles and runs ?!
-
-// Eclipse also keeps deleting this import:
-// import static org.phoebus.applications.alarm.AlarmSystem.logger;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 import java.util.logging.Level;
-
-import javax.mail.Message;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.model.AlarmState;
@@ -31,7 +19,7 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.server.AlarmServerPV;
-import org.phoebus.email.EmailPreferences;
+import org.phoebus.email.EmailService;
 import org.phoebus.util.time.TimestampFormats;
 
 /** Executor for email actions
@@ -55,23 +43,10 @@ public class EmailActionExecutor
 
         final String title = createTitle(item);
         final String body = createBody(item);
-
-        final Properties props = new Properties();
-        props.put("mail.smtp.host", EmailPreferences.mailhost);
-        props.put("mail.smtp.port", EmailPreferences.mailport);
-
-        final Session session = Session.getDefaultInstance(props);
-
         for (String address : addresses)
             try
             {
-                final Message message = new MimeMessage(session);
-                message.setFrom(new InternetAddress(AlarmSystem.automated_email_sender));
-                message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(address));
-                message.setSubject(title);
-                message.setText(body);
-
-                Transport.send(message);
+                EmailService.send(address, AlarmSystem.automated_email_sender, title, body);
             }
             catch (Exception ex)
             {

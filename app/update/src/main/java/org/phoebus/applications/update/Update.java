@@ -18,6 +18,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Enumeration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -98,11 +99,25 @@ public class Update
      */
     public static File download(final JobMonitor monitor, final URL distribution_url) throws Exception
     {
+        // Determine size
+        final AtomicLong full_size = new AtomicLong();
+        try
+        {
+            full_size.set(distribution_url.openConnection().getContentLengthLong());
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot determine size of " + distribution_url, ex);
+        }
+
         // On success, caller will delete the file.
+        // On error, we'll try, but also ask JVM to remove it.
         final File file = File.createTempFile("phoebus_update", ".zip");
+        file.deleteOnExit();
 
         // Watcher thread that displays file size in monitor
         final CountDownLatch done = new CountDownLatch(1);
+        final Thread download_thread = Thread.currentThread();
         final Thread watcher = new Thread(() ->
         {
             try
@@ -110,8 +125,22 @@ public class Update
                 while (! done.await(1, TimeUnit.SECONDS))
                 {
                     final long size = file.length();
-                    monitor.updateTaskName(String.format("Downloaded " + distribution_url + ": %.3f MB", size/1.0e6));
+                    final long full = full_size.get();
+                    if (full > 0)
+                    {
+                        int percent = (int) ((size*100) / full);
+                        monitor.updateTaskName(String.format("Downloading %d %% (%.3f/%.3f MB) of %s", percent, size/1.0e6, full/1.0e6, distribution_url.toString()));
+                    }
+                    else
+                        monitor.updateTaskName(String.format("Downloading " + distribution_url + ": %.3f MB", size/1.0e6));
+
+                    // Force the download thread to stop on 'cancel'.
+                    // 'interrupt()' has no effect, and Files.copy is not
+                    // otherwise instrumented.
+                    if (monitor.isCanceled())
+                        download_thread.stop();
                 }
+                monitor.updateTaskName(String.format("Download Finished"));
             }
             catch (Exception ex)
             {

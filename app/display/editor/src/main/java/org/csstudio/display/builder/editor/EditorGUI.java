@@ -9,6 +9,7 @@ package org.csstudio.display.builder.editor;
 
 import static org.csstudio.display.builder.editor.Plugin.logger;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -512,8 +513,8 @@ public class EditorGUI
         logger.log(Level.FINE, "Save as {0}", file);
         try
         (
-            final FileOutputStream fwriter = new FileOutputStream(file);
-            final ModelWriter writer = new ModelWriter(fwriter);
+                final BufferedOutputStream fwriter = new BufferedOutputStream(new FileOutputStream(file));
+                final ModelWriter writer = new ModelWriter(fwriter);
         )
         {
             writer.writeModel(editor.getModel());

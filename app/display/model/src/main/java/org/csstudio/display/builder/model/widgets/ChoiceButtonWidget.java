@@ -18,19 +18,22 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPassword;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propSelectedColor;
 import static org.csstudio.display.builder.model.widgets.ComboWidget.propItem;
-import static org.csstudio.display.builder.model.widgets.ComboWidget.propItems;
 
 import java.util.Arrays;
 import java.util.List;
 
+import org.csstudio.display.builder.model.ArrayWidgetProperty;
+import org.csstudio.display.builder.model.Messages;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetCategory;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
+import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 
@@ -61,7 +64,7 @@ public class ChoiceButtonWidget extends WritablePVWidget
     private volatile WidgetProperty<WidgetColor> foreground;
     private volatile WidgetProperty<WidgetColor> background;
     private volatile WidgetProperty<WidgetColor> selected;
-    private volatile WidgetProperty<List<WidgetProperty<String>>> items;
+    private volatile ArrayWidgetProperty<WidgetProperty<String>> items;
     private volatile WidgetProperty<Boolean> items_from_pv;
     private volatile WidgetProperty<Boolean> horizontal;
     private volatile WidgetProperty<Boolean> enabled;
@@ -74,6 +77,12 @@ public class ChoiceButtonWidget extends WritablePVWidget
         super(WIDGET_DESCRIPTOR.getType(), 100, 43);
     }
 
+    private static ArrayWidgetProperty.Descriptor<WidgetProperty<String>> choiceItemDescriptor =
+            new ArrayWidgetProperty.Descriptor<>(WidgetPropertyCategory.BEHAVIOR, "items", "Items",
+                    (widget, index) -> CommonWidgetProperties.newStringPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR,
+                                "item",
+                                Messages.ComboWidget_Item).createProperty(widget, Messages.ComboWidget_Item + " " + (index + 1)));
+
     @Override
     protected void defineProperties(final List<WidgetProperty<?>> properties)
     {
@@ -82,7 +91,10 @@ public class ChoiceButtonWidget extends WritablePVWidget
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BUTTON_BACKGROUND)));
         properties.add(selected = propSelectedColor.createProperty(this, new WidgetColor(200, 200, 200)));
-        properties.add(items = propItems.createProperty(this, Arrays.asList(propItem.createProperty(this, "Item 1"), propItem.createProperty(this, "Item 2"))));
+        items = choiceItemDescriptor.createProperty(this,
+                Arrays.asList(propItem.createProperty(this, Messages.ComboWidget_Item + " 1"),
+                        propItem.createProperty(this, Messages.ComboWidget_Item  + " 2")));
+        properties.add(items);
         properties.add(items_from_pv = propItemsFromPV.createProperty(this, true));
         properties.add(horizontal = propHorizontal.createProperty(this, true));
         properties.add(enabled = propEnabled.createProperty(this, true));

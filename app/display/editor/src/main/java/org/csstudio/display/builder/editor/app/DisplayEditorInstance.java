@@ -112,7 +112,7 @@ public class DisplayEditorInstance implements AppInstance
         // Mark 'dirty' whenever there's a change, i.e. something to un-do
         editor_gui.getDisplayEditor()
                   .getUndoableActionManager()
-                  .addListener((to_undo, to_redo, changeCount) -> dock_item.setDirty(to_undo != null || changeCount > 0));
+                  .addListener((to_undo, to_redo, changeCount) -> dock_item.setDirty(changeCount > 0));
 
         final ContextMenu menu = new ContextMenu();
         final Control menu_node = editor_gui.getDisplayEditor().getContextMenuNode();
