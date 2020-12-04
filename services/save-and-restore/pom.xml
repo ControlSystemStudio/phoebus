@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>org.phoebus</groupId>
 		<artifactId>services</artifactId>
-		<version>4.6.5-SNAPSHOT</version>
+		<version>4.6.6-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.phoebus</groupId>
 	<artifactId>service-save-and-restore</artifactId>
-	<version>4.6.6-SNAPSHOT</version>
+	<version>4.6.7-SNAPSHOT</version>
 
 	<dependencyManagement>
 		<dependencies>
@@ -38,7 +38,7 @@
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>app-save-and-restore-model</artifactId>
-			<version>4.6.5-SNAPSHOT</version>
+			<version>4.6.6-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
