@@ -1,0 +1,11 @@
+<project default="app-display-adapters">
+  <import file="../../../dependencies/ant_settings.xml"/>
+
+  <target name="app-display-adapters" depends="compile-app">
+    <jar destfile="${build}/app-display-adapters-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+
+</project>
