@@ -17,6 +17,6 @@
     <module>convert-medm</module>
     <module>convert-edm</module>
     <module>navigation</module>
-    <module>util</module>
+    <module>adapters</module>
   </modules>
 </project>
