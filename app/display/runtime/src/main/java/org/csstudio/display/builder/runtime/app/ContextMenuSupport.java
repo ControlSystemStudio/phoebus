@@ -36,6 +36,7 @@ import org.csstudio.display.builder.runtime.WidgetRuntime;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
 import org.csstudio.trends.databrowser3.Activator;
 import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
@@ -220,12 +221,16 @@ class ContextMenuSupport
             else
                 display_info = "Display '" + name + "' (" + input + ")";
 
-            SelectionService.getInstance().setSelection(this, Arrays.asList(SelectionInfo.forModel(model, model_parent)));
+            // Add context menu actions based on the selection (i.e. email, logbook, etc...)
+            final Selection originalSelection = SelectionService.getInstance().getSelection();
+            final List<SelectionInfo> newSelection = Arrays.asList(SelectionInfo.forModel(model, model_parent));
+            SelectionService.getInstance().setSelection(DisplayRuntimeApplication.NAME, newSelection);
             List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
             supported.stream().forEach(action -> {
                 MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
                 menuItem.setOnAction((e) -> {
                     try {
+                        SelectionService.getInstance().setSelection(DisplayRuntimeApplication.NAME, newSelection);
                         action.call(model_parent, SelectionService.getInstance().getSelection());
                     } catch (Exception ex) {
                         Activator.logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from display builder.", ex);
@@ -233,6 +238,7 @@ class ContextMenuSupport
                 });
                 items.add(menuItem);
             });
+            SelectionService.getInstance().setSelection(DisplayRuntimeApplication.NAME, originalSelection);
         }
         catch (Exception ex)
         {
