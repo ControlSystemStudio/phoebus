@@ -17,10 +17,6 @@ public class Messages
     // ---
     // --- Keep alphabetically sorted and 'in sync' with messages.properties!
     // ---
-    public static String ActionEmailTitle;
-    public static String ActionEmailBody;
-    public static String ActionLogbookTitle;
-    public static String ActionLogbookBody;
     public static String AddArchive;
     public static String AddArchiveMsg;
     public static String AddAxis;

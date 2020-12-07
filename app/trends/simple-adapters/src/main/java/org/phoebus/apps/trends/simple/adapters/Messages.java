@@ -10,6 +10,8 @@ public class Messages {
 
     public static String ActionEmailTitle;
     public static String ActionEmailBody;
+    public static String ActionLogbookTitle;
+    public static String ActionLogbookBody;
 
     static
     {

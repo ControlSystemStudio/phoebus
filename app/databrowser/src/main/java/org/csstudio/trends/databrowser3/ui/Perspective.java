@@ -215,8 +215,6 @@ public class Perspective extends SplitPane
                 items.add(menuItem);
             });
 
-            if (LogbookUiPreferences.is_supported)
-                items.add(new SendLogbookAction(DockPane.getActiveDockPane(), Messages.ActionLogbookTitle, Messages.ActionLogbookBody, () ->  plot.getPlot().getImage()));
             if (model.getEmptyAxis().isPresent())
             {
                 items.add(new SeparatorMenuItem());
