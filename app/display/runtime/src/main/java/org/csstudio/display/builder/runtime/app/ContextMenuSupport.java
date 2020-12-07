@@ -239,8 +239,6 @@ class ContextMenuSupport
             display_info = "See attached display";
         }
 
-        if (LogbookUiPreferences.is_supported)
-            items.add(new SendLogbookAction(model_parent, "Display Screenshot", display_info, () ->  Screenshot.imageFromNode(model_parent)));
         items.add(new SeparatorMenuItem());
 
         items.add(new DisplayToolbarAction(instance));
