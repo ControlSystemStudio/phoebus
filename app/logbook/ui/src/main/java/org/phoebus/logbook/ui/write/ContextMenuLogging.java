@@ -1,13 +1,18 @@
-package org.phoebus.logbook.ui;
+package org.phoebus.logbook.ui.write;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javafx.scene.Node;
+import javafx.scene.image.Image;
 import org.phoebus.framework.adapter.AdapterService;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogService;
+import org.phoebus.logbook.ui.menu.SendToLogBookApp;
+import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
 /**
@@ -27,17 +32,25 @@ public class ContextMenuLogging implements ContextMenuEntry {
         return NAME;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public void call(Selection selection) {
+    public Image getIcon() {
+        return SendToLogBookApp.icon;
+    }
 
+    /**
+     *
+     * @param parent the parent Node
+     * @param selection The selection to be used to execute this action
+     */
+    public void call(Node parent, Selection selection) {
         List<LogEntry> adaptedSelections = new ArrayList<>();
         selection.getSelections().stream().forEach(s -> {
             AdapterService.adapt(s, LogEntry.class).ifPresent(adapted -> {
                 adaptedSelections.add(adapted);
             });
         });
-        LogService.getInstance().createLogEntry(adaptedSelections, null);
+        final LogEntryModel model = new LogEntryModel(adaptedSelections.get(0));
+        new LogEntryEditorStage(parent, model, null).show();
     }
 
     @Override
