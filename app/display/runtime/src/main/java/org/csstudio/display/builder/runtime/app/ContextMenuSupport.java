@@ -7,14 +7,14 @@
  *******************************************************************************/
 package org.csstudio.display.builder.runtime.app;
 
-import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.logging.Level;
-
+import javafx.collections.ObservableList;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -34,31 +34,26 @@ import org.csstudio.display.builder.runtime.RuntimeAction;
 import org.csstudio.display.builder.runtime.RuntimeUtil;
 import org.csstudio.display.builder.runtime.WidgetRuntime;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
-import org.csstudio.trends.databrowser3.Activator;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
-import org.phoebus.logbook.ui.LogbookUiPreferences;
-import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.PrintAction;
-import org.phoebus.ui.javafx.Screenshot;
-
-import javafx.collections.ObservableList;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import org.phoebus.ui.spi.ContextMenuEntry;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.logging.Level;
+
+import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
 /** Context menu for a widget or the display
  *  @author Kay Kasemir
@@ -233,7 +228,7 @@ class ContextMenuSupport
                         SelectionService.getInstance().setSelection(DisplayRuntimeApplication.NAME, newSelection);
                         action.call(model_parent, SelectionService.getInstance().getSelection());
                     } catch (Exception ex) {
-                        Activator.logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from display builder.", ex);
+                        logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from display builder.", ex);
                     }
                 });
                 items.add(menuItem);
