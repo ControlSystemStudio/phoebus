@@ -1,4 +1,4 @@
-package org.phoebus.logbook.utility;
+package org.phoebus.logbook.ui;
 
 import java.util.List;
 import java.util.Map;
