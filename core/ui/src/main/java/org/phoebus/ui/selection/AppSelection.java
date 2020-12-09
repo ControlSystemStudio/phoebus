@@ -28,4 +28,24 @@ public class AppSelection
     {
         return new AppSelection(parent, title, body, image);
     }
+
+    public Node getParent()
+    {
+        return parent;
+    }
+
+    public String getTitle()
+    {
+        return title;
+    }
+
+    public String getBody()
+    {
+        return body;
+    }
+
+    public Supplier<Image> getImage()
+    {
+        return image;
+    }
 }
