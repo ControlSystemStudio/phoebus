@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Stack;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -96,6 +97,8 @@ public class SearchController implements Initializable {
     @Autowired
     private SaveAndRestoreService saveAndRestoreService;
 
+    private static final Logger LOG = Logger.getLogger(SaveAndRestoreService.class.getName());
+
     private void refreshList() {
         tableEntries.clear();
 
@@ -105,7 +108,7 @@ public class SearchController implements Initializable {
                 snapshotList.stream().map(SearchEntry::create).forEach(tableEntries::add);
             } catch (Exception e) {
                 snapshotList = new ArrayList<>();
-                e.printStackTrace();
+                LOG.warning("Unable to retrieve snapshot list from server. Please check if the latest version of service is running.");
             }
         }
 
@@ -115,7 +118,7 @@ public class SearchController implements Initializable {
                 tagList.stream().map(SearchEntry::create).forEach(tableEntries::add);
             } catch (Exception e) {
                 tagList = new ArrayList<>();
-                e.printStackTrace();
+                LOG.warning("Unable to retrieve tag list from server. Please check if the latest version of service is running.");
             }
         }
 
