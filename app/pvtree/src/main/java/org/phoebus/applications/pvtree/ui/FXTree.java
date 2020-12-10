@@ -18,7 +18,6 @@ import java.util.logging.Level;
 
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.ImageView;
-import org.phoebus.applications.email.actions.SendEmailAction;
 import org.phoebus.applications.pvtree.PVTreeApplication;
 import org.phoebus.applications.pvtree.model.TreeModel;
 import org.phoebus.applications.pvtree.model.TreeModelItem;
@@ -26,7 +25,6 @@ import org.phoebus.applications.pvtree.model.TreeModelListener;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
-import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
