@@ -8,8 +8,6 @@
       <classpath>
         <path refid="app-classpath"/>
         <pathelement path="../model/${build}/app-alarm-model-${version}.jar"/>
-        <pathelement path="../../logbook/ui/${build}/app-logbook-ui-${version}.jar"/>
-        <pathelement path="../../email/ui/${build}/app-email-ui-${version}.jar"/>
       </classpath>
     </javac>
   	

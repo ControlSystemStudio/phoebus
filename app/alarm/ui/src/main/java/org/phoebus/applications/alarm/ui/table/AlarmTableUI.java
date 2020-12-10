@@ -7,40 +7,6 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.table;
 
-import java.rmi.activation.Activator;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.regex.Pattern;
-
-import org.phoebus.applications.alarm.AlarmSystem;
-import org.phoebus.applications.alarm.client.AlarmClient;
-import org.phoebus.applications.alarm.model.AlarmTreeItem;
-import org.phoebus.applications.alarm.model.SeverityLevel;
-import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
-import org.phoebus.applications.alarm.ui.AlarmUI;
-import org.phoebus.applications.alarm.ui.tree.ConfigureComponentAction;
-import org.phoebus.applications.email.actions.SendEmailAction;
-import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.framework.persistence.Memento;
-import org.phoebus.framework.selection.Selection;
-import org.phoebus.framework.selection.SelectionService;
-import org.phoebus.logbook.ui.menu.SendLogbookAction;
-import org.phoebus.ui.application.ContextMenuService;
-import org.phoebus.ui.application.SaveSnapshotAction;
-import org.phoebus.ui.javafx.ClearingTextField;
-import org.phoebus.ui.javafx.ImageCache;
-import org.phoebus.ui.javafx.PrintAction;
-import org.phoebus.ui.javafx.Screenshot;
-import org.phoebus.ui.javafx.ToolbarHelper;
-import org.phoebus.ui.selection.AppSelection;
-import org.phoebus.ui.spi.ContextMenuEntry;
-import org.phoebus.ui.text.RegExHelper;
-import org.phoebus.util.text.CompareNatural;
-import org.phoebus.util.time.TimestampFormats;
-
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -71,6 +37,36 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import org.phoebus.applications.alarm.AlarmSystem;
+import org.phoebus.applications.alarm.client.AlarmClient;
+import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.SeverityLevel;
+import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
+import org.phoebus.applications.alarm.ui.AlarmUI;
+import org.phoebus.applications.alarm.ui.tree.ConfigureComponentAction;
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.persistence.Memento;
+import org.phoebus.framework.selection.Selection;
+import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.ui.application.ContextMenuService;
+import org.phoebus.ui.application.SaveSnapshotAction;
+import org.phoebus.ui.javafx.ClearingTextField;
+import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.PrintAction;
+import org.phoebus.ui.javafx.Screenshot;
+import org.phoebus.ui.javafx.ToolbarHelper;
+import org.phoebus.ui.selection.AppSelection;
+import org.phoebus.ui.spi.ContextMenuEntry;
+import org.phoebus.ui.text.RegExHelper;
+import org.phoebus.util.text.CompareNatural;
+import org.phoebus.util.time.TimestampFormats;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 /** Alarm Table UI
