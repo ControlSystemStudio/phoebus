@@ -270,7 +270,19 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         table.setHeaders(List.of(Messages.WidgetInfoDialog_WidgetType, Messages.WidgetInfoDialog_Count));
         table.setData(rows);
 
-        // Total count
+        // Rules count
+        final Label rul_lbl = new Label();
+        rul_lbl.setText(Messages.RulesDialog_Title);
+        final Label rul_num = new Label();
+        rul_num.setText(Integer.toString(stats.getRules()));
+
+        // Scripts count
+        final Label scr_lbl = new Label();
+        scr_lbl.setText(Messages.ScriptsDialog_Title);
+        final Label scr_num = new Label();
+        scr_num.setText(Integer.toString(stats.getScripts()));
+
+        // Total widget count
         final Label tot_lbl = new Label();
         tot_lbl.setText(Messages.WidgetInfoDialog_Total);
         final Label total = new Label();
@@ -278,11 +290,11 @@ public class WidgetInfoDialog extends Dialog<Boolean>
 
         // [ table  ]
         // Total  100
-        final HBox summary = new HBox(5, tot_lbl, total);
+        final HBox summary = new HBox(5, rul_lbl, rul_num, scr_lbl, scr_num, tot_lbl, total);
 
         VBox.setVgrow(table, Priority.ALWAYS);
         final VBox layout = new VBox(5, table, summary);
 
-        return new Tab(Messages.WidgetInfoDialog_WidgetType, layout);
+        return new Tab(Messages.WidgetInfoDialog_WidgetStats, layout);
     }
 }

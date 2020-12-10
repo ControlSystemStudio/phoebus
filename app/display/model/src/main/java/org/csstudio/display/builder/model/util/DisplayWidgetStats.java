@@ -31,6 +31,8 @@ public class DisplayWidgetStats
 {
     /** Map of widget type to count */
     private final Map<String, AtomicInteger> types = new HashMap<>();
+    private int rules = 0;
+    private int scripts = 0;
     private int total = 0;
 
     public DisplayWidgetStats(final DisplayModel model)
@@ -44,6 +46,18 @@ public class DisplayWidgetStats
         return types;
     }
 
+    /** @return Number of rules */
+    public int getRules()
+    {
+        return rules;
+    }
+
+    /** @return Number of scripts */
+    public int getScripts()
+    {
+        return scripts;
+    }
+
     /** @return Number of widgets */
     public int getTotal()
     {
@@ -55,6 +69,9 @@ public class DisplayWidgetStats
         // Counts the WidgetModel as type 'display'
         // just like any other widget.
         ++total;
+
+        rules += widget.propRules().getValue().size();
+        scripts += widget.propScripts().getValue().size();
 
         // Create resp. increment count for this widget's type
         final String type = widget.getType();

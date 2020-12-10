@@ -164,6 +164,7 @@ public class Messages
     public static String WidgetInfoDialog_Path;
     public static String WidgetInfoDialog_Property;
     public static String WidgetInfoDialog_State;
+    public static String WidgetInfoDialog_WidgetStats;
     public static String WidgetInfoDialog_TabMacros;
     public static String WidgetInfoDialog_TabProperties;
     public static String WidgetInfoDialog_TabPVs;
