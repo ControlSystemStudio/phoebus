@@ -8,7 +8,9 @@
 package org.csstudio.display.builder.representation.javafx;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import org.csstudio.display.builder.model.DisplayModel;
@@ -16,9 +18,9 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetFactory;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.util.DisplayWidgetStats;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
-import org.epics.util.array.ListInteger;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.VNumberArray;
@@ -26,6 +28,7 @@ import org.epics.vtype.VType;
 import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.ui.javafx.ReadOnlyTextCell;
+import org.phoebus.ui.javafx.StringTable;
 import org.phoebus.ui.pv.SeverityColors;
 
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -34,12 +37,16 @@ import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 
 /** Dialog for displaying widget information
  *  @author Kay Kasemir
@@ -117,6 +124,11 @@ public class WidgetInfoDialog extends Dialog<Boolean>
             }
         }
         final TabPane tabs = new TabPane(createProperties(widget), createPVs(pvs), createMacros(widget.getEffectiveMacros()));
+
+        // For display model, show stats
+        if (widget instanceof DisplayModel)
+            tabs.getTabs().add(createWidgetStats((DisplayModel) widget));
+
         tabs.getTabs().forEach(tab -> tab.setClosable(false));
         // If there are PVs, default to the "PVs" tab
         if (pvs.size() > 0)
@@ -232,5 +244,45 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         return new Tab(Messages.WidgetInfoDialog_TabProperties, table);
-   }
+    }
+
+    private Tab createWidgetStats(final DisplayModel model)
+    {
+        // Compute stats
+        final DisplayWidgetStats stats = new DisplayWidgetStats(model);
+
+        // Turn map into rows of "type, count", sorted by type
+        final List<List<String>> rows = new ArrayList<>();
+        stats.getTypes()
+             .keySet()
+             .stream()
+             .sorted()
+             .forEach(type ->
+         {
+             final String count = stats.getTypes().get(type).toString();
+             final List<String> row = List.of(type, count);
+             rows.add(row);
+         });
+
+        // Type, count table
+        final StringTable table = new StringTable(false);
+        table.showToolbar(false);
+        table.setHeaders(List.of(Messages.WidgetInfoDialog_WidgetType, Messages.WidgetInfoDialog_Count));
+        table.setData(rows);
+
+        // Total count
+        final Label tot_lbl = new Label();
+        tot_lbl.setText(Messages.WidgetInfoDialog_Total);
+        final Label total = new Label();
+        total.setText(Integer.toString(stats.getTotal()));
+
+        // [ table  ]
+        // Total  100
+        final HBox summary = new HBox(5, tot_lbl, total);
+
+        VBox.setVgrow(table, Priority.ALWAYS);
+        final VBox layout = new VBox(5, table, summary);
+
+        return new Tab(Messages.WidgetInfoDialog_WidgetType, layout);
+    }
 }

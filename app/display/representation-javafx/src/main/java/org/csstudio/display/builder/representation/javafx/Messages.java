@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -157,6 +157,7 @@ public class Messages
     public static String WidgetFontPopOver_StylePrompt;
     public static String WidgetFontPopOver_Styles;
     public static String WidgetInfoDialog_Category;
+    public static String WidgetInfoDialog_Count;
     public static String WidgetInfoDialog_Disconnected;
     public static String WidgetInfoDialog_Info_Fmt;
     public static String WidgetInfoDialog_Name;
@@ -167,7 +168,9 @@ public class Messages
     public static String WidgetInfoDialog_TabProperties;
     public static String WidgetInfoDialog_TabPVs;
     public static String WidgetInfoDialog_Title;
+    public static String WidgetInfoDialog_Total;
     public static String WidgetInfoDialog_Value;
+    public static String WidgetInfoDialog_WidgetType;
     public static String Zoom_All;
     public static String Zoom_Height;
     public static String Zoom_Width;
