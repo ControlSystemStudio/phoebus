@@ -37,7 +37,9 @@
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-navigation"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-convert-medm"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-convert-edm"/>
+    <classpathentry combineaccessrules="false" kind="src" path="/app-display-adapters"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-databrowser"/>
+    <classpathentry combineaccessrules="false" kind="src" path="/app-trends-rich-adapters"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-rtplot"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-pvtable"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-email-ui"/>
@@ -50,6 +52,5 @@
     <classpathentry combineaccessrules="false" kind="src" path="/app-perfmon"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-pace"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-diag"/>
-    <classpathentry combineaccessrules="false" kind="src" path="/app-trends-simple-context-menu"/>
     <classpathentry kind="output" path="target/classes"/>
 </classpath>

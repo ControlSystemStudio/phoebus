@@ -64,10 +64,23 @@ public class SelectionService {
      * Set the selection
      *
      * @param source    the source of the new selection
-     * @param selection the new selection
+     * @param selection A list of objects to be warpped into a new selection
      */
     public <T> void setSelection(Object source, List<T> selection) {
         final Selection newValue = SelectionUtil.createSelection(selection);
+        final Selection oldValue = SelectionService.selection.getAndSet(newValue);
+        for (SelectionChangeListener listener : listeners)
+            listener.selectionChanged(source, oldValue, newValue);
+    }
+
+    /**
+     * Set the selection
+     *
+     * @param source    the source of the new selection
+     * @param selection the new selection
+     */
+    public void setSelection(Object source, Selection selection) {
+        final Selection newValue = selection;
         final Selection oldValue = SelectionService.selection.getAndSet(newValue);
         for (SelectionChangeListener listener : listeners)
             listener.selectionChanged(source, oldValue, newValue);

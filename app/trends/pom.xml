@@ -8,7 +8,7 @@
     <version>4.6.6-SNAPSHOT</version>
   </parent>
   <modules>
-    <module>rich-context-menu</module>
-    <module>simple-context-menu</module>
+    <module>rich-adapters</module>
+    <module>simple-adapters</module>
   </modules>
 </project>
