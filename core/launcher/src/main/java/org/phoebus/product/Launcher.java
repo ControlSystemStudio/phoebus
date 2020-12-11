@@ -42,6 +42,13 @@ public class Launcher
             logger.log(Level.CONFIG, "Loading settings from " + site_settings);
             PropertyPreferenceLoader.load(new FileInputStream(site_settings));
         }
+        else {
+            File userHomeSettings = new File(System.getProperty("user.home"), "settings.ini");
+            if(userHomeSettings.canRead()){
+                logger.log(Level.CONFIG, "Loading settings from " + userHomeSettings);
+                PropertyPreferenceLoader.load(new FileInputStream(userHomeSettings));
+            }
+        }
 
         // Handle arguments, potentially not even starting the UI
         final List<String> args = new ArrayList<>(List.of(original_args));
