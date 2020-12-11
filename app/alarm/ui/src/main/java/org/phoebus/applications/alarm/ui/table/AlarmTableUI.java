@@ -7,32 +7,6 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.table;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
-
-import org.phoebus.applications.alarm.AlarmSystem;
-import org.phoebus.applications.alarm.client.AlarmClient;
-import org.phoebus.applications.alarm.model.AlarmTreeItem;
-import org.phoebus.applications.alarm.model.SeverityLevel;
-import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
-import org.phoebus.applications.alarm.ui.AlarmUI;
-import org.phoebus.applications.alarm.ui.tree.ConfigureComponentAction;
-import org.phoebus.applications.email.actions.SendEmailAction;
-import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.framework.persistence.Memento;
-import org.phoebus.logbook.ui.menu.SendLogbookAction;
-import org.phoebus.ui.application.SaveSnapshotAction;
-import org.phoebus.ui.javafx.ClearingTextField;
-import org.phoebus.ui.javafx.ImageCache;
-import org.phoebus.ui.javafx.PrintAction;
-import org.phoebus.ui.javafx.Screenshot;
-import org.phoebus.ui.javafx.ToolbarHelper;
-import org.phoebus.ui.text.RegExHelper;
-import org.phoebus.util.text.CompareNatural;
-import org.phoebus.util.time.TimestampFormats;
-
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -63,7 +37,38 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import org.phoebus.applications.alarm.AlarmSystem;
+import org.phoebus.applications.alarm.client.AlarmClient;
+import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.SeverityLevel;
+import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
+import org.phoebus.applications.alarm.ui.AlarmUI;
+import org.phoebus.applications.alarm.ui.tree.ConfigureComponentAction;
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.persistence.Memento;
+import org.phoebus.framework.selection.Selection;
+import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.ui.application.ContextMenuService;
+import org.phoebus.ui.application.SaveSnapshotAction;
+import org.phoebus.ui.javafx.ClearingTextField;
+import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.PrintAction;
+import org.phoebus.ui.javafx.Screenshot;
+import org.phoebus.ui.javafx.ToolbarHelper;
+import org.phoebus.ui.selection.AppSelection;
+import org.phoebus.ui.spi.ContextMenuEntry;
+import org.phoebus.ui.text.RegExHelper;
+import org.phoebus.util.text.CompareNatural;
+import org.phoebus.util.time.TimestampFormats;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.regex.Pattern;
+
+import static org.phoebus.applications.alarm.AlarmSystem.logger;
 /** Alarm Table UI
  *
  *  <p>Show list of active and acknowledged alarms.
@@ -475,8 +480,27 @@ public class AlarmTableUI extends BorderPane
             }
             menu_items.add(new PrintAction(this));
             menu_items.add(new SaveSnapshotAction(table));
-            menu_items.add(new SendEmailAction(table, "Alarm Snapshot", this::list_alarms, () -> Screenshot.imageFromNode(this)));
-            menu_items.add(new SendLogbookAction(table, "Alarm Snapshot", this::list_alarms, () -> Screenshot.imageFromNode(this)));
+
+            // Add context menu actions based on the selection (i.e. email, logbook, etc...)
+            final Selection originalSelection = SelectionService.getInstance().getSelection();
+            final List<AppSelection> newSelection = Arrays.asList(AppSelection.of(table, "Alarm Snapshot", list_alarms(), () -> Screenshot.imageFromNode(this)));
+            SelectionService.getInstance().setSelection("AlarmUI", newSelection);
+            List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+            supported.stream().forEach(action -> {
+                MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
+                menuItem.setOnAction((e) -> {
+                    try
+                    {
+                        SelectionService.getInstance().setSelection("AlarmUI", newSelection);
+                        action.call(table, SelectionService.getInstance().getSelection());
+                    } catch (Exception ex)
+                    {
+                        logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from AlarmUI.", ex);
+                    }
+                });
+                menu_items.add(menuItem);
+            });
+            SelectionService.getInstance().setSelection("AlarmUI", originalSelection);
 
             menu.show(table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });

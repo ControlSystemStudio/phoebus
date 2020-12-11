@@ -11,18 +11,22 @@ import static org.phoebus.applications.pvtree.PVTreeApplication.logger;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
-import org.phoebus.applications.email.actions.SendEmailAction;
+import javafx.scene.control.MenuItem;
+import javafx.scene.image.ImageView;
+import org.phoebus.applications.pvtree.PVTreeApplication;
 import org.phoebus.applications.pvtree.model.TreeModel;
 import org.phoebus.applications.pvtree.model.TreeModelItem;
 import org.phoebus.applications.pvtree.model.TreeModelListener;
 import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
-import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.javafx.Screenshot;
@@ -40,6 +44,8 @@ import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
+import org.phoebus.ui.selection.AppSelection;
+import org.phoebus.ui.spi.ContextMenuEntry;
 
 /** Basic JFX Tree for {@link TreeModel}
  *
@@ -135,8 +141,28 @@ public class FXTree
                 menu.getItems().add(new SeparatorMenuItem());
             menu.getItems().add(new PrintAction(tree_view));
             menu.getItems().add(new SaveSnapshotAction(tree_view));
-            menu.getItems().add(new SendEmailAction(tree_view, "PV Snapshot", () -> "See attached screenshot.", () -> Screenshot.imageFromNode(tree_view)));
-            menu.getItems().add(new SendLogbookAction(tree_view, "PV Snapshot", () -> "See attached screenshot.", () -> Screenshot.imageFromNode(tree_view)));
+
+            // Add context menu actions based on the selection (i.e. email, logbook, etc...)
+            final Selection originalSelection = SelectionService.getInstance().getSelection();
+            final List<AppSelection> newSelection = Arrays.asList(AppSelection.of(tree_view, "PV Snapshot", "See attached screenshot.", () -> Screenshot.imageFromNode(tree_view)));
+            SelectionService.getInstance().setSelection("PVTree", newSelection);
+            List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+            supported.stream().forEach(action -> {
+                MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
+                menuItem.setOnAction((e) -> {
+                    try
+                    {
+                        SelectionService.getInstance().setSelection("PVTree", newSelection);
+                        action.call(tree_view, SelectionService.getInstance().getSelection());
+                    } catch (Exception ex)
+                    {
+                        PVTreeApplication.logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from PV Tree.", ex);
+                    }
+                });
+                menu.getItems().add(menuItem);
+            });
+            SelectionService.getInstance().setSelection("PVTree", originalSelection);
+
             menu.show(tree_view.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
         tree_view.setContextMenu(menu);

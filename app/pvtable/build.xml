@@ -7,9 +7,7 @@
   	    <src path="${src}"/>
   	    <classpath>
   	      <path refid="app-classpath"/>
-  	      <pathelement path="../logbook/ui/${build}/app-logbook-ui-${version}.jar"/>
-  	      <pathelement path="../email/ui/${build}/app-email-ui-${version}.jar"/>
-  	      </classpath>
+  	    </classpath>
   	  </javac>
     <jar destfile="${build}/app-pvtable-${version}.jar">
       <fileset dir="${classes}"/>

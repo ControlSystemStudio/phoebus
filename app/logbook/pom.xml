@@ -9,7 +9,6 @@
   </parent>
   <modules>
     <module>inmemory</module>
-    <module>utility</module>
     <module>ui</module>
     <module>olog</module>
     <module>elog</module>
