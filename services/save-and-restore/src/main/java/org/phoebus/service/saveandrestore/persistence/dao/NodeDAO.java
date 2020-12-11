@@ -145,6 +145,8 @@ public interface NodeDAO {
 
 	public List<Tag> getTags(String uniqueSnapshotId);
 
+	public List<Node> getAllSnapshots();
+
 	/**
 	 * Given a file path like /node1/node2/nodeX, find matching node(s). Since a folder node may
 	 * contain a folder node and a save set node with the same name, the returned list may
