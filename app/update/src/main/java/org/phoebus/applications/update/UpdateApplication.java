@@ -109,6 +109,7 @@ public class UpdateApplication implements AppDescriptor
         // to prevent starting another update.
         // When declined, don't bother until restart of phoebus.
         // In any case, button can only be removed after dialog ran because of DialogHelper.positionDialog
+        final Node parent = node.getParent();
         StatusBar.getInstance().removeItem(start_update);
         start_update = null;
 
@@ -122,7 +123,7 @@ public class UpdateApplication implements AppDescriptor
                 Update.downloadAndUpdate(monitor, stage_area);
                 Update.adjustCurrentVersion();
                 if (! monitor.isCanceled())
-                    Platform.runLater(() -> restart(node));
+                    Platform.runLater(() -> restart(parent));
             });
         }
     }
