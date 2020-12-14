@@ -29,7 +29,7 @@ import static org.phoebus.logbook.LogEntryImpl.LogEntryBuilder.log;
  */
 public class DatabrowserAdapterFactory implements AdapterFactory {
 
-    private static final List<? extends Class> adaptableTypes = Arrays.asList(EmailEntry.class);
+    private static final List<? extends Class> adaptableTypes = Arrays.asList(EmailEntry.class, LogEntry.class);
     private static final Logger logger = Logger.getLogger(DatabrowserAdapterFactory.class.getName());
 
     @Override
