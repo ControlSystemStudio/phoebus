@@ -16,6 +16,7 @@ public class Messages
     public static String AlwaysShowTabs;
     public static String Applications;
     public static String AppVersion;
+    public static String AppRevision;
     public static String AppVersionHeader;
     public static String DeleteLayouts;
     public static String DeleteLayoutsConfirmFmt;
