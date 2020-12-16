@@ -2,20 +2,13 @@ package org.phoebus.logbook.ui;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javafx.scene.Node;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.logbook.LogClient;
-import org.phoebus.logbook.ui.write.AttachmentsViewController;
-import org.phoebus.logbook.ui.write.FieldsViewController;
-import org.phoebus.logbook.ui.write.LogEntryCompletionHandler;
-import org.phoebus.logbook.ui.write.LogEntryEditorController;
 import org.phoebus.logbook.ui.write.LogEntryEditorStage;
-import org.phoebus.logbook.ui.write.LogEntryModel;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 

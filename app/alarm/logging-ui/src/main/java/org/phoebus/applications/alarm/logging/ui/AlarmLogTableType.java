@@ -1,19 +1,12 @@
 package org.phoebus.applications.alarm.logging.ui;
 
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.phoebus.util.time.TimestampFormats;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
-import org.phoebus.applications.alarm.messages.AlarmStateMessage;
-import org.phoebus.applications.alarm.messages.AlarmCommandMessage;
-import org.phoebus.applications.alarm.messages.AlarmConfigMessage;
 
 @JsonInclude(Include.NON_NULL)
 public class AlarmLogTableType {

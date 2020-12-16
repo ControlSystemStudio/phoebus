@@ -1,8 +1,6 @@
 package org.phoebus.logbook.ui.write;
 
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javafx.scene.Node;
@@ -10,9 +8,7 @@ import javafx.scene.image.Image;
 import org.phoebus.framework.adapter.AdapterService;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.LogService;
 import org.phoebus.logbook.ui.menu.SendToLogBookApp;
-import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
 /**

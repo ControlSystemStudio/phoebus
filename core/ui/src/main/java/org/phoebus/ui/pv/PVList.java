@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 import javafx.beans.property.SimpleObjectProperty;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
-import org.epics.vtype.VByteArray;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
 import org.phoebus.core.types.ProcessVariable;

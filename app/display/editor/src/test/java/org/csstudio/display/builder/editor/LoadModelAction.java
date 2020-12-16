@@ -11,7 +11,6 @@ import java.io.File;
 
 import org.csstudio.display.builder.editor.actions.ActionDescription;
 import org.csstudio.display.builder.model.DisplayModel;
-import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 import org.phoebus.ui.dialog.OpenFileDialog;
 

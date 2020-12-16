@@ -7,10 +7,6 @@
  ******************************************************************************/
 package org.phoebus.ui.undo;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-
 /** A CompoundUndoableAction that executes undo operation in the same order as the 'do' operation
  *
  *  <p>Used for list order manipulations

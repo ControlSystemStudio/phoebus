@@ -29,9 +29,6 @@ import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.junit.Assert.*;
 
 public class HistogramOfFunctionTest {

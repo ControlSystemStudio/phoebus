@@ -1,6 +1,5 @@
 package org.csstudio.display.builder.runtime.script;
 
-import org.csstudio.display.builder.runtime.script.ScriptUtil;
 import static org.csstudio.display.builder.model.ModelPlugin.logger;
 
 import java.util.logging.Level;

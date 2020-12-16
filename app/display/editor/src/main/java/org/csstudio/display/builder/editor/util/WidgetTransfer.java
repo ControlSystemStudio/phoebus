@@ -8,7 +8,6 @@
 package org.csstudio.display.builder.editor.util;
 
 import static javafx.scene.paint.Color.GRAY;
-import static javafx.scene.paint.Color.web;
 import static org.csstudio.display.builder.editor.Plugin.logger;
 
 import java.awt.image.BufferedImage;
@@ -47,7 +46,6 @@ import org.csstudio.display.builder.model.widgets.PictureWidget;
 import org.csstudio.display.builder.model.widgets.SymbolWidget;
 import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
-import org.csstudio.display.builder.representation.javafx.SVGHelper;
 import org.csstudio.display.builder.representation.javafx.widgets.SymbolRepresentation;
 
 import javafx.embed.swing.SwingFXUtils;

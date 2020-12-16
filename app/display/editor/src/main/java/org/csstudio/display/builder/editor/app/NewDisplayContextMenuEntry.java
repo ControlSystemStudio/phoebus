@@ -24,7 +24,6 @@ import javafx.stage.Window;
 import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.editor.util.CreateNewDisplayJob;
 import org.csstudio.display.builder.model.DisplayModel;
-import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 import org.phoebus.framework.adapter.AdapterService;
 import org.phoebus.framework.jobs.JobManager;
