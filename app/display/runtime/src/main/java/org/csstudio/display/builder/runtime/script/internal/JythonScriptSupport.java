@@ -189,29 +189,31 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
     {
         // Prevent concurrent modification
         // 'paths' is actually shared across all jython interpreters
-        final PyList paths = python.getSystemState().path;
-        synchronized (paths)
-        {
-            // Since using default PySystemState (see above), check if already in paths
-            final int index = paths.indexOf(path);
+        try (final var state = python.getSystemState()) {
+            final PyList paths = state.path;
+            synchronized (paths)
+            {
+                // Since using default PySystemState (see above), check if already in paths
+                final int index = paths.indexOf(path);
 
-            // Warn about "examples:/... path that won't really work.
-            // Still add to the list so we only get the warning once,
-            // plus maybe some day we'll be able to use it...
-            if (index < 0  &&
-                path.startsWith(ModelResourceUtil.EXAMPLES_SCHEMA + ":"))
-                logger.log(Level.WARNING, "Jython will be unable to access scripts in " + path + ". Install examples in file system.");
+                // Warn about "examples:/... path that won't really work.
+                // Still add to the list so we only get the warning once,
+                // plus maybe some day we'll be able to use it...
+                if (index < 0  &&
+                    path.startsWith(ModelResourceUtil.EXAMPLES_SCHEMA + ":"))
+                    logger.log(Level.WARNING, "Jython will be unable to access scripts in " + path + ". Install examples in file system.");
 
-            // Already top entry?
-            if (index == 0)
-                return;
-            // Remove if further down in the list
-            if (index > 0)
-                paths.remove(index);
-            // Add to front of list
-            paths.add(0, path);
+                // Already top entry?
+                if (index == 0)
+                    return;
+                // Remove if further down in the list
+                if (index > 0)
+                    paths.remove(index);
+                // Add to front of list
+                paths.add(0, path);
+            }
+            logger.log(Level.FINE, "Adding to jython path: {0}", path);
         }
-        logger.log(Level.FINE, "Adding to jython path: {0}", path);
     }
 
     /** Parse and compile script file

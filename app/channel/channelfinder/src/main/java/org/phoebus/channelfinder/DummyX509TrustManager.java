@@ -39,7 +39,9 @@ class DummyX509TrustManager implements X509TrustManager {
 		// create a "default" JSSE X509TrustManager.
 		KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
 
-		ks.load(new FileInputStream(trustStore), password);
+		try (final var fis = new FileInputStream(trustStore)) {
+		    ks.load(fis, password);
+		}
 
 		TrustManagerFactory tmf = TrustManagerFactory
 				.getInstance(TrustManagerFactory.getDefaultAlgorithm());

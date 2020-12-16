@@ -174,15 +174,17 @@ public class JythonSupport implements AutoCloseable
         }
         catch (PyException ex)
         {
-            logger.log(Level.WARNING, "Error loading Jython class {0} from {1}",
-                new Object[] { class_name, pack_name });
-            logger.log(Level.WARNING, "Jython sys.path:\n * {0}",
-                       interpreter.getSystemState()
-                                  .path
-                                  .stream()
-                                  .collect(Collectors.joining("\n * ")));
+            try (final var state = interpreter.getSystemState()) {
+                logger.log(Level.WARNING, "Error loading Jython class {0} from {1}",
+                    new Object[] { class_name, pack_name });
+                logger.log(Level.WARNING, "Jython sys.path:\n * {0}",
+                           state
+                                      .path
+                                      .stream()
+                                      .collect(Collectors.joining("\n * ")));
 
-            throw new Exception("Error loading Jython class " + class_name + ":" + getExceptionMessage(ex), ex);
+                throw new Exception("Error loading Jython class " + class_name + ":" + getExceptionMessage(ex), ex);
+            }
         }
         // Create Java reference
         final PyObject py_class = interpreter.get(class_name);

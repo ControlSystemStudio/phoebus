@@ -52,7 +52,9 @@ class CreateChannelHandler implements CommandHandler<ClientTCPHandler>
 
             // Reset channel to init state and search again, after delay
             channel.setState(ClientChannelState.INIT);
-            tcp.getClient().search.register(channel, false);
+            try (final var client = tcp.getClient()) {
+                client.search.register(channel, false);
+            }
         }
     }
 }
