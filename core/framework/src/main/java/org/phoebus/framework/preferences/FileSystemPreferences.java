@@ -717,7 +717,7 @@ class FileSystemPreferences extends AbstractPreferences {
                         nmt = systemRootModFile.lastModified();
                         isSystemRootModified = systemRootModTime == nmt;
                     }
-                    return new Long(nmt);
+                    return Long.valueOf(nmt);
                 }
             });
             try {

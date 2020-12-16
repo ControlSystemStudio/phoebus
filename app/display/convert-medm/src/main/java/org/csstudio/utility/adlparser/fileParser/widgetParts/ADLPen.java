@@ -32,7 +32,7 @@ public class ADLPen extends WidgetPart {
         else {
             ret = new Object[2];
         }
-        ret[0] = new ADLResource(ADLResource.PEN_COLOR, new Integer(lineColor));
+        ret[0] = new ADLResource(ADLResource.PEN_COLOR, Integer.valueOf(lineColor));
         ret[1] = new ADLResource(ADLResource.CHANNEL, channel);
         if (_hasLimits){
             ret[2] = new ADLResource(ADLResource.ADL_LIMITS, _adlLimit);

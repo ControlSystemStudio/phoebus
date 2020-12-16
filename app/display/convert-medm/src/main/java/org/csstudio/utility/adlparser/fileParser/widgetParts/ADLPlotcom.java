@@ -41,8 +41,8 @@ public class ADLPlotcom extends WidgetPart {
     @Override
     public Object[] getChildren() {
         Object[] ret = new Object[5];
-        ret[0] = new ADLResource(ADLResource.FOREGROUND_COLOR, new Integer(_clr));
-        ret[1] = new ADLResource(ADLResource.BACKGROUND_COLOR, new Integer(_bclr));
+        ret[0] = new ADLResource(ADLResource.FOREGROUND_COLOR, Integer.valueOf(_clr));
+        ret[1] = new ADLResource(ADLResource.BACKGROUND_COLOR, Integer.valueOf(_bclr));
         ret[2] = new ADLResource(ADLResource.CHANNEL, title);
         ret[3] = new ADLResource(ADLResource.PLOT_XLABEL, xLabel);
         ret[4] = new ADLResource(ADLResource.PLOT_YLABEL, yLabel);
