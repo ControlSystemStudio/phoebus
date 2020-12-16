@@ -74,14 +74,16 @@ public class DatabrowserAdapterFactory implements AdapterFactory {
             try
             {
                 final File image_file = databrowserSelection.getPlot() == null ? null : new Screenshot(databrowserSelection.getPlot()).writeToTempfile("image");
-                log.attach(AttachmentImpl.of(image_file));
+                if(image_file != null){
+                    log.attach(AttachmentImpl.of(image_file));
+                }
                 Optional<File> plotFile = getDatabrowserFile(databrowserSelection);
                 if(plotFile.isPresent())
                 {
-                    log.attach(AttachmentImpl.of(plotFile.get()));
+                    log.attach(AttachmentImpl.of(plotFile.get(), "plt", false));
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.log(Level.WARNING, "Failed to initiate log entry from adapter", e);
             }
             return Optional.of(adapterType.cast(log.build()));
         }
