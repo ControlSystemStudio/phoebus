@@ -52,7 +52,9 @@ public class ActionInfos
         if (actions.isEmpty())
             return Messages.Actions_Zero;
         if (actions.size() == 1)
-            return actions.get(0).getDescription();
+            return actions.get(0).getDescription().isEmpty() ?
+                    MessageFormat.format(Messages.Actions_N_Fmt, 1) :
+                    actions.get(0).getDescription();
         return MessageFormat.format(Messages.Actions_N_Fmt, actions.size());
     }
 
