@@ -50,7 +50,7 @@ public class ActionInfos
     public static String toString(final List<ActionInfo> actions)
     {
         if (actions.isEmpty())
-            return Messages.Actions_Zero;
+            return  MessageFormat.format(Messages.Actions_N_Fmt, 0);
         if (actions.size() == 1)
             return actions.get(0).getDescription().isEmpty() ?
                     MessageFormat.format(Messages.Actions_N_Fmt, 1) :
