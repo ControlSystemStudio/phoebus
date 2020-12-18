@@ -166,15 +166,22 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
         {
             logger.log(Level.FINE, "{0} connected", getName());
 
-            final int elements = channel.getElementCount();
+            // Connection handler may be called during 'create' when 'channel' has not been set,
+            // so use channel from event.
+            final Channel safe_channel = (Channel) ev.getSource();
+            // Sanity check
+            if (channel != null  &&  channel != safe_channel)
+                throw new IllegalStateException("Expecting " + channel + ", got " + safe_channel);
+
+            final int elements = safe_channel.getElementCount();
             is_array = elements != 1;
             if (elements > LARGE_ARRAY_THRESHOLD  &&  ! is_large_array)
             {
                 is_large_array = true;
-                final String name = channel.getName();
-                channel.dispose();
-                logger.log(Level.FINE, "Reconnecting large array {0} at lower priority", name);
+                final String name = safe_channel.getName();
+                safe_channel.dispose();
                 channel = null;
+                logger.log(Level.FINE, "Reconnecting large array {0} at lower priority", name);
                 try
                 {
                     createChannel(name);
@@ -186,7 +193,7 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
                 return;
             }
 
-            final boolean is_readonly = ! channel.getWriteAccess();
+            final boolean is_readonly = ! safe_channel.getWriteAccess();
             notifyListenersOfPermissions(is_readonly);
             getMetaData(); // .. and start subscription
         }
