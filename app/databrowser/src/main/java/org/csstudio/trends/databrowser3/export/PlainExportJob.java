@@ -33,9 +33,10 @@ public class PlainExportJob extends ExportJob
             final Instant start, final Instant end, final Source source,
             final double optimize_parameter, final ValueFormatter formatter,
             final String filename,
-            final Consumer<Exception> error_handler)
+            final Consumer<Exception> error_handler,
+            final boolean unixTimeStamp)
     {
-        super("# ", model, start, end, source, optimize_parameter, filename, error_handler);
+        super("# ", model, start, end, source, optimize_parameter, filename, error_handler, unixTimeStamp);
         this.formatter = formatter;
     }
 
@@ -73,7 +74,8 @@ public class PlainExportJob extends ExportJob
             {
                 final VType value = values.next();
 
-                final String time = TimestampFormats.MILLI_FORMAT.format(VTypeHelper.getTimestamp(value));
+                final String time = unixTimeStamp ? Long.toString(VTypeHelper.getTimestamp(value).toEpochMilli()) :
+                        TimestampFormats.MILLI_FORMAT.format(VTypeHelper.getTimestamp(value));
                 out.println(time + Messages.Export_Delimiter + formatter.format(value));
                 ++line_count;
                 if (++line_count % PROGRESS_UPDATE_LINES == 0)

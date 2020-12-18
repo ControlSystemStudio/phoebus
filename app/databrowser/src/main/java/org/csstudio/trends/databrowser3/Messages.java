@@ -215,6 +215,7 @@ public class Messages
     public static String ImportedChannelBaseName;
     public static String ImportTitle;
     public static String ImportTypeLbl;
+    public static String IncludeUnixTimeStamp;
     public static String Information;
     public static String InspectSamples;
     public static String InvalidScanPeriodError;

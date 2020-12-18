@@ -33,7 +33,7 @@ public class MatlabScriptExportJob extends ExportJob
             final int optimize_parameter, final String filename,
             final Consumer<Exception> error_handler)
     {
-        super("% ", model, start, end, source, optimize_parameter, filename, error_handler);
+        super("% ", model, start, end, source, optimize_parameter, filename, error_handler, false);
     }
 
     /** {@inheritDoc} */

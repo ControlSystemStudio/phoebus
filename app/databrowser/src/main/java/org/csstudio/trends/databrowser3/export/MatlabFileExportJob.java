@@ -40,9 +40,10 @@ public class MatlabFileExportJob extends ExportJob
     public MatlabFileExportJob(final Model model, final Instant start,
             final Instant end, final Source source,
             final int optimize_parameter, final String filename,
-            final Consumer<Exception> error_handler)
+            final Consumer<Exception> error_handler,
+            final boolean unixTimeStamp)
     {
-        super("", model, start, end, source, optimize_parameter, null, error_handler);
+        super("", model, start, end, source, optimize_parameter, null, error_handler, unixTimeStamp);
         this.filename = filename;
     }
 

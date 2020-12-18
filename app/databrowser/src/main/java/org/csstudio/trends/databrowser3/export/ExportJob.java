@@ -50,6 +50,7 @@ abstract public class ExportJob implements JobRunnable
     final protected Consumer<Exception> error_handler;
     /** Active readers, used to cancel and close them */
     final private CopyOnWriteArrayList<ArchiveReader> archive_readers = new CopyOnWriteArrayList<ArchiveReader>();
+    final protected boolean unixTimeStamp;
 
     /** Thread that polls a progress monitor and cancels active archive readers
      *  if the user requests the export job to end via the progress monitor
@@ -96,12 +97,14 @@ abstract public class ExportJob implements JobRunnable
      *                  or <code>null</code> if <code>performExport</code>
      *                  handles the file
      *  @param error_handler Callback for errors
+     * @param unixTimeStamp If <code>true</code>, time stamps are UNIX style, i.e. ms since EPOCH. Defaults to false.
      */
     public ExportJob(final String comment, final Model model,
         final Instant start, final Instant end, final Source source,
         final double optimize_parameter,
         final String filename,
-        final Consumer<Exception> error_handler)
+        final Consumer<Exception> error_handler,
+         final boolean unixTimeStamp)
     {
         this.comment = comment;
         this.model = model;
@@ -111,6 +114,7 @@ abstract public class ExportJob implements JobRunnable
         this.optimize_parameter = optimize_parameter;
         this.filename = filename;
         this.error_handler = error_handler;
+        this.unixTimeStamp = unixTimeStamp;
     }
 
     /** Job's main routine

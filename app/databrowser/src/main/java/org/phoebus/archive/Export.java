@@ -66,6 +66,7 @@ public class Export
         System.out.println("-exponential precision                   -  Exponential format with given precision");
         System.out.println("-nostate                                 -  Do not include status/severity in tab-separated file");
         System.out.println("-export /path/to/file channel <channels> -  Export data for one or more channels into file");
+        System.out.println("-unixTimeStamp                           -  Use UNIX time stamp instead for formatted time");
 
         System.out.println();
         System.out.println("File names ending in *.m or *.mat generate Matlab files.");
@@ -95,6 +96,7 @@ public class Export
         boolean with_status = true;
 
         String export = null;
+        boolean useUnixTimeStamp = false;
         final Iterator<String> iter = args.iterator();
         while (iter.hasNext())
         {
@@ -224,6 +226,13 @@ public class Export
                 // Remaining args are channel names to export
                 break;
             }
+            else if (cmd.startsWith("-unix"))
+            {
+                iter.remove();
+                useUnixTimeStamp = true;
+                iter.remove();
+                break;
+            }
             else
             {
                 System.out.println("Unknown parameters " + args);
@@ -297,7 +306,7 @@ public class Export
             if (export.endsWith(".mat"))
             {
                 System.out.println("# Creating binary MatLab data file");
-                job = new MatlabFileExportJob(model, abs_range.getStart(), abs_range.getEnd(), source, optimize_parameter, export, error_handler);
+                job = new MatlabFileExportJob(model, abs_range.getStart(), abs_range.getEnd(), source, optimize_parameter, export, error_handler, false);
             }
             else if (export.endsWith(".m"))
             {
@@ -307,7 +316,15 @@ public class Export
             else
             {
                 System.out.println("# Creating tab-separated file");
-                job = new SpreadsheetExportJob(model, abs_range.getStart(), abs_range.getEnd(), source, optimize_parameter, formatter, export, error_handler);
+                job = new SpreadsheetExportJob(model,
+                        abs_range.getStart(),
+                        abs_range.getEnd(),
+                        source,
+                        optimize_parameter,
+                        formatter,
+                        export,
+                        error_handler,
+                        useUnixTimeStamp);
             }
 
             final BasicJobMonitor monitor = new BasicJobMonitor()
