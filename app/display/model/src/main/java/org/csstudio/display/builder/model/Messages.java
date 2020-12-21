@@ -14,7 +14,6 @@ import org.phoebus.framework.nls.NLS;
  */
 public class Messages
 {
-    public static String Actions_Zero;
     public static String Actions_N_Fmt;
     public static String ActiveTab;
     public static String ArrayWidget_Description;
