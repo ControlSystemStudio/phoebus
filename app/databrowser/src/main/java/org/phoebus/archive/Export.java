@@ -52,8 +52,6 @@ public class Export
         System.out.println("General command-line options:");
         System.out.println("-help                                    -  This text");
         System.out.println("-settings settings.xml                   -  Import settings from file, either exported XML or property file format");
-        System.out.println("-archives                                -  Set archive URLs, separated by '*'");
-        System.out.println();
         System.out.println("Archive Information options:");
         System.out.println("-list [pattern]                          -  List channel names, with optional pattern ('.', '*')");
         System.out.println();
@@ -65,8 +63,8 @@ public class Export
         System.out.println("-decimal precision                       -  Decimal format with given precision");
         System.out.println("-exponential precision                   -  Exponential format with given precision");
         System.out.println("-nostate                                 -  Do not include status/severity in tab-separated file");
+        System.out.println("-unixTimeStamp                           -  Use UNIX time stamp (in ms) instead of formatted date/time");
         System.out.println("-export /path/to/file channel <channels> -  Export data for one or more channels into file");
-        System.out.println("-unixTimeStamp                           -  Use UNIX time stamp instead for formatted time");
 
         System.out.println();
         System.out.println("File names ending in *.m or *.mat generate Matlab files.");
@@ -134,6 +132,11 @@ public class Export
             else if (cmd.startsWith("-nos"))
             {
                 with_status = false;
+                iter.remove();
+            }
+            else if (cmd.startsWith("-unix"))
+            {
+                useUnixTimeStamp = true;
                 iter.remove();
             }
             else if (cmd.startsWith("-b"))
@@ -226,13 +229,6 @@ public class Export
                 // Remaining args are channel names to export
                 break;
             }
-            else if (cmd.startsWith("-unix"))
-            {
-                iter.remove();
-                useUnixTimeStamp = true;
-                iter.remove();
-                break;
-            }
             else
             {
                 System.out.println("Unknown parameters " + args);
@@ -306,12 +302,12 @@ public class Export
             if (export.endsWith(".mat"))
             {
                 System.out.println("# Creating binary MatLab data file");
-                job = new MatlabFileExportJob(model, abs_range.getStart(), abs_range.getEnd(), source, optimize_parameter, export, error_handler, false);
+                job = new MatlabFileExportJob(model, abs_range.getStart(), abs_range.getEnd(), source, optimize_parameter, export, error_handler, useUnixTimeStamp);
             }
             else if (export.endsWith(".m"))
             {
                 System.out.println("# Creating MatLab file");
-                job = new MatlabScriptExportJob(model, abs_range.getStart(), abs_range.getEnd(), source, optimize_parameter, export, error_handler);
+                job = new MatlabScriptExportJob(model, abs_range.getStart(), abs_range.getEnd(), source, optimize_parameter, export, error_handler, useUnixTimeStamp);
             }
             else
             {

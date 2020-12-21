@@ -215,7 +215,6 @@ public class Messages
     public static String ImportedChannelBaseName;
     public static String ImportTitle;
     public static String ImportTypeLbl;
-    public static String IncludeUnixTimeStamp;
     public static String Information;
     public static String InspectSamples;
     public static String InvalidScanPeriodError;
@@ -362,6 +361,7 @@ public class Messages
     public static String UseLines;
     public static String UsePoints;
     public static String UseTraceNames;
+    public static String UseUnixTimeStamp;
     public static String ValueAxes;
     public static String ValueAxisName;
     public static String ValueColumn;

@@ -86,7 +86,7 @@ public class ExportView extends VBox
     private final RadioButton source_raw = new RadioButton(Source.RAW_ARCHIVE.toString()),
                               type_matlab = new RadioButton(Messages.ExportTypeMatlab);
 
-    private final CheckBox includeUnixTimeStamp = new CheckBox(Messages.IncludeUnixTimeStamp);
+    private final CheckBox useUnixTimeStamp = new CheckBox(Messages.UseUnixTimeStamp);
     private SimpleBooleanProperty unixTimeStamp = new SimpleBooleanProperty(false);
 
 
@@ -172,7 +172,7 @@ public class ExportView extends VBox
         linear.setTooltip(new Tooltip(Messages.ExportDefaultLinearInterpolationTT));
         linear.disableProperty().bind(source_lin.selectedProperty().not());
 
-        final HBox source_options = new HBox(5, source_plot, source_raw, source_opt, optimize, source_lin, linear, includeUnixTimeStamp);
+        final HBox source_options = new HBox(5, source_plot, source_raw, source_opt, optimize, source_lin, linear, useUnixTimeStamp);
         source_options.setAlignment(Pos.CENTER_LEFT);
         grid.add(source_options, 1, 2, 2, 1);
 
@@ -280,7 +280,7 @@ public class ExportView extends VBox
         // Enter in filename suggests to next start export
         filename.setOnAction(event -> export.requestFocus());
 
-        includeUnixTimeStamp.selectedProperty().bindBidirectional(unixTimeStamp);
+        useUnixTimeStamp.selectedProperty().bindBidirectional(unixTimeStamp);
     }
 
     /** @return <code>true</code> if the min/max (error) column option should be enabled */
@@ -391,9 +391,23 @@ public class ExportView extends VBox
             if (type_matlab.isSelected())
             {   // Matlab file export
                 if (filename.endsWith(".m"))
-                    export = new MatlabScriptExportJob(model, start_end.getStart(), start_end.getEnd(), source, optimize_parameter, filename, this::handleError);
+                    export = new MatlabScriptExportJob(model,
+                            start_end.getStart(),
+                            start_end.getEnd(),
+                            source,
+                            optimize_parameter,
+                            filename,
+                            this::handleError,
+                            unixTimeStamp.get());
                 else if (filename.endsWith(".mat"))
-                    export = new MatlabFileExportJob(model, start_end.getStart(), start_end.getEnd(), source, optimize_parameter, filename, this::handleError, unixTimeStamp.get());
+                    export = new MatlabFileExportJob(model,
+                            start_end.getStart(),
+                            start_end.getEnd(),
+                            source,
+                            optimize_parameter,
+                            filename,
+                            this::handleError,
+                            unixTimeStamp.get());
                 else
                 {
                     ExceptionDetailsErrorDialog.openError(this.filename, Messages.Error, Messages.ExportMatlabFilenameError, new Exception(filename));

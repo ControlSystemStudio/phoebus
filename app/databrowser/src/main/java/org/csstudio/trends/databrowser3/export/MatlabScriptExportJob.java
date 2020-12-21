@@ -31,9 +31,10 @@ public class MatlabScriptExportJob extends ExportJob
     public MatlabScriptExportJob(final Model model, final Instant start,
             final Instant end, final Source source,
             final int optimize_parameter, final String filename,
-            final Consumer<Exception> error_handler)
+            final Consumer<Exception> error_handler,
+            final boolean unixTimeStamp)
     {
-        super("% ", model, start, end, source, optimize_parameter, filename, error_handler, false);
+        super("% ", model, start, end, source, optimize_parameter, filename, error_handler, unixTimeStamp);
     }
 
     /** {@inheritDoc} */
@@ -78,8 +79,9 @@ public class MatlabScriptExportJob extends ExportJob
                 final VType value = values.next();
                 ++line_count;
                 // t(1)='2010/03/15 13:30:10.123';
-                out.println("t{" + line_count + "}='" +
-                    date_format.format(Date.from(org.phoebus.core.vtypes.VTypeHelper.getTimestamp(value))) + "';");
+                out.println(unixTimeStamp ?
+                        "t{" + line_count + "}=" + org.phoebus.core.vtypes.VTypeHelper.getTimestamp(value).toEpochMilli() + ";" :
+                        "t{" + line_count + "}='" + date_format.format(Date.from(org.phoebus.core.vtypes.VTypeHelper.getTimestamp(value)) + "';"));
                 // v(1)=4.125;
                 final double num = VTypeHelper.toDouble(value);
                 if (Double.isNaN(num) || Double.isInfinite(num))
