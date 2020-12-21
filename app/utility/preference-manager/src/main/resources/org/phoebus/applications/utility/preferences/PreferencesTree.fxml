@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TreeTableColumn?>
+<?import javafx.scene.control.TreeTableView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.utility.preferences.PreferencesTreeController">
+   <children>
+      <TreeTableView fx:id="treeTableView" layoutX="92.0" layoutY="42.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <columns>
+          <TreeTableColumn fx:id="propertyColumn" prefWidth="250.0" text="Property" />
+          <TreeTableColumn fx:id="valueColumn" prefWidth="200.0" text="Value" />
+        </columns>
+      </TreeTableView>
+   </children>
+</AnchorPane>
