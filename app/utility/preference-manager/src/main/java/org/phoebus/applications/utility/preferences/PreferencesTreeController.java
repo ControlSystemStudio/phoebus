@@ -51,7 +51,7 @@ public class PreferencesTreeController {
         try
         {
             Arrays.stream(preferences.childrenNames()).forEach(System.out::println);
-            processNode(preferences, root);
+            processNode(preferences, "org", root);
             treeTableView.setRoot(root);
 
         } catch (BackingStoreException e) {
@@ -60,31 +60,32 @@ public class PreferencesTreeController {
     }
 
 
-    private void processNode(Preferences node, TreeItem<PreferenceNode> parent) throws BackingStoreException
+    private void processNode(Preferences node, String name, TreeItem<PreferenceNode> parent) throws BackingStoreException
     {
-        TreeItem<PreferenceNode> item = new TreeItem<>(new PreferenceNode(node, node.name(), ""));
-        Arrays.stream(node.keys()).forEach(System.out::println);
-        Arrays.stream(node.keys()).forEach(key -> {
-            item.getChildren().add(new TreeItem<>(new PreferenceNode(node, key, node.get(key,""))));
-        });
-
-
-        List<String> children = Arrays.asList(node.childrenNames());
-        while (!children.isEmpty())
+        if(node.keys().length == 0 && node.childrenNames().length == 1)
         {
-            for (String child : children)
-            {
-                processNode(node.node(child), item);
+            // The node has a single child and thus it should be combined
+            String childName = node.childrenNames()[0];
+            processNode(node.node(childName), node.name() + "." + childName, parent);
+        } else {
+
+            TreeItem<PreferenceNode> item = new TreeItem<>(new PreferenceNode(node, name, ""));
+            Arrays.stream(node.keys()).forEach(key -> {
+                item.getChildren().add(new TreeItem<>(new PreferenceNode(node, key, node.get(key, ""))));
+            });
+
+            List<String> children = Arrays.asList(node.childrenNames());
+            while (!children.isEmpty()) {
+                for (String child : children) {
+                    processNode(node.node(child), child, item);
+                }
+                break;
             }
-            break;
-        }
-        if (parent == null)
-        {
-            root = item;
-        }
-        else
-        {
-            parent.getChildren().add(item);
+            if (parent == null) {
+                root = item;
+            } else {
+                parent.getChildren().add(item);
+            }
         }
     }
 
