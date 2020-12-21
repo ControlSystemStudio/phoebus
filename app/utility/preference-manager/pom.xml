@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>app-preference-manager</artifactId>
+    <artifactId>app-utility-preference-manager</artifactId>
     <dependencies>
         <dependency>
             <groupId>org.phoebus</groupId>

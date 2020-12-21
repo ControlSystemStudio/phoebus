@@ -50,7 +50,6 @@ public class PreferencesTreeController {
         Preferences preferences = Preferences.userRoot().node("org");
         try
         {
-            Arrays.stream(preferences.childrenNames()).forEach(System.out::println);
             processNode(preferences, "org", root);
             treeTableView.setRoot(root);
 
