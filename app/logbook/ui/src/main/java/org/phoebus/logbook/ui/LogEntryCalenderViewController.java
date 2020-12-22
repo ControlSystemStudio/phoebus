@@ -2,7 +2,6 @@ package org.phoebus.logbook.ui;
 
 import static org.phoebus.ui.time.TemporalAmountPane.Type.TEMPORAL_AMOUNTS_AND_NOW;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
@@ -20,11 +19,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.Logbook;
-import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.ui.LogbookQueryUtil.Keys;
-import org.phoebus.ui.dialog.PopOver;
-import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.time.TimeRelativeIntervalPane;
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
@@ -34,19 +29,14 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -276,6 +266,10 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
         query.setText(parsedQuery);
         updateQuery();
         search();
+    }
+
+    public String getQuery() {
+        return query.getText();
     }
 
     @Override
