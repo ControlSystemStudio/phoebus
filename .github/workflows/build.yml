@@ -1,13 +1,6 @@
 name: Phoebus build
 
-on:
-  push:
-    branches:
-      - '*'
-      - '!master'
-  pull_request:
-    branches:
-      - '*'
+on: [push, pull_request]
 
 jobs:
   build:
@@ -19,4 +12,9 @@ jobs:
       with:
         java-version: 11
     - name: Build
-      run: mvn verify --batch-mode
+      run: mvn --batch-mode install
+    - name: Publish
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: mvn --batch-mode -DskipTests deploy
+      if: ${{ github.repository == 'ControlSystemStudio/phoebus' && (github.ref == 'refs/heads/master' || github.ref == 'refs/tags/*') }}
