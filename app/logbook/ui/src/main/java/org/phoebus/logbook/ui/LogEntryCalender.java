@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.logbook.LogClient;
@@ -16,6 +17,7 @@ import javafx.fxml.FXMLLoader;
 public class LogEntryCalender implements AppInstance {
 
     final static Logger log = Logger.getLogger(LogEntryCalender.class.getName());
+    private static final String LOG_CALENDER_QUERY = "log_calender_query";
 
     private final LogEntryCalenderApp app;
     private DockItem tab;
@@ -66,4 +68,17 @@ public class LogEntryCalender implements AppInstance {
         return app;
     }
 
+    @Override
+    public void restore(final Memento memento)
+    {
+        memento.getString(LOG_CALENDER_QUERY).ifPresent(query -> controller.setQuery(query));
+    }
+
+    @Override
+    public void save(final Memento memento)
+    {
+        if(!controller.getQuery().isBlank()) {
+            memento.setString(LOG_CALENDER_QUERY, controller.getQuery().trim());
+        }
+    }
 }
