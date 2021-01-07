@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import com.jmatio.types.MLUInt64;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.epics.vtype.AlarmSeverity;
@@ -40,9 +41,10 @@ public class MatlabFileExportJob extends ExportJob
     public MatlabFileExportJob(final Model model, final Instant start,
             final Instant end, final Source source,
             final int optimize_parameter, final String filename,
-            final Consumer<Exception> error_handler)
+            final Consumer<Exception> error_handler,
+            final boolean unixTimeStamp)
     {
-        super("", model, start, end, source, optimize_parameter, null, error_handler);
+        super("", model, start, end, source, optimize_parameter, null, error_handler, unixTimeStamp);
         this.filename = filename;
     }
 
@@ -73,7 +75,7 @@ public class MatlabFileExportJob extends ExportJob
                     monitor.beginTask(MessageFormat.format("{0}: Obtained {1} samples", item.getName(), values.size()));
             }
             // Add to Matlab file
-            final MLStructure struct = createMLStruct(i++, item.getName(), times, values, severities);
+            final MLStructure struct = createMLStruct(i++, item.getName(), times, values, severities, unixTimeStamp);
             writer.write(struct);
         }
 
@@ -96,27 +98,35 @@ public class MatlabFileExportJob extends ExportJob
      *  @param times Time stamps
      *  @param values Values
      *  @param severities Severities
+     *  @param unixTimeStamp If <code>true</code>, UNIX timestamp is used instead of formatted date/time string.
      *  @return {@link MLStructure}
      */
     private MLStructure createMLStruct(final int index, final String name,
             final List<Instant> times,
             final List<Double> values,
-            final List<AlarmSeverity> severities)
+            final List<AlarmSeverity> severities,
+            final boolean unixTimeStamp)
     {
         final MLStructure struct = new MLStructure("channel" + index, new int[] { 1, 1 });
         final int N = values.size();
         final int[] dims = new int[] { N, 1 };
-        final MLCell time = new MLCell(null, dims);
+        final MLCell time = unixTimeStamp ? null : new MLCell(null, dims);
+        final MLUInt64 timeUnixTimeStamp = unixTimeStamp ? new MLUInt64(null, dims) : null;
         final MLDouble value = new MLDouble(null, dims);
         final MLCell severity = new MLCell(null, dims);
         for (int i=0; i<N; ++i)
         {
-            setCellText(time, i, TimestampFormats.MILLI_FORMAT.format(times.get(i)));
+            if(unixTimeStamp){
+                timeUnixTimeStamp.set(times.get(i).toEpochMilli(), i);
+            }
+            else{
+                setCellText(time, i, TimestampFormats.MILLI_FORMAT.format(times.get(i)));
+            }
             value.set(values.get(i), i);
             setCellText(severity, i, severities.get(i).toString());
         }
         struct.setField("name", new MLChar(null, name));
-        struct.setField("time", time);
+        struct.setField("time", unixTimeStamp ? timeUnixTimeStamp : time);
         struct.setField("value", value);
         struct.setField("severity", severity);
         return struct;

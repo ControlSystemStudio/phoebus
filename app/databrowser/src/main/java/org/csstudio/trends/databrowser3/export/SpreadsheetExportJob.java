@@ -33,9 +33,10 @@ public class SpreadsheetExportJob extends PlainExportJob
             final Instant start, final Instant end, final Source source,
             final int optimize_parameter, final ValueFormatter formatter,
             final String filename,
-            final Consumer<Exception> error_handler)
+            final Consumer<Exception> error_handler,
+            final boolean unixTimeStamp)
     {
-        super(model, start, end, source, optimize_parameter, formatter, filename, error_handler);
+        super(model, start, end, source, optimize_parameter, formatter, filename, error_handler, unixTimeStamp);
     }
 
     /** {@inheritDoc} */
@@ -68,7 +69,7 @@ public class SpreadsheetExportJob extends PlainExportJob
         {
             final Instant time = sheet.getTime();
             final VType line[] = sheet.next();
-            out.print(TimestampFormats.MILLI_FORMAT.format(time));
+            out.print(unixTimeStamp ? time.toEpochMilli() : TimestampFormats.MILLI_FORMAT.format(time));
 
             for (int i=0; i<line.length; ++i)
                 out.print(Messages.Export_Delimiter + formatter.format(line[i]));
