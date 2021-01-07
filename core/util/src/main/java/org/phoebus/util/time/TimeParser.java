@@ -4,15 +4,6 @@
  */
 package org.phoebus.util.time;
 
-import static java.time.temporal.ChronoUnit.DAYS;
-import static java.time.temporal.ChronoUnit.HOURS;
-import static java.time.temporal.ChronoUnit.MILLIS;
-import static java.time.temporal.ChronoUnit.MINUTES;
-import static java.time.temporal.ChronoUnit.MONTHS;
-import static java.time.temporal.ChronoUnit.SECONDS;
-import static java.time.temporal.ChronoUnit.WEEKS;
-import static java.time.temporal.ChronoUnit.YEARS;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -26,6 +17,16 @@ import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.HOURS;
+import static java.time.temporal.ChronoUnit.MICROS;
+import static java.time.temporal.ChronoUnit.MILLIS;
+import static java.time.temporal.ChronoUnit.MINUTES;
+import static java.time.temporal.ChronoUnit.MONTHS;
+import static java.time.temporal.ChronoUnit.SECONDS;
+import static java.time.temporal.ChronoUnit.WEEKS;
+import static java.time.temporal.ChronoUnit.YEARS;
 
 /**
  * A helper class to parse user defined time strings to absolute or relative
@@ -255,9 +256,14 @@ public class TimeParser {
                     timeQuantities.compute(MILLIS, (u, prev) -> prev == null ? next : prev + next);
                 }
             }
-            else if (unit.startsWith("mi")  ||
-                     unit.equals("ms"))
+            else if (unit.equals("ms")) {
                 timeQuantities.compute(MILLIS, (u, prev) -> prev == null ? full : prev + full);
+                if (fraction > 0)
+                {
+                    final int next = (int) (fraction * 1000 + 0.5);
+                    timeQuantities.compute(MICROS, (u, prev) -> prev == null ? next : prev + next);
+                }
+            }
         }
 
         if (use_period)
