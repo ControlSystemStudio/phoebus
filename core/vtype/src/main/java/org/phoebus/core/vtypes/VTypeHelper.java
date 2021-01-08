@@ -373,4 +373,22 @@ public class VTypeHelper {
         }
         return builder.toString();
     }
+
+    /**
+     * Read a boolean from a {@link VType}
+     * This helper method accepts VString and VNumber and tries to parse a boolean value from them
+     *
+     * @param vtype
+     * @return boolean
+     */
+    public static boolean toBoolean(VType vtype) {
+        if (vtype instanceof VBoolean) {
+            return ((VBoolean) vtype).getValue();
+        } else if (vtype instanceof VNumber) {
+            return ((VNumber) vtype).getValue().doubleValue() == 0 ? false : true;
+        } else if (vtype instanceof VString) {
+            return Boolean.parseBoolean(((VString) vtype).getValue());
+        }
+        return false;
+    }
 }
