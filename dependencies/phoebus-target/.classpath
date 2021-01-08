@@ -20,7 +20,7 @@
     <classpathentry exported="true" kind="lib" path="target/lib/commonj.sdo-2.1.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/commons-codec-1.10.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/commons-logging-1.1.3.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/controlsfx-9.0.0.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/controlsfx-11.0.3.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/derby-10.14.1.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/eclipselink-2.7.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-6.4.2.jar"/>
