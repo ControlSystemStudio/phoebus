@@ -5,7 +5,6 @@ import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.logbook.LogClient;
-import org.phoebus.logbook.ui.write.LogEntryEditorStage;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
@@ -46,9 +45,11 @@ public class LogEntryTable implements AppInstance {
             });
             loader.load();
             controller = loader.getController();
+            controller.setQuery(LogbookUiPreferences.default_logbook_query);
             DockItem tab = new DockItem(this, loader.getRoot());
             DockPane.getActiveDockPane().addTab(tab);
-        } catch (IOException e) {
+        } catch (IOException e)
+        {
             log.log(Level.WARNING, "Cannot load UI", e);
         }
     }
@@ -59,7 +60,8 @@ public class LogEntryTable implements AppInstance {
         return app;
     }
 
-    public void setResource(URI resource) {
+    public void setResource(URI resource)
+    {
         String query = resource.getQuery();
         controller.setQuery(query);
     }
@@ -67,7 +69,11 @@ public class LogEntryTable implements AppInstance {
     @Override
     public void restore(final Memento memento)
     {
-        memento.getString(LOG_TABLE_QUERY).ifPresent(query -> controller.setQuery(query));
+        if (memento.getString(LOG_TABLE_QUERY).isPresent()) {
+            controller.setQuery(memento.getString(LOG_TABLE_QUERY).get());
+        } else {
+            controller.setQuery(LogbookUiPreferences.default_logbook_query);
+        }
     }
 
     @Override

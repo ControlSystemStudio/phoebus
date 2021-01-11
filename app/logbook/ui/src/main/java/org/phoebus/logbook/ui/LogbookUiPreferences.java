@@ -23,6 +23,7 @@ import org.phoebus.logbook.LogService;
 public class LogbookUiPreferences
 {
     @Preference public static String[] default_logbooks;
+    @Preference public static String default_logbook_query;
     @Preference public static boolean  save_credentials;
     @Preference public static String   logbook_factory;
     @Preference public static boolean  is_supported;
