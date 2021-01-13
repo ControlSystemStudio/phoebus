@@ -4,6 +4,7 @@
     <modules>
         <module>client</module>
         <module>client-es</module>
+        <module>ui</module>
     </modules>
   <parent>
     <groupId>org.phoebus</groupId>
