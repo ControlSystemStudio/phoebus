@@ -65,6 +65,12 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-log4j2</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.logging.log4j</groupId>
+					<artifactId>log4j-slf4j-impl</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.glassfish/javax.json -->
