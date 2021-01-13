@@ -151,7 +151,7 @@ public class AlarmConfigLoggingService {
         logger.info("Alarm Logging Service (PID " + ProcessHandle.current().pid() + ")");
         // Read list of Topics
         logger.info("Starting logger for: " + properties.getProperty("alarm_topics"));
-        List<String> topicNames = Arrays.asList(properties.getProperty("alarm_topics").split(":"));
+        List<String> topicNames = Arrays.asList(properties.getProperty("alarm_topics").split(","));
 
         String location = properties.getProperty("local.location");
         String remoteLocation = properties.getProperty("remote.location");
