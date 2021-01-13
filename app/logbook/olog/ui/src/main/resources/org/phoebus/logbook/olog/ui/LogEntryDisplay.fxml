@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Accordion?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.TilePane?>
+<?import javafx.scene.layout.VBox?>
+
+<fx:root spacing="2.0" type="javafx.scene.layout.VBox" HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/8.0.102" xmlns:fx="http://javafx.com/fxml/1">
+  <children>
+    <GridPane hgap="1.0" minHeight="140.0" vgap="1.0" VBox.vgrow="ALWAYS">
+      <columnConstraints>
+        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+      </columnConstraints>
+      <rowConstraints>
+        <RowConstraints maxHeight="-Infinity" minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+      </rowConstraints>
+      <children>
+        <Label fx:id="logTime" text="time" GridPane.columnSpan="2" GridPane.hgrow="NEVER" GridPane.vgrow="NEVER">
+          <padding>
+            <Insets left="5.0" />
+          </padding>
+        </Label>
+        <TextArea fx:id="logDescription" editable="false" prefHeight="100.0" prefWidth="200.0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.rowSpan="1" GridPane.vgrow="ALWAYS" />
+        <VBox prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="1" GridPane.hgrow="NEVER" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
+          <children>
+            <Accordion>
+              <panes>
+                <TitledPane fx:id="LogLogbooksPane" animated="false" text="Logbooks:">
+                  <content>
+                    <ListView fx:id="LogLogbooks" prefHeight="200.0" prefWidth="100.0" />
+                  </content>
+                </TitledPane>
+              </panes>
+            </Accordion>
+            <Accordion>
+              <panes>
+                <TitledPane fx:id="logTagsPane" animated="false" text="Tags:">
+                  <content>
+                    <ListView fx:id="logTags" prefHeight="200.0" prefWidth="100.0" />
+                  </content>
+                </TitledPane>
+              </panes>
+            </Accordion>
+          </children>
+        </VBox>
+      </children>
+      <padding>
+        <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+      </padding>
+    </GridPane>
+    <Accordion>
+      <panes>
+        <TitledPane fx:id="LogAttchments" animated="false" text="Attachments">
+          <content>
+            <TilePane fx:id="imageGallery" />
+          </content>
+        </TitledPane>
+      </panes>
+      <padding>
+        <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
+      </padding>
+    </Accordion>
+  </children>
+</fx:root>
