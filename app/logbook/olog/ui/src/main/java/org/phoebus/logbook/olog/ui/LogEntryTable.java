@@ -1,4 +1,4 @@
-package org.phoebus.logbook.ui;
+package org.phoebus.logbook.olog.ui;
 
 import javafx.fxml.FXMLLoader;
 import org.phoebus.framework.persistence.Memento;

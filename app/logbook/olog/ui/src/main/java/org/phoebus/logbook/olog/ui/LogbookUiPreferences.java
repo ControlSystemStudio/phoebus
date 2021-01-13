@@ -5,16 +5,16 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.logbook.ui;
-
-import static org.phoebus.ui.application.PhoebusApplication.logger;
-
-import java.util.logging.Level;
+package org.phoebus.logbook.olog.ui;
 
 import org.phoebus.framework.preferences.AnnotatedPreferences;
 import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.logbook.LogService;
+
+import java.util.logging.Level;
+
+import static org.phoebus.ui.application.PhoebusApplication.logger;
 
 /** Preference settings for logbook.ui
  *  @author Evan Smith

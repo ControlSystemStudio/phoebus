@@ -1,18 +1,17 @@
-package org.phoebus.logbook.ui;
+package org.phoebus.logbook.olog.ui;
 
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+import javafx.fxml.FXMLLoader;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.logbook.LogClient;
-import org.phoebus.logbook.ui.write.LogEntryEditorStage;
+import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
-import javafx.fxml.FXMLLoader;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class LogEntryCalender implements AppInstance {
 
