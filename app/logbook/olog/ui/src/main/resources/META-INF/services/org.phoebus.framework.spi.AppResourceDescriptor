@@ -1,2 +1,2 @@
-org.phoebus.logbook.ui.LogEntryCalenderApp
-org.phoebus.logbook.ui.LogEntryTableApp
+org.phoebus.logbook.olog.ui.LogEntryCalenderApp
+org.phoebus.logbook.olog.ui.LogEntryTableApp

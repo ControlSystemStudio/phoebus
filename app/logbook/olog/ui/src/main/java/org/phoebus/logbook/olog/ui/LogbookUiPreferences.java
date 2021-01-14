@@ -32,7 +32,7 @@ public class LogbookUiPreferences
 
     static
     {
-        final PreferencesReader prefs = AnnotatedPreferences.initialize(LogbookUiPreferences.class, "/log_ui_preferences.properties");
+        final PreferencesReader prefs = AnnotatedPreferences.initialize(LogbookUiPreferences.class, "/log_olog_ui_preferences.properties");
 
         if (logbook_factory.isEmpty())
         {
