@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2013-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,9 +28,21 @@ public class PVNameFilter
             return false;
         if (pvname.startsWith("@"))
             return false;
+        // Formula is also a type of PV
+        if (isFormula(pvname))
+            return true;
         // Skip constants
         if (number.matcher(pvname).matches())
             return false;
         return true;
+    }
+
+    /** @param pvname PV Name
+     *  @return <code>true</code> if it's a formula PV
+     */
+    public static boolean isFormula(final String pvname)
+    {
+        return pvname.startsWith("=")  ||
+               pvname.startsWith("eq:");
     }
 }
