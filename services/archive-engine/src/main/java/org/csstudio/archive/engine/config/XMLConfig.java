@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -124,10 +124,10 @@ public class XMLConfig
 
     /** @param import_file XML file to read
      *  @param config RDB to update with configuration from XML file
-     *  @param steal_channels
+     *  @param duplicates How to handle duplicate channels
      *  @throws Exception on error
      */
-    public void read(final File import_file, final RDBConfig config, final int engine_id, final boolean steal_channels) throws FileNotFoundException, Exception
+    public void read(final File import_file, final RDBConfig config, final int engine_id, final RDBConfig.DuplicateMode duplicates) throws FileNotFoundException, Exception
     {
         // TODO RDB: Load sample modes?
 
@@ -148,7 +148,7 @@ public class XMLConfig
                 final double delta = XMLUtil.getChildDouble(ce, DELTA).orElse(-1.0);
                 final boolean enable = XMLUtil.getChildBoolean(ce, ENABLE).orElse(false);
 
-                config.addChannel(group_id, steal_channels, name, monitor, period, delta, enable);
+                config.addChannel(group_id, duplicates, name, monitor, period, delta, enable);
             }
         }
     }
