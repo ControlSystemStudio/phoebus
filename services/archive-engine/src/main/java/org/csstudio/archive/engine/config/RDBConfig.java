@@ -245,6 +245,7 @@ public class RDBConfig implements AutoCloseable
                             return;
                         case STEAL:
                         default:
+                            logger.log(Level.WARNING, "Channel '" + name + "' will be 'stolen' from group '" + result.getString(2) + "' (" + result.getInt(1) + ") and moved to this engine.");
                             // Continue with moving channel to this engine's group
                         }
                     }

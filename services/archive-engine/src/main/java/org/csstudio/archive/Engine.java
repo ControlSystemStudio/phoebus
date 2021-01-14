@@ -257,7 +257,6 @@ public class Engine
                     duplicates = DuplicateMode.ABORT;
                     iter.remove();
                 }
-
                 else if (cmd.equals("-steal_channels"))
                 {
                     duplicates = DuplicateMode.STEAL;
