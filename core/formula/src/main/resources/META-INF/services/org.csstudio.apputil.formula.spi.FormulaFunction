@@ -51,3 +51,8 @@ org.csstudio.apputil.formula.array.ArrayMinFunction
 org.csstudio.apputil.formula.alarm.HighestSeverityFunction
 org.csstudio.apputil.formula.alarm.MajorAlarmFunction
 org.csstudio.apputil.formula.alarm.MinorAlarmFunction
+
+# Enum
+org.csstudio.apputil.formula.enums.IndexOfFunction
+org.csstudio.apputil.formula.enums.EnumOfFunction
+
