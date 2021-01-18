@@ -20,12 +20,13 @@ public class LogEntryTable implements AppInstance {
     private final LogEntryTableApp app;
     private LogEntryTableViewController controller;
 
-    LogEntryTable(final LogEntryTableApp app)
+    public LogEntryTable(final LogEntryTableApp app)
     {
         this.app = app;
         try {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(this.getClass().getResource("LogEntryTableView.fxml"));
+
             loader.setControllerFactory(clazz -> {
                 try {
                     if(clazz.isAssignableFrom(LogEntryTableViewController.class))

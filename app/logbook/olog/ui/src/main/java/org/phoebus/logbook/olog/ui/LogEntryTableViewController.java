@@ -25,8 +25,16 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
-import javafx.scene.text.Text;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
 import javafx.util.Duration;
+import org.commonmark.Extension;
+import org.commonmark.ext.gfm.tables.TableBlock;
+import org.commonmark.ext.gfm.tables.TablesExtension;
+import org.commonmark.ext.image.attributes.ImageAttributesExtension;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.AttributeProvider;
+import org.commonmark.renderer.html.HtmlRenderer;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
@@ -41,6 +49,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -93,6 +102,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
     // Search parameters
     ObservableMap<Keys, String> searchParameters;
 
+    /**
+     * Constructor.
+     * @param logClient Log client implementation
+     */
     public LogEntryTableViewController(LogClient logClient){
         setClient(logClient);
     }
@@ -158,8 +171,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
             final GridPane pane = new GridPane();
             final Label titleText = new Label();
             titleText.setStyle("-fx-font-weight: bold");
-            final Text descriptionText = new Text();
-            descriptionText.wrappingWidthProperty().bind(descriptionCol.widthProperty());
+            WebView webView = new WebView();
+            WebEngine webEngine = webView.getEngine();
+            webEngine.setUserStyleSheetLocation(getClass()
+                    .getResource("/webview.css").toExternalForm());
 
             Node parent = topLevelNode.getScene().getRoot();
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("write/AttachmentsView.fxml"));
@@ -178,8 +193,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
             });
             try {
                 Node node = fxmlLoader.load();
-
-                pane.addColumn(0, titleText, descriptionText, node);
+                pane.addColumn(0, titleText, webView, node);
             } catch (IOException e) {
                 Logger.getLogger(LogEntryTableViewController.class.getName()).log(Level.WARNING, "Unable to load fxml for attachments view", e);
             }
@@ -201,7 +215,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
                             titleText.setVisible(true);
                             titleText.setText(logEntry.getTitle());
                         }
-                        descriptionText.setText(logEntry.getDescription());
+                        String s = toHtml(logEntry.getSource() != null && !logEntry.getSource().isEmpty() ? logEntry.getSource() : logEntry.getDescription());
+                        webEngine.loadContent(s);
 
                         AttachmentsViewController controller = fxmlLoader.getController();
                         LogEntryModel model = new LogEntryModel(logEntry);
@@ -212,7 +227,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
                     }
                 }
             };
-
         });
 
         metaCol.setMaxWidth(1f * Integer.MAX_VALUE * 25);
@@ -253,6 +267,30 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 search();
             }
         });
+    }
+
+    private String toHtml(String commonmarkString){
+        List<Extension> extensions = Arrays.asList(TablesExtension.create(), ImageAttributesExtension.create());
+        Parser parser = Parser.builder().extensions(extensions).build();
+        org.commonmark.node.Node document = parser.parse(commonmarkString);
+        HtmlRenderer renderer = HtmlRenderer.builder()
+                .attributeProviderFactory(context -> new MyAttributeProvider())
+                .extensions(extensions).build();
+        String html = renderer.render(document);
+        return html;
+    }
+
+    static class MyAttributeProvider implements AttributeProvider {
+
+        @Override
+        public void setAttributes(org.commonmark.node.Node node, String s, Map<String, String> map) {
+            if (node instanceof org.commonmark.node.Image) {
+                map.put("class", "md-image");
+            }
+            if (node instanceof TableBlock) {
+                map.put("class", "olog-table");
+            }
+        }
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored

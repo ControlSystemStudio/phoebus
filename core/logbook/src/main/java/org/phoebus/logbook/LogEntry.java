@@ -13,6 +13,10 @@ public interface LogEntry {
 
     public String getDescription();
 
+    public default String getSource(){
+        return null;
+    }
+
     public String getLevel();
 
     public Instant getCreatedDate();
