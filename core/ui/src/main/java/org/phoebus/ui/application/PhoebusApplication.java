@@ -287,6 +287,9 @@ public class PhoebusApplication extends Application {
             new Welcome().create();
         monitor.worked(1);
 
+        // Launch background job to list saved layouts
+        createLoadLayoutsMenu();
+
         // Check command line parameters
         monitor.updateTaskName(Messages.MonitorTaskCmdl);
         handleParameters(getParameters().getRaw());
@@ -1020,8 +1023,6 @@ public class PhoebusApplication extends Application {
                 DockStage.dump(buf, stage);
             logger.log(Level.WARNING, buf.toString());
         }
-
-        createLoadLayoutsMenu();
 
         try
         {
