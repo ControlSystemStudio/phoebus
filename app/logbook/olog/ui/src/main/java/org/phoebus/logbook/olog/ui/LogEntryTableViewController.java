@@ -4,6 +4,8 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
@@ -44,6 +46,7 @@ import org.phoebus.logbook.olog.ui.write.AttachmentsViewController;
 import org.phoebus.logbook.olog.ui.write.LogEntryModel;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimeParser;
+import org.w3c.dom.Document;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -102,12 +105,20 @@ public class LogEntryTableViewController extends LogbookSearchController {
     // Search parameters
     ObservableMap<Keys, String> searchParameters;
 
+    private HtmlRenderer htmlRenderer;
+    private Parser parser;
+
     /**
      * Constructor.
      * @param logClient Log client implementation
      */
     public LogEntryTableViewController(LogClient logClient){
         setClient(logClient);
+        List<Extension> extensions = Arrays.asList(TablesExtension.create(), ImageAttributesExtension.create());
+        parser = Parser.builder().extensions(extensions).build();
+        htmlRenderer = HtmlRenderer.builder()
+                .attributeProviderFactory(context -> new OlogAttributeProvider())
+                .extensions(extensions).build();
     }
 
     @FXML
@@ -172,6 +183,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
             final Label titleText = new Label();
             titleText.setStyle("-fx-font-weight: bold");
             WebView webView = new WebView();
+
+            // Hard coding WebView height as dynamic calculation turned out to not work...
+            webView.setPrefHeight(200);
             WebEngine webEngine = webView.getEngine();
             webEngine.setUserStyleSheetLocation(getClass()
                     .getResource("/webview.css").toExternalForm());
@@ -215,8 +229,15 @@ public class LogEntryTableViewController extends LogbookSearchController {
                             titleText.setVisible(true);
                             titleText.setText(logEntry.getTitle());
                         }
-                        String s = toHtml(logEntry.getSource() != null && !logEntry.getSource().isEmpty() ? logEntry.getSource() : logEntry.getDescription());
-                        webEngine.loadContent(s);
+
+                        // Content is defined by the source (default) or description field. If both are null
+                        // or empty, do no load any content to the WebView.
+                        if(logEntry.getSource() != null && !logEntry.getSource().isEmpty()){
+                            webEngine.loadContent(toHtml(logEntry.getSource()));
+                        }
+                        else if(logEntry.getDescription() != null && !logEntry.getDescription().isEmpty()){
+                            webEngine.loadContent(toHtml(logEntry.getDescription()));
+                        }
 
                         AttachmentsViewController controller = fxmlLoader.getController();
                         LogEntryModel model = new LogEntryModel(logEntry);
@@ -270,18 +291,12 @@ public class LogEntryTableViewController extends LogbookSearchController {
     }
 
     private String toHtml(String commonmarkString){
-        List<Extension> extensions = Arrays.asList(TablesExtension.create(), ImageAttributesExtension.create());
-        Parser parser = Parser.builder().extensions(extensions).build();
         org.commonmark.node.Node document = parser.parse(commonmarkString);
-        HtmlRenderer renderer = HtmlRenderer.builder()
-                .attributeProviderFactory(context -> new MyAttributeProvider())
-                .extensions(extensions).build();
-        String html = renderer.render(document);
+        String html = htmlRenderer.render(document);
         return html;
     }
 
-    static class MyAttributeProvider implements AttributeProvider {
-
+    static class OlogAttributeProvider implements AttributeProvider {
         @Override
         public void setAttributes(org.commonmark.node.Node node, String s, Map<String, String> map) {
             if (node instanceof org.commonmark.node.Image) {
