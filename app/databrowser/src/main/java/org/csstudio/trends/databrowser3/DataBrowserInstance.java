@@ -35,7 +35,6 @@ import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
-import org.phoebus.util.FileExtensionUtil;
 
 import javafx.application.Platform;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -201,18 +200,10 @@ public class DataBrowserInstance implements AppInstance
                                 null));
                 if (input.getPath().endsWith(".stp"))
                 {
-                    final File file = ResourceParser.getFile(input);
-                    if (file != null)
-                    {
-                        // If input is *.stp, enforce *.plt which will later be used to save changes
-                        final File proper = FileExtensionUtil.enforceFileExtension(file, DataBrowserApp.FILE_EXTENSION);
-                        if (! file.equals(proper))
-                        {
-                            logger.log(Level.WARNING, "Changing strip tool file " + input + " into " + proper);
-                            dock_item.setInput(proper.toURI());
-                        }
-                    }
                     StripToolParser.load(input, new_model, stream);
+                    // Tread *.plt as 'read-only', not supporting 'save'.
+                    // 'save-as' is supported, and will enforce *.plt extension.
+                    new_model.setSaveChanges(false);
                 }
                 else
                     XMLPersistence.load(new_model, stream);
