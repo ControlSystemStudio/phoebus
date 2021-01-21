@@ -125,6 +125,9 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
             });
         }
 
+        // Manage layout ourselves; otherwise an editable combobox might not honor the specified dimensions
+        combo.setManaged(false);
+
         enableChanged(null, null, null);
         contentChanged(null, null, null);
         return combo;
@@ -256,8 +259,8 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
         if (dirty_style.checkAndClear())
         {
 
-            jfx_node.setPrefSize(model_widget.propWidth().getValue(),
-                                 model_widget.propHeight().getValue());
+            jfx_node.resize(model_widget.propWidth().getValue(),
+                            model_widget.propHeight().getValue());
 
             Font f = JFXUtil.convert(model_widget.propFont().getValue());
 
@@ -300,5 +303,7 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
                 jfx_node.getEditor().setCursor(enabled ? Cursor.TEXT : Cursors.NO_WRITE);
             }
         }
+
+        jfx_node.layout();
     }
 }
