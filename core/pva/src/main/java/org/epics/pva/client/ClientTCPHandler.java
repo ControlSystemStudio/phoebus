@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -111,7 +111,7 @@ class ClientTCPHandler extends TCPHandler
         // For default EPICS_CA_CONN_TMO: 30 sec, send echo at ~15 sec:
         // Check every ~3 seconds
         last_life_sign = last_message_sent = System.currentTimeMillis();
-        final long period = Math.max(1, PVASettings.EPICS_CA_CONN_TMO * 1000L / 30 * 3);
+        final long period = Math.max(1, PVASettings.EPICS_PVA_CONN_TMO * 1000L / 30 * 3);
         alive_check = timer.scheduleWithFixedDelay(this::checkResponsiveness, period, period, TimeUnit.MILLISECONDS);
         // Don't start the send thread, yet.
         // To prevent sending messages before the server is ready,
@@ -215,7 +215,7 @@ class ClientTCPHandler extends TCPHandler
         final long now = System.currentTimeMillis();
         // How long has server been idle, not sending anything?
         final long idle = now - last_life_sign;
-        if (idle > PVASettings.EPICS_CA_CONN_TMO * 1000)
+        if (idle > PVASettings.EPICS_PVA_CONN_TMO * 1000)
         {
             // If silent for full EPICS_CA_CONN_TMO, disconnect and start over
             logger.log(Level.FINE, () -> this + " silent for " + idle + "ms, closing");
@@ -224,7 +224,7 @@ class ClientTCPHandler extends TCPHandler
         }
 
         boolean request_echo = false;
-        if (idle >= PVASettings.EPICS_CA_CONN_TMO * 1000 / 2)
+        if (idle >= PVASettings.EPICS_PVA_CONN_TMO * 1000 / 2)
         {
             if (channels.isEmpty())
             {   // Connection is idle because no channel uses it. Close!
@@ -240,7 +240,7 @@ class ClientTCPHandler extends TCPHandler
 
         // How long have we been silent, which could case the server to close connection?
         final long silent = now - last_message_sent;
-        if (! request_echo  &&  silent >= PVASettings.EPICS_CA_CONN_TMO * 1000 / 2)
+        if (! request_echo  &&  silent >= PVASettings.EPICS_PVA_CONN_TMO * 1000 / 2)
         {
             // With default EPICS_CA_CONN_TMO of 30 seconds,
             // Echo requested every 15 seconds.
