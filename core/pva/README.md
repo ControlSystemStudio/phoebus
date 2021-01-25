@@ -54,7 +54,20 @@ Similar to the C++ library, `EPICS_PVA_ADDR_LIST` can be set as an environment v
 In addition, the Java library reads a Java property of the same name.
 If both the environment variable and the Java property are defined,
 the latter is used.
-See `PVASettings` source code for additional settings.
+
+Key configuration parameters:
+
+`EPICS_PVA_ADDR_LIST`: Space-separated list of host names or IP addresses. Each may be followed by ":port", otherwise defaulting to `EPICS_PVA_BROADCAST_PORT`.  When empty, local subnet is used.
+
+`EPICS_PVA_AUTO_ADDR_LIST`: 'YES' (default) or 'NO'. 
+
+`EPICS_PVA_BROADCAST_PORT`: PVA client UDP port (default 5076) for sending name searches and receiving beacons.
+
+`EPICS_PVAS_BROADCAST_PORT`: PVA server UDP port (default 5076) for name searches and beacons.
+
+`EPICS_PVA_SERVER_PORT`: First PVA TCP port used by server, defaults to 5075.
+
+See `PVASettings` source code for complete settings.
 
 Network Details
 ---------------
