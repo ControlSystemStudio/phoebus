@@ -226,7 +226,7 @@ public class PhoebusApplication extends Application {
 
         // Load saved state (slow file access) off UI thread, allocating 30% to that
         monitor.beginTask(Messages.MonitorTaskSave);
-        final MementoTree memento = loadDefaultMemento(new SubJobMonitor(monitor, 30));
+        final MementoTree memento = loadDefaultMemento(getParameters().getRaw(), new SubJobMonitor(monitor, 30));
 
         // Trigger initialization of authentication service
         AuthorizationService.init();
@@ -964,15 +964,24 @@ public class PhoebusApplication extends Application {
         });
     }
 
-    /** @param monitor {@link JobMonitor}
+    /** @param parameters Command line parameters that may contain '-layout /path/to/Example.memento'
+     *  @param monitor {@link JobMonitor}
      *  @return Memento for previously persisted state or <code>null</code> if none found
      */
-    private MementoTree loadDefaultMemento(final JobMonitor monitor)
+    private MementoTree loadDefaultMemento(final List<String> parameters, final JobMonitor monitor)
     {
         monitor.beginTask(Messages.MonitorTaskPers, 1);
-        final File memfile = XMLMementoTree.getDefaultFile();
+        File memfile = XMLMementoTree.getDefaultFile();
         try
         {
+            for (int i=0;  i<parameters.size();  ++i)
+                if ("-layout".equals(parameters.get(i)))
+                {
+                    if (i >= parameters.size() - 1)
+                        throw new Exception("Missing /path/to/Example.memento for -layout option");
+                    memfile = new File(parameters.get(i+1));
+                    break;
+                }
             if (memfile.canRead())
             {
                 logger.log(Level.INFO, "Loading state from " + memfile);
