@@ -487,8 +487,6 @@ public class LogEntryModel {
         LogEntryBuilder logEntryBuilder = new LogEntryBuilder();
         logEntryBuilder.title(title)
                 .description(text)
-//                .createdDate(date)
-//                .modifiedDate(date)
                 .level(level);
 
         for (String selectedLogbook : selectedLogbooks)

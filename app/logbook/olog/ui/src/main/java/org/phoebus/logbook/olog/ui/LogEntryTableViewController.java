@@ -4,8 +4,6 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
@@ -46,7 +44,6 @@ import org.phoebus.logbook.olog.ui.write.AttachmentsViewController;
 import org.phoebus.logbook.olog.ui.write.LogEntryModel;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimeParser;
-import org.w3c.dom.Document;
 
 import java.io.IOException;
 import java.util.ArrayList;

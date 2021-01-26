@@ -24,6 +24,12 @@ body{
     font-family: sans-serif;
 }
 
+blockquote{
+    padding: 10px 20px;
+    margin: 0 0 20px;
+    border-left: 5px solid #eee;
+}
+
 .olog-table {
   font-family: Arial, Helvetica, sans-serif;
   border-collapse: collapse;
