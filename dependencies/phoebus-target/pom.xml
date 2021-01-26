@@ -337,6 +337,23 @@
       <version>0.15.2</version>
     </dependency>
 
+    <!-- https://mvnrepository.com/artifact/com.atlassian.commonmark/commonmark -->
+    <dependency>
+      <groupId>com.atlassian.commonmark</groupId>
+      <artifactId>commonmark</artifactId>
+      <version>0.15.2</version>
+    </dependency>
+    <dependency>
+      <groupId>com.atlassian.commonmark</groupId>
+      <artifactId>commonmark-ext-gfm-tables</artifactId>
+      <version>0.15.2</version>
+    </dependency>
+    <dependency>
+      <groupId>com.atlassian.commonmark</groupId>
+      <artifactId>commonmark-ext-image-attributes</artifactId>
+      <version>0.15.2</version>
+    </dependency>
+
     <!-- Display Builder -->
     <dependency>
       <groupId>org.controlsfx</groupId>

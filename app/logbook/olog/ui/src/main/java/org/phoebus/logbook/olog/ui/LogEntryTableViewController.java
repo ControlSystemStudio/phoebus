@@ -182,7 +182,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
             WebView webView = new WebView();
 
             // Hard coding WebView height as dynamic calculation turned out to not work...
-            webView.setPrefHeight(200);
+            // 150 is a bit conservative, but should be sufficient to at least get a clue of what the
+            // log entry is about.
+            webView.setPrefHeight(150);
             WebEngine webEngine = webView.getEngine();
             webEngine.setUserStyleSheetLocation(getClass()
                     .getResource("/webview.css").toExternalForm());
@@ -296,9 +298,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
     static class OlogAttributeProvider implements AttributeProvider {
         @Override
         public void setAttributes(org.commonmark.node.Node node, String s, Map<String, String> map) {
-            if (node instanceof org.commonmark.node.Image) {
-                map.put("class", "md-image");
-            }
             if (node instanceof TableBlock) {
                 map.put("class", "olog-table");
             }
