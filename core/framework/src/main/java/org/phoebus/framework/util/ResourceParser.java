@@ -179,7 +179,8 @@ public class ResourceParser
      */
     public static InputStream getContent(final URI resource) throws Exception
     {
-        if (resource.getScheme().equals("https"))
+        // Check for https, but beware that scheme may be null
+        if ("https".equals(resource.getScheme()))
             trustAnybody();
 
         final URL url = resource.toURL();
@@ -194,7 +195,7 @@ public class ResourceParser
      */
     public static InputStream getContent(final URI resource, final int timeout_ms) throws Exception
     {
-        if (resource.getScheme().equals("https"))
+        if ("https".equals(resource.getScheme()))
             trustAnybody();
 
         final URL url = resource.toURL();
