@@ -15,14 +15,12 @@ import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.properties.ExecuteCommandActionInfo;
-import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
-import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo.Target;
+import org.csstudio.display.builder.model.properties.OpenFileActionInfo;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.converter.edm.EdmConverter;
 import org.csstudio.opibuilder.converter.model.EdmString;
 import org.csstudio.opibuilder.converter.model.EdmWidget;
 import org.csstudio.opibuilder.converter.model.Edm_shellCmdClass;
-import org.phoebus.framework.macros.Macros;
 
 /** Convert an EDM widget into Display Builder counterpart
  *  @author Kay Kasemir
@@ -56,16 +54,17 @@ public class Convert_shellCmdClass extends ConverterBase<ActionButtonWidget>
             if (command.endsWith("&"))
                 command = command.substring(0, command.length()-1).trim();
 
-            // Command that looks like opening a StripTool file?
             if (command.endsWith(".stp"))
             {
+                // Command that looks like opening a StripTool file?
                 final String file;
                 int start = command.lastIndexOf(" ");
                 if (start < 0)
                     file = command;
                 else
                     file = command.substring(start + 1);
-                actions.add(new OpenDisplayActionInfo(description, file, new Macros(), Target.TAB));
+                // Open as 'file', which will use the data browser since it handles *.stp
+                actions.add(new OpenFileActionInfo(description, file));
             }
             else
                 actions.add(new ExecuteCommandActionInfo(description, command));
