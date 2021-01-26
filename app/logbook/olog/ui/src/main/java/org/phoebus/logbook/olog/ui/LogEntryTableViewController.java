@@ -289,12 +289,20 @@ public class LogEntryTableViewController extends LogbookSearchController {
         });
     }
 
+    /**
+     * Converts Commonmark content to HTML.
+     * @param commonmarkString Raw Commonmark string
+     * @return The HTML output of the Commonmark processor.
+     */
     private String toHtml(String commonmarkString){
         org.commonmark.node.Node document = parser.parse(commonmarkString);
-        String html = htmlRenderer.render(document);
-        return html;
+        return htmlRenderer.render(document);
     }
 
+    /**
+     * An {@link AttributeProvider} used to style elements of a log entry. Other types of
+     * attribute processing is of course possible.
+     */
     static class OlogAttributeProvider implements AttributeProvider {
         @Override
         public void setAttributes(org.commonmark.node.Node node, String s, Map<String, String> map) {

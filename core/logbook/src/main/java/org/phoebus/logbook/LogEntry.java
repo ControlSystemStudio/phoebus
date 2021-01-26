@@ -13,6 +13,13 @@ public interface LogEntry {
 
     public String getDescription();
 
+    /**
+     * This (optional) field holds the user specified log entry description in some markup format.
+     * The actual markup scheme is not mandated to anything specific, but is rather an
+     * implementation detail with the logbook clients. If the client does not use any markup,
+     * this field should be identical to the <code>description</code> field.
+     * @return
+     */
     public default String getSource(){
         return null;
     }
