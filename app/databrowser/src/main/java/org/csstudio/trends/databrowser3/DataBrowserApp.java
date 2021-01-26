@@ -26,8 +26,13 @@ import org.phoebus.ui.docking.DockStage;
 @SuppressWarnings("nls")
 public class DataBrowserApp implements AppResourceDescriptor
 {
+    /** Primary file extension for data browser config files */
     public static final String FILE_EXTENSION = "plt";
+
+    /** Handle extensions include strip tool files */
     private static final List<String> FILE_EXTENSIONS = List.of(FILE_EXTENSION, "stp");
+
+    /** Application name */
     public static final String NAME = "databrowser";
 
     @Override
