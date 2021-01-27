@@ -255,6 +255,7 @@ public class OlogClient implements LogClient {
 
         try {
             clientResponse = service.path("logs")
+                    .queryParam("markup", "commonmark")
                     .type(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_XML)
                     .accept(MediaType.APPLICATION_JSON)
