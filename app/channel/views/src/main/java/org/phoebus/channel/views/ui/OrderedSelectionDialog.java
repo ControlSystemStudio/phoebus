@@ -11,35 +11,36 @@ import javafx.scene.control.Dialog;
 
 import static org.phoebus.channel.views.ui.ChannelFinderController.logger;
 
-public class ListMultiOrderedPickerDialog extends Dialog<List<String>> {
+/**
+ * A Dialog for selecting items from a list of available items.
+ * The users selection order is preserved.
+ */
+public class OrderedSelectionDialog extends Dialog<List<String>> {
 
     /**
      * 
      * @param parent
      * @param aviableOptions
      * @param selectedOptions
-     * @param initial
      */
-    public ListMultiOrderedPickerDialog(final Node parent, final List<String> aviableOptions, final List<String> selectedOptions) {
+    public OrderedSelectionDialog(final Node parent, final List<String> aviableOptions, final List<String> selectedOptions) {
         this(aviableOptions, selectedOptions);
     }
 
     /**
-     * 
-     * @param parent
+     *
      * @param aviableOptions
      * @param selectedOptions
-     * @param initial
      */
-    public ListMultiOrderedPickerDialog(final List<String> aviableOptions, final List<String> selectedOptions) {
+    public OrderedSelectionDialog(final List<String> aviableOptions, final List<String> selectedOptions) {
 
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         setResizable(true);
         FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(this.getClass().getResource("ListMultiOrderedPicker.fxml"));
+        loader.setLocation(this.getClass().getResource("OrderedSelection.fxml"));
         try {
             getDialogPane().setContent(loader.load());
-            ListMultiOrderedPickerController controller = loader.getController();
+            OrderedSelectionController controller = loader.getController();
             controller.setAvaibleOptions(aviableOptions);
             controller.setOrderedSelectedOptions(selectedOptions);
 

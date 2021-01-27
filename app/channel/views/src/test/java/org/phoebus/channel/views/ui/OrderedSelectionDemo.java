@@ -11,20 +11,20 @@ import java.util.Arrays;
 
 import static org.phoebus.channelfinder.Property.Builder.property;
 
-public class ListMultiOrderedPickerDemo extends ApplicationWrapper {
+public class OrderedSelectionDemo extends ApplicationWrapper {
 
     public static void main(String[] args) {
-        launch(ListMultiOrderedPickerDemo.class, args);
+        launch(OrderedSelectionDemo.class, args);
     }
 
     @Override
     public void start(Stage primaryStage) throws IOException {
         FXMLLoader loader = new FXMLLoader();
 
-        loader.setLocation(this.getClass().getResource("ListMultiOrderedPicker.fxml"));
+        loader.setLocation(this.getClass().getResource("OrderedSelection.fxml"));
         loader.load();
 
-        ListMultiOrderedPickerController controller = loader.getController();
+        OrderedSelectionController controller = loader.getController();
         controller.setAvaibleOptions(Arrays.asList("first", "second", "third", "forth"));
         controller.setOrderedSelectedOptions(Arrays.asList("forth"));
 
