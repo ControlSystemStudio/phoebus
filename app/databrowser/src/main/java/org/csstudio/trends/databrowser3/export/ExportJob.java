@@ -182,7 +182,7 @@ abstract public class ExportJob implements JobRunnable
      */
     protected void printItemInfo(final PrintStream out, final ModelItem item)
     {
-        out.println(comment + "Channel: " + item.getName());
+        out.println(comment + "Channel: " + item.getResolvedName());
         // If display name differs from PV, show the _resolved_ version
         if (! item.getName().equals(item.getDisplayName()))
             out.println(comment + "Name   : " + item.getResolvedDisplayName());
@@ -224,10 +224,10 @@ abstract public class ExportJob implements JobRunnable
             {
                 ValueIterator iter;
                 if (source == Source.OPTIMIZED_ARCHIVE  &&  optimize_parameter > 1)
-                    iter = reader.getOptimizedValues(item.getName(), start, end, (int)optimize_parameter);
+                    iter = reader.getOptimizedValues(item.getResolvedName(), start, end, (int)optimize_parameter);
                 else
                 {
-                    iter = reader.getRawValues(item.getName(), start, end);
+                    iter = reader.getRawValues(item.getResolvedName(), start, end);
                     if (source == Source.LINEAR_INTERPOLATION && optimize_parameter >= 1)
                         iter = new LinearValueIterator(iter, TimeDuration.ofSeconds(optimize_parameter));
                 }
@@ -236,7 +236,7 @@ abstract public class ExportJob implements JobRunnable
             }
             catch (Exception ex)
             {
-                Logger.getLogger(getClass().getName()).log(Level.FINE, "Export error for " + item.getName(), ex);
+                Logger.getLogger(getClass().getName()).log(Level.FINE, "Export error for " + item.getResolvedName(), ex);
                 if (error == null)
                     error = ex;
             }

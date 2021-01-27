@@ -65,7 +65,7 @@ public class PlainExportJob extends ExportJob
                 out.println();
             printItemInfo(out, item);
             // Get data
-            monitor.beginTask(MessageFormat.format("Fetching data for {0}", item.getName()));
+            monitor.beginTask(MessageFormat.format("Fetching data for {0}", item.getResolvedName()));
             final ValueIterator values = createValueIterator(item);
             // Dump all values
             out.println(comment + Messages.TimeColumn + Messages.Export_Delimiter + formatter.getHeader());
@@ -79,7 +79,7 @@ public class PlainExportJob extends ExportJob
                 out.println(time + Messages.Export_Delimiter + formatter.format(value));
                 ++line_count;
                 if (++line_count % PROGRESS_UPDATE_LINES == 0)
-                    monitor.beginTask(MessageFormat.format("{0}: Wrote {1} samples", item.getName(), line_count));
+                    monitor.beginTask(MessageFormat.format("{0}: Wrote {1} samples", item.getResolvedName(), line_count));
             }
             ++count;
         }

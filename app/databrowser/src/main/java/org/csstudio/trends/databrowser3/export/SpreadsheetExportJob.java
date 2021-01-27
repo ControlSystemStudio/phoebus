@@ -45,13 +45,15 @@ public class SpreadsheetExportJob extends PlainExportJob
                                  final PrintStream out) throws Exception
     {
         // Item header
-        for (ModelItem item : model.getItems())
+        for (ModelItem item : model.getItems()){
             printItemInfo(out, item);
+        }
+
         out.println();
         // Spreadsheet Header
         out.print("# " + Messages.TimeColumn);
         for (ModelItem item : model.getItems())
-            out.print(Messages.Export_Delimiter + item.getName() + " " + formatter.getHeader());
+            out.print(Messages.Export_Delimiter + item.getResolvedName() + " " + formatter.getHeader());
         out.println();
 
         // Create speadsheet interpolation
