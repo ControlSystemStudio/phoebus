@@ -33,3 +33,10 @@ Channel Tree
 ------------
 Channel Tree by Property allows to create an hierarchical view of the channels by using properties and their values.
 It groups the channels returned by a query based on the value of the properties selected.
+
+.. image:: images/channel_tree.png
+
+Based on the order of the selected properties, all channels with a same property value are grouped under the same node.
+In the image above we see the channels ordered by the value of the properties ``hostName`` and then ``iocName``
+
+
