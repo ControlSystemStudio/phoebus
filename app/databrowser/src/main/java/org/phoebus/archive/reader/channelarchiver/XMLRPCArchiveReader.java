@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,6 +22,8 @@ import org.epics.vtype.AlarmSeverity;
 import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.UnknownChannelException;
 import org.phoebus.archive.reader.ValueIterator;
+import org.phoebus.framework.preferences.AnnotatedPreferences;
+import org.phoebus.framework.preferences.Preference;
 import org.phoebus.ui.text.RegExHelper;
 import org.w3c.dom.Element;
 
@@ -46,6 +48,13 @@ import org.w3c.dom.Element;
 @SuppressWarnings("nls")
 public class XMLRPCArchiveReader implements ArchiveReader
 {
+    @Preference static boolean use_https;
+
+    static
+    {
+        AnnotatedPreferences.initialize(XMLRPCArchiveReader.class, "/channelarchiver_preferences.properties");
+    }
+
     final URL url;
     final Integer key;
     private final Integer version;
@@ -66,7 +75,9 @@ public class XMLRPCArchiveReader implements ArchiveReader
         }
         else
             key = 1;
-        this.url = new URL("http" + url.substring(4));
+        this.url = use_https
+                 ? new URL("https" + url.substring(4))
+                 : new URL("http" + url.substring(4));
 
         final Element struct = XmlRpc.communicate(this.url, XmlRpc.command("archiver.info"));
         // XMLUtil.writeDocument(response, System.out);
