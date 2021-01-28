@@ -1,4 +1,4 @@
-package org.phoebus.channel.views.ui;
+package org.phoebus.ui.dialog;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -8,8 +8,6 @@ import org.phoebus.ui.javafx.ApplicationWrapper;
 
 import java.io.IOException;
 import java.util.Arrays;
-
-import static org.phoebus.channelfinder.Property.Builder.property;
 
 public class OrderedSelectionDemo extends ApplicationWrapper {
 
@@ -25,7 +23,7 @@ public class OrderedSelectionDemo extends ApplicationWrapper {
         loader.load();
 
         OrderedSelectionController controller = loader.getController();
-        controller.setAvaibleOptions(Arrays.asList("first", "second", "third", "forth"));
+        controller.setAvailableOptions(Arrays.asList("first", "second", "third", "forth"));
         controller.setOrderedSelectedOptions(Arrays.asList("forth"));
 
         Parent root = loader.getRoot();

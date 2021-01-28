@@ -1,4 +1,4 @@
-package org.phoebus.channel.views.ui;
+package org.phoebus.ui.dialog;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 public class OrderedSelectionController {
 
-    public static final ObservableList<String> avialable = FXCollections.observableArrayList();
+    public static final ObservableList<String> available = FXCollections.observableArrayList();
     public static final ObservableList<String> selected = FXCollections.observableArrayList();
 
     @FXML
@@ -35,7 +35,7 @@ public class OrderedSelectionController {
 
     @FXML
     public void initialize() {
-        availableOptions.setItems(avialable);
+        availableOptions.setItems(available);
         selectedOptions.setItems(selected);
     }
 
@@ -55,7 +55,7 @@ public class OrderedSelectionController {
     @FXML
     public void moveLeft() {
         ObservableList<String> selectedItems = selectedOptions.getSelectionModel().getSelectedItems();
-        avialable.addAll(selectedItems);
+        available.addAll(selectedItems);
         selected.removeAll(selectedItems);
     }
 
@@ -76,7 +76,7 @@ public class OrderedSelectionController {
     public void moveRigth() {
         ObservableList<String> selectedItems = availableOptions.getSelectionModel().getSelectedItems();
         selected.addAll(selectedItems);
-        avialable.removeAll(selectedItems);
+        available.removeAll(selectedItems);
 
     }
 
@@ -96,15 +96,15 @@ public class OrderedSelectionController {
 
     }
 
-    public void setAvaibleOptions(List<String> availableOptions) {
-        avialable.clear();
+    public void setAvailableOptions(List<String> availableOptions) {
+        available.clear();
         selected.clear();
-        avialable.addAll(availableOptions);
+        available.addAll(availableOptions);
     }
 
     public void setOrderedSelectedOptions(List<String> selectedOptions) {
         selected.clear();
-        avialable.removeAll(selectedOptions);
+        available.removeAll(selectedOptions);
         selected.addAll(selectedOptions);
     }
 
