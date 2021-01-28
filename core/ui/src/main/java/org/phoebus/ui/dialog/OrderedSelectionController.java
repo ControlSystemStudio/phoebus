@@ -65,7 +65,7 @@ public class OrderedSelectionController {
     @FXML
     public void doubleClickSelect(MouseEvent e) {
         if (e.getClickCount() == 2) {
-            moveRigth();
+            moveRight();
         }
     }
 
@@ -73,7 +73,7 @@ public class OrderedSelectionController {
      * Moves the selected item/s from the available list to the selected list
      */
     @FXML
-    public void moveRigth() {
+    public void moveRight() {
         ObservableList<String> selectedItems = availableOptions.getSelectionModel().getSelectedItems();
         selected.addAll(selectedItems);
         available.removeAll(selectedItems);
@@ -85,7 +85,14 @@ public class OrderedSelectionController {
      */
     @FXML
     public void moveUp() {
-
+        String selection = selectedOptions.getSelectionModel().getSelectedItem();
+        int selectionIndex = selected.indexOf(selection);
+        if(selectionIndex >= 1) {
+            String target = selected.get(selectionIndex - 1);
+            selected.set(selectionIndex - 1, selection);
+            selected.set(selectionIndex, target);
+            selectedOptions.getSelectionModel().select(selection);
+        }
     }
 
     /**
@@ -93,7 +100,14 @@ public class OrderedSelectionController {
      */
     @FXML
     public void moveDown() {
-
+        String selection = selectedOptions.getSelectionModel().getSelectedItem();
+        int selectionIndex = selected.indexOf(selection);
+        if(selectionIndex < selected.size() - 1) {
+            String target = selected.get(selectionIndex + 1);
+            selected.set(selectionIndex + 1, selection);
+            selected.set(selectionIndex, target);
+            selectedOptions.getSelectionModel().select(selection);
+        }
     }
 
     public void setAvailableOptions(List<String> availableOptions) {
