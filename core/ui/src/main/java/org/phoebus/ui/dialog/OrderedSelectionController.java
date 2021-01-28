@@ -5,7 +5,11 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.JFXUtil;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,6 +18,11 @@ public class OrderedSelectionController {
 
     public static final ObservableList<String> available = FXCollections.observableArrayList();
     public static final ObservableList<String> selected = FXCollections.observableArrayList();
+
+    private static final ImageView up = ImageCache.getImageView(JFXUtil.class, "/icons/up.png");
+    private static final ImageView down = ImageCache.getImageView(JFXUtil.class, "/icons/down.png");
+    private static final ImageView right = ImageCache.getImageView(JFXUtil.class, "/icons/right.png");
+    private static final ImageView left = ImageCache.getImageView(JFXUtil.class, "/icons/left.png");
 
     @FXML
     ListView<String> availableOptions;
@@ -35,6 +44,17 @@ public class OrderedSelectionController {
 
     @FXML
     public void initialize() {
+        // Text and Graphic initialization
+        moveUp.setText("  Up  ");
+        moveUp.setGraphic(up);
+        moveDown.setText("Down");
+        moveDown.setGraphic(down);
+
+        moveLeft.setGraphic(left);
+        moveLeft.setText("");
+        moveRight.setGraphic(right);
+        moveRight.setText("");
+
         availableOptions.setItems(available);
         selectedOptions.setItems(selected);
     }
@@ -86,12 +106,14 @@ public class OrderedSelectionController {
     @FXML
     public void moveUp() {
         String selection = selectedOptions.getSelectionModel().getSelectedItem();
-        int selectionIndex = selected.indexOf(selection);
-        if(selectionIndex >= 1) {
-            String target = selected.get(selectionIndex - 1);
-            selected.set(selectionIndex - 1, selection);
-            selected.set(selectionIndex, target);
-            selectedOptions.getSelectionModel().select(selection);
+        if (selection != null) {
+            int selectionIndex = selected.indexOf(selection);
+            if(selectionIndex >= 1) {
+                String target = selected.get(selectionIndex - 1);
+                selected.set(selectionIndex - 1, selection);
+                selected.set(selectionIndex, target);
+                selectedOptions.getSelectionModel().select(selection);
+            }
         }
     }
 
@@ -101,12 +123,14 @@ public class OrderedSelectionController {
     @FXML
     public void moveDown() {
         String selection = selectedOptions.getSelectionModel().getSelectedItem();
-        int selectionIndex = selected.indexOf(selection);
-        if(selectionIndex < selected.size() - 1) {
-            String target = selected.get(selectionIndex + 1);
-            selected.set(selectionIndex + 1, selection);
-            selected.set(selectionIndex, target);
-            selectedOptions.getSelectionModel().select(selection);
+        if (selection != null) {
+            int selectionIndex = selected.indexOf(selection);
+            if(selected.size() > 1 && selectionIndex < selected.size() - 1) {
+                String target = selected.get(selectionIndex + 1);
+                selected.set(selectionIndex + 1, selection);
+                selected.set(selectionIndex, target);
+                selectedOptions.getSelectionModel().select(selection);
+            }
         }
     }
 

@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<GridPane alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.102" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.ui.dialog.OrderedSelectionController">
+<GridPane alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.ui.dialog.OrderedSelectionController">
   <columnConstraints>
     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -34,10 +34,10 @@
       </ListView>
       <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="2.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
          <children>
-            <Button fx:id="moveRight" maxWidth="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#moveRight" prefWidth="70.0" text="---&gt;" />
-            <Button fx:id="moveUp" maxWidth="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#moveUp" prefWidth="70.0" text="Move Up" />
-            <Button fx:id="moveDown" maxWidth="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#moveDown" prefWidth="70.0" text="Move Down" />
-            <Button fx:id="moveLeft" maxWidth="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#moveLeft" prefWidth="70.0" text="&lt;---" />
+            <Button fx:id="moveRight" maxWidth="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#moveRight" prefWidth="70.0" text="right" />
+            <Button fx:id="moveUp" maxWidth="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#moveUp" prefWidth="70.0" text="up" />
+            <Button fx:id="moveDown" maxWidth="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#moveDown" prefWidth="70.0" text="down" />
+            <Button fx:id="moveLeft" maxWidth="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#moveLeft" prefWidth="70.0" text="left" />
          </children>
       </VBox>
    </children>
