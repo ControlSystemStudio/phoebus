@@ -24,8 +24,8 @@ import org.phoebus.applications.pvtree.Settings;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 
-import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.functions.Consumer;
 
 /** One 'item' in the PV Tree
  *
