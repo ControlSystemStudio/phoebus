@@ -1,9 +1,5 @@
 package org.phoebus.channel.views.ui;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -11,7 +7,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.input.MouseEvent;
 
-public class ListMultiOrderedPickerController {
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class OrderedSelectionController {
 
     public static final ObservableList<String> avialable = FXCollections.observableArrayList();
     public static final ObservableList<String> selected = FXCollections.observableArrayList();
@@ -105,6 +104,7 @@ public class ListMultiOrderedPickerController {
 
     public void setOrderedSelectedOptions(List<String> selectedOptions) {
         selected.clear();
+        avialable.removeAll(selectedOptions);
         selected.addAll(selectedOptions);
     }
 
