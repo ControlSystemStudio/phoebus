@@ -18,6 +18,7 @@ import org.phoebus.channelfinder.ChannelUtil;
 import org.phoebus.framework.adapter.AdapterService;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuService;
+import org.phoebus.ui.dialog.OrderedSelectionDialog;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
 import javafx.beans.property.ReadOnlyStringWrapper;
