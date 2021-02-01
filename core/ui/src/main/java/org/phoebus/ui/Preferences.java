@@ -29,6 +29,7 @@ public class Preferences
     @Preference public static String[] hide_spi_menu;
     @Preference public static boolean status_show_user;
     @Preference public static String default_save_path;
+    @Preference public static String layout_dir;
 
     static
     {

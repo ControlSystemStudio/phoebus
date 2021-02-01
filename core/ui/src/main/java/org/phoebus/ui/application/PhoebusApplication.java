@@ -7,8 +7,10 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
@@ -22,6 +24,7 @@ import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.SubJobMonitor;
 import org.phoebus.framework.persistence.MementoTree;
 import org.phoebus.framework.persistence.XMLMementoTree;
+import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
@@ -501,17 +504,45 @@ public class PhoebusApplication extends Application {
             final List<MenuItem> menuItemList = new ArrayList<>();
             final List<MenuItem> toolbarMenuItemList = new ArrayList<>();
 
+            final Map<String, File> layoutFiles = new HashMap<String, File>();
+
             // Get every file in the default directory.
             final File dir = new File(Locations.user().getAbsolutePath());
-            final File[] filesArray = dir.listFiles();
+            final File[] userLayoutFiles = dir.listFiles();
+            if(userLayoutFiles != null)
+            {
+                Arrays.stream(userLayoutFiles).forEach(file -> {
+                    layoutFiles.put(file.getName(), file);
+                });
+            }
+
+            // Get every momento file from the configured layout
+            if (Preferences.layout_dir != null && !Preferences.layout_dir.isBlank())
+            {
+                final File layoutDir = new File(Preferences.layout_dir);
+                if (layoutDir.exists())
+                {
+                    final File[] systemLayoutFiles = layoutDir.listFiles();
+                    if (systemLayoutFiles != null)
+                    {
+                        Arrays.stream(systemLayoutFiles).forEach(file -> {
+                            if(!layoutFiles.containsKey(file.getName()) && file.getName().endsWith(".memento")) {
+                                layoutFiles.put(file.getName(), file);
+                            }
+                        });
+                    }
+                }
+            }
+
+
             // For every non default memento file create a menu item for the load layout menu.
-            if (filesArray != null)
+            if (!layoutFiles.keySet().isEmpty())
             {
                 // Sort layout files alphabetically.
-                Arrays.sort(filesArray, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+                layoutFiles.keySet().stream().sorted((a, b) -> a.compareToIgnoreCase(b))
+                        .forEach(key -> {
 
-                for (final File file : filesArray)
-                {
+                    File file = layoutFiles.get(key);
                     String filename = file.getName();
                     // Skip "memento", the default. Only list SOME_NAME.memento
                     if (file.isFile() && filename.endsWith(".memento"))
@@ -533,7 +564,7 @@ public class PhoebusApplication extends Application {
                         toolbarMenuItem.setOnAction(event -> startLayoutReplacement(file));
                         toolbarMenuItemList.add(toolbarMenuItem);
                     }
-                }
+                });
             }
 
             // Update the menu with the menu items on the UI thread.
