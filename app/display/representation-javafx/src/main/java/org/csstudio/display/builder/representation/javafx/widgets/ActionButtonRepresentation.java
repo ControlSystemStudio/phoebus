@@ -517,7 +517,8 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
             // tooltip
             // Just apply a style that matches the disabled look.
             Styles.update(base, Styles.NOT_ENABLED, !enabled);
-            base.setCursor(enabled ? Cursor.HAND : Cursors.NO_WRITE);
+            // Apply the cursor to the pane and not to the button
+            jfx_node.setCursor(enabled ? Cursor.HAND : Cursors.NO_WRITE);
         }
     }
 }
