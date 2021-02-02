@@ -27,7 +27,7 @@ import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookImpl;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.TagImpl;
-import org.phoebus.logbook.olog.ui.LogbookUiPreferences;
+import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.SimpleAuthenticationToken;
 
@@ -109,9 +109,9 @@ public class LogEntryModel {
 
         logService = LogService.getInstance();
 
-        logFactory = logService.getLogFactories().get(LogbookUiPreferences.logbook_factory);
+        logFactory = logService.getLogFactories().get(LogbookUIPreferences.logbook_factory);
         if (logFactory == null)
-            logger.log(Level.WARNING, "Undefined logbook factory " + LogbookUiPreferences.logbook_factory);
+            logger.log(Level.WARNING, "Undefined logbook factory " + LogbookUIPreferences.logbook_factory);
 
         tags = FXCollections.observableArrayList();
         logbooks = FXCollections.observableArrayList();
@@ -130,7 +130,7 @@ public class LogEntryModel {
 
         // Set default logbooks
         // Get rid of leading and trailing whitespace and add the default to the selected list.
-        for (String logbook : LogbookUiPreferences.default_logbooks) {
+        for (String logbook : LogbookUIPreferences.default_logbooks) {
             LOGGER.log(Level.INFO, String.format("Adding default logbook \"%s\"", logbook));
             addSelectedLogbook(logbook.trim());
         }
@@ -515,7 +515,7 @@ public class LogEntryModel {
 
         // Sumission should be synchronous such that clients can intercept failures
 
-        if (LogbookUiPreferences.save_credentials) {
+        if (LogbookUIPreferences.save_credentials) {
             // Get the SecureStore. Store username and password.
             try {
                 SecureStore store = new SecureStore();

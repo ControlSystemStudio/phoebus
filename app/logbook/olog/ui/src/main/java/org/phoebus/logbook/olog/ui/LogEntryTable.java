@@ -62,7 +62,7 @@ public class LogEntryTable implements AppInstance {
             });
             loader.load();
             controller = loader.getController();
-            controller.setQuery(LogbookUiPreferences.default_logbook_query);
+            controller.setQuery(LogbookUIPreferences.default_logbook_query);
             DockItem tab = new DockItem(this, loader.getRoot());
             DockPane.getActiveDockPane().addTab(tab);
         } catch (IOException e)
@@ -91,7 +91,7 @@ public class LogEntryTable implements AppInstance {
         }
         else
         {
-            controller.setQuery(LogbookUiPreferences.default_logbook_query);
+            controller.setQuery(LogbookUIPreferences.default_logbook_query);
         }
     }
 

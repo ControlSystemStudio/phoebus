@@ -64,7 +64,7 @@ public class LogEntryCalender implements AppInstance {
             });
             loader.load();
             controller = loader.getController();
-            controller.setQuery(LogbookUiPreferences.default_logbook_query);
+            controller.setQuery(LogbookUIPreferences.default_logbook_query);
             if (this.app.getClient() != null) {
                 controller.setClient(this.app.getClient());
             } else {
@@ -93,7 +93,7 @@ public class LogEntryCalender implements AppInstance {
         if (memento.getString(LOG_CALENDER_QUERY).isPresent()) {
             controller.setQuery(memento.getString(LOG_CALENDER_QUERY).get());
         } else {
-            controller.setQuery(LogbookUiPreferences.default_logbook_query);
+            controller.setQuery(LogbookUIPreferences.default_logbook_query);
         }
     }
 
