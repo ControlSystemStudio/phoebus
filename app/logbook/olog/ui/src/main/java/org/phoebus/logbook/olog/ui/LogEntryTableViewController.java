@@ -204,6 +204,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 }
                 return null;
             });
+            Node node = null;
             try {
                 Node node = fxmlLoader.load();
                 pane.addColumn(0, titleText, webView, node);
@@ -211,6 +212,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 Logger.getLogger(LogEntryTableViewController.class.getName()).log(Level.WARNING, "Unable to load fxml for attachments view", e);
             }
 
+            attachmentsNode = node;
             ColumnConstraints cc = new ColumnConstraints();
             cc.setHgrow(Priority.ALWAYS);
             pane.getColumnConstraints().add(cc);
@@ -239,10 +241,16 @@ public class LogEntryTableViewController extends LogbookSearchController {
                         }
 
                         AttachmentsViewController controller = fxmlLoader.getController();
-                        LogEntryModel model = new LogEntryModel(logEntry);
-
-                        controller.setImages(model.getImages());
-                        controller.setFiles(model.getFiles());
+                        if(!logEntry.getAttachments().isEmpty()) {
+                            attachmentsNode.visibleProperty().setValue(true);
+                            LogEntryModel model = new LogEntryModel(logEntry);
+                            controller.setImages(model.getImages());
+                            controller.setFiles(model.getFiles());
+                        } else {
+                            if (attachmentsNode != null) {
+                                attachmentsNode.visibleProperty().setValue(false);
+                            }
+                        }
                         setGraphic(pane);
                     }
                 }

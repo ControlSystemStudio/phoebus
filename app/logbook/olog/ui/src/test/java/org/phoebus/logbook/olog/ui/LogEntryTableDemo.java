@@ -91,13 +91,16 @@ public class LogEntryTableDemo extends ApplicationWrapper {
                 sb.append("Some additional log text");
             }
             lb.appendDescription(sb.toString());
-            listOfFiles.forEach(file -> {
-                try {
-                    lb.attach(AttachmentImpl.of(file));
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
-            });
+            if (i%2 != 0)
+            {
+                listOfFiles.forEach(file -> {
+                    try {
+                        lb.attach(AttachmentImpl.of(file));
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
             logs.add(lb.build());
 
         }

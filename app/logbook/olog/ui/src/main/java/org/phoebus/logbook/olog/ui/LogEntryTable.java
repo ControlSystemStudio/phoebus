@@ -6,7 +6,6 @@ import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.logbook.LogClient;
-import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
