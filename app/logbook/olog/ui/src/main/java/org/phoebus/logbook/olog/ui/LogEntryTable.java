@@ -1,10 +1,13 @@
 package org.phoebus.logbook.olog.ui;
 
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Alert;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.logbook.LogClient;
+import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
@@ -29,17 +32,31 @@ public class LogEntryTable implements AppInstance {
 
             loader.setControllerFactory(clazz -> {
                 try {
-                    if(clazz.isAssignableFrom(LogEntryTableViewController.class))
+                    if(app.getClient() != null)
                     {
-                        return clazz.getConstructor(LogClient.class)
-                                .newInstance(app.getClient());
+                        if(clazz.isAssignableFrom(LogEntryTableViewController.class))
+                        {
+                            return clazz.getConstructor(LogClient.class)
+                                    .newInstance(app.getClient());
+                        }
+                        else if(clazz.isAssignableFrom(AdvancedSearchViewController.class))
+                        {
+                            return clazz.getConstructor(LogClient.class)
+                                    .newInstance(app.getClient());
+                        }
                     }
-                    else if(clazz.isAssignableFrom(AdvancedSearchViewController.class))
+                    else
                     {
-                        return clazz.getConstructor(LogClient.class)
-                                .newInstance(app.getClient());
+                        // no logbook client available
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Error");
+                        alert.setHeaderText("Failed to open log viewer");
+                        alert.setContentText("No logbook client found.");
+                        alert.showAndWait();
                     }
                 } catch (Exception e) {
+                    ExceptionDetailsErrorDialog.openError("Error",
+                            "Failed to open log table viewer: Logfactory could now create a logbook client", e);
                     log.log(Level.SEVERE, "Failed to construct controller for log table view", e);
                 }
                 return null;
@@ -72,7 +89,9 @@ public class LogEntryTable implements AppInstance {
     {
         if (memento.getString(LOG_TABLE_QUERY).isPresent()) {
             controller.setQuery(memento.getString(LOG_TABLE_QUERY).get());
-        } else {
+        }
+        else
+        {
             controller.setQuery(LogbookUiPreferences.default_logbook_query);
         }
     }
@@ -80,7 +99,8 @@ public class LogEntryTable implements AppInstance {
     @Override
     public void save(final Memento memento)
     {
-        if(!controller.getQuery().isBlank()) {
+        if(!controller.getQuery().isBlank())
+        {
             memento.setString(LOG_TABLE_QUERY, controller.getQuery().trim());
         }
     }
