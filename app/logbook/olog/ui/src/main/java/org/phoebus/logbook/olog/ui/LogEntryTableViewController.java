@@ -204,15 +204,26 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 }
                 return null;
             });
+            
             Node node = null;
             try {
-                Node node = fxmlLoader.load();
-                pane.addColumn(0, titleText, webView, node);
+                node = fxmlLoaderAttachments.load();
             } catch (IOException e) {
                 Logger.getLogger(LogEntryTableViewController.class.getName()).log(Level.WARNING, "Unable to load fxml for attachments view", e);
             }
-
             attachmentsNode = node;
+
+            FXMLLoader fxmlLoaderProperties = new FXMLLoader(getClass().getResource("LogProperties.fxml"));
+            try {
+                node = fxmlLoaderProperties.load();
+            } catch (IOException e) {
+                Logger.getLogger(LogEntryTableViewController.class.getName()).log(Level.WARNING, "Unable to load fxml for properties view", e);
+            }
+            propertiesNode = node;
+
+            pane.addColumn(0, titleText, webView, attachmentsNode, propertiesNode);
+          
+
             ColumnConstraints cc = new ColumnConstraints();
             cc.setHgrow(Priority.ALWAYS);
             pane.getColumnConstraints().add(cc);

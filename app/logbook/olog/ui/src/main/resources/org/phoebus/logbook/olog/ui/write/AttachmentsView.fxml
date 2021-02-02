@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Accordion?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.VBox?>
 
 <!--
   ~ Copyright (C) 2019 European Spallation Source ERIC.
@@ -22,16 +24,12 @@
   ~  
   -->
 
-<VBox xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.write.AttachmentsViewController">
+<VBox xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.write.AttachmentsViewController">
     <Accordion>
         <panes>
-            <TitledPane expanded="false" fx:id="titledPane" animated="true" text="Attachments">
+            <TitledPane fx:id="titledPane" animated="true" expanded="false" text="Attachments">
                 <content>
-                    <TabPane fx:id="tabPane">
-                        <Tab fx:id="propertiesTab" text="Properties">
-                            <fx:include source="../LogProperties.fxml" />
-                        </Tab>
-                    </TabPane>
+                    <TabPane fx:id="tabPane" />
                 </content>
             </TitledPane>
         </panes>

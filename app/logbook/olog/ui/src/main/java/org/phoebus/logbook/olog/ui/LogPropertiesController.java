@@ -3,6 +3,7 @@ package org.phoebus.logbook.olog.ui;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Hyperlink;
@@ -14,12 +15,14 @@ import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Pane;
 import javafx.util.Callback;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.PropertyImpl;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -120,9 +123,25 @@ public class LogPropertiesController {
         editable.addListener((observable, oldValue, newValue) -> {
             value.setEditable(newValue);
         });
+
+        // Hide the headers
+        treeTableView.widthProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> ov, Number t, Number t1) {
+                // Get the table header
+                Pane header = (Pane)treeTableView.lookup("TableHeaderRow");
+                if(header!=null && header.isVisible()) {
+                    header.setMaxHeight(0);
+                    header.setMinHeight(0);
+                    header.setPrefHeight(0);
+                    header.setVisible(false);
+                    header.setManaged(false);
+                }
+            }
+        });
     }
 
-    private void constructTree(List<Property> properties) {
+    private void constructTree(Collection<Property> properties) {
         if (properties != null && !properties.isEmpty())
         {
             TreeItem root = new TreeItem(new PropertyTreeNode("properties", " "));
@@ -144,7 +163,7 @@ public class LogPropertiesController {
      * Set the list of properties to be displayed.
      * @param properties
      */
-    public void setProperties(List<Property> properties)
+    public void setProperties(Collection<Property> properties)
     {
         constructTree(properties);
     }
