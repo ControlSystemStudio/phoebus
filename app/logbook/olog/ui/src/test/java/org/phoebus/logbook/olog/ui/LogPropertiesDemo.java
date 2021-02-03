@@ -6,6 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.CheckBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.phoebus.logbook.Property;
@@ -43,7 +44,7 @@ public class LogPropertiesDemo extends ApplicationWrapper {
         loader.load();
         final LogPropertiesController controller = loader.getController();
         Node tree = loader.getRoot();
-
+        
         CheckBox checkBox = new CheckBox();
         BooleanProperty editable = new SimpleBooleanProperty();
         checkBox.selectedProperty().bindBidirectional(editable);
@@ -56,7 +57,9 @@ public class LogPropertiesDemo extends ApplicationWrapper {
         VBox vbox = new VBox();
         vbox.getChildren().add(checkBox);
         vbox.getChildren().add(tree);
-        primaryStage.setScene(new Scene(vbox, 400, 400));
+        vbox.setPrefHeight(Region.USE_COMPUTED_SIZE);
+        Scene scene = new Scene(vbox, 400, 200);
+        primaryStage.setScene(scene);
         primaryStage.show();
 
         primaryStage.setOnCloseRequest(v -> {

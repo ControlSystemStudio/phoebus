@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 public class LogPropertiesController {
@@ -145,10 +146,13 @@ public class LogPropertiesController {
         if (properties != null && !properties.isEmpty())
         {
             TreeItem root = new TreeItem(new PropertyTreeNode("properties", " "));
+            AtomicReference<Double> rowCount = new AtomicReference<>((double) 1);
             root.getChildren().setAll(properties.stream().map(property -> {
                 PropertyTreeNode node = new PropertyTreeNode(property.getName(), " ");
+                rowCount.set(rowCount.get() + 1);
                 TreeItem<PropertyTreeNode> treeItem = new TreeItem<>(node);
                 property.getAttributes().entrySet().stream().forEach(entry -> {
+                    rowCount.set(rowCount.get() + 1);
                     treeItem.getChildren().add(new TreeItem<>(new PropertyTreeNode(entry.getKey(), entry.getValue())));
                 });
                 treeItem.setExpanded(true);
@@ -156,6 +160,7 @@ public class LogPropertiesController {
             }).collect(Collectors.toSet()));
             treeTableView.setRoot(root);
             treeTableView.setShowRoot(false);
+            treeTableView.setPrefHeight(rowCount.get()*22);
         }
     }
 
