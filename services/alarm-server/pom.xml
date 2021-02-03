@@ -52,6 +52,12 @@
       <artifactId>app-alarm-model</artifactId>
       <version>4.6.6-SNAPSHOT</version>
     </dependency>
+    <!--JUL bindings for sfl4j-->
+    <dependency> 
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-jdk14</artifactId>
+      <version>1.7.28</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
