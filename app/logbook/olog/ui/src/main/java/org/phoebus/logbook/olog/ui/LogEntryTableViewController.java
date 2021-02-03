@@ -3,11 +3,15 @@ package org.phoebus.logbook.olog.ui;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.concurrent.Worker.State;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -181,13 +185,26 @@ public class LogEntryTableViewController extends LogbookSearchController {
             titleText.setStyle("-fx-font-weight: bold");
             WebView webView = new WebView();
 
-            // Hard coding WebView height as dynamic calculation turned out to not work...
-            // 150 is a bit conservative, but should be sufficient to at least get a clue of what the
-            // log entry is about.
-            webView.setPrefHeight(150);
             WebEngine webEngine = webView.getEngine();
             webEngine.setUserStyleSheetLocation(getClass()
                     .getResource("/webview.css").toExternalForm());
+
+            webEngine.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
+                @Override
+                public void changed(ObservableValue<? extends State> arg0, State oldState, State newState) {
+                    if (newState == State.SUCCEEDED) {
+                        Object result = webEngine.executeScript(
+                                "document.getElementById('olog').offsetHeight");
+                        if(result instanceof Integer) {
+                            Integer i = (Integer) result;
+                            final double height = new Double(i) + 20;
+                            System.out.println(height);
+                            Platform.runLater(() -> webView.setPrefHeight(height));
+                        }
+                    }
+                }
+            });
+
 
             Node parent = topLevelNode.getScene().getRoot();
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("write/AttachmentsView.fxml"));
@@ -296,18 +313,27 @@ public class LogEntryTableViewController extends LogbookSearchController {
      */
     private String toHtml(String commonmarkString){
         org.commonmark.node.Node document = parser.parse(commonmarkString);
-        return htmlRenderer.render(document);
+        String html = htmlRenderer.render(document);
+        // Wrap the content in a named div so that a suitable height may be determined.
+        return "<div id='olog'>\n" + html + "</div>";
     }
 
     /**
      * An {@link AttributeProvider} used to style elements of a log entry. Other types of
      * attribute processing is of course possible.
      */
-    static class OlogAttributeProvider implements AttributeProvider {
+    private class OlogAttributeProvider implements AttributeProvider {
         @Override
         public void setAttributes(org.commonmark.node.Node node, String s, Map<String, String> map) {
             if (node instanceof TableBlock) {
                 map.put("class", "olog-table");
+            }
+            // Image URL is relative by design. Need to prepend the service URL to make the
+            // src attribute complete.
+            if(node instanceof org.commonmark.node.Image){
+                String src = map.get("src");
+                src = LogEntryTableViewController.this.getClient().getServiceUrl() + "/" + src;
+                map.put("src", src);
             }
         }
     }

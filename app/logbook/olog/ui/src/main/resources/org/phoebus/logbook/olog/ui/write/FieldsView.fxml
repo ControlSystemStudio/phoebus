@@ -48,7 +48,14 @@
                <children>
                   <Label fx:id="textLabel" prefWidth="80.0" text="Text:" />
                   <TextArea fx:id="textArea" prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS" />
-               </children></HBox>
+               </children>
+            </HBox>
+            <HBox>
+               <children>
+                  <Label maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
+                  <Button fx:id="embedImage" onAction="#embedImage" text="Embed Image" />
+               </children>
+            </HBox>
          </children>
       </VBox>
    </children>
