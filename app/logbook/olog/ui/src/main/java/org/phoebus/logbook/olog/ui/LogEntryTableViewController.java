@@ -180,6 +180,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
             final Label titleText = new Label();
             titleText.setStyle("-fx-font-weight: bold");
             WebView webView = new WebView();
+            final Node attachmentsNode;
+            final Node propertiesNode;
 
             // Hard coding WebView height as dynamic calculation turned out to not work...
             // 150 is a bit conservative, but should be sufficient to at least get a clue of what the
@@ -190,8 +192,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
                     .getResource("/webview.css").toExternalForm());
 
             Node parent = topLevelNode.getScene().getRoot();
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("write/AttachmentsView.fxml"));
-            fxmlLoader.setControllerFactory(clazz -> {
+            FXMLLoader fxmlLoaderAttachments = new FXMLLoader(getClass().getResource("write/AttachmentsView.fxml"));
+            fxmlLoaderAttachments.setControllerFactory(clazz -> {
                 try {
                     if(clazz.isAssignableFrom(AttachmentsViewController.class)){
                         AttachmentsViewController attachmentsViewController =
@@ -251,15 +253,25 @@ public class LogEntryTableViewController extends LogbookSearchController {
                             webEngine.loadContent(toHtml(logEntry.getDescription()));
                         }
 
-                        AttachmentsViewController controller = fxmlLoader.getController();
+                        AttachmentsViewController attachmentsController = fxmlLoaderAttachments.getController();
                         if(!logEntry.getAttachments().isEmpty()) {
                             attachmentsNode.visibleProperty().setValue(true);
                             LogEntryModel model = new LogEntryModel(logEntry);
-                            controller.setImages(model.getImages());
-                            controller.setFiles(model.getFiles());
+                            attachmentsController.setImages(model.getImages());
+                            attachmentsController.setFiles(model.getFiles());
                         } else {
                             if (attachmentsNode != null) {
                                 attachmentsNode.visibleProperty().setValue(false);
+                            }
+                        }
+
+                        LogPropertiesController logPropertiesController = fxmlLoaderProperties.getController();
+                        if(!logEntry.getProperties().isEmpty()) {
+                            propertiesNode.visibleProperty().setValue(true);
+                            logPropertiesController.setProperties(logEntry.getProperties());
+                        } else {
+                            if (propertiesNode != null) {
+                                propertiesNode.visibleProperty().setValue(false);
                             }
                         }
                         setGraphic(pane);
