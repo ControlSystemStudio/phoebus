@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Stack;
@@ -89,7 +90,7 @@ public class SearchController implements Initializable {
     private TableColumn<SearchEntry, String> commentColumn;
 
     @FXML
-    private TableColumn<SearchEntry, String> createdColumn;
+    private TableColumn<SearchEntry, Date> createdColumn;
 
     @FXML
     private TableColumn<SearchEntry, String> creatorColumn;
@@ -167,7 +168,7 @@ public class SearchController implements Initializable {
         nameColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getName()));
         nameColumn.setStyle("-fx-alignment: CENTER-LEFT;");
         commentColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getComment()));
-        createdColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getCreated()));
+        createdColumn.setCellValueFactory(cell -> new ReadOnlyObjectWrapper(cell.getValue().getCreated()));
         createdColumn.setStyle("-fx-alignment: CENTER-RIGHT;");
         creatorColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getCreator()));
         creatorColumn.setStyle("-fx-alignment: CENTER-RIGHT;");
@@ -220,7 +221,7 @@ public class SearchController implements Initializable {
 
         private final String name;
         private final String comment;
-        private final String created;
+        private final Date created;
         private final String creator;
 
         public static SearchEntry create(Object object) {
@@ -241,7 +242,7 @@ public class SearchController implements Initializable {
 
                 name = snapshot.getName();
                 comment = snapshot.getProperty("comment");
-                created = snapshot.getCreated().toString();
+                created = snapshot.getCreated();
                 creator = snapshot.getUserName();
             } else {
                 type = EntryType.TAG;
@@ -250,7 +251,7 @@ public class SearchController implements Initializable {
 
                 name = tag.getName();
                 comment = tag.getComment();
-                created = tag.getCreated().toString();
+                created = tag.getCreated();
                 creator = tag.getUserName();
             }
         }
@@ -279,7 +280,7 @@ public class SearchController implements Initializable {
             return comment;
         }
 
-        public String getCreated() {
+        public Date getCreated() {
             return created;
         }
 
