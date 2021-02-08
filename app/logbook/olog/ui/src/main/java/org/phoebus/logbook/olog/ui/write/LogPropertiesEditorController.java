@@ -8,6 +8,7 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
@@ -37,6 +38,7 @@ import java.util.stream.Collectors;
 public class LogPropertiesEditorController {
 
     // Model
+    private LogEntryModel model;
     ObservableList<Property> availableProperties = FXCollections.observableArrayList();
     ObservableList<Property> selectedProperties = FXCollections.observableArrayList();
 
@@ -54,9 +56,24 @@ public class LogPropertiesEditorController {
     @FXML
     TableColumn propertyName;
 
+    public LogPropertiesEditorController()
+    {
+    }
+
+    public LogPropertiesEditorController(LogEntryModel model)
+    {
+        this.model = model;
+    }
+
     @FXML
     public void initialize()
     {
+        if (this.model != null)
+        {
+            // this.model.fetchProperties();
+            availableProperties = this.model.getProperties();
+            selectedProperties = this.model.getSelectedProperties();
+        }
         selectedProperties.addListener((ListChangeListener<Property>) p -> constructTree(selectedProperties));
 
         name.setMaxWidth(1f * Integer.MAX_VALUE * 40);

@@ -22,6 +22,7 @@ package org.phoebus.logbook.olog.ui.write;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
@@ -29,6 +30,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.olog.ui.LogPropertiesController;
 import org.phoebus.logbook.olog.ui.Messages;
 
 import java.util.concurrent.ExecutionException;
@@ -56,6 +58,8 @@ public class LogEntryEditorController {
     @FXML
     private VBox attachments;
     @FXML
+    private VBox properties;
+    @FXML
     private Button cancel;
     @FXML
     private Button submit;
@@ -65,6 +69,8 @@ public class LogEntryEditorController {
     private Label completionMessageLabel;
     @FXML
     private AttachmentsViewController attachmentsViewController;
+    @FXML
+    private LogPropertiesEditorController propertiesViewController;
 
     private ExecutorService executorService;
 
@@ -104,6 +110,7 @@ public class LogEntryEditorController {
         completionMessageLabel.textProperty().setValue("");
         model.setImages(attachmentsViewController.getImages());
         model.setFiles(attachmentsViewController.getFiles());
+        model.setSelectedProperties(propertiesViewController.getProperties());
         try {
             Future<LogEntry> future = executorService.submit(() -> model.submitEntry());
             LogEntry result = future.get();

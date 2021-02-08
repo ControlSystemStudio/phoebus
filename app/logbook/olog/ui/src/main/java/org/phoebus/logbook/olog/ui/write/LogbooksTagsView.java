@@ -218,6 +218,7 @@ public class LogbooksTagsView extends VBox
         // Only start it once the listeners are in place or else the drop down's won't have all the items.
 //        model.fetchLevels();
         model.fetchLists();
+        model.fetchProperties();
     }
 
     /**
