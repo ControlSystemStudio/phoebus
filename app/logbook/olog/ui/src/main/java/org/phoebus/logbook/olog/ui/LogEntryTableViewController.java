@@ -197,14 +197,12 @@ public class LogEntryTableViewController extends LogbookSearchController {
                                 "document.getElementById('olog').offsetHeight");
                         if(result instanceof Integer) {
                             Integer i = (Integer) result;
-                            final double height = new Double(i) + 20;
-                            System.out.println(height);
+                            final double height = Double.valueOf(i) + 20;
                             Platform.runLater(() -> webView.setPrefHeight(height));
                         }
                     }
                 }
             });
-
 
             Node parent = topLevelNode.getScene().getRoot();
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("write/AttachmentsView.fxml"));
