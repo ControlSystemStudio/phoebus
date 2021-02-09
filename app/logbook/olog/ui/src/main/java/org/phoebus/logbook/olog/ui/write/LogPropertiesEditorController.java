@@ -124,6 +124,7 @@ public class LogPropertiesEditorController {
                     public void updateItem(String item, boolean empty){
                         super.updateItem(item, empty);
                         if (empty) {
+                            setText(null);
                             setGraphic(null);
                         } else {
                             try {
