@@ -14,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 /**
  * Logbook object that can be represented as XML/JSON in payload data.
  *
- * @author Eric Berryman taken from Ralph Lange <Ralph.Lange@bessy.de>
+ * @author Kunal Shroff taken from Ralph Lange <Ralph.Lange@bessy.de>
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -26,14 +26,14 @@ public class OlogLogbook implements Logbook{
     private Long id = null;
 
     /**
-     * Creates a new instance of XmlLogbook.
+     * Creates a new instance of OlogLogbook.
      *
      */
     public OlogLogbook() {
     }
 
     /**
-     * Creates a new instance of XmlLogbook.
+     * Creates a new instance of OlogLogbook.
      *
      * @param name
      * @param owner
