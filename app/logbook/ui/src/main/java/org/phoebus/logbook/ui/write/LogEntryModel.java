@@ -61,7 +61,6 @@ public class LogEntryModel {
 
     private final LogService logService;
     private final LogFactory logFactory;
-    private final LogPropertyFactory logPropertyFactory;
 
     //private Node node;
     private String username;
@@ -136,11 +135,6 @@ public class LogEntryModel {
             addSelectedLogbook(logbook.trim());
         }
 
-        // Find and set properties contributed
-        logPropertyFactory = LogPropertyFactory.getInstance();
-        if (logPropertyFactory != null) {
-
-        }
     }
 
     public LogEntryModel(LogEntry template) {
@@ -594,24 +588,6 @@ public class LogEntryModel {
             });
     }
 
-    /**
-     * Fetch the available log levels on a separate thread.
-     */
-    public void fetchLogProperties() {
-        if (logPropertyFactory != null)
-            JobManager.schedule("Fetch Log Properties ", monitor ->
-            {
-                LogClient logClient = logFactory.getLogClient();
-
-                List<String> levelList = logClient.listLevels().stream().collect(Collectors.toList());
-
-                // Certain views have listeners to these observable lists. So, when they change, the call backs need to execute on the FX Application thread.
-                Platform.runLater(() ->
-                {
-                    levelList.forEach(level -> levels.add(level));
-                });
-            });
-    }
     /**
      * Add a change listener to the available tags list.
      *

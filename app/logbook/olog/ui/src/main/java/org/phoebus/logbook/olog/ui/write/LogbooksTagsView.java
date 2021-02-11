@@ -27,6 +27,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import org.phoebus.logbook.olog.ui.Messages;
+import org.phoebus.ui.dialog.ListSelectionDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.util.Comparator;

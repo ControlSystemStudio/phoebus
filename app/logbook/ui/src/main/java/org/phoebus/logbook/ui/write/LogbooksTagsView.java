@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.phoebus.logbook.ui.Messages;
+import org.phoebus.ui.dialog.ListSelectionDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.collections.FXCollections;
