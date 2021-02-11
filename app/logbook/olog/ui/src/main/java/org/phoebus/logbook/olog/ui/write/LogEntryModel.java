@@ -26,7 +26,6 @@ import org.phoebus.logbook.LogService;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookImpl;
 import org.phoebus.logbook.Property;
-import org.phoebus.logbook.PropertyImpl;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.TagImpl;
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
@@ -63,6 +62,7 @@ public class LogEntryModel {
 
     private final LogService logService;
     private final LogFactory logFactory;
+    private final LogPropertyFactory logPropertyFactory;
 
     //private Node node;
     private String username;
@@ -140,6 +140,9 @@ public class LogEntryModel {
             LOGGER.log(Level.INFO, String.format("Adding default logbook \"%s\"", logbook));
             addSelectedLogbook(logbook.trim());
         }
+
+        // Find and set properties contributed
+        logPropertyFactory = LogPropertyFactory.getInstance();
     }
 
     public LogEntryModel(LogEntry template) {
@@ -606,6 +609,23 @@ public class LogEntryModel {
             });
     }
 
+
+    /**
+     * Fetch log properties provided by Log Properties Providers contributed via SPI on a separate thread.
+     */
+    public void fetchLogProperties() {
+        if (null != logPropertyFactory)
+            JobManager.schedule("Fetch Properties contributed via SPI ", monitor ->
+            {
+                List<Property> contributedProperties = this.logPropertyFactory.getLogProperties();
+
+                // Certain views have listeners to these observable lists. So, when they change, the call backs need to execute on the FX Application thread.
+                Platform.runLater(() ->
+                {
+                    selectedProperties.addAll(contributedProperties);
+                });
+            });
+    }
     public void setSelectedProperties(List<Property> properties) {
         this.selectedProperties.setAll(properties);
     }

@@ -219,6 +219,7 @@ public class LogbooksTagsView extends VBox
 //        model.fetchLevels();
         model.fetchLists();
         model.fetchProperties();
+        model.fetchLogProperties();
     }
 
     /**
