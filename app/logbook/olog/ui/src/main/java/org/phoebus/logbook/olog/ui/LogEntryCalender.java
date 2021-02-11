@@ -1,11 +1,13 @@
 package org.phoebus.logbook.olog.ui;
 
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Alert;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
@@ -31,22 +33,38 @@ public class LogEntryCalender implements AppInstance {
             loader.setLocation(this.getClass().getResource("LogEntryCalenderView.fxml"));
             loader.setControllerFactory(clazz -> {
                 try {
-                    if(clazz.isAssignableFrom(LogEntryCalenderViewController.class)){
-                        return clazz.getConstructor(LogClient.class)
-                                .newInstance(app.getClient());
+                    if(app.getClient() != null)
+                    {
+                        if(clazz.isAssignableFrom(LogEntryCalenderViewController.class)){
+                            return clazz.getConstructor(LogClient.class)
+                                    .newInstance(app.getClient());
+                        }
+                        else if(clazz.isAssignableFrom(AdvancedSearchViewController.class)){
+                            return clazz.getConstructor(LogClient.class)
+                                    .newInstance(app.getClient());
+                        }
                     }
-                    else if(clazz.isAssignableFrom(AdvancedSearchViewController.class)){
-                        return clazz.getConstructor(LogClient.class)
-                                .newInstance(app.getClient());
+                    else
+                    {
+                        // no logbook client available
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Error");
+                        alert.setHeaderText("Failed to open log viewer");
+                        alert.setContentText("No logbook client found.");
+                        alert.showAndWait();
                     }
-                } catch (Exception e) {
+                }
+                catch (Exception e)
+                {
+                    ExceptionDetailsErrorDialog.openError("Error",
+                            "Failed to open log calendar viewer: Logfactory could now create a logbook client", e);
                     Logger.getLogger(LogEntryEditorStage.class.getName()).log(Level.SEVERE, "Failed to construct controller for log calendar view", e);
                 }
                 return null;
             });
             loader.load();
             controller = loader.getController();
-            controller.setQuery(LogbookUiPreferences.default_logbook_query);
+            controller.setQuery(LogbookUIPreferences.default_logbook_query);
             if (this.app.getClient() != null) {
                 controller.setClient(this.app.getClient());
             } else {
@@ -75,7 +93,7 @@ public class LogEntryCalender implements AppInstance {
         if (memento.getString(LOG_CALENDER_QUERY).isPresent()) {
             controller.setQuery(memento.getString(LOG_CALENDER_QUERY).get());
         } else {
-            controller.setQuery(LogbookUiPreferences.default_logbook_query);
+            controller.setQuery(LogbookUIPreferences.default_logbook_query);
         }
     }
 

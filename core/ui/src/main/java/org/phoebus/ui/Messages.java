@@ -15,8 +15,14 @@ import org.phoebus.framework.nls.NLS;
 public class Messages
 {
     // Keep in alphabetical order, matching the order in messages.properties
+    public static String Add;
     public static String AddColumn;
     public static String AddRow;
+    public static String Add_Tooltip;
+    public static String Apply;
+    public static String Available;
+    public static String Clear;
+    public static String Clear_Tooltip;
     public static String DefaultNewColumnName;
     public static String DoNotShow;
     public static String Format_Binary;
@@ -37,13 +43,18 @@ public class Messages
     public static String MoveRowDown;
     public static String MoveRowUp;
     public static String NumberInputHdr;
+    public static String Num_Selected;
     public static String Redo_TT;
     public static String RemoveColumn;
     public static String RemoveRow;
+    public static String Remove_Tooltip;
     public static String RenameColumn;
     public static String RenameColumnInfo;
     public static String RenameColumnTitle;
     public static String ReplaceExamplesWarningFMT;
+    public static String Search;
+    public static String SearchAvailableItems;
+    public static String Selected;
     public static String Undo_TT;
 
     static

@@ -23,7 +23,7 @@ public class LogEntryCalenderApp implements AppResourceDescriptor {
 
     @Override
     public void start() {
-        logFactory = LogService.getInstance().getLogFactories().get(LogbookUiPreferences.logbook_factory);
+        logFactory = LogService.getInstance().getLogFactories().get(LogbookUIPreferences.logbook_factory);
     }
 
     @Override

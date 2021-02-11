@@ -57,7 +57,7 @@ import org.phoebus.olog.es.api.model.OlogLog;
 /**
  * A client to the Olog-es webservice
  *
- * @author Eric Berryman taken from shroffk
+ * @author Kunal Shroff
  */
 public class OlogClient implements LogClient {
     private static final Logger logger = Logger.getLogger(OlogClient.class.getName());

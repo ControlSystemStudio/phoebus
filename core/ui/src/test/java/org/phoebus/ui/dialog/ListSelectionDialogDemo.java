@@ -5,15 +5,14 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.logbook.ui.write;
-
-import org.phoebus.ui.javafx.ApplicationWrapper;
+package org.phoebus.ui.dialog;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
 /**
  * Demonstrate the ListSelectionDialog

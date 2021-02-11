@@ -20,7 +20,7 @@ import static org.phoebus.ui.application.PhoebusApplication.logger;
  *  @author Evan Smith
  */
 @SuppressWarnings("nls")
-public class LogbookUiPreferences
+public class LogbookUIPreferences
 {
     @Preference public static String[] default_logbooks;
     @Preference public static String default_logbook_query;
@@ -32,7 +32,7 @@ public class LogbookUiPreferences
 
     static
     {
-        final PreferencesReader prefs = AnnotatedPreferences.initialize(LogbookUiPreferences.class, "/log_olog_ui_preferences.properties");
+        final PreferencesReader prefs = AnnotatedPreferences.initialize(LogbookUIPreferences.class, "/log_olog_ui_preferences.properties");
 
         if (logbook_factory.isEmpty())
         {

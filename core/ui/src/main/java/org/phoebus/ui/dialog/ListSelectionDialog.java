@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.logbook.olog.ui.write;
+package org.phoebus.ui.dialog;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -28,8 +28,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
-import org.phoebus.logbook.olog.ui.Messages;
-import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.Messages;
 import org.phoebus.ui.javafx.ClearingTextField;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -114,7 +113,7 @@ public class ListSelectionDialog extends Dialog<Boolean>
         add.setTooltip(new Tooltip(Messages.Add_Tooltip));
         add.setOnAction(event -> addSelectedItems());
 
-        final Button remove = new Button(Messages.Remove, ImageCache.getImageView(ImageCache.class, REMOVE_ICON));
+        final Button remove = new Button(org.phoebus.ui.javafx.Messages.Remove, ImageCache.getImageView(ImageCache.class, REMOVE_ICON));
         remove.setTooltip(new Tooltip(Messages.Remove_Tooltip));
         remove.setOnAction(event -> removeItems(selectedItems.getSelectionModel().getSelectedItems()));
 

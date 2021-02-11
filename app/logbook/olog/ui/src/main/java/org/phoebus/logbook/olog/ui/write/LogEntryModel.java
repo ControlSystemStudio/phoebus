@@ -25,9 +25,10 @@ import org.phoebus.logbook.LogFactory;
 import org.phoebus.logbook.LogService;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookImpl;
+import org.phoebus.logbook.Property;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.TagImpl;
-import org.phoebus.logbook.olog.ui.LogbookUiPreferences;
+import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.SimpleAuthenticationToken;
 
@@ -61,6 +62,7 @@ public class LogEntryModel {
 
     private final LogService logService;
     private final LogFactory logFactory;
+    private final LogPropertyFactory logPropertyFactory;
 
     //private Node node;
     private String username;
@@ -72,8 +74,10 @@ public class LogEntryModel {
 
     private final ObservableList<String> logbooks;
     private final ObservableList<String> tags;
+    private final ObservableList<Property> properties;
     private final ObservableList<String> selectedLogbooks;
     private final ObservableList<String> selectedTags;
+    private final ObservableList<Property> selectedProperties;
     private final ObservableList<String> levels;
     private final ObservableList<Image> images;
     private final ObservableList<File> files;
@@ -109,16 +113,18 @@ public class LogEntryModel {
 
         logService = LogService.getInstance();
 
-        logFactory = logService.getLogFactories().get(LogbookUiPreferences.logbook_factory);
+        logFactory = logService.getLogFactories().get(LogbookUIPreferences.logbook_factory);
         if (logFactory == null)
-            logger.log(Level.WARNING, "Undefined logbook factory " + LogbookUiPreferences.logbook_factory);
+            logger.log(Level.WARNING, "Undefined logbook factory " + LogbookUIPreferences.logbook_factory);
 
         tags = FXCollections.observableArrayList();
         logbooks = FXCollections.observableArrayList();
         levels = FXCollections.observableArrayList();
+        properties = FXCollections.observableArrayList();
 
         selectedLogbooks = FXCollections.observableArrayList();
         selectedTags = FXCollections.observableArrayList();
+        selectedProperties = FXCollections.observableArrayList();
 
         images = FXCollections.observableArrayList();
         files = FXCollections.observableArrayList();
@@ -130,10 +136,13 @@ public class LogEntryModel {
 
         // Set default logbooks
         // Get rid of leading and trailing whitespace and add the default to the selected list.
-        for (String logbook : LogbookUiPreferences.default_logbooks) {
+        for (String logbook : LogbookUIPreferences.default_logbooks) {
             LOGGER.log(Level.INFO, String.format("Adding default logbook \"%s\"", logbook));
             addSelectedLogbook(logbook.trim());
         }
+
+        // Find and set properties contributed
+        logPropertyFactory = LogPropertyFactory.getInstance();
     }
 
     public LogEntryModel(LogEntry template) {
@@ -208,7 +217,7 @@ public class LogEntryModel {
     /**
      * Set the user name.
      *
-     * @param username
+     * @param username username
      */
     public void setUser(final String username) {
         // Could be accessed from background thread when updating, so synchronize.
@@ -229,7 +238,7 @@ public class LogEntryModel {
     /**
      * Set the password.
      *
-     * @param password
+     * @param password password
      */
     public void setPassword(final String password) {
         // Could be accessed from background thread when updating, so synchronize.
@@ -242,7 +251,7 @@ public class LogEntryModel {
     /**
      * Set the date.
      *
-     * @param date
+     * @param date log date
      */
     public void setDate(final Instant date) {
         this.date = date;
@@ -251,7 +260,7 @@ public class LogEntryModel {
     /**
      * Set the level.
      *
-     * @param level
+     * @param level log level
      */
     public void setLevel(final String level) {
         this.level = level;
@@ -267,7 +276,7 @@ public class LogEntryModel {
     /**
      * Set the title.
      *
-     * @param title
+     * @param title log title
      */
     public void setTitle(final String title) {
         this.title = title;
@@ -284,7 +293,7 @@ public class LogEntryModel {
     /**
      * Set the text.
      *
-     * @param text
+     * @param text log text
      */
     public void setText(final String text) {
         this.text = text;
@@ -302,10 +311,24 @@ public class LogEntryModel {
     /**
      * Get an unmodifiable list of the log books.
      *
-     * @return
+     * @return list of available logbooks
      */
     public ObservableList<String> getLogbooks() {
         return FXCollections.unmodifiableObservableList(logbooks);
+    }
+
+    /**
+     * Get a list of the properties
+     *
+     * @return list of available properties
+     */
+    public ObservableList<Property> getProperties() {
+        return properties;
+    }
+
+
+    public ObservableList<Property> getSelectedProperties() {
+        return selectedProperties;
     }
 
     /**
@@ -321,7 +344,7 @@ public class LogEntryModel {
      * Tests whether the model's log book list contains the passed log book name.
      *
      * @param logbook
-     * @return
+     * @return true if logbook is present in the list of available logbooks
      */
     public boolean hasLogbook(final String logbook) {
         return logbooks.contains(logbook);
@@ -493,7 +516,8 @@ public class LogEntryModel {
             logEntryBuilder.appendToLogbook(LogbookImpl.of(selectedLogbook));
         for (String selectedTag : selectedTags)
             logEntryBuilder.appendTag(TagImpl.of(selectedTag));
-
+        for (Property selectedProperty : selectedProperties)
+            logEntryBuilder.appendProperty(selectedProperty);
         // List of temporary image files to delete.
         List<File> toDelete = new ArrayList<>();
 
@@ -515,7 +539,7 @@ public class LogEntryModel {
 
         // Sumission should be synchronous such that clients can intercept failures
 
-        if (LogbookUiPreferences.save_credentials) {
+        if (LogbookUIPreferences.save_credentials) {
             // Get the SecureStore. Store username and password.
             try {
                 SecureStore store = new SecureStore();
@@ -566,6 +590,45 @@ public class LogEntryModel {
             });
     }
 
+    /**
+     * Fetch the available log properties on a separate thread.
+     */
+    public void fetchProperties() {
+        if (null != logFactory)
+            JobManager.schedule("Fetch Properties ", monitor ->
+            {
+                LogClient logClient = logFactory.getLogClient();
+
+                List<Property> propertyList = logClient.listProperties().stream().collect(Collectors.toList());
+
+                // Certain views have listeners to these observable lists. So, when they change, the call backs need to execute on the FX Application thread.
+                Platform.runLater(() ->
+                {
+                    propertyList.forEach(properties::add);
+                });
+            });
+    }
+
+
+    /**
+     * Fetch log properties provided by Log Properties Providers contributed via SPI on a separate thread.
+     */
+    public void fetchLogProperties() {
+        if (null != logPropertyFactory)
+            JobManager.schedule("Fetch Properties contributed via SPI ", monitor ->
+            {
+                List<Property> contributedProperties = this.logPropertyFactory.getLogProperties();
+
+                // Certain views have listeners to these observable lists. So, when they change, the call backs need to execute on the FX Application thread.
+                Platform.runLater(() ->
+                {
+                    selectedProperties.addAll(contributedProperties);
+                });
+            });
+    }
+    public void setSelectedProperties(List<Property> properties) {
+        this.selectedProperties.setAll(properties);
+    }
     /**
      * Fetch the available log levels on a separate thread.
      */

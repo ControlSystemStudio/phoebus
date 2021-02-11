@@ -31,7 +31,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import org.phoebus.logbook.olog.ui.LogbookUiPreferences;
+import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 import org.phoebus.logbook.olog.ui.Messages;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -147,7 +147,7 @@ public class FieldsViewController implements Initializable{
         });
 
         userField.requestFocus();
-        if (LogbookUiPreferences.save_credentials)
+        if (LogbookUIPreferences.save_credentials)
         {
             model.fetchStoredUserCredentials();
         }
@@ -164,7 +164,7 @@ public class FieldsViewController implements Initializable{
         passwordFieldLabel.setText(Messages.Password);
         dateLabel.setText(Messages.Date);
         dateField.setTooltip(new Tooltip(Messages.CurrentDate));
-        levelLabel.setText(LogbookUiPreferences.level_field_name);
+        levelLabel.setText(LogbookUIPreferences.level_field_name);
         titleLabel.setText(Messages.Title);
     }
 

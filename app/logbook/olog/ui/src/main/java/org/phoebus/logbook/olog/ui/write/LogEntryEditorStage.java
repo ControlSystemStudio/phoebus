@@ -58,6 +58,9 @@ public class LogEntryEditorStage extends Stage
                     return clazz.getConstructor(Node.class, List.class, List.class, Boolean.class)
                                     .newInstance(parent, logEntryModel.getImages(), logEntryModel.getFiles(), true);
                 }
+                else if(clazz.isAssignableFrom(LogPropertiesEditorController.class)) {
+                    return clazz.getConstructor(LogEntryModel.class).newInstance(logEntryModel);
+                }
             } catch (Exception e) {
                 Logger.getLogger(LogEntryEditorStage.class.getName()).log(Level.SEVERE, "Failed to construct controller for log editor UI", e);
             }

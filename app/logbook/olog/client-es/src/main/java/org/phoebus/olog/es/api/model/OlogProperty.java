@@ -16,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 /**
  * Property object that can be represented as XML/JSON in payload data.
  * 
- * @author Eric Berryman taken from Ralph Lange
+ * @author Kunal Shroff taken from Ralph Lange
  *         <Ralph.Lange@helmholtz-berlin.de>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -24,7 +24,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class OlogProperty implements Property{
 
     private int id;
-    private int groupingNum;
     private String name = null;
     private Map<String, String> attributes;
 
@@ -39,15 +38,14 @@ public class OlogProperty implements Property{
      * Creates a new instance of XmlProperty.
      * 
      * @param name
-     * @param value
      */
     public OlogProperty(String name) {
         this.name = name;
     }
 
     /**
-     * @param name
-     * @param attributes
+     * @param name property name
+     * @param attributes property attributes
      */
     public OlogProperty(String name, Map<String, String> attributes) {
         this.name = name;
@@ -73,24 +71,6 @@ public class OlogProperty implements Property{
     }
 
     /**
-     * Getter for property id.
-     * 
-     * @return property id
-     */
-    public int getGroupingNum() {
-        return groupingNum;
-    }
-
-    /**
-     * Setter for property id.
-     * 
-     * @param id property id
-     */
-    public void setGroupingNum(int groupingNum) {
-        this.groupingNum = groupingNum;
-    }
-
-    /**
      * Getter for property name.
      * 
      * @return property name
@@ -102,8 +82,7 @@ public class OlogProperty implements Property{
     /**
      * Setter for property name.
      * 
-     * @param name
-     *            property name
+     * @param name property name
      */
     public void setName(String name) {
         this.name = name;
@@ -117,8 +96,7 @@ public class OlogProperty implements Property{
     }
 
     /**
-     * @param attributes
-     *            the attributes to set
+     * @param attributes the attributes to set
      */
     public void setAttributes(Map<String, String> attributes) {
         this.attributes = attributes;

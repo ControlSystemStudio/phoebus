@@ -23,6 +23,8 @@ import org.phoebus.logbook.LogEntryImpl;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookImpl;
+import org.phoebus.logbook.Property;
+import org.phoebus.logbook.PropertyImpl;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.TagImpl;
 
@@ -44,6 +46,21 @@ public class InMemoryLogClient implements LogClient{
                                                        TagImpl.of("Example"));
     private final List<String> levels = Arrays.asList("Urgent", "Suggestion", "Info", "Request", "Problem");
 
+    private static final Map<String, String> tracAttributes = new HashMap<>();
+    private static final Property track = PropertyImpl.of("Track",tracAttributes);
+    private static final Map<String, String> experimentAttributes = new HashMap<>();
+    private static final Property experimentProperty = PropertyImpl.of("Experiment", experimentAttributes);
+    static
+    {
+        tracAttributes.put("id", "");
+        tracAttributes.put("URL", "");
+
+        experimentAttributes.put("id", "");
+        experimentAttributes.put("type", "");
+        experimentAttributes.put("scan-id", "");
+    }
+    private static final List<Property> properties = Arrays.asList(track, experimentProperty);
+
     public InMemoryLogClient() {
         logEntries = new HashMap<Long, LogEntry>();
         logIdCounter = new AtomicInteger();
@@ -62,6 +79,11 @@ public class InMemoryLogClient implements LogClient{
     @Override
     public Collection<Tag> listTags() {
         return tags;
+    }
+
+    @Override
+    public Collection<Property> listProperties() {
+        return properties;
     }
 
     @Override

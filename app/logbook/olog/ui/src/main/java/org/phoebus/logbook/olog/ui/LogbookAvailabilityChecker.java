@@ -35,7 +35,7 @@ import java.util.Collection;
 public class LogbookAvailabilityChecker{
 
     public static boolean isLogbookAvailable(){
-        String logBookProviderId = LogbookUiPreferences.logbook_factory;
+        String logBookProviderId = LogbookUIPreferences.logbook_factory;
         Collection<Logbook> logbooks =
                 null;
         try {

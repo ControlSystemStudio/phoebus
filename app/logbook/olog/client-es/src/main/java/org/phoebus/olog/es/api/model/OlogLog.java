@@ -28,7 +28,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 /**
  * Log object that can be represented as XML/JSON in payload data.
  *
- * @author Eric Berryman taken from Ralph Lange <Ralph.Lange@bessy.de>
+ * @author Kunal Shroff taken from Ralph Lange <Ralph.Lange@bessy.de>
  */
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlRootElement(name = "log")
@@ -52,12 +52,12 @@ public class OlogLog implements LogEntry {
     private Collection<Attachment> attachments;
     private Collection<Property> properties;
 
-    /** Creates a new instance of XmlLog */
+    /** Creates a new instance of OlogLog */
     public OlogLog() {
     }
 
     /**
-     * Creates a new instance of XmlLog.
+     * Creates a new instance of OlogLog.
      *
      * @param logId log id
      */
@@ -66,7 +66,7 @@ public class OlogLog implements LogEntry {
     }
 
     /**
-     * Creates a new instance of XmlLog.
+     * Creates a new instance of OlogLog.
      *
      * @param owner log owner
      */
@@ -75,7 +75,7 @@ public class OlogLog implements LogEntry {
     }
 
     /**
-     * Creates a new instance of XmlLog.
+     * Creates a new instance of OlogLog.
      *
      * @param logId log id
      * @param owner log owner
@@ -284,18 +284,18 @@ public class OlogLog implements LogEntry {
     }
 
     /**
-     * Setter for log's XmlLogbooks.
+     * Setter for log's OlogLogbooks.
      *
-     * @param logbooks XmlLogbooks
+     * @param logbooks OlogLogbooks
      */
     public void setLogbooks(Collection<Logbook> logbooks) {
         this.logbooks = logbooks;
     }
 
     /**
-     * Getter for the log's XmlTags.
+     * Getter for the log's OlogTags.
      *
-     * @return XmlTags for this log
+     * @return OlogTags for this log
      */
     @XmlElementWrapper(name = "tags")
     @XmlElement(type = OlogTag.class, name = "tag")

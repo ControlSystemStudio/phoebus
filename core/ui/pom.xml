@@ -19,7 +19,18 @@
       <version>1.3</version>
       <scope>test</scope>
     </dependency>
-
+    <dependency>
+      <groupId>org.testfx</groupId>
+      <artifactId>testfx-core</artifactId>
+      <version>4.0.13-alpha</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testfx</groupId>
+      <artifactId>testfx-junit</artifactId>
+      <version>4.0.13-alpha</version>
+      <scope>test</scope>
+    </dependency>
     <!-- Include all JavaFX modules so single dependency
          on core-ui will provide all that's needed
       -->
