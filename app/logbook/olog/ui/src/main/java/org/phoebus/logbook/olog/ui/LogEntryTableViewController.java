@@ -187,25 +187,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
             final Node attachmentsNode;
             final Node propertiesNode;
 
-            WebEngine webEngine = webView.getEngine();
-            webEngine.setUserStyleSheetLocation(getClass()
-                    .getResource("/webview.css").toExternalForm());
-
-            webEngine.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
-                @Override
-                public void changed(ObservableValue<? extends State> arg0, State oldState, State newState) {
-                    if (newState == State.SUCCEEDED) {
-                        Object result = webEngine.executeScript(
-                                "document.getElementById('olog').offsetHeight");
-                        if(result instanceof Integer) {
-                            Integer i = (Integer) result;
-                            final double height = Double.valueOf(i) + 20;
-                            Platform.runLater(() -> webView.setPrefHeight(height));
-                        }
-                    }
-                }
-            });
-
             Node parent = topLevelNode.getScene().getRoot();
             FXMLLoader fxmlLoaderAttachments = new FXMLLoader(getClass().getResource("write/AttachmentsView.fxml"));
             fxmlLoaderAttachments.setControllerFactory(clazz -> {
@@ -239,7 +220,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
             propertiesNode = node;
 
             pane.addColumn(0, titleText, webView, attachmentsNode, propertiesNode);
-          
 
             ColumnConstraints cc = new ColumnConstraints();
             cc.setHgrow(Priority.ALWAYS);
@@ -259,13 +239,39 @@ public class LogEntryTableViewController extends LogbookSearchController {
                             titleText.setText(logEntry.getTitle());
                         }
 
-                        // Content is defined by the source (default) or description field. If both are null
-                        // or empty, do no load any content to the WebView.
-                        if(logEntry.getSource() != null && !logEntry.getSource().isEmpty()){
-                            webEngine.loadContent(toHtml(logEntry.getSource()));
+                        // Instantiate and configure the web engine only if there is something to be rendered
+                        // in the web view.
+                        if((logEntry.getSource() != null && !logEntry.getSource().isEmpty()) ||
+                                (logEntry.getDescription() != null && !logEntry.getDescription().isEmpty())){
+                            WebEngine webEngine = webView.getEngine();
+                            webEngine.setUserStyleSheetLocation(getClass()
+                                    .getResource("/webview.css").toExternalForm());
+                            webEngine.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
+                                @Override
+                                public void changed(ObservableValue<? extends State> arg0, State oldState, State newState) {
+                                    if (newState == State.SUCCEEDED) {
+                                        Object result = webEngine.executeScript(
+                                                "document.getElementById('olog').offsetHeight");
+                                        if(result instanceof Integer) {
+                                            Integer i = (Integer) result;
+                                            final double height = Double.valueOf(i) + 20;
+                                            Platform.runLater(() -> webView.setPrefHeight(height));
+                                        }
+                                    }
+                                }
+                            });
+                            // Content is defined by the source (default) or description field. If both are null
+                            // or empty, do no load any content to the WebView.
+                            if(logEntry.getSource() != null && !logEntry.getSource().isEmpty()){
+                                webEngine.loadContent(toHtml(logEntry.getSource()));
+                            }
+                            else if(logEntry.getDescription() != null && !logEntry.getDescription().isEmpty()){
+                                webEngine.loadContent(toHtml(logEntry.getDescription()));
+                            }
                         }
-                        else if(logEntry.getDescription() != null && !logEntry.getDescription().isEmpty()){
-                            webEngine.loadContent(toHtml(logEntry.getDescription()));
+                        else{
+                            // No description/source to be rendered => hide the web view
+                            webView.visibleProperty().setValue(false);
                         }
 
                         AttachmentsViewController attachmentsController = fxmlLoaderAttachments.getController();
