@@ -43,6 +43,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -81,6 +82,7 @@ public class LogEntryModel {
     private final ObservableList<String> levels;
     private final ObservableList<Image> images;
     private final ObservableList<File> files;
+    private final ObservableList<EmbedImageDescriptor> embeddedImages;
 
     /**
      * Property that allows the model to define when the application is in an appropriate state to submit a log entry.
@@ -128,6 +130,7 @@ public class LogEntryModel {
 
         images = FXCollections.observableArrayList();
         files = FXCollections.observableArrayList();
+        embeddedImages = FXCollections.observableArrayList();
 
         //node = callingNode;
 
@@ -184,6 +187,10 @@ public class LogEntryModel {
         }
         setImages(images);
         setFiles(files);
+    }
+
+    public void addEmbeddedImage(EmbedImageDescriptor embedImageDescriptor){
+        embeddedImages.add(embedImageDescriptor);
     }
 
     public void fetchStoredUserCredentials() {
@@ -341,16 +348,6 @@ public class LogEntryModel {
     }
 
     /**
-     * Tests whether the model's log book list contains the passed log book name.
-     *
-     * @param logbook
-     * @return true if logbook is present in the list of available logbooks
-     */
-    public boolean hasLogbook(final String logbook) {
-        return logbooks.contains(logbook);
-    }
-
-    /**
      * Tests whether the model's selected log book list contains the passed log book name.
      *
      * @param logbook
@@ -401,16 +398,6 @@ public class LogEntryModel {
      */
     public ObservableList<String> getSelectedTags() {
         return FXCollections.unmodifiableObservableList(selectedTags);
-    }
-
-    /**
-     * Tests whether the model's tag list contains the passed tag name.
-     *
-     * @param tag
-     * @return
-     */
-    public boolean hasTag(final String tag) {
-        return tags.contains(tag);
     }
 
     /**
@@ -528,6 +515,15 @@ public class LogEntryModel {
             toDelete.add(imageFile);
             ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", imageFile);
             logEntryBuilder.attach(AttachmentImpl.of(imageFile, "image", false));
+        }
+
+        // Add embedded images
+        for(EmbedImageDescriptor embedImageDescriptor : embeddedImages){
+            File imageFile = new File(System.getProperty("java.io.tmpdir"), embedImageDescriptor.getFileName());
+            imageFile.deleteOnExit();
+            toDelete.add(imageFile);
+            ImageIO.write(SwingFXUtils.fromFXImage(embedImageDescriptor.getImage(), null), "png", imageFile);
+            logEntryBuilder.attach(AttachmentImpl.of(embedImageDescriptor.getId(), imageFile, "image", false));
         }
 
         // Add Files
@@ -674,16 +670,4 @@ public class LogEntryModel {
     public void addLevelListener(ListChangeListener<String> changeListener) {
         levels.addListener(changeListener);
     }
-
-    /**
-     * Set the runnable to be executed after the submit action completes.
-     * <p>This runnable will be executed on another thread so everything it does should be thread safe.
-     *
-     * @param runnable
-     */
-    public void setOnSubmitAction(Runnable runnable) {
-        onSubmitAction = runnable;
-    }
-
-
 }

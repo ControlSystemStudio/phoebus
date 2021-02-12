@@ -20,6 +20,7 @@
 package org.phoebus.logbook.olog.ui.write;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -31,12 +32,15 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
+
 import org.phoebus.logbook.olog.ui.Messages;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.net.URL;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class FieldsViewController implements Initializable{
@@ -72,6 +76,8 @@ public class FieldsViewController implements Initializable{
     private VBox logbooks;
     @FXML
     private TextArea textArea;
+
+    private SimpleStringProperty textAreaContent = new SimpleStringProperty();
 
     private LogEntryModel model;
 
@@ -152,8 +158,11 @@ public class FieldsViewController implements Initializable{
             model.fetchStoredUserCredentials();
         }
 
+        textArea.textProperty().bindBidirectional(textAreaContent);
+        textAreaContent.set(model.getText());
+        textAreaContent.addListener((observableValue, s, t1) -> model.setText(t1));
+
         titleField.textProperty().setValue(model.getTitle());
-        textArea.textProperty().setValue(model.getText());
 
         setFieldActions();
         setTextActions();
@@ -187,17 +196,29 @@ public class FieldsViewController implements Initializable{
         });
     }
 
-    /** Set the title and text fields to update the model's title and text fields on text entry */
+    /** Set the title field to update the model's title and text fields on text entry */
     private void setTextActions()
     {
         titleField.setOnKeyReleased(event ->
         {
             model.setTitle(titleField.getText());
         });
+    }
 
-        textArea.setOnKeyReleased(event ->
-        {
-            model.setText(textArea.getText());
-        });
+    @FXML
+    public void embedImage() {
+        EmbedImageDialog embedImageDialog = new EmbedImageDialog();
+        Optional<EmbedImageDescriptor> descriptor = embedImageDialog.showAndWait();
+        if(descriptor.isPresent()){
+            // Add to model
+            model.addEmbeddedImage(descriptor.get());
+            // Insert markup at caret position
+            int caretPosition = textArea.getCaretPosition();
+            String imageMarkup =
+                    "![](attachment/" + descriptor.get().getId() + ")"
+                    + "{width=" + descriptor.get().getWidth()
+                    + " height=" + descriptor.get().getHeight() + "} ";
+            textArea.insertText(caretPosition, imageMarkup);
+        }
     }
 }
