@@ -21,6 +21,9 @@ package org.phoebus.logbook.olog.ui.write;
 
 import javafx.scene.image.Image;
 
+/**
+ * Simple wrapper around data needed to describe an embedded image object.
+ */
 public class EmbedImageDescriptor {
 
     /**

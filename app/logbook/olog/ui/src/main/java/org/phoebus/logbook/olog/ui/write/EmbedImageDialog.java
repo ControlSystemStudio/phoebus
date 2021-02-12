@@ -28,7 +28,10 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
+/**
+ * Simple dialog used to select an image from file or from clipboard, and create
+ * a suitable Commonmark string to embed into log entry description.
+ */
 public class EmbedImageDialog extends Dialog<EmbedImageDescriptor> {
 
     public EmbedImageDialog(){
