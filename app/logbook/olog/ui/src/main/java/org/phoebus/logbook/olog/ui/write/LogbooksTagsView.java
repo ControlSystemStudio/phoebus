@@ -27,6 +27,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import org.phoebus.logbook.olog.ui.Messages;
+import org.phoebus.ui.dialog.ListSelectionDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.util.Comparator;
@@ -218,6 +219,8 @@ public class LogbooksTagsView extends VBox
         // Only start it once the listeners are in place or else the drop down's won't have all the items.
 //        model.fetchLevels();
         model.fetchLists();
+        model.fetchProperties();
+        model.fetchLogProperties();
     }
 
     /**

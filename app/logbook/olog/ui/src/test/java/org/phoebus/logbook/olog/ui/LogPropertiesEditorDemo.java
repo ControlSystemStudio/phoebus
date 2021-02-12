@@ -1,16 +1,14 @@
 package org.phoebus.logbook.olog.ui;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.CheckBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.PropertyImpl;
+import org.phoebus.logbook.olog.ui.write.LogPropertiesEditorController;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
 import java.io.IOException;
@@ -18,10 +16,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class LogPropertiesDemo extends ApplicationWrapper {
+public class LogPropertiesEditorDemo extends ApplicationWrapper {
 
     public static void main(String[] args) {
-        launch(LogPropertiesDemo.class, args);
+        launch(LogPropertiesEditorDemo.class, args);
     }
 
     @Override
@@ -40,22 +38,15 @@ public class LogPropertiesDemo extends ApplicationWrapper {
 
         FXMLLoader loader = new FXMLLoader();
 
-        loader.setLocation(this.getClass().getResource("LogProperties.fxml"));
+        loader.setLocation(this.getClass().getResource("write/LogPropertiesEditor.fxml"));
         loader.load();
-        final LogPropertiesController controller = loader.getController();
+        final LogPropertiesEditorController controller = loader.getController();
         Node tree = loader.getRoot();
-        
-        CheckBox checkBox = new CheckBox();
-        BooleanProperty editable = new SimpleBooleanProperty();
-        checkBox.selectedProperty().bindBidirectional(editable);
 
-        controller.setProperties(Arrays.asList(track, experimentProperty));
-        editable.addListener((observable, oldValue, newValue) -> {
-            controller.setEditable(newValue);
-        });
+        controller.setSelectedProperties(Arrays.asList(track));
+        controller.setAvailableProperties(Arrays.asList(experimentProperty));
 
         VBox vbox = new VBox();
-        vbox.getChildren().add(checkBox);
         vbox.getChildren().add(tree);
         vbox.setPrefHeight(Region.USE_COMPUTED_SIZE);
         Scene scene = new Scene(vbox, 400, 200);

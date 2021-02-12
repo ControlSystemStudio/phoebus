@@ -4,7 +4,7 @@ public interface Tag {
 
     /**
      * An interface representing a Tag associated with a {@link LogEntry}s
-     * @author berryman from shroffk
+     * @author Kunal Shroff
      *
      */
 

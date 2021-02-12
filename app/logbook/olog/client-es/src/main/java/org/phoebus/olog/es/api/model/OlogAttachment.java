@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * pass attachments over XML / without webdav? make log entries with attachments
  * atomic?
  * 
- * @author Eric Berryman
+ * @author Kunal Shroff
  */
 
 @XmlType

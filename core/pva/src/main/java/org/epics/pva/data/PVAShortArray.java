@@ -25,6 +25,7 @@ public class PVAShortArray extends PVAData implements PVAArray
 
     /** Construct variable-size array
      *  @param name Data item name
+     *  @param unsigned Data signed/unsigned type
      *  @param value Initial value
      */
     public PVAShortArray(final String name, final boolean unsigned, final short... value)

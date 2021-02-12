@@ -134,6 +134,7 @@ public class LogEntryModel {
             LOGGER.log(Level.INFO, String.format("Adding default logbook \"%s\"", logbook));
             addSelectedLogbook(logbook.trim());
         }
+
     }
 
     public LogEntryModel(LogEntry template) {

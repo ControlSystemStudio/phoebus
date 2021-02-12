@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 /**
  * Tag object that can be represented as XML/JSON in payload data.
  *
- * @author Eric Berryman taken from Ralph Lange <Ralph.Lange@bessy.de>
+ * @author Kunal Shroff taken from Ralph Lange <Ralph.Lange@bessy.de>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @XmlRootElement(name = "tag")
@@ -23,14 +23,14 @@ public class OlogTag implements Tag {
     private String name = null;
     private String state = "Active";
     /**
-     * Creates a new instance of XmlTag.
+     * Creates a new instance of OlogTag.
      *
      */
     public OlogTag() {
     }
 
     /**
-     * Creates a new instance of XmlTag.
+     * Creates a new instance of OlogTag.
      *
      * @param name
      */
@@ -39,7 +39,7 @@ public class OlogTag implements Tag {
     }
 
     /**
-     * Creates a new instance of XmlTag.
+     * Creates a new instance of OlogTag.
      *
      * @param name
      * @param state

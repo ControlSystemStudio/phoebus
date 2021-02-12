@@ -184,6 +184,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
             final Label titleText = new Label();
             titleText.setStyle("-fx-font-weight: bold");
             WebView webView = new WebView();
+            final Node attachmentsNode;
+            final Node propertiesNode;
 
             WebEngine webEngine = webView.getEngine();
             webEngine.setUserStyleSheetLocation(getClass()
@@ -205,8 +207,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
             });
 
             Node parent = topLevelNode.getScene().getRoot();
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("write/AttachmentsView.fxml"));
-            fxmlLoader.setControllerFactory(clazz -> {
+            FXMLLoader fxmlLoaderAttachments = new FXMLLoader(getClass().getResource("write/AttachmentsView.fxml"));
+            fxmlLoaderAttachments.setControllerFactory(clazz -> {
                 try {
                     if(clazz.isAssignableFrom(AttachmentsViewController.class)){
                         AttachmentsViewController attachmentsViewController =
@@ -219,12 +221,25 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 }
                 return null;
             });
+            
+            Node node = null;
             try {
-                Node node = fxmlLoader.load();
-                pane.addColumn(0, titleText, webView, node);
+                node = fxmlLoaderAttachments.load();
             } catch (IOException e) {
                 Logger.getLogger(LogEntryTableViewController.class.getName()).log(Level.WARNING, "Unable to load fxml for attachments view", e);
             }
+            attachmentsNode = node;
+
+            FXMLLoader fxmlLoaderProperties = new FXMLLoader(getClass().getResource("LogProperties.fxml"));
+            try {
+                node = fxmlLoaderProperties.load();
+            } catch (IOException e) {
+                Logger.getLogger(LogEntryTableViewController.class.getName()).log(Level.WARNING, "Unable to load fxml for properties view", e);
+            }
+            propertiesNode = node;
+
+            pane.addColumn(0, titleText, webView, attachmentsNode, propertiesNode);
+          
 
             ColumnConstraints cc = new ColumnConstraints();
             cc.setHgrow(Priority.ALWAYS);
@@ -253,11 +268,27 @@ public class LogEntryTableViewController extends LogbookSearchController {
                             webEngine.loadContent(toHtml(logEntry.getDescription()));
                         }
 
-                        AttachmentsViewController controller = fxmlLoader.getController();
-                        LogEntryModel model = new LogEntryModel(logEntry);
+                        AttachmentsViewController attachmentsController = fxmlLoaderAttachments.getController();
+                        if(!logEntry.getAttachments().isEmpty()) {
+                            attachmentsNode.visibleProperty().setValue(true);
+                            LogEntryModel model = new LogEntryModel(logEntry);
+                            attachmentsController.setImages(model.getImages());
+                            attachmentsController.setFiles(model.getFiles());
+                        } else {
+                            if (attachmentsNode != null) {
+                                attachmentsNode.visibleProperty().setValue(false);
+                            }
+                        }
 
-                        controller.setImages(model.getImages());
-                        controller.setFiles(model.getFiles());
+                        LogPropertiesController logPropertiesController = fxmlLoaderProperties.getController();
+                        if(!logEntry.getProperties().isEmpty()) {
+                            propertiesNode.visibleProperty().setValue(true);
+                            logPropertiesController.setProperties(logEntry.getProperties());
+                        } else {
+                            if (propertiesNode != null) {
+                                propertiesNode.visibleProperty().setValue(false);
+                            }
+                        }
                         setGraphic(pane);
                     }
                 }

@@ -5,18 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.logbook.ui.write;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeoutException;
-
-import org.junit.Test;
-import org.phoebus.ui.javafx.ClearingTextField;
-import org.testfx.framework.junit.ApplicationTest;
+package org.phoebus.ui.dialog;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -26,6 +15,14 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import org.junit.Test;
+import org.phoebus.ui.javafx.ClearingTextField;
+import org.testfx.framework.junit.ApplicationTest;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeoutException;
+
+import static org.junit.Assert.*;
 
 /**
  * Test the functionality of the ListSelectionDialog

@@ -73,9 +73,11 @@ public class LogEntryCalenderDemo extends ApplicationWrapper {
         logbooks.add(LogbookImpl.of("logbook1", "active"));
         logbooks.add(LogbookImpl.of("logbook2", "active"));
 
-        String path = "C:\\Users\\Kunal Shroff\\Pictures\\screenshot-git\\log-att";
-        File folder = new File(path);
-        List<File> listOfFiles = Arrays.asList(folder.listFiles());
+        File imageFile = new File(this.getClass().getClassLoader().getResource("image_1.png").toURI());
+        File textFile = new File(this.getClass().getClassLoader().getResource("file_phoebus.txt").toURI());
+
+        List<File> listOfFiles = Arrays.asList(imageFile, textFile);
+
 
         for (int i = 0; i < 10; i++) {
             LogEntryBuilder lb = LogEntryBuilder.log()

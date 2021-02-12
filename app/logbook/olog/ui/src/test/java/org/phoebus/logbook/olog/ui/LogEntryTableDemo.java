@@ -12,6 +12,8 @@ import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookException;
 import org.phoebus.logbook.LogbookImpl;
+import org.phoebus.logbook.Property;
+import org.phoebus.logbook.PropertyImpl;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.TagImpl;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
@@ -23,6 +25,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +81,17 @@ public class LogEntryTableDemo extends ApplicationWrapper {
 
         List<File> listOfFiles = Arrays.asList(imageFile, textFile);
 
+        Map<String, String> tracAttributes = new HashMap<>();
+        tracAttributes.put("id", "1234");
+        tracAttributes.put("URL", "https://trac.epics.org/tickets/1234");
+        Property track = PropertyImpl.of("Track",tracAttributes);
+
+        Map<String, String> experimentAttributes = new HashMap<>();
+        experimentAttributes.put("id", "1234");
+        experimentAttributes.put("type", "XPD xray diffraction");
+        experimentAttributes.put("scan-id", "6789");
+        Property experimentProperty = PropertyImpl.of("Experiment", experimentAttributes);
+
         for (int i = 0; i < 10; i++) {
             LogEntryBuilder lb = LogEntryBuilder.log()
                            .owner("Owner")
@@ -91,13 +105,18 @@ public class LogEntryTableDemo extends ApplicationWrapper {
                 sb.append("Some additional log text");
             }
             lb.appendDescription(sb.toString());
-            listOfFiles.forEach(file -> {
-                try {
-                    lb.attach(AttachmentImpl.of(file));
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
-            });
+            if (i%2 != 0)
+            {
+                listOfFiles.forEach(file -> {
+                    try {
+                        lb.attach(AttachmentImpl.of(file));
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                });
+                lb.appendProperty(experimentProperty);
+                lb.appendProperty(track);
+            }
             logs.add(lb.build());
 
         }

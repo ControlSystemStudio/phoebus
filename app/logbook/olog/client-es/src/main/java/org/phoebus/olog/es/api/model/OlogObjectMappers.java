@@ -8,6 +8,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Property;
@@ -61,6 +64,36 @@ public class OlogObjectMappers {
     }
 
     /**
+     * A json serializer which maps the new olog properties to {@link OlogProperty}
+     * @author Kunal Shroff
+     */
+    static class PropertySerializer extends JsonSerializer<Property> {
+
+        @Override
+        public void serialize(Property value, JsonGenerator gen, SerializerProvider serializers)
+                throws IOException {
+            gen.writeStartObject();
+            gen.writeStringField("name", value.getName());
+            gen.writeArrayFieldStart("attributes");
+
+            value.getAttributes().entrySet().stream().forEach(entry -> {
+                        try {
+                            gen.writeStartObject();
+                            gen.writeStringField("name", entry.getKey());
+                            gen.writeStringField("value", entry.getValue());
+                            gen.writeEndObject();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+            );
+            gen.writeEndArray();
+            gen.writeEndObject();
+
+        }
+    }
+
+    /**
      * A json deserializer which maps the new attachment to {@link OlogAttachment}
      * @author Kunal Shroff
      */
@@ -100,6 +133,7 @@ public class OlogObjectMappers {
         resolver.addMapping(Property.class, OlogProperty.class);
         resolver.addMapping(Attachment.class, OlogAttachment.class);
         module.setAbstractTypes(resolver);
+        module.addSerializer(Property.class, new PropertySerializer());
 
         logEntrySerializer.registerModule(module);
         logEntrySerializer.addMixIn(Attachment.class, AttachmentMixIn.class);
