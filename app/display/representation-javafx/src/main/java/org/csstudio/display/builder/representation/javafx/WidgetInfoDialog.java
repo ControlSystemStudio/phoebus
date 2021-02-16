@@ -39,6 +39,8 @@ import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
 import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.framework.macros.Macros;
+import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ReadOnlyTextCell;
 import org.phoebus.ui.javafx.StringTable;
 import org.phoebus.ui.pv.SeverityColors;
@@ -238,14 +240,11 @@ public class WidgetInfoDialog extends Dialog<Boolean>
             alert.setTitle("Information Dialog");
             alert.setHeaderText(null);
             alert.setContentText(MessageFormat.format(Messages.ExportDone, file.getAbsolutePath()));
+            DialogHelper.positionDialog(alert, getDialogPane(), -200, -100);
             alert.showAndWait();
         } catch (IOException e) {
             Logger.getLogger(getClass().getName()).log(Level.WARNING, "Failed to export widget info", e);
-            Alert alert = new Alert(AlertType.ERROR);
-            alert.setTitle(Messages.ShowErrorDialogTitle);
-            alert.setHeaderText(Messages.ExportFailed);
-            alert.setContentText(null);
-            alert.showAndWait();
+            ExceptionDetailsErrorDialog.openError(getDialogPane(), Messages.ShowErrorDialogTitle, Messages.ExportFailed, e);
         }
     }
 
