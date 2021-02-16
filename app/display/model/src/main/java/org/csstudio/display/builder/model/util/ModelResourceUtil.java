@@ -503,7 +503,12 @@ public class ModelResourceUtil
      */
     public static InputStream openURL(final String resource_name, final int timeout_ms) throws Exception
     {
-        return ResourceParser.getContent(new URL(resource_name).toURI(), timeout_ms);
+        // Received name may be the result of resolving "some file.png"
+        // relative to "http://server/displays/main.bob" as a string,
+        // i.e. "http://server/displays/some file.png"
+        // This would be acceptable for a file path, but URL() expects spaces to be escaped
+        final String escaped = resource_name.replace(" ", "%20");
+        return ResourceParser.getContent(new URL(escaped).toURI(), timeout_ms);
     }
 
     /** Write a resource.
