@@ -4,6 +4,8 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
@@ -12,22 +14,17 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.commonmark.Extension;
 import org.commonmark.ext.gfm.tables.TableBlock;
@@ -38,11 +35,7 @@ import org.commonmark.renderer.html.AttributeProvider;
 import org.commonmark.renderer.html.HtmlRenderer;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.Logbook;
-import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.olog.ui.LogbookQueryUtil.Keys;
-import org.phoebus.logbook.olog.ui.write.AttachmentsViewController;
-import org.phoebus.logbook.olog.ui.write.LogEntryModel;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimeParser;
 
@@ -53,11 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
-import static org.phoebus.util.time.TimestampFormats.SECONDS_FORMAT;
 
 /**
  * A controller for a log entry table with a collapsible advance search section.
@@ -70,28 +59,31 @@ public class LogEntryTableViewController extends LogbookSearchController {
     static final Image logbook = ImageCache.getImage(LogEntryController.class, "/icons/logbook-16.png");
 
     @FXML
-    Button resize;
+    private Button resize;
     @FXML
-    Button search;
+    private Button search;
     @FXML
-    TextField query;
+    private TextField query;
 
     // elements associated with the various search
     @FXML
-    GridPane ViewSearchPane;
+    private GridPane ViewSearchPane;
 
     // elements related to the table view of the log entires
     @FXML
-    TableView<LogEntry> tableView;
-
+    private TableView<LogEntry> tableView;
     @FXML
-    TableColumn<LogEntry, LogEntry> descriptionCol;
+    private TableColumn<LogEntry, LogEntry> descriptionCol;
+
+    // detail logview
+    @FXML
+    private AnchorPane logDetailView;
 
     @FXML
     private Node topLevelNode;
-
     @FXML
     private AdvancedSearchViewController advancedSearchViewController;
+
 
     // Model
     List<LogEntry> logEntries;
@@ -119,7 +111,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
     @FXML
     public void initialize() {
 
-        resize.setText("<");
+        resize.setText(">");
 
         searchParameters = FXCollections.observableHashMap();
         searchParameters.put(Keys.SEARCH, "*");
@@ -140,6 +132,12 @@ public class LogEntryTableViewController extends LogbookSearchController {
         // The display table.
         tableView.getColumns().clear();
         tableView.setEditable(false);
+        tableView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<LogEntry>() {
+            @Override
+            public void changed(ObservableValue<? extends LogEntry> observable, LogEntry oldValue, LogEntry newValue) {
+                //logEntryController.setLogEntry(newValue);
+            }
+        });
 
         descriptionCol = new TableColumn<>("Log");
         descriptionCol.setMaxWidth(1f * Integer.MAX_VALUE * 100);
@@ -213,14 +211,14 @@ public class LogEntryTableViewController extends LogbookSearchController {
     @FXML
     public void resize() {
         if (!moving.compareAndExchangeAcquire(false, true)) {
-            if (resize.getText().equals(">")) {
+            if (resize.getText().equals("<")) {
                 Duration cycleDuration = Duration.millis(400);
                 KeyValue kv = new KeyValue(advancedSearchViewController.getPane().minWidthProperty(), 0);
                 KeyValue kv2 = new KeyValue(advancedSearchViewController.getPane().maxWidthProperty(), 0);
                 Timeline timeline = new Timeline(new KeyFrame(cycleDuration, kv, kv2));
                 timeline.play();
                 timeline.setOnFinished(event -> {
-                    resize.setText("<");
+                    resize.setText(">");
                     moving.set(false);
                 });
             } else {
@@ -231,7 +229,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 Timeline timeline = new Timeline(new KeyFrame(cycleDuration, kv, kv2));
                 timeline.play();
                 timeline.setOnFinished(event -> {
-                    resize.setText(">");
+                    resize.setText("<");
                     moving.set(false);
                 });
             }
@@ -254,6 +252,11 @@ public class LogEntryTableViewController extends LogbookSearchController {
     public void search() {
         // parse the various time representations to Instant
         super.search(LogbookQueryUtil.parseQueryString(query.getText()));
+    }
+
+    @FXML
+    public void setSelection() {
+
     }
 
     @Override

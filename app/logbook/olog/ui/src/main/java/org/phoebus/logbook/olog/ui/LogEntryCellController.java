@@ -1,9 +1,11 @@
 package org.phoebus.logbook.olog.ui;
 
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.TouchEvent;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import org.commonmark.Extension;
@@ -107,7 +109,13 @@ public class LogEntryCellController {
                 attachmentIcon.setImage(attachment);
                 attachments.setText(String.valueOf(logEntry.getAttachments().size()));
             }
-
+            description.setOnTouchMoved(new EventHandler<TouchEvent>() {
+                @Override
+                public void handle(TouchEvent event) {
+                    // Do nothing
+                }
+            });
+            description.setDisable(true);
             // Content is defined by the source (default) or description field. If both are null
             // or empty, do no load any content to the WebView.
             WebEngine webEngine = description.getEngine();

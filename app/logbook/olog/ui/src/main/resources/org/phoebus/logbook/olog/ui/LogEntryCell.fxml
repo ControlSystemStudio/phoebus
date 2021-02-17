@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.web.WebView?>
 
-<AnchorPane prefWidth="400.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryCellController">
+<AnchorPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryCellController">
    <children>
       <GridPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <columnConstraints>
@@ -16,35 +16,34 @@
           <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
         </columnConstraints>
         <rowConstraints>
-          <RowConstraints minHeight="60.0" />
-            <RowConstraints maxHeight="100.0" minHeight="30.0" prefHeight="30.0" vgrow="NEVER" />
-            <RowConstraints maxHeight="100.0" minHeight="30.0" />
+          <RowConstraints />
+            <RowConstraints maxHeight="100.0" minHeight="30.0" vgrow="NEVER" />
+            <RowConstraints maxHeight="60.0" minHeight="30.0" vgrow="ALWAYS" />
             <RowConstraints />
         </rowConstraints>
          <children>
-            <GridPane>
+            <GridPane GridPane.hgrow="ALWAYS">
               <columnConstraints>
                 <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
               </columnConstraints>
               <rowConstraints>
-                <RowConstraints minHeight="10.0" prefHeight="30.0" />
-                <RowConstraints minHeight="10.0" prefHeight="30.0" />
-                <RowConstraints minHeight="10.0" prefHeight="30.0" />
+                <RowConstraints minHeight="10.0" />
+                <RowConstraints minHeight="10.0" />
               </rowConstraints>
                <children>
                   <Label fx:id="time" text="Time" GridPane.rowIndex="0" />
                   <Label fx:id="owner" text="Owner" GridPane.rowIndex="1" />
                </children>
             </GridPane>
-            <GridPane GridPane.columnIndex="1">
+            <GridPane minWidth="125.0" GridPane.columnIndex="1">
               <columnConstraints>
                 <ColumnConstraints hgrow="NEVER" minWidth="17.0" />
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="125.0" />
               </columnConstraints>
               <rowConstraints>
-                <RowConstraints minHeight="10.0" prefHeight="30.0" />
-                <RowConstraints minHeight="10.0" prefHeight="30.0" />
-                <RowConstraints minHeight="10.0" prefHeight="30.0" />
+                <RowConstraints minHeight="10.0" />
+                <RowConstraints minHeight="10.0" />
+                <RowConstraints minHeight="10.0" />
               </rowConstraints>
                <children>
                   <ImageView fx:id="logbookIcon" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" />
@@ -56,7 +55,7 @@
                </children>
             </GridPane>
             <Label fx:id="title" text="Title" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="NEVER" />
-            <WebView fx:id="description" minHeight="-1.0" minWidth="-1.0" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS" />
+            <WebView fx:id="description" minHeight="-1.0" minWidth="-1.0" prefHeight="150.0" prefWidth="200.0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS" />
          </children>
       </GridPane>
    </children>

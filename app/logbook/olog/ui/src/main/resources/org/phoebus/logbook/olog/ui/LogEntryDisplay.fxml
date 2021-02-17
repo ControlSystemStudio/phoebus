@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.TilePane?>
 <?import javafx.scene.layout.VBox?>
 
-<fx:root spacing="2.0" type="javafx.scene.layout.VBox" HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/8.0.102" xmlns:fx="http://javafx.com/fxml/1">
+<VBox spacing="2.0" HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryController">
   <children>
     <GridPane hgap="1.0" minHeight="140.0" vgap="1.0" VBox.vgrow="ALWAYS">
       <columnConstraints>
@@ -71,4 +71,4 @@
       </padding>
     </Accordion>
   </children>
-</fx:root>
+</VBox>

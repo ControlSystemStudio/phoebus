@@ -42,8 +42,6 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
 
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(this.getClass().getResource("LogEntryDisplay.fxml"));
-        loader.setRoot(root);
-        loader.setController(new LogEntryController());
         loader.load();
         LogEntryController controller = loader.getController();
         root = loader.getRoot();

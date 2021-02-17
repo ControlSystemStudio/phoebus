@@ -15,12 +15,9 @@ public class LogEntryControl extends VBox {
 
     public LogEntryControl() {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("LogEntryDisplay.fxml"));
-        fxmlLoader.setRoot(this);
-        this.controller = new LogEntryController();
-        fxmlLoader.setController(this.controller);
-
         try {
             fxmlLoader.load();
+            controller = fxmlLoader.getController();
         } catch (IOException exception) {
             throw new RuntimeException(exception);
         }

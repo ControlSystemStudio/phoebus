@@ -93,6 +93,7 @@ public class LogEntryTableDemo extends ApplicationWrapper {
         Property experimentProperty = PropertyImpl.of("Experiment", experimentAttributes);
 
         for (int i = 0; i < 10; i++) {
+            Thread.sleep(500);
             LogEntryBuilder lb = LogEntryBuilder.log()
                            .owner("Owner")
                            .title("log "+ i)
@@ -121,7 +122,6 @@ public class LogEntryTableDemo extends ApplicationWrapper {
 
         }
 
-        logs.stream().forEachOrdered(l -> {System.out.println(l.getTitle());});
         controller.setLogs(logs);
     }
 
