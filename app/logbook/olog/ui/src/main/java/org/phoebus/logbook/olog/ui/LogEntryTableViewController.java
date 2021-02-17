@@ -13,6 +13,7 @@ import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -23,7 +24,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.commonmark.Extension;
@@ -33,6 +33,7 @@ import org.commonmark.ext.image.attributes.ImageAttributesExtension;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.AttributeProvider;
 import org.commonmark.renderer.html.HtmlRenderer;
+import org.csstudio.apputil.formula.math.Log;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.olog.ui.LogbookQueryUtil.Keys;
@@ -77,13 +78,14 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     // detail logview
     @FXML
-    private AnchorPane logDetailView;
+    public VBox logEntryDisplay;
+    @FXML
+    private LogEntryController logEntryDisplayController;
 
     @FXML
     private Node topLevelNode;
     @FXML
     private AdvancedSearchViewController advancedSearchViewController;
-
 
     // Model
     List<LogEntry> logEntries;
@@ -135,7 +137,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
         tableView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<LogEntry>() {
             @Override
             public void changed(ObservableValue<? extends LogEntry> observable, LogEntry oldValue, LogEntry newValue) {
-                //logEntryController.setLogEntry(newValue);
+ //               logEntryController.setLogEntry(newValue);
+                System.out.println("new value - " + newValue.getTitle());
             }
         });
 
@@ -179,6 +182,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 search();
             }
         });
+
     }
 
     /**

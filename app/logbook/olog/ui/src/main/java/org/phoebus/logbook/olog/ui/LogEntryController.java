@@ -14,9 +14,11 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.TilePane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.phoebus.logbook.LogEntry;
@@ -56,9 +58,17 @@ public class LogEntryController {
     ListView<String> LogLogbooks;
 
     @FXML
-    TitledPane LogAttchments;
+    TitledPane LogAttachments;
     @FXML
     TilePane imageGallery;
+
+    @FXML
+    public TitledPane propertiesPane;
+    @FXML
+    public VBox properties;
+    @FXML
+    public LogPropertiesController propertiesController;
+
 
     private LogEntry logEntry;
 
@@ -103,8 +113,12 @@ public class LogEntryController {
             // tags: " + !logEntry.getTags().isEmpty() + "
             // logbooks:"+!logEntry.getLogbooks().isEmpty());
 
-            LogAttchments.setExpanded(logEntry.getAttachments() != null && !logEntry.getAttachments().isEmpty());
-            LogAttchments.setVisible(logEntry.getAttachments() != null && !logEntry.getAttachments().isEmpty());
+            LogAttachments.setExpanded(logEntry.getAttachments() != null && !logEntry.getAttachments().isEmpty());
+            LogAttachments.setVisible(logEntry.getAttachments() != null && !logEntry.getAttachments().isEmpty());
+
+            propertiesPane.setExpanded(logEntry.getProperties() != null && !logEntry.getProperties().isEmpty());
+            propertiesPane.setVisible(logEntry.getProperties() != null && !logEntry.getProperties().isEmpty());
+
             LogLogbooksPane.setExpanded(!logEntry.getLogbooks().isEmpty());
             logTagsPane.setExpanded(!logEntry.getTags().isEmpty());
 
@@ -134,6 +148,8 @@ public class LogEntryController {
                 imageView = createImageView(attachment.getFile());
                 imageGallery.getChildren().addAll(imageView);
             });
+
+            propertiesController.setProperties(logEntry.getProperties());
         }
     }
 

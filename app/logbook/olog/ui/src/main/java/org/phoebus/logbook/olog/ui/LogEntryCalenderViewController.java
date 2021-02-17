@@ -81,7 +81,6 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
     private AnchorPane agendaPane;
     @FXML
     private Agenda agenda;
-    private LogEntryControl logEntryControl;
 
     // Model
     private Map<Appointment, LogEntry> map;

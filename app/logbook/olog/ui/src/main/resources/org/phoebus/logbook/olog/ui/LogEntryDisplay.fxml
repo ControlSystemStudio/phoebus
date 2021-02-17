@@ -6,6 +6,7 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
@@ -60,9 +61,16 @@
     </GridPane>
     <Accordion>
       <panes>
-        <TitledPane fx:id="LogAttchments" animated="false" text="Attachments">
+        <TitledPane fx:id="LogAttachments" animated="false" text="Attachments">
           <content>
             <TilePane fx:id="imageGallery" />
+          </content>
+        </TitledPane>
+        <TitledPane fx:id="propertiesPane" animated="false" text="Properties">
+          <content>
+            <AnchorPane minHeight="0.0" minWidth="0.0">
+              <fx:include fx:id="properties" source="LogProperties.fxml" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </AnchorPane>
           </content>
         </TitledPane>
       </panes>

@@ -66,7 +66,7 @@
                </children>
             </AnchorPane>
           <AnchorPane fx:id="logDetailView" minHeight="0.0" minWidth="0.0">
-              <fx:include fx:id="logEntryControl" source="LogEntryDisplay.fxml" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+              <fx:include fx:id="logEntryDisplay" source="LogEntryDisplay.fxml" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
           </AnchorPane>
         </items>
       </SplitPane>
