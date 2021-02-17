@@ -22,6 +22,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
@@ -84,11 +85,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
     TableView<LogEntry> tableView;
 
     @FXML
-    TableColumn<LogEntry, LogEntry> timeOwnerCol;
-    @FXML
     TableColumn<LogEntry, LogEntry> descriptionCol;
-    @FXML
-    TableColumn<LogEntry, LogEntry> metaCol;
 
     @FXML
     private Node topLevelNode;
@@ -118,6 +115,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 .extensions(extensions).build();
     }
 
+
     @FXML
     public void initialize() {
 
@@ -143,174 +141,39 @@ public class LogEntryTableViewController extends LogbookSearchController {
         tableView.getColumns().clear();
         tableView.setEditable(false);
 
-        timeOwnerCol = new TableColumn<>("Time");
         descriptionCol = new TableColumn<>("Log");
-        metaCol = new TableColumn<>("Logbook/Tags");
-
-        timeOwnerCol.setMaxWidth(1f * Integer.MAX_VALUE * 25);
-        timeOwnerCol.setCellValueFactory(col -> new SimpleObjectProperty(col.getValue()));
-        timeOwnerCol.setCellFactory(col -> {
-            final GridPane pane = new GridPane();
-            final Label timeText = new Label();
-            timeText.setStyle("-fx-font-weight: bold");
-            final Label ownerText = new Label();
-            pane.addColumn(0, timeText, ownerText);
-
-            return new TableCell<>() {
-                @Override
-                public void updateItem(LogEntry logEntry, boolean empty) {
-                    super.updateItem(logEntry, empty);
-                    if (empty) {
-                        setGraphic(null);
-                    } else {
-                        if (logEntry.getCreatedDate() != null) {
-                            timeText.setText(SECONDS_FORMAT.format(logEntry.getCreatedDate()));
-                        }
-                        ownerText.setText(logEntry.getOwner());
-                        setGraphic(pane);
-                    }
-                }
-            };
-        });
-
-        descriptionCol.setMaxWidth(1f * Integer.MAX_VALUE * 50);
+        descriptionCol.setMaxWidth(1f * Integer.MAX_VALUE * 100);
         descriptionCol.setCellValueFactory(col -> new SimpleObjectProperty(col.getValue()));
         descriptionCol.setCellFactory(col -> {
-            final GridPane pane = new GridPane();
-            final Label titleText = new Label();
-            titleText.setStyle("-fx-font-weight: bold");
-            WebView webView = new WebView();
-            final Node attachmentsNode;
-            final Node propertiesNode;
-
-            // Hard coding WebView height as dynamic calculation turned out to not work...
-            // 150 is a bit conservative, but should be sufficient to at least get a clue of what the
-            // log entry is about.
-            webView.setPrefHeight(150);
-            WebEngine webEngine = webView.getEngine();
-            webEngine.setUserStyleSheetLocation(getClass()
-                    .getResource("/webview.css").toExternalForm());
-
-            Node parent = topLevelNode.getScene().getRoot();
-            FXMLLoader fxmlLoaderAttachments = new FXMLLoader(getClass().getResource("write/AttachmentsView.fxml"));
-            fxmlLoaderAttachments.setControllerFactory(clazz -> {
-                try {
-                    if(clazz.isAssignableFrom(AttachmentsViewController.class)){
-                        AttachmentsViewController attachmentsViewController =
-                                (AttachmentsViewController)clazz.getConstructor(Node.class, Boolean.class)
-                                        .newInstance(parent, false);
-                        return attachmentsViewController;
-                    }
-                } catch (Exception e) {
-                    Logger.getLogger(LogEntryTableViewController.class.getName()).log(Level.SEVERE, "Failed to construct controller for attachments view", e);
-                }
-                return null;
-            });
-            
-            Node node = null;
-            try {
-                node = fxmlLoaderAttachments.load();
-            } catch (IOException e) {
-                Logger.getLogger(LogEntryTableViewController.class.getName()).log(Level.WARNING, "Unable to load fxml for attachments view", e);
-            }
-            attachmentsNode = node;
-
-            FXMLLoader fxmlLoaderProperties = new FXMLLoader(getClass().getResource("LogProperties.fxml"));
-            try {
-                node = fxmlLoaderProperties.load();
-            } catch (IOException e) {
-                Logger.getLogger(LogEntryTableViewController.class.getName()).log(Level.WARNING, "Unable to load fxml for properties view", e);
-            }
-            propertiesNode = node;
-
-            pane.addColumn(0, titleText, webView, attachmentsNode, propertiesNode);
-          
-
-            ColumnConstraints cc = new ColumnConstraints();
-            cc.setHgrow(Priority.ALWAYS);
-            pane.getColumnConstraints().add(cc);
 
             return new TableCell<>() {
+                private Node graphic ;
+                private LogEntryCellController controller ;
+
+                {
+                    try {
+                        FXMLLoader loader = new FXMLLoader(getClass().getResource("LogEntryCell.fxml"));
+                        graphic = loader.load();
+                        controller = loader.getController();
+                    } catch (IOException exc) {
+                        throw new RuntimeException(exc);
+                    }
+                }
+
                 @Override
                 public void updateItem(LogEntry logEntry, boolean empty) {
                     super.updateItem(logEntry, empty);
                     if (empty) {
                         setGraphic(null);
                     } else {
-                        if (logEntry.getTitle() == null || logEntry.getTitle().isEmpty()) {
-                            titleText.setVisible(false);
-                        } else {
-                            titleText.setVisible(true);
-                            titleText.setText(logEntry.getTitle());
-                        }
-
-                        // Content is defined by the source (default) or description field. If both are null
-                        // or empty, do no load any content to the WebView.
-                        if(logEntry.getSource() != null && !logEntry.getSource().isEmpty()){
-                            webEngine.loadContent(toHtml(logEntry.getSource()));
-                        }
-                        else if(logEntry.getDescription() != null && !logEntry.getDescription().isEmpty()){
-                            webEngine.loadContent(toHtml(logEntry.getDescription()));
-                        }
-
-                        AttachmentsViewController attachmentsController = fxmlLoaderAttachments.getController();
-                        if(!logEntry.getAttachments().isEmpty()) {
-                            attachmentsNode.visibleProperty().setValue(true);
-                            LogEntryModel model = new LogEntryModel(logEntry);
-                            attachmentsController.setImages(model.getImages());
-                            attachmentsController.setFiles(model.getFiles());
-                        } else {
-                            if (attachmentsNode != null) {
-                                attachmentsNode.visibleProperty().setValue(false);
-                            }
-                        }
-
-                        LogPropertiesController logPropertiesController = fxmlLoaderProperties.getController();
-                        if(!logEntry.getProperties().isEmpty()) {
-                            propertiesNode.visibleProperty().setValue(true);
-                            logPropertiesController.setProperties(logEntry.getProperties());
-                        } else {
-                            if (propertiesNode != null) {
-                                propertiesNode.visibleProperty().setValue(false);
-                            }
-                        }
-                        setGraphic(pane);
+                        controller.setLogEntry(logEntry);
+                        setGraphic(graphic);
                     }
                 }
             };
         });
 
-        metaCol.setMaxWidth(1f * Integer.MAX_VALUE * 25);
-        metaCol.setCellValueFactory(col -> new SimpleObjectProperty(col.getValue()));
-        metaCol.setCellFactory(col -> {
-            final GridPane pane = new GridPane();
-            final Label logbooks = new Label();
-            final Separator seperator = new Separator();
-            final Label tags = new Label();
-            pane.addColumn(0, logbooks, seperator, tags);
-
-            return new TableCell<>() {
-                @Override
-                public void updateItem(LogEntry logEntry, boolean empty) {
-                    super.updateItem(logEntry, empty);
-                    if (empty) {
-                        setGraphic(null);
-                    } else {
-                        logbooks.setText(logEntry.getLogbooks().stream().map(Logbook::getName)
-                                .collect(Collectors.joining(System.lineSeparator())));
-                        logbooks.setGraphic(new ImageView(logbook));
-                        tags.setText(logEntry.getTags().stream().map(Tag::getName)
-                                .collect(Collectors.joining(System.lineSeparator())));
-                        tags.setGraphic(new ImageView(tag));
-                        setGraphic(pane);
-                    }
-                }
-            };
-        });
-
-        tableView.getColumns().add(timeOwnerCol);
         tableView.getColumns().add(descriptionCol);
-        tableView.getColumns().add(metaCol);
 
         // Bind ENTER key press to search
         query.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
@@ -396,7 +259,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
     @Override
     public void setLogs(List<LogEntry> logs) {
         List<LogEntry> copy = logs.stream()
-                .sorted((one, two) -> two.getCreatedDate().compareTo(one.getCreatedDate()))
+                .sorted((one, two) -> one.getCreatedDate().compareTo(two.getCreatedDate()))
                 .collect(Collectors.toList());
 
         this.logEntries = copy;

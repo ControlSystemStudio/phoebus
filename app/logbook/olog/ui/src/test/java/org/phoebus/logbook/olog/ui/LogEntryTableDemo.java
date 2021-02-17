@@ -121,6 +121,7 @@ public class LogEntryTableDemo extends ApplicationWrapper {
 
         }
 
+        logs.stream().forEachOrdered(l -> {System.out.println(l.getTitle());});
         controller.setLogs(logs);
     }
 
