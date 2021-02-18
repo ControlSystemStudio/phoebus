@@ -134,8 +134,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         tableView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<LogEntry>() {
             @Override
             public void changed(ObservableValue<? extends LogEntry> observable, LogEntry oldValue, LogEntry newValue) {
- //               logEntryController.setLogEntry(newValue);
-                System.out.println("new value - " + newValue.getTitle());
+                logEntryDisplayController.setLogEntry(newValue);
             }
         });
 

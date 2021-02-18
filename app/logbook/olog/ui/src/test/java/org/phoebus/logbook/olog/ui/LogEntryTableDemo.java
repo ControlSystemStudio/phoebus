@@ -54,6 +54,9 @@ public class LogEntryTableDemo extends ApplicationWrapper {
                     return clazz.getConstructor(LogClient.class)
                             .newInstance(getLogClient());
                 }
+                else if(clazz.isAssignableFrom(LogEntryDisplayController.class)){
+                    return clazz.getConstructor().newInstance();
+                }
             } catch (Exception e) {
                 Logger.getLogger(LogEntryEditorStage.class.getName()).log(Level.SEVERE, "Failed to construct controller for log calendar view", e);
             }
