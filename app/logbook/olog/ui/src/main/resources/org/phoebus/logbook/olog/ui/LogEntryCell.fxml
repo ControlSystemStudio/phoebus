@@ -17,8 +17,8 @@
         </columnConstraints>
         <rowConstraints>
           <RowConstraints />
-            <RowConstraints maxHeight="100.0" minHeight="30.0" vgrow="NEVER" />
-            <RowConstraints maxHeight="60.0" minHeight="30.0" vgrow="ALWAYS" />
+            <RowConstraints maxHeight="1.7976931348623157E308" minHeight="30.0" vgrow="NEVER" />
+            <RowConstraints maxHeight="40.0" minHeight="30.0" vgrow="ALWAYS" />
             <RowConstraints />
         </rowConstraints>
          <children>
