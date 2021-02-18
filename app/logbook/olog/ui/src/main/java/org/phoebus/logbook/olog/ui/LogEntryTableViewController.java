@@ -13,7 +13,6 @@ import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -22,7 +21,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
@@ -33,7 +31,6 @@ import org.commonmark.ext.image.attributes.ImageAttributesExtension;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.AttributeProvider;
 import org.commonmark.renderer.html.HtmlRenderer;
-import org.csstudio.apputil.formula.math.Log;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.olog.ui.LogbookQueryUtil.Keys;
@@ -56,8 +53,8 @@ import java.util.stream.Collectors;
  */
 public class LogEntryTableViewController extends LogbookSearchController {
 
-    static final Image tag = ImageCache.getImage(LogEntryController.class, "/icons/add_tag.png");
-    static final Image logbook = ImageCache.getImage(LogEntryController.class, "/icons/logbook-16.png");
+    static final Image tag = ImageCache.getImage(LogEntryDisplayController.class, "/icons/add_tag.png");
+    static final Image logbook = ImageCache.getImage(LogEntryDisplayController.class, "/icons/logbook-16.png");
 
     @FXML
     private Button resize;
@@ -80,7 +77,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
     @FXML
     public VBox logEntryDisplay;
     @FXML
-    private LogEntryController logEntryDisplayController;
+    private LogEntryDisplayController logEntryDisplayController;
 
     @FXML
     private Node topLevelNode;

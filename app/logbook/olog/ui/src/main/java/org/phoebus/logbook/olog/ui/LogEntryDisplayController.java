@@ -14,13 +14,21 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
 import javafx.stage.Stage;
+import org.commonmark.Extension;
+import org.commonmark.ext.gfm.tables.TableBlock;
+import org.commonmark.ext.gfm.tables.TablesExtension;
+import org.commonmark.ext.image.attributes.ImageAttributesExtension;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.AttributeProvider;
+import org.commonmark.renderer.html.HtmlRenderer;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
@@ -29,31 +37,40 @@ import org.phoebus.ui.javafx.ImageCache;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class LogEntryController {
+import static org.phoebus.util.time.TimestampFormats.MILLI_FORMAT;
 
-    private static final Logger logger = Logger.getLogger(LogEntryController.class.getName());
+public class LogEntryDisplayController {
 
-    static final Image tag = ImageCache.getImage(LogEntryController.class, "/icons/add_tag.png");
-    static final Image logbook = ImageCache.getImage(LogEntryController.class, "/icons/logbook-16.png");
+    private static final Logger logger = Logger.getLogger(LogEntryDisplayController.class.getName());
+
+
+    static final Image tag = ImageCache.getImage(LogEntryDisplayController.class, "/icons/add_tag.png");
+    static final Image logbook = ImageCache.getImage(LogEntryDisplayController.class, "/icons/logbook-16.png");
 
     String styles = "-fx-background-color: #0000ff;" + "-fx-border-color: #ff0000;";
+
+    private HtmlRenderer htmlRenderer;
+    private Parser parser;
 
     @FXML
     Label logTime;
     @FXML
-    TextArea logDescription;
-
+    Label logOwner;
     @FXML
-    TitledPane logTagsPane;
+    Label logTitle;
+    @FXML
+    WebView logDescription;
+
     @FXML
     ListView<String> logTags;
 
-    @FXML
-    TitledPane LogLogbooksPane;
     @FXML
     ListView<String> LogLogbooks;
 
@@ -74,8 +91,8 @@ public class LogEntryController {
 
     @FXML
     public void initialize() {
-
-        logDescription.setBackground(Background.EMPTY);
+        logTime.setStyle("-fx-font-weight: bold");
+        logTitle.setStyle("-fx-font-weight: bold");
 
         logTags.setCellFactory(listView -> new ListCell<String>() {
             @Override
@@ -104,6 +121,12 @@ public class LogEntryController {
                 }
             }
         });
+
+        List<Extension> extensions = Arrays.asList(TablesExtension.create(), ImageAttributesExtension.create());
+        parser = Parser.builder().extensions(extensions).build();
+        htmlRenderer = HtmlRenderer.builder()
+                .attributeProviderFactory(context -> new LogEntryCellController.OlogAttributeProvider())
+                .extensions(extensions).build();
     }
 
     public void refresh() {
@@ -119,21 +142,25 @@ public class LogEntryController {
             propertiesPane.setExpanded(logEntry.getProperties() != null && !logEntry.getProperties().isEmpty());
             propertiesPane.setVisible(logEntry.getProperties() != null && !logEntry.getProperties().isEmpty());
 
-            LogLogbooksPane.setExpanded(!logEntry.getLogbooks().isEmpty());
-            logTagsPane.setExpanded(!logEntry.getTags().isEmpty());
+            logTime.setText(MILLI_FORMAT.format(logEntry.getCreatedDate()));
 
-            logDescription.setWrapText(true);
-            logDescription.setText(logEntry.getDescription());
+            logOwner.setText(logEntry.getOwner());
 
-            StringBuilder text = new StringBuilder();
-            if (logEntry.getCreatedDate() != null) {
-                text.append(logEntry.getCreatedDate().toString()).append(System.lineSeparator());
+            logTitle.setWrapText(true);
+            logTitle.setText(logEntry.getTitle());
+
+            logDescription.setDisable(true);
+            // Content is defined by the source (default) or description field. If both are null
+            // or empty, do no load any content to the WebView.
+            WebEngine webEngine = logDescription.getEngine();
+            webEngine.setUserStyleSheetLocation(getClass()
+                    .getResource("/detail-log-webview.css").toExternalForm());
+            if(logEntry.getSource() != null && !logEntry.getSource().isEmpty()){
+                webEngine.loadContent(toHtml(logEntry.getSource()));
             }
-            if (logEntry.getTitle() != null) {
-                text.append(logEntry.getTitle());
+            else if(logEntry.getDescription() != null && !logEntry.getDescription().isEmpty()){
+                webEngine.loadContent(toHtml(logEntry.getDescription()));
             }
-            logTime.setText(text.toString());
-
             ObservableList<String> logbookList = FXCollections.observableArrayList();
             logbookList.addAll(logEntry.getLogbooks().stream().map(Logbook::getName).collect(Collectors.toList()));
             LogLogbooks.setItems(logbookList);
@@ -208,5 +235,28 @@ public class LogEntryController {
             logger.log(Level.WARNING, "failed to open Image File.", ex);
         }
         return imageView;
+    }
+
+    /**
+     * Converts Commonmark content to HTML.
+     * @param commonmarkString Raw Commonmark string
+     * @return The HTML output of the Commonmark processor.
+     */
+    private String toHtml(String commonmarkString){
+        org.commonmark.node.Node document = parser.parse(commonmarkString);
+        return htmlRenderer.render(document);
+    }
+
+    /**
+     * An {@link AttributeProvider} used to style elements of a log entry. Other types of
+     * attribute processing is of course possible.
+     */
+    static class OlogAttributeProvider implements AttributeProvider {
+        @Override
+        public void setAttributes(org.commonmark.node.Node node, String s, Map<String, String> map) {
+            if (node instanceof TableBlock) {
+                map.put("class", "olog-table");
+            }
+        }
     }
 }

@@ -117,7 +117,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                     FXMLLoader loader = new FXMLLoader();
                     loader.setLocation(this.getClass().getResource("LogEntryDisplay.fxml"));
                     loader.load();
-                    LogEntryController controller = loader.getController();
+                    LogEntryDisplayController controller = loader.getController();
                     controller.setLogEntry(map.get(appointment));
                     VBox root = loader.getRoot();
                     Scene dialogScene = new Scene(root, 300, 200);

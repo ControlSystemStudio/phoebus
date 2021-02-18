@@ -15,8 +15,11 @@ import org.phoebus.ui.javafx.ApplicationWrapper;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.net.URISyntaxException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -43,7 +46,7 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(this.getClass().getResource("LogEntryDisplay.fxml"));
         loader.load();
-        LogEntryController controller = loader.getController();
+        LogEntryDisplayController controller = loader.getController();
         root = loader.getRoot();
 
         primaryStage.setScene(new Scene(root, 400, 400));
@@ -83,13 +86,21 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
             logbooks.add(LogbookImpl.of("logbook1", "active"));
             logbooks.add(LogbookImpl.of("logbook2", "active"));
 
-            String path = "C:\\Users\\Kunal Shroff\\Pictures\\screenshot-git\\log-att";
-            File folder = new File(path);
-            List<File> listOfFiles = Arrays.asList(folder.listFiles());
+            List<File> listOfFiles = new ArrayList<>();
+            try {
+                File imageFile = new File(this.getClass().getClassLoader().getResource("image_1.png").toURI());
+                File textFile = new File(this.getClass().getClassLoader().getResource("file_phoebus.txt").toURI());
+                listOfFiles.add(textFile);
+                listOfFiles.add(imageFile);
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            }
+
 
             runLater(() -> {
                 LogEntryBuilder lb = LogEntryBuilder.log()
                         .createdDate(Instant.now())
+                        .title("A report on the orbit studies")
                         .description(
                         "Fast correctors for the vertical orbit have glitched to near saturation. Archiver shows there have been several episodes the past 24 hrs. Appears that FOFB in vertical plane might have momentary bad BPM reading.")
                         .withTags(new HashSet<Tag>(Arrays.asList(TagImpl.of("Orbit", "active"), TagImpl.of("Studies", "active"))))

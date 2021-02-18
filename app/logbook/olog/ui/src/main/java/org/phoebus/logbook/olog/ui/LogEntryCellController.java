@@ -1,6 +1,5 @@
 package org.phoebus.logbook.olog.ui;
 
-import com.sun.webkit.WebPage;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -21,17 +20,18 @@ import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
 import org.phoebus.ui.javafx.ImageCache;
 
-import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.phoebus.util.time.TimestampFormats.MILLI_FORMAT;
+
 public class LogEntryCellController {
 
-    static final Image tag = ImageCache.getImage(LogEntryController.class, "/icons/add_tag.png");
-    static final Image logbook = ImageCache.getImage(LogEntryController.class, "/icons/logbook-16.png");
-    static final Image attachment = ImageCache.getImage(LogEntryController.class, "/icons/attachment-16.png");
+    static final Image tag = ImageCache.getImage(LogEntryDisplayController.class, "/icons/add_tag.png");
+    static final Image logbook = ImageCache.getImage(LogEntryDisplayController.class, "/icons/logbook-16.png");
+    static final Image attachment = ImageCache.getImage(LogEntryDisplayController.class, "/icons/attachment-16.png");
 
     private HtmlRenderer htmlRenderer;
     private Parser parser;
@@ -89,11 +89,7 @@ public class LogEntryCellController {
     public void refresh() {
         if (logEntry != null) {
 
-            StringBuilder timeString = new StringBuilder();
-            if (logEntry.getCreatedDate() != null) {
-                timeString.append(logEntry.getCreatedDate().toString());
-            }
-            time.setText(timeString.toString());
+            time.setText(MILLI_FORMAT.format(logEntry.getCreatedDate()));
             owner.setText(logEntry.getOwner());
             title.setText(logEntry.getTitle());
 
@@ -111,12 +107,6 @@ public class LogEntryCellController {
                 attachmentIcon.setImage(attachment);
                 attachments.setText(String.valueOf(logEntry.getAttachments().size()));
             }
-            description.setOnTouchMoved(new EventHandler<TouchEvent>() {
-                @Override
-                public void handle(TouchEvent event) {
-                    // Do nothing
-                }
-            });
             description.setDisable(true);
             // Content is defined by the source (default) or description field. If both are null
             // or empty, do no load any content to the WebView.
@@ -129,8 +119,6 @@ public class LogEntryCellController {
             else if(logEntry.getDescription() != null && !logEntry.getDescription().isEmpty()){
                 webEngine.loadContent(toHtml(logEntry.getDescription()));
             }
-
-
         }
     }
 
