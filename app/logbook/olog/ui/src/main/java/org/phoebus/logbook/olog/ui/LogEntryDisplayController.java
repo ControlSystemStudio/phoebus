@@ -8,14 +8,13 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -29,6 +28,7 @@ import org.commonmark.ext.image.attributes.ImageAttributesExtension;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.AttributeProvider;
 import org.commonmark.renderer.html.HtmlRenderer;
+import org.commonmark.renderer.text.TextContentRenderer;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
@@ -69,8 +69,9 @@ public class LogEntryDisplayController {
     WebView logDescription;
 
     @FXML
+    HBox metaDataBox;
+    @FXML
     ListView<String> logTags;
-
     @FXML
     ListView<String> LogLogbooks;
 
@@ -145,8 +146,13 @@ public class LogEntryDisplayController {
             propertiesPane.setExpanded(logEntry.getProperties() != null && !logEntry.getProperties().isEmpty());
             propertiesPane.setVisible(logEntry.getProperties() != null && !logEntry.getProperties().isEmpty());
 
+            int metaDataCount = logEntry.getLogbooks().size() >= logEntry.getTags().size() ? logEntry.getLogbooks().size() : logEntry.getTags().size();
+            metaDataBox.setPrefHeight(metaDataCount * 60);
+
             logTags.setVisible(!logEntry.getTags().isEmpty());
+            logTags.setPrefHeight(metaDataCount * 60);
             LogLogbooks.setVisible(!logEntry.getLogbooks().isEmpty());
+            LogLogbooks.setPrefHeight(metaDataCount * 60);
 
             logTime.setText(MILLI_FORMAT.format(logEntry.getCreatedDate()));
 

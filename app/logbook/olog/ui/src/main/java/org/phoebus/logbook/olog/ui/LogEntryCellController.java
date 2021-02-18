@@ -1,20 +1,16 @@
 package org.phoebus.logbook.olog.ui;
 
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.TouchEvent;
-import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebView;
 import org.commonmark.Extension;
 import org.commonmark.ext.gfm.tables.TableBlock;
 import org.commonmark.ext.gfm.tables.TablesExtension;
 import org.commonmark.ext.image.attributes.ImageAttributesExtension;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.AttributeProvider;
-import org.commonmark.renderer.html.HtmlRenderer;
+import org.commonmark.renderer.text.TextContentRenderer;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
@@ -33,7 +29,7 @@ public class LogEntryCellController {
     static final Image logbook = ImageCache.getImage(LogEntryDisplayController.class, "/icons/logbook-16.png");
     static final Image attachment = ImageCache.getImage(LogEntryDisplayController.class, "/icons/attachment-16.png");
 
-    private HtmlRenderer htmlRenderer;
+    private TextContentRenderer textRenderer;
     private Parser parser;
 
     // Model
@@ -59,15 +55,13 @@ public class LogEntryCellController {
     ImageView attachmentIcon;
 
     @FXML
-    WebView description;
+    Label description;
 
     public LogEntryCellController() {
 
         List<Extension> extensions = Arrays.asList(TablesExtension.create(), ImageAttributesExtension.create());
         parser = Parser.builder().extensions(extensions).build();
-        htmlRenderer = HtmlRenderer.builder()
-                .attributeProviderFactory(context -> new OlogAttributeProvider())
-                .extensions(extensions).build();
+        textRenderer = TextContentRenderer.builder().extensions(extensions).build();
     }
 
     @FXML
@@ -83,6 +77,9 @@ public class LogEntryCellController {
         attachmentIcon.setImage(null);
 
         title.setText("");
+
+        description.setWrapText(true);
+
     }
 
     @FXML
@@ -107,17 +104,11 @@ public class LogEntryCellController {
                 attachmentIcon.setImage(attachment);
                 attachments.setText(String.valueOf(logEntry.getAttachments().size()));
             }
-            description.setDisable(true);
-            // Content is defined by the source (default) or description field. If both are null
-            // or empty, do no load any content to the WebView.
-            WebEngine webEngine = description.getEngine();
-            webEngine.setUserStyleSheetLocation(getClass()
-                    .getResource("/webview.css").toExternalForm());
             if(logEntry.getSource() != null && !logEntry.getSource().isEmpty()){
-                webEngine.loadContent(toHtml(logEntry.getSource()));
+                description.setText(toText(logEntry.getSource()));
             }
             else if(logEntry.getDescription() != null && !logEntry.getDescription().isEmpty()){
-                webEngine.loadContent(toHtml(logEntry.getDescription()));
+                description.setText(toText(logEntry.getDescription()));
             }
         }
     }
@@ -128,13 +119,13 @@ public class LogEntryCellController {
     }
 
     /**
-     * Converts Commonmark content to HTML.
+     * Converts Commonmark content to Text.
      * @param commonmarkString Raw Commonmark string
-     * @return The HTML output of the Commonmark processor.
+     * @return The Text output of the Commonmark processor.
      */
-    private String toHtml(String commonmarkString){
+    private String toText(String commonmarkString){
         org.commonmark.node.Node document = parser.parse(commonmarkString);
-        return htmlRenderer.render(document);
+        return textRenderer.render(document);
     }
 
     /**
