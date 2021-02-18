@@ -14,6 +14,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -75,7 +76,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     // detail logview
     @FXML
-    public VBox logEntryDisplay;
+    public SplitPane logEntryDisplay;
     @FXML
     private LogEntryDisplayController logEntryDisplayController;
 

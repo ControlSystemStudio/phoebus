@@ -94,6 +94,9 @@ public class LogEntryDisplayController {
         logTime.setStyle("-fx-font-weight: bold");
         logTitle.setStyle("-fx-font-weight: bold");
 
+        logTags.setVisible(false);
+        LogLogbooks.setVisible(false);
+
         logTags.setCellFactory(listView -> new ListCell<String>() {
             @Override
             public void updateItem(String item, boolean empty) {
@@ -142,6 +145,9 @@ public class LogEntryDisplayController {
             propertiesPane.setExpanded(logEntry.getProperties() != null && !logEntry.getProperties().isEmpty());
             propertiesPane.setVisible(logEntry.getProperties() != null && !logEntry.getProperties().isEmpty());
 
+            logTags.setVisible(!logEntry.getTags().isEmpty());
+            LogLogbooks.setVisible(!logEntry.getLogbooks().isEmpty());
+
             logTime.setText(MILLI_FORMAT.format(logEntry.getCreatedDate()));
 
             logOwner.setText(logEntry.getOwner());
@@ -176,7 +182,9 @@ public class LogEntryDisplayController {
                 imageGallery.getChildren().addAll(imageView);
             });
 
-            propertiesController.setProperties(logEntry.getProperties());
+            if ( !logEntry.getProperties().isEmpty()) {
+                propertiesController.setProperties(logEntry.getProperties());
+            }
         }
     }
 

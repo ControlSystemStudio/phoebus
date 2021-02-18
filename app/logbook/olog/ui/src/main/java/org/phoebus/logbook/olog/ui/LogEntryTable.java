@@ -28,10 +28,8 @@ public class LogEntryTable implements AppInstance {
         try {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(this.getClass().getResource("LogEntryTableView.fxml"));
-            Object oldController = loader.getController();
 
             loader.setControllerFactory(clazz -> {
-                System.out.println(clazz.toString());
                 try {
                     if(app.getClient() != null)
                     {
@@ -46,6 +44,9 @@ public class LogEntryTable implements AppInstance {
                                     .newInstance(app.getClient());
                         }
                         else if(clazz.isAssignableFrom(LogEntryDisplayController.class)){
+                            return clazz.getConstructor().newInstance();
+                        }
+                        else if(clazz.isAssignableFrom(LogPropertiesController.class)){
                             return clazz.getConstructor().newInstance();
                         }
                     }

@@ -2,6 +2,8 @@ package org.phoebus.logbook.olog.ui;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.SplitPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.phoebus.logbook.AttachmentImpl;
@@ -41,7 +43,7 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("LogEntry Display demo");
 
-        VBox root = new VBox();
+        SplitPane root = new SplitPane();
 
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(this.getClass().getResource("LogEntryDisplay.fxml"));
