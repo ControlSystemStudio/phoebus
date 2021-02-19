@@ -27,6 +27,7 @@
             <RowConstraints maxHeight="-Infinity" minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                 <RowConstraints maxHeight="-Infinity" minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
           </rowConstraints>
           <children>
@@ -41,13 +42,13 @@
                    </padding>
                 </Label>
                 <Label fx:id="logOwner" text="owner" GridPane.columnIndex="1" />
-                <HBox fx:id="metaDataBox" GridPane.columnSpan="2" GridPane.rowIndex="3" GridPane.vgrow="SOMETIMES">
+                <WebView fx:id="logDescription" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="2" GridPane.rowSpan="2" GridPane.vgrow="ALWAYS" />
+                <HBox fx:id="metaDataBox" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS">
                    <children>
             <ListView fx:id="LogLogbooks" HBox.hgrow="ALWAYS" />
             <ListView fx:id="logTags" HBox.hgrow="ALWAYS" />
                    </children>
                 </HBox>
-                <WebView fx:id="logDescription" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS" />
           </children>
           <padding>
             <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />

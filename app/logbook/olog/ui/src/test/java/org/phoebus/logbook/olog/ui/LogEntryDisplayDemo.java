@@ -11,6 +11,8 @@ import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookImpl;
+import org.phoebus.logbook.Property;
+import org.phoebus.logbook.PropertyImpl;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.TagImpl;
 import org.phoebus.ui.javafx.ApplicationWrapper;
@@ -22,8 +24,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -99,6 +103,17 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
             }
 
 
+            Map<String, String> tracAttributes = new HashMap<>();
+            tracAttributes.put("id", "1234");
+            tracAttributes.put("URL", "https://trac.epics.org/tickets/1234");
+            Property track = PropertyImpl.of("Track",tracAttributes);
+
+            Map<String, String> experimentAttributes = new HashMap<>();
+            experimentAttributes.put("id", "1234");
+            experimentAttributes.put("type", "XPD xray diffraction");
+            experimentAttributes.put("scan-id", "6789");
+            Property experimentProperty = PropertyImpl.of("Experiment", experimentAttributes);
+
             runLater(() -> {
                 LogEntryBuilder lb = LogEntryBuilder.log()
                         .createdDate(Instant.now())
@@ -106,7 +121,8 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
                         .description(
                         "Fast correctors for the vertical orbit have glitched to near saturation. Archiver shows there have been several episodes the past 24 hrs. Appears that FOFB in vertical plane might have momentary bad BPM reading.")
                         .withTags(new HashSet<Tag>(Arrays.asList(TagImpl.of("Orbit", "active"), TagImpl.of("Studies", "active"))))
-                        .inLogbooks(new HashSet<Logbook>(Arrays.asList(LogbookImpl.of("Operations", "active"))));
+                        .inLogbooks(new HashSet<Logbook>(Arrays.asList(LogbookImpl.of("Operations", "active"))))
+                        .appendProperty(track).appendProperty(experimentProperty);
                 listOfFiles.forEach(file -> {
                     try {
                         lb.attach(AttachmentImpl.of(file));
