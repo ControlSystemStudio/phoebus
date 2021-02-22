@@ -16,52 +16,67 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.csstudio.display.builder.representation.javafx;
+package org.csstudio.display.builder.representation.javafx.actionsdialog;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.layout.GridPane;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfos;
+import org.csstudio.display.builder.representation.javafx.Messages;
 import org.phoebus.framework.nls.NLS;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.ui.dialog.DialogHelper;
 
 import java.io.IOException;
 
-public class ActionsDialog2 extends Dialog<ActionInfos> {
+/**
+ * Dialog for editing {@link org.csstudio.display.builder.model.properties.ActionInfo} list
+ *
+ */
+public class ActionsDialog extends Dialog<ActionInfos> {
 
     private final Widget widget;
 
-    private final CheckBox executeAll = new CheckBox(Messages.ActionsDialog_ExecuteAll);
-
-    private ActionsDialog2Controller controller;
+    private ActionsDialogController controller;
 
     /** Create dialog
      *  @param widget Widget
      *  @param initialActions Initial list of actions
      *  @param owner Node that started this dialog
      */
-    public ActionsDialog2(final Widget widget, final ActionInfos initialActions, final Node owner)
+    public ActionsDialog(final Widget widget, final ActionInfos initialActions, final Node owner)
     {
         this.widget = widget;
 
         setTitle(Messages.ActionsDialog_Title);
         setHeaderText(Messages.ActionsDialog_Info);
 
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("ActionsDialog2.fxml"), NLS.getMessages(ActionsDialog2.class));
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("ActionsDialog.fxml"),
+                NLS.getMessages(Messages.class));
 
         try {
             GridPane layout = fxmlLoader.load();
             getDialogPane().setContent(layout);
             getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-            getDialogPane().getStylesheets().add(getClass().getResource("opibuilder.css").toExternalForm());
+            getDialogPane().getStylesheets().add(getClass().getResource("../opibuilder.css").toExternalForm());
             setResizable(true);
         } catch (IOException e) {
             e.printStackTrace();
         }
         controller = fxmlLoader.getController();
-        controller.setActions(initialActions.getActions());
+        controller.setActionInfos(initialActions);
+
+        setResultConverter(button ->
+        {
+            if (button == ButtonType.OK)
+                return controller.getActionInfos();
+            return null;
+        });
+
+        DialogHelper.positionAndSize(this, owner,
+                PhoebusPreferenceService.userNodeForClass(org.csstudio.display.builder.representation.javafx.ActionsDialog.class));
     }
 }

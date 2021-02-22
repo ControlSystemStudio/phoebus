@@ -15,8 +15,7 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.properties.ActionsWidgetProperty;
-import org.csstudio.display.builder.representation.javafx.ActionsDialog;
-import org.csstudio.display.builder.representation.javafx.ActionsDialog2;
+import org.csstudio.display.builder.representation.javafx.actionsdialog.ActionsDialog;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.event.ActionEvent;
@@ -39,7 +38,7 @@ public class ActionsPropertyBinding
     /** Update model from user input */
     private EventHandler<ActionEvent> action_handler = event ->
     {
-        final ActionsDialog2 dialog = new ActionsDialog2(widget_property.getWidget(), widget_property.getValue(), jfx_node);
+        final ActionsDialog dialog = new ActionsDialog(widget_property.getWidget(), widget_property.getValue(), jfx_node);
 
         if (! other.isEmpty())
         {   // Update dialog's header to include warning about affected widgets

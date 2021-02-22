@@ -22,7 +22,7 @@
   ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
   -->
 
-<GridPane hgap="10.0" prefHeight="400.0" prefWidth="600.0" vgap="10.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.csstudio.display.builder.representation.javafx.actiondetails.OpenDisplayActionDetailsController">
+<GridPane hgap="10.0" vgap="10.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.csstudio.display.builder.representation.javafx.actionsdialog.OpenDisplayActionDetailsController">
    <columnConstraints>
       <ColumnConstraints />
       <ColumnConstraints />
@@ -33,11 +33,12 @@
       <RowConstraints />
       <RowConstraints />
       <RowConstraints />
+      <RowConstraints />
    </rowConstraints>
    <children>
-      <Label fx:id="descriptionLabel" text="Description:" />
-      <TextField fx:id="description" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" />
-      <Label fx:id="displayPathLabel" text="Display Path:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+      <Label fx:id="descriptionLabel" text="%ActionsDialog_Description" />
+      <TextField fx:id="description" text="Open Display" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" />
+      <Label fx:id="displayPathLabel" text="%ActionsDialog_DisplayPath" GridPane.columnIndex="0" GridPane.rowIndex="1" />
       <TextField fx:id="displayPath" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
       <Button fx:id="selectDisplay" text="..." GridPane.columnIndex="2" GridPane.rowIndex="1" />
 
@@ -57,8 +58,8 @@
             <Insets bottom="5.0" top="5.0" />
          </GridPane.margin>
       </HBox>
-      <Label text="Pane:" fx:id="paneLabel" GridPane.rowIndex="3" />
-      <TextField fx:id="pane" GridPane.columnIndex="1" GridPane.rowIndex="3" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" />
-      <VBox fx:id="macroTablePlaceholder" GridPane.columnIndex="0" GridPane.columnSpan="3" GridPane.rowIndex="4"  GridPane.hgrow="ALWAYS"  GridPane.vgrow="ALWAYS"/>
+      <Label fx:id="paneLabel" text="Pane:" GridPane.rowIndex="3" />
+      <TextField fx:id="pane" disable="true" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" />
+      <VBox fx:id="macroTablePlaceholder" GridPane.columnIndex="0" GridPane.columnSpan="3" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS" />
    </children>
 </GridPane>
