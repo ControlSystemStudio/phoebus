@@ -55,7 +55,8 @@ public class LogEntryTableDemo extends ApplicationWrapper {
                             .newInstance(getLogClient());
                 }
                 else if(clazz.isAssignableFrom(LogEntryDisplayController.class)){
-                    return clazz.getConstructor().newInstance();
+                    return clazz.getConstructor(LogClient.class)
+                            .newInstance(getLogClient());
                 }
                 else if(clazz.isAssignableFrom(LogPropertiesController.class)){
                     return clazz.getConstructor().newInstance();

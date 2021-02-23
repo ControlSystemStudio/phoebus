@@ -1,7 +1,11 @@
 package org.phoebus.logbook.olog.ui;
 
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Worker.State;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
@@ -28,7 +32,7 @@ import org.commonmark.ext.image.attributes.ImageAttributesExtension;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.AttributeProvider;
 import org.commonmark.renderer.html.HtmlRenderer;
-import org.commonmark.renderer.text.TextContentRenderer;
+import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
@@ -53,8 +57,7 @@ public class LogEntryDisplayController {
 
     static final Image tag = ImageCache.getImage(LogEntryDisplayController.class, "/icons/add_tag.png");
     static final Image logbook = ImageCache.getImage(LogEntryDisplayController.class, "/icons/logbook-16.png");
-
-    String styles = "-fx-background-color: #0000ff;" + "-fx-border-color: #ff0000;";
+    private final LogClient logClient;
 
     private HtmlRenderer htmlRenderer;
     private Parser parser;
@@ -87,8 +90,11 @@ public class LogEntryDisplayController {
     @FXML
     public LogPropertiesController propertiesController;
 
-
     private LogEntry logEntry;
+
+    public LogEntryDisplayController(LogClient logClient){
+        this.logClient = logClient;
+    }
 
     @FXML
     public void initialize() {
@@ -167,6 +173,21 @@ public class LogEntryDisplayController {
             WebEngine webEngine = logDescription.getEngine();
             webEngine.setUserStyleSheetLocation(getClass()
                     .getResource("/detail-log-webview.css").toExternalForm());
+
+            webEngine.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
+                @Override
+                public void changed(ObservableValue<? extends State> arg0, State oldState, State newState) {
+                    if (newState == State.SUCCEEDED) {
+                        Object result = webEngine.executeScript(
+                                "document.getElementById('olog').offsetHeight");
+                        if (result instanceof Integer) {
+                            Integer i = (Integer) result;
+                            final double height = Double.valueOf(i) + 20;
+                            Platform.runLater(() -> logDescription.setPrefHeight(height));
+                        }
+                    }
+                }
+            });
             if(logEntry.getSource() != null && !logEntry.getSource().isEmpty()){
                 webEngine.loadContent(toHtml(logEntry.getSource()));
             }
@@ -192,6 +213,10 @@ public class LogEntryDisplayController {
                 propertiesController.setProperties(logEntry.getProperties());
             }
         }
+    }
+
+    public LogClient getLogClient() {
+        return logClient;
     }
 
     public LogEntry getLogEntry() {
@@ -258,18 +283,27 @@ public class LogEntryDisplayController {
      */
     private String toHtml(String commonmarkString){
         org.commonmark.node.Node document = parser.parse(commonmarkString);
-        return htmlRenderer.render(document);
+        String html = htmlRenderer.render(document);
+        // Wrap the content in a named div so that a suitable height may be determined.
+        return "<div id='olog'>\n" + html + "</div>";
     }
 
     /**
      * An {@link AttributeProvider} used to style elements of a log entry. Other types of
      * attribute processing is of course possible.
      */
-    static class OlogAttributeProvider implements AttributeProvider {
+    class OlogAttributeProvider implements AttributeProvider {
         @Override
         public void setAttributes(org.commonmark.node.Node node, String s, Map<String, String> map) {
             if (node instanceof TableBlock) {
                 map.put("class", "olog-table");
+            }
+            // Image URL is relative by design. Need to prepend the service URL to make the
+            // src attribute complete.
+            if(node instanceof org.commonmark.node.Image){
+                String src = map.get("src");
+                src = LogEntryDisplayController.this.getLogClient().getServiceUrl() + "/" + src;
+                map.put("src", src);
             }
         }
     }
