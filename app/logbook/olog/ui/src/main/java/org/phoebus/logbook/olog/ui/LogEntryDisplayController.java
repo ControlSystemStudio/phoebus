@@ -6,6 +6,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Worker.State;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
@@ -19,7 +20,6 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
@@ -32,15 +32,19 @@ import org.commonmark.ext.image.attributes.ImageAttributesExtension;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.AttributeProvider;
 import org.commonmark.renderer.html.HtmlRenderer;
+import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
 import org.phoebus.ui.javafx.ImageCache;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -79,9 +83,11 @@ public class LogEntryDisplayController {
     ListView<String> LogLogbooks;
 
     @FXML
-    TitledPane LogAttachments;
+    public TitledPane attachmentsPane;
     @FXML
-    TilePane imageGallery;
+    public VBox attachments;
+    @FXML
+    public LogAttachmentsController attachmentsController;
 
     @FXML
     public TitledPane propertiesPane;
@@ -91,6 +97,10 @@ public class LogEntryDisplayController {
     public LogPropertiesController propertiesController;
 
     private LogEntry logEntry;
+
+    public LogEntryDisplayController(){
+        this.logClient = null;
+    }
 
     public LogEntryDisplayController(LogClient logClient){
         this.logClient = logClient;
@@ -146,8 +156,8 @@ public class LogEntryDisplayController {
             // tags: " + !logEntry.getTags().isEmpty() + "
             // logbooks:"+!logEntry.getLogbooks().isEmpty());
 
-            LogAttachments.setExpanded(logEntry.getAttachments() != null && !logEntry.getAttachments().isEmpty());
-            LogAttachments.setVisible(logEntry.getAttachments() != null && !logEntry.getAttachments().isEmpty());
+            attachmentsPane.setExpanded(logEntry.getAttachments() != null && !logEntry.getAttachments().isEmpty());
+            attachmentsPane.setVisible(logEntry.getAttachments() != null && !logEntry.getAttachments().isEmpty());
 
             propertiesPane.setExpanded(logEntry.getProperties() != null && !logEntry.getProperties().isEmpty());
             propertiesPane.setVisible(logEntry.getProperties() != null && !logEntry.getProperties().isEmpty());
@@ -202,12 +212,21 @@ public class LogEntryDisplayController {
             tagList.addAll(logEntry.getTags().stream().map(Tag::getName).collect(Collectors.toList()));
             logTags.setItems(tagList);
 
-            imageGallery.getChildren().clear();
-            logEntry.getAttachments().forEach(attachment -> {
-                ImageView imageView;
-                imageView = createImageView(attachment.getFile());
-                imageGallery.getChildren().addAll(imageView);
+            ObservableList<File> fileAttachmentList = FXCollections.observableArrayList();
+            fileAttachmentList.setAll(logEntry.getAttachments().stream().map(Attachment::getFile).collect(Collectors.toList()));
+            attachmentsController.setFiles(fileAttachmentList);
+            ObservableList<Image> imagesAttachmentList = FXCollections.observableArrayList();
+            logEntry.getAttachments().stream().forEach(attachment -> {
+                try (FileInputStream fileInputStream = new FileInputStream(attachment.getFile())) {
+                    BufferedImage bufferedImage = ImageIO.read(fileInputStream);
+                    if(bufferedImage != null) {
+                        imagesAttachmentList.add(SwingFXUtils.toFXImage(bufferedImage, null));
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             });
+            attachmentsController.setImages(imagesAttachmentList);
 
             if ( !logEntry.getProperties().isEmpty()) {
                 propertiesController.setProperties(logEntry.getProperties());
