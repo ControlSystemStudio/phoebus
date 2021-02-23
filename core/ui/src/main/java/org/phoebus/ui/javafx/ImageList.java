@@ -61,6 +61,7 @@ public class ImageList extends VBox
         }
     }
 
+    private final boolean editable;
     private final ImageView preview = new ImageView();
     private final ListView<Image> images = new ListView<>();
     private Node snapshot_node;
@@ -78,6 +79,7 @@ public class ImageList extends VBox
     public ImageList(boolean editable)
     {
         final Node images = createImageSection();
+        this.editable = editable;
 
         VBox.setVgrow(images, Priority.ALWAYS);
         setSpacing(5);
@@ -146,8 +148,16 @@ public class ImageList extends VBox
 
         // Show selected image in preview
         preview.imageProperty().bind(images.getSelectionModel().selectedItemProperty());
-        // Enable button if something is selected
-        removeImage.disableProperty().bind(Bindings.isEmpty(images.getSelectionModel().getSelectedItems()));
+        if(!editable)
+        {
+            removeImage.disableProperty().setValue(true);
+            removeImage.visibleProperty().setValue(false);
+        }
+        else
+        {
+            // Enable button if something is selected
+            removeImage.disableProperty().bind(Bindings.isEmpty(images.getSelectionModel().getSelectedItems()));
+        }
 
         VBox.setVgrow(images, Priority.ALWAYS);
         final VBox right = new VBox(new Label(Messages.ImagesTitle), images);
