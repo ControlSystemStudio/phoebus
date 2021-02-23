@@ -7,24 +7,17 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Worker.State;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
-import javafx.stage.Stage;
 import org.commonmark.Extension;
 import org.commonmark.ext.gfm.tables.TableBlock;
 import org.commonmark.ext.gfm.tables.TablesExtension;
@@ -43,12 +36,10 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -245,54 +236,6 @@ public class LogEntryDisplayController {
     public void setLogEntry(LogEntry logEntry) {
         this.logEntry = logEntry;
         refresh();
-    }
-
-    private ImageView createImageView(final File imageFile) {
-
-        ImageView imageView = null;
-        try {
-            final Image image = new Image(new FileInputStream(imageFile), 150, 0, true, true);
-            imageView = new ImageView(image);
-            imageView.setFitWidth(150);
-            imageView.setOnMouseClicked(new EventHandler<MouseEvent>() {
-
-                @Override
-                public void handle(MouseEvent mouseEvent) {
-
-                    if (mouseEvent.getButton().equals(MouseButton.PRIMARY)) {
-
-                        if (mouseEvent.getClickCount() == 2) {
-                            try {
-                                BorderPane borderPane = new BorderPane();
-                                ImageView imageView = new ImageView();
-                                Image image = new Image(new FileInputStream(imageFile));
-                                imageView.setImage(image);
-                                imageView.setStyle("-fx-background-color: BLACK");
-                                imageView.setFitHeight(image.getHeight() - 10);
-                                imageView.setPreserveRatio(true);
-                                imageView.setSmooth(true);
-                                imageView.setCache(true);
-                                borderPane.setCenter(imageView);
-                                borderPane.setStyle("-fx-background-color: BLACK");
-                                Stage newStage = new Stage();
-                                newStage.setWidth(image.getWidth());
-                                newStage.setHeight(image.getHeight());
-                                newStage.setTitle(imageFile.getName());
-                                Scene scene = new Scene(borderPane, Color.BLACK);
-                                newStage.setScene(scene);
-                                newStage.show();
-                            } catch (FileNotFoundException e) {
-                                logger.log(Level.WARNING, "failed to open Image File.", e);
-                            }
-
-                        }
-                    }
-                }
-            });
-        } catch (FileNotFoundException ex) {
-            logger.log(Level.WARNING, "failed to open Image File.", ex);
-        }
-        return imageView;
     }
 
     /**

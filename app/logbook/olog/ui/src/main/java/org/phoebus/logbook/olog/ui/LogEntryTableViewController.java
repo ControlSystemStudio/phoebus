@@ -233,7 +233,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
     @Override
     public void setLogs(List<LogEntry> logs) {
         List<LogEntry> copy = logs.stream()
-                .sorted((one, two) -> one.getCreatedDate().compareTo(two.getCreatedDate()))
+                .sorted((one, two) -> two.getCreatedDate().compareTo(one.getCreatedDate()))
                 .collect(Collectors.toList());
 
         this.logEntries = copy;
