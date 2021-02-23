@@ -189,7 +189,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
      */
     private String toHtml(String commonmarkString){
         org.commonmark.node.Node document = parser.parse(commonmarkString);
-        return htmlRenderer.render(document);
+        String html = htmlRenderer.render(document);
+        // Wrap the content in a named div so that a suitable height may be determined.
+        return "<div id='olog'>\n" + html + "</div>";
     }
 
     /**
@@ -201,6 +203,13 @@ public class LogEntryTableViewController extends LogbookSearchController {
         public void setAttributes(org.commonmark.node.Node node, String s, Map<String, String> map) {
             if (node instanceof TableBlock) {
                 map.put("class", "olog-table");
+            }
+            // Image URL is relative by design. Need to prepend the service URL to make the
+            // src attribute complete.
+            if(node instanceof org.commonmark.node.Image){
+                String src = map.get("src");
+                src = LogEntryTableViewController.this.getClient().getServiceUrl() + "/" + src;
+                map.put("src", src);
             }
         }
     }

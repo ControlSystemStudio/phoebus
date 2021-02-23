@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,6 +22,8 @@ import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.csstudio.display.builder.model.widgets.NavigationTabsWidget;
 import org.phoebus.framework.macros.Macros;
+import org.phoebus.framework.persistence.XMLUtil;
+import org.w3c.dom.Element;
 
 /** Display Model.
  *
@@ -95,6 +97,39 @@ public class DisplayModel extends Widget
      *  within a running display to improve performance
      */
     private final Macros preference_macros = Preferences.getMacros();
+
+
+
+    /** Custom configurator to read legacy *.opi files */
+    private static class CustomConfigurator extends WidgetConfigurator
+    {
+        public CustomConfigurator(final Version xml_version)
+        {
+            super(xml_version);
+        }
+
+        @Override
+        public boolean configureFromXML(final ModelReader model_reader, final Widget widget, final Element widget_xml)
+                throws Exception
+        {
+            if (! super.configureFromXML(model_reader, widget, widget_xml))
+                return false;
+
+            if (xml_version.getMajor() < 2)
+            {
+                // Import legacy grid size
+                final DisplayModel model = (DisplayModel) widget;
+                XMLUtil.getChildInteger(widget_xml, "grid_space")
+                       .ifPresent(grid ->
+                {
+                    model.gridStepX.setValue(grid);
+                    model.gridStepY.setValue(grid);
+                });
+            }
+
+            return true;
+        }
+    }
 
     /** 'grid_visible' property */
     public static final WidgetPropertyDescriptor<Boolean> propGridVisible = newBooleanPropertyDescriptor(WidgetPropertyCategory.MISC, "grid_visible", Messages.WidgetProperties_GridVisible);
@@ -212,6 +247,12 @@ public class DisplayModel extends Widget
         }
 
         return true;
+    }
+
+    @Override
+    public WidgetConfigurator getConfigurator(Version persisted_version) throws Exception
+    {
+        return new CustomConfigurator(persisted_version);
     }
 
     @Override

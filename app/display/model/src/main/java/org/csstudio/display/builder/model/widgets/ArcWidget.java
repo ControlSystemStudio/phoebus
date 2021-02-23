@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2016-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -83,8 +83,9 @@ public class ArcWidget extends MacroWidget
                        .ifPresent(fill -> arc.propTransparent().setValue(! fill));
 
                 MacroWidget.importPVName(model_reader, widget, widget_xml);
-                // Map border properties to out'line'
-                OutlineSupport.handleLegacyBorder(widget, widget_xml);
+
+                // Legacy arc supported 'border', but that was a rectangular border
+                // unrelated to the arc and not supported by this widget
             }
             return true;
         }

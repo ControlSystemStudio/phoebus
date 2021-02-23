@@ -8,6 +8,13 @@ import java.io.File;
  * @author Eric Berryman
  */
 public interface Attachment {
+
+    /**
+     * @return A unique id set by either client or log service.
+     */
+    default String getId(){
+        return null;
+    }
     
     public String getName();
 

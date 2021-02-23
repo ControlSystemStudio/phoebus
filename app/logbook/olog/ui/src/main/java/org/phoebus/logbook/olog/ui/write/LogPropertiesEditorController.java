@@ -215,6 +215,9 @@ public class LogPropertiesEditorController {
     public List<Property> getProperties()
     {
         List<Property> treeProperties = new ArrayList<>();
+        if(selectedPropertiesTree.getRoot() == null){
+            return treeProperties;
+        }
         selectedPropertiesTree.getRoot().getChildren().stream().forEach(node -> {
             Map<String, String> att = node.getChildren().stream()
                     .map(TreeItem::getValue)

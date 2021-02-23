@@ -469,4 +469,12 @@ public interface LogClient {
     public default void delete(String fileName, Long logId) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
+
+    /**
+     *
+     * @return The service URL configured in the client.
+     */
+    default String getServiceUrl(){
+        return null;
+    }
 }

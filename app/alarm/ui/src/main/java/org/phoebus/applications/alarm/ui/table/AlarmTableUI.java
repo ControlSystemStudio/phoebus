@@ -447,7 +447,7 @@ public class AlarmTableUI extends BorderPane
             final TableRow<AlarmInfoRow> row = new TableRow<>();
             row.setOnMouseClicked(event ->
             {
-                if (event.getClickCount() == 2  &&  !row.isEmpty())
+                if (event.getClickCount() == 2  &&  !row.isEmpty() && AlarmUI.mayAcknowledge(client))
                     JobManager.schedule("ack", monitor ->  client.acknowledge(row.getItem().item, active));
             });
             return row;

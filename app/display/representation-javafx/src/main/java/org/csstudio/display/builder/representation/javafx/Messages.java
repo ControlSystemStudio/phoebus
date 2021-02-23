@@ -60,6 +60,9 @@ public class Messages
     public static String ConvertToEmbeddedPython;
     public static String ConvertToScriptFile;
     public static String Edit;
+    public static String ExportWidgetInfo;
+    public static String ExportFailed;
+    public static String ExportDone;
     public static String Copy;
     public static String Duplicate;
     public static String FileTypeAll;
