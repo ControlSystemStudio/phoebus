@@ -136,7 +136,7 @@ public class LogEntryDisplayController {
         List<Extension> extensions = Arrays.asList(TablesExtension.create(), ImageAttributesExtension.create());
         parser = Parser.builder().extensions(extensions).build();
         htmlRenderer = HtmlRenderer.builder()
-                .attributeProviderFactory(context -> new LogEntryCellController.OlogAttributeProvider())
+                .attributeProviderFactory(context -> new OlogAttributeProvider())
                 .extensions(extensions).build();
     }
 
@@ -175,7 +175,14 @@ public class LogEntryDisplayController {
             webEngine.setUserStyleSheetLocation(getClass()
                     .getResource("/detail-log-webview.css").toExternalForm());
 
+
             webEngine.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
+                /**
+                 * Attempts to set the height of the web view based on the html content.
+                 * @param arg0
+                 * @param oldState
+                 * @param newState
+                 */
                 @Override
                 public void changed(ObservableValue<? extends State> arg0, State oldState, State newState) {
                     if (newState == State.SUCCEEDED) {
@@ -189,6 +196,7 @@ public class LogEntryDisplayController {
                     }
                 }
             });
+
             if(logEntry.getSource() != null && !logEntry.getSource().isEmpty()){
                 webEngine.loadContent(toHtml(logEntry.getSource()));
             }
@@ -252,19 +260,29 @@ public class LogEntryDisplayController {
 
     /**
      * An {@link AttributeProvider} used to style elements of a log entry. Other types of
-     * attribute processing is of course possible.
+     * attribute processing may be added.
      */
     class OlogAttributeProvider implements AttributeProvider {
+
+        /**
+         * Processes image nodes to prepend the service root URL, where needed. For table nodes the olog-table
+         * class is added in order to give it some styling.
+         * @param node The {@link org.commonmark.node.Node} being processed.
+         * @param s The HTML tag, e.g. p, img, strong etc.
+         * @param map Map of attributes for the node.
+         */
         @Override
         public void setAttributes(org.commonmark.node.Node node, String s, Map<String, String> map) {
             if (node instanceof TableBlock) {
                 map.put("class", "olog-table");
             }
-            // Image URL is relative by design. Need to prepend the service URL to make the
-            // src attribute complete.
+            // Image paths may be relative (when added through dialog), or absolute URLs (e.g. when added "manually" in editor).
+            // Relative paths must be prepended with service root URL, while absolute URLs must not be changed.
             if(node instanceof org.commonmark.node.Image){
                 String src = map.get("src");
-                src = LogEntryDisplayController.this.getLogClient().getServiceUrl() + "/" + src;
+                if(!src.toLowerCase().startsWith("http")){
+                    src = LogEntryDisplayController.this.getLogClient().getServiceUrl() + "/" + src;
+                }
                 map.put("src", src);
             }
         }
