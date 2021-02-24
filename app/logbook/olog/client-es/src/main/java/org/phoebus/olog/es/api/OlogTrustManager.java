@@ -138,11 +138,11 @@ public class OlogTrustManager {
         }
 
         public X509Certificate[] getAcceptedIssuers() {
-            throw new UnsupportedOperationException();
+            return this.trustManager.getAcceptedIssuers();
         }
 
-        public void checkClientTrusted(X509Certificate[] chain, String authType){
-            throw new UnsupportedOperationException();
+        public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException{
+            this.trustManager.checkClientTrusted(chain, authType);
         }
 
         public void checkServerTrusted(X509Certificate[] certificateChain, String authType) throws CertificateException{
