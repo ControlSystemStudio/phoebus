@@ -127,17 +127,4 @@ public class LogEntryCellController {
         org.commonmark.node.Node document = parser.parse(commonmarkString);
         return textRenderer.render(document);
     }
-
-    /**
-     * An {@link AttributeProvider} used to style elements of a log entry. Other types of
-     * attribute processing is of course possible.
-     */
-    static class OlogAttributeProvider implements AttributeProvider {
-        @Override
-        public void setAttributes(org.commonmark.node.Node node, String s, Map<String, String> map) {
-            if (node instanceof TableBlock) {
-                map.put("class", "olog-table");
-            }
-        }
-    }
 }
