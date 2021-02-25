@@ -54,6 +54,15 @@ public class LogEntryTableDemo extends ApplicationWrapper {
                     return clazz.getConstructor(LogClient.class)
                             .newInstance(getLogClient());
                 }
+                else if(clazz.isAssignableFrom(LogEntryDisplayController.class)){
+                    return clazz.getConstructor(LogClient.class)
+                            .newInstance(getLogClient());
+                }
+                else if(clazz.isAssignableFrom(LogPropertiesController.class)){
+                    return clazz.getConstructor().newInstance();
+                } else if (clazz.isAssignableFrom(LogAttachmentsController.class)) {
+                    return clazz.getConstructor().newInstance();
+                }
             } catch (Exception e) {
                 Logger.getLogger(LogEntryEditorStage.class.getName()).log(Level.SEVERE, "Failed to construct controller for log calendar view", e);
             }
@@ -93,6 +102,7 @@ public class LogEntryTableDemo extends ApplicationWrapper {
         Property experimentProperty = PropertyImpl.of("Experiment", experimentAttributes);
 
         for (int i = 0; i < 10; i++) {
+            Thread.sleep(500);
             LogEntryBuilder lb = LogEntryBuilder.log()
                            .owner("Owner")
                            .title("log "+ i)
