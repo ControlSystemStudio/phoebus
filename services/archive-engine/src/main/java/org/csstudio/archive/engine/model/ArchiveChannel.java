@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -220,9 +220,12 @@ abstract public class ArchiveChannel
     {
         if (PV.isDisconnected(value))
             handleDisconnected();
-        if (enablement != Enablement.Passive)
-            handleEnablement(value);
-        handleNewValue(checkReceivedValue(value));
+        else
+        {
+            if (enablement != Enablement.Passive)
+                handleEnablement(value);
+            handleNewValue(checkReceivedValue(value));
+        }
     }
 
     public void onError(final Throwable error)
