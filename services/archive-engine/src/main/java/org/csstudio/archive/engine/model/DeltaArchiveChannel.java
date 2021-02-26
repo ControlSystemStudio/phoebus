@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,8 +12,8 @@ import static org.csstudio.archive.Engine.logger;
 import java.util.logging.Level;
 
 import org.epics.vtype.VType;
-import org.phoebus.util.time.SecondsParser;
 import org.phoebus.core.vtypes.VTypeHelper;
+import org.phoebus.util.time.SecondsParser;
 
 /** An ArchiveChannel that stores each incoming value that differs from
  *  the previous sample by some 'delta'.
@@ -122,6 +122,9 @@ public class DeltaArchiveChannel extends ArchiveChannel
                 return true;
             previous = VTypeHelper.toDouble(last_archived_value);
         }
+        // Can't compare against NaN and Inf, pass those on
+        if (Double.isNaN(previous)  ||  Double.isInfinite(previous))
+            return true;
         return Math.abs(previous - number) >= delta;
     }
 }

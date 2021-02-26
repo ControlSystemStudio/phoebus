@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -78,8 +78,13 @@ public class ValueButcher
 
         final StringBuilder buf = new StringBuilder();
         buf.append(TimestampHelper.format(VTypeHelper.getTimestamp(value)))
-           .append(' ')
-           .append(VTypeHelper.toString(value));
+           .append(' ');
+
+        // Suppress 'null' for disconnected
+        if (VTypeHelper.isDisconnected(value))
+            buf.append("N/A");
+        else
+            buf.append(VTypeHelper.toString(value));
 
         final Alarm alarm = Alarm.alarmOf(value);
         if (alarm != null)
