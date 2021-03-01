@@ -24,7 +24,6 @@ import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.SubJobMonitor;
 import org.phoebus.framework.persistence.MementoTree;
 import org.phoebus.framework.persistence.XMLMementoTree;
-import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;

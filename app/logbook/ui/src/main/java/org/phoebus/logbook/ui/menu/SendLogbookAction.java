@@ -18,7 +18,6 @@ import java.util.logging.Level;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.AttachmentImpl;
-import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
 import org.phoebus.logbook.ui.LogbookAvailabilityChecker;
 import org.phoebus.logbook.ui.LogbookUiPreferences;

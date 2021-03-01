@@ -19,12 +19,9 @@
 
 package org.phoebus.logbook.olog.ui;
 
-import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
 import org.phoebus.ui.javafx.FilesTab;
 import org.phoebus.ui.javafx.ImagesTab;

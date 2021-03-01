@@ -5,11 +5,9 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.commonmark.Extension;
-import org.commonmark.ext.gfm.tables.TableBlock;
 import org.commonmark.ext.gfm.tables.TablesExtension;
 import org.commonmark.ext.image.attributes.ImageAttributesExtension;
 import org.commonmark.parser.Parser;
-import org.commonmark.renderer.html.AttributeProvider;
 import org.commonmark.renderer.text.TextContentRenderer;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
@@ -18,7 +16,6 @@ import org.phoebus.ui.javafx.ImageCache;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.phoebus.util.time.TimestampFormats.MILLI_FORMAT;

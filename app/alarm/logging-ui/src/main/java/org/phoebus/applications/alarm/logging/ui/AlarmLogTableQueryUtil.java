@@ -1,14 +1,8 @@
 package org.phoebus.applications.alarm.logging.ui;
 
-import java.net.URI;
 import java.time.Instant;
 import java.time.temporal.TemporalAmount;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import org.phoebus.util.time.TimeParser;
 
 public class AlarmLogTableQueryUtil {

@@ -2,7 +2,6 @@ package org.phoebus.logbook.olog.ui;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
-import org.csstudio.apputil.formula.math.Log;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;

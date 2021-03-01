@@ -22,7 +22,6 @@ package org.phoebus.logbook.olog.ui.write;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
@@ -30,7 +29,6 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.olog.ui.LogPropertiesController;
 import org.phoebus.logbook.olog.ui.Messages;
 
 import java.util.concurrent.ExecutionException;

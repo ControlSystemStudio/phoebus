@@ -7,8 +7,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableView;
-import org.phoebus.framework.preferences.Preference;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.prefs.BackingStoreException;

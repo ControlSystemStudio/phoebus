@@ -22,7 +22,6 @@ import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.TagImpl;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.VBox;

@@ -19,12 +19,9 @@
 
 package org.csstudio.apputil.formula.array;
 
-import org.epics.util.array.ArrayDouble;
-import org.epics.util.stats.Range;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
-import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VStatistics;
 import org.epics.vtype.VType;
 import org.phoebus.core.vtypes.VTypeHelper;
@@ -32,8 +29,6 @@ import org.phoebus.core.vtypes.VTypeHelper;
 import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Stream;
 
 /**
  * Returns the statistic of the given array
