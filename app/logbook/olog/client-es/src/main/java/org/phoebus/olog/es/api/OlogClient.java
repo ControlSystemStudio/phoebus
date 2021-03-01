@@ -18,10 +18,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
@@ -44,7 +41,6 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
-import com.sun.jersey.client.urlconnection.HTTPSProperties;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import com.sun.jersey.multipart.FormDataBodyPart;
 import com.sun.jersey.multipart.FormDataMultiPart;
@@ -77,7 +73,6 @@ public class OlogClient implements LogClient {
         private boolean withHTTPAuthentication = true;
 
         private ClientConfig clientConfig = null;
-        private TrustManager[] trustManager = new TrustManager[] { new DummyX509TrustManager() };;
         @SuppressWarnings("unused")
         private SSLContext sslContext = null;
         private String protocol = null;
@@ -135,32 +130,9 @@ public class OlogClient implements LogClient {
             return this;
         }
 
-        /**
-         * set the {@link ClientConfig} to be used while creating the Olog-es
-         * client connection.
-         *
-         * @param clientConfig
-         * @return {@link OlogClientBuilder}
-         */
-        public OlogClientBuilder withClientConfig(ClientConfig clientConfig) {
-            this.clientConfig = clientConfig;
-            return this;
-        }
-
         @SuppressWarnings("unused")
         private OlogClientBuilder withSSLContext(SSLContext sslContext) {
             this.sslContext = sslContext;
-            return this;
-        }
-
-        /**
-         * Set the trustManager that should be used for authentication.
-         *
-         * @param trustManager
-         * @return {@link OlogClientBuilder}
-         */
-        public OlogClientBuilder withTrustManager(TrustManager[] trustManager) {
-            this.trustManager = trustManager;
             return this;
         }
 
@@ -168,22 +140,9 @@ public class OlogClient implements LogClient {
             if (this.protocol.equalsIgnoreCase("http")) { //$NON-NLS-1$
                 this.clientConfig = new DefaultClientConfig();
             } else if (this.protocol.equalsIgnoreCase("https")) { //$NON-NLS-1$
+                OlogTrustManager.setupSSLTrust(this.ologURI.getHost(), this.ologURI.getPort());
                 if (this.clientConfig == null) {
-                    SSLContext sslContext = null;
-                    try {
-                        sslContext = SSLContext.getInstance("SSL"); //$NON-NLS-1$
-                        sslContext.init(null, this.trustManager, null);
-                    } catch (Exception e) {
-                        throw new OlogException();
-                    }
                     this.clientConfig = new DefaultClientConfig();
-                    this.clientConfig.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES,
-                            new HTTPSProperties(new HostnameVerifier() {
-                                @Override
-                                public boolean verify(String arg0, SSLSession arg1) {
-                                    return true;
-                                }
-                            }, sslContext));
                 }
             }
             this.username = ifNullReturnPreferenceValue(this.username, "username");

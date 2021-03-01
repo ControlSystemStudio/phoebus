@@ -220,9 +220,12 @@ abstract public class ArchiveChannel
     {
         if (PV.isDisconnected(value))
             handleDisconnected();
-        if (enablement != Enablement.Passive)
-            handleEnablement(value);
-        handleNewValue(checkReceivedValue(value));
+        else
+        {
+            if (enablement != Enablement.Passive)
+                handleEnablement(value);
+            handleNewValue(checkReceivedValue(value));
+        }
     }
 
     public void onError(final Throwable error)
