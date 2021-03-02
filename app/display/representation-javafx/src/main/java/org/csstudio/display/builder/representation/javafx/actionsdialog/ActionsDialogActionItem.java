@@ -20,14 +20,12 @@ package org.csstudio.display.builder.representation.javafx.actionsdialog;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfo;
-import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
+import org.csstudio.display.builder.model.properties.ActionInfo.ActionType;
 import org.csstudio.display.builder.representation.javafx.Messages;
-import org.csstudio.trends.databrowser3.model.Model;
-import org.csstudio.trends.databrowser3.ui.properties.StatisticsTabController;
 import org.phoebus.framework.nls.NLS;
 
-import java.io.IOException;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,34 +36,97 @@ import java.util.logging.Logger;
  */
 public class ActionsDialogActionItem {
 
-    private ActionInfo actionInfo;
     private Node actionInfoEditor;
+    private ActionDetailsController controller;
+    private String description;
+    private ActionType actionType;
 
-    public ActionsDialogActionItem(ActionInfo actionInfo){
-        this.actionInfo = actionInfo;
-
+    /**
+     * Constructor.
+     *
+     * Note that the {@link ActionInfo} object is not maintained as a field in the class as its fields are
+     * read-only.
+     * @param widget
+     * @param actionInfo
+     */
+    public ActionsDialogActionItem(Widget widget, ActionInfo actionInfo){
+        this.description = actionInfo.getDescription();
+        this.actionType = actionInfo.getType();
+        ResourceBundle resourceBundle =  NLS.getMessages(Messages.class);
+        FXMLLoader fxmlLoader = new FXMLLoader();
+        fxmlLoader.setResources(resourceBundle);
         try {
             switch(actionInfo.getType()){
                 case OPEN_DISPLAY:
-                    ResourceBundle resourceBundle =  NLS.getMessages(Messages.class);
-                    FXMLLoader fxmlLoader = new FXMLLoader();
                     fxmlLoader.setLocation(this.getClass().getResource("OpenDisplayActionDetails.fxml"));
-                    fxmlLoader.setResources(resourceBundle);
                     fxmlLoader.setControllerFactory(clazz -> {
                         try {
-                            OpenDisplayActionDetailsController controller =
-                                    (OpenDisplayActionDetailsController) clazz.getConstructor(OpenDisplayActionInfo.class)
-                                            .newInstance(actionInfo);
-                            return controller;
-
+                           return clazz.getConstructor(Widget.class, ActionInfo.class).newInstance(widget, actionInfo);
                         } catch (Exception e) {
-                            Logger.getLogger(StatisticsTabController.class.getName()).log(Level.SEVERE, "Failed to construct controller statistics tab", e);
+                            Logger.getLogger(ActionsDialogActionItem.class.getName()).log(Level.SEVERE, "Failed to construct OpenDisplayActionDetailsController", e);
                         }
                         return null;
                     });
-                    this.actionInfoEditor = fxmlLoader.load();
-                    this.actionInfoEditor.setVisible(false);
+                    break;
+                case WRITE_PV:
+                    fxmlLoader.setLocation(this.getClass().getResource("WritePVActionDetails.fxml"));
+                    fxmlLoader.setControllerFactory(clazz -> {
+                        try {
+                           return clazz.getConstructor(ActionInfo.class).newInstance(actionInfo);
+                        } catch (Exception e) {
+                            Logger.getLogger(ActionsDialogActionItem.class.getName()).log(Level.SEVERE, "Failed to construct WritePVActionDetailsController", e);
+                        }
+                        return null;
+                    });
+                    break;
+                case EXECUTE_SCRIPT:
+                    fxmlLoader.setLocation(this.getClass().getResource("ExecuteScriptActionDetails.fxml"));
+                    fxmlLoader.setControllerFactory(clazz -> {
+                        try {
+                            return clazz.getConstructor(Widget.class, ActionInfo.class).newInstance(widget, actionInfo);
+                        } catch (Exception e) {
+                            Logger.getLogger(ActionsDialogActionItem.class.getName()).log(Level.SEVERE, "Failed to construct ExecuteScriptDetailsController", e);
+                        }
+                        return null;
+                    });
+                    break;
+                case EXECUTE_COMMAND:
+                    fxmlLoader.setLocation(this.getClass().getResource("ExecuteCommandActionDetails.fxml"));
+                    fxmlLoader.setControllerFactory(clazz -> {
+                        try {
+                            return clazz.getConstructor(Widget.class, ActionInfo.class).newInstance(widget, actionInfo);
+                        } catch (Exception e) {
+                            Logger.getLogger(ActionsDialogActionItem.class.getName()).log(Level.SEVERE, "Failed to construct ExecuteCommandDetailsController", e);
+                        }
+                        return null;
+                    });
+                    break;
+                case OPEN_FILE:
+                    fxmlLoader.setLocation(this.getClass().getResource("OpenFileActionDetails.fxml"));
+                    fxmlLoader.setControllerFactory(clazz -> {
+                        try {
+                           return clazz.getConstructor(Widget.class, ActionInfo.class).newInstance(widget, actionInfo);
+                        } catch (Exception e) {
+                            Logger.getLogger(ActionsDialogActionItem.class.getName()).log(Level.SEVERE, "Failed to construct OpenFileDetailsController", e);
+                        }
+                        return null;
+                    });
+                    break;
+                case OPEN_WEBPAGE:
+                    fxmlLoader.setLocation(this.getClass().getResource("OpenWebPageActionDetails.fxml"));
+                    fxmlLoader.setControllerFactory(clazz -> {
+                        try {
+                           return clazz.getConstructor(ActionInfo.class).newInstance(actionInfo);
+                        } catch (Exception e) {
+                            Logger.getLogger(ActionsDialogActionItem.class.getName()).log(Level.SEVERE, "Failed to construct OpenWebPageDetailsController", e);
+                        }
+                        return null;
+                    });
+                    break;
             }
+            this.actionInfoEditor = fxmlLoader.load();
+            this.controller = fxmlLoader.getController();
+            this.actionInfoEditor.setVisible(false);
         } catch (Exception e) {
             Logger.getLogger(ActionsDialogActionItem.class.getName())
                     .log(Level.WARNING, String.format("Unable to create editor for action type \"%s\"", actionInfo.getType()), e);
@@ -76,7 +137,18 @@ public class ActionsDialogActionItem {
         return actionInfoEditor;
     }
 
+    public String getDescription(){
+        return description;
+    }
+
+    public ActionType getActionType(){
+        return actionType;
+    }
+
+    /**
+     * @return The {@link ActionInfo} object maintained by the controller for the editor component.
+     */
     public ActionInfo getActionInfo(){
-        return actionInfo;
+        return controller.getActionInfo();
     }
 }

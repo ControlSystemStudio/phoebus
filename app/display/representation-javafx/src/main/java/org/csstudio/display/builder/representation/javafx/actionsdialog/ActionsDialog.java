@@ -26,11 +26,15 @@ import javafx.scene.layout.GridPane;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.representation.javafx.Messages;
+import org.csstudio.trends.databrowser3.ui.properties.StatisticsTabController;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.dialog.DialogHelper;
 
 import java.io.IOException;
+import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Dialog for editing {@link org.csstudio.display.builder.model.properties.ActionInfo} list
@@ -54,8 +58,22 @@ public class ActionsDialog extends Dialog<ActionInfos> {
         setTitle(Messages.ActionsDialog_Title);
         setHeaderText(Messages.ActionsDialog_Info);
 
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("ActionsDialog.fxml"),
-                NLS.getMessages(Messages.class));
+        ResourceBundle resourceBundle =  NLS.getMessages(Messages.class);
+        FXMLLoader fxmlLoader = new FXMLLoader();
+        fxmlLoader.setLocation(this.getClass().getResource("ActionsDialog.fxml"));
+        fxmlLoader.setResources(resourceBundle);
+        fxmlLoader.setControllerFactory(clazz -> {
+            try {
+                ActionsDialogController controller =
+                        (ActionsDialogController) clazz.getConstructor(Widget.class)
+                                .newInstance(widget);
+                return controller;
+
+            } catch (Exception e) {
+                Logger.getLogger(StatisticsTabController.class.getName()).log(Level.SEVERE, "Failed to construct ActionsDialogController", e);
+            }
+            return null;
+        });
 
         try {
             GridPane layout = fxmlLoader.load();
@@ -77,6 +95,6 @@ public class ActionsDialog extends Dialog<ActionInfos> {
         });
 
         DialogHelper.positionAndSize(this, owner,
-                PhoebusPreferenceService.userNodeForClass(org.csstudio.display.builder.representation.javafx.ActionsDialog.class));
+                PhoebusPreferenceService.userNodeForClass(org.csstudio.display.builder.representation.javafx.actionsdialog.ActionsDialog.class));
     }
 }

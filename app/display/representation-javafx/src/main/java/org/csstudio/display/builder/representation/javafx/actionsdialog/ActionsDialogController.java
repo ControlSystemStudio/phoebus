@@ -35,13 +35,12 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
+import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.properties.ActionInfo.ActionType;
 import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -64,6 +63,8 @@ public class ActionsDialogController {
     @FXML
     private StackPane detailsPane;
 
+    private Widget widget;
+
     private IntegerProperty selectionIndex = new SimpleIntegerProperty(-1);
     private IntegerProperty listSize = new SimpleIntegerProperty(0);
     private BooleanProperty executeAll = new SimpleBooleanProperty();
@@ -71,33 +72,36 @@ public class ActionsDialogController {
     /** Actions edited by the dialog */
     private final ObservableList<ActionsDialogActionItem> actionList = FXCollections.observableArrayList();
 
+    public ActionsDialogController(Widget widget){
+        this.widget = widget;
+    }
+
     /** ListView cell for ActionInfo, shows title if possible */
     private static class ActionInfoCell extends ListCell<ActionsDialogActionItem>
     {
         @Override
-        protected void updateItem(final ActionsDialogActionItem action, final boolean empty)
+        protected void updateItem(final ActionsDialogActionItem actionsDialogActionItem, final boolean empty)
         {
-            super.updateItem(action, empty);
+            super.updateItem(actionsDialogActionItem, empty);
             try
             {
-                if (action == null)
+                if (actionsDialogActionItem == null)
                 {
                     setText("");
                     setGraphic(null);
                 }
                 else
                 {
-                    setText(action.getActionInfo().toString());
-                    setGraphic(new ImageView(new Image(action.getActionInfo().getType().getIconURL().toExternalForm())));
+                    setText(actionsDialogActionItem.getDescription());
+                    setGraphic(new ImageView(new Image(actionsDialogActionItem.getActionType().getIconURL().toExternalForm())));
                 }
             }
             catch (Exception ex)
             {
-                logger.log(Level.WARNING, "Error displaying " + action, ex);
+                logger.log(Level.WARNING, "Error displaying " + actionsDialogActionItem, ex);
             }
         }
     };
-
 
     @FXML
     public void initialize() {
@@ -115,8 +119,9 @@ public class ActionsDialogController {
             {
                 final ActionInfo action = ActionInfo.createAction(type);
                 ActionsDialogActionItem actionsDialogActionItem =
-                        new ActionsDialogActionItem(action);
+                        new ActionsDialogActionItem(widget, action);
                 actionList.add(actionsDialogActionItem);
+                detailsPane.getChildren().add(actionsDialogActionItem.getActionInfoEditor());
                 actionsListView.getSelectionModel().select(actionsDialogActionItem);
             });
             addButton.getItems().add(item);
@@ -124,20 +129,20 @@ public class ActionsDialogController {
 
         actionsListView.setCellFactory(view -> new ActionInfoCell());
 
-        executeAllCheckBox.selectedProperty().bind(executeAll);
+        executeAllCheckBox.selectedProperty().bindBidirectional(executeAll);
 
         // Disable remove button if nothing is selected
         removeButton.disableProperty().bind(Bindings.isEmpty(actionsListView.getSelectionModel().getSelectedItems()));
 
+        selectionIndex.bind(actionsListView.getSelectionModel().selectedIndexProperty());
+
         // Add listener to item selection
         actionsListView.getSelectionModel().selectedItemProperty().addListener((l, old, action) -> {
-            ActionsDialogActionItem actionsDialogActionItem = actionsListView.getSelectionModel().getSelectedItem();
-            selectionIndex.setValue(actionsListView.getSelectionModel().getSelectedIndex());
             listSize.setValue(actionsListView.getItems().size());
-            if(!detailsPane.getChildren().contains(actionsDialogActionItem.getActionInfoEditor())){
-                detailsPane.getChildren().add(actionsDialogActionItem.getActionInfoEditor());
+            ActionsDialogActionItem actionsDialogActionItem = actionsListView.getSelectionModel().getSelectedItem();
+            if(actionsDialogActionItem == null){
+                return;
             }
-            //actionsDialogActionItem.getActionInfoEditor().setVisible(true);
             setDetailsPaneVisibility(actionsDialogActionItem);
         });
 
@@ -151,10 +156,24 @@ public class ActionsDialogController {
         upButton.disableProperty().bind(Bindings.greaterThan(1, selectionIndex));
     }
 
+    /**
+     * Creates {@link ActionInfo} objects and one editor per item. The editors are added to the
+     * {@link StackPane} anf the top most item in the action list is selected.
+     * @param actionInfos
+     */
     public void setActionInfos(ActionInfos actionInfos){
+        if(actionInfos == null || actionInfos.getActions() == null || actionInfos.getActions().isEmpty()){
+            return;
+        }
         actionList.addAll(actionInfos.getActions()
-                .stream().map(ai -> new ActionsDialogActionItem(ai)).collect(Collectors.toList()));
+                .stream().map(ai -> {
+                    ActionsDialogActionItem actionsDialogActionItem = new ActionsDialogActionItem(widget, ai);
+                    detailsPane.getChildren().add(actionsDialogActionItem.getActionInfoEditor());
+                    return  actionsDialogActionItem;
+                }).collect(Collectors.toList()));
         actionsListView.setItems(actionList);
+        actionsListView.getSelectionModel().select(0);
+        setDetailsPaneVisibility(actionsListView.getSelectionModel().getSelectedItem());
         executeAll.setValue(actionInfos.isExecutedAsOne());
     }
 
@@ -165,7 +184,9 @@ public class ActionsDialogController {
 
     @FXML
     public void removeAction(){
-        actionsListView.getItems().remove(actionsListView.getSelectionModel().getSelectedIndex());
+        int index = selectionIndex.get();
+        detailsPane.getChildren().remove(index);
+        actionsListView.getItems().remove(index);
     }
 
     @FXML
@@ -177,13 +198,13 @@ public class ActionsDialogController {
 
     @FXML
     public void moveDown(){
+        int tragetIndex = selectionIndex.get() + 1;
         final ActionsDialogActionItem item = actionList.remove(selectionIndex.get());
-        actionList.add(selectionIndex.get() + 2, item);
+        actionList.add(tragetIndex, item);
         actionsListView.getSelectionModel().select(item);
     }
 
     private void setDetailsPaneVisibility(ActionsDialogActionItem visibleItem){
-        
         actionList.stream().forEach(i -> {
             if(i.getActionInfoEditor() != null){
                 i.getActionInfoEditor().setVisible(i == visibleItem);
