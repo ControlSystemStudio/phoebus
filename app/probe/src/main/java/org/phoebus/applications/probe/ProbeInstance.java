@@ -1,9 +1,7 @@
 package org.phoebus.applications.probe;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
-import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 
 import org.phoebus.applications.probe.view.ProbeController;

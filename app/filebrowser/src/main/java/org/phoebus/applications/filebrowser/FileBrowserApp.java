@@ -5,7 +5,6 @@ import java.net.URI;
 
 import org.phoebus.framework.preferences.AnnotatedPreferences;
 import org.phoebus.framework.preferences.Preference;
-import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 

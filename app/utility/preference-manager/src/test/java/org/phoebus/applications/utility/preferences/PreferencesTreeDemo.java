@@ -7,8 +7,6 @@ import javafx.stage.Stage;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
 public class PreferencesTreeDemo extends ApplicationWrapper {
 

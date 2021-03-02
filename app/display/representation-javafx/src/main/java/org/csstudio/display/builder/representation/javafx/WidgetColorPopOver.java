@@ -12,9 +12,7 @@ package org.csstudio.display.builder.representation.javafx;
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
-import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import java.util.logging.Level;

@@ -1,28 +1,16 @@
 package org.phoebus.elog.api;
 
 import java.time.Instant;
-import java.text.SimpleDateFormat;
-import java.text.ParseException;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.Date;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.nio.file.Paths;
 import java.net.URI;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -30,15 +18,11 @@ import javax.xml.xpath.XPathFactory;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.NodeList;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
-
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.TagNode;
 import org.htmlcleaner.DomSerializer;
 import org.htmlcleaner.CleanerProperties;
 
-import net.dongliu.commons.collection.Lists;
 import net.dongliu.requests.Requests;
 import net.dongliu.requests.body.Part;
 import net.dongliu.requests.Response;

@@ -20,7 +20,6 @@
 package org.csstudio.apputil.formula.array;
 
 import org.epics.util.array.ArrayDouble;
-import org.epics.util.array.ListMath;
 import org.epics.util.stats.Range;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;

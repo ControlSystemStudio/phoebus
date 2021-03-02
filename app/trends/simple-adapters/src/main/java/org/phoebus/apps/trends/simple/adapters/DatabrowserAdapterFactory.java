@@ -10,7 +10,6 @@ import org.phoebus.applications.email.EmailEntry;
 import org.phoebus.framework.adapter.AdapterFactory;
 import org.phoebus.logbook.AttachmentImpl;
 import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.LogEntryImpl;
 import org.phoebus.ui.javafx.Screenshot;
 
 import static org.phoebus.logbook.LogEntryImpl.LogEntryBuilder.*;

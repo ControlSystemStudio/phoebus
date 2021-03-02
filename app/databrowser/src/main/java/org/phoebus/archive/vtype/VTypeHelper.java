@@ -9,17 +9,13 @@ package org.phoebus.archive.vtype;
 
 import java.time.Instant;
 
-import org.epics.util.array.ListNumber;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
-import org.epics.vtype.VBoolean;
 import org.epics.vtype.VEnum;
-import org.epics.vtype.VEnumArray;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
-import org.epics.vtype.VStatistics;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.pv.TimeHelper;

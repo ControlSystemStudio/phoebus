@@ -23,12 +23,10 @@ import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
-import org.epics.vtype.VStatistics;
 import org.epics.vtype.VType;
 import org.phoebus.core.vtypes.VTypeHelper;
 
 import java.util.Arrays;
-import java.util.DoubleSummaryStatistics;
 import java.util.List;
 
 /**

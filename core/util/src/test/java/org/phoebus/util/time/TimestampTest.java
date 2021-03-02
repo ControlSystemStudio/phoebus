@@ -6,8 +6,6 @@ package org.phoebus.util.time;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
-import org.phoebus.util.time.TimeDuration;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;

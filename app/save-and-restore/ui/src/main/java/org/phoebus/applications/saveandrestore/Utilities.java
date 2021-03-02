@@ -80,8 +80,6 @@ import org.epics.vtype.ValueFormat;
 import org.phoebus.applications.saveandrestore.ui.model.Threshold;
 import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.model.VNoData;
-import org.phoebus.core.vtypes.VTypeHelper;
-
 import java.math.BigInteger;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
