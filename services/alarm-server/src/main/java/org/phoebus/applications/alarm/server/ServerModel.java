@@ -440,7 +440,7 @@ class ServerModel
         int active = 0;
         for (AlarmTreeItem<?> child : item.getChildren())
             if (child.getState().severity.isActive())
-                ++active;
+                active += countAlarmPVs(child);
         return active;
     }
 
