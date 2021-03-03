@@ -14,6 +14,12 @@ import org.phoebus.framework.nls.NLS;
  */
 public class Messages
 {
+    public static String ActionExecuteCommand;
+    public static String ActionExecuteScript;
+    public static String ActionOpenDisplay;
+    public static String ActionOpenFile;
+    public static String ActionOpenWebPage;
+    public static String ActionWritePV;
     public static String Actions_N_Fmt;
     public static String ActiveTab;
     public static String ArrayWidget_Description;
