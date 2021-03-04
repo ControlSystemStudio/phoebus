@@ -199,7 +199,10 @@ public class OlogClient implements LogClient {
                 OlogLog createdLog = OlogObjectMappers.logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), OlogLog.class);
                 log.getAttachments().stream().forEach(attachment -> {
                     FormDataMultiPart form = new FormDataMultiPart();
-                    form.bodyPart(new FormDataBodyPart("id", attachment.getId()));
+                    // Add id only if it is set, otherwise Jersey will complain and cause the submission to fail.
+                    if(attachment.getId() != null && !attachment.getId().isEmpty()){
+                        form.bodyPart(new FormDataBodyPart("id", attachment.getId()));
+                    }
                     form.bodyPart(new FileDataBodyPart("file", attachment.getFile()));
                     form.bodyPart(new FormDataBodyPart("filename", attachment.getName()));
                     form.bodyPart(new FormDataBodyPart("fileMetadataDescription", attachment.getContentType()));
