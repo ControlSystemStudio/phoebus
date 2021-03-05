@@ -29,17 +29,12 @@
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>app-logbook-inmemory</artifactId>
-      <version>4.6.6-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.phoebus</groupId>
       <artifactId>app-logbook-olog-client-es</artifactId>
       <version>4.6.6-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>app-logbook-olog-client</artifactId>
+      <artifactId>app-logbook-olog-ui</artifactId>
       <version>4.6.6-SNAPSHOT</version>
     </dependency>
     <dependency>
@@ -111,12 +106,6 @@
       <groupId>org.phoebus</groupId>
       <artifactId>app-display-adapters</artifactId>
       <version>4.6.6-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.phoebus</groupId>
-      <artifactId>app-display-adapters</artifactId>
-      <version>4.6.6-SNAPSHOT</version>
-      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
@@ -301,22 +290,6 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
-      <!-- Allows for the running of phoebus with mvn exec:java -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.6.0</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>java</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <mainClass>org.phoebus.product.Launcher</mainClass>
-        </configuration>
       </plugin>
 
       <!-- Package the phoebus product with dependencies, run scripts, and sources -->
