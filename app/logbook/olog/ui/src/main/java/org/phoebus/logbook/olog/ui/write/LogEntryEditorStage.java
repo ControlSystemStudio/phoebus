@@ -42,7 +42,7 @@ public class LogEntryEditorStage extends Stage
      */
     public LogEntryEditorStage(Node parent, LogEntryModel logEntryModel, LogEntryCompletionHandler completionHandler)
     {
-        initModality(Modality.APPLICATION_MODAL);
+        initModality(Modality.WINDOW_MODAL);
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("LogEntryEditor.fxml"));
         fxmlLoader.setControllerFactory(clazz -> {
             try {
