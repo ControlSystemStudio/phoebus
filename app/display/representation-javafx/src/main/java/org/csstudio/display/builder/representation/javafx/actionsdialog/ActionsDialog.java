@@ -18,23 +18,25 @@
 
 package org.csstudio.display.builder.representation.javafx.actionsdialog;
 
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
-import javafx.scene.layout.GridPane;
+import java.io.IOException;
+import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfos;
+import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.csstudio.display.builder.representation.javafx.Messages;
 import org.csstudio.trends.databrowser3.ui.properties.StatisticsTabController;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.dialog.DialogHelper;
 
-import java.io.IOException;
-import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.layout.GridPane;
 
 /**
  * Dialog for editing {@link org.csstudio.display.builder.model.properties.ActionInfo} list
@@ -79,7 +81,7 @@ public class ActionsDialog extends Dialog<ActionInfos> {
             GridPane layout = fxmlLoader.load();
             getDialogPane().setContent(layout);
             getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-            getDialogPane().getStylesheets().add(getClass().getResource("../opibuilder.css").toExternalForm());
+            getDialogPane().getStylesheets().add(JFXRepresentation.class.getResource("opibuilder.css").toExternalForm());
             setResizable(true);
         } catch (IOException e) {
             e.printStackTrace();
