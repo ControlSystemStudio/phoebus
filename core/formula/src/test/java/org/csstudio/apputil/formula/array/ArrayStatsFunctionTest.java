@@ -20,15 +20,12 @@
 package org.csstudio.apputil.formula.array;
 
 import org.epics.util.array.ArrayDouble;
-import org.epics.util.stats.Range;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VStatistics;
 import org.junit.Test;
-
-import java.text.DecimalFormat;
 
 import static org.junit.Assert.*;
 

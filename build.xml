@@ -56,6 +56,7 @@
     <ant target="clean" dir="app/channel/channelfinder"/>
     <ant target="clean" dir="app/channel/utility"/>
     <ant target="clean" dir="app/channel/views"/>
+    <ant target="clean" dir="app/utility/preference-manager"/>
     <ant target="clean" dir="phoebus-product"/>
     <ant target="clean" dir="services/scan-server"/>
     <ant target="clean" dir="services/alarm-server"/>
@@ -132,6 +133,7 @@
     <ant dir="app/channel/channelfinder"/>
     <ant dir="app/channel/utility"/>
     <ant dir="app/channel/views"/>
+    <ant dir="app/utility/preference-manager"/>
   </target>
 
   <target name="product" depends="app" description="Assemble product">

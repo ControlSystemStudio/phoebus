@@ -8,21 +8,13 @@
 package org.csstudio.display.builder.editor.app;
 
 import java.io.File;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-
 import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.editor.util.CreateNewDisplayJob;
 import org.csstudio.display.builder.model.DisplayModel;
-import org.csstudio.display.builder.editor.Preferences;
-import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.MenuEntry;
 
-import javafx.application.Platform;
 import javafx.scene.image.Image;
 
 /** Menu entry for creating a new display, opening in editor

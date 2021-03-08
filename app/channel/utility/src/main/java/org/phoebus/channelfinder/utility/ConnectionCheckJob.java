@@ -1,14 +1,11 @@
 package org.phoebus.channelfinder.utility;
 
 import org.phoebus.channelfinder.ChannelFinderClient;
-import org.phoebus.channelfinder.ChannelFinderException;
-import org.phoebus.channelfinder.autocomplete.CFProposalProvider;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobRunnableWithCancel;
 
 import java.util.function.BiConsumer;
-import java.util.logging.Level;
 
 /**
  *

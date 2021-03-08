@@ -13,7 +13,6 @@ package org.phoebus.applications.saveandrestore.ui.model;
 import java.io.Serializable;
 
 
-import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.VType;
 
 /**

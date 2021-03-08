@@ -21,8 +21,6 @@ package org.phoebus.logbook.ui.write;
 
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ComboBox;
@@ -39,7 +37,6 @@ import org.phoebus.util.time.TimestampFormats;
 
 import java.net.URL;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.ResourceBundle;
 
 public class FieldsViewController implements Initializable{

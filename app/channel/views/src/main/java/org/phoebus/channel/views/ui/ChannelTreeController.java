@@ -18,6 +18,7 @@ import org.phoebus.channelfinder.ChannelUtil;
 import org.phoebus.framework.adapter.AdapterService;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuService;
+import org.phoebus.ui.dialog.OrderedSelectionDialog;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -140,7 +141,7 @@ public class ChannelTreeController extends ChannelFinderController {
     public void configure() {
         if (model != null) {
             List<String> allProperties = ChannelUtil.getPropertyNames(model.getRoot().getNodeChannels()).stream().sorted().collect(Collectors.toList());
-            ListMultiOrderedPickerDialog dialog = new ListMultiOrderedPickerDialog(allProperties, orderedProperties);
+            OrderedSelectionDialog dialog = new OrderedSelectionDialog(allProperties, orderedProperties);
             Optional<List<String>> result = dialog.showAndWait();
             result.ifPresent(r -> {
                 setOrderedProperties(r);

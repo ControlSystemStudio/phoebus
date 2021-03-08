@@ -22,30 +22,7 @@ import org.epics.util.array.ListUByte;
 import org.epics.util.array.ListUInteger;
 import org.epics.util.array.ListULong;
 import org.epics.util.array.ListUShort;
-import org.epics.vtype.Alarm;
-import org.epics.vtype.Array;
-import org.epics.vtype.Display;
-import org.epics.vtype.EnumDisplay;
-import org.epics.vtype.Time;
-import org.epics.vtype.VBoolean;
-import org.epics.vtype.VBooleanArray;
-import org.epics.vtype.VByteArray;
-import org.epics.vtype.VDouble;
-import org.epics.vtype.VDoubleArray;
-import org.epics.vtype.VEnum;
-import org.epics.vtype.VEnumArray;
-import org.epics.vtype.VInt;
-import org.epics.vtype.VIntArray;
-import org.epics.vtype.VLongArray;
-import org.epics.vtype.VNumberArray;
-import org.epics.vtype.VShortArray;
-import org.epics.vtype.VStatistics;
-import org.epics.vtype.VString;
-import org.epics.vtype.VStringArray;
-import org.epics.vtype.VTable;
-import org.epics.vtype.VType;
-import org.epics.vtype.VUIntArray;
-import org.epics.vtype.VUShortArray;
+import org.epics.vtype.*;
 import org.junit.Test;
 
 import java.time.Instant;
@@ -430,5 +407,33 @@ public class VTypeHelperTest {
         assertEquals("VEnumArray[a, b, c, d, e]", string);
     }
 
+    @Test
+    public void testToBoolean() {
+        // Test parsing of VBoolean to boolean
+        VType vtype = VBoolean.of(Boolean.TRUE, Alarm.none(), Time.now());
+        assertEquals("Failed to parse boolean from VBoolean : " + vtype.toString(), true, VTypeHelper.toBoolean(vtype));
+        vtype = VBoolean.of(Boolean.FALSE, Alarm.none(), Time.now());
+        assertEquals("Failed to parse boolean from VBoolean : " + vtype.toString(), false, VTypeHelper.toBoolean(vtype));
+
+        // Test parsing of VString to boolean
+        vtype = VString.of("true", Alarm.none(), Time.now());
+        assertEquals("Failed to parse boolean from VString : " + vtype.toString(), true, VTypeHelper.toBoolean(vtype));
+        vtype = VString.of("TRUE", Alarm.none(), Time.now());
+        assertEquals("Failed to parse boolean from VString : " + vtype.toString(), true, VTypeHelper.toBoolean(vtype));
+        vtype = VString.of("false", Alarm.none(), Time.now());
+        assertEquals("Failed to parse boolean from VString : " + vtype.toString(), false, VTypeHelper.toBoolean(vtype));
+        vtype = VString.of("FALSE", Alarm.none(), Time.now());
+        assertEquals("Failed to parse boolean from VString : " + vtype.toString(), false, VTypeHelper.toBoolean(vtype));
+
+        // Test parsing of VNumber to boolean
+        vtype = VNumber.of(0, Alarm.none(), Time.now(), Display.none());
+        assertEquals("Failed to parse boolean from VNumber : " + vtype.toString(), false, VTypeHelper.toBoolean(vtype));
+        vtype = VNumber.of(0.0, Alarm.none(), Time.now(), Display.none());
+        assertEquals("Failed to parse boolean from VNumber : " + vtype.toString(), false, VTypeHelper.toBoolean(vtype));
+        vtype = VNumber.of(0.001, Alarm.none(), Time.now(), Display.none());
+        assertEquals("Failed to parse boolean from VNumber : " + vtype.toString(), true, VTypeHelper.toBoolean(vtype));
+        vtype = VNumber.of(1, Alarm.none(), Time.now(), Display.none());
+        assertEquals("Failed to parse boolean from VNumber : " + vtype.toString(), true, VTypeHelper.toBoolean(vtype));
+    }
 
 }

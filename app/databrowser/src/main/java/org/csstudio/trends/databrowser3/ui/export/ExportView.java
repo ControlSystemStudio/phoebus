@@ -12,6 +12,7 @@ import java.text.MessageFormat;
 import java.time.Instant;
 import java.time.temporal.TemporalAmount;
 
+import javafx.beans.property.SimpleBooleanProperty;
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.export.ExportJob;
@@ -84,6 +85,10 @@ public class ExportView extends VBox
                             filename = new TextField();
     private final RadioButton source_raw = new RadioButton(Source.RAW_ARCHIVE.toString()),
                               type_matlab = new RadioButton(Messages.ExportTypeMatlab);
+
+    private final CheckBox useUnixTimeStamp = new CheckBox(Messages.UseUnixTimeStamp);
+    private SimpleBooleanProperty unixTimeStamp = new SimpleBooleanProperty(false);
+
 
     public ExportView(final Model model)
     {
@@ -167,7 +172,7 @@ public class ExportView extends VBox
         linear.setTooltip(new Tooltip(Messages.ExportDefaultLinearInterpolationTT));
         linear.disableProperty().bind(source_lin.selectedProperty().not());
 
-        final HBox source_options = new HBox(5, source_plot, source_raw, source_opt, optimize, source_lin, linear);
+        final HBox source_options = new HBox(5, source_plot, source_raw, source_opt, optimize, source_lin, linear, useUnixTimeStamp);
         source_options.setAlignment(Pos.CENTER_LEFT);
         grid.add(source_options, 1, 2, 2, 1);
 
@@ -274,6 +279,8 @@ public class ExportView extends VBox
 
         // Enter in filename suggests to next start export
         filename.setOnAction(event -> export.requestFocus());
+
+        useUnixTimeStamp.selectedProperty().bindBidirectional(unixTimeStamp);
     }
 
     /** @return <code>true</code> if the min/max (error) column option should be enabled */
@@ -384,9 +391,23 @@ public class ExportView extends VBox
             if (type_matlab.isSelected())
             {   // Matlab file export
                 if (filename.endsWith(".m"))
-                    export = new MatlabScriptExportJob(model, start_end.getStart(), start_end.getEnd(), source, optimize_parameter, filename, this::handleError);
+                    export = new MatlabScriptExportJob(model,
+                            start_end.getStart(),
+                            start_end.getEnd(),
+                            source,
+                            optimize_parameter,
+                            filename,
+                            this::handleError,
+                            unixTimeStamp.get());
                 else if (filename.endsWith(".mat"))
-                    export = new MatlabFileExportJob(model, start_end.getStart(), start_end.getEnd(), source, optimize_parameter, filename, this::handleError);
+                    export = new MatlabFileExportJob(model,
+                            start_end.getStart(),
+                            start_end.getEnd(),
+                            source,
+                            optimize_parameter,
+                            filename,
+                            this::handleError,
+                            unixTimeStamp.get());
                 else
                 {
                     ExceptionDetailsErrorDialog.openError(this.filename, Messages.Error, Messages.ExportMatlabFilenameError, new Exception(filename));
@@ -427,10 +448,10 @@ public class ExportView extends VBox
                 formatter.useMinMaxColumn(minMaxAllowed() && min_max_col.isSelected());
                 if (tabular.isSelected())
                     export = new SpreadsheetExportJob(model, start_end.getStart(), start_end.getEnd(), source,
-                            optimize_parameter, formatter, filename, this::handleError);
+                            optimize_parameter, formatter, filename, this::handleError, unixTimeStamp.get());
                 else
                     export = new PlainExportJob(model, start_end.getStart(), start_end.getEnd(), source,
-                            optimize_parameter, formatter, filename, this::handleError);
+                            optimize_parameter, formatter, filename, this::handleError, unixTimeStamp.get());
             }
 
             JobManager.schedule(filename, export);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -36,6 +36,11 @@ public class MacrosWidgetProperty extends WidgetProperty<Macros>
             final Macros default_value)
     {
         super(descriptor, widget, default_value);
+        // Start with value as copy of the default.
+        // When later changing value via 'put(key, value)',
+        // this asserts that the default remains unchanged,
+        // and isDefaultValue() will report correctly.
+        value = new Macros(default_value);
     }
 
     /** @param value Must be ActionInfo array(!), not List */

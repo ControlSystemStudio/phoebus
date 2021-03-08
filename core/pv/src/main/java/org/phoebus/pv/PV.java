@@ -25,8 +25,8 @@ import org.epics.vtype.VDouble;
 import org.epics.vtype.VTable;
 import org.epics.vtype.VType;
 
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.Flowable;
+import io.reactivex.rxjava3.core.BackpressureStrategy;
+import io.reactivex.rxjava3.core.Flowable;
 
 /** Process Variable, API for accessing life control system data.
  *

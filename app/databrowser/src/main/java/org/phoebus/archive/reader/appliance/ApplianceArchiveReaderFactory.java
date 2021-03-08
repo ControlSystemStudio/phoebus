@@ -2,7 +2,6 @@ package org.phoebus.archive.reader.appliance;
 
 import java.util.concurrent.ConcurrentHashMap;
 import org.phoebus.archive.reader.ArchiveReader;
-import org.phoebus.archive.reader.channelarchiver.XMLRPCArchiveReader;
 import org.phoebus.archive.reader.spi.ArchiveReaderFactory;
 
 /**

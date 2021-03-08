@@ -201,6 +201,7 @@ public class Launcher
         System.out.println("-server port                            -  Create instance server on given TCP port");
         System.out.println("-app probe                              -  Launch an application with input arguments");
         System.out.println("-resource  /tmp/example.plt             -  Open an application configuration file with the default application");
+        System.out.println("-layout /path/to/Example.memento        -  Start with the specified saved layout instead of the default 'memento'");
         System.out.println("-main org.package.Main                  -  Run alternate application Main");
         System.out.println();
         System.out.println("In 'server' mode, first instance opens UI.");

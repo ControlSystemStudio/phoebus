@@ -280,9 +280,9 @@
 
     <!-- Reactive ('Flow') API used by PV -->
     <dependency>
-      <groupId>io.reactivex.rxjava2</groupId>
+      <groupId>io.reactivex.rxjava3</groupId>
       <artifactId>rxjava</artifactId>
-      <version>2.1.14</version>
+      <version>3.0.9</version>
     </dependency>
 
     <!-- freeTTS text to speech library used by annunciator -->
@@ -320,11 +320,59 @@
       <version>9.0-r1</version>
     </dependency>
 
+    <!-- https://mvnrepository.com/artifact/com.atlassian.commonmark/commonmark -->
+    <dependency>
+      <groupId>com.atlassian.commonmark</groupId>
+      <artifactId>commonmark</artifactId>
+      <version>0.15.2</version>
+    </dependency>
+    <dependency>
+      <groupId>com.atlassian.commonmark</groupId>
+      <artifactId>commonmark-ext-gfm-tables</artifactId>
+      <version>0.15.2</version>
+    </dependency>
+    <dependency>
+      <groupId>com.atlassian.commonmark</groupId>
+      <artifactId>commonmark-ext-image-attributes</artifactId>
+      <version>0.15.2</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/com.atlassian.commonmark/commonmark -->
+    <dependency>
+      <groupId>com.atlassian.commonmark</groupId>
+      <artifactId>commonmark</artifactId>
+      <version>0.15.2</version>
+    </dependency>
+    <dependency>
+      <groupId>com.atlassian.commonmark</groupId>
+      <artifactId>commonmark-ext-gfm-tables</artifactId>
+      <version>0.15.2</version>
+    </dependency>
+    <dependency>
+      <groupId>com.atlassian.commonmark</groupId>
+      <artifactId>commonmark-ext-image-attributes</artifactId>
+      <version>0.15.2</version>
+    </dependency>
+
     <!-- Display Builder -->
     <dependency>
       <groupId>org.controlsfx</groupId>
       <artifactId>controlsfx</artifactId>
-      <version>9.0.0</version>
+      <version>11.0.3</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.openjfx</groupId>
+          <artifactId>javafx-base</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.openjfx</groupId>
+          <artifactId>javafx-graphics</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.openjfx</groupId>
+          <artifactId>javafx-media</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- Apache Batik (for SVG) -->
@@ -477,6 +525,15 @@
       <artifactId>validation-api</artifactId>
       <version>2.0.1.Final</version>
     </dependency>
+
+    <!--JUL bindings for sfl4j-->
+    <dependency> 
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-jdk14</artifactId>
+      <version>1.7.28</version>
+    </dependency>
+
+
   </dependencies>
 
   <build>

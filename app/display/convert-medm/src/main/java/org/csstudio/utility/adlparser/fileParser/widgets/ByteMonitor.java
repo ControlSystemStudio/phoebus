@@ -120,8 +120,8 @@ public class ByteMonitor extends ADLAbstractWidget {
         if (_hasMonitor) ret.add( _adlMonitor);
         ret.add(new ADLResource(ADLResource.DIRECTION, direction));
         ret.add(new ADLResource(ADLResource.COLOR_MODE, color_mode));
-        ret.add(new ADLResource(ADLResource.BYTE_START_BIT, new Integer(startBit)));
-        ret.add(new ADLResource(ADLResource.BYTE_END_BIT, new Integer(endBit)));
+        ret.add(new ADLResource(ADLResource.BYTE_START_BIT, Integer.valueOf(startBit)));
+        ret.add(new ADLResource(ADLResource.BYTE_END_BIT, Integer.valueOf(endBit)));
         return ret.toArray();
     }
 

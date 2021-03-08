@@ -33,9 +33,10 @@ public class PlainExportJob extends ExportJob
             final Instant start, final Instant end, final Source source,
             final double optimize_parameter, final ValueFormatter formatter,
             final String filename,
-            final Consumer<Exception> error_handler)
+            final Consumer<Exception> error_handler,
+            final boolean unixTimeStamp)
     {
-        super("# ", model, start, end, source, optimize_parameter, filename, error_handler);
+        super("# ", model, start, end, source, optimize_parameter, filename, error_handler, unixTimeStamp);
         this.formatter = formatter;
     }
 
@@ -64,7 +65,7 @@ public class PlainExportJob extends ExportJob
                 out.println();
             printItemInfo(out, item);
             // Get data
-            monitor.beginTask(MessageFormat.format("Fetching data for {0}", item.getName()));
+            monitor.beginTask(MessageFormat.format("Fetching data for {0}", item.getResolvedName()));
             final ValueIterator values = createValueIterator(item);
             // Dump all values
             out.println(comment + Messages.TimeColumn + Messages.Export_Delimiter + formatter.getHeader());
@@ -73,11 +74,12 @@ public class PlainExportJob extends ExportJob
             {
                 final VType value = values.next();
 
-                final String time = TimestampFormats.MILLI_FORMAT.format(VTypeHelper.getTimestamp(value));
+                final String time = unixTimeStamp ? Long.toString(VTypeHelper.getTimestamp(value).toEpochMilli()) :
+                        TimestampFormats.MILLI_FORMAT.format(VTypeHelper.getTimestamp(value));
                 out.println(time + Messages.Export_Delimiter + formatter.format(value));
                 ++line_count;
                 if (++line_count % PROGRESS_UPDATE_LINES == 0)
-                    monitor.beginTask(MessageFormat.format("{0}: Wrote {1} samples", item.getName(), line_count));
+                    monitor.beginTask(MessageFormat.format("{0}: Wrote {1} samples", item.getResolvedName(), line_count));
             }
             ++count;
         }

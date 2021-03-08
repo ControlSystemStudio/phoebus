@@ -15,7 +15,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
-import org.phoebus.applications.alarm.ResettableTimeout;
 
 /** JUnit test of the {@link ResettableTimeout}
  *  @author Kay Kasemir

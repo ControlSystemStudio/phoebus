@@ -17,6 +17,7 @@ User Documentation:
    running
    docking
    preferences
+   logging
    persistence
    authorization
    applications

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,14 +16,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
+import org.csstudio.apputil.formula.Formula;
+import org.csstudio.apputil.formula.VariableNode;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.VType;
 import org.phoebus.applications.pvtree.Settings;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 
-import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.functions.Consumer;
 
 /** One 'item' in the PV Tree
  *
@@ -207,7 +209,10 @@ public class TreeModelItem
                 value_pv.set(pv);
             }
 
-            fetchType();
+            if (PVNameFilter.isFormula(record_name))
+                fetchFormulaInputs();
+            else
+                fetchType();
         }
         catch (Exception ex)
         {
@@ -233,10 +238,66 @@ public class TreeModelItem
         return links;
     }
 
+    /** `pv_name` is a formula, fetch its variables as inputs */
+    private void fetchFormulaInputs()
+    {
+        logger.log(TRACE, "Formula");
+        type = "formula";
+
+        try
+        {
+            // Remove formula PV prefix
+            final String expression;
+            if (pv_name.startsWith("="))
+                expression = pv_name.substring(1);
+            else if (pv_name.startsWith("eq://"))
+                expression = pv_name.substring(5);
+            else
+                throw new Exception("Expected '=' or 'eq://'");
+
+            // Parse formula to determine variables
+            final Formula formula = new Formula(expression, true);
+            for (VariableNode var : formula.getVariables())
+            {
+                // Use variable name as 'input'
+                try
+                {
+                    final TreeModelItem new_item = new TreeModelItem(model, this, "Variable", var.getName());
+                    links.add(new_item);
+                    model.itemLinkAdded(TreeModelItem.this, new_item);
+                }
+                catch (Exception ex)
+                {
+                    logger.log(Level.WARNING,
+                               "Cannot add tree node for formula input '" + var.getName() + "'", ex);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot parse variables from formula for " + this, ex);
+        }
+    }
+
     private void fetchType()
     {
         try
         {
+            // Use knowledge of simulated and local PV types
+            if (record_name.startsWith("sim:"))
+            {
+                type = "simulated";
+                // No links to fetch
+                return;
+            }
+            else if (record_name.startsWith("loc:"))
+            {
+                type = "local";
+                // No links to fetch
+                return;
+            }
+
+            // Try to resolve record type, assuming EPICS record PV
             final PV pv = PVPool.getPV(record_name + ".RTYP");
             type_flow = pv.onValueEvent().firstOrError().subscribe(value ->
             {

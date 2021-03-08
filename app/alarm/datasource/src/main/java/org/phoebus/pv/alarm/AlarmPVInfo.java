@@ -1,13 +1,7 @@
 package org.phoebus.pv.alarm;
 
-import java.net.URI;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * A class which extracts the root and path info for a given alarm pv

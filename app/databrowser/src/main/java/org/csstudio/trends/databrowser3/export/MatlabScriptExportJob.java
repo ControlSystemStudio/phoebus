@@ -31,9 +31,10 @@ public class MatlabScriptExportJob extends ExportJob
     public MatlabScriptExportJob(final Model model, final Instant start,
             final Instant end, final Source source,
             final int optimize_parameter, final String filename,
-            final Consumer<Exception> error_handler)
+            final Consumer<Exception> error_handler,
+            final boolean unixTimeStamp)
     {
-        super("% ", model, start, end, source, optimize_parameter, filename, error_handler);
+        super("% ", model, start, end, source, optimize_parameter, filename, error_handler, unixTimeStamp);
     }
 
     /** {@inheritDoc} */
@@ -65,7 +66,7 @@ public class MatlabScriptExportJob extends ExportJob
                 out.println();
             printItemInfo(out, item);
             // Get data
-            monitor.beginTask(MessageFormat.format("Fetching data for {0}", item.getName()));
+            monitor.beginTask(MessageFormat.format("Fetching data for {0}", item.getResolvedName()));
             final ValueIterator values = createValueIterator(item);
             // Dump all values
             MatlabQualityHelper qualities = new MatlabQualityHelper();
@@ -78,8 +79,10 @@ public class MatlabScriptExportJob extends ExportJob
                 final VType value = values.next();
                 ++line_count;
                 // t(1)='2010/03/15 13:30:10.123';
-                out.println("t{" + line_count + "}='" +
-                    date_format.format(Date.from(org.phoebus.core.vtypes.VTypeHelper.getTimestamp(value))) + "';");
+                Instant timeInstant = org.phoebus.core.vtypes.VTypeHelper.getTimestamp(value);
+                out.println(unixTimeStamp ?
+                        "t{" + line_count + "}=" + timeInstant.toEpochMilli() + ";" :
+                        "t{" + line_count + "}='" + date_format.format(Date.from(timeInstant)) + "';");
                 // v(1)=4.125;
                 final double num = VTypeHelper.toDouble(value);
                 if (Double.isNaN(num) || Double.isInfinite(num))
@@ -89,7 +92,7 @@ public class MatlabScriptExportJob extends ExportJob
                 // q(1)=0;
                 out.println("q(" + line_count + ")=" + qualities.getQualityCode(org.phoebus.core.vtypes.VTypeHelper.getSeverity(value), VTypeHelper.getMessage(value)) +";");
                 if (line_count % PROGRESS_UPDATE_LINES == 0)
-                    monitor.beginTask(MessageFormat.format("{0}: Wrote {1} samples", item.getName(), line_count));
+                    monitor.beginTask(MessageFormat.format("{0}: Wrote {1} samples", item.getResolvedName(), line_count));
             }
 
             out.println(comment + "Convert time stamps into 'date numbers'");

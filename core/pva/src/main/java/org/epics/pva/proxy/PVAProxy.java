@@ -56,7 +56,7 @@ import org.epics.pva.server.ServerPV;
  *
  *  <p>For a client to use the proxy, use
  *  EPICS_PVA_BROADCAST_PORT=5078
- *  EPICS_PVA_ADDR_LIST=<correct IP>:5077
+ *  EPICS_PVA_ADDR_LIST=[correct IP]:5077
  *  pvget monitor ramp saw rnd
  *
  *  The ADDR_LIST tells the client to read via the proxy.

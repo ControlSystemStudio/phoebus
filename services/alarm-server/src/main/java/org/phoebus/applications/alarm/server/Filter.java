@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2021 Oak Ridge National Laboratory.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -19,13 +19,12 @@ import java.util.logging.Level;
 import org.csstudio.apputil.formula.Formula;
 import org.csstudio.apputil.formula.VariableNode;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.framework.jobs.NamedThreadFactory;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 
-import org.phoebus.core.vtypes.VTypeHelper;
-
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.disposables.Disposable;
 
 /** Filter that computes alarm enablement from expression.
  *  <p>
@@ -70,7 +69,7 @@ public class Filter
     /** Is a call to evaluate() pending? */
     private final AtomicBoolean evaluation_pending = new AtomicBoolean();
 
-    private class FilterPVhandler implements io.reactivex.functions.Consumer<VType>
+    private class FilterPVhandler implements io.reactivex.rxjava3.functions.Consumer<VType>
     {
         private final int index;
 

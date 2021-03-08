@@ -6,7 +6,7 @@ package org.phoebus.logbook;
 /**
  * An interface describing a logbook associated with {@link LogEntry}s
  * 
- * @author Eric Berryman taken from shroffk
+ * @author Kunal Shroff
  * 
  */
 public interface Logbook {

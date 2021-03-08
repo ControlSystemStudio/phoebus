@@ -41,6 +41,7 @@ import javafx.scene.text.Font;
 public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<String>, ComboWidget>
 {
     private volatile boolean active = false;
+    private volatile boolean enabled = false;
 
     private final DirtyFlag dirty_style = new DirtyFlag();
     private final DirtyFlag dirty_content = new DirtyFlag();
@@ -113,7 +114,21 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
                 }
             });
 
+            combo.addEventFilter(MouseEvent.ANY, e ->
+            {
+                if (e.getButton() != MouseButton.NONE && !enabled)
+                {
+                    // Since we cannot disable the widget we have to consume the
+                    // mouse clicks
+                    e.consume();
+                }
+            });
         }
+
+        // Manage layout ourselves; otherwise an editable combobox might not honor the specified dimensions
+        combo.setManaged(false);
+
+        enableChanged(null, null, null);
         contentChanged(null, null, null);
         return combo;
     }
@@ -186,6 +201,8 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
 
     private void enableChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
+        enabled = model_widget.propEnabled().getValue()  &&
+                  model_widget.runtimePropPVWritable().getValue();
         dirty_enable.mark();
         toolkit.scheduleUpdate(this);
     }
@@ -242,8 +259,8 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
         if (dirty_style.checkAndClear())
         {
 
-            jfx_node.setPrefSize(model_widget.propWidth().getValue(),
-                                 model_widget.propHeight().getValue());
+            jfx_node.resize(model_widget.propWidth().getValue(),
+                            model_widget.propHeight().getValue());
 
             Font f = JFXUtil.convert(model_widget.propFont().getValue());
 
@@ -274,14 +291,19 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
         }
         if (dirty_enable.checkAndClear()  &&  !toolkit.isEditMode())
         {
-            final boolean enabled = model_widget.propEnabled().getValue()  &&
-                                    model_widget.runtimePropPVWritable().getValue();
             // When truly disabled, the widget no longer reacts to context menu,
             // and the cursor will be ignored
             //  jfx_node.setDisable(! enabled);
             // So keep enabled, but indicate that trying to operate the widget is futile
             Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
             jfx_node.setCursor(enabled ? Cursor.DEFAULT : Cursors.NO_WRITE);
+            if (model_widget.propEditable().getValue())
+            {
+                jfx_node.getEditor().setEditable(enabled ? model_widget.propEditable().getValue() : false);
+                jfx_node.getEditor().setCursor(enabled ? Cursor.TEXT : Cursors.NO_WRITE);
+            }
         }
+
+        jfx_node.layout();
     }
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,7 +26,13 @@ import org.phoebus.ui.docking.DockStage;
 @SuppressWarnings("nls")
 public class DataBrowserApp implements AppResourceDescriptor
 {
-    private static final List<String> FILE_EXTENSIONS = List.of("plt");
+    /** Primary file extension for data browser config files */
+    public static final String FILE_EXTENSION = "plt";
+
+    /** Handle extensions include strip tool files */
+    private static final List<String> FILE_EXTENSIONS = List.of(FILE_EXTENSION, "stp");
+
+    /** Application name */
     public static final String NAME = "databrowser";
 
     @Override

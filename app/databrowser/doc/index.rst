@@ -349,7 +349,7 @@ the file. Each structure has the following elements:
 
 ``severity``: Severity
 
-The time stamps are saved as text. In reasonable modern versions
+The time stamps are saved as text by default. In reasonable modern versions
 of Matlab you best convert them to Matlab serial date numbers, which
 you can then for example plot over time like this::
 
@@ -358,6 +358,9 @@ you can then for example plot over time like this::
     datetick('x',0);
     title(channel0.name);
 
+
+If user ticks 'Use UNIX timestamp...' in the export tab, timestamps will be exported
+as UNIX timestamp in ms, i.e. as a 64 bit unsigned integer.
 
 The Matlab text files like "example.m" are suitable for loading (executing)
 in Matlab R2006b or newer, creating one 'timeseries'
@@ -393,7 +396,6 @@ To see available options, run phoebus like this::
 
     -help                                    -  This text
     -settings settings.xml                   -  Import settings from file, either exported XML or property file format
-    -archives                                -  Set archive URLs, separated by '*'
 
     Archive Information options:
     -list [pattern]                          -  List channel names, with optional pattern ('.', '*')
@@ -406,6 +408,7 @@ To see available options, run phoebus like this::
     -decimal precision                       -  Decimal format with given precision
     -exponential precision                   -  Exponential format with given precision
     -nostate                                 -  Do not include status/severity in tab-separated file
+    -unixTimeStamp                           -  Use UNIX timestamp (in ms) instead of formatted date/time string
     -export /path/to/file channel <channels> -  Export data for one or more channels into file
 
     File names ending in *.m or *.mat generate Matlab files.

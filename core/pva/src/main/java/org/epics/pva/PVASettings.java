@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -83,7 +83,7 @@ public class PVASettings
      * <p>When approaching this time without having received a new value,
      * an 'Echo' request is sent. If still no reply, the channel is disconnected.
      */
-    public static int EPICS_CA_CONN_TMO = 30;
+    public static int EPICS_PVA_CONN_TMO = 30;
 
     /** Maximum number of array elements shown when printing data */
     public static int EPICS_PVA_MAX_ARRAY_FORMATTING = 256;
@@ -95,7 +95,7 @@ public class PVASettings
         EPICS_PVA_SERVER_PORT = get("EPICS_PVA_SERVER_PORT", EPICS_PVA_SERVER_PORT);
         EPICS_PVA_BROADCAST_PORT = get("EPICS_PVA_BROADCAST_PORT", EPICS_PVA_BROADCAST_PORT);
         EPICS_PVAS_BROADCAST_PORT = get("EPICS_PVAS_BROADCAST_PORT", EPICS_PVAS_BROADCAST_PORT);
-        EPICS_CA_CONN_TMO = get("EPICS_CA_CONN_TMO", EPICS_CA_CONN_TMO);
+        EPICS_PVA_CONN_TMO = get("EPICS_PVA_CONN_TMO", EPICS_PVA_CONN_TMO);
         EPICS_PVA_MAX_ARRAY_FORMATTING = get("EPICS_PVA_MAX_ARRAY_FORMATTING", EPICS_PVA_MAX_ARRAY_FORMATTING);
         EPICS_PVA_SEND_BUFFER_SIZE = get("EPICS_PVA_SEND_BUFFER_SIZE", EPICS_PVA_SEND_BUFFER_SIZE);
     }

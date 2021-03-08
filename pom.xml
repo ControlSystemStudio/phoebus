@@ -12,15 +12,10 @@
   </scm>
 
   <distributionManagement>
-    <snapshotRepository>
-      <id>artifactory</id>
-      <name>ESS Artifactory Snapshot repository</name>
-      <url>https://artifactory.esss.lu.se/artifactory/libs-snapshot-local</url>
-    </snapshotRepository>
     <repository>
-      <id>artifactory</id>
-      <name>ESS Artifactory Release repository</name>
-      <url>https://artifactory.esss.lu.se/artifactory/libs-release-local</url>
+      <id>github</id>
+      <name>GitHub Packages</name>
+      <url>https://maven.pkg.github.com/ControlSystemStudio/phoebus</url>
     </repository>
   </distributionManagement>
 

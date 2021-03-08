@@ -17,8 +17,7 @@ public class ExecuteCommandActionInfo extends ActionInfo
     private final String command;
 
     /** @param description Action description
-     *  @param pv PV name
-     *  @param value Value to write
+     *  @param command Command to execute
      */
     public ExecuteCommandActionInfo(final String description, final String command)
     {
@@ -29,7 +28,7 @@ public class ExecuteCommandActionInfo extends ActionInfo
     @Override
     public ActionType getType()
     {
-        return ActionType.EXECUTE_SCRIPT;
+        return ActionType.EXECUTE_COMMAND;
     }
 
     /** @return Command */

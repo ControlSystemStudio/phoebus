@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * pass attachments over XML / without webdav? make log entries with attachments
  * atomic?
  * 
- * @author Eric Berryman
+ * @author Kunal Shroff
  */
 
 @XmlType
@@ -42,6 +42,12 @@ public class OlogAttachment implements Attachment {
     protected Long fileSize;
 
     private File file;
+
+    /**
+     * The unique id of the attachment. Client code need not set this, in which case the log
+     * service will. If set, it must be unique among all attachments.
+     */
+    protected String id;
 
     /**
      * Creates a new instance of XmlAttachment
@@ -135,6 +141,12 @@ public class OlogAttachment implements Attachment {
     @JsonProperty("filename")
     public String getName() {
         return fileName;
+    }
+
+
+    @Override
+    public String getId(){
+        return id;
     }
 
 }

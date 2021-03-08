@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,6 +18,7 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import org.csstudio.archive.engine.config.RDBConfig;
+import org.csstudio.archive.engine.config.RDBConfig.DuplicateMode;
 import org.csstudio.archive.engine.config.XMLConfig;
 import org.csstudio.archive.engine.model.ArchiveChannel;
 import org.csstudio.archive.engine.model.ArchiveGroup;
@@ -65,6 +66,7 @@ public class Engine
         System.out.println("-import engine_config.xml     Import configuration from XML");
         System.out.println("-description \"Some Info\"      Import: Description for the engine");
         System.out.println("-replace_engine               Import: Replace existing engine config, or stop?");
+        System.out.println("-abort_on_duplicate_channel   Import: Abort if channel is already listed with other engine (default: skip with warning)?");
         System.out.println("-steal_channels               Import: Reassign channels that belong to other engine?");
         System.out.println("-settings settings.ini        Import preferences (PV connectivity, archive URL, ...) from property format file");
         System.out.println("-noshell                      Disable the command shell for running without a terminal");
@@ -123,6 +125,7 @@ public class Engine
         return true;
     }
 
+
     public static void main(final String[] original_args) throws Exception
     {
         LogManager.getLogManager().readConfiguration(Engine.class.getResourceAsStream("/engine_logging.properties"));
@@ -133,7 +136,8 @@ public class Engine
 
         int port = 4812;
         boolean skip_last = false;
-        boolean list = false, delete = false, replace_engine = false, steal_channels = false, use_shell = true;
+        boolean list = false, delete = false, replace_engine = false, use_shell = true;
+        RDBConfig.DuplicateMode duplicates = DuplicateMode.SKIP;
         File import_file = null, export_file = null;
 
         // Handle arguments
@@ -248,9 +252,14 @@ public class Engine
                     replace_engine = true;
                     iter.remove();
                 }
+                else if (cmd.equals("-abort_on_duplicate_channel"))
+                {
+                    duplicates = DuplicateMode.ABORT;
+                    iter.remove();
+                }
                 else if (cmd.equals("-steal_channels"))
                 {
-                    steal_channels = true;
+                    duplicates = DuplicateMode.STEAL;
                     iter.remove();
                 }
                 else
@@ -305,7 +314,7 @@ public class Engine
             logger.log(Level.INFO, "Description         : " + description);
             logger.log(Level.INFO, "URL                 : " + url);
             logger.log(Level.INFO, "Replace engine      : " + replace_engine);
-            logger.log(Level.INFO, "Steal channels      : " + steal_channels);
+            logger.log(Level.INFO, "Duplicate channels  : " + duplicates);
 
             try
             (
@@ -313,7 +322,7 @@ public class Engine
             )
             {
                 final int engine_id = config.createEngine(config_name, description, replace_engine, url);
-                new XMLConfig().read(import_file, config, engine_id, steal_channels);
+                new XMLConfig().read(import_file, config, engine_id, duplicates);
             }
             return;
         }
