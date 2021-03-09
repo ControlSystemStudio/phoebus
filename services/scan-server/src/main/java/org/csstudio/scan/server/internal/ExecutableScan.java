@@ -481,14 +481,18 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
         else if (deadline != null)
         {
             final long seconds = Duration.between(LocalDateTime.now(), deadline).getSeconds();
-            if (seconds <= 0)
+            if (seconds > 0)
             {
-                // TODO Don't even start scan, mark as aborted right away
-                return;
+                timer = engine.deadline_timer.schedule(this::abortAtDeadline, seconds, TimeUnit.SECONDS);
+                logger.log(Level.INFO, "Executing with deadline of " + TimestampFormats.SECONDS_FORMAT.format(deadline));
             }
-
-            timer = engine.deadline_timer.schedule(this::abortAtDeadline, seconds, TimeUnit.SECONDS);
-            logger.log(Level.INFO, "Executing with deadline of " + TimestampFormats.SECONDS_FORMAT.format(deadline));
+            else
+            {
+                // Mark 'aborted' which will prevent scan from starting
+                error = Optional.of(ScanState.Aborted.name() + " (stale deadline)");
+                state.set(ScanState.Aborted);
+                logger.log(Level.INFO, "Aready passed deadline of " + TimestampFormats.SECONDS_FORMAT.format(deadline));
+            }
         }
 
         try
