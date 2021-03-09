@@ -24,9 +24,27 @@
   <delay><seconds>10</seconds></delay>
 </commands>
 </textarea></p>
-<p><button type='button' id='submit'>Submit</button>
-   <input type='checkbox' name='queue' value='true' checked='yes'/> Queue
-   <input type='checkbox' name='pre_post' value='true' checked='yes'/> Pre-scan, post-scan
+
+<table class="plain">
+<tr>
+  <td>
+    <button type='button' id='submit'>Submit</button>
+  </td>
+  <td>
+    <input type='checkbox' name='queue' value='true' checked='yes'/> Queue
+    <input type='checkbox' name='pre_post' value='true' checked='yes'/> Pre-scan, post-scan
+  </td>
+</tr>
+<tr>
+  <td></td>
+  <td>
+    Optional timeout in 
+    <input type='text' name="timeout" value="0" size="4"/> seconds
+    or execution deadline <input type='text' name="deadline" value="0000-00-00 00:00:00" size="19"/>in format <code>yyyy-MM-dd HH:mm:ss</code> format
+  </td>
+</tr>
+</table>
+   
 </p>
 </form>
 

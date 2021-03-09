@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,6 +23,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
@@ -64,6 +65,12 @@ public class ScanEngine
 
     /** Executor for parallel scans. */
     final private ExecutorService parallel_executor = Executors.newCachedThreadPool(new NamedThreadFactory("ParallelScans"));
+
+    /** Used by ExecutableScan to arrange for deadline or timeout of scan.
+     *
+     *  Placed here so scan engine controls creation and cleanup
+     */
+    final ScheduledExecutorService deadline_timer = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("DeadlineTimer"));
 
     /** Start the scan engine, i.e. create thread that will process
      *  scans
@@ -117,6 +124,7 @@ public class ScanEngine
                         // which should be the next to execute
                         if (scan instanceof ExecutableScan)
                         {
+                            @SuppressWarnings("resource")
                             final ExecutableScan exe = (ExecutableScan) scan;
                             if (exe.getQueueState() == QueueState.Queued)
                                 next = exe;
@@ -158,9 +166,18 @@ public class ScanEngine
     {
         running = false;
         signalNewScan();
+        deadline_timer.shutdownNow();
         queue_executor.shutdownNow();
         queued_scan_executor.shutdownNow();
         parallel_executor.shutdownNow();
+        try
+        {
+            deadline_timer.awaitTermination(10, TimeUnit.SECONDS);
+        }
+        catch (InterruptedException e)
+        {
+            // Ignore, shutting down anyway
+        }
         try
         {
             queue_executor.awaitTermination(10, TimeUnit.SECONDS);

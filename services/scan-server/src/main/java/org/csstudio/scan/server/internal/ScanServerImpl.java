@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,6 +20,7 @@ import static org.csstudio.scan.server.ScanServerInstance.logger;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -185,7 +186,9 @@ public class ScanServerImpl implements ScanServer
     public long submitScan(final String scan_name,
                            final String commands_as_xml,
                            final boolean queue,
-                           final boolean pre_post) throws Exception
+                           final boolean pre_post,
+                           final long timeout_secs,
+                           final LocalDateTime deadline) throws Exception
     {
         cullScans();
 
@@ -234,7 +237,7 @@ public class ScanServerImpl implements ScanServer
             final DeviceContext devices = new DeviceContext();
 
             // Submit scan to engine for execution
-            final ExecutableScan scan = new ExecutableScan(scan_engine, jython, scan_name, devices, pre_impl, main_impl, post_impl);
+            final ExecutableScan scan = new ExecutableScan(scan_engine, jython, scan_name, devices, pre_impl, main_impl, post_impl, timeout_secs, deadline);
             scan_engine.submit(scan, queue);
             logger.log(Level.CONFIG, "Submitted ID " + scan.getId() + " \"" + scan.getName() + "\"");
             return scan.getId();
