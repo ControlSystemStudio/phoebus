@@ -110,7 +110,7 @@ public class AdvancedSearchViewController {
     @FXML
     public void initialize() {
 
-        levelLabel.setText(LogbookUiPreferences.level_field_name);
+        //levelLabel.setText(LogbookUiPreferences.level_field_name);
 
         advancedSearchPane.minWidthProperty().set(0);
         advancedSearchPane.maxWidthProperty().set(0);
