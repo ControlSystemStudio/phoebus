@@ -20,6 +20,7 @@ import org.phoebus.logbook.LogbookException;
 import org.phoebus.logbook.Messages;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.Tag;
+import org.phoebus.security.managers.DummyX509TrustManager;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
