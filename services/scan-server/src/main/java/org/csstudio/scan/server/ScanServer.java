@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -56,10 +56,11 @@ public interface ScanServer
      *  @param commands_as_xml Commands to execute within the scan in XML format
      *  @param queue Queue the scan, or execute as soon as possible?
      *  @param pre_post Perform the pre- and post-scans?
+     *  @param timeout_secs Timeout in seconds or 0
      *  @return ID that uniquely identifies the scan
      *  @throws Exception on error
      */
-    public long submitScan(String scan_name, String commands_as_xml, boolean queue, boolean pre_post) throws Exception;
+    public long submitScan(String scan_name, String commands_as_xml, boolean queue, boolean pre_post, long timeout_secs) throws Exception;
 
     /** Query server for scans
      *  @return Info for each scan on the server, most recently submitted scan first

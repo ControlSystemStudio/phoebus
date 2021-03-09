@@ -78,6 +78,26 @@ public class ScanServlet extends HttpServlet
         final String pre_post_parm = request.getParameter("pre_post");
         final boolean pre_post = ! "false".equalsIgnoreCase(pre_post_parm);
 
+        // Timeout or deadline?
+        long timeout_secs = 0;
+        String text = request.getParameter("timeout");
+        if (text != null)
+            try
+            {
+                timeout_secs = Long.parseLong(text);
+                if (timeout_secs < 0)
+                    throw new Exception("Cannot use negative timeout");
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "POST /scan got timeout '" + text + "'", ex);
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid timeout '" + text + "'");
+                return;
+            }
+
+        // TODO
+        request.getParameter("deadline");
+
         // Read scan commands
         final String scan_commands = IOUtils.toString(request.getInputStream());
 
@@ -91,7 +111,7 @@ public class ScanServlet extends HttpServlet
             if (logger.isLoggable(Level.FINE))
                 logger.log(Level.FINE, "Scan '" + scan_name + "':\n" + scan_commands);
 
-            final long scan_id = scan_server.submitScan(scan_name, scan_commands, queue, pre_post);
+            final long scan_id = scan_server.submitScan(scan_name, scan_commands, queue, pre_post, timeout_secs);
 
             // Return scan ID
             out.print("<id>");

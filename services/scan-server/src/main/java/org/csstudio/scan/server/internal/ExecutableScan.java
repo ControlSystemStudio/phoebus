@@ -99,6 +99,9 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
     /** Devices used by the scan */
     final protected DeviceContext devices;
 
+    /** Execution timeout in seconds or 0 */
+    final long timeout_secs;
+
     /** Log each device access, or require specific log command? */
     private volatile boolean automatic_log_mode = false;
 
@@ -157,12 +160,14 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
      *  @param pre_scan Commands to execute before the 'main' section of the scan
      *  @param implementations Commands to execute in this scan
      *  @param post_scan Commands to execute before the 'main' section of the scan
+     *  @param timeout_secs Timeout in seconds or 0
      *  @throws Exception on error (cannot access log, ...)
      */
     public ExecutableScan(final ScanEngine engine, final JythonSupport jython, final String name, final DeviceContext devices,
             final List<ScanCommandImpl<?>> pre_scan,
             final List<ScanCommandImpl<?>> implementations,
-            final List<ScanCommandImpl<?>> post_scan) throws Exception
+            final List<ScanCommandImpl<?>> post_scan,
+            final long timeout_secs) throws Exception
     {
         super(DataLogFactory.createDataLog(name));
         this.engine = engine;
@@ -172,6 +177,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
         this.pre_scan = pre_scan;
         this.implementations = implementations;
         this.post_scan = post_scan;
+        this.timeout_secs = timeout_secs;
 
         // Assign addresses to all commands,
         // determine work units
@@ -458,16 +464,21 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
     /** Execute scan, optionally aborting it because of deadline/timeout */
     private void executeWithDeadline() throws Exception
     {
-        // TODO Take deadline/timeout from scan submission parameters
-        // TODO Log if there's a deadline/timeout
-        final ScheduledFuture<?> timer = engine.deadline_timer.schedule(this::abortAtDeadline, 5, TimeUnit.SECONDS);
+        // TODO Take deadline from scan submission parameters
+        ScheduledFuture<?> timer = null;
+        if (timeout_secs > 0)
+        {
+            timer = engine.deadline_timer.schedule(this::abortAtDeadline, timeout_secs, TimeUnit.SECONDS);
+            logger.log(Level.INFO, "Executing with " + timeout_secs + " second timeout");
+        }
         try
         {
             executeOrDieTrying();
         }
         finally
         {
-            timer.cancel(false);
+            if (timer != null)
+                timer.cancel(false);
         }
     }
 
