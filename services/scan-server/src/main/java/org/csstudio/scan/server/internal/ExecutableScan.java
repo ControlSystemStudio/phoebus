@@ -19,6 +19,7 @@ import static org.csstudio.scan.server.ScanServerInstance.logger;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
@@ -102,6 +103,9 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
     /** Execution timeout in seconds or 0 */
     final long timeout_secs;
 
+    /** Execution deadline by which scan will be aborted or <code>null</code> */
+    final LocalDateTime deadline;
+
     /** Log each device access, or require specific log command? */
     private volatile boolean automatic_log_mode = false;
 
@@ -161,13 +165,15 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
      *  @param implementations Commands to execute in this scan
      *  @param post_scan Commands to execute before the 'main' section of the scan
      *  @param timeout_secs Timeout in seconds or 0
+     *  @param deadline Deadline by which scan will be aborted or <code>null</code>
      *  @throws Exception on error (cannot access log, ...)
      */
     public ExecutableScan(final ScanEngine engine, final JythonSupport jython, final String name, final DeviceContext devices,
             final List<ScanCommandImpl<?>> pre_scan,
             final List<ScanCommandImpl<?>> implementations,
             final List<ScanCommandImpl<?>> post_scan,
-            final long timeout_secs) throws Exception
+            final long timeout_secs,
+            final LocalDateTime deadline) throws Exception
     {
         super(DataLogFactory.createDataLog(name));
         this.engine = engine;
@@ -178,6 +184,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
         this.implementations = implementations;
         this.post_scan = post_scan;
         this.timeout_secs = timeout_secs;
+        this.deadline = deadline;
 
         // Assign addresses to all commands,
         // determine work units
@@ -464,13 +471,26 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
     /** Execute scan, optionally aborting it because of deadline/timeout */
     private void executeWithDeadline() throws Exception
     {
-        // TODO Take deadline from scan submission parameters
+        // Check for timeout or deadline, using timeout if both are provided
         ScheduledFuture<?> timer = null;
         if (timeout_secs > 0)
         {
             timer = engine.deadline_timer.schedule(this::abortAtDeadline, timeout_secs, TimeUnit.SECONDS);
             logger.log(Level.INFO, "Executing with " + timeout_secs + " second timeout");
         }
+        else if (deadline != null)
+        {
+            final long seconds = Duration.between(LocalDateTime.now(), deadline).getSeconds();
+            if (seconds <= 0)
+            {
+                // TODO Don't even start scan, mark as aborted right away
+                return;
+            }
+
+            timer = engine.deadline_timer.schedule(this::abortAtDeadline, seconds, TimeUnit.SECONDS);
+            logger.log(Level.INFO, "Executing with deadline of " + TimestampFormats.SECONDS_FORMAT.format(deadline));
+        }
+
         try
         {
             executeOrDieTrying();
