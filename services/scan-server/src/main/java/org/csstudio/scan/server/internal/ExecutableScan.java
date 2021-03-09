@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -27,6 +27,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -121,6 +123,9 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
     /** Actual or estimated end time */
     private volatile long end_ms = 0;
 
+    /** Did the scan get aborted because it hit the deadline/timeout? */
+    private volatile boolean deadlined = false;
+
     /** Currently active commands, empty when nothing executes */
     final private Deque<ScanCommandImpl<?>> active_commands = new ConcurrentLinkedDeque<>();
 
@@ -142,7 +147,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
      *  Scans can check the scan alarm PV in the pre-scan
      *  to prohibit further scans until alarm has been cleared.
      */
-    final private static Duration timeout = Duration.ofSeconds(10);
+    final private static Duration state_pv_update_timeout = Duration.ofSeconds(10);
 
     /** Initialize
      *  @param engine {@link ScanEngine} that executes this scan
@@ -198,7 +203,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
      *  @return Future to cancel or await completion
      *  @throws IllegalStateException if scan had been submitted before
      */
-    public Future<Object> submit(final ExecutorService executor)
+    Future<Object> submit(final ExecutorService executor)
     {
         if (future.isPresent())
             throw new IllegalStateException("Already submitted for execution");
@@ -413,7 +418,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
             {
                 throw new Exception("Aborted while opening data log", dl_ex);
             }
-            execute_or_die_trying();
+            executeWithDeadline();
             // Exceptions will already have been caught within execute_or_die_trying,
             // hopefully updating the status PVs, but there could be exceptions
             // when connecting or closing devices which we'll catch here
@@ -421,7 +426,10 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
         catch (InterruptedException ex)
         {
             state.set(ScanState.Aborted);
-            error = Optional.of(ScanState.Aborted.name());
+            if (deadlined)
+                error = Optional.of(ScanState.Aborted.name() + " (deadline/timeout)");
+            else
+                error = Optional.of(ScanState.Aborted.name());
         }
         catch (Throwable ex)
         {
@@ -447,11 +455,36 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
         return null;
     }
 
+    /** Execute scan, optionally aborting it because of deadline/timeout */
+    private void executeWithDeadline() throws Exception
+    {
+        // TODO Take deadline/timeout from scan submission parameters
+        // TODO Log if there's a deadline/timeout
+        final ScheduledFuture<?> timer = engine.deadline_timer.schedule(this::abortAtDeadline, 5, TimeUnit.SECONDS);
+        try
+        {
+            executeOrDieTrying();
+        }
+        finally
+        {
+            timer.cancel(false);
+        }
+    }
+
+    /** Abort scan because of deadline */
+    private void abortAtDeadline()
+    {
+        logger.log(Level.WARNING, this + " aborted at deadline");
+        // Note that abort is caused by deadline
+        deadlined = true;
+        doAbort(prepareAbort());
+    }
+
     /** Execute all commands on the scan,
      *  passing exceptions back up.
      *  @throws Exception on error
      */
-    private void execute_or_die_trying() throws Exception
+    private void executeOrDieTrying() throws Exception
     {
         // Was scan aborted before it ever got to run?
         if (state.get() == ScanState.Aborted)
@@ -539,7 +572,9 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
         }
         catch (Exception ex)
         {
-            if (state.get() == ScanState.Aborted)
+            if (deadlined)
+                error = Optional.of(ScanState.Aborted.name() + " (deadline/timeout)");
+            else if (state.get() == ScanState.Aborted)
                 error = Optional.of(ScanState.Aborted.name());
             else
             {
@@ -579,7 +614,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
                 if (device_active.isPresent())
                 {
                     getDevice(device_status.get()).write("");
-                    ScanCommandUtil.write(this, device_state.get(), getScanState().ordinal(), true, true, device_state.get(), 0.1, timeout);
+                    ScanCommandUtil.write(this, device_state.get(), getScanState().ordinal(), true, true, device_state.get(), 0.1, state_pv_update_timeout);
                     logger.log(Level.INFO, this + " sets "  + device_state.get() + " = " + getScanState());
                     getDevice(device_finish.get()).write(TimestampFormats.MILLI_FORMAT.format(Instant.now()));
                     ScanCommandUtil.write(this, device_progress.get(), Double.valueOf(100.0));
@@ -721,7 +756,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
         {
             try
             {
-                ScanCommandUtil.write(this, device_state.get(), getScanState().ordinal(), true, true, device_state.get(), 0.1, timeout);
+                ScanCommandUtil.write(this, device_state.get(), getScanState().ordinal(), true, true, device_state.get(), 0.1, state_pv_update_timeout);
             }
             catch (Exception ex)
             {
@@ -741,7 +776,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
         {
             try
             {
-                ScanCommandUtil.write(this, device_state.get(), getScanState().ordinal(), true, true, device_state.get(), 0.1, timeout);
+                ScanCommandUtil.write(this, device_state.get(), getScanState().ordinal(), true, true, device_state.get(), 0.1, state_pv_update_timeout);
             }
             catch (Exception ex)
             {
@@ -758,7 +793,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
     /** Mark for abort
      *  @return Previous scan state
      */
-    public ScanState prepareAbort()
+    ScanState prepareAbort()
     {
         // Set state to aborted unless it is already 'done'
         return state.getAndUpdate((current_state)  ->  current_state.isDone() ? current_state : ScanState.Aborted);
@@ -767,7 +802,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
     /** Abort scan
      *  @param previous Previous state from `prepareAbort()`
      */
-    public void doAbort(final ScanState previous)
+    void doAbort(final ScanState previous)
     {
         if (previous.isDone())
             return;
