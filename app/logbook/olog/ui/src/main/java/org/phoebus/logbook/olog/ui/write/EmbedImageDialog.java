@@ -22,9 +22,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
+import org.phoebus.framework.nls.NLS;
 import org.phoebus.logbook.olog.ui.Messages;
 
 import java.io.IOException;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,8 +38,9 @@ public class EmbedImageDialog extends Dialog<EmbedImageDescriptor> {
 
     public EmbedImageDialog(){
         super();
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("EmbedImageDialog.fxml"));
-
+        ResourceBundle resourceBundle =  NLS.getMessages(Messages.class);
+        FXMLLoader loader =
+                new FXMLLoader(getClass().getResource("EmbedImageDialog.fxml"), resourceBundle);
         try {
             DialogPane dialogPane = loader.load();
             EmbedImageDialogController controller = loader.getController();

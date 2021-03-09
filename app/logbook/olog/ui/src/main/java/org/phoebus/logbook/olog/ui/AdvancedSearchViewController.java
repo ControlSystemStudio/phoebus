@@ -127,7 +127,7 @@ public class AdvancedSearchViewController {
         hbox.setSpacing(5);
         hbox.setAlignment(Pos.CENTER_RIGHT);
         Button apply = new Button();
-        apply.setText("Apply");
+        apply.setText(Messages.Apply);
         apply.setPrefWidth(80);
         apply.setOnAction((event) -> {
             Platform.runLater(() -> {

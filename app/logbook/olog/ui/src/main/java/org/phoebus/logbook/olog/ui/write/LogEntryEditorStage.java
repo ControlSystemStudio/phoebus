@@ -24,9 +24,12 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.phoebus.framework.nls.NLS;
+import org.phoebus.logbook.olog.ui.Messages;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -43,7 +46,9 @@ public class LogEntryEditorStage extends Stage
     public LogEntryEditorStage(Node parent, LogEntryModel logEntryModel, LogEntryCompletionHandler completionHandler)
     {
         initModality(Modality.WINDOW_MODAL);
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("LogEntryEditor.fxml"));
+        ResourceBundle resourceBundle =  NLS.getMessages(Messages.class);
+        FXMLLoader fxmlLoader =
+                new FXMLLoader(getClass().getResource("LogEntryEditor.fxml"), resourceBundle);
         fxmlLoader.setControllerFactory(clazz -> {
             try {
                 if(clazz.isAssignableFrom(LogEntryEditorController.class)){

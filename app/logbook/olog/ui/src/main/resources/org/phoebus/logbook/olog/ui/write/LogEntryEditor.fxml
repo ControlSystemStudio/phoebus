@@ -30,6 +30,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.control.Tooltip?>
 <VBox fx:id="root" prefHeight="1000" prefWidth="800" HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.write.LogEntryEditorController">
     <padding>
         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
@@ -66,12 +67,20 @@
             </rowConstraints>
             </GridPane>
             <Pane HBox.hgrow="ALWAYS" />
-            <Button fx:id="cancel" alignment="CENTER_RIGHT" minWidth="57.0" mnemonicParsing="false" onAction="#cancel" text="Cancel">
+            <Button fx:id="cancel" alignment="CENTER_RIGHT" minWidth="57.0" mnemonicParsing="false"
+                    onAction="#cancel" text="%Cancel">
+                <tooltip>
+                    <Tooltip text="%CancelTooltip"/>
+                </tooltip>
                 <HBox.margin>
                     <Insets left="5.0" right="5.0" />
                 </HBox.margin>
             </Button>
-            <Button fx:id="submit" alignment="CENTER_RIGHT" minWidth="57.0" mnemonicParsing="false" onAction="#submit" text="Submit">
+            <Button fx:id="submit" alignment="CENTER_RIGHT" minWidth="57.0" mnemonicParsing="false"
+                    onAction="#submit" text="%Submit">
+                <tooltip>
+                    <Tooltip text="%SubmitTooltip"/>
+                </tooltip>
                 <HBox.margin>
                     <Insets left="5.0" />
                 </HBox.margin>
