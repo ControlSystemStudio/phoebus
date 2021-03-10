@@ -57,6 +57,7 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import com.sun.jersey.client.urlconnection.HTTPSProperties;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
+import org.phoebus.security.managers.DummyX509TrustManager;
 
 /**
  * A Client object to query the channelfinder service for channels based on

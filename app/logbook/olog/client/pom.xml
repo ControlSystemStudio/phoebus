@@ -20,6 +20,11 @@
             <version>4.6.6-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>org.phoebus</groupId>
+            <artifactId>core-security</artifactId>
+            <version>4.6.6-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
             <version>${jackson.version}</version>

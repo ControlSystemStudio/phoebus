@@ -49,6 +49,7 @@ import com.sun.jersey.multipart.impl.MultiPartWriter;
 import org.phoebus.olog.es.api.model.OlogObjectMappers;
 import org.phoebus.olog.es.api.model.OlogAttachment;
 import org.phoebus.olog.es.api.model.OlogLog;
+import org.phoebus.security.managers.DummyX509TrustManager;
 
 /**
  * A client to the Olog-es webservice
