@@ -23,10 +23,10 @@
                     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
                     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
                     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
-		    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
-		    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
-		    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
-		    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
                     <RowConstraints />
                     <RowConstraints />
             <RowConstraints />
@@ -44,9 +44,9 @@
                     <TextField fx:id="searchCurrentMessage" GridPane.columnSpan="2" GridPane.rowIndex="9" />
                     <Label text="User:" GridPane.rowIndex="10" />
                     <TextField fx:id="searchUser" GridPane.columnSpan="2" GridPane.rowIndex="11" />
-		    <Label text="Host:" GridPane.rowIndex="12" />
+                    <Label text="Host:" GridPane.rowIndex="12" />
                     <TextField fx:id="searchHost" GridPane.columnSpan="2" GridPane.rowIndex="13" />
-		    <Label text="Command:" GridPane.rowIndex="14" />
+                    <Label text="Command:" GridPane.rowIndex="14" />
                     <TextField fx:id="searchCommand" GridPane.columnSpan="2" GridPane.rowIndex="15" />
                     <Label text="Time:" GridPane.columnSpan="2" GridPane.rowIndex="16">
                         <GridPane.margin>
@@ -85,4 +85,4 @@
         <padding>
             <Insets left="5.0" right="5.0" />
         </padding>
-    </AnchorPane>
+</AnchorPane>
