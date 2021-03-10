@@ -180,13 +180,13 @@ public class AdvancedSearchViewController {
         searchParameters = params;
         searchParameters.addListener((MapChangeListener<Keys, String>) change -> Platform.runLater(() -> {
             searchPV.setText(searchParameters.get(Keys.PV));
-	    searchSeverity.setText(searchParameters.get(Keys.SEVERITY));
-	    searchMessage.setText(searchParameters.get(Keys.MESSAGE));
-	    searchCurrentSeverity.setText(searchParameters.get(Keys.CURRENTSEVERITY));
-	    searchCurrentMessage.setText(searchParameters.get(Keys.CURRENTMESSAGE));
-	    searchUser.setText(searchParameters.get(Keys.USER));
-	    searchHost.setText(searchParameters.get(Keys.HOST));
-	    searchCommand.setText(searchParameters.get(Keys.COMMAND));
+            searchSeverity.setText(searchParameters.get(Keys.SEVERITY));
+            searchMessage.setText(searchParameters.get(Keys.MESSAGE));
+            searchCurrentSeverity.setText(searchParameters.get(Keys.CURRENTSEVERITY));
+            searchCurrentMessage.setText(searchParameters.get(Keys.CURRENTMESSAGE));
+            searchUser.setText(searchParameters.get(Keys.USER));
+            searchHost.setText(searchParameters.get(Keys.HOST));
+            searchCommand.setText(searchParameters.get(Keys.COMMAND));
         }));
 
         startTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.STARTTIME));
