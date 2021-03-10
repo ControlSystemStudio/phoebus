@@ -119,7 +119,7 @@ public class AlarmLogTableController {
     
     @FXML
     public void initialize() {
-	resize.setText(">");
+        resize.setText(">");
         tableView.getColumns().clear();
         configCol = new TableColumn<>("Config");
         configCol.setCellValueFactory(
@@ -257,16 +257,16 @@ public class AlarmLogTableController {
         searchParameters.put(Keys.HOST, "*");
         searchParameters.put(Keys.STARTTIME, TimeParser.format(java.time.Duration.ofDays(7)));
         searchParameters.put(Keys.ENDTIME, TimeParser.format(java.time.Duration.ZERO));
-	advancedSearchViewController.setSearchParameters(searchParameters);
+        advancedSearchViewController.setSearchParameters(searchParameters);
 
         query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
             return e.getKey().getName().trim() + "=" + e.getValue().trim();
         }).collect(Collectors.joining("&")));
 
-	searchParameters.addListener((MapChangeListener<Keys, String>) change -> query.setText(searchParameters.entrySet().stream()
-                .sorted(Entry.comparingByKey())
-                .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
-                .collect(Collectors.joining("&"))));
+        searchParameters.addListener((MapChangeListener<Keys, String>) change -> query.setText(searchParameters.entrySet().stream()
+            .sorted(Entry.comparingByKey())
+            .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
+            .collect(Collectors.joining("&"))));
 
 	query.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
