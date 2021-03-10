@@ -155,7 +155,7 @@ public class AdvancedSearchViewController {
             searchParameters.put(Keys.MESSAGE, newValue);
         });
 
-	searchCurrentSeverity.textProperty().addListener((observable, oldValue, newValue) -> {
+        searchCurrentSeverity.textProperty().addListener((observable, oldValue, newValue) -> {
             searchParameters.put(Keys.CURRENTSEVERITY, newValue);
         });
 
@@ -163,22 +163,22 @@ public class AdvancedSearchViewController {
             searchParameters.put(Keys.CURRENTMESSAGE, newValue);
         });
 
-	searchUser.textProperty().addListener((observable, oldValue, newValue) -> {
+        searchUser.textProperty().addListener((observable, oldValue, newValue) -> {
             searchParameters.put(Keys.USER, newValue);
         });
 
-	searchHost.textProperty().addListener((observable, oldValue, newValue) -> {
+        searchHost.textProperty().addListener((observable, oldValue, newValue) -> {
             searchParameters.put(Keys.HOST, newValue);
         });
 
-	searchCommand.textProperty().addListener((observable, oldValue, newValue) -> {
+        searchCommand.textProperty().addListener((observable, oldValue, newValue) -> {
             searchParameters.put(Keys.COMMAND, newValue);
         });
     }
 
     public void setSearchParameters(ObservableMap<Keys, String> params){
         searchParameters = params;
-	searchParameters.addListener((MapChangeListener<Keys, String>) change -> Platform.runLater(() -> {
+        searchParameters.addListener((MapChangeListener<Keys, String>) change -> Platform.runLater(() -> {
             searchPV.setText(searchParameters.get(Keys.PV));
 	    searchSeverity.setText(searchParameters.get(Keys.SEVERITY));
 	    searchMessage.setText(searchParameters.get(Keys.MESSAGE));
@@ -191,14 +191,14 @@ public class AdvancedSearchViewController {
 
         startTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.STARTTIME));
         endTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.ENDTIME));
-	searchPV.setText(searchParameters.get(Keys.PV));
-	searchSeverity.setText(searchParameters.get(Keys.SEVERITY));
-	searchMessage.setText(searchParameters.get(Keys.MESSAGE));
-	searchCurrentSeverity.setText(searchParameters.get(Keys.CURRENTSEVERITY));
-	searchCurrentMessage.setText(searchParameters.get(Keys.CURRENTMESSAGE));
-	searchUser.setText(searchParameters.get(Keys.USER));
-	searchHost.setText(searchParameters.get(Keys.HOST));
-	searchCommand.setText(searchParameters.get(Keys.COMMAND));
+        searchPV.setText(searchParameters.get(Keys.PV));
+        searchSeverity.setText(searchParameters.get(Keys.SEVERITY));
+        searchMessage.setText(searchParameters.get(Keys.MESSAGE));
+        searchCurrentSeverity.setText(searchParameters.get(Keys.CURRENTSEVERITY));
+        searchCurrentMessage.setText(searchParameters.get(Keys.CURRENTMESSAGE));
+        searchUser.setText(searchParameters.get(Keys.USER));
+        searchHost.setText(searchParameters.get(Keys.HOST));
+        searchCommand.setText(searchParameters.get(Keys.COMMAND));
     }
 
     public AnchorPane getPane(){
