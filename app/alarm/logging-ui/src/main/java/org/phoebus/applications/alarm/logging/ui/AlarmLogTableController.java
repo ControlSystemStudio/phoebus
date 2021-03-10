@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javafx.beans.binding.Bindings;
@@ -118,7 +119,7 @@ public class AlarmLogTableController {
     
     @FXML
     public void initialize() {
-	resize.setText("<");
+	resize.setText(">");
         tableView.getColumns().clear();
         configCol = new TableColumn<>("Config");
         configCol.setCellValueFactory(
@@ -262,6 +263,11 @@ public class AlarmLogTableController {
             return e.getKey().getName().trim() + "=" + e.getValue().trim();
         }).collect(Collectors.joining("&")));
 
+	searchParameters.addListener((MapChangeListener<Keys, String>) change -> query.setText(searchParameters.entrySet().stream()
+                .sorted(Entry.comparingByKey())
+                .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
+                .collect(Collectors.joining("&"))));
+
 	query.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent keyEvent) {
@@ -351,14 +357,14 @@ public class AlarmLogTableController {
     @FXML
     public void resize() {
         if (!moving.compareAndExchangeAcquire(false, true)) {
-            if (resize.getText().equals(">")) {
+            if (resize.getText().equals("<")) {
                 Duration cycleDuration = Duration.millis(400);
                 KeyValue kv = new KeyValue(advancedSearchViewController.getPane().minWidthProperty(), 0);
                 KeyValue kv2 = new KeyValue(advancedSearchViewController.getPane().maxWidthProperty(), 0);
                 Timeline timeline = new Timeline(new KeyFrame(cycleDuration, kv, kv2));
                 timeline.play();
                 timeline.setOnFinished(event -> {
-                    resize.setText("<");
+                    resize.setText(">");
                     moving.set(false);
                 });
             } else {
@@ -369,13 +375,14 @@ public class AlarmLogTableController {
                 Timeline timeline = new Timeline(new KeyFrame(cycleDuration, kv, kv2));
                 timeline.play();
                 timeline.setOnFinished(event -> {
-                    resize.setText(">");
+                    resize.setText("<");
                     moving.set(false);
                 });
             }
         }
     }
-    
+
+    @FXML
     void updateQuery() {
         Arrays.asList(query.getText().split("&")).forEach(s -> {
             String key = s.split("=")[0];
