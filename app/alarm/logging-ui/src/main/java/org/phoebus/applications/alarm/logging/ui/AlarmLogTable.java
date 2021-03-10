@@ -26,7 +26,7 @@ public class AlarmLogTable implements AppInstance {
         try {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(this.getClass().getResource("AlarmLogTable.fxml"));
-	    loader.setControllerFactory(clazz -> {
+            loader.setControllerFactory(clazz -> {
                 try {
                     if(clazz.isAssignableFrom(AlarmLogTableController.class)){
                         return clazz.getConstructor(RestHighLevelClient.class)
@@ -43,7 +43,6 @@ public class AlarmLogTable implements AppInstance {
             });
             tab = new DockItem(this, loader.load());
             controller = loader.getController();
-            //controller.setClient(app.getClient());
             tab.setOnClosed(event -> {
                 controller.shutdown();
             });
