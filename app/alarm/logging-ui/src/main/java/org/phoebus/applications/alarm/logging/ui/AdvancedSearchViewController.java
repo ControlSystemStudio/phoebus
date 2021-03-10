@@ -178,7 +178,7 @@ public class AdvancedSearchViewController {
 
     public void setSearchParameters(ObservableMap<Keys, String> params){
         searchParameters = params;
-        searchParameters.addListener((MapChangeListener<Keys, String>) change -> Platform.runLater(() -> {
+        searchParameters.addListener((MapChangeListener<Keys, String>) change -> {
             searchPV.setText(searchParameters.get(Keys.PV));
             searchSeverity.setText(searchParameters.get(Keys.SEVERITY));
             searchMessage.setText(searchParameters.get(Keys.MESSAGE));
@@ -187,7 +187,7 @@ public class AdvancedSearchViewController {
             searchUser.setText(searchParameters.get(Keys.USER));
             searchHost.setText(searchParameters.get(Keys.HOST));
             searchCommand.setText(searchParameters.get(Keys.COMMAND));
-        }));
+        });
 
         startTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.STARTTIME));
         endTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.ENDTIME));
