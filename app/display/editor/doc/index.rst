@@ -1,24 +1,17 @@
 Display Builder
 ===============
 
-Install Examples
-----------------
+// TODO introduction
 
-Invoke ``Install Example Display`` from the menu ``Applications``, ``Display``, ``Examples``
-to install the display builder examples.
+.. toctree::
+   :maxdepth: 2
 
-You will be prompted for a location where you wish to install them.
-
-Then use the menu ``File``, ``Open`` to open the file ``01_main.bob``
-from the examples to get started.  
-
-
-Create new Display
-------------------
-
-Use the menu option ``Applications``, ``Display``, ``New Display``
-to create a new display.
-
+   getting_started
+   examples
+   widgets
+   datasource_connections
+   macros
+   dynamic
 
 Internals
 ---------
