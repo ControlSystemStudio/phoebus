@@ -22,16 +22,11 @@ package org.phoebus.logbook.olog.ui.write;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.Tooltip;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.olog.ui.LogPropertiesController;
-import org.phoebus.logbook.olog.ui.Messages;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -53,12 +48,6 @@ public class LogEntryEditorController {
 
     private Logger logger = Logger.getLogger(LogEntryEditorController.class.getName());
 
-    @FXML
-    private VBox fields;
-    @FXML
-    private VBox attachments;
-    @FXML
-    private VBox properties;
     @FXML
     private Button cancel;
     @FXML
@@ -87,7 +76,6 @@ public class LogEntryEditorController {
 
     @FXML
     public void initialize(){
-        localize();
         submit.disableProperty().bind(model.getReadyToSubmitProperty().not());
         completionMessageLabel.visibleProperty().bind(completionMessageLabel.textProperty().isNotEmpty());
         progressIndicator.visibleProperty().bind(progressIndicatorVisibility);
@@ -138,12 +126,5 @@ public class LogEntryEditorController {
         finally {
             progressIndicatorVisibility.setValue(false);
         }
-    }
-
-    private void localize(){
-        submit.setText(Messages.Submit);
-        submit.setTooltip(new Tooltip(Messages.SubmitTooltip));
-        cancel.setText(Messages.Cancel);
-        cancel.setTooltip(new Tooltip(Messages.CancelTooltip));
     }
 }

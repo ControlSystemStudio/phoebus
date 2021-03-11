@@ -106,8 +106,6 @@ public class EmbedImageDialogController implements Initializable{
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle){
 
-        localize();
-
         // Clipboard button enabled only if there is an image on the clipboard.
         clipboardButton.disableProperty().set(!Clipboard.getSystemClipboard().hasImage());
 
@@ -175,17 +173,5 @@ public class EmbedImageDialogController implements Initializable{
         embedImageDescriptor.setWidth(scaledWidthProperty.get());
         embedImageDescriptor.setHeight(scaledHeightProperty.get());
         return embedImageDescriptor;
-    }
-
-    /**
-     * Localizes UI texts.
-     */
-    private void localize(){
-        fileLabel.setText(Messages.ImageFile);
-        widthLabel.setText(Messages.ImageWidth);
-        heightLabel.setText(Messages.ImageHeight);
-        clipboardButton.setText(Messages.ClipboardButton);
-        browseButton.setText(Messages.BrowseButton);
-        scaleLabel.setText(Messages.ScaleLabel);
     }
 }

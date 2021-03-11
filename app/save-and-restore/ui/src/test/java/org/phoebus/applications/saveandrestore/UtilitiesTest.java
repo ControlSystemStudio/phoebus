@@ -30,8 +30,6 @@ import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
 import org.epics.vtype.EnumDisplay;
-import org.epics.vtype.IVBooleanArray;
-import org.epics.vtype.IVEnumArray;
 import org.epics.vtype.Time;
 import org.epics.vtype.VBoolean;
 import org.epics.vtype.VBooleanArray;
@@ -64,14 +62,9 @@ import org.junit.Test;
 import org.phoebus.applications.saveandrestore.ui.model.Threshold;
 import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 import static org.junit.Assert.*;

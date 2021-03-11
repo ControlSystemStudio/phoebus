@@ -30,9 +30,6 @@ import org.phoebus.applications.saveandrestore.data.DataProvider;
 import org.phoebus.applications.saveandrestore.data.providers.jmasar.JMasarDataProvider;
 import org.phoebus.applications.saveandrestore.data.providers.jmasar.JMasarJerseyClient;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
-import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetController;
-import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotController;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.slf4j.Logger;
@@ -41,7 +38,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
-import javax.annotation.ManagedBean;
 import javax.annotation.PostConstruct;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;

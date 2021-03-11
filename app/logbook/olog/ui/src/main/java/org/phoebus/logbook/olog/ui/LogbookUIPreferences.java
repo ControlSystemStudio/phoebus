@@ -29,6 +29,7 @@ public class LogbookUIPreferences
     @Preference public static boolean  is_supported;
     @Preference public static String calendar_view_item_stylesheet;
     @Preference public static String level_field_name;
+    @Preference public static String markup_help;
 
     static
     {

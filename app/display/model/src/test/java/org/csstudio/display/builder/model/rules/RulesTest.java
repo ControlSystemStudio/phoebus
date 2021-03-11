@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,7 +8,7 @@
 package org.csstudio.display.builder.model.rules;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.Arrays;
 
@@ -19,8 +19,6 @@ import org.csstudio.display.builder.model.properties.ScriptPV;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.csstudio.display.builder.model.properties.WidgetFontStyle;
-import org.csstudio.display.builder.model.rules.RuleInfo;
-import org.csstudio.display.builder.model.rules.RuleToScript;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
 import org.csstudio.display.builder.model.widgets.PolylineWidget;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget;

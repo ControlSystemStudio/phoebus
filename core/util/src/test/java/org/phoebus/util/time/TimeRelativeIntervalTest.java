@@ -8,13 +8,9 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static java.time.Duration.*;
 import static java.time.Period.*;
-import org.phoebus.util.time.TimeInterval;
-import org.phoebus.util.time.TimeRelativeInterval;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.Period;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 

@@ -8,14 +8,12 @@
 package org.phoebus.applications.pvtable.model;
 
 import java.text.NumberFormat;
-import java.time.Instant;
 import java.util.stream.Collectors;
 
 import org.epics.util.array.IteratorNumber;
 import org.epics.util.array.ListByte;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
-import org.epics.vtype.Time;
 import org.epics.vtype.VByteArray;
 import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VEnum;

@@ -39,8 +39,8 @@ public class ADLPlotData extends WidgetPart {
         ArrayList<Object> ret = new ArrayList<>();
         ret.add(new ADLResource(ADLResource.PLOT_AXIS_STYLE, axisStyle));
         ret.add(new ADLResource(ADLResource.PLOT_RANGE_STYLE, rangeStyle));
-        ret.add(new ADLResource(ADLResource.PLOT_RANGE_MIN, new Float(minRange)));
-        ret.add(new ADLResource(ADLResource.PLOT_RANGE_MAX, new Float(maxRange)));
+        ret.add(new ADLResource(ADLResource.PLOT_RANGE_MIN, Float.valueOf(minRange)));
+        ret.add(new ADLResource(ADLResource.PLOT_RANGE_MAX, Float.valueOf(maxRange)));
         return ret.toArray();
     }
 

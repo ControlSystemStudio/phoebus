@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.csstudio.display.builder.editor.Messages;
-import org.csstudio.display.builder.editor.util.CreateNewDisplayJob;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.WidgetClassSupport;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;

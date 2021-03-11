@@ -8,6 +8,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -80,7 +81,6 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
     private AnchorPane agendaPane;
     @FXML
     private Agenda agenda;
-    private LogEntryControl logEntryControl;
 
     // Model
     private Map<Appointment, LogEntry> map;
@@ -113,9 +113,14 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                 if (map != null) {
                     final Stage dialog = new Stage();
                     dialog.initModality(Modality.NONE);
-                    logEntryControl = new LogEntryControl();
-                    logEntryControl.setLog(map.get(appointment));
-                    Scene dialogScene = new Scene(logEntryControl, 300, 200);
+
+                    FXMLLoader loader = new FXMLLoader();
+                    loader.setLocation(this.getClass().getResource("LogEntryDisplay.fxml"));
+                    loader.load();
+                    LogEntryDisplayController controller = loader.getController();
+                    controller.setLogEntry(map.get(appointment));
+                    VBox root = loader.getRoot();
+                    Scene dialogScene = new Scene(root, 300, 200);
                     dialog.setScene(dialogScene);
                     dialog.show();
                 }

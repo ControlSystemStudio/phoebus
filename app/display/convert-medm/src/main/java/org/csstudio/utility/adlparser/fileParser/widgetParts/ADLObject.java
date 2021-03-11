@@ -216,10 +216,10 @@ public class ADLObject extends WidgetPart{
     @Override
     public Object[] getChildren(){
         Object[] ret = new Object[4];
-        ret[0] = new ADLResource(ADLResource.X, new Integer(_x));
-        ret[1] = new ADLResource(ADLResource.Y, new Integer(_y));
-        ret[2] = new ADLResource(ADLResource.WIDTH, new Integer(_width));
-        ret[3] = new ADLResource(ADLResource.HEIGHT, new Integer(_height));
+        ret[0] = new ADLResource(ADLResource.X, Integer.valueOf(_x));
+        ret[1] = new ADLResource(ADLResource.Y, Integer.valueOf(_y));
+        ret[2] = new ADLResource(ADLResource.WIDTH, Integer.valueOf(_width));
+        ret[3] = new ADLResource(ADLResource.HEIGHT, Integer.valueOf(_height));
 
         return ret;
     }

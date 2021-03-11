@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2012-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,7 @@ import static org.csstudio.scan.server.ScanServerInstance.logger;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -30,6 +31,7 @@ import org.csstudio.scan.server.ScanServerInstance;
 import org.csstudio.scan.util.IOUtils;
 import org.csstudio.scan.util.StringOrDouble;
 import org.phoebus.framework.persistence.XMLUtil;
+import org.phoebus.util.time.TimestampFormats;
 import org.w3c.dom.Element;
 
 /** Servlet for "/scan/*": submitting a new scan, deleting (aborting) a current one
@@ -78,20 +80,52 @@ public class ScanServlet extends HttpServlet
         final String pre_post_parm = request.getParameter("pre_post");
         final boolean pre_post = ! "false".equalsIgnoreCase(pre_post_parm);
 
-        // Read scan commands
-        final String scan_commands = IOUtils.toString(request.getInputStream());
-
         // Return <id> or <error>
         response.setContentType("text/xml");
         final PrintWriter out = response.getWriter();
 
-        // Submit scan
         try
         {
+            // Timeout or deadline?
+            long timeout_secs = 0;
+            LocalDateTime deadline = null;
+            String text = request.getParameter("timeout");
+            if (text != null)
+                try
+                {
+                    timeout_secs = Long.parseLong(text);
+                    if (timeout_secs < 0)
+                        throw new Exception("Cannot use negative timeout");
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Invalid timeout '" + text + "'");
+                }
+
+            text = request.getParameter("deadline");
+            if (text != null  && !"0000-00-00 00:00:00".equals(text))
+            {
+                try
+                {
+                    deadline = LocalDateTime.from(TimestampFormats.SECONDS_FORMAT.parse(text));
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Invalid deadline '" + text + "'");
+                }
+                // Allow timeout or deadline, not both
+                if (timeout_secs > 0)
+                    throw new Exception("Cannot specify both timeout and deadline");
+            }
+
+            // Read scan commands
+            final String scan_commands = IOUtils.toString(request.getInputStream());
+
+            // Submit scan
             if (logger.isLoggable(Level.FINE))
                 logger.log(Level.FINE, "Scan '" + scan_name + "':\n" + scan_commands);
 
-            final long scan_id = scan_server.submitScan(scan_name, scan_commands, queue, pre_post);
+            final long scan_id = scan_server.submitScan(scan_name, scan_commands, queue, pre_post, timeout_secs, deadline);
 
             // Return scan ID
             out.print("<id>");

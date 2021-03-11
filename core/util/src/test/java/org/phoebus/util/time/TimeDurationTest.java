@@ -7,7 +7,6 @@ package org.phoebus.util.time;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
-import org.phoebus.util.time.TimeDuration;
 import static org.phoebus.util.time.TimeDuration.*;
 
 import java.time.Duration;

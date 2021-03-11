@@ -21,6 +21,7 @@ import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.properties.WritePVActionInfo;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.ui.javafx.ApplicationWrapper;
+import org.csstudio.display.builder.representation.javafx.actionsdialog.ActionsDialog;
 
 import javafx.stage.Stage;
 

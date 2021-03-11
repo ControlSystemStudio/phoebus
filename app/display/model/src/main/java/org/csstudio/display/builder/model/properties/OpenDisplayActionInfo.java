@@ -50,7 +50,7 @@ public class OpenDisplayActionInfo extends ActionInfo
         }
     }
 
-    private final String file;
+    private String file;
     private final Macros macros;
     private final Target target;
     private final String pane;
@@ -108,6 +108,10 @@ public class OpenDisplayActionInfo extends ActionInfo
     public String getPane()
     {
         return pane;
+    }
+
+    public void setFile(String file){
+        this.file = file;
     }
 
     @Override

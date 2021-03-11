@@ -10,10 +10,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
-import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.dialog.DialogHelper;
-import org.phoebus.ui.dialog.MultiLineInputDialog;
-
 import static org.phoebus.channel.views.ui.ChannelFinderController.logger;
 /**
  * A dialog for adding a tag to a list of channels

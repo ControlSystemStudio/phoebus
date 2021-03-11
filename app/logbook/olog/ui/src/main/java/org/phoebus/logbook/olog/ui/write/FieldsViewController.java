@@ -29,13 +29,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-
+import org.phoebus.logbook.LogService;
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
-
 import org.phoebus.logbook.olog.ui.Messages;
+import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.net.URL;
@@ -43,7 +42,7 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
-public class FieldsViewController implements Initializable{
+public class FieldsViewController implements Initializable {
 
     // Credentials of user making entry.
     @FXML
@@ -55,9 +54,6 @@ public class FieldsViewController implements Initializable{
     @FXML
     private PasswordField passwordField;
 
-    // Date and priority level of log entry.
-    @FXML
-    private Label dateLabel;
     @FXML
     private Label levelLabel;
     @FXML
@@ -69,27 +65,26 @@ public class FieldsViewController implements Initializable{
     @FXML
     private Label titleLabel;
     @FXML
-    private Label textLabel;
-    @FXML
     private TextField titleField;
     @FXML
     private VBox logbooks;
     @FXML
     private TextArea textArea;
+    @FXML
+    private VBox root;
 
     private SimpleStringProperty textAreaContent = new SimpleStringProperty();
 
     private LogEntryModel model;
 
-    public FieldsViewController(LogEntryModel logEntryModel){
+    public FieldsViewController(LogEntryModel logEntryModel) {
         this.model = logEntryModel;
     }
 
     @FXML
     @Override
-    public void initialize(URL url, ResourceBundle resourceBundle){
-        localize();
-
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        levelLabel.setText(LogbookUIPreferences.level_field_name);
         Instant now = Instant.now();
         dateField.setText(TimestampFormats.DATE_FORMAT.format(now));
         model.setDate(now);
@@ -101,9 +96,8 @@ public class FieldsViewController implements Initializable{
         model.fetchLevels();
         model.addLevelListener((ListChangeListener.Change<? extends String> c) ->
         {
-            if (c.next())
-            {
-                if(!model.getLevels().isEmpty() && model.getLevels().get(0) != null)
+            if (c.next()) {
+                if (!model.getLevels().isEmpty() && model.getLevels().get(0) != null)
                     levelSelector.getSelectionModel().select(model.getLevels().get(0));
                 else
                     levelSelector.getSelectionModel().select(Messages.Normal);
@@ -153,8 +147,7 @@ public class FieldsViewController implements Initializable{
         });
 
         userField.requestFocus();
-        if (LogbookUIPreferences.save_credentials)
-        {
+        if (LogbookUIPreferences.save_credentials) {
             model.fetchStoredUserCredentials();
         }
 
@@ -168,23 +161,15 @@ public class FieldsViewController implements Initializable{
         setTextActions();
     }
 
-    private void localize(){
-        userFieldLabel.setText(Messages.Username);
-        passwordFieldLabel.setText(Messages.Password);
-        dateLabel.setText(Messages.Date);
-        dateField.setTooltip(new Tooltip(Messages.CurrentDate));
-        levelLabel.setText(LogbookUIPreferences.level_field_name);
-        titleLabel.setText(Messages.Title);
-    }
-
     @FXML
-    public void setLevel(){
+    public void setLevel() {
         model.setLevel(levelSelector.getSelectionModel().getSelectedItem());
     }
 
-    /** Set the username and password fields to update the model's username and password fields on text entry. */
-    private void setFieldActions()
-    {
+    /**
+     * Set the username and password fields to update the model's username and password fields on text entry.
+     */
+    private void setFieldActions() {
         userField.setOnKeyReleased(event ->
         {
             model.setUser(userField.getText());
@@ -196,9 +181,10 @@ public class FieldsViewController implements Initializable{
         });
     }
 
-    /** Set the title field to update the model's title and text fields on text entry */
-    private void setTextActions()
-    {
+    /**
+     * Set the title field to update the model's title and text fields on text entry
+     */
+    private void setTextActions() {
         titleField.setOnKeyReleased(event ->
         {
             model.setTitle(titleField.getText());
@@ -209,16 +195,30 @@ public class FieldsViewController implements Initializable{
     public void embedImage() {
         EmbedImageDialog embedImageDialog = new EmbedImageDialog();
         Optional<EmbedImageDescriptor> descriptor = embedImageDialog.showAndWait();
-        if(descriptor.isPresent()){
+        if (descriptor.isPresent()) {
             // Add to model
             model.addEmbeddedImage(descriptor.get());
             // Insert markup at caret position
             int caretPosition = textArea.getCaretPosition();
             String imageMarkup =
                     "![](attachment/" + descriptor.get().getId() + ")"
-                    + "{width=" + descriptor.get().getWidth()
-                    + " height=" + descriptor.get().getHeight() + "} ";
+                            + "{width=" + descriptor.get().getWidth()
+                            + " height=" + descriptor.get().getHeight() + "} ";
             textArea.insertText(caretPosition, imageMarkup);
         }
+    }
+
+    @FXML
+    public void showHelp(){
+        String url =
+            LogService.getInstance().getLogFactories().get(LogbookUIPreferences.logbook_factory).getLogClient().getServiceUrl();
+        if(url.endsWith("/")){
+            url = url.substring(0, url.length() - 1);
+        }
+        // Need to get rid of Olog path element under which all REST endpoints are published.
+        // The help file however is published directly on the context root.
+        int idx = url.indexOf("/Olog");
+        String helpUrl = url.substring(0, idx) + "/" + LogbookUIPreferences.markup_help;
+        Platform.runLater(() -> PhoebusApplication.INSTANCE.getHostServices().showDocument(helpUrl));
     }
 }

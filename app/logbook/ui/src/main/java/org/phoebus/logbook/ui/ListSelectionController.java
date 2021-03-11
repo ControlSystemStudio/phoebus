@@ -17,7 +17,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.stage.Stage;
 
 public class ListSelectionController {
     /* Non NLS Strings */

@@ -35,13 +35,23 @@ public class LogEntryTable implements AppInstance {
                     {
                         if(clazz.isAssignableFrom(LogEntryTableViewController.class))
                         {
-                            return clazz.getConstructor(LogClient.class)
-                                    .newInstance(app.getClient());
+                            return clazz.getConstructor(LogClient.class).newInstance(app.getClient());
                         }
                         else if(clazz.isAssignableFrom(AdvancedSearchViewController.class))
                         {
-                            return clazz.getConstructor(LogClient.class)
-                                    .newInstance(app.getClient());
+                            return clazz.getConstructor(LogClient.class).newInstance(app.getClient());
+                        }
+                        else if(clazz.isAssignableFrom(LogEntryDisplayController.class))
+                        {
+                            return clazz.getConstructor(LogClient.class).newInstance(app.getClient());
+                        }
+                        else if(clazz.isAssignableFrom(LogPropertiesController.class))
+                        {
+                            return clazz.getConstructor().newInstance();
+                        }
+                        else if(clazz.isAssignableFrom(LogAttachmentsController.class))
+                        {
+                            return clazz.getConstructor().newInstance();
                         }
                     }
                     else

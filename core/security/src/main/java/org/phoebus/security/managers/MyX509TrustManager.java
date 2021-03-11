@@ -1,23 +1,19 @@
-/**
- * Copyright (C) 2010-2012 Brookhaven National Laboratory
- * Copyright (C) 2010-2012 Helmholtz-Zentrum Berlin für Materialien und Energie GmbH
- * All rights reserved. Use is subject to license terms.
- */
-package org.phoebus.channelfinder;
+package org.phoebus.security.managers;
 /**
  * Taken from http://java.sun.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html
  *
  */
+
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 import java.io.File;
 import java.io.FileInputStream;
 import java.security.KeyStore;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
 
-class MyX509TrustManager implements X509TrustManager {
+public class MyX509TrustManager implements X509TrustManager {
 
      /*
       * The default PKIX X509TrustManager9.  We'll delegate
@@ -26,7 +22,7 @@ class MyX509TrustManager implements X509TrustManager {
       */
      X509TrustManager pkixTrustManager;
 
-     MyX509TrustManager(String trustStore, char[] password) throws Exception {    	 
+     MyX509TrustManager(String trustStore, char[] password) throws Exception {
          this(new File(trustStore), password);
      }
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,7 +8,7 @@
 package org.csstudio.display.builder.model.rules;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.junit.Test;
 
@@ -44,6 +44,18 @@ public class RuleToScript_ReplacementTests
         assertThat(RuleToScript.javascriptToPythonLogic("y != \"a && b\" && a < 1"), equalTo("y != \"a && b\"  and  a < 1"));
 
         assertThat(RuleToScript.javascriptToPythonLogic("a < 1 || y != \"a || b\""), equalTo("a < 1  or  y != \"a || b\""));
+    }
+
+    @Test
+    public void testBitwise()
+    {
+        // Bitwise operations are left untouched, but will only "work" when using pvInt,
+        // because Python/Jython won't handle them with float numbers.
+        // Javascript silently casts to integer, so some *.opi will need their rules to be updated
+        // from "pv.." to "pvInt.." to work in both tools
+        assertThat(RuleToScript.javascriptToPythonLogic("pvInt2 & 4"), equalTo("pvInt2 & 4"));
+        assertThat(RuleToScript.javascriptToPythonLogic("pvInt2 | 4"), equalTo("pvInt2 | 4"));
+        assertThat(RuleToScript.javascriptToPythonLogic("pvInt2 ^ 4"), equalTo("pvInt2 ^ 4"));
     }
 
     @Test
