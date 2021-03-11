@@ -101,10 +101,10 @@ public class LogEntryCellController {
                 attachmentIcon.setImage(attachment);
                 attachments.setText(String.valueOf(logEntry.getAttachments().size()));
             }
-            if(logEntry.getSource() != null && !logEntry.getSource().isEmpty()){
+            if(logEntry.getSource() != null){
                 description.setText(toText(logEntry.getSource()));
             }
-            else if(logEntry.getDescription() != null && !logEntry.getDescription().isEmpty()){
+            else if(logEntry.getDescription() != null){
                 description.setText(toText(logEntry.getDescription()));
             }
         }

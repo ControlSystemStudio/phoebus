@@ -197,10 +197,10 @@ public class LogEntryDisplayController {
                 }
             });
 
-            if(logEntry.getSource() != null && !logEntry.getSource().isEmpty()){
+            if(logEntry.getSource() != null){
                 webEngine.loadContent(toHtml(logEntry.getSource()));
             }
-            else if(logEntry.getDescription() != null && !logEntry.getDescription().isEmpty()){
+            else if(logEntry.getDescription() != null){
                 webEngine.loadContent(toHtml(logEntry.getDescription()));
             }
             ObservableList<String> logbookList = FXCollections.observableArrayList();
