@@ -1,20 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Accordion?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ListView?>
-<?import javafx.scene.control.SplitPane?>
-<?import javafx.scene.control.TitledPane?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.TilePane?>
-<?import javafx.scene.web.WebView?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.web.*?>
 
-<SplitPane dividerPositions="0.5" orientation="VERTICAL" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryDisplayController">
+<SplitPane dividerPositions="0.6" orientation="VERTICAL" prefHeight="673.0" prefWidth="845.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryDisplayController">
 <items>
   <AnchorPane minHeight="0.0" minWidth="0.0">
        <children>
@@ -42,7 +33,12 @@
                    </padding>
                 </Label>
                 <Label fx:id="logOwner" text="owner" GridPane.columnIndex="1" />
-                <WebView fx:id="logDescription" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="2" GridPane.rowSpan="2" GridPane.vgrow="ALWAYS" />
+              <ScrollPane GridPane.columnSpan="2" GridPane.rowIndex="2" GridPane.rowSpan="2" GridPane.vgrow="ALWAYS">
+                  <content>
+                      <WebView fx:id="logDescription" minHeight="2048" minWidth="4096" GridPane.vgrow="ALWAYS" />
+                  </content>
+              </ScrollPane>
+
                 <HBox fx:id="metaDataBox" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS">
                    <children>
             <ListView fx:id="LogLogbooks" HBox.hgrow="ALWAYS" />

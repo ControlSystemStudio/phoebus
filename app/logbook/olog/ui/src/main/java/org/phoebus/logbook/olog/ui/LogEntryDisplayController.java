@@ -1,11 +1,7 @@
 package org.phoebus.logbook.olog.ui;
 
-import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Worker.State;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -40,6 +36,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -89,11 +86,11 @@ public class LogEntryDisplayController {
 
     private LogEntry logEntry;
 
-    public LogEntryDisplayController(){
+    public LogEntryDisplayController() {
         this.logClient = null;
     }
 
-    public LogEntryDisplayController(LogClient logClient){
+    public LogEntryDisplayController(LogClient logClient) {
         this.logClient = logClient;
     }
 
@@ -176,31 +173,9 @@ public class LogEntryDisplayController {
                     .getResource("/detail-log-webview.css").toExternalForm());
 
 
-            webEngine.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
-                /**
-                 * Attempts to set the height of the web view based on the html content.
-                 * @param arg0
-                 * @param oldState
-                 * @param newState
-                 */
-                @Override
-                public void changed(ObservableValue<? extends State> arg0, State oldState, State newState) {
-                    if (newState == State.SUCCEEDED) {
-                        Object result = webEngine.executeScript(
-                                "document.getElementById('olog').offsetHeight");
-                        if (result instanceof Integer) {
-                            Integer i = (Integer) result;
-                            final double height = Double.valueOf(i) + 20;
-                            Platform.runLater(() -> logDescription.setPrefHeight(height));
-                        }
-                    }
-                }
-            });
-
-            if(logEntry.getSource() != null){
+            if (logEntry.getSource() != null) {
                 webEngine.loadContent(toHtml(logEntry.getSource()));
-            }
-            else if(logEntry.getDescription() != null){
+            } else if (logEntry.getDescription() != null) {
                 webEngine.loadContent(toHtml(logEntry.getDescription()));
             }
             ObservableList<String> logbookList = FXCollections.observableArrayList();
@@ -218,16 +193,17 @@ public class LogEntryDisplayController {
             logEntry.getAttachments().stream().forEach(attachment -> {
                 try (FileInputStream fileInputStream = new FileInputStream(attachment.getFile())) {
                     BufferedImage bufferedImage = ImageIO.read(fileInputStream);
-                    if(bufferedImage != null) {
+                    if (bufferedImage != null) {
                         imagesAttachmentList.add(SwingFXUtils.toFXImage(bufferedImage, null));
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Logger.getLogger(LogEntryDisplayController.class.getName())
+                            .log(Level.WARNING, "Failed to add attachment to attachment list", e);
                 }
             });
             attachmentsController.setImages(imagesAttachmentList);
 
-            if ( !logEntry.getProperties().isEmpty()) {
+            if (!logEntry.getProperties().isEmpty()) {
                 propertiesController.setProperties(logEntry.getProperties());
             }
         }
@@ -248,10 +224,11 @@ public class LogEntryDisplayController {
 
     /**
      * Converts Commonmark content to HTML.
+     *
      * @param commonmarkString Raw Commonmark string
      * @return The HTML output of the Commonmark processor.
      */
-    private String toHtml(String commonmarkString){
+    private String toHtml(String commonmarkString) {
         org.commonmark.node.Node document = parser.parse(commonmarkString);
         String html = htmlRenderer.render(document);
         // Wrap the content in a named div so that a suitable height may be determined.
@@ -267,9 +244,10 @@ public class LogEntryDisplayController {
         /**
          * Processes image nodes to prepend the service root URL, where needed. For table nodes the olog-table
          * class is added in order to give it some styling.
+         *
          * @param node The {@link org.commonmark.node.Node} being processed.
-         * @param s The HTML tag, e.g. p, img, strong etc.
-         * @param map Map of attributes for the node.
+         * @param s    The HTML tag, e.g. p, img, strong etc.
+         * @param map  Map of attributes for the node.
          */
         @Override
         public void setAttributes(org.commonmark.node.Node node, String s, Map<String, String> map) {
@@ -278,10 +256,14 @@ public class LogEntryDisplayController {
             }
             // Image paths may be relative (when added through dialog), or absolute URLs (e.g. when added "manually" in editor).
             // Relative paths must be prepended with service root URL, while absolute URLs must not be changed.
-            if(node instanceof org.commonmark.node.Image){
+            if (node instanceof org.commonmark.node.Image) {
                 String src = map.get("src");
-                if(!src.toLowerCase().startsWith("http")){
-                    src = LogEntryDisplayController.this.getLogClient().getServiceUrl() + "/" + src;
+                if (!src.toLowerCase().startsWith("http")) {
+                    String serviceUrl = LogEntryDisplayController.this.getLogClient().getServiceUrl();
+                    if(serviceUrl.endsWith("/")){
+                        serviceUrl = serviceUrl.substring(0, serviceUrl.length() - 1);
+                    }
+                    src =  serviceUrl + "/" + src;
                 }
                 map.put("src", src);
             }
