@@ -1,7 +1,7 @@
-<project default="app-logbook-olog-ui">
-  <import file="../../../../dependencies/ant_settings.xml"/>
+<project default="app-logbook-ui">
+  <import file="../../../dependencies/ant_settings.xml"/>
 
-  <target name="app-logbook-olog-ui">
+  <target name="app-logbook-ui">
     <mkdir dir="${classes}"/>
     <javac destdir="${classes}" debug="${debug}">
       <src path="${src}"/>
@@ -10,7 +10,7 @@
       </classpath>
     </javac>
 
-    <jar destfile="${build}/app-logbook-olog-ui-${version}.jar">
+    <jar destfile="${build}/app-logbook-ui-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>
