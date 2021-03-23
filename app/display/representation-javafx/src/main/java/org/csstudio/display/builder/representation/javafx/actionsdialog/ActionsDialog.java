@@ -18,29 +18,26 @@
 
 package org.csstudio.display.builder.representation.javafx.actionsdialog;
 
-import java.io.IOException;
-import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.properties.ActionInfos;
-import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
-import org.csstudio.display.builder.representation.javafx.Messages;
-import org.csstudio.trends.databrowser3.ui.properties.StatisticsTabController;
-import org.phoebus.framework.nls.NLS;
-import org.phoebus.framework.preferences.PhoebusPreferenceService;
-import org.phoebus.ui.dialog.DialogHelper;
-
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.layout.GridPane;
+import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.properties.ActionInfos;
+import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
+import org.csstudio.display.builder.representation.javafx.Messages;
+import org.phoebus.framework.nls.NLS;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.ui.dialog.DialogHelper;
+
+import java.io.IOException;
+import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Dialog for editing {@link org.csstudio.display.builder.model.properties.ActionInfo} list
- *
  */
 public class ActionsDialog extends Dialog<ActionInfos> {
 
@@ -48,21 +45,22 @@ public class ActionsDialog extends Dialog<ActionInfos> {
 
     private ActionsDialogController controller;
 
-    /** Create dialog
-     *  @param widget Widget
-     *  @param initialActions Initial list of actions
-     *  @param owner Node that started this dialog
+    /**
+     * Create dialog
+     *
+     * @param widget         Widget
+     * @param initialActions Initial list of actions
+     * @param owner          Node that started this dialog
      */
-    public ActionsDialog(final Widget widget, final ActionInfos initialActions, final Node owner)
-    {
+    public ActionsDialog(final Widget widget, final ActionInfos initialActions, final Node owner) {
         this.widget = widget;
 
         setTitle(Messages.ActionsDialog_Title);
         setHeaderText(Messages.ActionsDialog_Info);
 
-        ResourceBundle resourceBundle =  NLS.getMessages(Messages.class);
+        ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
         FXMLLoader fxmlLoader = new FXMLLoader();
-        fxmlLoader.setLocation(this.getClass().getResource("ActionsDialog.fxml"));
+        fxmlLoader.setLocation(ActionsDialog.class.getResource("ActionsDialog.fxml"));
         fxmlLoader.setResources(resourceBundle);
         fxmlLoader.setControllerFactory(clazz -> {
             try {
@@ -72,7 +70,7 @@ public class ActionsDialog extends Dialog<ActionInfos> {
                 return controller;
 
             } catch (Exception e) {
-                Logger.getLogger(StatisticsTabController.class.getName()).log(Level.SEVERE, "Failed to construct ActionsDialogController", e);
+                Logger.getLogger(ActionsDialog.class.getName()).log(Level.SEVERE, "Failed to construct ActionsDialogController", e);
             }
             return null;
         });
@@ -84,7 +82,7 @@ public class ActionsDialog extends Dialog<ActionInfos> {
             getDialogPane().getStylesheets().add(JFXRepresentation.class.getResource("opibuilder.css").toExternalForm());
             setResizable(true);
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.getLogger(ActionsDialog.class.getName()).log(Level.SEVERE, "Failed loading ActionsDialog.fxml", e);
         }
         controller = fxmlLoader.getController();
         controller.setActionInfos(initialActions);
