@@ -110,7 +110,7 @@ public class ActionsDialogController {
         removeButton.setGraphic(JFXUtil.getIcon("delete.png"));
         upButton.setGraphic(JFXUtil.getIcon("up.png"));
         downButton.setGraphic(JFXUtil.getIcon("down.png"));
-
+        
         for (ActionType type : ActionType.values())
         {
             final ImageView icon = new ImageView(new Image(type.getIconURL().toExternalForm()));
@@ -121,6 +121,7 @@ public class ActionsDialogController {
                 ActionsDialogActionItem actionsDialogActionItem =
                         new ActionsDialogActionItem(widget, action);
                 actionList.add(actionsDialogActionItem);
+                actionsListView.setItems(actionList);
                 detailsPane.getChildren().add(actionsDialogActionItem.getActionInfoEditor());
                 actionsListView.getSelectionModel().select(actionsDialogActionItem);
             });
