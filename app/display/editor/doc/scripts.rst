@@ -80,3 +80,9 @@ PVs that trigger script execution should be checked in Trigger column. There mus
 .. image:: images/ScriptEditor.png
 
 
+Internals
+---------
+
+.. raw:: html
+
+   <a href="html/generated/index.html">Java Doc for scripts</a>

@@ -1,7 +1,7 @@
 Display Builder
 ===============
 
-// TODO introduction
+Display Builder is an editor and a runtime for build and running controls GUIs
 
 .. toctree::
    :maxdepth: 2
@@ -13,9 +13,3 @@ Display Builder
    macros
    dynamic
 
-Internals
----------
-
-.. raw:: html
-
-   <a href="html/generated/index.html">Java Doc for scripts</a>
