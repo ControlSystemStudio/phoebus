@@ -97,6 +97,12 @@ public class PhoebusApplication extends Application {
      */
     public static Application INSTANCE;
 
+    /** Application parameters
+     *
+     *  Copy of original parameters that various code sections might digest.
+     */
+    private final CopyOnWriteArrayList<String> application_parameters = new CopyOnWriteArrayList<>();
+
     /** Memento keys */
     public static final String LAST_OPENED_FILE = "last_opened_file",
                                DEFAULT_APPLICATION = "default_application",
@@ -201,6 +207,9 @@ public class PhoebusApplication extends Application {
     public void start(final Stage initial_stage) throws Exception {
         INSTANCE = this;
 
+        // Save original application parameters
+        application_parameters.addAll(getParameters().getRaw());
+
         // Show splash screen as soon as possible..
         final Splash splash = Preferences.splash ? new Splash(initial_stage) : null;
 
@@ -228,7 +237,7 @@ public class PhoebusApplication extends Application {
 
         // Load saved state (slow file access) off UI thread, allocating 30% to that
         monitor.beginTask(Messages.MonitorTaskSave);
-        final MementoTree memento = loadDefaultMemento(getParameters().getRaw(), new SubJobMonitor(monitor, 30));
+        final MementoTree memento = loadDefaultMemento(application_parameters, new SubJobMonitor(monitor, 30));
 
         // Trigger initialization of authentication service
         AuthorizationService.init();
@@ -294,7 +303,7 @@ public class PhoebusApplication extends Application {
 
         // Check command line parameters
         monitor.updateTaskName(Messages.MonitorTaskCmdl);
-        handleParameters(getParameters().getRaw());
+        handleParameters(application_parameters);
         monitor.worked(1);
 
         // In 'server' mode, handle parameters received from client instances
@@ -1010,6 +1019,9 @@ public class PhoebusApplication extends Application {
                     if (i >= parameters.size() - 1)
                         throw new Exception("Missing /path/to/Example.memento for -layout option");
                     memfile = new File(parameters.get(i+1));
+                    // Remove -layout and path because they have been handled
+                    parameters.remove(i+1);
+                    parameters.remove(i);
                     break;
                 }
             if (memfile.canRead())
@@ -1017,6 +1029,8 @@ public class PhoebusApplication extends Application {
                 logger.log(Level.INFO, "Loading state from " + memfile);
                 return loadMemento(memfile);
             }
+            else
+                logger.log(Level.WARNING, "Cannot load state from " + memfile + ", no such file");
         }
         catch (Exception ex)
         {
