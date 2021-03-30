@@ -118,6 +118,11 @@ public class AnnotationImpl<XTYPE extends Comparable<XTYPE>> extends Annotation<
      */
     boolean isSelected(final Point2D point)
     {
+        // When trace is not visible, this annotation is not shown,
+        // so it should ignore the mouse
+        if (! trace.isVisible())
+            return false;
+
         // In case the handle is above the rect,
         // select that first
         if (areWithinDistance(screen_pos, point))
