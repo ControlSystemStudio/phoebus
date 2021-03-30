@@ -37,6 +37,7 @@ public class Messages
                          LogbooksTitle,
                          LogbooksTooltip,
                          MarkupHelp,
+                        NoClipboardContent,
                          Normal,
                          Num_Selected,
                          Password,

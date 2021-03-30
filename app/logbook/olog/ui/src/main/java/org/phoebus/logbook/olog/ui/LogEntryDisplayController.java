@@ -140,10 +140,6 @@ public class LogEntryDisplayController {
     public void refresh() {
         if (logEntry != null) {
 
-            // System.out.println("expand att: "+!logEntry.getAttachments().isEmpty()+ "
-            // tags: " + !logEntry.getTags().isEmpty() + "
-            // logbooks:"+!logEntry.getLogbooks().isEmpty());
-
             attachmentsPane.setExpanded(logEntry.getAttachments() != null && !logEntry.getAttachments().isEmpty());
             attachmentsPane.setVisible(logEntry.getAttachments() != null && !logEntry.getAttachments().isEmpty());
 

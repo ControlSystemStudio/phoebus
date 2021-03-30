@@ -60,8 +60,8 @@ public class LogEntryEditorStage extends Stage
                             .newInstance(logEntryModel);
                 }
                 else if(clazz.isAssignableFrom(AttachmentsViewController.class)){
-                    return clazz.getConstructor(Node.class, List.class, List.class, Boolean.class)
-                                    .newInstance(parent, logEntryModel.getImages(), logEntryModel.getFiles(), true);
+                    return clazz.getConstructor(LogEntryModel.class, Boolean.class)
+                                    .newInstance(logEntryModel, true);
                 }
                 else if(clazz.isAssignableFrom(LogPropertiesEditorController.class)) {
                     return clazz.getConstructor(LogEntryModel.class).newInstance(logEntryModel);

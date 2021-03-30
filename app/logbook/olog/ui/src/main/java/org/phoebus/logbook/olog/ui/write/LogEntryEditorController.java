@@ -25,6 +25,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 import org.phoebus.logbook.LogEntry;
 
@@ -60,6 +61,10 @@ public class LogEntryEditorController {
     private AttachmentsViewController attachmentsViewController;
     @FXML
     private LogPropertiesEditorController propertiesViewController;
+    @FXML
+    private FieldsViewController fieldsViewController;
+    @FXML
+    private TextArea textArea;
 
     private ExecutorService executorService;
 
@@ -76,9 +81,12 @@ public class LogEntryEditorController {
 
     @FXML
     public void initialize(){
+
         submit.disableProperty().bind(model.getReadyToSubmitProperty().not());
         completionMessageLabel.visibleProperty().bind(completionMessageLabel.textProperty().isNotEmpty());
         progressIndicator.visibleProperty().bind(progressIndicatorVisibility);
+
+        attachmentsViewController.setTextArea(fieldsViewController.getTextArea());
     }
 
     /**

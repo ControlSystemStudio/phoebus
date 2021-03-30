@@ -39,7 +39,6 @@ import org.phoebus.util.time.TimestampFormats;
 
 import java.net.URL;
 import java.time.Instant;
-import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class FieldsViewController implements Initializable {
@@ -70,8 +69,7 @@ public class FieldsViewController implements Initializable {
     private VBox logbooks;
     @FXML
     private TextArea textArea;
-    @FXML
-    private VBox root;
+
 
     private SimpleStringProperty textAreaContent = new SimpleStringProperty();
 
@@ -192,27 +190,10 @@ public class FieldsViewController implements Initializable {
     }
 
     @FXML
-    public void embedImage() {
-        EmbedImageDialog embedImageDialog = new EmbedImageDialog();
-        Optional<EmbedImageDescriptor> descriptor = embedImageDialog.showAndWait();
-        if (descriptor.isPresent()) {
-            // Add to model
-            model.addEmbeddedImage(descriptor.get());
-            // Insert markup at caret position
-            int caretPosition = textArea.getCaretPosition();
-            String imageMarkup =
-                    "![](attachment/" + descriptor.get().getId() + ")"
-                            + "{width=" + descriptor.get().getWidth()
-                            + " height=" + descriptor.get().getHeight() + "} ";
-            textArea.insertText(caretPosition, imageMarkup);
-        }
-    }
-
-    @FXML
-    public void showHelp(){
+    public void showHelp() {
         String url =
-            LogService.getInstance().getLogFactories().get(LogbookUIPreferences.logbook_factory).getLogClient().getServiceUrl();
-        if(url.endsWith("/")){
+                LogService.getInstance().getLogFactories().get(LogbookUIPreferences.logbook_factory).getLogClient().getServiceUrl();
+        if (url.endsWith("/")) {
             url = url.substring(0, url.length() - 1);
         }
         // Need to get rid of Olog path element under which all REST endpoints are published.
@@ -220,5 +201,9 @@ public class FieldsViewController implements Initializable {
         int idx = url.indexOf("/Olog");
         String helpUrl = url.substring(0, idx) + "/" + LogbookUIPreferences.markup_help;
         Platform.runLater(() -> PhoebusApplication.INSTANCE.getHostServices().showDocument(helpUrl));
+    }
+
+    public TextArea getTextArea() {
+        return textArea;
     }
 }

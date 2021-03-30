@@ -21,8 +21,13 @@ package org.phoebus.logbook.olog.ui;
 
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.ListView;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import org.phoebus.logbook.Attachment;
 import org.phoebus.ui.javafx.FilesTab;
 import org.phoebus.ui.javafx.ImagesTab;
 
@@ -33,10 +38,14 @@ import java.util.List;
 public class LogAttachmentsController {
 
     @FXML
-    private TabPane tabPane;
+    private SplitPane previewPane;
+    @FXML
+    private ImageView imagePreview;
+    @FXML
+    private TextArea textPreview;
 
-    private ImagesTab imagesTab;
-    private FilesTab filesTab;
+    @FXML
+    private ListView<Attachment> attachmentListView;
 
     private List<Image> images;
     private List<File> files;
@@ -54,35 +63,14 @@ public class LogAttachmentsController {
     @FXML
     public void initialize(){
 
-        imagesTab = new ImagesTab(false);
-        imagesTab.setImages(images);
-
-        filesTab = new FilesTab(false);
-        filesTab.setFiles(files);
-
-        tabPane.getTabs().add(0, imagesTab);
-        tabPane.getTabs().add(1, filesTab);
-
-        tabPane.getSelectionModel().selectFirst();
 
     }
 
     public void setImages(ObservableList<Image> images){
-        imagesTab.setImages(images);
+
     }
 
     public void setFiles(ObservableList<File> files){
-        filesTab.setFiles(files);
-    }
 
-    public List<Image> getImages()
-    {
-        return imagesTab.getImages();
     }
-
-    public List<File> getFiles()
-    {
-        return filesTab.getFiles();
-    }
-
 }

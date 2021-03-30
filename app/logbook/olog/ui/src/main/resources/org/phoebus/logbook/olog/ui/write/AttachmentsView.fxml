@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Accordion?>
-<?import javafx.scene.control.TabPane?>
-<?import javafx.scene.control.TitledPane?>
-<?import javafx.scene.layout.VBox?>
-
 <!--
   ~ Copyright (C) 2019 European Spallation Source ERIC.
   ~
@@ -24,12 +19,56 @@
   ~  
   -->
 
-<VBox xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.write.AttachmentsViewController">
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:id="root" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.write.AttachmentsViewController">
     <Accordion>
         <panes>
-            <TitledPane fx:id="titledPane" animated="true" expanded="false" text="Attachments">
+            <TitledPane fx:id="titledPane" animated="true" expanded="false" text="%Attachments">
                 <content>
-                    <TabPane fx:id="tabPane" />
+                    <VBox>
+                        <children>
+                            <SplitPane fx:id="splitPane" dividerPositions="0.7" GridPane.rowIndex="1" VBox.vgrow="ALWAYS">
+                                <items>
+                                    <StackPane fx:id="previewPane">
+                                        <GridPane fx:id="noPreviewPane" visible="true"/>
+                                        <ImageView fx:id="imagePreview" visible="false" />
+                                        <TextArea fx:id="textPreview" visible="false" />
+                                    </StackPane>
+                                    <VBox>
+                                        <children>
+                                            <ListView fx:id="attachmentListView">
+                                                <placeholder>
+                                                    <Label text="No Attachments"/>
+                                                </placeholder>
+                                            </ListView>
+                                        </children>
+                                    </VBox>
+                                </items>
+                        <VBox.margin>
+                           <Insets bottom="-10.0" left="-5.0" right="-5.0" top="-5.0" />
+                        </VBox.margin>
+                            </SplitPane>
+                            <HBox spacing="5.0" GridPane.rowIndex="2">
+                                <Button maxWidth="1.7976931348623157E308" onAction="#addFiles" text="%Add" HBox.hgrow="ALWAYS" />
+                                <Button fx:id="clipboardButton" maxWidth="1.7976931348623157E308" onAction="#addClipboardContent" text="%ClipboardButton" HBox.hgrow="ALWAYS">
+                                    <tooltip>
+                                        <Tooltip text="%ClipboardButtonTooltip"/>
+                                    </tooltip>
+
+                                </Button>
+                                <Button maxWidth="1.7976931348623157E308" onAction="#addCssWindow" text="%CSSWindow" HBox.hgrow="ALWAYS" />
+                                <Button maxWidth="1.7976931348623157E308" onAction="#embedImage" text="%EmbedImage" HBox.hgrow="ALWAYS" />
+                                <Button fx:id="removeButton" maxWidth="1.7976931348623157E308" onAction="#removeFiles" text="%Remove" HBox.hgrow="ALWAYS" />
+                            <VBox.margin>
+                               <Insets bottom="-5.0" left="-5.0" right="-5.0" top="15.0" />
+                            </VBox.margin>
+                            </HBox>
+                        </children>
+                    </VBox>
                 </content>
             </TitledPane>
         </panes>

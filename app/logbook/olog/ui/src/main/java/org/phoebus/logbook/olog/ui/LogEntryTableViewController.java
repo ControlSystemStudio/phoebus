@@ -98,8 +98,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
     @FXML
     public void initialize() {
 
-        resize.setText(">");
-
         searchParameters = FXCollections.observableHashMap();
         searchParameters.put(Keys.SEARCH, "*");
         searchParameters.put(Keys.STARTTIME, TimeParser.format(java.time.Duration.ofHours(8)));

@@ -37,20 +37,8 @@ public class EmbedImageDescriptor {
      */
     private String fileName;
 
-    /**
-     * A unique id of the embedded image file.
-     */
-    private String id;
     private int width;
     private int height;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public Image getImage() {
         return image;
