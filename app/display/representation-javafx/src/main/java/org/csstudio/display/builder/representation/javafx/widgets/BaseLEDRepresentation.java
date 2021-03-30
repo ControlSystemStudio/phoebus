@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -135,7 +135,7 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
         model_widget.propForegroundColor().addUntypedPropertyListener(styleChangedListener);
         model_widget.propLineColor().addUntypedPropertyListener(styleChangedListener);
         model_widget.runtimePropValue().addPropertyListener(contentChangedListener);
-        contentChanged(null, null, null);
+        contentChanged(null, null, model_widget.runtimePropValue().getValue());
     }
 
     @Override
@@ -178,8 +178,7 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
     private void contentChanged(final WidgetProperty<VType> property, final VType old_value, final VType new_value)
     {
         final boolean runtime_mode = ! toolkit.isEditMode();
-        final VType value = model_widget.runtimePropValue().getValue();
-        if (value == null && runtime_mode)
+        if (new_value == null && runtime_mode)
         {
             value_color = alarm_colors[AlarmSeverity.UNDEFINED.ordinal()];
             value_label = computeLabel();
