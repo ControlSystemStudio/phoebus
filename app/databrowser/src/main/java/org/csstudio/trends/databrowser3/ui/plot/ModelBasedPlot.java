@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -322,6 +322,7 @@ public class ModelBasedPlot
                 item.getLineStyle(),
                 item.getPointType(), item.getPointSize(),
                 item.getAxisIndex());
+        trace.setVisible(item.isVisible());
         items_by_trace.put(trace, item);
     }
 
@@ -336,11 +337,8 @@ public class ModelBasedPlot
             trace = findTrace(item);
         }
         catch (IllegalArgumentException ex)
-        {   // Could be called with a trace that was not visible,
-            // so it was never in the plot,
-            // and now gets removed.
-            // --> No error, because trace to be removed is already
-            //     absent from plot
+        {   // Trace to be removed is already
+            // absent from plot
             return;
         }
         plot.removeTrace(trace);
@@ -352,15 +350,13 @@ public class ModelBasedPlot
      */
     public void updateTrace(final ModelItem item)
     {
-        // Invisible items have no trace, nothing to update,
-        // and findTrace() would throw an exception
-        if (! item.isVisible())
-            return;
         final Trace<Instant> trace = findTrace(item);
+
         // Update Trace with item's configuration
         final String name = item.getResolvedDisplayName();
         if (!trace.getName().equals(name))
             trace.setName(name);
+        trace.setVisible(item.isVisible());
         trace.setUnits(item.getUnits());
         // These happen to not cause an immediate redraw, so
         // set even if no change
