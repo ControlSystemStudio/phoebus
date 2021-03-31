@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -444,13 +444,8 @@ public class Controller
 
             @Override
             public void changedItemVisibility(final ModelItem item)
-            {   // Add/remove from plot, but don't need to get archived data
-                // When made visible, note that item could be in 'middle'
-                // of existing traces, so need to re-create all
-                if (item.isVisible())
-                    createPlotTraces();
-                else // To hide, simply remove
-                    plot.removeTrace(item);
+            {
+                plot.updateTrace(item);
             }
 
             @Override
@@ -630,8 +625,7 @@ public class Controller
             for (AxisConfig axis : model.getAxes())
                 plot.updateAxis(i++, axis);
             for (ModelItem item : model.getItems())
-                if (item.isVisible())
-                    plot.addTrace(item);
+                plot.addTrace(item);
         }
         finally
         {

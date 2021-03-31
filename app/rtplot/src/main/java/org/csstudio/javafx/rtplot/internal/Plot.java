@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -693,6 +693,9 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         // Annotations use label font
         for (AnnotationImpl<XTYPE> annotation : annotations)
         {
+            // Hide annotation when the associated trace is not visible
+            if (! annotation.getTrace().isVisible())
+                continue;
             try
             {
                 annotation.updateValue(annotation.getPosition());
