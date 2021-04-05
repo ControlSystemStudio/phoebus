@@ -29,6 +29,7 @@ Developer Documentation:
    :maxdepth: 1
 
    develop
+   phoebus_product
    architecture
    locations
    help_system
