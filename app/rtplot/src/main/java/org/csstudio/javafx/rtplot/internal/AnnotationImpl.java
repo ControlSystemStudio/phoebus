@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -118,6 +118,11 @@ public class AnnotationImpl<XTYPE extends Comparable<XTYPE>> extends Annotation<
      */
     boolean isSelected(final Point2D point)
     {
+        // When trace is not visible, this annotation is not shown,
+        // so it should ignore the mouse
+        if (! trace.isVisible())
+            return false;
+
         // In case the handle is above the rect,
         // select that first
         if (areWithinDistance(screen_pos, point))

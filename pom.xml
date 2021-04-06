@@ -22,7 +22,7 @@
   <properties>
     <epics.version>7.0.7</epics.version>
     <vtype.version>1.0.4</vtype.version>
-    <openjfx.version>15</openjfx.version>
+    <openjfx.version>16</openjfx.version>
     <jackson.version>2.10.1</jackson.version>
     <batik.version>1.12</batik.version>
     <mockito.version>2.23.4</mockito.version>
@@ -184,7 +184,7 @@
           <plugin>
             <groupId>kr.motd.maven</groupId>
             <artifactId>sphinx-maven-plugin</artifactId>
-            <version>2.6.0</version>
+            <version>2.10.0</version>
             <configuration>
               <sourceDirectory>${basedir}/docs/source</sourceDirectory>
               <outputDirectory>${basedir}/docs/build/html</outputDirectory>
