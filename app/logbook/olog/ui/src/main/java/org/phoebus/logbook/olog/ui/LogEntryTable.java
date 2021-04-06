@@ -2,16 +2,19 @@ package org.phoebus.logbook.olog.ui;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
+import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.olog.ui.write.AttachmentsViewController;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,7 +29,9 @@ public class LogEntryTable implements AppInstance {
     {
         this.app = app;
         try {
+            ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
             FXMLLoader loader = new FXMLLoader();
+            loader.setResources(resourceBundle);
             loader.setLocation(this.getClass().getResource("LogEntryTableView.fxml"));
 
             loader.setControllerFactory(clazz -> {
@@ -51,6 +56,9 @@ public class LogEntryTable implements AppInstance {
                         }
                         else if(clazz.isAssignableFrom(LogAttachmentsController.class))
                         {
+                            return clazz.getConstructor().newInstance();
+                        }
+                        else if(clazz.isAssignableFrom(AttachmentsViewController.class)){
                             return clazz.getConstructor().newInstance();
                         }
                     }

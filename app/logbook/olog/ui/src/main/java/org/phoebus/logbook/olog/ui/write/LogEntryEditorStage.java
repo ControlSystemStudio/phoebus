@@ -25,10 +25,9 @@ import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.phoebus.framework.nls.NLS;
+import org.phoebus.logbook.olog.ui.AttachmentsPreviewController;
 import org.phoebus.logbook.olog.ui.Messages;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -63,6 +62,10 @@ public class LogEntryEditorStage extends Stage
                     return clazz.getConstructor(LogEntryModel.class, Boolean.class)
                                     .newInstance(logEntryModel, true);
                 }
+                else if(clazz.isAssignableFrom(AttachmentsPreviewController.class)){
+                    return clazz.getConstructor()
+                            .newInstance();
+                }
                 else if(clazz.isAssignableFrom(LogPropertiesEditorController.class)) {
                     return clazz.getConstructor(LogEntryModel.class).newInstance(logEntryModel);
                 }
@@ -75,7 +78,7 @@ public class LogEntryEditorStage extends Stage
         try {
             fxmlLoader.load();
         } catch (
-                IOException exception) {
+                Exception exception) {
             Logger.getLogger(LogEntryEditorStage.class.getName()).log(Level.WARNING, "Unable to load fxml for log entry editor UI", exception);
         }
 

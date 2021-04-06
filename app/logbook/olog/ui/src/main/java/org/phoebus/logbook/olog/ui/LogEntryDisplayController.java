@@ -26,6 +26,7 @@ import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
+import org.phoebus.logbook.olog.ui.write.AttachmentsViewController;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javax.imageio.ImageIO;
@@ -75,7 +76,7 @@ public class LogEntryDisplayController {
     @FXML
     public VBox attachments;
     @FXML
-    public LogAttachmentsController attachmentsController;
+    public AttachmentsViewController attachmentsController;
 
     @FXML
     public TitledPane propertiesPane;
@@ -184,7 +185,7 @@ public class LogEntryDisplayController {
 
             ObservableList<File> fileAttachmentList = FXCollections.observableArrayList();
             fileAttachmentList.setAll(logEntry.getAttachments().stream().map(Attachment::getFile).collect(Collectors.toList()));
-            attachmentsController.setFiles(fileAttachmentList);
+            //attachmentsController.setFiles(fileAttachmentList);
             ObservableList<Image> imagesAttachmentList = FXCollections.observableArrayList();
             logEntry.getAttachments().stream().forEach(attachment -> {
                 try (FileInputStream fileInputStream = new FileInputStream(attachment.getFile())) {

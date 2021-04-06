@@ -28,6 +28,7 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.olog.ui.AttachmentsPreviewController;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;

@@ -38,10 +38,12 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import org.phoebus.framework.util.IOUtils;
+import org.phoebus.logbook.olog.ui.AttachmentsPreviewController;
 import org.phoebus.logbook.olog.ui.Messages;
 import org.phoebus.olog.es.api.model.OlogAttachment;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -67,37 +69,23 @@ import java.util.logging.Logger;
 public class AttachmentsViewController {
 
     @FXML
-    private TitledPane titledPane;
-
-    @FXML
-    private StackPane previewPane;
-
-    @FXML
-    private ImageView imagePreview;
-
-    @FXML
-    private TextArea textPreview;
-
-    @FXML
-    private ListView<OlogAttachment> attachmentListView;
-
-
-    @FXML
     private Button removeButton;
-
-    @FXML
-    private GridPane noPreviewPane;
 
     @FXML
     private VBox root;
 
-    @FXML
     private TextArea textArea;
+
+    @FXML
+    private AttachmentsPreviewController attachmentsPreviewController;
 
     private LogEntryModel model;
 
     private boolean autoExpand;
 
+    public AttachmentsViewController() {
+        model = new LogEntryModel();
+    }
 
     public AttachmentsViewController(LogEntryModel logEntryModel, Boolean autoExpand) {
         this.autoExpand = autoExpand;
@@ -107,38 +95,20 @@ public class AttachmentsViewController {
     @FXML
     public void initialize() {
 
-        // Open/close the attachments pane if there's something to see resp. not
-        if (autoExpand && (!this.model.getAttachments().isEmpty())) {
-            Platform.runLater(() ->
-            {
-                titledPane.setExpanded(true);
-            });
-        }
-        attachmentListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        attachmentListView.setCellFactory(view -> new AttachmentRow());
-        attachmentListView.setItems(model.getAttachments());
-        attachmentListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<OlogAttachment>() {
-            @Override
-            public void changed(ObservableValue<? extends OlogAttachment> observable, OlogAttachment oldValue, OlogAttachment newValue) {
-                showPreview(newValue);
-            }
-        });
-
         removeButton.setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
+
+        /*
         removeButton.disableProperty().bind(Bindings.isEmpty(attachmentListView.getSelectionModel().getSelectedItems()));
 
-        if(!model.getAttachments().isEmpty()){
+        if (!model.getAttachments().isEmpty()) {
             attachmentListView.getSelectionModel().select(0);
         }
+
+         */
     }
 
     public void setImages(ObservableList<Image> images) {
-        if (autoExpand && !images.isEmpty()) {
-            Platform.runLater(() ->
-            {
-                titledPane.setExpanded(true);
-            });
-        }
+        System.out.println();
     }
 
     @FXML
@@ -176,8 +146,8 @@ public class AttachmentsViewController {
 
     @FXML
     public void removeFiles() {
-        ObservableList<OlogAttachment> selectedAttachments = attachmentListView.getSelectionModel().getSelectedItems();
-        model.removeAttachments(selectedAttachments);
+        //ObservableList<OlogAttachment> selectedAttachments = attachmentListView.getSelectionModel().getSelectedItems();
+        //model.removeAttachments(selectedAttachments);
     }
 
     @FXML
@@ -215,17 +185,6 @@ public class AttachmentsViewController {
         return Collections.emptyList();
     }
 
-    private class AttachmentRow extends ListCell<OlogAttachment> {
-        @Override
-        public void updateItem(OlogAttachment attachment, boolean empty) {
-            super.updateItem(attachment, empty);
-            if (empty)
-                setText("");
-            else {
-                setText(attachment.getName());
-            }
-        }
-    }
 
     private void addFiles(List<File> files) {
         MimetypesFileTypeMap fileTypeMap = new MimetypesFileTypeMap();
@@ -243,8 +202,8 @@ public class AttachmentsViewController {
             attachments.add(ologAttachment);
         }
         model.addAttachments(attachments);
-        attachmentListView.getSelectionModel().clearSelection();
-        attachmentListView.getSelectionModel().select(attachments.get(0));
+        //attachmentListView.getSelectionModel().clearSelection();
+        //attachmentListView.getSelectionModel().select(attachments.get(0));
     }
 
     private void addImage(Image image) {
@@ -261,84 +220,11 @@ public class AttachmentsViewController {
             ologAttachment.setFile(imageFile);
             ologAttachment.setFileName(imageFile.getName());
             model.addAttachment(ologAttachment, true);
-            attachmentListView.getSelectionModel().clearSelection();
-            attachmentListView.getSelectionModel().select(ologAttachment);
+            //attachmentListView.getSelectionModel().clearSelection();
+            //attachmentListView.getSelectionModel().select(ologAttachment);
         } catch (IOException e) {
             Logger.getLogger(AttachmentsViewController.class.getName())
                     .log(Level.INFO, "Unable to create temp file from clipboard image or embedded image", e);
-        }
-    }
-
-    /**
-     * Shows selected attachment in preview pane.
-     * @param ologAttachment
-     */
-    private void showPreview(OlogAttachment ologAttachment){
-        if (ologAttachment == null) {
-            imagePreview.visibleProperty().setValue(false);
-            textPreview.visibleProperty().setValue(false);
-            return;
-        }
-        if (ologAttachment.getContentType().equals("image")) {
-            showImagePreview(ologAttachment);
-        } else {
-            // Other file types...
-            // Need some file content detection here (Apache Tika?) to determine if the file is
-            // plain text and thus possible to preview in a TextArea.
-            showFilePreview(ologAttachment);
-        }
-    }
-
-    /**
-     * Shows image preview in preview pane. The size of the {@link ImageView} is calculated based on
-     * the size of the preview pane and the actual image size such that the complete image is always shown.
-     * TODO: Viewing the image in original resolution should be implemented as a separate action, e.g. double
-     * click image attachment in list.
-     * @param ologAttachment
-     */
-    private void showImagePreview(OlogAttachment ologAttachment){
-        try {
-            BufferedImage bufferedImage = ImageIO.read(ologAttachment.getFile());
-            Image image = SwingFXUtils.toFXImage(bufferedImage, null);
-            double width = previewPane.widthProperty().getValue();
-            double height = previewPane.heightProperty().getValue();
-            double imageWidth = image.getWidth();
-            double imageHeight = image.getHeight();
-            if (imageWidth > imageHeight) {
-                double scale = imageWidth / width;
-                imagePreview.fitWidthProperty().setValue(width);
-                imagePreview.fitHeightProperty().setValue(imageHeight / scale);
-            } else {
-                double scale = imageHeight / height;
-                imagePreview.fitWidthProperty().setValue(imageWidth / scale);
-                imagePreview.fitHeightProperty().setValue(height);
-            }
-            imagePreview.visibleProperty().setValue(true);
-            textPreview.visibleProperty().setValue(false);
-            imagePreview.setImage(image);
-        } catch (IOException ex) {
-            Logger.getLogger(AttachmentsViewController.class.getName())
-                    .log(Level.SEVERE, "Unable to load image file " + ologAttachment.getFile().getAbsolutePath(), ex);
-        }
-    }
-
-    /**
-     * Shows a file attachment that is not an image, e.g. text.
-     * TODO: Some kind of file content detection (Apache Tika?) should be used to determine if preview makes sense.
-     * @param ologAttachment
-     */
-    private void showFilePreview(OlogAttachment ologAttachment){
-        imagePreview.visibleProperty().setValue(false);
-        noPreviewPane.visibleProperty().setValue(false);
-        final ByteArrayOutputStream result = new ByteArrayOutputStream();
-        try {
-            IOUtils.copy(new FileInputStream(ologAttachment.getFile()), result);
-            String content = new String(result.toByteArray());
-            textPreview.textProperty().set(content);
-            textPreview.visibleProperty().setValue(true);
-        } catch (IOException e) {
-            Logger.getLogger(AttachmentsViewController.class.getName())
-                    .log(Level.SEVERE, "Unable to read file " + ologAttachment.getFile().getAbsolutePath(), e);
         }
     }
 }
