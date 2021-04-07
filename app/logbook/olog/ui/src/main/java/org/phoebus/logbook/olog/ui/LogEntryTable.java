@@ -54,7 +54,7 @@ public class LogEntryTable implements AppInstance {
                         {
                             return clazz.getConstructor().newInstance();
                         }
-                        else if(clazz.isAssignableFrom(LogAttachmentsController.class))
+                        else if(clazz.isAssignableFrom(AttachmentsPreviewController.class))
                         {
                             return clazz.getConstructor().newInstance();
                         }

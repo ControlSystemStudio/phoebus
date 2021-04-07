@@ -105,8 +105,6 @@ public class LogEntryEditorController {
     public void submit(){
         progressIndicatorVisibility.setValue(true);
         completionMessageLabel.textProperty().setValue("");
-        model.setImages(attachmentsViewController.getImages());
-        model.setFiles(attachmentsViewController.getFiles());
         model.setSelectedProperties(propertiesViewController.getProperties());
         try {
             Future<LogEntry> future = executorService.submit(() -> model.submitEntry());

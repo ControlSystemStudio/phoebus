@@ -2,7 +2,6 @@ package org.phoebus.logbook.olog.ui;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -21,32 +20,20 @@ import org.commonmark.ext.image.attributes.ImageAttributesExtension;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.AttributeProvider;
 import org.commonmark.renderer.html.HtmlRenderer;
-import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
-import org.phoebus.logbook.olog.ui.write.AttachmentsViewController;
 import org.phoebus.ui.javafx.ImageCache;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static org.phoebus.util.time.TimestampFormats.MILLI_FORMAT;
 
 public class LogEntryDisplayController {
-
-    private static final Logger logger = Logger.getLogger(LogEntryDisplayController.class.getName());
-
 
     static final Image tag = ImageCache.getImage(LogEntryDisplayController.class, "/icons/add_tag.png");
     static final Image logbook = ImageCache.getImage(LogEntryDisplayController.class, "/icons/logbook-16.png");
@@ -74,9 +61,7 @@ public class LogEntryDisplayController {
     @FXML
     public TitledPane attachmentsPane;
     @FXML
-    public VBox attachments;
-    @FXML
-    public AttachmentsViewController attachmentsController;
+    public AttachmentsPreviewController attachmentsPreviewController;
 
     @FXML
     public TitledPane propertiesPane;
@@ -117,7 +102,7 @@ public class LogEntryDisplayController {
             }
         });
 
-        LogLogbooks.setCellFactory(listView -> new ListCell<String>() {
+        LogLogbooks.setCellFactory(listView -> new ListCell<>() {
             @Override
             public void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
@@ -183,31 +168,13 @@ public class LogEntryDisplayController {
             tagList.addAll(logEntry.getTags().stream().map(Tag::getName).collect(Collectors.toList()));
             logTags.setItems(tagList);
 
-            ObservableList<File> fileAttachmentList = FXCollections.observableArrayList();
-            fileAttachmentList.setAll(logEntry.getAttachments().stream().map(Attachment::getFile).collect(Collectors.toList()));
-            //attachmentsController.setFiles(fileAttachmentList);
-            ObservableList<Image> imagesAttachmentList = FXCollections.observableArrayList();
-            logEntry.getAttachments().stream().forEach(attachment -> {
-                try (FileInputStream fileInputStream = new FileInputStream(attachment.getFile())) {
-                    BufferedImage bufferedImage = ImageIO.read(fileInputStream);
-                    if (bufferedImage != null) {
-                        imagesAttachmentList.add(SwingFXUtils.toFXImage(bufferedImage, null));
-                    }
-                } catch (IOException e) {
-                    Logger.getLogger(LogEntryDisplayController.class.getName())
-                            .log(Level.WARNING, "Failed to add attachment to attachment list", e);
-                }
-            });
-            attachmentsController.setImages(imagesAttachmentList);
+            attachmentsPreviewController
+                    .setAttachments(FXCollections.observableArrayList(logEntry.getAttachments()));
 
             if (!logEntry.getProperties().isEmpty()) {
                 propertiesController.setProperties(logEntry.getProperties());
             }
         }
-    }
-
-    public LogClient getLogClient() {
-        return logClient;
     }
 
     public LogEntry getLogEntry() {
@@ -256,11 +223,11 @@ public class LogEntryDisplayController {
             if (node instanceof org.commonmark.node.Image) {
                 String src = map.get("src");
                 if (!src.toLowerCase().startsWith("http")) {
-                    String serviceUrl = LogEntryDisplayController.this.getLogClient().getServiceUrl();
-                    if(serviceUrl.endsWith("/")){
+                    String serviceUrl = logClient.getServiceUrl();
+                    if (serviceUrl.endsWith("/")) {
                         serviceUrl = serviceUrl.substring(0, serviceUrl.length() - 1);
                     }
-                    src =  serviceUrl + "/" + src;
+                    src = serviceUrl + "/" + src;
                 }
                 map.put("src", src);
             }

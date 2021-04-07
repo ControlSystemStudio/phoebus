@@ -60,7 +60,8 @@ public class LogEntryTableDemo extends ApplicationWrapper {
                 }
                 else if(clazz.isAssignableFrom(LogPropertiesController.class)){
                     return clazz.getConstructor().newInstance();
-                } else if (clazz.isAssignableFrom(LogAttachmentsController.class)) {
+                }
+                else if(clazz.isAssignableFrom(AttachmentsPreviewController.class)){
                     return clazz.getConstructor().newInstance();
                 }
             } catch (Exception e) {

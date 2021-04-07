@@ -77,10 +77,7 @@ public class LogEntryModel {
     private final ObservableList<String> selectedTags;
     private final ObservableList<Property> selectedProperties;
     private final ObservableList<String> levels;
-    private final ObservableList<Image> images;
-    private final ObservableList<File> files;
-    private final ObservableList<EmbedImageDescriptor> embeddedImages;
-    private final ObservableList<OlogAttachment> attachmentList;
+    private final ObservableList<Attachment> attachmentList;
 
     /**
      * Property that allows the model to define when the application is in an appropriate state to submit a log entry.
@@ -128,11 +125,6 @@ public class LogEntryModel {
         selectedLogbooks = FXCollections.observableArrayList();
         selectedTags = FXCollections.observableArrayList();
         selectedProperties = FXCollections.observableArrayList();
-
-        images = FXCollections.observableArrayList();
-        files = FXCollections.observableArrayList();
-        embeddedImages = FXCollections.observableArrayList();
-
         attachmentList = FXCollections.observableArrayList();
 
         //node = callingNode;
@@ -170,30 +162,6 @@ public class LogEntryModel {
         {
             addSelectedTag(tag.getName());
         });
-
-        final List<Image> images = new ArrayList<>();
-        final List<File> files = new ArrayList<>();
-        for (Attachment attachment : template.getAttachments()) {
-            final File file = attachment.getFile();
-
-            // Add image to model if attachment is image.
-            if (attachment.getContentType().toLowerCase().startsWith("image")) {
-                try {
-                    images.add(new Image(new FileInputStream(file)));
-                } catch (FileNotFoundException ex) {
-                    logger.log(Level.WARNING, "Log entry template attachment file not found: '" + file.getName() + "'", ex);
-                }
-            }
-            // Add file to model if attachment is file.
-            else //if (attachment.getContentType().toLowerCase().startsWith("image"))
-                files.add(file);
-        }
-        setImages(images);
-        setFiles(files);
-    }
-
-    public void addEmbeddedImage(EmbedImageDescriptor embedImageDescriptor) {
-        embeddedImages.add(embedImageDescriptor);
     }
 
     public void fetchStoredUserCredentials() {
@@ -435,35 +403,6 @@ public class LogEntryModel {
         return selectedTags.remove(tag);
     }
 
-    public void setImages(final List<Image> images) {
-        this.images.setAll(images);
-    }
-
-    /**
-     * Return an unmodifiable list of the model's images.
-     *
-     * @return
-     */
-    public ObservableList<Image> getImages() {
-        return FXCollections.unmodifiableObservableList(images);
-    }
-
-    /**
-     * Return an unmodifiable list of the model's files.
-     *
-     * @return
-     */
-    public ObservableList<File> getFiles() {
-        return FXCollections.unmodifiableObservableList(files);
-    }
-
-    /**
-     * @param files Files to add to log entry
-     */
-    public void setFiles(final List<File> files) {
-        this.files.setAll(files);
-    }
-
     /**
      * Check if ready to submit and update readyToSubmitProperty appropriately.
      */
@@ -509,29 +448,7 @@ public class LogEntryModel {
         for (Property selectedProperty : selectedProperties)
             logEntryBuilder.appendProperty(selectedProperty);
 
-        /*
-        for (Image image : images) {
-            File imageFile = File.createTempFile("log_entry_image_", ".png");
-            imageFile.deleteOnExit();
-            toDelete.add(imageFile);
-            ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", imageFile);
-            logEntryBuilder.attach(AttachmentImpl.of(UUID.randomUUID().toString(), imageFile, "image", false));
-        }
-
-        for(EmbedImageDescriptor embedImageDescriptor : embeddedImages){
-            //File imageFile = new File(System.getProperty("java.io.tmpdir"), embedImageDescriptor.getFileName());
-            File imageFile = File.createTempFile("log_entry_image_", ".png");
-            imageFile.deleteOnExit();
-            toDelete.add(imageFile);
-            ImageIO.write(SwingFXUtils.fromFXImage(embedImageDescriptor.getImage(), null), "png", imageFile);
-            logEntryBuilder.attach(AttachmentImpl.of(embedImageDescriptor.getId(), imageFile, "image", false));
-        }
-
-        for (File file : files) {
-            logEntryBuilder.attach(AttachmentImpl.of(file, "file", false));
-        }*/
-
-        for (OlogAttachment ologAttachment : attachmentList) {
+        for (Attachment ologAttachment : attachmentList) {
             logEntryBuilder.attach(ologAttachment);
         }
 
@@ -677,7 +594,7 @@ public class LogEntryModel {
         levels.addListener(changeListener);
     }
 
-    public ObservableList<OlogAttachment> getAttachments() {
+    public ObservableList<Attachment> getAttachments() {
         return attachmentList;
     }
 
@@ -692,9 +609,9 @@ public class LogEntryModel {
         attachments.stream().forEach(a -> addAttachment(a, false));
     }
 
-    public void removeAttachments(List<OlogAttachment> attachments) {
+    public void removeAttachments(List<Attachment> attachments) {
         List<File> filesToNotDelete =
-                attachments.stream().collect(Collectors.mapping(OlogAttachment::getFile, Collectors.toList()));
+                attachments.stream().collect(Collectors.mapping(Attachment::getFile, Collectors.toList()));
         attachmentList.removeAll(attachments);
         toDelete.removeAll(filesToNotDelete);
     }

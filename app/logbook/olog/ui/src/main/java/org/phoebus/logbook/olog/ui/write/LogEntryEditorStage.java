@@ -19,6 +19,7 @@
 
 package org.phoebus.logbook.olog.ui.write;
 
+import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -28,6 +29,7 @@ import org.phoebus.framework.nls.NLS;
 import org.phoebus.logbook.olog.ui.AttachmentsPreviewController;
 import org.phoebus.logbook.olog.ui.Messages;
 
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -63,8 +65,7 @@ public class LogEntryEditorStage extends Stage
                                     .newInstance(logEntryModel, true);
                 }
                 else if(clazz.isAssignableFrom(AttachmentsPreviewController.class)){
-                    return clazz.getConstructor()
-                            .newInstance();
+                    return clazz.getConstructor().newInstance();
                 }
                 else if(clazz.isAssignableFrom(LogPropertiesEditorController.class)) {
                     return clazz.getConstructor(LogEntryModel.class).newInstance(logEntryModel);

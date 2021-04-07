@@ -19,30 +19,22 @@
 
 package org.phoebus.logbook.olog.ui.write;
 
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
-import org.phoebus.framework.util.IOUtils;
+import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.olog.ui.AttachmentsPreviewController;
 import org.phoebus.logbook.olog.ui.Messages;
 import org.phoebus.olog.es.api.model.OlogAttachment;
@@ -53,13 +45,9 @@ import org.phoebus.ui.javafx.Screenshot;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -83,9 +71,12 @@ public class AttachmentsViewController {
 
     private boolean autoExpand;
 
-    public AttachmentsViewController() {
-        model = new LogEntryModel();
-    }
+    /**
+     * List of attachments selected in the preview's {@link ListView}.
+     */
+
+    private ObservableList<Attachment> selectedAttachments = FXCollections.observableArrayList();
+
 
     public AttachmentsViewController(LogEntryModel logEntryModel, Boolean autoExpand) {
         this.autoExpand = autoExpand;
@@ -96,19 +87,19 @@ public class AttachmentsViewController {
     public void initialize() {
 
         removeButton.setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
+        removeButton.disableProperty().bind(Bindings.isEmpty(selectedAttachments));
+        attachmentsPreviewController.setAttachments(model.getAttachments());
 
-        /*
-        removeButton.disableProperty().bind(Bindings.isEmpty(attachmentListView.getSelectionModel().getSelectedItems()));
-
-        if (!model.getAttachments().isEmpty()) {
-            attachmentListView.getSelectionModel().select(0);
-        }
-
-         */
-    }
-
-    public void setImages(ObservableList<Image> images) {
-        System.out.println();
+        attachmentsPreviewController.addListSelectionChangeListener(change -> {
+            while (change.next()) {
+                if (change.wasAdded()) {
+                    selectedAttachments.addAll(change.getAddedSubList());
+                }
+                if (change.wasRemoved()) {
+                    selectedAttachments.removeAll(change.getRemoved());
+                }
+            }
+        });
     }
 
     @FXML
@@ -146,8 +137,7 @@ public class AttachmentsViewController {
 
     @FXML
     public void removeFiles() {
-        //ObservableList<OlogAttachment> selectedAttachments = attachmentListView.getSelectionModel().getSelectedItems();
-        //model.removeAttachments(selectedAttachments);
+        model.removeAttachments(selectedAttachments);
     }
 
     @FXML
@@ -177,15 +167,6 @@ public class AttachmentsViewController {
         this.textArea = textArea;
     }
 
-    public List<Image> getImages() {
-        return Collections.emptyList();
-    }
-
-    public List<File> getFiles() {
-        return Collections.emptyList();
-    }
-
-
     private void addFiles(List<File> files) {
         MimetypesFileTypeMap fileTypeMap = new MimetypesFileTypeMap();
         List<OlogAttachment> attachments = new ArrayList<>();
@@ -202,8 +183,6 @@ public class AttachmentsViewController {
             attachments.add(ologAttachment);
         }
         model.addAttachments(attachments);
-        //attachmentListView.getSelectionModel().clearSelection();
-        //attachmentListView.getSelectionModel().select(attachments.get(0));
     }
 
     private void addImage(Image image) {
@@ -220,8 +199,6 @@ public class AttachmentsViewController {
             ologAttachment.setFile(imageFile);
             ologAttachment.setFileName(imageFile.getName());
             model.addAttachment(ologAttachment, true);
-            //attachmentListView.getSelectionModel().clearSelection();
-            //attachmentListView.getSelectionModel().select(ologAttachment);
         } catch (IOException e) {
             Logger.getLogger(AttachmentsViewController.class.getName())
                     .log(Level.INFO, "Unable to create temp file from clipboard image or embedded image", e);

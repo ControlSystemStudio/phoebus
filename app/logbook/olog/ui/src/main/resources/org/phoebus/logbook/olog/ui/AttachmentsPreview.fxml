@@ -33,7 +33,7 @@
     <items>
         <StackPane fx:id="previewPane">
             <GridPane fx:id="noPreviewPane" visible="true" />
-            <ImageView fx:id="imagePreview" visible="false" />
+            <ImageView fx:id="imagePreview" visible="false" preserveRatio="true" managed="false"/>
             <TextArea fx:id="textPreview" visible="false" />
         </StackPane>
         <VBox>

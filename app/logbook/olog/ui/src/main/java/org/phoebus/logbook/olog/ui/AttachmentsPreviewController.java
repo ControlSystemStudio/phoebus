@@ -20,6 +20,8 @@ package org.phoebus.logbook.olog.ui;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListCell;
@@ -31,21 +33,22 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import org.phoebus.framework.util.IOUtils;
+import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.olog.ui.write.AttachmentsViewController;
-import org.phoebus.logbook.olog.ui.write.LogEntryModel;
-import org.phoebus.olog.es.api.model.OlogAttachment;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * Controller for the AttachmentPreview.fxml view. It is designed to be used both
- * by log entry editor as well as the read-only log entry details view.
+ * by a log entry editor and the read-only log entry details view.
  */
 public class AttachmentsPreviewController {
 
@@ -62,37 +65,82 @@ public class AttachmentsPreviewController {
     private GridPane noPreviewPane;
 
     @FXML
-    private ListView<OlogAttachment> attachmentListView;
+    private ListView<Attachment> attachmentListView;
 
-    private LogEntryModel model;
+    /**
+     * List of listeners that will be notified when user has selected one or multiple attachments in
+     * the {@link ListView}.
+     */
+    private List<ListChangeListener<Attachment>> listSelectionChangeListeners;
 
-    public AttachmentsPreviewController() {
-        model = new LogEntryModel();
-    }
-
-    public AttachmentsPreviewController(LogEntryModel logEntryModel) {
-        this.model = model;
-    }
 
     @FXML
     public void initialize() {
 
         attachmentListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         attachmentListView.setCellFactory(view -> new AttachmentRow());
-        attachmentListView.setItems(model.getAttachments());
-        attachmentListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<OlogAttachment>() {
+        attachmentListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<>() {
+            /**
+             * Shows preview of selected attachment.
+             * @param observable
+             * @param oldValue
+             * @param newValue
+             */
             @Override
-            public void changed(ObservableValue<? extends OlogAttachment> observable, OlogAttachment oldValue, OlogAttachment newValue) {
+            public void changed(ObservableValue<? extends Attachment> observable, Attachment oldValue, Attachment newValue) {
                 showPreview(newValue);
             }
         });
 
+        attachmentListView.getSelectionModel().getSelectedItems().addListener(new ListChangeListener<>() {
+            /**
+             * Notifies listeners of list selection change.
+             * @param change
+             */
+            @Override
+            public void onChanged(Change<? extends Attachment> change) {
+                if (listSelectionChangeListeners == null) {
+                    return;
+                }
+                listSelectionChangeListeners.stream().forEach(l -> l.onChanged(change));
+            }
+        });
 
+        imagePreview.fitWidthProperty().bind(previewPane.widthProperty());
+        imagePreview.fitHeightProperty().bind(previewPane.heightProperty());
     }
 
-    private class AttachmentRow extends ListCell<OlogAttachment> {
+    /**
+     * Sets the list of attachments and installs a listener that selects and subsequently shows the last item
+     * in the <code>attachments</code>list.
+     *
+     * @param attachments List of {@link Attachment}s to show in the preview.
+     */
+    public void setAttachments(ObservableList<Attachment> attachments) {
+        attachmentListView.setItems(attachments);
+        attachmentListView.getItems().addListener(new ListChangeListener<>() {
+            /**
+             * Handles a change in the {@link ListView} such that a newly added item is selected and
+             * shown in preview. Note that if multiple attachments are added, this method will be called multiple
+             * times, and for each call the current selection is cleared. Consequently the last attachment
+             * will end up being selected and shown in preview.
+             * @param change
+             */
+            @Override
+            public void onChanged(Change<? extends Attachment> change) {
+                while (change.next()) {
+                    if (change.wasAdded()) {
+                        attachmentListView.getSelectionModel().clearSelection();
+                        attachmentListView.getSelectionModel().select(change.getAddedSubList().get(0));
+                    }
+                }
+            }
+        });
+    }
+
+    private class AttachmentRow extends ListCell<Attachment> {
         @Override
-        public void updateItem(OlogAttachment attachment, boolean empty) {
+        public void updateItem(Attachment attachment, boolean empty) {
             super.updateItem(attachment, empty);
             if (empty)
                 setText("");
@@ -105,21 +153,21 @@ public class AttachmentsPreviewController {
     /**
      * Shows selected attachment in preview pane.
      *
-     * @param ologAttachment
+     * @param attachment
      */
-    private void showPreview(OlogAttachment ologAttachment) {
-        if (ologAttachment == null) {
+    private void showPreview(Attachment attachment) {
+        if (attachment == null) {
             imagePreview.visibleProperty().setValue(false);
             textPreview.visibleProperty().setValue(false);
             return;
         }
-        if (ologAttachment.getContentType().equals("image")) {
-            showImagePreview(ologAttachment);
+        if (attachment.getContentType().startsWith("image")) {
+            showImagePreview(attachment);
         } else {
             // Other file types...
             // Need some file content detection here (Apache Tika?) to determine if the file is
             // plain text and thus possible to preview in a TextArea.
-            showFilePreview(ologAttachment);
+            showFilePreview(attachment);
         }
     }
 
@@ -129,31 +177,18 @@ public class AttachmentsPreviewController {
      * TODO: Viewing the image in original resolution should be implemented as a separate action, e.g. double
      * click image attachment in list.
      *
-     * @param ologAttachment
+     * @param attachment
      */
-    private void showImagePreview(OlogAttachment ologAttachment) {
+    private void showImagePreview(Attachment attachment) {
         try {
-            BufferedImage bufferedImage = ImageIO.read(ologAttachment.getFile());
+            BufferedImage bufferedImage = ImageIO.read(attachment.getFile());
             Image image = SwingFXUtils.toFXImage(bufferedImage, null);
-            double width = previewPane.widthProperty().getValue();
-            double height = previewPane.heightProperty().getValue();
-            double imageWidth = image.getWidth();
-            double imageHeight = image.getHeight();
-            if (imageWidth > imageHeight) {
-                double scale = imageWidth / width;
-                imagePreview.fitWidthProperty().setValue(width);
-                imagePreview.fitHeightProperty().setValue(imageHeight / scale);
-            } else {
-                double scale = imageHeight / height;
-                imagePreview.fitWidthProperty().setValue(imageWidth / scale);
-                imagePreview.fitHeightProperty().setValue(height);
-            }
             imagePreview.visibleProperty().setValue(true);
             textPreview.visibleProperty().setValue(false);
             imagePreview.setImage(image);
         } catch (IOException ex) {
             Logger.getLogger(AttachmentsViewController.class.getName())
-                    .log(Level.SEVERE, "Unable to load image file " + ologAttachment.getFile().getAbsolutePath(), ex);
+                    .log(Level.SEVERE, "Unable to load image file " + attachment.getFile().getAbsolutePath(), ex);
         }
     }
 
@@ -161,20 +196,34 @@ public class AttachmentsPreviewController {
      * Shows a file attachment that is not an image, e.g. text.
      * TODO: Some kind of file content detection (Apache Tika?) should be used to determine if preview makes sense.
      *
-     * @param ologAttachment
+     * @param attachment
      */
-    private void showFilePreview(OlogAttachment ologAttachment) {
+    private void showFilePreview(Attachment attachment) {
         imagePreview.visibleProperty().setValue(false);
         noPreviewPane.visibleProperty().setValue(false);
         final ByteArrayOutputStream result = new ByteArrayOutputStream();
         try {
-            IOUtils.copy(new FileInputStream(ologAttachment.getFile()), result);
+            IOUtils.copy(new FileInputStream(attachment.getFile()), result);
             String content = new String(result.toByteArray());
             textPreview.textProperty().set(content);
             textPreview.visibleProperty().setValue(true);
         } catch (IOException e) {
             Logger.getLogger(AttachmentsViewController.class.getName())
-                    .log(Level.SEVERE, "Unable to read file " + ologAttachment.getFile().getAbsolutePath(), e);
+                    .log(Level.SEVERE, "Unable to read file " + attachment.getFile().getAbsolutePath(), e);
         }
+    }
+
+    public void addListSelectionChangeListener(ListChangeListener<Attachment> changeListener) {
+        if (listSelectionChangeListeners == null) {
+            listSelectionChangeListeners = new ArrayList<>();
+        }
+        listSelectionChangeListeners.add(changeListener);
+    }
+
+    public void removeListSelectionChangeListener(ListChangeListener<Attachment> changeListener) {
+        if (listSelectionChangeListeners == null) {
+            return;
+        }
+        listSelectionChangeListeners.remove(changeListener);
     }
 }

@@ -27,7 +27,6 @@ public class Messages
                          EmbedImage,
                          EmbedImageDialogTitle,
                          File,
-                         ImageFile,
                          ImageWidth,
                          ImageHeight,
                          Level,
