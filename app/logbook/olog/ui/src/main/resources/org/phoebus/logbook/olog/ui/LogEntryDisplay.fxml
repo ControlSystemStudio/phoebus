@@ -58,9 +58,7 @@
           <panes>
             <TitledPane fx:id="attachmentsPane" animated="false" text="Attachments">
               <content>
-                  <AnchorPane minHeight="0.0" minWidth="0.0">
-                      <fx:include fx:id="attachments" source="LogAttachments.fxml" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                  </AnchorPane>
+                  <fx:include fx:id="attachmentsPreview" source="AttachmentsPreview.fxml" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
               </content>
             </TitledPane>
             <TitledPane fx:id="propertiesPane" animated="false" text="Properties">

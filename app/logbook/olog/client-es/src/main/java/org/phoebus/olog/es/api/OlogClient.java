@@ -307,6 +307,7 @@ public class OlogClient implements LogClient {
                         OlogAttachment fileAttachment = new OlogAttachment();
                         fileAttachment.setContentType(attachment.getContentType());
                         fileAttachment.setThumbnail(false);
+                        fileAttachment.setFileName(attachment.getName());
                         try {
                             Path temp = Files.createTempFile("phoebus", attachment.getName());
                             Files.copy(getAttachment(log.getId(), attachment.getName()), temp, StandardCopyOption.REPLACE_EXISTING);
