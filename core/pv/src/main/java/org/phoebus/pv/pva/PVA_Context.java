@@ -20,6 +20,7 @@ public class PVA_Context
 
     private PVA_Context() throws Exception
     {
+        PVA_Preferences.getInstance().installPreferences();
         client = new PVAClient();
     }
 
