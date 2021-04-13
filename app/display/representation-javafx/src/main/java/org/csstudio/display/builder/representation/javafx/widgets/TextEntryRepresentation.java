@@ -11,6 +11,8 @@ import static org.csstudio.display.builder.representation.ToolkitRepresentation.
 
 import java.util.logging.Level;
 
+import javafx.css.PseudoClass;
+import javafx.geometry.Pos;
 import javafx.scene.input.MouseButton;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
@@ -56,6 +58,24 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
     private volatile String value_text = "<?>";
 
     private static WidgetColor active_color = WidgetColorService.getColor(NamedWidgetColors.ACTIVE_TEXT);
+
+    private volatile Pos pos;
+
+    /**
+     * Pseudo class used to right align text in multi-line {@link TextArea} widget,
+     * see opibuilder.css.
+     */
+    private PseudoClass rightAlignedText = PseudoClass.getPseudoClass("right");
+    /**
+     * Pseudo class used to center text in multi-line {@link TextArea} widget,
+     * see opibuilder.css.
+     */
+    private PseudoClass centeredText = PseudoClass.getPseudoClass("center");
+    /**
+     * Pseudo class used to left align text in multi-line {@link TextArea} widget,
+     * see opibuilder.css.
+     */
+    private PseudoClass leftAlignedText = PseudoClass.getPseudoClass("left");
 
     @Override
     public TextInputControl createJFXNode() throws Exception
@@ -249,6 +269,9 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
     protected void registerListeners()
     {
         super.registerListeners();
+
+        pos = JFXUtil.computePos(model_widget.propHorizontalAlignment().getValue(),
+                model_widget.propVerticalAlignment().getValue());
         model_widget.propWidth().addUntypedPropertyListener(sizeListener);
         model_widget.propHeight().addUntypedPropertyListener(sizeListener);
 
@@ -264,6 +287,9 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
         model_widget.runtimePropValue().addUntypedPropertyListener(contentListener);
 
         model_widget.propPVName().addPropertyListener(pvNameListener);
+        model_widget.propHorizontalAlignment().addUntypedPropertyListener(styleListener);
+        model_widget.propVerticalAlignment().addUntypedPropertyListener(styleListener);
+
 
         contentChanged(null, null, null);
     }
@@ -283,6 +309,8 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
         model_widget.propShowUnits().removePropertyListener(contentListener);
         model_widget.runtimePropValue().removePropertyListener(contentListener);
         model_widget.propPVName().removePropertyListener(pvNameListener);
+        model_widget.propHorizontalAlignment().removePropertyListener(styleListener);
+        model_widget.propVerticalAlignment().removePropertyListener(styleListener);
         super.unregisterListeners();
     }
 
@@ -301,6 +329,8 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
 
     private void styleChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
+        pos = JFXUtil.computePos(model_widget.propHorizontalAlignment().getValue(),
+                model_widget.propVerticalAlignment().getValue());
         dirty_style.mark();
         toolkit.scheduleUpdate(this);
     }
@@ -375,6 +405,20 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
             jfx_node.setEditable(enabled);
             Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
             jfx_node.setCursor(enabled ? Cursor.DEFAULT : Cursors.NO_WRITE);
+
+            if(jfx_node instanceof TextField){
+                ((TextField)jfx_node).setAlignment(pos);
+            }
+            else if(jfx_node instanceof TextArea){
+                // First remove pseudo classes...
+                jfx_node.pseudoClassStateChanged(rightAlignedText, false);
+                jfx_node.pseudoClassStateChanged(leftAlignedText, false);
+                jfx_node.pseudoClassStateChanged(centeredText, false);
+                // ... the add the pseudo class that corresponds to horizontal alignment property value
+                String alignment = model_widget.propHorizontalAlignment().getValue().toString().toLowerCase();
+                PseudoClass alignmentClass = PseudoClass.getPseudoClass(alignment);
+                jfx_node.pseudoClassStateChanged(alignmentClass, true);
+            }
         }
         if (! active)
         {
