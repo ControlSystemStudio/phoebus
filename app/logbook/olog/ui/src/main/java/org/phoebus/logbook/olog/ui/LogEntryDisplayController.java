@@ -1,8 +1,10 @@
 package org.phoebus.logbook.olog.ui;
 
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -13,6 +15,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import javafx.stage.DirectoryChooser;
 import org.commonmark.Extension;
 import org.commonmark.ext.gfm.tables.TableBlock;
 import org.commonmark.ext.gfm.tables.TablesExtension;
@@ -20,12 +23,16 @@ import org.commonmark.ext.image.attributes.ImageAttributesExtension;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.AttributeProvider;
 import org.commonmark.renderer.html.HtmlRenderer;
+import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +76,8 @@ public class LogEntryDisplayController {
     public VBox properties;
     @FXML
     public LogPropertiesController propertiesController;
+    @FXML
+    private Button downloadButton;
 
     private LogEntry logEntry;
 
@@ -79,6 +88,12 @@ public class LogEntryDisplayController {
     public LogEntryDisplayController(LogClient logClient) {
         this.logClient = logClient;
     }
+
+    /**
+     * List of attachments selected in the preview's {@link ListView}.
+     */
+
+    private ObservableList<Attachment> selectedAttachments = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
@@ -121,6 +136,18 @@ public class LogEntryDisplayController {
         htmlRenderer = HtmlRenderer.builder()
                 .attributeProviderFactory(context -> new OlogAttributeProvider())
                 .extensions(extensions).build();
+
+        downloadButton.disableProperty().bind(Bindings.isEmpty(selectedAttachments));
+        attachmentsPreviewController.addListSelectionChangeListener(change -> {
+            while (change.next()) {
+                if (change.wasAdded()) {
+                    selectedAttachments.addAll(change.getAddedSubList());
+                }
+                if (change.wasRemoved()) {
+                    selectedAttachments.removeAll(change.getRemoved());
+                }
+            }
+        });
     }
 
     public void refresh() {
@@ -231,6 +258,30 @@ public class LogEntryDisplayController {
                 }
                 map.put("src", src);
             }
+        }
+    }
+
+    /**
+     * Downloads all selected attachments to folder selected by user.
+     */
+    @FXML
+    public void downloadSelectedAttachments(){
+        final DirectoryChooser dialog = new DirectoryChooser();
+        dialog.setTitle(Messages.SelectFolder);
+        dialog.setInitialDirectory(new File(System.getProperty("user.home")));
+        File targetFolder = dialog.showDialog(attachmentsPane.getScene().getWindow());
+        selectedAttachments.stream().forEach(a -> downloadAttachment(targetFolder, a));
+    }
+
+    private void downloadAttachment(File targetFolder, Attachment attachment){
+        try {
+            File targetFile = new File(targetFolder, attachment.getName());
+            if(targetFile.exists()){
+                throw new Exception("Target file " + targetFile.getAbsolutePath() + " exists");
+            }
+            Files.copy(attachment.getFile().toPath(), targetFile.toPath());
+        } catch (Exception e) {
+            ExceptionDetailsErrorDialog.openError(attachmentsPane.getParent(), Messages.FileSave, Messages.FileSaveFailed, e);
         }
     }
 }
