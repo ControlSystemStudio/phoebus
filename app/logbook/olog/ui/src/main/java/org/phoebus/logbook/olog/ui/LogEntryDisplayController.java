@@ -23,6 +23,7 @@ import org.commonmark.ext.image.attributes.ImageAttributesExtension;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.AttributeProvider;
 import org.commonmark.renderer.html.HtmlRenderer;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
@@ -270,7 +271,10 @@ public class LogEntryDisplayController {
         dialog.setTitle(Messages.SelectFolder);
         dialog.setInitialDirectory(new File(System.getProperty("user.home")));
         File targetFolder = dialog.showDialog(attachmentsPane.getScene().getWindow());
-        selectedAttachments.stream().forEach(a -> downloadAttachment(targetFolder, a));
+        JobManager.schedule("Save attachments job", (monitor) ->
+        {
+            selectedAttachments.stream().forEach(a -> downloadAttachment(targetFolder, a));
+        });
     }
 
     private void downloadAttachment(File targetFolder, Attachment attachment){
