@@ -18,29 +18,42 @@
 
 package org.phoebus.logbook.olog.ui;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
+import javafx.stage.DirectoryChooser;
 import org.phoebus.framework.util.IOUtils;
+import org.phoebus.framework.workbench.FileHelper;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.olog.ui.write.AttachmentsViewController;
+import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -51,6 +64,9 @@ import java.util.logging.Logger;
  * by a log entry editor and the read-only log entry details view.
  */
 public class AttachmentsPreviewController {
+
+    @FXML
+    private SplitPane splitPane;
 
     @FXML
     private StackPane previewPane;
@@ -72,6 +88,8 @@ public class AttachmentsPreviewController {
      * the {@link ListView}.
      */
     private List<ListChangeListener<Attachment>> listSelectionChangeListeners;
+
+    private BooleanProperty listSelectionEmpty = new SimpleBooleanProperty(true);
 
 
     @FXML
@@ -99,6 +117,7 @@ public class AttachmentsPreviewController {
              */
             @Override
             public void onChanged(Change<? extends Attachment> change) {
+                listSelectionEmpty.setValue(attachmentListView.getSelectionModel().isEmpty());
                 if (listSelectionChangeListeners == null) {
                     return;
                 }

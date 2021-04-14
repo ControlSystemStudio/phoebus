@@ -58,7 +58,24 @@
           <panes>
             <TitledPane fx:id="attachmentsPane" animated="false" text="Attachments">
               <content>
-                  <fx:include fx:id="attachmentsPreview" source="AttachmentsPreview.fxml" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                <GridPane hgap="1.0">
+                    <children>
+                        <fx:include fx:id="attachmentsPreview" source="AttachmentsPreview.fxml" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS" />
+                        <Label GridPane.columnIndex="0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                        <Button fx:id="downloadButton" onAction="#downloadSelectedAttachments"  text="%DownloadSelected" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                 <GridPane.margin>
+                                    <Insets bottom="-4.0" top="5.0" />
+                                 </GridPane.margin></Button>
+                    </children>
+                   <columnConstraints>
+                      <ColumnConstraints />
+                      <ColumnConstraints />
+                   </columnConstraints>
+                   <rowConstraints>
+                      <RowConstraints />
+                      <RowConstraints />
+                   </rowConstraints>
+                </GridPane>
               </content>
             </TitledPane>
             <TitledPane fx:id="propertiesPane" animated="false" text="Properties">
