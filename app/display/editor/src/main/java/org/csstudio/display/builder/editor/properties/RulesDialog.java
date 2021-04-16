@@ -956,7 +956,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         btn_add_pv.setAlignment(Pos.CENTER_LEFT);
         btn_add_pv.setOnAction(event ->
         {
-            final PVTableItem newItem = new PVTableItem("new-PV", true);
+            final PVTableItem newItem = new PVTableItem("$(pv_name)", true);
 
             pv_items.add(newItem);
             pvs_table.getSelectionModel().select(newItem);
