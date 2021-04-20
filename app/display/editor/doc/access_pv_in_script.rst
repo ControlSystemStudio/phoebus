@@ -27,7 +27,7 @@ than one trigger PV for a script and you need to know this execution is triggere
 
 **Examples**:
 
-*Get double value from PV:*
+**Get double value from PV:**
 
 .. code-block:: javascript
 
@@ -35,16 +35,24 @@ than one trigger PV for a script and you need to know this execution is triggere
     var value = PVUtil.getDouble(pvs[0]);
     widget.setPropertyValue("start_angle", value);
 
-*Write PV Value*
+**Write PV Value**
 
-If writing a PV is forbidden by PV security, an exception will be thrown and shown in console. The method ``PV.setValue(data)`` accepts Double, Double[], Integer, String, maybe more.
+If writing a PV is forbidden by PV security, an exception will be thrown and shown in console. Several method argument
+types are supported, e.g. Double, Double[], Integer, String.
+
+.. code-block:: javascript
+
+    importPackage(Packages.org.csstudio.platform.data);
+    pvs[0].write(0);
+
+*Deprecated write method:*
 
 .. code-block:: javascript
 
     importPackage(Packages.org.csstudio.platform.data);
     pvs[0].setValue(0);
 
-*Get severity of PV*
+**Get severity of PV**
 
 .. code-block:: javascript
 
