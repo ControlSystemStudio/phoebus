@@ -19,6 +19,7 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.AttachmentImpl;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
+import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.logbook.ui.LogbookAvailabilityChecker;
 import org.phoebus.logbook.ui.LogbookUiPreferences;
 import org.phoebus.logbook.ui.write.LogEntryEditorStage;
@@ -61,7 +62,7 @@ public class SendLogbookAction extends MenuItem
     {
         super(MESSAGE, ImageCache.getImageView(SendLogbookAction.class, "/icons/logentry-add-16.png"));
 
-        if (LogbookUiPreferences.is_supported)
+        if (LogbookPreferences.is_supported)
             setOnAction(event ->
             {
                 // On UI thread, create screenshot etc.
