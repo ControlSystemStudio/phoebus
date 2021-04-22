@@ -247,8 +247,9 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
         if (value_monitor.get() != null)
             return;
 
+        // Log if called while inside createChannel and channel not set, yet
         if (safe_channel != channel)
-            logger.log(Level.WARNING, "Subscription uses " + safe_channel + " while channel is "  + channel);
+            logger.log(Level.WARNING, "Subscription uses " + safe_channel + " while channel is "  + channel, new Exception("Stack trace"));
 
         try
         {
@@ -326,12 +327,13 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
      */
     private void unsubscribe(final Channel safe_channel)
     {
-        if (safe_channel != channel)
-            logger.log(Level.WARNING, "Unsubscription uses " + safe_channel + " while channel is "  + channel);
-
         Monitor old_monitor = value_monitor.getAndSet(null);
         if (old_monitor != null)
         {
+            // Log if called while inside createChannel and channel not set, yet
+            if (safe_channel != channel)
+                logger.log(Level.WARNING, "Unsubscription uses " + safe_channel + " while channel is "  + channel, new Exception("Stack trace"));
+
             logger.log(Level.FINE, getName() + " unsubscribes");
             try
             {
