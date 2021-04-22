@@ -6,7 +6,7 @@ import org.phoebus.framework.preferences.PreferencesReader;
 
 import java.util.logging.Level;
 
-import static org.phoebus.ui.application.PhoebusApplication.logger;
+import static org.phoebus.logbook.LogService.logger;
 
 public class LogbookPreferences {
 
