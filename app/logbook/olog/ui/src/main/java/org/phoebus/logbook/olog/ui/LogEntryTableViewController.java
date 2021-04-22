@@ -24,9 +24,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.util.Duration;
-import org.commonmark.Extension;
-import org.commonmark.ext.gfm.tables.TablesExtension;
-import org.commonmark.ext.image.attributes.ImageAttributesExtension;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.olog.ui.LogbookQueryUtil.Keys;
@@ -43,8 +40,8 @@ import java.util.stream.Collectors;
 
 /**
  * A controller for a log entry table with a collapsible advance search section.
- * @author Kunal Shroff
  *
+ * @author Kunal Shroff
  */
 public class LogEntryTableViewController extends LogbookSearchController {
 
@@ -87,18 +84,16 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     /**
      * Constructor.
+     *
      * @param logClient Log client implementation
      */
-    public LogEntryTableViewController(LogClient logClient){
+    public LogEntryTableViewController(LogClient logClient) {
         setClient(logClient);
-        List<Extension> extensions = Arrays.asList(TablesExtension.create(), ImageAttributesExtension.create());
     }
 
 
     @FXML
     public void initialize() {
-
-        resize.setText(">");
 
         searchParameters = FXCollections.observableHashMap();
         searchParameters.put(Keys.SEARCH, "*");
@@ -119,7 +114,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         // The display table.
         tableView.getColumns().clear();
         tableView.setEditable(false);
-        tableView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<LogEntry>() {
+        tableView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<>() {
             @Override
             public void changed(ObservableValue<? extends LogEntry> observable, LogEntry oldValue, LogEntry newValue) {
                 logEntryDisplayController.setLogEntry(newValue);
@@ -132,8 +127,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
         descriptionCol.setCellFactory(col -> {
 
             return new TableCell<>() {
-                private Node graphic ;
-                private LogEntryCellController controller ;
+                private Node graphic;
+                private LogEntryCellController controller;
 
                 {
                     try {

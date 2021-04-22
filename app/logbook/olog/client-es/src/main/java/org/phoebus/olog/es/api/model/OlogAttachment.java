@@ -6,10 +6,7 @@
 package org.phoebus.olog.es.api.model;
 
 import java.io.File;
-
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.XmlType;
+import java.util.UUID;
 
 import org.phoebus.logbook.Attachment;
 
@@ -24,21 +21,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Kunal Shroff
  */
 
-@XmlType
-@XmlRootElement(name = "attachment")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OlogAttachment implements Attachment {
 
-    @XmlTransient
     protected String fileName;
 
-    @XmlTransient
     protected String contentType;
 
-    @XmlTransient
     protected Boolean thumbnail;
 
-    @XmlTransient
     protected Long fileSize;
 
     private File file;
@@ -53,7 +44,12 @@ public class OlogAttachment implements Attachment {
      * Creates a new instance of XmlAttachment
      */
     public OlogAttachment() {
+       this(UUID.randomUUID().toString());
+    }
+
+    public OlogAttachment(String id) {
         this.thumbnail = false;
+        this.id = id;
     }
 
     /**
@@ -115,17 +111,6 @@ public class OlogAttachment implements Attachment {
      */
     public void setThumbnail(Boolean thumbnail) {
         this.thumbnail = thumbnail;
-    }
-
-    /**
-     * Creates a compact string representation for the log.
-     *
-     * @param data
-     *            the XmlAttach to log
-     * @return string representation for log
-     */
-    public static String toLog(OlogAttachment data) {
-        return data.getFileName() + "(" + data.getContentType() + ")";
     }
 
     @Override

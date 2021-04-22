@@ -168,7 +168,6 @@ public class EmbedImageDialogController implements Initializable{
     public EmbedImageDescriptor getEmbedImageDescriptor(){
         EmbedImageDescriptor embedImageDescriptor = new EmbedImageDescriptor();
         embedImageDescriptor.setFileName(filenameProperty.get());
-        embedImageDescriptor.setId(id);
         embedImageDescriptor.setImage(image);
         embedImageDescriptor.setWidth(scaledWidthProperty.get());
         embedImageDescriptor.setHeight(scaledHeightProperty.get());

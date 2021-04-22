@@ -6,9 +6,14 @@ import org.phoebus.util.time.TimeParser;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicBoolean;
+import javafx.beans.binding.Bindings;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.event.EventHandler;
 import java.util.concurrent.Executors;
@@ -22,6 +27,9 @@ import org.phoebus.applications.alarm.logging.ui.AlarmLogTableQueryUtil.Keys;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.util.time.TimestampFormats;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
@@ -30,9 +38,10 @@ import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableView;
 import javafx.util.Callback;
+import javafx.util.Duration;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 
@@ -40,7 +49,8 @@ public class AlarmLogTableController {
 
     @FXML
     TableView<AlarmLogTableType> tableView;
-
+    @FXML
+    private AdvancedSearchViewController advancedSearchViewController;
     @FXML
     TableColumn<AlarmLogTableType, String> configCol;
     @FXML
@@ -68,11 +78,13 @@ public class AlarmLogTableController {
     @FXML
     TableColumn<AlarmLogTableType, String> hostCol;
     @FXML
+    Button resize;
+    @FXML
     Button search;
     @FXML
     TextField query;
     @FXML
-    AnchorPane ViewSearchPane;
+    GridPane ViewSearchPane;
     @FXML
     TextField searchText;
     @FXML
@@ -93,8 +105,13 @@ public class AlarmLogTableController {
     private Job alarmLogSearchJob;
     private RestHighLevelClient searchClient;
 
+    public AlarmLogTableController(RestHighLevelClient client){
+        setClient(client);
+    }
+    
     @FXML
     public void initialize() {
+        resize.setText(">");
         tableView.getColumns().clear();
         configCol = new TableColumn<>("Config");
         configCol.setCellValueFactory(
@@ -232,10 +249,16 @@ public class AlarmLogTableController {
         searchParameters.put(Keys.HOST, "*");
         searchParameters.put(Keys.STARTTIME, TimeParser.format(java.time.Duration.ofDays(7)));
         searchParameters.put(Keys.ENDTIME, TimeParser.format(java.time.Duration.ZERO));
+        advancedSearchViewController.setSearchParameters(searchParameters);
 
         query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
             return e.getKey().getName().trim() + "=" + e.getValue().trim();
         }).collect(Collectors.joining("&")));
+
+        searchParameters.addListener((MapChangeListener<Keys, String>) change -> query.setText(searchParameters.entrySet().stream()
+            .sorted(Entry.comparingByKey())
+            .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
+            .collect(Collectors.joining("&"))));
 
 	query.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
@@ -319,6 +342,39 @@ public class AlarmLogTableController {
         this.searchClient = client;
     }
 
+    // Keeps track of when the animation is active. Multiple clicks will be ignored
+    // until a give resize action is completed
+    private AtomicBoolean moving = new AtomicBoolean(false);
+
+    @FXML
+    public void resize() {
+        if (!moving.compareAndExchangeAcquire(false, true)) {
+            if (resize.getText().equals("<")) {
+                Duration cycleDuration = Duration.millis(400);
+                KeyValue kv = new KeyValue(advancedSearchViewController.getPane().minWidthProperty(), 0);
+                KeyValue kv2 = new KeyValue(advancedSearchViewController.getPane().maxWidthProperty(), 0);
+                Timeline timeline = new Timeline(new KeyFrame(cycleDuration, kv, kv2));
+                timeline.play();
+                timeline.setOnFinished(event -> {
+                    resize.setText(">");
+                    moving.set(false);
+                });
+            } else {
+                Duration cycleDuration = Duration.millis(400);
+                double width = ViewSearchPane.getWidth() / 3;
+                KeyValue kv = new KeyValue(advancedSearchViewController.getPane().minWidthProperty(), width);
+                KeyValue kv2 = new KeyValue(advancedSearchViewController.getPane().prefWidthProperty(), width);
+                Timeline timeline = new Timeline(new KeyFrame(cycleDuration, kv, kv2));
+                timeline.play();
+                timeline.setOnFinished(event -> {
+                    resize.setText("<");
+                    moving.set(false);
+                });
+            }
+        }
+    }
+
+    @FXML
     void updateQuery() {
         Arrays.asList(query.getText().split("&")).forEach(s -> {
             String key = s.split("=")[0];

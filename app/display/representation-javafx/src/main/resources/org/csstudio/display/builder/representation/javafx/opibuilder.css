@@ -292,3 +292,20 @@
     -fx-background-insets: 0;
     -fx-background-radius: 2;
 }
+
+/*
+Next are three pseudo classes that can be used to align text in a TextArea,
+see for instance TextEntryRepresentation.
+*/
+.text-area:center .text{
+ -fx-text-alignment: center;
+}
+
+.text-area:right .text{
+ -fx-text-alignment: right;
+}
+
+.text-area:left .text{
+ -fx-text-alignment: left;
+}
+

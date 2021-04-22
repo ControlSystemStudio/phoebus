@@ -12,6 +12,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -27,8 +28,10 @@ import jfxtras.scene.control.agenda.Agenda;
 import jfxtras.scene.control.agenda.Agenda.Appointment;
 import jfxtras.scene.control.agenda.Agenda.AppointmentGroup;
 import jfxtras.scene.control.agenda.Agenda.AppointmentImplLocal;
+import org.phoebus.framework.nls.NLS;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.time.TimeRelativeIntervalPane;
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
@@ -40,6 +43,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
@@ -113,14 +117,28 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                 if (map != null) {
                     final Stage dialog = new Stage();
                     dialog.initModality(Modality.NONE);
-
+                    ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
                     FXMLLoader loader = new FXMLLoader();
+                    loader.setResources(resourceBundle);
                     loader.setLocation(this.getClass().getResource("LogEntryDisplay.fxml"));
+                    loader.setControllerFactory(clazz -> {
+                        try {
+                            if (clazz.isAssignableFrom(LogEntryDisplayController.class)) {
+                                return clazz.getConstructor(LogClient.class).newInstance(getClient());
+                            }
+                            else if(clazz.isAssignableFrom(AttachmentsPreviewController.class)){
+                                return clazz.getConstructor().newInstance();
+                            }
+                        } catch (Exception e) {
+                            logger.log(Level.SEVERE, "Failed to construct controller for log entry display", e);
+                        }
+                        return null;
+                    });
                     loader.load();
                     LogEntryDisplayController controller = loader.getController();
                     controller.setLogEntry(map.get(appointment));
-                    VBox root = loader.getRoot();
-                    Scene dialogScene = new Scene(root, 300, 200);
+                    SplitPane root = loader.getRoot();
+                    Scene dialogScene = new Scene(root, 800, 600);
                     dialog.setScene(dialogScene);
                     dialog.show();
                 }

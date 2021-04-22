@@ -78,8 +78,8 @@ public class ImageList extends VBox
      */
     public ImageList(boolean editable)
     {
-        final Node images = createImageSection();
         this.editable = editable;
+        final Node images = createImageSection();
 
         VBox.setVgrow(images, Priority.ALWAYS);
         setSpacing(5);
@@ -155,6 +155,7 @@ public class ImageList extends VBox
         }
         else
         {
+            removeImage.visibleProperty().setValue(true);
             // Enable button if something is selected
             removeImage.disableProperty().bind(Bindings.isEmpty(images.getSelectionModel().getSelectedItems()));
         }

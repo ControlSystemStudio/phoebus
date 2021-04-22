@@ -11,6 +11,7 @@ import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
+import org.elasticsearch.client.RestHighLevelClient;
 
 import javafx.fxml.FXMLLoader;
 
@@ -25,9 +26,23 @@ public class AlarmLogTable implements AppInstance {
         try {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(this.getClass().getResource("AlarmLogTable.fxml"));
+            loader.setControllerFactory(clazz -> {
+                try {
+                    if(clazz.isAssignableFrom(AlarmLogTableController.class)){
+                        return clazz.getConstructor(RestHighLevelClient.class)
+                                .newInstance(app.getClient());
+                    }
+                    else if(clazz.isAssignableFrom(AdvancedSearchViewController.class)){
+                        return clazz.getConstructor(RestHighLevelClient.class)
+                                .newInstance(app.getClient());
+                    }
+                } catch (Exception e) {
+                    Logger.getLogger(AlarmLogTable.class.getName()).log(Level.SEVERE, "Failed to construct controller for Alarm Log Table View", e);
+                }
+                return null;
+            });
             tab = new DockItem(this, loader.load());
             controller = loader.getController();
-            controller.setClient(app.getClient());
             tab.setOnClosed(event -> {
                 controller.shutdown();
             });

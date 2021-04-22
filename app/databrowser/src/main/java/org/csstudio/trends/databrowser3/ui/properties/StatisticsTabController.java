@@ -43,9 +43,12 @@ import org.epics.vtype.VString;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.JobRunnable;
+import org.phoebus.util.time.TimeInterval;
 import org.phoebus.util.time.TimeRelativeInterval;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 /**
  * Tab showing statistics data for traces. User needs to actively request computation of the statistical data.
@@ -254,19 +257,13 @@ public class StatisticsTabController implements ModelListener{
             PlotSamples plotSamples = modelItem.getSamples();
 
             TimeRelativeInterval timeRelativeInterval = model.getTimerange();
+            TimeInterval timeInterval = timeRelativeInterval.toAbsoluteInterval();
             int startIndex;
             int endIndex;
             PlotDataSearch plotDataSearch = new PlotDataSearch();
             plotSamples.getLock().lock();
-            if(timeRelativeInterval.getAbsoluteEnd().isPresent()){
-                startIndex = plotDataSearch.findSampleLessOrEqual(plotSamples, timeRelativeInterval.getAbsoluteStart().get());
-                endIndex = plotDataSearch.findSampleLessOrEqual(plotSamples, timeRelativeInterval.getAbsoluteEnd().get());
-            }
-            else{
-                Instant now = Instant.now();
-                startIndex = plotDataSearch.findSampleLessOrEqual(plotSamples, now.minus(timeRelativeInterval.getRelativeStart().get()));
-                endIndex = plotDataSearch.findSampleLessOrEqual(plotSamples, now.minus(timeRelativeInterval.getRelativeEnd().get()));
-            }
+            startIndex = plotDataSearch.findSampleLessOrEqual(plotSamples, timeInterval.getStart());
+            endIndex = plotDataSearch.findSampleGreaterOrEqual(plotSamples, timeInterval.getEnd());
             if(startIndex == -1){ // First sample after start time...
                 startIndex = 0;
                 if(endIndex == -1){//...and last sample after end time

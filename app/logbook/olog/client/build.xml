@@ -1,5 +1,5 @@
-<project default="app-olog">
-  <import file="../../../dependencies/ant_settings.xml"/>
+<project default="app-logbook-olog-client">
+  <import file="../../../../dependencies/ant_settings.xml"/>
 
   <target name="app-logbook-olog-client" depends="compile-app">
     <jar destfile="${build}/app-logbook-olog-client-${version}.jar">

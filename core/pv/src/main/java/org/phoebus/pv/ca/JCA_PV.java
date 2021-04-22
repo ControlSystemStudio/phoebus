@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -79,6 +79,11 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
     {
         try
         {
+            // Use channel from the event, not the volatile channel
+            if (! (ev.getSource() instanceof Channel))
+                throw new Exception("Missing channel");
+            final Channel safe_channel = (Channel) ev.getSource();
+
             final DBR old_metadata = metadata;
             final Class<?> old_type = old_metadata == null ? null : old_metadata.getClass();
             // Channels from CAS, not based on records, may fail
@@ -97,10 +102,10 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
             // If channel changed its type, cancel potentially existing subscription
             final Class<?> new_type = metadata == null ? null : metadata.getClass();
             if (old_type != new_type)
-                unsubscribe();
+                unsubscribe(safe_channel);
             // Subscribe, either for the first time or because type changed requires new one.
             // NOP if channel is already subscribed.
-            subscribe();
+            subscribe(safe_channel);
         }
         catch (Throwable ex)
         {
@@ -169,7 +174,7 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
             // Connection handler may be called during 'create' when 'channel' has not been set,
             // so use channel from event.
             final Channel safe_channel = (Channel) ev.getSource();
-            // Sanity check
+            // Sanity check in case this.channel is already set
             if (channel != null  &&  channel != safe_channel)
                 throw new IllegalStateException("Expecting " + channel + ", got " + safe_channel);
 
@@ -195,7 +200,11 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
 
             final boolean is_readonly = ! safe_channel.getWriteAccess();
             notifyListenersOfPermissions(is_readonly);
-            getMetaData(); // .. and start subscription
+            // .. and start subscription.
+            // When called from within the callback in createChannel() doing this:
+            // channel = CAContext....createChannel(.., this, ..),
+            // this.channel may not be assigned, yet, so pass the safe_channel
+            getMetaData(safe_channel);
         }
         else
         {
@@ -206,7 +215,7 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
         }
     }
 
-    private void getMetaData()
+    private void getMetaData(final Channel safe_channel)
     {
         try
         {
@@ -219,8 +228,8 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
             // But that bug has been fixed in 3.15.6
             // (https://bugs.launchpad.net/epics-base/+bug/1678494).
             // so to optimize, only fetch one value element for the meta data.
-            channel.get(DBRHelper.getCtrlType(plain_dbr, channel.getFieldType()), 1, meta_get_listener);
-            channel.getContext().flushIO();
+            safe_channel.get(DBRHelper.getCtrlType(plain_dbr, safe_channel.getFieldType()), 1, meta_get_listener);
+            safe_channel.getContext().flushIO();
         }
         catch (Exception ex)
         {
@@ -230,19 +239,23 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
 
     /** Subscribe to updates.
      *  NOP if already subscribed.
+     *  @param safe_channel Channel that should match `this.channel`
      */
-    private void subscribe()
+    private void subscribe(final Channel safe_channel)
     {
         // Avoid double-subscription
         if (value_monitor.get() != null)
             return;
 
+        if (safe_channel != channel)
+            logger.log(Level.WARNING, "Subscription uses " + safe_channel + " while channel is "  + channel);
+
         try
         {
             final int mask = JCA_Preferences.getInstance().getMonitorMask();
-            final int request_count = JCAContext.getInstance().getRequestCount(channel);
+            final int request_count = JCAContext.getInstance().getRequestCount(safe_channel);
             logger.log(Level.FINE, getName() + " subscribes with count = " + request_count);
-            final Monitor new_monitor = channel.addMonitor(DBRHelper.getTimeType(plain_dbr, channel.getFieldType()), request_count, mask, this);
+            final Monitor new_monitor = safe_channel.addMonitor(DBRHelper.getTimeType(plain_dbr, safe_channel.getFieldType()), request_count, mask, this);
 
             final Monitor old_monitor = value_monitor.getAndSet(new_monitor);
             // Could there have been another subscription while we established this one?
@@ -252,7 +265,7 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
                 try
                 {   // Try to clear old monitor and access rights list..
                     old_monitor.clear();
-                    channel.removeAccessRightsListener(this);
+                    safe_channel.removeAccessRightsListener(this);
                 }
                 catch (Throwable ex)
                 {   // .. and log errors, but allow to continue
@@ -270,7 +283,7 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
                 {
                     logger.log(Level.FINE, getName() + " subscribes to 'property' changes");
                     old_metadata_monitor = metadata_monitor.getAndSet(
-                        channel.addMonitor(meta_request, request_count, Monitor.PROPERTY, meta_change_listener));
+                            safe_channel.addMonitor(meta_request, request_count, Monitor.PROPERTY, meta_change_listener));
 
                 }
                 catch (Throwable ex)
@@ -289,8 +302,8 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
                     }
                 }
             }
-            channel.addAccessRightsListener(this);
-            channel.getContext().flushIO();
+            safe_channel.addAccessRightsListener(this);
+            safe_channel.getContext().flushIO();
         }
         catch (Exception ex)
         {
@@ -309,16 +322,20 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
 
     /** Cancel subscriptions.
      *  NOP if not subscribed.
+     *  @param safe_channel Channel that should match `this.channel`
      */
-    private void unsubscribe()
+    private void unsubscribe(final Channel safe_channel)
     {
+        if (safe_channel != channel)
+            logger.log(Level.WARNING, "Unsubscription uses " + safe_channel + " while channel is "  + channel);
+
         Monitor old_monitor = value_monitor.getAndSet(null);
         if (old_monitor != null)
         {
             logger.log(Level.FINE, getName() + " unsubscribes");
             try
             {
-                channel.removeAccessRightsListener(this);
+                safe_channel.removeAccessRightsListener(this);
                 old_monitor.clear();
             }
             catch (Exception ex)
