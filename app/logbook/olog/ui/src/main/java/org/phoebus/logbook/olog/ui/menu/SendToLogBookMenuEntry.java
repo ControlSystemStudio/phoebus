@@ -9,6 +9,7 @@ package org.phoebus.logbook.olog.ui.menu;
 
 import javafx.scene.image.Image;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.spi.MenuEntry;
@@ -23,7 +24,7 @@ public class SendToLogBookMenuEntry implements MenuEntry
     @Override
     public Void call() throws Exception
     {
-        if (LogbookUIPreferences.is_supported)
+        if (LogbookPreferences.is_supported)
             ApplicationService.createInstance(SendToLogBookApp.NAME);
         else
             ExceptionDetailsErrorDialog.openError("No Logbook Support", "Logbook submissions are not enabled", new Exception("No logbook factory found"));

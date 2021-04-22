@@ -6,6 +6,7 @@ import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogFactory;
 import org.phoebus.logbook.LogService;
+import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.net.URI;
@@ -23,7 +24,7 @@ public class LogEntryCalenderApp implements AppResourceDescriptor {
 
     @Override
     public void start() {
-        logFactory = LogService.getInstance().getLogFactories().get(LogbookUIPreferences.logbook_factory);
+        logFactory = LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory);
     }
 
     @Override

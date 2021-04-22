@@ -32,6 +32,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import org.phoebus.logbook.LogService;
+import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 import org.phoebus.logbook.olog.ui.Messages;
 import org.phoebus.ui.application.PhoebusApplication;
@@ -211,7 +212,7 @@ public class FieldsViewController implements Initializable {
     @FXML
     public void showHelp(){
         String url =
-            LogService.getInstance().getLogFactories().get(LogbookUIPreferences.logbook_factory).getLogClient().getServiceUrl();
+            LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory).getLogClient().getServiceUrl();
         if(url.endsWith("/")){
             url = url.substring(0, url.length() - 1);
         }
