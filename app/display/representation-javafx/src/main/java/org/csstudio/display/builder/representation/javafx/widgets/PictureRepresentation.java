@@ -69,6 +69,7 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
 
         model_widget.propStretch().addUntypedPropertyListener(styleChangedListener);
         model_widget.propRotation().addUntypedPropertyListener(styleChangedListener);
+        model_widget.propOpacity().addUntypedPropertyListener(styleChangedListener);
 //      styleChanged() will be called by contentChanged()
 
         model_widget.propFile().addPropertyListener(contentChangedListener);
@@ -88,6 +89,7 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
         model_widget.propHeight().removePropertyListener(styleChangedListener);
         model_widget.propStretch().removePropertyListener(styleChangedListener);
         model_widget.propRotation().removePropertyListener(styleChangedListener);
+        model_widget.propOpacity().removePropertyListener(styleChangedListener);
         model_widget.propFile().removePropertyListener(contentChangedListener);
         super.unregisterListeners();
     }
@@ -219,6 +221,9 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
             // translate to the center of the widget
             translate.setX((widg_w - final_pic_w) / 2.0);
             translate.setY((widg_h - final_pic_h) / 2.0);
+
+            // Apply opacity
+            jfx_node.opacityProperty().setValue(model_widget.propOpacity().getValue());
         }
     }
 

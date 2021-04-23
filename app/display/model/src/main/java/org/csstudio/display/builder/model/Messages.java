@@ -259,6 +259,7 @@ public class Messages
     public static String WidgetProperties_OnImage;
     public static String WidgetProperties_OnLabel;
     public static String WidgetProperties_OnlyExtremaVisible;
+    public static String WidgetProperties_Opacity;
     public static String WidgetProperties_Orientation;
     public static String WidgetProperties_Password;
     public static String WidgetProperties_Points;

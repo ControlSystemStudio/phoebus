@@ -101,9 +101,17 @@ public class PictureWidget extends MacroWidget
     public static final WidgetPropertyDescriptor<Boolean> propStretch =
             newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "stretch_image", Messages.WidgetProperties_StretchToFit);
 
+    /**
+     * An opacity property. Controlling it from a rule or script works as a
+     * way to do a simple animation.
+     */
+    public static final WidgetPropertyDescriptor<Double> propOpacity =
+            newDoublePropertyDescriptor(WidgetPropertyCategory.DISPLAY, "opacity", Messages.WidgetProperties_Opacity);
+
     private volatile WidgetProperty<String> filename;
     private volatile WidgetProperty<Boolean> stretch_image;
     private volatile WidgetProperty<Double> rotation;
+    private volatile WidgetProperty<Double> opacity;
 
     public PictureWidget()
     {
@@ -117,6 +125,8 @@ public class PictureWidget extends MacroWidget
         properties.add(filename = propFile.createProperty(this, default_pic));
         properties.add(stretch_image = propStretch.createProperty(this, false));
         properties.add(rotation = propRotation.createProperty(this, 0.0));
+        properties.add(opacity = propOpacity.createProperty(this, 1.0));
+
     }
 
     /** @return 'rotation' property */
@@ -135,6 +145,12 @@ public class PictureWidget extends MacroWidget
     public WidgetProperty<Boolean> propStretch()
     {
         return stretch_image;
+    }
+
+    /** @return 'opacity' property */
+    public WidgetProperty<Double> propOpacity()
+    {
+        return opacity;
     }
 
     @Override
