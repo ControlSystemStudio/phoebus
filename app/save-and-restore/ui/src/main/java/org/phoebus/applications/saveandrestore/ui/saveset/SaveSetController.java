@@ -130,6 +130,8 @@ public class SaveSetController implements NodeChangedListener {
 		});
 
 		commentTextArea.textProperty().bindBidirectional(saveSetCommentProperty);
+		commentTextArea.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+		commentTextArea.getStyleClass().add("stand-out-mandatory");
 
 		pvTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		pvTable.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> {
