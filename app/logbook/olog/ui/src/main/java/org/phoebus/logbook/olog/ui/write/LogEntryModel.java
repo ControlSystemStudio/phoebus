@@ -163,6 +163,8 @@ public class LogEntryModel {
         {
             addSelectedTag(tag.getName());
         });
+
+        attachmentList.addAll(template.getAttachments());
     }
 
     public void fetchStoredUserCredentials() {
@@ -183,6 +185,7 @@ public class LogEntryModel {
                 }
                 // Let anyone listening know that their credentials are now out of date.
                 updateCredentials.set(true);
+                checkIfReadyToSubmit();
             } catch (Exception ex) {
                 logger.log(Level.WARNING, "Secure Store file not found.", ex);
             }
