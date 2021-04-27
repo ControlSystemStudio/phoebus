@@ -64,23 +64,15 @@ public class LogEntryCellController {
         textRenderer = TextContentRenderer.builder().extensions(extensions).build();
     }
 
-    /*
     @FXML
     public void initialize() {
-        logbooks.setText("");
-        logbookIcon.setImage(null);
-        tags.setText("");
-        tagIcon.setImage(null);
+        logbookIcon.setImage(logbook);
+        tagIcon.setImage(tag);
         attachmentIcon.setImage(null);
-
-        title.setText("");
     }
-
-     */
 
     @FXML
     public void refresh() {
-        logbookIcon.setImage(logbook);
         if (logEntry != null) {
 
             time.setText(SECONDS_FORMAT.format(logEntry.getCreatedDate()));
@@ -93,12 +85,10 @@ public class LogEntryCellController {
                 logbooks.setText(logEntry.getLogbooks().stream().map(Logbook::getName).collect(Collectors.joining(",")));
             }
             if (!logEntry.getTags().isEmpty() ) {
-                tagIcon.setImage(tag);
                 tags.setText(logEntry.getTags().stream().map(Tag::getName).collect(Collectors.joining(",")));
             }
             else{
-                tagIcon.setImage(null);
-                tags.setText("");
+                tags.setText(null);
             }
             if( !logEntry.getAttachments().isEmpty()) {
                 attachmentIcon.setImage(attachment);
@@ -114,7 +104,7 @@ public class LogEntryCellController {
                 description.setText(toText(logEntry.getDescription()));
             }
             else{
-                description.setText("");
+                description.setText(null);
             }
         }
     }
