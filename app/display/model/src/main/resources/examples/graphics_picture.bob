@@ -7,7 +7,7 @@
     <width>181</width>
     <height>31</height>
     <font>
-      <font name="Header 1" family="Source Sans Pro" style="BOLD_ITALIC" size="36.0">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
       </font>
     </font>
   </widget>
