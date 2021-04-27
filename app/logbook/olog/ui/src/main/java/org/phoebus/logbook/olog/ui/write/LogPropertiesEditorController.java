@@ -109,6 +109,7 @@ public class LogPropertiesEditorController {
                         setText(null);
                         setGraphic(textField);
                         textField.selectAll();
+                        textField.requestFocus();
                     }
 
                     @Override
@@ -142,6 +143,13 @@ public class LogPropertiesEditorController {
                                 commitEdit(textField.getText());
                             } else if (t.getCode() == KeyCode.ESCAPE) {
                                 cancelEdit();
+                            }
+                        });
+                        // Update when cell exits edit mode.
+                        // This will ensure that value is committed when focus is lost.
+                        this.editingProperty().addListener((o, n, e) -> {
+                            if(!e){
+                                updateItem(textField.getText(), false);
                             }
                         });
                     }

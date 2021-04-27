@@ -6,12 +6,14 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -39,7 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.phoebus.util.time.TimestampFormats.MILLI_FORMAT;
+import static org.phoebus.util.time.TimestampFormats.SECONDS_FORMAT;
 
 public class LogEntryDisplayController {
 
@@ -60,13 +62,6 @@ public class LogEntryDisplayController {
     WebView logDescription;
 
     @FXML
-    HBox metaDataBox;
-    @FXML
-    ListView<String> logTags;
-    @FXML
-    ListView<String> LogLogbooks;
-
-    @FXML
     public TitledPane attachmentsPane;
     @FXML
     public AttachmentsPreviewController attachmentsPreviewController;
@@ -79,6 +74,16 @@ public class LogEntryDisplayController {
     public LogPropertiesController propertiesController;
     @FXML
     private Button downloadButton;
+    @FXML
+    private ImageView logbookIcon;
+    @FXML
+    private Label logbooks;
+    @FXML
+    private ImageView tagIcon;
+    @FXML
+    private Label tags;
+    @FXML
+    private AnchorPane attachmentsAndPropertiesPane;
 
     private LogEntry logEntry;
 
@@ -98,39 +103,6 @@ public class LogEntryDisplayController {
 
     @FXML
     public void initialize() {
-        logTime.setStyle("-fx-font-weight: bold");
-        logTitle.setStyle("-fx-font-weight: bold");
-
-        logTags.setVisible(false);
-        LogLogbooks.setVisible(false);
-
-        logTags.setCellFactory(listView -> new ListCell<String>() {
-            @Override
-            public void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty) {
-                    setText(null);
-                    setGraphic(null);
-                } else {
-                    setGraphic(new ImageView(tag));
-                    setText(item);
-                }
-            }
-        });
-
-        LogLogbooks.setCellFactory(listView -> new ListCell<>() {
-            @Override
-            public void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty) {
-                    setText(null);
-                    setGraphic(null);
-                } else {
-                    setGraphic(new ImageView(logbook));
-                    setText(item);
-                }
-            }
-        });
 
         List<Extension> extensions = Arrays.asList(TablesExtension.create(), ImageAttributesExtension.create());
         parser = Parser.builder().extensions(extensions).build();
@@ -149,10 +121,25 @@ public class LogEntryDisplayController {
                 }
             }
         });
+
+        clearLogView();
+    }
+
+    private void clearLogView(){
+        logbookIcon.setImage(null);
+        tagIcon.setImage(null);
+        logOwner.setText(null);
+        logTime.setText(null);
+        logTitle.setText(null);
+        logbooks.setText(null);
+        tags.setText(null);
     }
 
     public void refresh() {
         if (logEntry != null) {
+
+            logbookIcon.setImage(logbook);
+            tagIcon.setImage(tag);
 
             attachmentsPane.setExpanded(logEntry.getAttachments() != null && !logEntry.getAttachments().isEmpty());
             attachmentsPane.setVisible(logEntry.getAttachments() != null && !logEntry.getAttachments().isEmpty());
@@ -160,16 +147,7 @@ public class LogEntryDisplayController {
             propertiesPane.setExpanded(logEntry.getProperties() != null && !logEntry.getProperties().isEmpty());
             propertiesPane.setVisible(logEntry.getProperties() != null && !logEntry.getProperties().isEmpty());
 
-            int metaDataCount = logEntry.getLogbooks().size() >= logEntry.getTags().size() ? logEntry.getLogbooks().size() : logEntry.getTags().size();
-            metaDataBox.setPrefHeight(metaDataCount * 60);
-
-            logTags.setVisible(!logEntry.getTags().isEmpty());
-            logTags.setPrefHeight(metaDataCount * 60);
-            LogLogbooks.setVisible(!logEntry.getLogbooks().isEmpty());
-            LogLogbooks.setPrefHeight(metaDataCount * 60);
-
-            logTime.setText(MILLI_FORMAT.format(logEntry.getCreatedDate()));
-
+            logTime.setText(SECONDS_FORMAT.format(logEntry.getCreatedDate()));
             logOwner.setText(logEntry.getOwner());
 
             logTitle.setWrapText(true);
@@ -190,17 +168,27 @@ public class LogEntryDisplayController {
             }
             ObservableList<String> logbookList = FXCollections.observableArrayList();
             logbookList.addAll(logEntry.getLogbooks().stream().map(Logbook::getName).collect(Collectors.toList()));
-            LogLogbooks.setItems(logbookList);
 
             ObservableList<String> tagList = FXCollections.observableArrayList();
             tagList.addAll(logEntry.getTags().stream().map(Tag::getName).collect(Collectors.toList()));
-            logTags.setItems(tagList);
 
             attachmentsPreviewController
                     .setAttachments(FXCollections.observableArrayList(logEntry.getAttachments()));
 
             if (!logEntry.getProperties().isEmpty()) {
                 propertiesController.setProperties(logEntry.getProperties());
+            }
+
+            if ( !logEntry.getLogbooks().isEmpty() ) {
+                logbooks.setWrapText(false);
+                logbooks.setText(logEntry.getLogbooks().stream().map(Logbook::getName).collect(Collectors.joining(",")));
+            }
+
+            if (!logEntry.getTags().isEmpty() ) {
+                tags.setText(logEntry.getTags().stream().map(Tag::getName).collect(Collectors.joining(",")));
+            }
+            else{
+                tags.setText(null);
             }
         }
     }
