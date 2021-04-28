@@ -21,7 +21,7 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="vBox" maxHeight="1.7976931348623157E308" prefHeight="182.0" prefWidth="1188.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotController">
+<VBox fx:id="vBox" maxHeight="1.7976931348623157E308" prefHeight="182.0" prefWidth="1188.0" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotController">
 
     <ToolBar prefHeight="40.0">
         <items>
@@ -72,7 +72,7 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                 <Insets right="5.0" />
              </GridPane.margin>
          </TextField>
-          <Label text="Snapshot name:" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="0" GridPane.valignment="CENTER">
+          <Label fx:id="snapshotNameLabel" text="Snapshot name:" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="0" GridPane.valignment="CENTER">
                <GridPane.margin>
                    <Insets right="5.0" />
                </GridPane.margin>
@@ -82,7 +82,7 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                    <Insets right="5.0" />
                </GridPane.margin>
           </TextField>
-          <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" text="Comment:" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.hgrow="NEVER" GridPane.valignment="CENTER">
+          <Label fx:id="snapshotCommentLabel" alignment="CENTER_RIGHT" contentDisplay="RIGHT" text="Comment:" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.hgrow="NEVER" GridPane.valignment="CENTER">
                <GridPane.margin>
                    <Insets left="20.0" right="5.0" top="5.0" />
                </GridPane.margin>
