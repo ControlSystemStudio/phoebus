@@ -1001,52 +1001,6 @@ public class SnapshotController implements NodeChangedListener {
             this.readbackPvName = patchPvName(snapshotTableEntry.readbackNameProperty().get());
             this.readOnly = snapshotTableEntry.readOnlyProperty().get();
 
-            /*
-            if(this.readOnly){
-                pvReader = GPClient.read(pvName)
-                        .addReadListener((event, p) -> {
-                            this.pvValue = p.isConnected() ? p.getValue() : VDisconnectedData.INSTANCE;
-                            this.snapshotTableEntry.setLiveValue(this.pvValue);
-                        })
-                        .connectionTimeout(Duration.ofMillis(3*TABLE_UPDATE_INTERVAL))
-                        .maxRate(Duration.ofMillis(TABLE_UPDATE_INTERVAL))
-                        .start();
-            }
-            else{
-                PVConfiguration pvConfiguration = GPClient.readAndWrite(GPClient.channel(pvName));
-                pv = pvConfiguration.addListener((event, p) -> {
-                    if(event.getType().contains(PVEvent.Type.VALUE)){
-                        this.pvValue = p.isConnected() ? (VType)p.getValue() : VDisconnectedData.INSTANCE;
-                        this.snapshotTableEntry.setLiveValue(this.pvValue);
-                    }
-                    else if(event.getType().contains(PVEvent.Type.WRITE_SUCCEEDED)){
-                        if(countDownLatch != null){
-                            LOGGER.info(countDownLatch + " Write OK, signalling latch");
-                            countDownLatch.countDown();
-                        }
-                        writeStatus = PVEvent.Type.WRITE_SUCCEEDED;
-                    }
-                    else if(event.getType().contains(PVEvent.Type.WRITE_FAILED)){
-                        if(countDownLatch != null){
-                            LOGGER.info(countDownLatch + "Write FAILED, signalling latch");
-                            countDownLatch.countDown();
-                        }
-                        writeStatus = PVEvent.Type.WRITE_FAILED;
-                    }
-                }).maxRate(Duration.ofMillis(TABLE_UPDATE_INTERVAL))
-                        .start();
-            }
-
-            if (readbackPvName != null && !readbackPvName.isEmpty()) {
-                this.readbackReader = GPClient.read(this.readbackPvName)
-                        .addReadListener((event, p) -> {
-                            if (showLiveReadbackProperty.get()) {
-                                this.readbackValue = p.isConnected() ? p.getValue() : VDisconnectedData.INSTANCE;
-                                snapshotTableEntry.setReadbackValue(this.readbackValue);
-                            }
-                        }).maxRate(Duration.ofMillis(TABLE_UPDATE_INTERVAL)).start();
-            }
-             */
             try {
                 pv = PVPool.getPV(pvName);
                 pv.onValueEvent().throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS).subscribe(value -> {
