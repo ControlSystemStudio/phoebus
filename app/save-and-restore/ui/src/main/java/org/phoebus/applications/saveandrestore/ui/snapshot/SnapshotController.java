@@ -102,6 +102,9 @@ import java.util.stream.Collectors;
 public class SnapshotController implements NodeChangedListener {
 
     @FXML
+    private Label snapshotCommentLabel;
+
+    @FXML
     private TextArea snapshotComment;
 
     @FXML
@@ -112,6 +115,9 @@ public class SnapshotController implements NodeChangedListener {
 
     @FXML
     private VBox vBox;
+
+    @FXML
+    private Label snapshotNameLabel;
 
     @FXML
     private TextField snapshotName;
@@ -215,16 +221,30 @@ public class SnapshotController implements NodeChangedListener {
     @FXML
     public void initialize() {
 
-        snapshotName.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
-        snapshotName.getStyleClass().add("stand-out-mandatory");
+        snapshotNameLabel.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        snapshotNameLabel.getStyleClass().add("stand-out-mandatory");
+        snapshotName.textProperty().bindBidirectional(snapshotNameProperty);
+        snapshotName.textProperty().addListener(((observableValue, oldValue, newValue) -> {
+            if (newValue.isEmpty()) {
+                snapshotNameLabel.getStyleClass().add("stand-out-mandatory");
+            } else {
+                snapshotNameLabel.getStyleClass().remove("stand-out-mandatory");
+            }
+        }));
 
+        snapshotCommentLabel.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        snapshotCommentLabel.getStyleClass().add("stand-out-mandatory");
         snapshotComment.textProperty().bindBidirectional(snapshotCommentProperty);
-        snapshotComment.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
-        snapshotComment.getStyleClass().add("stand-out-mandatory");
+        snapshotComment.textProperty().addListener(((observableValue, oldValue, newValue) -> {
+            if (newValue.isEmpty()) {
+                snapshotCommentLabel.getStyleClass().add("stand-out-mandatory");
+            } else {
+                snapshotCommentLabel.getStyleClass().remove("stand-out-mandatory");
+            }
+        }));
 
         createdBy.textProperty().bind(createdByTextProperty);
         createdDate.textProperty().bind(createdDateTextProperty);
-        snapshotName.textProperty().bindBidirectional(snapshotNameProperty);
 
         snapshotTable = new SnapshotTable(this);
         vBox.getChildren().add(snapshotTable);

@@ -111,5 +111,5 @@
 }
 
 .stand-out-mandatory {
-    -fx-prompt-text-fill: red;
+    -fx-text-fill: red;
 }
