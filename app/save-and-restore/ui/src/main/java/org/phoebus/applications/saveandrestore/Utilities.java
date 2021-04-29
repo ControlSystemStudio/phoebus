@@ -19,6 +19,7 @@
  */
 package org.phoebus.applications.saveandrestore;
 
+import org.epics.util.array.ArrayBoolean;
 import org.epics.util.array.ArrayByte;
 import org.epics.util.array.ArrayDouble;
 import org.epics.util.array.ArrayFloat;
@@ -29,6 +30,8 @@ import org.epics.util.array.ArrayUByte;
 import org.epics.util.array.ArrayUInteger;
 import org.epics.util.array.ArrayULong;
 import org.epics.util.array.ArrayUShort;
+import org.epics.util.array.ListBoolean;
+import org.epics.util.array.ListInteger;
 import org.epics.util.array.ListLong;
 import org.epics.util.array.ListNumber;
 import org.epics.util.array.ListUInteger;
@@ -80,6 +83,8 @@ import org.epics.vtype.ValueFormat;
 import org.phoebus.applications.saveandrestore.ui.model.Threshold;
 import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.model.VNoData;
+import org.phoebus.core.vtypes.VTypeHelper;
+
 import java.math.BigInteger;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
@@ -87,10 +92,12 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -277,7 +284,24 @@ public final class Utilities {
             }
 
             return VNumberArray.of(list, alarm, time, Display.none());
-        } else if (type instanceof VDouble) {
+        }
+        else if(type instanceof VStringArray){
+            String[] elements = data.split("\\,");
+            List<String> list = Arrays.asList(elements).stream().map(String::trim).collect(Collectors.toList());
+            list = list.stream().map(s -> s.substring(1, s.length() - 1)).collect(Collectors.toList());
+            return VStringArray.of(list, alarm, time);
+        }
+        else if(type instanceof VBooleanArray){
+            String[] elements = data.split("\\,");
+            List<String> list = Arrays.asList(elements).stream().map(String::trim).collect(Collectors.toList());
+            boolean[] booleans = new boolean[list.size()];
+            for(int i = 0; i < list.size(); i++){
+                booleans[i] = Integer.parseInt(list.get(i)) > 0 ? true : false;
+            }
+            ListBoolean listBoolean = ArrayBoolean.of(booleans);
+            return VBooleanArray.of(listBoolean, alarm, time);
+        }
+        else if (type instanceof VDouble) {
             return VDouble.of(Double.parseDouble(data), alarm, time, Display.none());
         } else if (type instanceof VFloat) {
             return VFloat.of(Float.parseFloat(data), alarm, time, Display.none());
@@ -327,7 +351,7 @@ public final class Utilities {
             }
             return VString.of(indata, alarm, time);
         }
-        return type;
+        throw new IllegalArgumentException("Type " + VType.typeOf(type).getSimpleName() + " not supported");
     }
 
     /**
@@ -342,14 +366,32 @@ public final class Utilities {
             return null;
         }
         if (type instanceof VNumberArray) {
-            return ((VNumberArray) type).getData();
+            if(type instanceof VIntArray || type instanceof VUIntArray){
+                return VTypeHelper.toIntegers(type);
+            }
+            else if(type instanceof VDoubleArray){
+                return VTypeHelper.toDoubles(type);
+            }
+            else if(type instanceof VFloatArray){
+                return VTypeHelper.toFloats(type);
+            }
+            else if(type instanceof VLongArray || type instanceof VULongArray){
+                return VTypeHelper.toLongs(type);
+            }
+            else if(type instanceof VShortArray || type instanceof VUShortArray){
+                return VTypeHelper.toShorts(type);
+            }
+            else if(type instanceof VByteArray || type instanceof VUByteArray){
+                return VTypeHelper.toBytes(type);
+            }
         } else if (type instanceof VEnumArray) {
-            return ((VEnumArray) type).getData();
+            List<String> data = ((VEnumArray) type).getData();
+            return data.toArray(new String[data.size()]);
         } else if (type instanceof VStringArray) {
             List<String> data = ((VStringArray) type).getData();
             return data.toArray(new String[data.size()]);
         } else if (type instanceof VBooleanArray) {
-            return ((VBooleanArray) type).getData();
+            return VTypeHelper.toBooleans(type);
         } else if (type instanceof VNumber) {
             return ((VNumber) type).getValue();
         } else if (type instanceof VEnum) {
@@ -458,7 +500,26 @@ public final class Utilities {
                 sb.setCharAt(sb.length() - 2, ']');
             }
             return sb.toString().trim();
-        } else if (type instanceof VNumber) {
+        }
+        else if(type instanceof VStringArray){
+            List<String> list = ((VStringArray) type).getData();
+            int size = Math.min(arrayLimit, list.size());
+            StringBuilder sb = new StringBuilder(size * 15 + 2);
+            sb.append('[');
+            for (int i = 0; i < size; i++) {
+                sb.append("\"").append(list.get(i)).append("\"").append(COMMA).append(' ');
+            }
+            if (size == 0) {
+                sb.append(']');
+            } else if (size < list.size()) {
+                sb.setCharAt(sb.length() - 1, '.');
+                sb.append("..]");
+            } else {
+                sb.setCharAt(sb.length() - 2, ']');
+            }
+            return sb.toString().trim();
+        }
+        else if (type instanceof VNumber) {
             if (type instanceof VDouble) {
                 return ((SimpleValueFormat)FORMAT.get()).format(((VDouble) type).getValue());
             } else if (type instanceof VFloat) {
@@ -487,7 +548,7 @@ public final class Utilities {
             return String.valueOf(((VBoolean) type).getValue());
         }
         // no support for MultiScalars (VMultiDouble, VMultiInt, VMultiString, VMultiEnum), VStatistics, VTable and
-        // VImage), no support for VStringArray
+        // VImage)
         return "Type " + VType.typeOf(type).getSimpleName() + " not supported";
     }
 
@@ -890,10 +951,18 @@ public final class Utilities {
             int diff = b == null ? (c == null ? 0 : 1) : (c == null ? -1 : b.compareTo(c));
             return new VTypeComparison(str, diff, diff == 0);
         } else if (value instanceof VNumberArray && baseValue instanceof VNumberArray) {
-            String sb = valueToString(value);
             boolean equal = areValuesEqual(value, baseValue, Optional.empty());
-            return new VTypeComparison(sb, equal ? 0 : 1, equal);
-        } else {
+            return new VTypeComparison(equal ? "---" : "NOT EQUAL", equal ? 0 : 1, equal);
+        }
+        else if (value instanceof VStringArray && baseValue instanceof VStringArray) {
+            boolean equal = areValuesEqual(value, baseValue, Optional.empty());
+            return new VTypeComparison(equal ? "---" : "NOT EQUAL", equal ? 0 : 1, equal);
+        }
+        else if (value instanceof VBooleanArray && baseValue instanceof VBooleanArray) {
+            boolean equal = areValuesEqual(value, baseValue, Optional.empty());
+            return new VTypeComparison(equal ? "---" : "NOT EQUAL", equal ? 0 : 1, equal);
+        }
+        else {
             String str = valueToString(value);
             boolean valuesEqual = areValuesEqual(value, baseValue, Optional.empty());
             return new VTypeComparison(str, valuesEqual ? 0 : 1, valuesEqual);
@@ -1131,8 +1200,34 @@ public final class Utilities {
                 return true;
             }
         }
+        else if (v1 instanceof VStringArray && v2 instanceof VStringArray) {
+            List<String> value1 = ((VStringArray) v1).getData();
+            List<String> value2 = ((VStringArray) v2).getData();
+            if(value1.size() != value2.size()){
+                return false;
+            }
+            for(int i = 0; i < value1.size(); i++){
+                if(!value1.get(i).equals(value2.get(i))){
+                    return false;
+                }
+            }
+            return true;
+        }
+        else if (v1 instanceof VBooleanArray && v2 instanceof VBooleanArray) {
+            ListBoolean value1 = ((VBooleanArray) v1).getData();
+            ListBoolean value2 = ((VBooleanArray) v2).getData();
+            if(value1.size() != value2.size()){
+                return false;
+            }
+            for(int i = 0; i < value1.size(); i++){
+                if(Boolean.compare(value1.getBoolean(i), value2.getBoolean(i)) != 0){
+                    return false;
+                }
+            }
+            return true;
+        }
         // no support for MultiScalars (VMultiDouble, VMultiInt, VMultiString, VMultiEnum), VStatistics, VTable,
-        // VImage and VStringArray)
+        // VImage
         return false;
     }
 
