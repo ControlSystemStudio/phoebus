@@ -17,10 +17,13 @@ public class LogPropertyFactory {
     private static List<LogPropertyProvider> factories = new ArrayList<LogPropertyProvider>();
 
     private LogPropertyFactory() {
-        // Load available adapter factories
+        // Load available adapter factories.
+        // A LogPropertyProvider returning a null Property is ignored.
         loader = ServiceLoader.load(LogPropertyProvider.class);
         loader.stream().forEach(p -> {
-            factories.add(p.get());
+            if(p.get().getProperty() != null){
+                factories.add(p.get());
+            }
         });
     }
 
