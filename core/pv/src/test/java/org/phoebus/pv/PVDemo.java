@@ -23,7 +23,7 @@ import org.junit.Test;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVDemos
+public class PVDemo
 {
     /** Async read is an 'active', round-trip read.
      *  For channel access, it can trigger processing on the IOC
