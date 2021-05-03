@@ -45,7 +45,7 @@ public class PVDemos
             });
             connect.await();
 
-            // .. before an async read can be issues:
+            // .. before an async read can be issued:
             System.out.println("Async read: " + pv.asyncRead().get(10, TimeUnit.SECONDS));
         }
         finally
