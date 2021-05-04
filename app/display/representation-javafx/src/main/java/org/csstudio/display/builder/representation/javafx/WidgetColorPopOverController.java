@@ -460,12 +460,10 @@ public class WidgetColorPopOverController implements Initializable {
                 setGraphic(blob);
 
                 final GraphicsContext gc = blob.getGraphicsContext2D();
-
+                gc.clearRect(0, 0, SIZE, SIZE);
                 gc.setFill(JFXUtil.convert(color));
                 gc.fillRect(0, 0, SIZE, SIZE);
-
             }
-
         }
     };
 

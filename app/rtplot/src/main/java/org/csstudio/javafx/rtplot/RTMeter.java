@@ -118,6 +118,8 @@ public class RTMeter extends ImageView
 
     private WritableImage awt_jfx_convert_buffer = null;
 
+    private static final Color NO_COLOR = new Color(0, 0, 0, 0);
+
     /** Redraw on UI thread by adding needle to 'meter_background' */
     private final Runnable redraw_runnable = () ->
     {
@@ -322,6 +324,10 @@ public class RTMeter extends ImageView
 
         computeLayout(gc, area_copy);
 
+        // To correctly handle transparent background in edit mode, the widget
+        // rectangle must be cleared using a transparent background color.
+        gc.setBackground(NO_COLOR);
+        gc.clearRect(0, 0, area_copy.width, area_copy.height);
         gc.setColor(background);
         gc.fillRect(0, 0, area_copy.width, area_copy.height);
 
