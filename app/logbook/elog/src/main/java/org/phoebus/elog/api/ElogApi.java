@@ -268,7 +268,7 @@ public class ElogApi {
         entries.add( read( Long.valueOf( msgIdStr.substring( msgIdStr.lastIndexOf('/') + 1 ) )));
       }
     } catch (XPathExpressionException | ParserConfigurationException e) {
-      throw new LogbookException( e.getMessage() );
+      throw new LogbookException( "could not parse the elog response", e );
     }
 
     return entries;
@@ -305,7 +305,7 @@ public class ElogApi {
         entries.add( read( Long.valueOf( msgIdStr.substring( msgIdStr.lastIndexOf('/') + 1 ) )));
       }
     } catch (XPathExpressionException | ParserConfigurationException e) {
-      throw new LogbookException( e.getMessage() );
+      throw new LogbookException( "could not parse the elog response", e );
     }
 
     return entries;
@@ -383,7 +383,7 @@ public class ElogApi {
         }
       }
     } catch (XPathExpressionException | ParserConfigurationException e) {
-      throw new LogbookException( e.getMessage() );
+      throw new LogbookException( "could not parse the elog response", e );
     }
 
     return types;
@@ -443,7 +443,7 @@ public class ElogApi {
         }
       }
     } catch (XPathExpressionException | ParserConfigurationException e) {
-      throw new LogbookException( e.getMessage() );
+      throw new LogbookException( "could not parse the elog response", e );
     }
 
     return categories;

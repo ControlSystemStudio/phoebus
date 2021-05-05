@@ -30,7 +30,7 @@ public class LogbookException extends Exception{
         super(message);
     }
 
-    public LogbookException(Throwable cause){
-        super(cause);
+    public LogbookException(String extra, Throwable cause){
+        super(extra, cause);
     }
 }
