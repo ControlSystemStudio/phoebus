@@ -26,7 +26,6 @@ import org.phoebus.logbook.ui.write.LogEntryEditorStage;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
 
-import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;

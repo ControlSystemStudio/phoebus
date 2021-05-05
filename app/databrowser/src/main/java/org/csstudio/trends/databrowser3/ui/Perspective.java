@@ -7,17 +7,19 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui;
 
-import static org.csstudio.trends.databrowser3.Activator.logger;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.prefs.BackingStoreException;
-import java.util.prefs.Preferences;
-import java.util.stream.Collectors;
-
+import javafx.application.Platform;
+import javafx.collections.ObservableList;
+import javafx.geometry.Orientation;
+import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.imports.SampleImportAction;
@@ -39,28 +41,22 @@ import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.selection.SelectionService;
-import org.phoebus.logbook.ui.LogbookUiPreferences;
-import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
-import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.spi.ContextMenuEntry;
 import org.phoebus.ui.undo.UndoableActionManager;
 
-import javafx.application.Platform;
-import javafx.collections.ObservableList;
-import javafx.geometry.Orientation;
-import javafx.scene.Node;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.SplitPane;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.image.ImageView;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
+
+import static org.csstudio.trends.databrowser3.Activator.logger;
 
 /** Combined layout of all data browser components
  *  @author Kay Kasemir
@@ -215,8 +211,6 @@ public class Perspective extends SplitPane
                 items.add(menuItem);
             });
 
-            if (LogbookUiPreferences.is_supported)
-                items.add(new SendLogbookAction(DockPane.getActiveDockPane(), Messages.ActionLogbookTitle, Messages.ActionLogbookBody, () ->  plot.getPlot().getImage()));
             if (model.getEmptyAxis().isPresent())
             {
                 items.add(new SeparatorMenuItem());

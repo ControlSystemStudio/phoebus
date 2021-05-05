@@ -1,10 +1,11 @@
 package org.phoebus.channel.views;
 
-import static javafx.scene.control.Alert.AlertType.INFORMATION;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import javafx.application.Platform;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import org.phoebus.channel.views.ui.ChannelInfoTreeController;
 import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.ChannelFinderClient;
@@ -17,10 +18,8 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
-import javafx.application.Platform;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.control.Alert;
-import javafx.scene.image.Image;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Action which opens a dialog to display the channel information.
@@ -29,7 +28,7 @@ public class ChannelInfo implements ContextMenuEntry {
     private static final String NAME = "Channel Info";
     private static final Image icon = ImageCache.getImage(ChannelTableApp.class, "/icons/channel_info.png");
 
-    private static final Class<?> supportedTypes = Channel.class;
+    private static final Class<?> supportedTypes = ProcessVariable.class;
 
     @Override
     public String getName()
@@ -69,11 +68,13 @@ public class ChannelInfo implements ContextMenuEntry {
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(this.getClass().getResource("ui/ChannelInfoTree.fxml"));
 
-        Alert alert = new Alert(INFORMATION);
-        alert.setTitle(NAME);
-        alert.setHeaderText(null);
-        alert.setGraphic(null);
-        alert.getDialogPane().setContent(loader.load());
+        Stage dialog = new Stage();
+        dialog.setTitle(NAME);
+        dialog.initModality(Modality.WINDOW_MODAL);
+        dialog.getIcons().add(icon);
+        dialog.setScene(new Scene(loader.load()));
+        dialog.setMinWidth(500);
+        dialog.setMinHeight(500);
 
         ChannelInfoTreeController controller = loader.getController();
         controller.setChannels(channels);
@@ -88,6 +89,7 @@ public class ChannelInfo implements ContextMenuEntry {
                     (url, ex) -> ExceptionDetailsErrorDialog.openError("ChannelFinder Query Error", ex.getMessage(), ex));
 
         });
-        alert.showAndWait();
+
+        dialog.show();
     }
 }

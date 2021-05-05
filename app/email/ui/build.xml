@@ -1,0 +1,10 @@
+<project default="app-email-ui">
+  <import file="../../../dependencies/ant_settings.xml"/>
+
+  <target name="app-email-ui" depends="compile-app">
+    <jar destfile="${build}/app-email-ui-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+</project>

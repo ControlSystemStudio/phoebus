@@ -212,6 +212,12 @@ public class SaveAndRestoreService {
         return future.get();
     }
 
+    public List<Node> getAllSnapshots() throws Exception {
+        Future<List<Node>> future = executor.submit(() -> dataProvider.getAllSnapshots());
+
+        return future.get();
+    }
+
     public void addNodeChangeListener(NodeChangedListener nodeChangeListener){
         nodeChangeListeners.add(nodeChangeListener);
     }

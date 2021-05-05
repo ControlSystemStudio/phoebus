@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>core</artifactId>
-    <version>4.6.5-SNAPSHOT</version>
+    <version>4.6.6-SNAPSHOT</version>
   </parent>
   <artifactId>core-ui</artifactId>
   <dependencies>
@@ -19,7 +19,18 @@
       <version>1.3</version>
       <scope>test</scope>
     </dependency>
-
+    <dependency>
+      <groupId>org.testfx</groupId>
+      <artifactId>testfx-core</artifactId>
+      <version>4.0.13-alpha</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testfx</groupId>
+      <artifactId>testfx-junit</artifactId>
+      <version>4.0.13-alpha</version>
+      <scope>test</scope>
+    </dependency>
     <!-- Include all JavaFX modules so single dependency
          on core-ui will provide all that's needed
       -->
@@ -42,27 +53,27 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-framework</artifactId>
-      <version>4.6.5-SNAPSHOT</version>
+      <version>4.6.6-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-types</artifactId>
-      <version>4.6.5-SNAPSHOT</version>
+      <version>4.6.6-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-security</artifactId>
-      <version>4.6.5-SNAPSHOT</version>
+      <version>4.6.6-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-util</artifactId>
-      <version>4.6.5-SNAPSHOT</version>
+      <version>4.6.6-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-pv</artifactId>
-      <version>4.6.5-SNAPSHOT</version>
+      <version>4.6.6-SNAPSHOT</version>
     </dependency>
   </dependencies>
 

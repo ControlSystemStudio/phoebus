@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,20 +19,11 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.logging.Level;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.ModelPlugin;
@@ -49,8 +40,6 @@ public class ModelResourceUtil
     /** Schema used for the built-in display examples */
     public static final String EXAMPLES_SCHEMA = "examples";
 
-    /** Used by trustAnybody() to only initialize once */
-    private static boolean trusting_anybody = false;
 
     /** Cache for content read from a URL */
     private static final Cache<byte[]> url_cache = new Cache<>(Duration.ofSeconds(Preferences.cache_timeout));
@@ -514,57 +503,13 @@ public class ModelResourceUtil
      */
     public static InputStream openURL(final String resource_name, final int timeout_ms) throws Exception
     {
-        if (resource_name.startsWith("https"))
-            trustAnybody();
-
-        final URL url = new URL(resource_name);
-        final URLConnection connection = url.openConnection();
-        connection.setReadTimeout(timeout_ms);
-        return connection.getInputStream();
+        // Received name may be the result of resolving "some file.png"
+        // relative to "http://server/displays/main.bob" as a string,
+        // i.e. "http://server/displays/some file.png"
+        // This would be acceptable for a file path, but URL() expects spaces to be escaped
+        final String escaped = resource_name.replace(" ", "%20");
+        return ResourceParser.getContent(new URL(escaped).toURI(), timeout_ms);
     }
-
-    /** Allow https:// access to self-signed certificates
-     *  @throws Exception on error
-     */
-    // From Eric Berryman's code in org.csstudio.opibuilder.util.ResourceUtil.
-    private static synchronized void trustAnybody() throws Exception
-    {
-        if (trusting_anybody)
-            return;
-
-        // Create a trust manager that does not validate certificate chains.
-        final TrustManager[] trustAllCerts = new TrustManager[]
-        {
-            new X509TrustManager()
-            {
-                @Override
-                public void checkClientTrusted(X509Certificate[] arg0,
-                                               String arg1) throws CertificateException
-                { /* NOP */ }
-
-                @Override
-                public void checkServerTrusted(X509Certificate[] arg0,
-                                               String arg1) throws CertificateException
-                { /* NOP */ }
-
-                @Override
-                public X509Certificate[] getAcceptedIssuers()
-                {
-                    return null;
-                }
-            }
-        };
-        final SSLContext sc = SSLContext.getInstance("SSL");
-        sc.init(null, trustAllCerts, new java.security.SecureRandom());
-        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-
-        // All-trusting host name verifier
-        final HostnameVerifier allHostsValid = (hostname, session) -> true;
-        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-
-        trusting_anybody = true;
-    }
-
 
     /** Write a resource.
      *

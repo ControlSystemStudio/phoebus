@@ -14,7 +14,12 @@ import org.phoebus.framework.nls.NLS;
  */
 public class Messages
 {
-    public static String Actions_Zero;
+    public static String ActionExecuteCommand;
+    public static String ActionExecuteScript;
+    public static String ActionOpenDisplay;
+    public static String ActionOpenFile;
+    public static String ActionOpenWebPage;
+    public static String ActionWritePV;
     public static String Actions_N_Fmt;
     public static String ActiveTab;
     public static String ArrayWidget_Description;
@@ -254,6 +259,7 @@ public class Messages
     public static String WidgetProperties_OnImage;
     public static String WidgetProperties_OnLabel;
     public static String WidgetProperties_OnlyExtremaVisible;
+    public static String WidgetProperties_Opacity;
     public static String WidgetProperties_Orientation;
     public static String WidgetProperties_Password;
     public static String WidgetProperties_Points;

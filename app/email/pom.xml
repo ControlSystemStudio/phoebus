@@ -3,37 +3,11 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app</artifactId>
-    <version>4.6.5-SNAPSHOT</version>
+    <version>4.6.6-SNAPSHOT</version>
   </parent>
   <artifactId>app-email</artifactId>
-  <dependencies>
-    <dependency>
-      <groupId>org.phoebus</groupId>
-      <artifactId>core-util</artifactId>
-      <version>4.6.5-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.phoebus</groupId>
-      <artifactId>core-email</artifactId>
-      <version>4.6.5-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.phoebus</groupId>
-      <artifactId>core-ui</artifactId>
-      <version>4.6.5-SNAPSHOT</version>
-    </dependency>
-  </dependencies>
-  <build>
-    <resources>
-      <resource>
-        <directory>src/main/resources</directory>
-      </resource>
-      <resource>
-        <directory>src/main/java</directory>
-        <includes>
-          <include>**/*.fxml</include>
-        </includes>
-      </resource>
-    </resources>
-  </build>
+  <packaging>pom</packaging>
+  <modules>
+    <module>ui</module>
+  </modules>
 </project>

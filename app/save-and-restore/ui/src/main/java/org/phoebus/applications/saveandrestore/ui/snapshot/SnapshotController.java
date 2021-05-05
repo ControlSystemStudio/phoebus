@@ -53,10 +53,6 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.util.converter.DoubleStringConverter;
-import org.epics.gpclient.GPClient;
-import org.epics.gpclient.PVConfiguration;
-import org.epics.gpclient.PVEvent;
-import org.epics.gpclient.PVReader;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
@@ -76,12 +72,17 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.model.*;
+import org.phoebus.applications.saveandrestore.ui.model.SnapshotEntry;
+import org.phoebus.applications.saveandrestore.ui.model.Threshold;
+import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
+import org.phoebus.applications.saveandrestore.ui.model.VNoData;
+import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
+import org.phoebus.applications.saveandrestore.ui.model.VTypePair;
 import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.pv.PVPool;
 import org.phoebus.ui.docking.DockPane;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -92,12 +93,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class SnapshotController implements NodeChangedListener {
+
+    @FXML
+    private Label snapshotCommentLabel;
 
     @FXML
     private TextArea snapshotComment;
@@ -110,6 +115,9 @@ public class SnapshotController implements NodeChangedListener {
 
     @FXML
     private VBox vBox;
+
+    @FXML
+    private Label snapshotNameLabel;
 
     @FXML
     private TextField snapshotName;
@@ -168,13 +176,13 @@ public class SnapshotController implements NodeChangedListener {
     @Autowired
     private String defaultEpicsProtocol;
 
-    private SimpleStringProperty createdByTextProperty = new SimpleStringProperty();
-    private SimpleStringProperty createdDateTextProperty = new SimpleStringProperty();
-    private SimpleStringProperty snapshotNameProperty = new SimpleStringProperty();
-    private SimpleStringProperty snapshotCommentProperty = new SimpleStringProperty();
-    private SimpleStringProperty snapshotUniqueIdProperty = new SimpleStringProperty();
+    private final SimpleStringProperty createdByTextProperty = new SimpleStringProperty();
+    private final SimpleStringProperty createdDateTextProperty = new SimpleStringProperty();
+    private final SimpleStringProperty snapshotNameProperty = new SimpleStringProperty();
+    private final SimpleStringProperty snapshotCommentProperty = new SimpleStringProperty();
+    private final SimpleStringProperty snapshotUniqueIdProperty = new SimpleStringProperty();
 
-    private List<VSnapshot> snapshots = new ArrayList<>(10);
+    private final List<VSnapshot> snapshots = new ArrayList<>(10);
     private final Map<String, PV> pvs = new HashMap<>();
     private final Map<String, String> readbacks = new HashMap<>();
     private final Map<String, TableEntry> tableEntryItems = new LinkedHashMap<>();
@@ -186,18 +194,18 @@ public class SnapshotController implements NodeChangedListener {
     private String persistentSnapshotName = null;
     private boolean persistentGoldenState = false;
 
-    private boolean showStoredReadbacks = false;
+    private final boolean showStoredReadbacks = false;
 
     private boolean showDeltaPercentage = false;
     private boolean hideEqualItems;
 
-    private PreferencesReader preferencesReader = (PreferencesReader) ApplicationContextProvider.getApplicationContext().getBean("preferencesReader");
+    private final PreferencesReader preferencesReader = (PreferencesReader) ApplicationContextProvider.getApplicationContext().getBean("preferencesReader");
     private final SimpleBooleanProperty showTreeTable = new SimpleBooleanProperty(false);
-    private boolean isTreeTableViewEnabled = preferencesReader.getBoolean("treeTableView.enable");
+    private final boolean isTreeTableViewEnabled = preferencesReader.getBoolean("treeTableView.enable");
 
     private Node config;
 
-    private static Executor UI_EXECUTOR = Platform::runLater;
+    private static final Executor UI_EXECUTOR = Platform::runLater;
 
     //private SimpleBooleanProperty snapshotNodePropertiesDirty = new SimpleBooleanProperty(false);
 
@@ -213,10 +221,30 @@ public class SnapshotController implements NodeChangedListener {
     @FXML
     public void initialize() {
 
+        snapshotNameLabel.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        snapshotNameLabel.getStyleClass().add("stand-out-mandatory");
+        snapshotName.textProperty().bindBidirectional(snapshotNameProperty);
+        snapshotName.textProperty().addListener(((observableValue, oldValue, newValue) -> {
+            if (newValue.isEmpty()) {
+                snapshotNameLabel.getStyleClass().add("stand-out-mandatory");
+            } else {
+                snapshotNameLabel.getStyleClass().remove("stand-out-mandatory");
+            }
+        }));
+
+        snapshotCommentLabel.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        snapshotCommentLabel.getStyleClass().add("stand-out-mandatory");
         snapshotComment.textProperty().bindBidirectional(snapshotCommentProperty);
+        snapshotComment.textProperty().addListener(((observableValue, oldValue, newValue) -> {
+            if (newValue.isEmpty()) {
+                snapshotCommentLabel.getStyleClass().add("stand-out-mandatory");
+            } else {
+                snapshotCommentLabel.getStyleClass().remove("stand-out-mandatory");
+            }
+        }));
+
         createdBy.textProperty().bind(createdByTextProperty);
         createdDate.textProperty().bind(createdDateTextProperty);
-        snapshotName.textProperty().bindBidirectional(snapshotNameProperty);
 
         snapshotTable = new SnapshotTable(this);
         vBox.getChildren().add(snapshotTable);
@@ -280,19 +308,7 @@ public class SnapshotController implements NodeChangedListener {
         thresholdSpinner.setValueFactory(thresholdSpinnerValueFactory);
         thresholdSpinner.getEditor().setAlignment(Pos.CENTER_RIGHT);
         thresholdSpinner.getEditor().getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
-        thresholdSpinner.getEditor().textProperty().addListener((a, o, n) -> {
-            thresholdSpinner.getEditor().getStyleClass().remove("input-error");
-            thresholdSpinner.setTooltip(null);
-
-            Double parsedNumber = null;
-            try {
-                parsedNumber = Double.parseDouble(n.trim());
-                updateThreshold(parsedNumber);
-            } catch (Exception e) {
-                thresholdSpinner.getEditor().getStyleClass().add("input-error");
-                thresholdSpinner.setTooltip(new Tooltip(Messages.toolTipMultiplierSpinner));
-            }
-        });
+        thresholdSpinner.getEditor().textProperty().addListener((a, o, n) -> parseAndUpdateThreshold(n));
 
         multiplierLabel.setText(Messages.labelMultiplier);
 
@@ -421,11 +437,7 @@ public class SnapshotController implements NodeChangedListener {
                         for (List<Pattern> andPatternList : regexPatterns) {
                             boolean matchAnd = true;
                             for (Pattern pattern : andPatternList) {
-                                if (pattern.matcher(item.pvNameProperty().get()).find()) {
-                                    matchAnd &= true;
-                                } else {
-                                    matchAnd &= false;
-                                }
+                                matchAnd &= pattern.matcher(item.pvNameProperty().get()).find();
                             }
 
                             matchEither |= matchAnd;
@@ -575,19 +587,28 @@ public class SnapshotController implements NodeChangedListener {
         new Thread(() -> {
             VSnapshot s = snapshots.get(0);
             CountDownLatch countDownLatch = new CountDownLatch(s.getEntries().size());
-            s.getEntries().stream().forEach(e -> {
-                pvs.get(e.getPVName()).setCountDownLatch(countDownLatch);
-                pvs.get(e.getPVName()).writeStatus = PVEvent.Type.WRITE_FAILED;
-            });
+            s.getEntries().stream().forEach(e -> pvs.get(getPVKey(e.getPVName(), e.isReadOnly())).setCountDownLatch(countDownLatch));
             try {
+                List<String> restoreFailed = new ArrayList<>();
                 List<SnapshotEntry> entries = s.getEntries();
                 for (SnapshotEntry entry : entries) {
-                    final TableEntry e = tableEntryItems.get(entry.getPVName());
-                    if (e.selectedProperty().get() && !e.readOnlyProperty().get()) {
-                        final PV pv = pvs.get(e.getConfigPv().getPvName());
+                    TableEntry e = tableEntryItems.get(getPVKey(entry.getPVName(), entry.isReadOnly()));
+
+                    boolean restorable = e.selectedProperty().get() && !e.readOnlyProperty().get();
+
+                    if (restorable) {
+                        final PV pv = pvs.get(getPVKey(e.pvNameProperty().get(), e.readOnlyProperty().get()^e.readonlyOverrideProperty().get()));
                         if (entry.getValue() != null) {
-                            pv.pv.write(Utilities.toRawValue(entry.getValue()));
+                            try {
+                                pv.pv.write(Utilities.toRawValue(entry.getValue()));
+                            } catch (Exception writeException) {
+                                restoreFailed.add(entry.getPVName());
+                            } finally {
+                                pv.countDown();
+                            }
                         }
+                    } else {
+                        countDownLatch.countDown();
                     }
                 }
 
@@ -597,22 +618,12 @@ public class SnapshotController implements NodeChangedListener {
                     e.printStackTrace();
                 }
 
-                List<String> messages = new ArrayList<>();
-                for (SnapshotEntry entry : entries) {
-                    PV pv = pvs.get(entry.getPVName());
-                    if (pv.getWriteStatus().equals(PVEvent.Type.WRITE_FAILED)) {
-                        StringBuilder sb = new StringBuilder(200);
-                        sb.append(pv.pvName).append(':').append(" error writing PV");
-                        messages.add(sb.toString());
-                    }
-                }
-
-                if (messages.isEmpty()) {
+                if (restoreFailed.isEmpty()) {
                     LOGGER.log(Level.FINE, "Restored snapshot {0}", s.getSnapshot().get().getName());
                 } else {
-                    Collections.sort(messages);
-                    StringBuilder sb = new StringBuilder(messages.size() * 200);
-                    messages.forEach(e -> sb.append(e).append('\n'));
+                    Collections.sort(restoreFailed);
+                    StringBuilder sb = new StringBuilder(restoreFailed.size() * 200);
+                    restoreFailed.forEach(e -> sb.append(e).append('\n'));
                     LOGGER.log(Level.WARNING,
                             "Not all PVs could be restored for {0}: {1}. The following errors occured:\n{2}",
                             new Object[] { s.getSnapshot().get().getName(), s.getSnapshot().get(), sb.toString() });
@@ -653,12 +664,13 @@ public class SnapshotController implements NodeChangedListener {
             VType readbackValue = null;
             for (TableEntry t : tableEntryItems.values()) {
                 name = t.pvNameProperty().get();
-                pv = pvs.get(t.pvNameProperty().get());
+                pv = pvs.get(getPVKey(t.pvNameProperty().get(), t.readOnlyProperty().get()^t.readonlyOverrideProperty().get()));
 
                 // there is no issues with non atomic access to snapshotTreeTableEntryPvProxy.value or snapshotTreeTableEntryPvProxy.readbackValue because the PV is
                 // suspended and the value could not change while suspended
                 value = pv == null || pv.pvValue == null ? VDisconnectedData.INSTANCE : pv.pvValue;
-                readbackName = readbacks.get(name);
+                String key = getPVKey(name, t.readOnlyProperty().get()^t.readonlyOverrideProperty().get());
+                readbackName = readbacks.get(key);
                 readbackValue = pv == null || pv.readbackValue == null ? VDisconnectedData.INSTANCE : pv.readbackValue;
                 for (VSnapshot s : getAllSnapshots()) {
                     delta = s.getDelta(name);
@@ -668,7 +680,7 @@ public class SnapshotController implements NodeChangedListener {
                 }
 
                 entries.add(new SnapshotEntry(t.getConfigPv(), value, t.selectedProperty().get(), readbackName, readbackValue,
-                        delta, t.readOnlyProperty().get()));
+                        delta, t.readOnlyProperty().get()^t.readonlyOverrideProperty().get()));
             }
 
             Node snapshot = Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build();
@@ -763,11 +775,12 @@ public class SnapshotController implements NodeChangedListener {
             e.selectedProperty().setValue(entry.isSelected());
             e.setSnapshotValue(entry.getValue(), 0);
             e.setStoredReadbackValue(entry.getReadbackValue(), 0);
-            tableEntryItems.put(name, e);
-            readbacks.put(name, entry.getReadbackName());
+            String key = getPVKey(name, entry.isReadOnly());
+            tableEntryItems.put(key, e);
+            readbacks.put(key, entry.getReadbackName());
             e.readbackNameProperty().set(entry.getReadbackName());
             e.readOnlyProperty().set(entry.isReadOnly());
-            PV pv = pvs.get(name);
+            PV pv = pvs.get(key);
             if(pv != null){
                 pv.setSnapshotTableEntry(e);
             }
@@ -792,14 +805,15 @@ public class SnapshotController implements NodeChangedListener {
             for (int i = 0; i < entries.size(); i++) {
                 entry = entries.get(i);
                 n = entry.getPVName();
-                e = tableEntryItems.get(n);
+                String key = getPVKey(n, entry.isReadOnly());
+                e = tableEntryItems.get(key);
                 if (e == null) {
                     e = new TableEntry();
                     e.idProperty().setValue(tableEntryItems.size() + i + 1);
                     e.pvNameProperty().setValue(n);
                     e.setConfigPv(entry.getConfigPv());
-                    tableEntryItems.put(n, e);
-                    readbacks.put(n, entry.getReadbackName());
+                    tableEntryItems.put(key, e);
+                    readbacks.put(key, entry.getReadbackName());
                     e.readbackNameProperty().set(entry.getReadbackName());
                 }
                 e.setSnapshotValue(entry.getValue(), numberOfSnapshots);
@@ -875,9 +889,9 @@ public class SnapshotController implements NodeChangedListener {
     private void connectPVs() {
         try {
             tableEntryItems.values().forEach(e -> {
-                PV pv = pvs.get(e.getConfigPv().getPvName());
+                PV pv = pvs.get(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly()));
                 if (pv == null) {
-                    pvs.put(e.getConfigPv().getPvName(), new PV(e));
+                    pvs.put(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly()), new PV(e));
                 }
             });
         } finally {
@@ -892,7 +906,15 @@ public class SnapshotController implements NodeChangedListener {
 
                 double ratio = threshold/100;
 
-                TableEntry tableEntry = tableEntryItems.get(item.getPVName());
+                TableEntry tableEntry = tableEntryItems.get(getPVKey(item.getPVName(), item.isReadOnly()));
+                if (tableEntry == null) {
+                    tableEntry = tableEntryItems.get(getPVKey(item.getPVName(), !item.isReadOnly()));
+                }
+
+                if (!item.getConfigPv().equals(tableEntry.getConfigPv())) {
+                    return;
+                }
+
                 if (vtype instanceof VNumber) {
                     diffVType = SafeMultiply.multiply((VNumber) vtype, ratio);
                     VNumber vNumber = (VNumber) diffVType;
@@ -911,34 +933,41 @@ public class SnapshotController implements NodeChangedListener {
 
     private void updateSnapshot(double multiplier) {
         snapshots.stream().forEach(snapshot -> {
-            snapshot.getEntries().stream().filter(item -> !item.isReadOnly()).forEach(item -> {
-                VType vtype = item.getStoredValue();
-                VType newVType = null;
+            snapshot.getEntries().stream()
+                    .forEach(item -> {
+                        TableEntry tableEntry = tableEntryItems.get(getPVKey(item.getPVName(), item.isReadOnly()));
 
-                if (vtype instanceof VNumber) {
-                    newVType = SafeMultiply.multiply((VNumber) vtype, multiplier);
-                } else if (vtype instanceof VNumberArray) {
-                    newVType = SafeMultiply.multiply((VNumberArray) vtype, multiplier);
-                } else {
-                    return;
-                }
+                        if (item.isReadOnly() == !tableEntry.readonlyOverrideProperty().get()) {
+                            return;
+                        }
 
-                item.set(newVType, item.isSelected());
+                        VType vtype = item.getStoredValue();
+                        VType newVType = null;
 
-                TableEntry tableEntry = tableEntryItems.get(item.getPVName());
-                tableEntry.snapshotValProperty().set(newVType);
+                        if (vtype instanceof VNumber) {
+                            newVType = SafeMultiply.multiply((VNumber) vtype, multiplier);
+                        } else if (vtype instanceof VNumberArray) {
+                            newVType = SafeMultiply.multiply((VNumberArray) vtype, multiplier);
+                        } else {
+                            return;
+                        }
 
-                ObjectProperty<VTypePair> value = tableEntry.valueProperty();
-                value.setValue(new VTypePair(value.get().base, newVType, value.get().threshold));
-            });
+                        item.set(newVType, item.isSelected());
+
+                        tableEntry.snapshotValProperty().set(newVType);
+
+                        ObjectProperty<VTypePair> value = tableEntry.valueProperty();
+                        value.setValue(new VTypePair(value.get().base, newVType, value.get().threshold));
+                    });
         });
+
+        parseAndUpdateThreshold(thresholdSpinner.getEditor().getText().trim());
     }
 
     public void updateSnapshot(int snapshotIndex, TableEntry rowValue, VType newValue) {
         VSnapshot snapshot = snapshots.get(snapshotIndex);
         snapshot.getEntries().stream()
-                .filter(item -> item.getPVName().equals(rowValue.getConfigPv().getPvName()))
-                .filter(item -> !item.isReadOnly())
+                .filter(item -> item.getConfigPv().equals(rowValue.getConfigPv()))
                 .findFirst()
                 .ifPresent(item -> {
                     VType vtype = item.getValue();
@@ -957,16 +986,30 @@ public class SnapshotController implements NodeChangedListener {
                     item.set(newVType, rowValue.selectedProperty().get());
                     rowValue.snapshotValProperty().set(newVType);
                 });
+
+        parseAndUpdateThreshold(thresholdSpinner.getEditor().getText().trim());
+    }
+
+    private void parseAndUpdateThreshold(String value) {
+        thresholdSpinner.getEditor().getStyleClass().remove("input-error");
+        thresholdSpinner.setTooltip(null);
+
+        Double parsedNumber = null;
+        try {
+            parsedNumber = Double.parseDouble(value.trim());
+            updateThreshold(parsedNumber);
+        } catch (Exception e) {
+            thresholdSpinner.getEditor().getStyleClass().add("input-error");
+            thresholdSpinner.setTooltip(new Tooltip(Messages.toolTipMultiplierSpinner));
+        }
     }
 
     private class PV {
         final String pvName;
         final String readbackPvName;
         CountDownLatch countDownLatch;
-        org.epics.gpclient.PV<VType, Object> pv;
-        PVReader<VType> pvReader;
-        PVReader<VType> readbackReader;
-        PVEvent.Type writeStatus = PVEvent.Type.WRITE_FAILED;
+        org.phoebus.pv.PV pv;
+        org.phoebus.pv.PV readbackPv;
         volatile VType pvValue = VDisconnectedData.INSTANCE;
         volatile VType readbackValue = VDisconnectedData.INSTANCE;
         TableEntry snapshotTableEntry;
@@ -978,49 +1021,27 @@ public class SnapshotController implements NodeChangedListener {
             this.readbackPvName = patchPvName(snapshotTableEntry.readbackNameProperty().get());
             this.readOnly = snapshotTableEntry.readOnlyProperty().get();
 
-            if(this.readOnly){
-                pvReader = GPClient.read(pvName)
-                        .addReadListener((event, p) -> {
-                            this.pvValue = p.isConnected() ? p.getValue() : VDisconnectedData.INSTANCE;
-                            this.snapshotTableEntry.setLiveValue(this.pvValue);
-                        })
-                        .connectionTimeout(Duration.ofMillis(3*TABLE_UPDATE_INTERVAL))
-                        .maxRate(Duration.ofMillis(TABLE_UPDATE_INTERVAL))
-                        .start();
-            }
-            else{
-                PVConfiguration pvConfiguration = GPClient.readAndWrite(GPClient.channel(pvName));
-                pv = pvConfiguration.addListener((event, p) -> {
-                    if(event.getType().contains(PVEvent.Type.VALUE)){
-                        this.pvValue = p.isConnected() ? (VType)p.getValue() : VDisconnectedData.INSTANCE;
-                        this.snapshotTableEntry.setLiveValue(this.pvValue);
-                    }
-                    else if(event.getType().contains(PVEvent.Type.WRITE_SUCCEEDED)){
-                        if(countDownLatch != null){
-                            LOGGER.info(countDownLatch + " Write OK, signalling latch");
-                            countDownLatch.countDown();
-                        }
-                        writeStatus = PVEvent.Type.WRITE_SUCCEEDED;
-                    }
-                    else if(event.getType().contains(PVEvent.Type.WRITE_FAILED)){
-                        if(countDownLatch != null){
-                            LOGGER.info(countDownLatch + "Write FAILED, signalling latch");
-                            countDownLatch.countDown();
-                        }
-                        writeStatus = PVEvent.Type.WRITE_FAILED;
-                    }
-                }).maxRate(Duration.ofMillis(TABLE_UPDATE_INTERVAL))
-                        .start();
-            }
+            try {
+                pv = PVPool.getPV(pvName);
+                pv.onValueEvent().throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS).subscribe(value -> {
+                    pvValue = org.phoebus.pv.PV.isDisconnected(value) ? value = VDisconnectedData.INSTANCE : value;
+                    this.snapshotTableEntry.setLiveValue(pvValue);
+                });
 
-            if (readbackPvName != null && !readbackPvName.isEmpty()) {
-                this.readbackReader = GPClient.read(this.readbackPvName)
-                        .addReadListener((event, p) -> {
-                            if (showLiveReadbackProperty.get()) {
-                                this.readbackValue = p.isConnected() ? p.getValue() : VDisconnectedData.INSTANCE;
-                                snapshotTableEntry.setReadbackValue(this.readbackValue);
-                            }
-                        }).maxRate(Duration.ofMillis(TABLE_UPDATE_INTERVAL)).start();
+
+                if (readbackPvName != null && !readbackPvName.isEmpty()) {
+                   readbackPv = PVPool.getPV(this.readbackPvName);
+                   readbackPv.onValueEvent()
+                           .throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS)
+                           .subscribe(value -> {
+                                if (showLiveReadbackProperty.get()) {
+                                    this.readbackValue = org.phoebus.pv.PV.isDisconnected(value) ? value : VDisconnectedData.INSTANCE;
+                                    this.snapshotTableEntry.setReadbackValue(this.readbackValue);
+                                }
+                            });
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
@@ -1041,23 +1062,21 @@ public class SnapshotController implements NodeChangedListener {
             this.countDownLatch = countDownLatch;
         }
 
+        public void countDown() {
+            this.countDownLatch.countDown();
+        }
+
         public void setSnapshotTableEntry(TableEntry snapshotTableEntry){
             this.snapshotTableEntry = snapshotTableEntry;
         }
 
-        public PVEvent.Type getWriteStatus(){
-            return writeStatus;
-        }
-
         void dispose() {
-            if (pv != null && !pv.isClosed()) {
-                pv.close();
+            if (pv != null) {
+                PVPool.releasePV(pv);
             }
-            if(pvReader != null && !pvReader.isClosed()){
-                pvReader.close();
-            }
-            if (readbackReader != null && !readbackReader.isClosed()) {
-                readbackReader.close();
+
+            if (readbackPv != null) {
+                PVPool.releasePV(readbackPv);
             }
         }
     }
@@ -1111,5 +1130,9 @@ public class SnapshotController implements NodeChangedListener {
             persistentSnapshotName = node.getName();
             persistentGoldenState = Boolean.parseBoolean(node.getProperty("golden"));
         }
+    }
+
+    private String getPVKey(String pvName, boolean isReadonly) {
+        return pvName + "_" + isReadonly;
     }
 }

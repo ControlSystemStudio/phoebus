@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,17 +12,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URL;
-import java.net.URLConnection;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 import org.phoebus.framework.util.IOUtils;
+import org.phoebus.framework.util.ResourceParser;
 
 /** Resource utility class for the Viewer3dPane.
  *
@@ -36,7 +28,6 @@ public class ResourceUtil
     public static final String EXAMPLES_SCHEMA = "examples";
 
     private static int timeout_ms = Preferences.read_timeout;
-    private static boolean trusting_anybody = false;
 
     /** Open a file, web location, ..
     *
@@ -98,55 +89,7 @@ public class ResourceUtil
      */
     private static InputStream openURL(final String resource_name, final int timeout_ms) throws Exception
     {
-        if (resource_name.startsWith("https"))
-            trustAnybody();
-
-        final URL url = new URL(resource_name);
-        final URLConnection connection = url.openConnection();
-        connection.setReadTimeout(timeout_ms);
-        return connection.getInputStream();
-    }
-
-    /** Allow https:// access to self-signed certificates
-     *  @throws Exception on error
-     */
-    // From Eric Berryman's code in org.csstudio.opibuilder.util.ResourceUtil.
-    private static synchronized void trustAnybody() throws Exception
-    {
-        if (trusting_anybody)
-            return;
-
-        // Create a trust manager that does not validate certificate chains.
-        final TrustManager[] trustAllCerts = new TrustManager[]
-        {
-            new X509TrustManager()
-            {
-                @Override
-                public void checkClientTrusted(X509Certificate[] arg0,
-                                               String arg1) throws CertificateException
-                { /* NOP */ }
-
-                @Override
-                public void checkServerTrusted(X509Certificate[] arg0,
-                                               String arg1) throws CertificateException
-                { /* NOP */ }
-
-                @Override
-                public X509Certificate[] getAcceptedIssuers()
-                {
-                    return null;
-                }
-            }
-        };
-        final SSLContext sc = SSLContext.getInstance("SSL");
-        sc.init(null, trustAllCerts, new java.security.SecureRandom());
-        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-
-        // All-trusting host name verifier
-        final HostnameVerifier allHostsValid = (hostname, session) -> true;
-        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-
-        trusting_anybody = true;
+        return ResourceParser.getContent(new URL(resource_name).toURI(), timeout_ms);
     }
 
     /** Check for "examples:.."

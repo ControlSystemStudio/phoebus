@@ -67,8 +67,8 @@ public abstract class ADLConnected extends WidgetPart {
     @Override
     public Object[] getChildren() {
         Object[] ret = new Object[3];
-        ret[0] = new ADLResource(ADLResource.FOREGROUND_COLOR, new Integer(_clr));
-        ret[1] = new ADLResource(ADLResource.BACKGROUND_COLOR, new Integer(_bclr));
+        ret[0] = new ADLResource(ADLResource.FOREGROUND_COLOR, Integer.valueOf(_clr));
+        ret[1] = new ADLResource(ADLResource.BACKGROUND_COLOR, Integer.valueOf(_bclr));
         ret[2] = new ADLResource(ADLResource.CHANNEL, _chan);
         return ret;
     }

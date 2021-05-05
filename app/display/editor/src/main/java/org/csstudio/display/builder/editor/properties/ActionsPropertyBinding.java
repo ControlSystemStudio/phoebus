@@ -15,7 +15,7 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.properties.ActionsWidgetProperty;
-import org.csstudio.display.builder.representation.javafx.ActionsDialog;
+import org.csstudio.display.builder.representation.javafx.actionsdialog.ActionsDialog;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.event.ActionEvent;

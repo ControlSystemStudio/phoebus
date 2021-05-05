@@ -24,7 +24,6 @@ import org.flywaydb.core.api.migration.Context;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.sql.Timestamp;
 
 /**
  * Migrates readback values such that both the value and readback value - where applicable - is

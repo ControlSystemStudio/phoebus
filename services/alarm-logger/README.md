@@ -52,6 +52,14 @@ mvn spring-boot:run
 Run with `-help` to see command line options,
 including those used to create daily, weekly or monthly indices.
 
+#### Configuration
+
+The alarm logger can be configured via command line switches when running the jar, see option `-help` for details, 
+or via properties documented in [here](https://github.com/ControlSystemStudio/phoebus/blob/master/services/alarm-logger/src/main/resources/alarm_logger.properties)
+
+
+
+
 ### Query the Data
 
 For more elaborate queries, use Kibana or other elasticsearch clients.
@@ -67,9 +75,29 @@ This dumps records from one specific index:
 curl -X GET 'http://localhost:9200/accelerator_alarms_state_2019-02-01/_search?format=json&pretty'
 ```
 
+## Data Management
+
+The two most common aspects for effectively configuring the alarm logger are: 
+
+### Index period
+
+By default, the alarm logger will create a new index for each month, named
+`{Alarm topic}_state_yyyy_mm_dd` and `..._cmd_...`.
+This supports the removal of older data by simply and efficiently deleting older indices.
+
+Queries can read from all these indices by using a pattern like `{Alarm topic}_state_*`,
+so they are abstracted from the periodically structured indices.
+
+In practice, monthly indexing, which is also the default, has been proven most useful,
+keeping the indices for roughly one year.
+While finer grained (weekly or even daily) indexing is possible, it will likely require more frequent index cleanup.
+
 ### Cleanup
 
-In case you want to delete older data:
+Obsolete data should be periodically removed, this can be achieved by deleting the indices from elastic which contain
+stale data. 
+
+One or more indices can be deleted with the following command:
 
 ```
 curl -X DELETE 'localhost:9200/accelerator_alarms_state_2019-02-*'

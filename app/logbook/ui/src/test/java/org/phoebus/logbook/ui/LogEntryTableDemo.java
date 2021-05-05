@@ -29,7 +29,6 @@ import org.phoebus.ui.javafx.ApplicationWrapper;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class LogEntryTableDemo extends ApplicationWrapper {

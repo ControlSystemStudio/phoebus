@@ -2,7 +2,7 @@
 
 body
 {
-    background-color: #CCC;
+    background-color: #DDD;
     font-family: Helvetica, Geneva, Arial, SunSans-Regular, sans-serif;
     font-variant: normal;
     font-style: normal;
@@ -45,7 +45,7 @@ th
     border-bottom-color: #888;
 }
 
-td
+td :not(.plain)
 {
     border-bottom-style: solid;
     border-bottom-width: 1px;

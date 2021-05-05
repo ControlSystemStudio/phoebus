@@ -105,6 +105,7 @@ public class ContextMenuCreateSaveset implements ContextMenuEntry
             Stage dialog = new Stage();
             dialog.setTitle(getName());
             dialog.initModality(Modality.WINDOW_MODAL);
+            dialog.getIcons().add(ImageCache.getImage(ImageCache.class, "/icons/logo.png"));
             dialog.setScene(new Scene((Parent) springFxmlLoader.load("ui/saveset/SaveSetFromSelection.fxml")));
 
             final SaveSetFromSelectionController controller = springFxmlLoader.getLoader().getController();

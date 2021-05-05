@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -139,9 +139,24 @@ class ChannelSearch
                 logger.log(Level.CONFIG, "Sending searches to " + addr.getAddress() + " port " + addr.getPort() + " (local broadcast)");
             }
             else
-            {   // Else: Assume unicast, but could also be a bcast for another subnet...
-                unicast_search_addresses.add(addr);
-                logger.log(Level.CONFIG, "Sending searches to " + addr.getAddress() + " port " + addr.getPort() + " (assume unicast)");
+            {
+                // Is it a bcast for another subnet, or a unicast?
+                // Can't easily tell if it's a bcast, but if it ends in 255
+                // then it very likely is
+                final byte[] elements = addr.getAddress().getAddress();
+                if (elements != null  &&
+                    elements.length > 0 &&
+                    Byte.toUnsignedInt(elements[elements.length-1]) == 255)
+                {
+                    broadcast_search_addresses.add(addr);
+                    logger.log(Level.CONFIG, "Sending searches to " + addr.getAddress() + " port " + addr.getPort() + " (assume broadcast)");
+                }
+                else
+                {
+                    // Assume unicast, but could also be a bcast for another subnet that has a netmask which doesn't end in 255
+                    unicast_search_addresses.add(addr);
+                    logger.log(Level.CONFIG, "Sending searches to " + addr.getAddress() + " port " + addr.getPort() + " (assume unicast)");
+                }
             }
         }
     }
@@ -278,7 +293,8 @@ class ChannelSearch
             send_buffer.rewind();
         }
 
-        // Clear broadcast flag
+        // Clear reply and unicast bits
+        // 0-bit for replyRequired, 7-th bit for "sent as unicast" (1)/"sent as broadcast/multicast" (0)
         send_buffer.put(payload_start+4, (byte) 0x00);
         for (InetSocketAddress addr : broadcast_search_addresses)
         {

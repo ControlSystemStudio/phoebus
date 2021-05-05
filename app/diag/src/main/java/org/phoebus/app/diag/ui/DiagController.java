@@ -18,7 +18,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
-import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 public class DiagController {

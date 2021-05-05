@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!--
+  ~ Copyright (C) 2020 European Spallation Source ERIC.
+  ~
+  ~  This program is free software; you can redistribute it and/or
+  ~  modify it under the terms of the GNU General Public License
+  ~  as published by the Free Software Foundation; either version 2
+  ~  of the License, or (at your option) any later version.
+  ~
+  ~  This program is distributed in the hope that it will be useful,
+  ~  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~  GNU General Public License for more details.
+  ~
+  ~  You should have received a copy of the GNU General Public License
+  ~  along with this program; if not, write to the Free Software
+  ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+  -->
+
+<GridPane hgap="10.0" vgap="10.0" xmlns="http://javafx.com/javafx/11.0.1"
+          xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="org.csstudio.display.builder.representation.javafx.actionsdialog.OpenDisplayActionDetailsController">
+   <columnConstraints>
+      <ColumnConstraints />
+      <ColumnConstraints />
+      <ColumnConstraints />
+   </columnConstraints>
+   <rowConstraints>
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+   </rowConstraints>
+   <children>
+      <Label fx:id="descriptionLabel" text="%ActionsDialog_Description" />
+      <TextField fx:id="description" text="Open Display" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" />
+      <Label fx:id="displayPathLabel" text="%ActionsDialog_DisplayPath" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+      <TextField fx:id="displayPath" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+      <Button fx:id="selectDisplay" text="..." GridPane.columnIndex="2" GridPane.rowIndex="1" onAction="#selectDisplayPath"/>
+
+      <HBox GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="2">
+         <children>
+            <RadioButton fx:id="replaceRadioButton" selected="true" text="Replace">
+               <HBox.margin>
+                  <Insets right="10.0" />
+               </HBox.margin></RadioButton>
+            <RadioButton fx:id="newTabRadioButton" text="New Tab">
+               <HBox.margin>
+                  <Insets right="10.0" />
+               </HBox.margin></RadioButton>
+            <RadioButton fx:id="newWindowRadioButton" text="New Window" />
+         </children>
+         <GridPane.margin>
+            <Insets bottom="5.0" top="5.0" />
+         </GridPane.margin>
+      </HBox>
+      <Label fx:id="paneLabel" text="Pane:" GridPane.rowIndex="3" />
+      <TextField fx:id="pane" disable="true" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" />
+      <VBox fx:id="macrosTablePlaceholder" maxHeight="1.7976931348623157E308" GridPane.columnIndex="0" GridPane.columnSpan="3" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS" />
+   </children>
+</GridPane>

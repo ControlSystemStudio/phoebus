@@ -7,13 +7,7 @@
  ******************************************************************************/
 package org.phoebus.applications.alarm.server;
 
-import java.time.Instant;
-
 import org.epics.vtype.Alarm;
-import org.epics.vtype.Time;
-import org.epics.vtype.VEnum;
-import org.epics.vtype.VNumber;
-import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 

@@ -11,7 +11,6 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 import org.csstudio.display.builder.model.properties.WidgetColor;
-import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.junit.Test;
 
 /** JUnit test of JFXUtil

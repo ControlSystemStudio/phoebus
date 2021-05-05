@@ -708,6 +708,17 @@ public class NodeJdbcDAO implements NodeDAO {
 		});
 	}
 
+	public List<Node> getAllSnapshots() {
+	    List<Node> snapshotList = jdbcTemplate.query("select * from node where type=?", new Object[] { NodeType.SNAPSHOT.toString() }, new NodeRowMapper());
+
+	    snapshotList.parallelStream().forEach(node -> {
+			node.setProperties(getProperties(node.getId()));
+			node.setTags(getTags(node.getUniqueId()));
+		});
+
+		return snapshotList;
+	}
+
 
 	public List<Node> getFromPath(String path){
 		if(path == null || !path.startsWith("/") || path.endsWith("/")){

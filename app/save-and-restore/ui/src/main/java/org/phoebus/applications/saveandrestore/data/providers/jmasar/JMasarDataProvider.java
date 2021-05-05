@@ -115,4 +115,9 @@ public class JMasarDataProvider implements DataProvider {
 	public List<Tag> getAllTags() {
 		return jmasarClient.getAllTags();
 	}
+
+	@Override
+	public List<Node> getAllSnapshots() {
+		return jmasarClient.getAllSnapshots();
+	}
 }

@@ -477,17 +477,13 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
     private class SelectionTreeTableColumnCell extends TreeTableCell<TreeTableEntry, TreeTableEntry> {
         private final CheckBox checkBox;
-        private final CheckBox nullCheckBox;
 
         private ObservableValue<Boolean> booleanProperty;
         private BooleanProperty indeterminateProperty;
+        private BooleanProperty disabledProperty;
 
         public SelectionTreeTableColumnCell() {
             checkBox = new CheckBox();
-
-            nullCheckBox = new CheckBox();
-            nullCheckBox.setDisable(true);
-            nullCheckBox.setSelected(false);
 
             setGraphic(null);
         }
@@ -500,11 +496,6 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                 setText(null);
                 setGraphic(null);
             } else {
-                if (!item.folder && item.tableEntry.readOnlyProperty().get()) {
-                    setGraphic(nullCheckBox);
-                    return;
-                }
-
                 setGraphic(checkBox);
 
                 if (booleanProperty instanceof BooleanProperty) {
@@ -515,11 +506,18 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                     checkBox.indeterminateProperty().unbindBidirectional(indeterminateProperty);
                 }
 
+                if (disabledProperty != null) {
+                    checkBox.disableProperty().unbindBidirectional(disabledProperty);
+                }
+
                 booleanProperty = item.selected;
                 checkBox.selectedProperty().bindBidirectional((BooleanProperty) booleanProperty);
 
                 indeterminateProperty = item.indeterminate;
                 checkBox.indeterminateProperty().bindBidirectional(indeterminateProperty);
+
+                disabledProperty = item.disabled;
+                checkBox.disableProperty().bindBidirectional(disabledProperty);
             }
         }
     }
@@ -598,7 +596,16 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
         } catch (Exception e) {
             e.printStackTrace();
 
-            LOGGER.severe("Unable to find " + getClass().getPackageName() + ".hierarchyparser." + parserClassName + "!");
+            LOGGER.severe("Unable to find " + getClass().getPackageName() + ".hierarchyparser." + parserClassName + "! Setting default RegexHierarchyParser!");
+            try {
+                parserClassName = "RegexHierarchyParser";
+                hierarchyParser = (IHierarchyParser) Class.forName(getClass().getPackageName() + ".hierarchyparser." + parserClassName).getConstructor().newInstance();
+
+            } catch (Exception ee) {
+                e.printStackTrace();
+
+                LOGGER.severe("Unable to find " + parserClassName + "! This is a serious issue!");
+            }
         }
 
         addEventHandler(KeyEvent.KEY_PRESSED, event -> {
@@ -612,7 +619,9 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                 return;
             }
 
-            selections.stream().forEach(item -> item.getValue().selected.setValue(!item.getValue().selected.get()));
+            selections.stream()
+                    .filter(item -> item.getValue().folder || !item.getValue().tableEntry.readOnlyProperty().get())
+                    .forEach(item -> item.getValue().selected.setValue(!item.getValue().selected.get()));
 
             // Somehow JavaFX TableView handles SPACE pressed event as going into edit mode of the cell.
             // Consuming event prevents NullPointerException.
@@ -637,6 +646,22 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                         contextMenu.getItems().clear();
                         SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME, selectedPVList);
                         ContextMenuHelper.addSupportedEntries(this, contextMenu);
+                        if (!item.folder) {
+                            MenuItem toggle = new MenuItem();
+                            toggle.setText(item.tableEntry.readOnlyProperty().get() ? "Make restorable" : "Make readonly");
+                            CheckBox toggleIcon = new CheckBox();
+                            toggleIcon.setFocusTraversable(false);
+                            toggleIcon.setSelected(item.tableEntry.readOnlyProperty().get());
+                            toggle.setGraphic(toggleIcon);
+                            toggle.setOnAction(actionEvent -> {
+                                item.tableEntry.readOnlyProperty().set(!item.tableEntry.readOnlyProperty().get());
+                                item.tableEntry.selectedProperty().set(!item.tableEntry.readOnlyProperty().get());
+                                item.tableEntry.readonlyOverrideProperty().set(!item.tableEntry.readonlyOverrideProperty().get());
+                            });
+
+                            contextMenu.getItems().add(new SeparatorMenuItem());
+                            contextMenu.getItems().add(toggle);
+                        }
                         contextMenu.show(this, event.getScreenX(), event.getScreenY());
                     });
                 }
@@ -680,10 +705,15 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                     TreeTableEntry signal = new TreeTableEntry(parsedPV.get(index), entry, parent);
                     signal.initializeEqualPropertyChangeListener(controller);
                     signal.initializeChangeListenerForColumnHeaderCheckBox(selectAllCheckBox);
-                    treeTableEntryItems.put(pvName, signal);
+                    signal.initializeReadonlyChangeListenerForToggle();
+                    treeTableEntryItems.put(getPVKey(pvName, entry.readOnlyProperty().get()^entry.readonlyOverrideProperty().get()), signal);
                 }
             }
         }
+    }
+
+    private String getPVKey(String pvName, boolean isReadonly) {
+        return pvName + "_" + isReadonly;
     }
 
     /**
@@ -777,13 +807,11 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
         storedValueColumn.setEditable(true);
         storedValueColumn.setOnEditCommit(e -> {
             TreeTableEntry treeTableEntry = e.getRowValue().getValue();
-            if (treeTableEntry.folder) {
-                return;
-            }
+            VType updatedValue = treeTableEntry.tableEntry.readOnlyProperty().get() ? e.getOldValue() : e.getNewValue();
 
             ObjectProperty<VTypePair> value = treeTableEntry.tableEntry.valueProperty();
-            value.setValue(new VTypePair(value.get().base, e.getNewValue(), value.get().threshold));
-            controller.updateSnapshot(0, e.getRowValue().getValue().tableEntry, e.getNewValue());
+            value.setValue(new VTypePair(value.get().base, updatedValue, value.get().threshold));
+            controller.updateSnapshot(0, e.getRowValue().getValue().tableEntry, updatedValue);
         });
 
         storedValueBaseColumn.getColumns().add(storedValueColumn);
@@ -912,13 +940,11 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
         storedBaseSetpointValueColumn.setEditable(true);
         storedBaseSetpointValueColumn.setOnEditCommit(e -> {
             TreeTableEntry treeTableEntry = e.getRowValue().getValue();
-            if (treeTableEntry.folder) {
-                return;
-            }
+            VType updatedValue = treeTableEntry.tableEntry.readOnlyProperty().get() ? e.getOldValue() : e.getNewValue();
 
             ObjectProperty<VTypePair> value = treeTableEntry.tableEntry.valueProperty();
-            value.setValue(new VTypePair(value.get().base, e.getNewValue(), value.get().threshold));
-            controller.updateSnapshot(0, e.getRowValue().getValue().tableEntry, e.getNewValue());
+            value.setValue(new VTypePair(value.get().base, updatedValue, value.get().threshold));
+            controller.updateSnapshot(0, e.getRowValue().getValue().tableEntry, updatedValue);
 
             for (int i = 1; i < snapshots.size(); i++) {
                 ObjectProperty<VTypePair> compareValue = e.getRowValue().getValue().tableEntry.compareValueProperty(i);
@@ -1118,7 +1144,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
         final boolean notHide = !controller.isHideEqualItems();
 
         entries.forEach(tableEntry -> {
-            TreeTableEntry treeTableEntry = treeTableEntryItems.get(tableEntry.pvNameProperty().get());
+            TreeTableEntry treeTableEntry = treeTableEntryItems.get(getPVKey(tableEntry.pvNameProperty().get(), tableEntry.readOnlyProperty().get()^tableEntry.readonlyOverrideProperty().get()));
             if (treeTableEntry != null) {
                 treeTableEntry.update(tableEntry);
                 if (notHide || !tableEntry.liveStoredEqualProperty().get()) {
@@ -1215,12 +1241,12 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
         private final HBox box;
         private final CheckBox checkBox;
-        private final CheckBox nullCheckBox;
         private final ImageView folderIconImageView = new ImageView(folderIcon);
 
         private ObservableValue<Boolean> booleanProperty;
 
         private BooleanProperty indeterminateProperty;
+        private BooleanProperty disabledProperty;
 
         public PVNameTreeTableCell() {
             getStyleClass().add("check-box-tree-table-cell");
@@ -1228,9 +1254,6 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
             box.setSpacing(5);
 
             checkBox = new CheckBox();
-            nullCheckBox = new CheckBox();
-            nullCheckBox.setDisable(true);
-            nullCheckBox.setSelected(false);
 
             setGraphic(null);
         }
@@ -1246,11 +1269,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                 setText(item.name);
 
                 box.getChildren().clear();
-                if (!item.folder && item.tableEntry.readOnlyProperty().get()) {
-                    box.getChildren().add(nullCheckBox);
-                } else {
-                    box.getChildren().add(checkBox);
-                }
+                box.getChildren().add(checkBox);
                 if (item.folder) {
                     box.getChildren().add(folderIconImageView);
                 }
@@ -1265,11 +1284,18 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                     checkBox.indeterminateProperty().unbindBidirectional(indeterminateProperty);
                 }
 
+                if (disabledProperty != null) {
+                    checkBox.disableProperty().unbindBidirectional(disabledProperty);
+                }
+
                 booleanProperty = item.selected;
                 checkBox.selectedProperty().bindBidirectional((BooleanProperty) booleanProperty);
 
                 indeterminateProperty = item.indeterminate;
                 checkBox.indeterminateProperty().bindBidirectional(indeterminateProperty);
+
+                disabledProperty = item.disabled;
+                checkBox.disableProperty().bindBidirectional(disabledProperty);
             }
         }
     }

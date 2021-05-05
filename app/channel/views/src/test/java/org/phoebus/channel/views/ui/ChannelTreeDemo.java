@@ -10,7 +10,6 @@ import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.XmlChannel;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;

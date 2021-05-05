@@ -7,7 +7,6 @@
       <src path="${src}"/>
       <classpath>
         <path refid="app-classpath"/>
-        <pathelement path="../utility/${build}/app-logbook-utility-${version}.jar"/>
       </classpath>
     </javac>
 

@@ -4,10 +4,13 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -17,6 +20,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * A utility class for parsing user defined resources
@@ -38,6 +47,50 @@ public class ResourceParser
     /** URI query tag used to specify the destination pane */
     private static final String TARGET_QUERY_TAG = "target=";
 
+    /** Used by trustAnybody() to only initialize once */
+    private static boolean trusting_anybody = false;
+
+    /** Allow https:// access to self-signed certificates
+     *  @throws Exception on error
+     */
+    // From Eric Berryman's code in org.csstudio.opibuilder.util.ResourceUtil.
+    public static synchronized void trustAnybody() throws Exception
+    {
+        if (trusting_anybody)
+            return;
+
+        // Create a trust manager that does not validate certificate chains.
+        final TrustManager[] trustAllCerts = new TrustManager[]
+        {
+            new X509TrustManager()
+            {
+                @Override
+                public void checkClientTrusted(X509Certificate[] arg0,
+                                               String arg1) throws CertificateException
+                { /* NOP */ }
+
+                @Override
+                public void checkServerTrusted(X509Certificate[] arg0,
+                                               String arg1) throws CertificateException
+                { /* NOP */ }
+
+                @Override
+                public X509Certificate[] getAcceptedIssuers()
+                {
+                    return null;
+                }
+            }
+        };
+        final SSLContext sc = SSLContext.getInstance("SSL");
+        sc.init(null, trustAllCerts, new java.security.SecureRandom());
+        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+        // All-trusting host name verifier
+        final HostnameVerifier allHostsValid = (hostname, session) -> true;
+        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+
+        trusting_anybody = true;
+    }
 
     /** Create URI for a resource
      *
@@ -126,8 +179,29 @@ public class ResourceParser
      */
     public static InputStream getContent(final URI resource) throws Exception
     {
+        // Check for https, but beware that scheme may be null
+        if ("https".equals(resource.getScheme()))
+            trustAnybody();
+
         final URL url = resource.toURL();
         return url.openStream();
+    }
+
+    /** Open a resource that can be read (file, web link) with timeout
+     *  @param resource URI for a resource
+     *  @param timeout_ms Read timeout [milliseconds]
+     *  @return {@link InputStream} for the content of the resource
+     *  @throws Exception on error: Not a URI that can be read
+     */
+    public static InputStream getContent(final URI resource, final int timeout_ms) throws Exception
+    {
+        if ("https".equals(resource.getScheme()))
+            trustAnybody();
+
+        final URL url = resource.toURL();
+        final URLConnection connection = url.openConnection();
+        connection.setReadTimeout(timeout_ms);
+        return connection.getInputStream();
     }
 
     /** Get list of PVs from a "pv://?PV1&PV2" type URL

@@ -190,6 +190,12 @@ public class TimeParserTest {
         assertEquals(3, instant.getEpochSecond());
         assertEquals(500000000, instant.getNano());
 
+        amount = TimeParser.parseTemporalAmount("3.5 ms");
+        System.out.println(TimeParser.format(amount));
+        instant = Instant.ofEpochSecond(0).plus(amount);
+        assertEquals(0, instant.getEpochSecond());
+        assertEquals(3500000, instant.getNano());
+
         amount = TimeParser.parseTemporalAmount("1.5 days");
         System.out.println(TimeParser.format(amount));
         instant = Instant.ofEpochSecond(0).plus(amount);

@@ -405,24 +405,30 @@ public class ValueHelper
         if (type == VBoolean.class) {
             if (new_value instanceof Boolean)
                 return VBoolean.of((Boolean) new_value, Alarm.none(), Time.now());
-            if (new_value instanceof Number)
-            {
-                try {
-                    int value = Integer.parseInt(Objects.toString(new_value));
-                    if (value == 0)
-                    {
+
+            try {
+                // Parse String values "true"/"false" and "0"/"1" to boolean true/false
+                if (new_value instanceof String) {
+                    if ("true".equalsIgnoreCase((String) new_value))
+                        return VBoolean.of(Boolean.TRUE, Alarm.none(), Time.now());
+                    else if ("false".equalsIgnoreCase((String) new_value))
                         return VBoolean.of(Boolean.FALSE, Alarm.none(), Time.now());
-                    } else
-                    {
+                    else if (Integer.parseInt(String.valueOf(new_value)) != 0)
+                        return VBoolean.of(Boolean.TRUE, Alarm.none(), Time.now());
+                    else
+                        return VBoolean.of(Boolean.FALSE, Alarm.none(), Time.now());
+                }
+                // Parse Numerical values 0 to true and all other values to false
+                else if (new_value instanceof Number) {
+                    int value = Integer.parseInt(Objects.toString(new_value));
+                    if (value == 0) {
+                        return VBoolean.of(Boolean.FALSE, Alarm.none(), Time.now());
+                    } else {
                         return VBoolean.of(Boolean.TRUE, Alarm.none(), Time.now());
                     }
-                } catch (NumberFormatException ex) {
-                    throw new Exception("Cannot parse boolean from '" + new_value + "'");
                 }
-            }
-            if (new_value instanceof String)
-            {
-                return VBoolean.of(Boolean.parseBoolean(String.valueOf(new_value)), Alarm.none(), Time.now());
+            } catch (NumberFormatException ex) {
+                throw new Exception("Cannot parse boolean from '" + new_value + "'");
             }
         }
 

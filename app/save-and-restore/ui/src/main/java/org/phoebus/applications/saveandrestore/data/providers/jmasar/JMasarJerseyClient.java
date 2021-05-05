@@ -82,8 +82,8 @@ public class JMasarJerseyClient implements JMasarClient{
     @Override
     public Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment){
         WebResource webResource = client.resource(jmasarServiceUrl + "/snapshot/" + configUniqueId)
-                .queryParam("snapshotName", snapshotName)
-                .queryParam("comment", comment)
+                .queryParam("snapshotName", snapshotName.replaceAll("%", "%25"))
+                .queryParam("comment", comment.replaceAll("%", "%25"))
                 .queryParam("userName", getCurrentUsersName());
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(snapshotItems, CONTENT_TYPE_JSON)
@@ -202,5 +202,11 @@ public class JMasarJerseyClient implements JMasarClient{
     public List<Tag> getAllTags() {
         ClientResponse response = getCall("/tags");
         return response.getEntity(new GenericType<List<Tag>>(){});
+    }
+
+    @Override
+    public List<Node> getAllSnapshots() {
+        ClientResponse response = getCall("/snapshots");
+        return response.getEntity(new GenericType<List<Node>>(){});
     }
 }

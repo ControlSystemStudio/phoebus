@@ -236,8 +236,30 @@ public class WidgetRuntime<MW extends Widget>
 
         widget.propClass().addPropertyListener(update_widget_class);
 
-        // Start scripts in pool because Jython setup is expensive
-        RuntimeUtil.getExecutor().execute(this::startScripts);
+        if (hasScripts())
+            // Start scripts in pool because Jython setup is expensive
+            RuntimeUtil.getExecutor().execute(this::startScripts);
+        else
+            started.countDown();
+    }
+
+    /** Are Scripts or Rules defined for Widget? */
+    private boolean hasScripts()
+    {
+        if (widget.propScripts().getValue().size() > 0)
+            return true;
+        if (widget.propRules().getValue().size() > 0)
+            return true;
+        final List<ActionInfo> actions = widget.propActions().getValue().getActions();
+        if (actions.size() > 0)
+        {
+            for (ActionInfo action_info : actions)
+            {
+                if (action_info instanceof ExecuteScriptActionInfo)
+                    return true;
+            }
+        }
+        return false;
     }
 
     /** Start Scripts */

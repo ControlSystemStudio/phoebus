@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -36,8 +36,8 @@ import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.core.BackpressureStrategy;
+import io.reactivex.rxjava3.disposables.Disposable;
 
 /** Alarm tree leaf
  *
@@ -130,6 +130,8 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     @Override
     public AlarmState getState()
     {
+        if (logic == null)
+            throw new NullPointerException(getPathName() + " logic == null");
         return logic.getAlarmState();
     }
 
@@ -390,21 +392,28 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     /** @param value Value received from PV */
     private void handleValueUpdate(final VType value)
     {
-        if (PV.isDisconnected(value))
+        try
         {
-            disconnected();
-            return;
+            if (PV.isDisconnected(value))
+            {
+                disconnected();
+                return;
+            }
+            // Inspect alarm state of received value
+            is_connected = true;
+            final SeverityLevel new_severity = SeverityLevelHelper.decodeSeverity(value);
+            final String new_message = SeverityLevelHelper.getStatusMessage(value);
+            final AlarmState received = new AlarmState(new_severity, new_message,
+                                                       VTypeHelper.toString(value),
+                                                       VTypeHelper.getTimestamp(value));
+            // Update alarm logic
+            logic.computeNewState(received);
+            logger.log(Level.FINER, () -> getPathName() + " received " + value + " -> " + logic);
         }
-        // Inspect alarm state of received value
-        is_connected = true;
-        final SeverityLevel new_severity = SeverityLevelHelper.decodeSeverity(value);
-        final String new_message = SeverityLevelHelper.getStatusMessage(value);
-        final AlarmState received = new AlarmState(new_severity, new_message,
-                                                   VTypeHelper.toString(value),
-                                                   VTypeHelper.getTimestamp(value));
-        // Update alarm logic
-        logic.computeNewState(received);
-        logger.log(Level.FINER, () -> getPathName() + " received " + value + " -> " + logic);
+        catch (Throwable ex)
+        {
+            throw new RuntimeException(getPathName() + " failed to handle update " + value, ex);
+        }
     }
 
     /** Handle fact that PV disconnected */

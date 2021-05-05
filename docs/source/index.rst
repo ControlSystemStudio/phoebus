@@ -17,6 +17,7 @@ User Documentation:
    running
    docking
    preferences
+   logging
    persistence
    authorization
    applications
@@ -28,6 +29,7 @@ Developer Documentation:
    :maxdepth: 1
 
    develop
+   phoebus_product
    architecture
    locations
    help_system

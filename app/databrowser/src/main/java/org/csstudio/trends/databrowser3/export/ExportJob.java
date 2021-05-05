@@ -50,6 +50,7 @@ abstract public class ExportJob implements JobRunnable
     final protected Consumer<Exception> error_handler;
     /** Active readers, used to cancel and close them */
     final private CopyOnWriteArrayList<ArchiveReader> archive_readers = new CopyOnWriteArrayList<ArchiveReader>();
+    final protected boolean unixTimeStamp;
 
     /** Thread that polls a progress monitor and cancels active archive readers
      *  if the user requests the export job to end via the progress monitor
@@ -96,12 +97,14 @@ abstract public class ExportJob implements JobRunnable
      *                  or <code>null</code> if <code>performExport</code>
      *                  handles the file
      *  @param error_handler Callback for errors
+     * @param unixTimeStamp If <code>true</code>, time stamps are UNIX style, i.e. ms since EPOCH. Defaults to false.
      */
     public ExportJob(final String comment, final Model model,
         final Instant start, final Instant end, final Source source,
         final double optimize_parameter,
         final String filename,
-        final Consumer<Exception> error_handler)
+        final Consumer<Exception> error_handler,
+         final boolean unixTimeStamp)
     {
         this.comment = comment;
         this.model = model;
@@ -111,6 +114,7 @@ abstract public class ExportJob implements JobRunnable
         this.optimize_parameter = optimize_parameter;
         this.filename = filename;
         this.error_handler = error_handler;
+        this.unixTimeStamp = unixTimeStamp;
     }
 
     /** Job's main routine
@@ -178,7 +182,7 @@ abstract public class ExportJob implements JobRunnable
      */
     protected void printItemInfo(final PrintStream out, final ModelItem item)
     {
-        out.println(comment + "Channel: " + item.getName());
+        out.println(comment + "Channel: " + item.getResolvedName());
         // If display name differs from PV, show the _resolved_ version
         if (! item.getName().equals(item.getDisplayName()))
             out.println(comment + "Name   : " + item.getResolvedDisplayName());
@@ -220,10 +224,10 @@ abstract public class ExportJob implements JobRunnable
             {
                 ValueIterator iter;
                 if (source == Source.OPTIMIZED_ARCHIVE  &&  optimize_parameter > 1)
-                    iter = reader.getOptimizedValues(item.getName(), start, end, (int)optimize_parameter);
+                    iter = reader.getOptimizedValues(item.getResolvedName(), start, end, (int)optimize_parameter);
                 else
                 {
-                    iter = reader.getRawValues(item.getName(), start, end);
+                    iter = reader.getRawValues(item.getResolvedName(), start, end);
                     if (source == Source.LINEAR_INTERPOLATION && optimize_parameter >= 1)
                         iter = new LinearValueIterator(iter, TimeDuration.ofSeconds(optimize_parameter));
                 }
@@ -232,7 +236,7 @@ abstract public class ExportJob implements JobRunnable
             }
             catch (Exception ex)
             {
-                Logger.getLogger(getClass().getName()).log(Level.FINE, "Export error for " + item.getName(), ex);
+                Logger.getLogger(getClass().getName()).log(Level.FINE, "Export error for " + item.getResolvedName(), ex);
                 if (error == null)
                     error = ex;
             }

@@ -109,3 +109,7 @@
 .custom-menu-item:focused #trashcan {
     visibility: visible;
 }
+
+.stand-out-mandatory {
+    -fx-text-fill: red;
+}

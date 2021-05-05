@@ -52,8 +52,6 @@ public class Export
         System.out.println("General command-line options:");
         System.out.println("-help                                    -  This text");
         System.out.println("-settings settings.xml                   -  Import settings from file, either exported XML or property file format");
-        System.out.println("-archives                                -  Set archive URLs, separated by '*'");
-        System.out.println();
         System.out.println("Archive Information options:");
         System.out.println("-list [pattern]                          -  List channel names, with optional pattern ('.', '*')");
         System.out.println();
@@ -65,6 +63,7 @@ public class Export
         System.out.println("-decimal precision                       -  Decimal format with given precision");
         System.out.println("-exponential precision                   -  Exponential format with given precision");
         System.out.println("-nostate                                 -  Do not include status/severity in tab-separated file");
+        System.out.println("-unixTimeStamp                           -  Use UNIX time stamp (in ms) instead of formatted date/time");
         System.out.println("-export /path/to/file channel <channels> -  Export data for one or more channels into file");
 
         System.out.println();
@@ -95,6 +94,7 @@ public class Export
         boolean with_status = true;
 
         String export = null;
+        boolean useUnixTimeStamp = false;
         final Iterator<String> iter = args.iterator();
         while (iter.hasNext())
         {
@@ -132,6 +132,11 @@ public class Export
             else if (cmd.startsWith("-nos"))
             {
                 with_status = false;
+                iter.remove();
+            }
+            else if (cmd.startsWith("-unix"))
+            {
+                useUnixTimeStamp = true;
                 iter.remove();
             }
             else if (cmd.startsWith("-b"))
@@ -297,17 +302,25 @@ public class Export
             if (export.endsWith(".mat"))
             {
                 System.out.println("# Creating binary MatLab data file");
-                job = new MatlabFileExportJob(model, abs_range.getStart(), abs_range.getEnd(), source, optimize_parameter, export, error_handler);
+                job = new MatlabFileExportJob(model, abs_range.getStart(), abs_range.getEnd(), source, optimize_parameter, export, error_handler, useUnixTimeStamp);
             }
             else if (export.endsWith(".m"))
             {
                 System.out.println("# Creating MatLab file");
-                job = new MatlabScriptExportJob(model, abs_range.getStart(), abs_range.getEnd(), source, optimize_parameter, export, error_handler);
+                job = new MatlabScriptExportJob(model, abs_range.getStart(), abs_range.getEnd(), source, optimize_parameter, export, error_handler, useUnixTimeStamp);
             }
             else
             {
                 System.out.println("# Creating tab-separated file");
-                job = new SpreadsheetExportJob(model, abs_range.getStart(), abs_range.getEnd(), source, optimize_parameter, formatter, export, error_handler);
+                job = new SpreadsheetExportJob(model,
+                        abs_range.getStart(),
+                        abs_range.getEnd(),
+                        source,
+                        optimize_parameter,
+                        formatter,
+                        export,
+                        error_handler,
+                        useUnixTimeStamp);
             }
 
             final BasicJobMonitor monitor = new BasicJobMonitor()

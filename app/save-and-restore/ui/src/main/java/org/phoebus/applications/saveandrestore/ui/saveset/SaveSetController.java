@@ -33,6 +33,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
@@ -69,6 +70,9 @@ public class SaveSetController implements NodeChangedListener {
 
 	@FXML
 	private TableView<ConfigPv> pvTable;
+
+	@FXML
+	private Label commentLabel;
 
 	@FXML
 	private TextArea commentTextArea;
@@ -129,7 +133,16 @@ public class SaveSetController implements NodeChangedListener {
 			}
 		});
 
+		commentLabel.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+		commentLabel.getStyleClass().add("stand-out-mandatory");
 		commentTextArea.textProperty().bindBidirectional(saveSetCommentProperty);
+		commentTextArea.textProperty().addListener((observableValue, oldvalue, newValue) -> {
+		    if (newValue.isEmpty()) {
+				commentLabel.getStyleClass().add("stand-out-mandatory");
+			} else {
+				commentLabel.getStyleClass().remove("stand-out-mandatory");
+			}
+		});
 
 		pvTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		pvTable.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> {

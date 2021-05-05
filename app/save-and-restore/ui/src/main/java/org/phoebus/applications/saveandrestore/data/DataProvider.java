@@ -54,4 +54,6 @@ public interface DataProvider {
 	public Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment);
 
 	public List<Tag> getAllTags();
+
+	public List<Node> getAllSnapshots();
 }

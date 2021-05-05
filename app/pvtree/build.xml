@@ -8,8 +8,6 @@
       <src path="${test}"/>
       <classpath>
         <path refid="app-classpath"/>
-        <pathelement path="../logbook/ui/${build}/app-logbook-ui-${version}.jar"/>
-        <pathelement path="../email/${build}/app-email-${version}.jar"/>
       </classpath>
     </javac>
  

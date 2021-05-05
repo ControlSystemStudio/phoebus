@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -32,7 +32,9 @@ import org.phoebus.ui.docking.SplitDock;
 import org.phoebus.ui.javafx.UpdateThrottle;
 
 import javafx.application.Platform;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 /** Helper for persisting UI to/from memento
@@ -165,6 +167,24 @@ public class MementoHelper
         stage_memento.getNumber(Y).ifPresent(num -> stage.setY(num.doubleValue()));
         stage_memento.getNumber(WIDTH).ifPresent(num -> stage.setWidth(num.doubleValue()));
         stage_memento.getNumber(HEIGHT).ifPresent(num -> stage.setHeight(num.doubleValue()));
+
+        // Check if stage is visible.
+        // Memento might have been stored when a secondary monitor was connected
+        // or on a different host with larger display, but saved location is outside
+        // of currently connected displays.
+        // Mac OS might relocate them on its own,
+        // but at least in Windows 10 such stages are then off-screen and hard to get.
+        final List<Screen> match = Screen.getScreensForRectangle(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
+        if (match.isEmpty())
+        {
+            logger.log(Level.WARNING, "Relocating restored stage from X=" + stage.getX() + " Y=" + stage.getY() + " to primary screen");
+            final Rectangle2D relocate = Screen.getPrimary().getVisualBounds();
+            // Move to top-left corner of primary screen so it's visible.
+            // Keep size to minimize impact on saved layout.
+            stage.setX(relocate.getMinX());
+            stage.setY(relocate.getMinY());
+        }
+
         stage.show();
         stage_memento.getBoolean(FULLSCREEN).ifPresent(flag -> stage.setFullScreen(flag));
         stage_memento.getBoolean(MAXIMIZED).ifPresent(flag -> stage.setMaximized(flag));
@@ -346,9 +366,9 @@ public class MementoHelper
     }
 
     /** Close a DockPane or SplitDock and all tabs held within.
-     * 
+     *
      *  <p>Dock items must have been prepared to close.
-     *  
+     *
      *  @param node Node, either a dock item or split pane, that will be closed.
      *  @return boolean <code>true</code> if all the tabs close successfully.
      */

@@ -19,19 +19,19 @@
     <ant target="clean" dir="core/logbook"/>
     <ant target="clean" dir="core/launcher"/>
     <ant target="clean" dir="app/diag"/>
-    <ant target="clean" dir="app/email"/>
+    <ant target="clean" dir="app/email/ui"/>
     <ant target="clean" dir="app/errlog"/>
     <ant target="clean" dir="app/filebrowser"/>
     <ant target="clean" dir="app/probe"/>
     <ant target="clean" dir="app/logbook/inmemory"/>
-    <ant target="clean" dir="app/logbook/utility"/>
     <ant target="clean" dir="app/logbook/ui"/>
     <ant target="clean" dir="app/log-configuration"/>
     <ant target="clean" dir="app/pvtree"/>
     <ant target="clean" dir="app/pvtable"/>
     <ant target="clean" dir="app/rtplot"/>
     <ant target="clean" dir="app/databrowser"/>
-    <ant target="clean" dir="app/trends/rich-context-menu"/>
+    <ant target="clean" dir="app/trends/rich-adapters"/>
+    <ant target="clean" dir="app/trends/simple-adapters"/>
     <ant target="clean" dir="app/3d-viewer"/>
     <ant target="clean" dir="app/perfmon"/>
     <ant target="clean" dir="app/pace"/>
@@ -43,6 +43,7 @@
     <ant target="clean" dir="app/display/editor"/>
     <ant target="clean" dir="app/display/convert-medm"/>
     <ant target="clean" dir="app/display/convert-edm"/>
+    <ant target="clean" dir="app/display/adapters"/>
     <ant target="clean" dir="app/scan/model"/>
     <ant target="clean" dir="app/scan/client"/>
     <ant target="clean" dir="app/scan/ui"/>
@@ -55,6 +56,7 @@
     <ant target="clean" dir="app/channel/channelfinder"/>
     <ant target="clean" dir="app/channel/utility"/>
     <ant target="clean" dir="app/channel/views"/>
+    <ant target="clean" dir="app/utility/preference-manager"/>
     <ant target="clean" dir="phoebus-product"/>
     <ant target="clean" dir="services/scan-server"/>
     <ant target="clean" dir="services/alarm-server"/>
@@ -94,19 +96,19 @@
 
   <target name="app" depends="core" description="Build app modules">
     <ant dir="app/diag"/>
-    <ant dir="app/email"/>
+    <ant dir="app/email/ui"/>
     <ant dir="app/errlog"/>
     <ant dir="app/filebrowser"/>
     <ant dir="app/probe"/>
     <ant dir="app/logbook/inmemory"/>
-    <ant dir="app/logbook/utility"/>
     <ant dir="app/logbook/ui"/>
     <ant dir="app/log-configuration"/>
     <ant dir="app/pvtree"/>
     <ant dir="app/pvtable"/>
     <ant dir="app/rtplot"/>
     <ant dir="app/databrowser"/>
-    <ant dir="app/trends/rich-context-menu"/>
+    <ant dir="app/trends/rich-adapters"/>
+    <ant dir="app/trends/simple-adapters"/>
     <ant dir="app/3d-viewer"/>
     <ant dir="app/perfmon"/>
     <ant dir="app/pace"/>
@@ -118,6 +120,7 @@
     <ant dir="app/display/editor"/>
     <ant dir="app/display/convert-medm"/>
     <ant dir="app/display/convert-edm"/>
+    <ant dir="app/display/adapters"/>
     <ant dir="app/scan/model"/>
     <ant dir="app/scan/client"/>
     <ant dir="app/scan/ui"/>
@@ -130,6 +133,7 @@
     <ant dir="app/channel/channelfinder"/>
     <ant dir="app/channel/utility"/>
     <ant dir="app/channel/views"/>
+    <ant dir="app/utility/preference-manager"/>
   </target>
 
   <target name="product" depends="app" description="Assemble product">

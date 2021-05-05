@@ -1,0 +1,22 @@
+<project default="app-display-adapters">
+  <import file="../../../dependencies/ant_settings.xml"/>
+
+  <target name="app-display-adapters">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}" debug="${debug}">
+      <src path="${src}"/>
+      <classpath>
+        <path refid="app-classpath"/>
+        <pathelement path="../../email/ui/${build}/app-email-ui-${version}.jar"/>
+        <pathelement path="../../logbook/ui/${build}/app-logbook-ui-${version}.jar"/>
+        <pathelement path="../runtime/${build}/app-display-runtime-${version}.jar"/>
+      </classpath>
+    </javac>
+
+    <jar destfile="${build}/app-display-adapters-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+
+</project>

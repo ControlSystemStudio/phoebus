@@ -42,7 +42,7 @@ public class AlarmConfigLoggingService {
         System.out.println("Command-line arguments:");
         System.out.println();
         System.out.println("-help                                      - This text");
-        System.out.println("-topics   Accelerator                      - Alarm topics whoes assocaited configuration is to be logged, they can be defined as a comma separated list");
+        System.out.println("-topics   Accelerator                      - Alarm topics who's associated configuration is to be logged, they can be defined as a comma or colon separated list");
         System.out.println("-bootstrap.servers localhost:9092          - Kafka server address");
         System.out.println("-repo.location /tmp/alarm_repo             - Location of the alarm configuration repository");
         System.out.println("-remote.location https://remote.git/repo   - Location of the remote git alarm configuration repository");
@@ -151,7 +151,8 @@ public class AlarmConfigLoggingService {
         logger.info("Alarm Logging Service (PID " + ProcessHandle.current().pid() + ")");
         // Read list of Topics
         logger.info("Starting logger for: " + properties.getProperty("alarm_topics"));
-        List<String> topicNames = Arrays.asList(properties.getProperty("alarm_topics").split(":"));
+        // Topics should be comma separated, but support colon for the sake of backwards compatibility
+        List<String> topicNames = Arrays.asList(properties.getProperty("alarm_topics").split("[,:]"));
 
         String location = properties.getProperty("local.location");
         String remoteLocation = properties.getProperty("remote.location");

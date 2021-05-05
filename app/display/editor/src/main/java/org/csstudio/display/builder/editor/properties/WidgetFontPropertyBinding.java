@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -49,6 +49,12 @@ public class WidgetFontPropertyBinding
                 return;
             }
         }
+        // When editing just one widget,
+        // enable the 'OK' button if the font is actually changed.
+        // When editing multiple widgets, enable 'OK' after any change,
+        // even when later changed back to the original value,
+        // since the goal might be to apply that font to all widgets.
+        final boolean ok_on_any_change = !other.isEmpty();
         popover = new WidgetFontPopOver(widget_property, font ->
         {
             undo.execute(new SetWidgetPropertyAction<>(widget_property, font));
@@ -61,7 +67,7 @@ public class WidgetFontPropertyBinding
                     undo.execute(new SetWidgetPropertyAction<>(other_prop, font));
                 }
             }
-        });
+        }, ok_on_any_change);
 
         popover.show(jfx_node);
     };

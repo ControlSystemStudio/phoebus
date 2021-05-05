@@ -10,11 +10,6 @@
  */
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -24,14 +19,25 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import org.epics.vtype.*;
-import org.phoebus.applications.saveandrestore.ui.SingleListenerBooleanProperty;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VEnumArray;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.Utilities;
+import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.ui.SingleListenerBooleanProperty;
 import org.phoebus.applications.saveandrestore.ui.model.Threshold;
 import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.model.VNoData;
 import org.phoebus.applications.saveandrestore.ui.model.VTypePair;
-import org.phoebus.applications.saveandrestore.model.ConfigPv;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 /**
  *
@@ -71,6 +77,8 @@ public class TableEntry {
     private final List<ObjectProperty<VTypePair>> compareStoredReadbacks = new ArrayList<>();
     private Optional<Threshold<?>> threshold = Optional.empty();
     private final BooleanProperty readOnly = new SimpleBooleanProperty(this,"readOnly",false);
+
+    private final BooleanProperty readonlyOverride = new SimpleBooleanProperty(false);
 
     //private final ObjectProperty<ConfigPv> configPvObjectProperty = new SimpleObjectProperty<>(this, "configPv", null);
 
@@ -206,6 +214,13 @@ public class TableEntry {
      */
     public BooleanProperty readOnlyProperty() {
         return readOnly;
+    }
+
+    /**
+     * @return the property indicating the the PV has read only setting overriden
+     */
+    public BooleanProperty readonlyOverrideProperty() {
+        return readonlyOverride;
     }
 
     /**

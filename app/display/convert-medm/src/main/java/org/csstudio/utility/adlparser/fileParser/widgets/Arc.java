@@ -103,8 +103,8 @@ public class Arc extends ADLAbstractWidget {
         if (_hasObject) ret.add( _adlObject);
         if (_hasBasicAttribute) ret.add( _adlBasicAttribute);
         if (_hasDynamicAttribute) ret.add( _adlDynamicAttribute);
-        ret.add(new ADLResource(ADLResource.ARC_BEGIN_ANGLE, new Integer(_begin)));
-        ret.add(new ADLResource(ADLResource.ARC_PATH_ANGLE, new Integer(_path)));
+        ret.add(new ADLResource(ADLResource.ARC_BEGIN_ANGLE, Integer.valueOf(_begin)));
+        ret.add(new ADLResource(ADLResource.ARC_PATH_ANGLE, Integer.valueOf(_path)));
         return ret.toArray();
     }
 

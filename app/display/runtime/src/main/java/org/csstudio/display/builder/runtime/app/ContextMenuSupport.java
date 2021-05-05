@@ -7,13 +7,14 @@
  *******************************************************************************/
 package org.csstudio.display.builder.runtime.app;
 
-import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.logging.Level;
-
+import javafx.collections.ObservableList;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -33,29 +34,26 @@ import org.csstudio.display.builder.runtime.RuntimeAction;
 import org.csstudio.display.builder.runtime.RuntimeUtil;
 import org.csstudio.display.builder.runtime.WidgetRuntime;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
-import org.phoebus.applications.email.actions.SendEmailAction;
 import org.phoebus.core.types.ProcessVariable;
-import org.phoebus.email.EmailPreferences;
+import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
-import org.phoebus.logbook.ui.LogbookUiPreferences;
-import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.PrintAction;
-import org.phoebus.ui.javafx.Screenshot;
+import org.phoebus.ui.spi.ContextMenuEntry;
 
-import javafx.collections.ObservableList;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.logging.Level;
+
+import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
 /** Context menu for a widget or the display
  *  @author Kay Kasemir
@@ -217,15 +215,31 @@ class ContextMenuSupport
                 display_info = "Display '" + name + "'";
             else
                 display_info = "Display '" + name + "' (" + input + ")";
+
+            // Add context menu actions based on the selection (i.e. email, logbook, etc...)
+            final Selection originalSelection = SelectionService.getInstance().getSelection();
+            final List<SelectionInfo> newSelection = Arrays.asList(SelectionInfo.forModel(model, model_parent));
+            SelectionService.getInstance().setSelection(DisplayRuntimeApplication.NAME, newSelection);
+            List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+            supported.stream().forEach(action -> {
+                MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
+                menuItem.setOnAction((e) -> {
+                    try {
+                        SelectionService.getInstance().setSelection(DisplayRuntimeApplication.NAME, newSelection);
+                        action.call(model_parent, SelectionService.getInstance().getSelection());
+                    } catch (Exception ex) {
+                        logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from display builder.", ex);
+                    }
+                });
+                items.add(menuItem);
+            });
+            SelectionService.getInstance().setSelection(DisplayRuntimeApplication.NAME, originalSelection);
         }
         catch (Exception ex)
         {
             display_info = "See attached display";
         }
-        if (EmailPreferences.isEmailSupported())
-            items.add(new SendEmailAction(model_parent, "Display Screenshot", display_info, () ->  Screenshot.imageFromNode(model_parent)));
-        if (LogbookUiPreferences.is_supported)
-            items.add(new SendLogbookAction(model_parent, "Display Screenshot", display_info, () ->  Screenshot.imageFromNode(model_parent)));
+
         items.add(new SeparatorMenuItem());
 
         items.add(new DisplayToolbarAction(instance));

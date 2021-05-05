@@ -19,7 +19,6 @@
 
 package org.phoebus.logbook.ui.write;
 
-import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -32,8 +31,6 @@ import javafx.stage.Stage;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.ui.Messages;
 
-import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;

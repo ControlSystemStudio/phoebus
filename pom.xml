@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.phoebus</groupId>
   <artifactId>parent</artifactId>
-  <version>4.6.5-SNAPSHOT</version>
+  <version>4.6.6-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>phoebus (parent)</name>
 
@@ -12,22 +12,17 @@
   </scm>
 
   <distributionManagement>
-    <snapshotRepository>
-      <id>artifactory</id>
-      <name>ESS Artifactory Snapshot repository</name>
-      <url>https://artifactory.esss.lu.se/artifactory/libs-snapshot-local</url>
-    </snapshotRepository>
     <repository>
-      <id>artifactory</id>
-      <name>ESS Artifactory Release repository</name>
-      <url>https://artifactory.esss.lu.se/artifactory/libs-release-local</url>
+      <id>github</id>
+      <name>GitHub Packages</name>
+      <url>https://maven.pkg.github.com/ControlSystemStudio/phoebus</url>
     </repository>
   </distributionManagement>
 
   <properties>
     <epics.version>7.0.7</epics.version>
     <vtype.version>1.0.4</vtype.version>
-    <openjfx.version>15</openjfx.version>
+    <openjfx.version>16</openjfx.version>
     <jackson.version>2.10.1</jackson.version>
     <batik.version>1.12</batik.version>
     <mockito.version>2.23.4</mockito.version>
@@ -49,6 +44,19 @@
         <configuration>
           <source>11</source>
           <target>11</target>
+          <fork>true</fork>
+          <compilerArgs>
+            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
+            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
+            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
+            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED</arg>
+            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED</arg>
+            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED</arg>
+            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</arg>
+            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</arg>
+            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
+            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.jvm=ALL-UNNAMED</arg>
+          </compilerArgs>
         </configuration>
       </plugin>
       <plugin>
@@ -189,7 +197,7 @@
           <plugin>
             <groupId>kr.motd.maven</groupId>
             <artifactId>sphinx-maven-plugin</artifactId>
-            <version>2.6.0</version>
+            <version>2.10.0</version>
             <configuration>
               <sourceDirectory>${basedir}/docs/source</sourceDirectory>
               <outputDirectory>${basedir}/docs/build/html</outputDirectory>

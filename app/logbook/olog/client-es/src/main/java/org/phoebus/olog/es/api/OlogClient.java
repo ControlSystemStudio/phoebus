@@ -18,10 +18,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
@@ -44,7 +41,6 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
-import com.sun.jersey.client.urlconnection.HTTPSProperties;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import com.sun.jersey.multipart.FormDataBodyPart;
 import com.sun.jersey.multipart.FormDataMultiPart;
@@ -53,11 +49,12 @@ import com.sun.jersey.multipart.impl.MultiPartWriter;
 import org.phoebus.olog.es.api.model.OlogObjectMappers;
 import org.phoebus.olog.es.api.model.OlogAttachment;
 import org.phoebus.olog.es.api.model.OlogLog;
+import org.phoebus.security.managers.DummyX509TrustManager;
 
 /**
  * A client to the Olog-es webservice
  *
- * @author Eric Berryman taken from shroffk
+ * @author Kunal Shroff
  */
 public class OlogClient implements LogClient {
     private static final Logger logger = Logger.getLogger(OlogClient.class.getName());
@@ -77,7 +74,6 @@ public class OlogClient implements LogClient {
         private boolean withHTTPAuthentication = true;
 
         private ClientConfig clientConfig = null;
-        private TrustManager[] trustManager = new TrustManager[] { new DummyX509TrustManager() };;
         @SuppressWarnings("unused")
         private SSLContext sslContext = null;
         private String protocol = null;
@@ -92,11 +88,6 @@ public class OlogClient implements LogClient {
             this.protocol = this.ologURI.getScheme();
         }
 
-        private OlogClientBuilder(URI uri) {
-            this.ologURI = uri;
-            this.protocol = this.ologURI.getScheme();
-        }
-
         /**
          * Creates a {@link OlogClientBuilder} for a CF client to Default URL in the
          * channelfinder.properties.
@@ -105,27 +96,6 @@ public class OlogClient implements LogClient {
          */
         public static OlogClientBuilder serviceURL() {
             return new OlogClientBuilder();
-        }
-
-        /**
-         * Creates a {@link OlogClientBuilder} for a CF client to URI <code>uri</code>.
-         *
-         * @param uri
-         * @return {@link OlogClientBuilder}
-         */
-        public static OlogClientBuilder serviceURL(String uri) {
-            return new OlogClientBuilder(URI.create(uri));
-        }
-
-        /**
-         * Creates a {@link OlogClientBuilder} for a CF client to {@link URI}
-         * <code>uri</code>.
-         *
-         * @param uri
-         * @return {@link OlogClientBuilder}
-         */
-        public static OlogClientBuilder serviceURL(URI uri) {
-            return new OlogClientBuilder(uri);
         }
 
         /**
@@ -161,32 +131,9 @@ public class OlogClient implements LogClient {
             return this;
         }
 
-        /**
-         * set the {@link ClientConfig} to be used while creating the Olog-es
-         * client connection.
-         *
-         * @param clientConfig
-         * @return {@link OlogClientBuilder}
-         */
-        public OlogClientBuilder withClientConfig(ClientConfig clientConfig) {
-            this.clientConfig = clientConfig;
-            return this;
-        }
-
         @SuppressWarnings("unused")
         private OlogClientBuilder withSSLContext(SSLContext sslContext) {
             this.sslContext = sslContext;
-            return this;
-        }
-
-        /**
-         * Set the trustManager that should be used for authentication.
-         *
-         * @param trustManager
-         * @return {@link OlogClientBuilder}
-         */
-        public OlogClientBuilder withTrustManager(TrustManager[] trustManager) {
-            this.trustManager = trustManager;
             return this;
         }
 
@@ -194,22 +141,9 @@ public class OlogClient implements LogClient {
             if (this.protocol.equalsIgnoreCase("http")) { //$NON-NLS-1$
                 this.clientConfig = new DefaultClientConfig();
             } else if (this.protocol.equalsIgnoreCase("https")) { //$NON-NLS-1$
+                OlogTrustManager.setupSSLTrust(this.ologURI.getHost(), this.ologURI.getPort());
                 if (this.clientConfig == null) {
-                    SSLContext sslContext = null;
-                    try {
-                        sslContext = SSLContext.getInstance("SSL"); //$NON-NLS-1$
-                        sslContext.init(null, this.trustManager, null);
-                    } catch (Exception e) {
-                        throw new OlogException();
-                    }
                     this.clientConfig = new DefaultClientConfig();
-                    this.clientConfig.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES,
-                            new HTTPSProperties(new HostnameVerifier() {
-                                @Override
-                                public boolean verify(String arg0, SSLSession arg1) {
-                                    return true;
-                                }
-                            }, sslContext));
                 }
             }
             this.username = ifNullReturnPreferenceValue(this.username, "username");
@@ -255,6 +189,7 @@ public class OlogClient implements LogClient {
 
         try {
             clientResponse = service.path("logs")
+                    .queryParam("markup", "commonmark")
                     .type(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_XML)
                     .accept(MediaType.APPLICATION_JSON)
@@ -265,11 +200,17 @@ public class OlogClient implements LogClient {
                 OlogLog createdLog = OlogObjectMappers.logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), OlogLog.class);
                 log.getAttachments().stream().forEach(attachment -> {
                     FormDataMultiPart form = new FormDataMultiPart();
+                    // Add id only if it is set, otherwise Jersey will complain and cause the submission to fail.
+                    if(attachment.getId() != null && !attachment.getId().isEmpty()){
+                        form.bodyPart(new FormDataBodyPart("id", attachment.getId()));
+                    }
                     form.bodyPart(new FileDataBodyPart("file", attachment.getFile()));
                     form.bodyPart(new FormDataBodyPart("filename", attachment.getName()));
                     form.bodyPart(new FormDataBodyPart("fileMetadataDescription", attachment.getContentType()));
 
-                    ClientResponse attachementResponse = service.path("logs").path("attachments").path(String.valueOf(createdLog.getId()))
+                    ClientResponse attachementResponse = service.path("logs")
+                            .path("attachments")
+                            .path(String.valueOf(createdLog.getId()))
                            .type(MediaType.MULTIPART_FORM_DATA)
                            .accept(MediaType.APPLICATION_XML)
                            .accept(MediaType.APPLICATION_JSON)
@@ -366,6 +307,7 @@ public class OlogClient implements LogClient {
                         OlogAttachment fileAttachment = new OlogAttachment();
                         fileAttachment.setContentType(attachment.getContentType());
                         fileAttachment.setThumbnail(false);
+                        fileAttachment.setFileName(attachment.getName());
                         try {
                             Path temp = Files.createTempFile("phoebus", attachment.getName());
                             Files.copy(getAttachment(log.getId(), attachment.getName()), temp, StandardCopyOption.REPLACE_EXISTING);
@@ -448,6 +390,11 @@ public class OlogClient implements LogClient {
      */
     private List<String> levels;
 
+    /**
+     * Service URL as configured by properties.
+     */
+    private String serviceUrl;
+
     @Override
     public Collection<String> listLevels() {
         if(levels == null){
@@ -500,4 +447,12 @@ public class OlogClient implements LogClient {
         }
     }
 
+    @Override
+    public String getServiceUrl(){
+        if(serviceUrl == null){
+            OlogProperties ologProperties = new OlogProperties();
+            serviceUrl = ologProperties.getPreferenceValue("olog_url");
+        }
+        return serviceUrl;
+    }
 }

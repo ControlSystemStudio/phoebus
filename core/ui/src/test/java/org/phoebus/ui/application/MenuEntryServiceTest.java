@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
-import org.phoebus.ui.application.MenuEntryService;
 import org.phoebus.ui.application.MenuEntryService.MenuTreeNode;
 import org.phoebus.ui.spi.MenuEntry;
 

@@ -324,6 +324,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
         search();
     }
 
+    public String getQuery() {
+        return query.getText();
+    }
+
     private void refresh() {
         if (logEntries != null) {
             ObservableList<LogEntry> logsList = FXCollections.observableArrayList();

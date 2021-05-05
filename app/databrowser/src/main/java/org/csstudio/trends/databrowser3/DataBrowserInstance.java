@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,7 @@ import static org.csstudio.trends.databrowser3.Activator.logger;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.Objects;
 import java.util.Optional;
@@ -191,12 +192,21 @@ public class DataBrowserInstance implements AppInstance
 
                 // Load model from file in background
                 // (strip 'query' from input)
-                XMLPersistence.load(new_model, ResourceParser.getContent(
+                final InputStream stream = ResourceParser.getContent(
                         new URI(input.getScheme(),
                                 input.getAuthority(),
                                 input.getPath(),
                                 null,
-                                null)));
+                                null));
+                if (input.getPath().endsWith(".stp"))
+                {
+                    StripToolParser.load(input, new_model, stream);
+                    // Tread *.plt as 'read-only', not supporting 'save'.
+                    // 'save-as' is supported, and will enforce *.plt extension.
+                    new_model.setSaveChanges(false);
+                }
+                else
+                    XMLPersistence.load(new_model, stream);
 
                 Platform.runLater(() ->
                 {

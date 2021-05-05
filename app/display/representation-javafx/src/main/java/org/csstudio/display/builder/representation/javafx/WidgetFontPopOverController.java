@@ -88,6 +88,8 @@ public class WidgetFontPopOverController implements Initializable {
     @FXML private Button okButton;
 
     private WidgetFont                            defaultFont            = null;
+    private boolean                               okOnChange             = false;
+    private boolean                               changed                = false;
     private final ObservableList<String>          familiesList         = FXCollections.observableArrayList();
     private Consumer<WidgetFont>                  fontChangeConsumer;
     private final ObservableList<NamedWidgetFont> namedFontsList         = FXCollections.observableArrayList();
@@ -161,13 +163,19 @@ public class WidgetFontPopOverController implements Initializable {
         return font.get();
     }
 
-    void setFont( WidgetFont font ) {
+    private void setFont(WidgetFont font, boolean initial)
+    {
         try {
+            changed = ! initial;
             settingFont.set(true);
             this.font.set(font);
         } finally {
             settingFont.set(false);
         }
+    }
+
+    void setFont( WidgetFont font ) {
+        setFont(font, false);
     }
 
     /*
@@ -232,8 +240,13 @@ public class WidgetFontPopOverController implements Initializable {
             }
         });
 
-        defaultButton.disableProperty().bind(Bindings.createBooleanBinding(() -> getFont().equals(defaultFont), fontProperty()));
-        okButton.disableProperty().bind(Bindings.createBooleanBinding(() -> getFont().equals(originalFont), fontProperty()));
+        okButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
+            {
+                // In 'ok on change' mode, enable 'OK' on any change.
+                // Otherwise check if there's a difference.
+                return okOnChange ? changed==false
+                                  : getFont().equals(originalFont);
+            }, fontProperty()));
 
         //  Lists and combo boxes
         fontNames.setPlaceholder(new Label(Messages.WidgetFontPopOver_PredefinedFonts));
@@ -347,18 +360,28 @@ public class WidgetFontPopOverController implements Initializable {
 
     }
 
+    /**
+     * @param popOver
+     * @param originalWidgetFont
+     * @param defaultWidgetFont
+     * @param propertyName
+     * @param fontChangeConsumer
+     * @param okOnChange Enable 'OK' whenever anything was changed, even if then changed back to originalWidgetFont?
+     */
     void setInitialConditions (
         WidgetFontPopOver popOver,
         WidgetFont originalWidgetFont,
         WidgetFont defaultWidgetFont,
         String propertyName,
-        Consumer<WidgetFont> fontChangeConsumer
+        Consumer<WidgetFont> fontChangeConsumer,
+        boolean okOnChange
     ) {
 
         this.fontChangeConsumer = fontChangeConsumer;
         this.popOver = popOver;
         this.originalFont = originalWidgetFont;
         this.defaultFont = defaultWidgetFont;
+        this.okOnChange = okOnChange;
 
         infoLabel.setText(MessageFormat.format(Messages.WidgetFontPopOver_Info, propertyName));
 
@@ -370,10 +393,9 @@ public class WidgetFontPopOverController implements Initializable {
                 logger.throwing(WidgetFontPopOverController.class.getName(), "setInitialConditions[executor]", iex);
             }
 
-            Platform.runLater(() -> setFont(originalWidgetFont));
+            Platform.runLater(() -> setFont(originalWidgetFont, true));
 
         });
-
     }
 
     private void updateButton ( final Button button, final ButtonType buttonType ) {

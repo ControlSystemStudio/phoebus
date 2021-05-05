@@ -61,20 +61,38 @@ public class ImageList extends VBox
         }
     }
 
+    private final boolean editable;
     private final ImageView preview = new ImageView();
     private final ListView<Image> images = new ListView<>();
     private Node snapshot_node;
 
-    /** @param root_node Node that will be used to obtain a screenshot */
     public ImageList()
     {
-        final Node images = createImageSection();
-        final Node buttons = createButtons();
-        VBox.setVgrow(images, Priority.ALWAYS);
+        this(true);
+    }
 
+    /**
+     * Create an image viewer
+     * If editable with buttons to add images via files or clipboard
+     * @param editable
+     */
+    public ImageList(boolean editable)
+    {
+        this.editable = editable;
+        final Node images = createImageSection();
+
+        VBox.setVgrow(images, Priority.ALWAYS);
         setSpacing(5);
-        getChildren().setAll(images, buttons);
         setPadding(new Insets(5));
+
+        if (editable)
+        {
+            final Node buttons = createButtons();
+            getChildren().setAll(images, buttons);
+        } else
+        {
+            getChildren().setAll(images);
+        }
     }
 
     /** @param node Node to use when taking a screenshot */
@@ -130,8 +148,17 @@ public class ImageList extends VBox
 
         // Show selected image in preview
         preview.imageProperty().bind(images.getSelectionModel().selectedItemProperty());
-        // Enable button if something is selected
-        removeImage.disableProperty().bind(Bindings.isEmpty(images.getSelectionModel().getSelectedItems()));
+        if(!editable)
+        {
+            removeImage.disableProperty().setValue(true);
+            removeImage.visibleProperty().setValue(false);
+        }
+        else
+        {
+            removeImage.visibleProperty().setValue(true);
+            // Enable button if something is selected
+            removeImage.disableProperty().bind(Bindings.isEmpty(images.getSelectionModel().getSelectedItems()));
+        }
 
         VBox.setVgrow(images, Priority.ALWAYS);
         final VBox right = new VBox(new Label(Messages.ImagesTitle), images);

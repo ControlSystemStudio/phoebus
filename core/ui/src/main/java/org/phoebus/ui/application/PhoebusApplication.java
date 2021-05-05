@@ -7,8 +7,10 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
@@ -94,6 +96,12 @@ public class PhoebusApplication extends Application {
      *  may be used to for example get HostServices
      */
     public static Application INSTANCE;
+
+    /** Application parameters
+     *
+     *  Copy of original parameters that various code sections might digest.
+     */
+    private final CopyOnWriteArrayList<String> application_parameters = new CopyOnWriteArrayList<>();
 
     /** Memento keys */
     public static final String LAST_OPENED_FILE = "last_opened_file",
@@ -199,6 +207,9 @@ public class PhoebusApplication extends Application {
     public void start(final Stage initial_stage) throws Exception {
         INSTANCE = this;
 
+        // Save original application parameters
+        application_parameters.addAll(getParameters().getRaw());
+
         // Show splash screen as soon as possible..
         final Splash splash = Preferences.splash ? new Splash(initial_stage) : null;
 
@@ -226,7 +237,7 @@ public class PhoebusApplication extends Application {
 
         // Load saved state (slow file access) off UI thread, allocating 30% to that
         monitor.beginTask(Messages.MonitorTaskSave);
-        final MementoTree memento = loadDefaultMemento(new SubJobMonitor(monitor, 30));
+        final MementoTree memento = loadDefaultMemento(application_parameters, new SubJobMonitor(monitor, 30));
 
         // Trigger initialization of authentication service
         AuthorizationService.init();
@@ -287,9 +298,12 @@ public class PhoebusApplication extends Application {
             new Welcome().create();
         monitor.worked(1);
 
+        // Launch background job to list saved layouts
+        createLoadLayoutsMenu();
+
         // Check command line parameters
         monitor.updateTaskName(Messages.MonitorTaskCmdl);
-        handleParameters(getParameters().getRaw());
+        handleParameters(application_parameters);
         monitor.worked(1);
 
         // In 'server' mode, handle parameters received from client instances
@@ -498,17 +512,45 @@ public class PhoebusApplication extends Application {
             final List<MenuItem> menuItemList = new ArrayList<>();
             final List<MenuItem> toolbarMenuItemList = new ArrayList<>();
 
+            final Map<String, File> layoutFiles = new HashMap<String, File>();
+
             // Get every file in the default directory.
             final File dir = new File(Locations.user().getAbsolutePath());
-            final File[] filesArray = dir.listFiles();
+            final File[] userLayoutFiles = dir.listFiles();
+            if(userLayoutFiles != null)
+            {
+                Arrays.stream(userLayoutFiles).forEach(file -> {
+                    layoutFiles.put(file.getName(), file);
+                });
+            }
+
+            // Get every momento file from the configured layout
+            if (Preferences.layout_dir != null && !Preferences.layout_dir.isBlank())
+            {
+                final File layoutDir = new File(Preferences.layout_dir);
+                if (layoutDir.exists())
+                {
+                    final File[] systemLayoutFiles = layoutDir.listFiles();
+                    if (systemLayoutFiles != null)
+                    {
+                        Arrays.stream(systemLayoutFiles).forEach(file -> {
+                            if(!layoutFiles.containsKey(file.getName()) && file.getName().endsWith(".memento")) {
+                                layoutFiles.put(file.getName(), file);
+                            }
+                        });
+                    }
+                }
+            }
+
+
             // For every non default memento file create a menu item for the load layout menu.
-            if (filesArray != null)
+            if (!layoutFiles.keySet().isEmpty())
             {
                 // Sort layout files alphabetically.
-                Arrays.sort(filesArray, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+                layoutFiles.keySet().stream().sorted((a, b) -> a.compareToIgnoreCase(b))
+                        .forEach(key -> {
 
-                for (final File file : filesArray)
-                {
+                    File file = layoutFiles.get(key);
                     String filename = file.getName();
                     // Skip "memento", the default. Only list SOME_NAME.memento
                     if (file.isFile() && filename.endsWith(".memento"))
@@ -530,7 +572,7 @@ public class PhoebusApplication extends Application {
                         toolbarMenuItem.setOnAction(event -> startLayoutReplacement(file));
                         toolbarMenuItemList.add(toolbarMenuItem);
                     }
-                }
+                });
             }
 
             // Update the menu with the menu items on the UI thread.
@@ -961,20 +1003,34 @@ public class PhoebusApplication extends Application {
         });
     }
 
-    /** @param monitor {@link JobMonitor}
+    /** @param parameters Command line parameters that may contain '-layout /path/to/Example.memento'
+     *  @param monitor {@link JobMonitor}
      *  @return Memento for previously persisted state or <code>null</code> if none found
      */
-    private MementoTree loadDefaultMemento(final JobMonitor monitor)
+    private MementoTree loadDefaultMemento(final List<String> parameters, final JobMonitor monitor)
     {
         monitor.beginTask(Messages.MonitorTaskPers, 1);
-        final File memfile = XMLMementoTree.getDefaultFile();
+        File memfile = XMLMementoTree.getDefaultFile();
         try
         {
+            for (int i=0;  i<parameters.size();  ++i)
+                if ("-layout".equals(parameters.get(i)))
+                {
+                    if (i >= parameters.size() - 1)
+                        throw new Exception("Missing /path/to/Example.memento for -layout option");
+                    memfile = new File(parameters.get(i+1));
+                    // Remove -layout and path because they have been handled
+                    parameters.remove(i+1);
+                    parameters.remove(i);
+                    break;
+                }
             if (memfile.canRead())
             {
                 logger.log(Level.INFO, "Loading state from " + memfile);
                 return loadMemento(memfile);
             }
+            else
+                logger.log(Level.WARNING, "Cannot load state from " + memfile + ", no such file");
         }
         catch (Exception ex)
         {
@@ -1020,8 +1076,6 @@ public class PhoebusApplication extends Application {
                 DockStage.dump(buf, stage);
             logger.log(Level.WARNING, buf.toString());
         }
-
-        createLoadLayoutsMenu();
 
         try
         {

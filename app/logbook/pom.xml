@@ -5,11 +5,10 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app</artifactId>
-    <version>4.6.5-SNAPSHOT</version>
+    <version>4.6.6-SNAPSHOT</version>
   </parent>
   <modules>
     <module>inmemory</module>
-    <module>utility</module>
     <module>ui</module>
     <module>olog</module>
     <module>elog</module>

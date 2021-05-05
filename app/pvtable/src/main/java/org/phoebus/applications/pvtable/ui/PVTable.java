@@ -8,15 +8,16 @@
 package org.phoebus.applications.pvtable.ui;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VType;
-import org.phoebus.applications.email.actions.SendEmailAction;
 import org.phoebus.applications.pvtable.PVTableApplication;
 import org.phoebus.applications.pvtable.Settings;
 import org.phoebus.applications.pvtable.model.PVTableItem;
@@ -24,10 +25,11 @@ import org.phoebus.applications.pvtable.model.PVTableModel;
 import org.phoebus.applications.pvtable.model.PVTableModelListener;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.core.vtypes.VTypeHelper;
+import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
-import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -37,6 +39,8 @@ import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.pv.SeverityColors;
+import org.phoebus.ui.selection.AppSelection;
+import org.phoebus.ui.spi.ContextMenuEntry;
 import org.phoebus.util.text.CompareNatural;
 
 import javafx.application.Platform;
@@ -687,8 +691,27 @@ public class PVTable extends VBox
 
             menu.getItems().add(new PrintAction(this));
             menu.getItems().add(new SaveSnapshotAction(table));
-            menu.getItems().add(new SendEmailAction(table, "PV Snapshot", () -> "See attached screenshot.", () -> Screenshot.imageFromNode(this)));
-            menu.getItems().add(new SendLogbookAction(table, "PV Snapshot", () -> "See attached screenshot.", () -> Screenshot.imageFromNode(this)));
+
+            // Add context menu actions based on the selection (i.e. email, logbook, etc...)
+            final Selection originalSelection = SelectionService.getInstance().getSelection();
+            final List<AppSelection> newSelection = Arrays.asList(AppSelection.of(table, "PV Snapshot", "See attached screenshot.", () -> Screenshot.imageFromNode(this)));
+            SelectionService.getInstance().setSelection("PV Table", newSelection);
+            List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+            supported.stream().forEach(action -> {
+                MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
+                menuItem.setOnAction((e) -> {
+                    try
+                    {
+                        SelectionService.getInstance().setSelection("PV Table", newSelection);
+                        action.call(table, SelectionService.getInstance().getSelection());
+                    } catch (Exception ex)
+                    {
+                        PVTableApplication.logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from PV Table.", ex);
+                    }
+                });
+                menu.getItems().add(menuItem);
+            });
+            SelectionService.getInstance().setSelection("AlarmUI", originalSelection);
 
             menu.show(table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
 

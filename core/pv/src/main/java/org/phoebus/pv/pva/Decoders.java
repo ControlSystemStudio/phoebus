@@ -240,7 +240,10 @@ public class Decoders
         if (section != null)
         {
             PVAString str = section.get("units");
-            units = str == null ? noDisplay.getUnit() : str.get();
+            if (str == null || str.get() == null)
+                units = noDisplay.getUnit();
+            else
+                units = str.get();
 
             // Since EPICS Base 7.0.2.2, qsrv supports 'precision' and 'form'
             final PVAInt prec = section.get("precision");

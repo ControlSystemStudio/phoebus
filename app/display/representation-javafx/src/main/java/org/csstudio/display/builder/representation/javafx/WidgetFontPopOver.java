@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,9 +10,7 @@ package org.csstudio.display.builder.representation.javafx;
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
-import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -38,8 +36,9 @@ public class WidgetFontPopOver extends PopOver
      *
      * @param font_prop {@link FontWidgetProperty} used to configure initial values.
      * @param fontChangeConsumer Will be called when user press OK to leave the popover.
+     * @param okOnChange Enable 'OK' on any change, or only when current value differs from original value?
     */
-    public WidgetFontPopOver ( final FontWidgetProperty font_prop, final Consumer<WidgetFont> fontChangeConsumer )
+    public WidgetFontPopOver ( final FontWidgetProperty font_prop, final Consumer<WidgetFont> fontChangeConsumer, final boolean okOnChange )
     {
         try
         {
@@ -57,7 +56,8 @@ public class WidgetFontPopOver extends PopOver
                     font_prop.getValue(),
                     font_prop.getDefaultValue(),
                     font_prop.getDescription(),
-                    fontChangeConsumer
+                    fontChangeConsumer,
+                    okOnChange
                     );
 
         }

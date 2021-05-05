@@ -6,7 +6,6 @@ import java.util.Map;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.utility.LogbookSearchJob;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import javafx.application.Platform;
