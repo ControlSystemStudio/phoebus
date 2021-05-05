@@ -35,7 +35,8 @@ public class JFXUtil
             final int r = (int)Math.round(col.getRed() * 255.0);
             final int g = (int)Math.round(col.getGreen() * 255.0);
             final int b = (int)Math.round(col.getBlue() * 255.0);
-            return String.format((Locale) null, "#%02X%02X%02X", r, g, b);
+            final int alfa = (int)Math.round(col.getOpacity() * 255.0);
+            return String.format((Locale) null, "#%02X%02X%02X%02X", r, g, b, alfa);
         });
     }
 }
