@@ -25,6 +25,7 @@ import javafx.scene.control.DialogPane;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.logbook.olog.ui.Messages;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -36,6 +37,8 @@ import java.util.logging.Logger;
  */
 public class EmbedImageDialog extends Dialog<EmbedImageDescriptor> {
 
+    private EmbedImageDialogController controller;
+
     public EmbedImageDialog(){
         super();
         ResourceBundle resourceBundle =  NLS.getMessages(Messages.class);
@@ -43,7 +46,36 @@ public class EmbedImageDialog extends Dialog<EmbedImageDescriptor> {
                 new FXMLLoader(getClass().getResource("EmbedImageDialog.fxml"), resourceBundle);
         try {
             DialogPane dialogPane = loader.load();
-            EmbedImageDialogController controller = loader.getController();
+            controller = loader.getController();
+            setTitle(Messages.EmbedImageDialogTitle);
+            setDialogPane(dialogPane);
+            setResultConverter(buttonType -> {
+                if(buttonType.getButtonData() == ButtonData.OK_DONE){
+                    return controller.getEmbedImageDescriptor();
+                }
+                else{
+                    return null;
+                }
+            });
+        } catch (IOException e) {
+            Logger.getLogger(EmbedImageDialog.class.getName())
+                    .log(Level.SEVERE, "Unable to launch dialog to embedded image.", e);
+        }
+    }
+
+    public void setFile(File file){
+        controller.setFile(file);
+    }
+
+    public EmbedImageDialog(File file){
+        super();
+        ResourceBundle resourceBundle =  NLS.getMessages(Messages.class);
+        FXMLLoader loader =
+                new FXMLLoader(getClass().getResource("EmbedImageDialog.fxml"), resourceBundle);
+        try {
+            DialogPane dialogPane = loader.load();
+            controller = loader.getController();
+            controller.setFile(file);
             setTitle(Messages.EmbedImageDialogTitle);
             setDialogPane(dialogPane);
             setResultConverter(buttonType -> {

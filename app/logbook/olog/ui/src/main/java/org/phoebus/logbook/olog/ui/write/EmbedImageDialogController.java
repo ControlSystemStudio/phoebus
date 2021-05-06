@@ -161,6 +161,20 @@ public class EmbedImageDialogController implements Initializable{
         filenameProperty.set(id);
     }
 
+    public void setFile(File file){
+        filenameProperty.set(file.getName());
+        try {
+            BufferedImage bufferedImage = ImageIO.read(file);
+            image = SwingFXUtils.toFXImage(bufferedImage, null);
+            widthProperty.set((int)Math.round(image.getWidth()));
+            heightProperty.set((int)Math.round(image.getHeight()));
+            id = UUID.randomUUID().toString();
+        } catch (IOException ex) {
+            Logger.getLogger(EmbedImageDialogController.class.getName())
+                    .log(Level.SEVERE, "Unable to load image file " + file.getAbsolutePath(), ex);
+        }
+    }
+
     /**
      * @return A {@link EmbedImageDescriptor} that will carry the data
      * required to create an image attachment for the log entry.

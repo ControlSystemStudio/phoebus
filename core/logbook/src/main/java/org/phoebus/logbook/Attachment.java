@@ -15,6 +15,12 @@ public interface Attachment {
     default String getId(){
         return null;
     }
+
+    /**
+     * In some cases the client must be able to set the (unique) id.
+     * @param id
+     */
+    default void setId(String id){}
     
     public String getName();
 

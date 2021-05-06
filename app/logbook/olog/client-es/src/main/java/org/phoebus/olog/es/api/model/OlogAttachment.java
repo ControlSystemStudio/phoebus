@@ -118,6 +118,11 @@ public class OlogAttachment implements Attachment {
         return file;
     }
 
+    @Override
+    public void setId(String id){
+        this.id = id;
+    }
+
     public void setFile(File file) {
         this.file = file;
     }
