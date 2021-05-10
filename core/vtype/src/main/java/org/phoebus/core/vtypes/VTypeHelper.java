@@ -73,6 +73,121 @@ public class VTypeHelper {
     }
 
     /**
+     * Get VType as int[]; empty array if not possible
+     *
+     * @param value {@link VType}
+     * @return int[]
+     */
+    public static int[] toIntegers(final VType value) {
+        final int[] array;
+        if (value instanceof VNumberArray) {
+            final ListNumber list = ((VNumberArray) value).getData();
+            array = new int[list.size()];
+            for (int i = 0; i < array.length; ++i) {
+                array[i] = list.getInt(i);
+            }
+        } else
+            array = new int[0];
+        return array;
+    }
+
+    /**
+     * Get VType as long[]; empty array if not possible
+     *
+     * @param value {@link VType}
+     * @return int[]
+     */
+    public static long[] toLongs(final VType value) {
+        final long[] array;
+        if (value instanceof VNumberArray) {
+            final ListNumber list = ((VNumberArray) value).getData();
+            array = new long[list.size()];
+            for (int i = 0; i < array.length; ++i) {
+                array[i] = list.getLong(i);
+            }
+        } else
+            array = new long[0];
+        return array;
+    }
+
+    /**
+     * Get VType as short[]; empty array if not possible.
+     * Do not be mislead by the method name, this is season-independent.
+     *
+     * @param value {@link VType}
+     * @return short[]
+     */
+    public static short[] toShorts(final VType value) {
+        final short[] array;
+        if (value instanceof VNumberArray) {
+            final ListNumber list = ((VNumberArray) value).getData();
+            array = new short[list.size()];
+            for (int i = 0; i < array.length; ++i) {
+                array[i] = list.getShort(i);
+            }
+        } else
+            array = new short[0];
+        return array;
+    }
+
+    /**
+     * Get VType as float[]; empty array if not possible
+     *
+     * @param value {@link VType}
+     * @return float[]
+     */
+    public static float[] toFloats(final VType value) {
+        final float[] array;
+        if (value instanceof VNumberArray) {
+            final ListNumber list = ((VNumberArray) value).getData();
+            array = new float[list.size()];
+            for (int i = 0; i < array.length; ++i) {
+                array[i] = list.getFloat(i);
+            }
+        } else
+            array = new float[0];
+        return array;
+    }
+
+    /**
+     * Get VType as byte[]; empty array if not possible
+     *
+     * @param value {@link VType}
+     * @return byte[]
+     */
+    public static byte[] toBytes(final VType value) {
+        final byte[] array;
+        if (value instanceof VNumberArray) {
+            final ListNumber list = ((VNumberArray) value).getData();
+            array = new byte[list.size()];
+            for (int i = 0; i < array.length; ++i) {
+                array[i] = list.getByte(i);
+            }
+        } else
+            array = new byte[0];
+        return array;
+    }
+
+    /**
+     * Get VType as boolean[]; empty array if not possible
+     *
+     * @param value {@link VType}
+     * @return boolean[]
+     */
+    public static boolean[] toBooleans(final VType value) {
+        final boolean[] array;
+        if (value instanceof VBooleanArray) {
+            final ListBoolean list = ((VBooleanArray) value).getData();
+            array = new boolean[list.size()];
+            for (int i = 0; i < array.length; ++i) {
+                array[i] = list.getBoolean(i);
+            }
+        } else
+            array = new boolean[0];
+        return array;
+    }
+
+    /**
      * @param value {@link VType}
      * @return Value as String
      */
