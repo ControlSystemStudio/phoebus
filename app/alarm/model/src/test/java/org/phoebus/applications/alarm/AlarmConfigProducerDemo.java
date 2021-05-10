@@ -80,9 +80,6 @@ public class AlarmConfigProducerDemo
                 sys.addToParent(area);
             }
 
-
-
-
             for (int sub=0; sub<10; ++sub)
             {
                 final AlarmClientNode subsys = new AlarmClientNode(sys.getPathName(), String.format("Sub%02d", sub));
