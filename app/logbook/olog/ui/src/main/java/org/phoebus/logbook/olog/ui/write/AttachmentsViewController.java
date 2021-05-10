@@ -20,8 +20,8 @@
 package org.phoebus.logbook.olog.ui.write;
 
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
@@ -60,6 +60,9 @@ public class AttachmentsViewController {
     private Button removeButton;
 
     @FXML
+    private Button embedSelectedButton;
+
+    @FXML
     private VBox root;
 
     private TextArea textArea;
@@ -76,6 +79,7 @@ public class AttachmentsViewController {
      */
 
     private ObservableList<Attachment> selectedAttachments = FXCollections.observableArrayList();
+    private SimpleBooleanProperty imageAttachmentSelected = new SimpleBooleanProperty(false);
 
 
     public AttachmentsViewController(LogEntryModel logEntryModel, Boolean autoExpand) {
@@ -99,7 +103,12 @@ public class AttachmentsViewController {
                     selectedAttachments.removeAll(change.getRemoved());
                 }
             }
+            // Enable "Embed Selected" button only if exactly one image attachment is selected.
+            imageAttachmentSelected.set(selectedAttachments.size() == 1 &&
+                    selectedAttachments.get(0).getContentType().toLowerCase().startsWith("image"));
         });
+
+        embedSelectedButton.disableProperty().bind(imageAttachmentSelected.not());
     }
 
     @FXML
@@ -137,7 +146,15 @@ public class AttachmentsViewController {
 
     @FXML
     public void removeFiles() {
+        selectedAttachments.stream().forEach(a -> {
+            if(a.getContentType().startsWith("image")){
+                String markup = textArea.getText();
+                String newMarkup = removeImageMarkup(markup, a.getId());
+                textArea.textProperty().set(newMarkup);
+            }
+        });
         model.removeAttachments(selectedAttachments);
+
     }
 
     @FXML
@@ -145,16 +162,51 @@ public class AttachmentsViewController {
         EmbedImageDialog embedImageDialog = new EmbedImageDialog();
         Optional<EmbedImageDescriptor> descriptor = embedImageDialog.showAndWait();
         if (descriptor.isPresent()) {
-            // Insert markup at caret position. At this point an id must be set.
-            int caretPosition = textArea.getCaretPosition();
             String id = UUID.randomUUID().toString();
-            String imageMarkup =
-                    "![](attachment/" + id + ")"
-                            + "{width=" + descriptor.get().getWidth()
-                            + " height=" + descriptor.get().getHeight() + "} ";
-            textArea.insertText(caretPosition, imageMarkup);
+            addEmbeddedImageMarkup(id, descriptor.get().getWidth(), descriptor.get().getHeight());
             addImage(descriptor.get().getImage(), id);
         }
+    }
+
+    @FXML
+    public void embedSelected(){
+        // Just in case... launch dialog only if the first item in the selection is an image
+        if(selectedAttachments.get(0).getContentType().toLowerCase().startsWith("image")){
+            EmbedImageDialog embedImageDialog = new EmbedImageDialog();
+            embedImageDialog.setFile(selectedAttachments.get(0).getFile());
+            Optional<EmbedImageDescriptor> descriptor = embedImageDialog.showAndWait();
+            if (descriptor.isPresent()) {
+                String id = UUID.randomUUID().toString();
+                selectedAttachments.get(0).setId(id);
+                addEmbeddedImageMarkup(id, descriptor.get().getWidth(), descriptor.get().getHeight());
+            }
+        }
+    }
+
+    private void addEmbeddedImageMarkup(String id, int width, int height){
+        // Insert markup at caret position. At this point an id must be set.
+        int caretPosition = textArea.getCaretPosition();
+        String imageMarkup =
+                "![](attachment/" + id + ")"
+                        + "{width=" + width
+                        + " height=" + height + "} ";
+        textArea.insertText(caretPosition, imageMarkup);
+    }
+
+    protected String removeImageMarkup(String markup, String imageId){
+        int index = markup.indexOf(imageId);
+        if(index == -1){
+            return markup;
+        }
+
+        String stringBefore = markup.substring(0, index);
+        String stringAfter = markup.substring(index + imageId.length());
+
+        int exclamationMarkIndex = stringBefore.lastIndexOf('!');
+        int closingCurlyBraceIndex = stringAfter.indexOf('}');
+
+        return markup.substring(0, exclamationMarkIndex) +
+                markup.substring((stringBefore + imageId).length() + closingCurlyBraceIndex + 1);
     }
 
     /**

@@ -164,6 +164,7 @@ public class LogEntryModel {
             addSelectedTag(tag.getName());
         });
 
+
         attachmentList.addAll(template.getAttachments());
     }
 
