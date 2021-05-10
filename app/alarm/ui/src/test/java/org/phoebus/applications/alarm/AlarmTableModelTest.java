@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,7 +9,7 @@ package org.phoebus.applications.alarm;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItems;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.time.Instant;
 
@@ -36,9 +36,12 @@ public class AlarmTableModelTest
         assertThat(model.getAcknowledgedAlarms().size(), equalTo(0));
 
         final AlarmClientNode root = new AlarmClientNode(null, "Test");
-        final AlarmClientNode area = new AlarmClientNode(root, "Section 1");
-        final AlarmClientLeaf pv1 = new AlarmClientLeaf(area, "pv1");
-        final AlarmClientLeaf pv2 = new AlarmClientLeaf(area, "pv2");
+        final AlarmClientNode area = new AlarmClientNode(root.getPathName(), "Section 1");
+        area.addToParent(root);
+        final AlarmClientLeaf pv1 = new AlarmClientLeaf(area.getPathName(), "pv1");
+        pv1.addToParent(area);
+        final AlarmClientLeaf pv2 = new AlarmClientLeaf(area.getPathName(), "pv2");
+        pv2.addToParent(area);
 
         // Receiving updates that don't change the alarm table
         assertThat(model.handleUpdate(root), equalTo(false));

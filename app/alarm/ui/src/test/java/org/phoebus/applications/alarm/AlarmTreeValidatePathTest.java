@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,14 +28,30 @@ public class AlarmTreeValidatePathTest
     {
         // Build the test tree.
         AlarmClientNode root = new AlarmClientNode(null, "root");
-        AlarmClientNode area1 = new AlarmClientNode(root, "Area 1");
-        AlarmClientLeaf pv1 = new AlarmClientLeaf(area1, "PV 1");
-        AlarmClientNode area2 = new AlarmClientNode(root, "Area 2");
-        AlarmClientLeaf pv2 = new AlarmClientLeaf(area2, "PV 2");
-        AlarmClientNode area3 = new AlarmClientNode(area1, "Area 3");
-        AlarmClientLeaf pv3 = new AlarmClientLeaf(area3, "PV 3");
-        AlarmClientNode area4 = new AlarmClientNode(area2, "Area 4");
-        AlarmClientLeaf pv4 = new AlarmClientLeaf(area4, "PV 4");
+
+        AlarmClientNode area1 = new AlarmClientNode(root.getPathName(), "Area 1");
+        area1.addToParent(root);
+
+        AlarmClientLeaf pv1 = new AlarmClientLeaf(area1.getPathName(), "PV 1");
+        pv1.addToParent(area1);
+
+        AlarmClientNode area2 = new AlarmClientNode(root.getPathName(), "Area 2");
+        area2.addToParent(root);
+
+        AlarmClientLeaf pv2 = new AlarmClientLeaf(area2.getPathName(), "PV 2");
+        pv2.addToParent(area2);
+
+        AlarmClientNode area3 = new AlarmClientNode(area1.getPathName(), "Area 3");
+        area3.addToParent(area1);
+
+        AlarmClientLeaf pv3 = new AlarmClientLeaf(area3.getPathName(), "PV 3");
+        pv3.addToParent(area3);
+
+        AlarmClientNode area4 = new AlarmClientNode(area2.getPathName(), "Area 4");
+        area4.addToParent(area2);
+
+        AlarmClientLeaf pv4 = new AlarmClientLeaf(area4.getPathName(), "PV 4");
+        pv4.addToParent(area4);
 
         // root -> Area 1 -> Area 3 -> PV 3
         //                -> PV 1
