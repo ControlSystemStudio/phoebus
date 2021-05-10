@@ -23,7 +23,6 @@ import java.util.logging.Level;
 import org.epics.vtype.VType;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.Messages;
-import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.AlarmState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
@@ -81,9 +80,9 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
      */
     private volatile Filter filter = null;
 
-    public AlarmServerPV(final ServerModel model, final AlarmClientNode parent, final String name, final ClientState initial)
+    public AlarmServerPV(final ServerModel model, final String parent_path, final String name, final ClientState initial)
     {
-        super(parent, name, Collections.emptyList());
+        super(parent_path, name, Collections.emptyList());
         description = name;
 
         final AlarmState current_state;
