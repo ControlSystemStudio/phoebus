@@ -44,9 +44,9 @@ public class AlarmServerNode extends AlarmClientNode
 
     private volatile String severity_pv_name = null;
 
-    public AlarmServerNode(final ServerModel model, final AlarmClientNode parent, final String name)
+    public AlarmServerNode(final ServerModel model, final String parent_path, final String name)
     {
-        super(parent, name);
+        super(parent_path, name);
         this.model = model;
     }
 
