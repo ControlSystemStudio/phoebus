@@ -8,24 +8,20 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.control.Hyperlink;
-import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableView;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.control.cell.TextFieldTreeTableCell;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
+import javafx.util.converter.DefaultStringConverter;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.PropertyImpl;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -54,20 +50,16 @@ public class LogPropertiesEditorController {
     @FXML
     TableColumn propertyName;
 
-    public LogPropertiesEditorController()
-    {
+    public LogPropertiesEditorController() {
     }
 
-    public LogPropertiesEditorController(LogEntryModel model)
-    {
+    public LogPropertiesEditorController(LogEntryModel model) {
         this.model = model;
     }
 
     @FXML
-    public void initialize()
-    {
-        if (this.model != null)
-        {
+    public void initialize() {
+        if (this.model != null) {
             // this.model.fetchProperties();
             availableProperties = this.model.getProperties();
             selectedProperties = this.model.getSelectedProperties();
@@ -90,75 +82,9 @@ public class LogPropertiesEditorController {
                     }
                 });
         value.setEditable(true);
-        value.setCellFactory(new Callback<TreeTableColumn<PropertyTreeNode, String>,
-                                          TreeTableCell<PropertyTreeNode, String>>() {
 
-            @Override
-            public TreeTableCell<PropertyTreeNode, String> call(TreeTableColumn<PropertyTreeNode, String> param) {
-                return new TreeTableCell<PropertyTreeNode, String> () {
-
-                    private TextField textField;
-
-                    @Override
-                    public void startEdit() {
-                        super.startEdit();
-
-                        if (textField == null) {
-                            createTextField();
-                        }
-                        setText(null);
-                        setGraphic(textField);
-                        textField.selectAll();
-                        textField.requestFocus();
-                    }
-
-                    @Override
-                    public void cancelEdit() {
-                        super.cancelEdit();
-                        setText((String) getItem());
-                        setGraphic(getTreeTableRow().getGraphic());
-                    }
-
-                    @Override
-                    public void updateItem(String item, boolean empty){
-                        super.updateItem(item, empty);
-                        if (empty) {
-                            setText(null);
-                            setGraphic(null);
-                        } else {
-                            try {
-                                URL url = new URL(item);
-                                final Hyperlink link = new Hyperlink(url.toString());
-                                setGraphic(link);
-                            } catch (Exception e) {
-                                setGraphic(new Label(item));
-                            }
-                        }
-                    }
-
-                    private void createTextField() {
-                        textField = new TextField(getString());
-                        textField.setOnKeyReleased((KeyEvent t) -> {
-                            if (t.getCode() == KeyCode.ENTER) {
-                                commitEdit(textField.getText());
-                            } else if (t.getCode() == KeyCode.ESCAPE) {
-                                cancelEdit();
-                            }
-                        });
-                        // Update when cell exits edit mode.
-                        // This will ensure that value is committed when focus is lost.
-                        this.editingProperty().addListener((o, n, e) -> {
-                            if(!e){
-                                updateItem(textField.getText(), false);
-                            }
-                        });
-                    }
-                    private String getString() {
-                        return getItem() == null ? "" : getItem().toString();
-                    }
-                };
-            }
-        });
+        value.setCellFactory((Callback<TreeTableColumn<PropertyTreeNode, String>, TreeTableCell<PropertyTreeNode, String>>) param ->
+                new TextFieldTreeTableCell<>(new DefaultStringConverter()));
 
         // Hide the headers
         selectedPropertiesTree.widthProperty().addListener(new ChangeListener<Number>() {
@@ -166,7 +92,7 @@ public class LogPropertiesEditorController {
             public void changed(ObservableValue<? extends Number> ov, Number t, Number t1) {
                 // Get the table header
                 Pane header = (Pane) selectedPropertiesTree.lookup("TableHeaderRow");
-                if(header!=null && header.isVisible()) {
+                if (header != null && header.isVisible()) {
                     header.setMaxHeight(0);
                     header.setMinHeight(0);
                     header.setPrefHeight(0);
@@ -185,7 +111,7 @@ public class LogPropertiesEditorController {
         availablePropertiesView.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
-                if(event.getClickCount() > 1) {
+                if (event.getClickCount() > 1) {
                     availablePropertySelection();
                 }
             }
@@ -195,8 +121,7 @@ public class LogPropertiesEditorController {
     }
 
     private void constructTree(Collection<Property> properties) {
-        if (properties != null && !properties.isEmpty())
-        {
+        if (properties != null && !properties.isEmpty()) {
             TreeItem root = new TreeItem(new PropertyTreeNode("properties", " "));
             AtomicReference<Double> rowCount = new AtomicReference<>((double) 1);
             root.getChildren().setAll(properties.stream().map(property -> {
@@ -218,10 +143,9 @@ public class LogPropertiesEditorController {
     /**
      * @return The list of logentry properties
      */
-    public List<Property> getProperties()
-    {
+    public List<Property> getProperties() {
         List<Property> treeProperties = new ArrayList<>();
-        if(selectedPropertiesTree.getRoot() == null){
+        if (selectedPropertiesTree.getRoot() == null) {
             return treeProperties;
         }
         selectedPropertiesTree.getRoot().getChildren().stream().forEach(node -> {
@@ -254,8 +178,7 @@ public class LogPropertiesEditorController {
         availableProperties.removeAll(userSelectedProperties);
     }
 
-    private static class PropertyTreeNode
-    {
+    private static class PropertyTreeNode {
         private SimpleStringProperty name;
         private SimpleStringProperty value;
 
@@ -281,12 +204,15 @@ public class LogPropertiesEditorController {
         public String getName() {
             return name.get();
         }
+
         public void setName(String name) {
             this.name.set(name);
         }
+
         public String getValue() {
             return value.get();
         }
+
         public void setValue(String value) {
             this.value.set(value);
         }

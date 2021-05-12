@@ -11,9 +11,6 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -84,6 +81,11 @@ public class LogEntryDisplayController {
     private Label tags;
     @FXML
     private AnchorPane attachmentsAndPropertiesPane;
+    @FXML
+    private Label logEntryId;
+    @FXML
+    private Label level;
+
 
     private LogEntry logEntry;
 
@@ -125,7 +127,7 @@ public class LogEntryDisplayController {
         clearLogView();
     }
 
-    private void clearLogView(){
+    private void clearLogView() {
         logbookIcon.setImage(null);
         tagIcon.setImage(null);
         logOwner.setText(null);
@@ -133,6 +135,8 @@ public class LogEntryDisplayController {
         logTitle.setText(null);
         logbooks.setText(null);
         tags.setText(null);
+        logEntryId.setText(null);
+        level.setText(null);
     }
 
     public void refresh() {
@@ -153,7 +157,6 @@ public class LogEntryDisplayController {
             logTitle.setWrapText(true);
             logTitle.setText(logEntry.getTitle());
 
-            logDescription.setDisable(true);
             // Content is defined by the source (default) or description field. If both are null
             // or empty, do no load any content to the WebView.
             WebEngine webEngine = logDescription.getEngine();
@@ -179,17 +182,19 @@ public class LogEntryDisplayController {
                 propertiesController.setProperties(logEntry.getProperties());
             }
 
-            if ( !logEntry.getLogbooks().isEmpty() ) {
+            if (!logEntry.getLogbooks().isEmpty()) {
                 logbooks.setWrapText(false);
                 logbooks.setText(logEntry.getLogbooks().stream().map(Logbook::getName).collect(Collectors.joining(",")));
             }
 
-            if (!logEntry.getTags().isEmpty() ) {
+            if (!logEntry.getTags().isEmpty()) {
                 tags.setText(logEntry.getTags().stream().map(Tag::getName).collect(Collectors.joining(",")));
-            }
-            else{
+            } else {
                 tags.setText(null);
             }
+
+            logEntryId.setText(Long.toString(logEntry.getId()));
+            level.setText(logEntry.getLevel());
         }
     }
 
@@ -254,7 +259,7 @@ public class LogEntryDisplayController {
      * Downloads all selected attachments to folder selected by user.
      */
     @FXML
-    public void downloadSelectedAttachments(){
+    public void downloadSelectedAttachments() {
         final DirectoryChooser dialog = new DirectoryChooser();
         dialog.setTitle(Messages.SelectFolder);
         dialog.setInitialDirectory(new File(System.getProperty("user.home")));
@@ -265,10 +270,10 @@ public class LogEntryDisplayController {
         });
     }
 
-    private void downloadAttachment(File targetFolder, Attachment attachment){
+    private void downloadAttachment(File targetFolder, Attachment attachment) {
         try {
             File targetFile = new File(targetFolder, attachment.getName());
-            if(targetFile.exists()){
+            if (targetFile.exists()) {
                 throw new Exception("Target file " + targetFile.getAbsolutePath() + " exists");
             }
             Files.copy(attachment.getFile().toPath(), targetFile.toPath());

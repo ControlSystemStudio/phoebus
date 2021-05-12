@@ -50,6 +50,10 @@ public class LogEntryCellController {
     Label tags;
     @FXML
     ImageView tagIcon;
+    @FXML
+    Label logEntryId;
+    @FXML
+    Label level;
 
     @FXML
     ImageView attachmentIcon;
@@ -80,32 +84,31 @@ public class LogEntryCellController {
             title.setText(logEntry.getTitle());
             title.getStyleClass().add("title");
 
-            if ( !logEntry.getLogbooks().isEmpty() ) {
+            if (!logEntry.getLogbooks().isEmpty()) {
                 logbooks.setWrapText(false);
                 logbooks.setText(logEntry.getLogbooks().stream().map(Logbook::getName).collect(Collectors.joining(",")));
             }
-            if (!logEntry.getTags().isEmpty() ) {
+            if (!logEntry.getTags().isEmpty()) {
                 tags.setText(logEntry.getTags().stream().map(Tag::getName).collect(Collectors.joining(",")));
-            }
-            else{
+            } else {
                 tags.setText(null);
             }
-            if( !logEntry.getAttachments().isEmpty()) {
+            if (!logEntry.getAttachments().isEmpty()) {
                 attachmentIcon.setImage(attachment);
-            }
-            else{
+            } else {
                 attachmentIcon.setImage(null);
             }
             description.setWrapText(false);
-            if(logEntry.getSource() != null){
+            if (logEntry.getSource() != null) {
                 description.setText(toText(logEntry.getSource()));
-            }
-            else if(logEntry.getDescription() != null){
+            } else if (logEntry.getDescription() != null) {
                 description.setText(toText(logEntry.getDescription()));
-            }
-            else{
+            } else {
                 description.setText(null);
             }
+
+            logEntryId.setText(Long.toString(logEntry.getId()));
+            level.setText(logEntry.getLevel());
         }
     }
 
@@ -117,12 +120,13 @@ public class LogEntryCellController {
     /**
      * Converts Commonmark content to Text. At most one line of text is returned, the newline character is
      * used to detect line break.
+     *
      * @param commonmarkString Raw Commonmark string
      * @return The Text output of the Commonmark processor.
      */
-    private String toText(String commonmarkString){
+    private String toText(String commonmarkString) {
         org.commonmark.node.Node document = parser.parse(commonmarkString);
-        String text =  textRenderer.render(document);
+        String text = textRenderer.render(document);
         String[] lines = text.split("\r\n|\n|\r");
         return lines[0];
     }
