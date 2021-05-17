@@ -1,33 +1,27 @@
 package org.phoebus.elog.api;
 
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
-import java.io.File;
-import java.net.URI;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.parsers.ParserConfigurationException;
-import org.w3c.dom.NodeList;
+import net.dongliu.requests.Requests;
+import net.dongliu.requests.Response;
+import net.dongliu.requests.body.Part;
+import org.htmlcleaner.CleanerProperties;
+import org.htmlcleaner.DomSerializer;
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.TagNode;
-import org.htmlcleaner.DomSerializer;
-import org.htmlcleaner.CleanerProperties;
-
-import net.dongliu.requests.Requests;
-import net.dongliu.requests.body.Part;
-import net.dongliu.requests.Response;
-
 import org.phoebus.logbook.LogbookException;
+import org.w3c.dom.NodeList;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import java.io.File;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * PSI Elog API
@@ -36,6 +30,7 @@ import org.phoebus.logbook.LogbookException;
  * https://github.com/paulscherrerinstitute/py_elog/blob/master/elog/logbook.py
  *
  * @author ffeldbauer
+ * @author kingspride
  */
 public class ElogApi {
 
@@ -52,7 +47,7 @@ public class ElogApi {
     } else {
       this.url = tmp;
     }
-    String path[] = elogURI.getPath().split("/");
+    String[] path = elogURI.getPath().split("/");
     this.logbook  = path[ path.length-1 ];
     this.username = username;
     this.password = password;
@@ -65,7 +60,7 @@ public class ElogApi {
    * @param attributes
    */
   public long post( Map<String, String> attributes ) throws LogbookException {
-    return post( attributes, Collections.emptyList(), Long.valueOf(-1) );
+    return post( attributes, Collections.emptyList(), -1L);
   }
 
 
@@ -76,7 +71,7 @@ public class ElogApi {
    * @param attachments
    */
   public long post( Map<String, String> attributes, List<File> attachments ) throws LogbookException {
-    return post( attributes, attachments, Long.valueOf(-1) );
+    return post( attributes, attachments, -1L);
   }
 
 
@@ -93,8 +88,12 @@ public class ElogApi {
    */
   public long post( Map<String, String> attributes, List<File> attachments, Long msgId ) throws LogbookException {
 
-    Map<String, String> new_attributes = new HashMap<>();
-    new_attributes.putAll( attributes );
+    String encoded_Text = new String(attributes.get("Text").getBytes(), StandardCharsets.ISO_8859_1); // charset hell - this seems stupid but works
+    attributes.put("Text", encoded_Text);
+    String encoded_Subject = new String(attributes.get("Text").getBytes(), StandardCharsets.UTF_8); // charset hell - this seems stupid but works
+    attributes.put("Subject", encoded_Subject);
+
+    Map<String, String> new_attributes = new HashMap<>(attributes);
     new_attributes.put( "Encoding", "plain" );
 
     Map<String, String> attributes_to_edit = null;
@@ -109,7 +108,7 @@ public class ElogApi {
 
       int i = 0;
       for( String attach: entry.getAttachments() ) {
-        new_attributes.put( "attachment" + String.valueOf(i), attach );
+        new_attributes.put( "attachment" + i, attach );
         i++;
       }
 
@@ -121,6 +120,7 @@ public class ElogApi {
 
     } else {
       new_attributes.put( "When", String.valueOf( Instant.now().toEpochMilli() ));
+      new_attributes.put( "Record_date", String.valueOf( Instant.now().getEpochSecond() ));
     }
 
     if( attributes_to_edit == null ) {
@@ -131,7 +131,7 @@ public class ElogApi {
     attributes_to_edit.remove("Date");
     attributes_to_edit.remove("Attachment");
 
-    List<Part<?>> data = new ArrayList<Part<?>>();
+    List<Part<?>> data = new ArrayList<>();
     for( Map.Entry<String, String> attr : attributes_to_edit.entrySet() ) {
       data.add( Part.text( attr.getKey(), attr.getValue() ));
     }
@@ -143,7 +143,7 @@ public class ElogApi {
 
     int i = 0;
     for( File att: attachments ) {
-      data.add( Part.file( "attfile" + String.valueOf(i), att ));
+      data.add( Part.file( "attfile" + i, att ));
       i++;
     }
 
@@ -171,7 +171,7 @@ public class ElogApi {
     cookies.put( "unm", this.username );
     cookies.put( "upwd", this.password );
 
-    Response<String> resp = Requests.get( this.url + String.valueOf( msgId ) + "?cmd=download" )
+    Response<String> resp = Requests.get( this.url + msgId + "?cmd=download" )
                                     .cookies(cookies)
                                     .followRedirect(false)
                                     .verify(false)
@@ -179,14 +179,14 @@ public class ElogApi {
                                     .toTextResponse();
     validateResponse( resp );
 
-    List<String> returned_msg = Arrays.asList( resp.getBody().split("\\r?\\n") );
+    List<String> returned_msg = Arrays.asList( resp.body().split("\\r?\\n") );
     int delimiter_idx = returned_msg.indexOf("========================================");
 
     Map<String, String> attributes = new HashMap<>();
     List<String> attachments = null;
 
     for( String s : returned_msg.subList( 0, delimiter_idx ) ) {
-      String data[] = s.split( "\\s*:\\s*", 2 );
+      String[] data = s.split( "\\s*:\\s*", 2 );
 
       if( data[0].equals("Attachment") ) {
         if( data[1].length() > 0 ) {
@@ -216,7 +216,7 @@ public class ElogApi {
     cookies.put( "unm", this.username );
     cookies.put( "upwd", this.password );
 
-    Response<String> resp = Requests.get( this.url + String.valueOf( msgId ) + "?cmd=Delete&confirm=Yes" )
+    Response<String> resp = Requests.get( this.url + msgId + "?cmd=Delete&confirm=Yes" )
                                     .cookies(cookies)
                                     .followRedirect(false)
                                     .verify(false)
@@ -256,10 +256,10 @@ public class ElogApi {
                                     .toTextResponse();
     validateResponse( resp );
 
-    List<ElogEntry> entries = new ArrayList<ElogEntry>();
+    List<ElogEntry> entries = new ArrayList<>();
 
     try {
-      TagNode tagNode = new HtmlCleaner().clean( resp.getBody() );
+      TagNode tagNode = new HtmlCleaner().clean( resp.body() );
       org.w3c.dom.Document doc = new DomSerializer( new CleanerProperties()).createDOM(tagNode);
       XPath xpath = XPathFactory.newInstance().newXPath();
       NodeList msgIds = (NodeList) xpath.evaluate( "(//tr/td[@class=\"list1\" or @class=\"list2\"][1])/a/@href", doc, XPathConstants.NODESET );
@@ -267,10 +267,8 @@ public class ElogApi {
         String msgIdStr = msgIds.item(i).getNodeValue();
         entries.add( read( Long.valueOf( msgIdStr.substring( msgIdStr.lastIndexOf('/') + 1 ) )));
       }
-    } catch (XPathExpressionException e) {
-      throw new LogbookException( e.getMessage() );
-    } catch (ParserConfigurationException e) {
-      throw new LogbookException( e.getMessage() );
+    } catch (XPathExpressionException | ParserConfigurationException e) {
+      throw new LogbookException( "could not parse the elog response", e );
     }
 
     return entries;
@@ -295,10 +293,10 @@ public class ElogApi {
                                     .toTextResponse();
     validateResponse( resp );
 
-    List<ElogEntry> entries = new ArrayList<ElogEntry>();
+    List<ElogEntry> entries = new ArrayList<>();
 
     try {
-      TagNode tagNode = new HtmlCleaner().clean( resp.getBody() );
+      TagNode tagNode = new HtmlCleaner().clean( resp.body() );
       org.w3c.dom.Document doc = new DomSerializer( new CleanerProperties()).createDOM(tagNode);
       XPath xpath = XPathFactory.newInstance().newXPath();
       NodeList msgIds = (NodeList) xpath.evaluate( "(//tr/td[@class=\"list1\" or @class=\"list2\"][1])/a/@href", doc, XPathConstants.NODESET );
@@ -306,10 +304,8 @@ public class ElogApi {
         String msgIdStr = msgIds.item(i).getNodeValue();
         entries.add( read( Long.valueOf( msgIdStr.substring( msgIdStr.lastIndexOf('/') + 1 ) )));
       }
-    } catch (XPathExpressionException e) {
-      throw new LogbookException( e.getMessage() );
-    } catch (ParserConfigurationException e) {
-      throw new LogbookException( e.getMessage() );
+    } catch (XPathExpressionException | ParserConfigurationException e) {
+      throw new LogbookException( "could not parse the elog response", e );
     }
 
     return entries;
@@ -327,7 +323,8 @@ public class ElogApi {
     cookies.put( "unm", this.username );
     cookies.put( "upwd", this.password );
 
-    File att = new File("/tmp/" + filename );
+    String tmpdir = System.getProperty("java.io.tmpdir");
+    File att = new File(tmpdir + "/" + filename );
     Requests.get( this.url + filename ).cookies( cookies ).followRedirect(false).verify(false).send().writeToFile(att);
     return att;
   }
@@ -354,7 +351,7 @@ public class ElogApi {
     int statuscode  = resp.statusCode();
     if( statuscode != 200 && statuscode != 302 ) {
       final Pattern pattern = Pattern.compile("<td.*?class=\"errormsg\".*?>(.*?)</td>");
-      Matcher m = pattern.matcher( resp.getBody() );
+      Matcher m = pattern.matcher( resp.body() );
       if( m.matches() ) {
         String err = m.group();
         throw new LogbookException("Rejected because of: " + err);
@@ -372,10 +369,10 @@ public class ElogApi {
       }
     }
 
-    List<String> types = new ArrayList<String>();
+    List<String> types = new ArrayList<>();
 
     try {
-      TagNode tagNode = new HtmlCleaner().clean( resp.getBody() );
+      TagNode tagNode = new HtmlCleaner().clean( resp.body() );
       org.w3c.dom.Document doc = new DomSerializer( new CleanerProperties()).createDOM(tagNode);
       XPath xpath = XPathFactory.newInstance().newXPath();
       NodeList typenodes = (NodeList) xpath.evaluate( "//tr/td[@class=\"attribvalue\"]/select[@name=\"Type\"]/option/@value", doc, XPathConstants.NODESET );
@@ -385,10 +382,8 @@ public class ElogApi {
           types.add( t );
         }
       }
-    } catch (XPathExpressionException e) {
-      throw new LogbookException( e.getMessage() );
-    } catch (ParserConfigurationException e) {
-      throw new LogbookException( e.getMessage() );
+    } catch (XPathExpressionException | ParserConfigurationException e) {
+      throw new LogbookException( "could not parse the elog response", e );
     }
 
     return types;
@@ -416,7 +411,7 @@ public class ElogApi {
     int statuscode  = resp.statusCode();
     if( statuscode != 200 && statuscode != 302 ) {
       final Pattern pattern = Pattern.compile("<td.*?class=\"errormsg\".*?>(.*?)</td>");
-      Matcher m = pattern.matcher( resp.getBody() );
+      Matcher m = pattern.matcher( resp.body() );
       if( m.matches() ) {
         String err = m.group();
         throw new LogbookException("Rejected because of: " + err);
@@ -434,10 +429,10 @@ public class ElogApi {
       }
     }
 
-    List<String> categories = new ArrayList<String>();
+    List<String> categories = new ArrayList<>();
 
     try {
-      TagNode tagNode = new HtmlCleaner().clean( resp.getBody() );
+      TagNode tagNode = new HtmlCleaner().clean( resp.body() );
       org.w3c.dom.Document doc = new DomSerializer( new CleanerProperties()).createDOM(tagNode);
       XPath xpath = XPathFactory.newInstance().newXPath();
       NodeList catnodes = (NodeList) xpath.evaluate( "//tr/td[@class=\"attribvalue\"]/select[@name=\"Category\"]/option/@value", doc, XPathConstants.NODESET );
@@ -447,10 +442,8 @@ public class ElogApi {
           categories.add( c );
         }
       }
-    } catch (XPathExpressionException e) {
-      throw new LogbookException( e.getMessage() );
-    } catch (ParserConfigurationException e) {
-      throw new LogbookException( e.getMessage() );
+    } catch (XPathExpressionException | ParserConfigurationException e) {
+      throw new LogbookException( "could not parse the elog response", e );
     }
 
     return categories;
@@ -469,15 +462,15 @@ public class ElogApi {
     cookies.put( "unm", this.username );
     cookies.put( "upwd", this.password );
 
-    Response<String> check = Requests.get( this.url + String.valueOf( logId ) )
+    Response<String> check = Requests.get( this.url + logId)
                                      .cookies(cookies)
                                      .followRedirect(false)
                                      .verify(false)
                                      .send()
                                      .toTextResponse();
     validateResponse( check );
-    if( Pattern.matches( "<td.*?class=\"errormsg\".*?>.*?</td>", check.getBody() )) {
-      throw new LogbookException("Message with ID " + String.valueOf(logId) + " does not exist on logbook.");
+    if( Pattern.matches( "<td.*?class=\"errormsg\".*?>.*?</td>", check.body() )) {
+      throw new LogbookException("Message with ID " + logId + " does not exist on logbook.");
     }
   }
 
@@ -490,7 +483,7 @@ public class ElogApi {
    */
   private long validateResponse( Response<String> resp ) throws LogbookException {
     int statuscode  = resp.statusCode();
-    String body = resp.getBody();
+    String body = resp.body();
     long msgId = -1;
     if( statuscode != 200 && statuscode != 302 ) {
       final Pattern pattern = Pattern.compile("<td.*?class=\"errormsg\".*?>(.*?)</td>");
@@ -510,7 +503,7 @@ public class ElogApi {
           throw new LogbookException("Failed to submit log entry, invalid credentials.");
         } else {
           URI loc = URI.create( location );
-          String path[] = loc.getPath().split("/");
+          String[] path = loc.getPath().split("/");
           msgId = Integer.parseInt( path[ path.length-1 ] );
         }
       }

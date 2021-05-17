@@ -26,11 +26,15 @@ public class LogbookException extends Exception{
 
     private static final long serialVersionUID = -8343141863189296722L;
 
+    public LogbookException(Throwable cause){
+        super(cause);
+    }
+
     public LogbookException(String message){
         super(message);
     }
 
-    public LogbookException(Throwable cause){
-        super(cause);
+    public LogbookException(String extra, Throwable cause){
+        super(extra, cause);
     }
 }
