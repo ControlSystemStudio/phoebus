@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.time.temporal.TemporalAmount;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -26,20 +27,34 @@ public class LogbookQueryUtil {
         AUTHOR("owner"),
         TITLE("title"),
         LEVEL("level");
-        private final String name;
 
-        private Keys(String name) {
+        // The human readable name of the query key
+        private final String name;
+        // A lookuptable for finding the Keys constant that matches the human readable query key
+        private static Map<String, Keys> lookupTable = new HashMap<String, Keys>();
+        static {
+            lookupTable.put("desc", Keys.SEARCH);
+            lookupTable.put("logbooks", Keys.LOGBOOKS);
+            lookupTable.put("tags", Keys.TAGS);
+            lookupTable.put("start", Keys.STARTTIME);
+            lookupTable.put("end", Keys.ENDTIME);
+            lookupTable.put("owner", Keys.AUTHOR);
+            lookupTable.put("title", Keys.TITLE);
+            lookupTable.put("level", Keys.LEVEL);
+        }
+
+        Keys(String name) {
             this.name = name;
-        };
+        }
 
         public String getName() {
             return this.name;
         }
 
-        @Override
-        public String toString() {
-            return this.toString();
+        public static Keys findKey(String keyName) {
+            return lookupTable.get(keyName);
         }
+
     }
 
     public static Map<String, String> parseQueryURI(URI query) {

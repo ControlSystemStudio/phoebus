@@ -168,11 +168,13 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
         AnchorPane.setRightAnchor(agenda, 6.0);
         agendaPane.getChildren().add(agenda);
 
-        searchParameters = FXCollections.<Keys, String>observableHashMap();
-        searchParameters.put(Keys.SEARCH, "*");
-        searchParameters.put(Keys.STARTTIME, TimeParser.format(java.time.Duration.ofHours(8)));
-        searchParameters.put(Keys.ENDTIME, TimeParser.format(java.time.Duration.ZERO));
+        searchParameters = FXCollections.observableHashMap();
+
+        LogbookQueryUtil.parseQueryString(LogbookUIPreferences.default_logbook_query).entrySet().stream().forEach(entry -> {
+            searchParameters.put(Keys.findKey(entry.getKey()), entry.getValue());
+        });
         advancedSearchViewController.setSearchParameters(searchParameters);
+
 
         searchParameters.addListener(new MapChangeListener<Keys, String>() {
             @Override
