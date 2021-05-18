@@ -200,13 +200,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     @FXML
     void updateQuery() {
-        Arrays.asList(query.getText().split("&")).forEach(s -> {
-            String key = s.split("=")[0];
-            for (Keys k : Keys.values()) {
-                if (k.getName().equals(key)) {
-                    searchParameters.put(k, s.split("=")[1]);
-                }
-            }
+        String queryText = query.getText();
+        searchParameters.clear();
+        LogbookQueryUtil.parseHumanReadableQueryString(queryText).entrySet().stream().forEach(entry -> {
+            searchParameters.put(Keys.findKey(entry.getKey()), entry.getValue());
         });
     }
 

@@ -19,7 +19,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class LogEntryTable implements AppInstance {
-    final static Logger log = Logger.getLogger(LogEntryTable.class.getName());
+    static Logger log = Logger.getLogger(LogEntryTable.class.getName());
+    static String cachedQuery;
     private static final String LOG_TABLE_QUERY = "log_table_query";
     
     private final LogEntryTableApp app;
@@ -80,9 +81,10 @@ public class LogEntryTable implements AppInstance {
             });
             loader.load();
             controller = loader.getController();
-            controller.setQuery(LogbookUIPreferences.default_logbook_query);
+            controller.setQuery(cachedQuery == null || cachedQuery.isBlank() ? LogbookUIPreferences.default_logbook_query : cachedQuery);
             DockItem tab = new DockItem(this, loader.getRoot());
             DockPane.getActiveDockPane().addTab(tab);
+            tab.addClosedNotification(()->{cachedQuery = controller.getQuery();});
         } catch (IOException e)
         {
             log.log(Level.WARNING, "Cannot load UI", e);

@@ -56,7 +56,12 @@ public class LogbookQueryUtil {
         }
 
     }
-
+    /**
+     * This method parses a logbook query URI and returns a map of search keys and their assocaited search patterns as
+     * values
+     * @param query the logbook query URI
+     * @return a map consisting of search keys and patterns
+     */
     public static Map<String, String> parseQueryURI(URI query) {
         if (Strings.isNullOrEmpty(query.getQuery())) {
             return Collections.emptyMap();
@@ -66,12 +71,36 @@ public class LogbookQueryUtil {
         }
     }
 
+    /**
+     * This method parses a logbook query string and returns a map of search keys and their assocaited search patterns as
+     * values.
+     * The use of temporal descriptors like "1 day" etc are resolved to Unix time.
+     * @param query the logbook query string
+     * @return a map consisting of search keys and patterns
+     */
     public static Map<String, String> parseQueryString(String query) {
         if (Strings.isNullOrEmpty(query)) {
             return Collections.emptyMap();
         } else {
             return Arrays.asList(query.split("&")).stream()
                     .collect(Collectors.toMap(new KeyParser(), new ValueParser()));
+        }
+    }
+
+    /**
+     * This method parses a logbook query string and returns a map of search keys and their assocaited search patterns as
+     * values.
+     * Temporal descriptors like "1 day" etc are not converted to unix time.
+     * This method is primarily intended as a helper for UI controls.
+     * @param query the logbook query string
+     * @return a map consisting of search keys and patterns
+     */
+    public static Map<String, String> parseHumanReadableQueryString(String query) {
+        if (Strings.isNullOrEmpty(query)) {
+            return Collections.emptyMap();
+        } else {
+            return Arrays.asList(query.split("&")).stream()
+                    .collect(Collectors.toMap(new KeyParser(), new SimpleValueParser()));
         }
     }
 
@@ -104,6 +133,22 @@ public class LogbookQueryUtil {
                         return MILLI_FORMAT.format(Instant.now().minus((TemporalAmount)time));
                     }
                 }
+                return value;
+            } else {
+                return "*";
+            }
+        }
+
+    }
+
+    private static class SimpleValueParser implements Function<String, String> {
+
+        @Override
+        public String apply(String t) {
+
+            if (t.contains("=")) {
+                String key = t.split("=")[0];
+                String value = t.split("=")[1];
                 return value;
             } else {
                 return "*";
