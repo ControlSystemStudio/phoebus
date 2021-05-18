@@ -12,7 +12,10 @@ public class LogbookPreferences {
 
     @Preference
     public static String logbook_factory;
-    @Preference
+
+    /** Is there support for a logbook?
+     *  Is the 'logbook_factory' configured and available?
+     */
     public static boolean is_supported;
 
     static
