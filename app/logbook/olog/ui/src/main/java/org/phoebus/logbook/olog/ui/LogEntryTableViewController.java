@@ -3,6 +3,7 @@ package org.phoebus.logbook.olog.ui;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -14,25 +15,35 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SplitPane;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TreeCell;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeTableCell;
+import javafx.scene.control.TreeTableColumn;
+import javafx.scene.control.TreeTableView;
+import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
+import javafx.util.Callback;
 import javafx.util.Duration;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.olog.ui.LogbookQueryUtil.Keys;
+import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimeParser;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.net.URL;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -61,9 +72,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     // elements related to the table view of the log entires
     @FXML
-    private TableView<LogEntry> tableView;
-    @FXML
-    private TableColumn<LogEntry, LogEntry> descriptionCol;
+    private TreeView<LogEntry> treeView;
 
     // detail logview
     @FXML
@@ -78,6 +87,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     // Model
     List<LogEntry> logEntries;
+
+    // TreeTable root item
+    TreeItem<LogEntry> rootItem = new TreeItem<>(new OlogLog());
 
     // Search parameters
     ObservableMap<Keys, String> searchParameters;
@@ -111,49 +123,15 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
                 .collect(Collectors.joining("&"))));
 
-        // The display table.
-        tableView.getColumns().clear();
-        tableView.setEditable(false);
-        tableView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<>() {
+        // The log entry tree.
+        treeView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<TreeItem<LogEntry>>() {
             @Override
-            public void changed(ObservableValue<? extends LogEntry> observable, LogEntry oldValue, LogEntry newValue) {
-                logEntryDisplayController.setLogEntry(newValue);
+            public void changed(ObservableValue<? extends TreeItem<LogEntry>> observable, TreeItem<LogEntry> oldValue, TreeItem<LogEntry> newValue) {
+                logEntryDisplayController.setLogEntry(newValue.getValue());
             }
         });
 
-        descriptionCol = new TableColumn<>("Log");
-        descriptionCol.setMaxWidth(1f * Integer.MAX_VALUE * 100);
-        descriptionCol.setCellValueFactory(col -> new SimpleObjectProperty(col.getValue()));
-        descriptionCol.setCellFactory(col -> {
-
-            return new TableCell<>() {
-                private Node graphic;
-                private LogEntryCellController controller;
-
-                {
-                    try {
-                        FXMLLoader loader = new FXMLLoader(getClass().getResource("LogEntryCell.fxml"));
-                        graphic = loader.load();
-                        controller = loader.getController();
-                    } catch (IOException exc) {
-                        throw new RuntimeException(exc);
-                    }
-                }
-
-                @Override
-                public void updateItem(LogEntry logEntry, boolean empty) {
-                    super.updateItem(logEntry, empty);
-                    if (empty) {
-                        setGraphic(null);
-                    } else {
-                        controller.setLogEntry(logEntry);
-                        setGraphic(graphic);
-                    }
-                }
-            };
-        });
-
-        tableView.getColumns().add(descriptionCol);
+        treeView.setCellFactory(tv -> new LogEntryTreeCell(tv));
 
         // Bind ENTER key press to search
         query.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
@@ -161,6 +139,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 search();
             }
         });
+
+        treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        treeView.setRoot(rootItem);
+        treeView.setShowRoot(false);
 
     }
 
@@ -221,11 +203,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     @Override
     public void setLogs(List<LogEntry> logs) {
-        List<LogEntry> copy = logs.stream()
-                .sorted((one, two) -> two.getCreatedDate().compareTo(one.getCreatedDate()))
-                .collect(Collectors.toList());
-
-        this.logEntries = copy;
+        this.logEntries = logs;
         refresh();
     }
 
@@ -241,9 +219,39 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     private void refresh() {
         if (logEntries != null) {
-            ObservableList<LogEntry> logsList = FXCollections.observableArrayList();
-            logsList.addAll(new ArrayList<>(logEntries));
-            tableView.setItems(logsList);
+            rootItem.getChildren().setAll(logEntries.stream().map(logEntry -> new TreeItem<>(logEntry)).collect(Collectors.toSet()));
+            rootItem.getChildren().sort((o1, o2) -> o2.getValue().getCreatedDate().compareTo(o1.getValue().getCreatedDate()));
+        }
+    }
+
+    private class LogEntryTreeCell extends TreeCell<LogEntry>{
+
+        private Node graphic;
+        private LogEntryCellController controller;
+
+        public LogEntryTreeCell(TreeView<LogEntry> treeView) {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("LogEntryCell.fxml"));
+                graphic = loader.load();
+                controller = loader.getController();
+            } catch (IOException exc) {
+                throw new RuntimeException(exc);
+            }
+
+            addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+                System.out.println(event.isControlDown());
+            });
+        }
+
+        @Override
+        public void updateItem(LogEntry logEntry, boolean empty) {
+            super.updateItem(logEntry, empty);
+            if (empty) {
+                setGraphic(null);
+            } else {
+                controller.setLogEntry(logEntry);
+                setGraphic(graphic);
+            }
         }
     }
 }
