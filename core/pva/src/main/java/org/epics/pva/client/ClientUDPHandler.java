@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -89,12 +89,12 @@ class ClientUDPHandler extends UDPHandler
         this.search_response = search_response;
 
         // Search buffer may send broadcasts and gets re-used
-        udp_search = Network.createUDP(true, 0);
+        udp_search = Network.createUDP(true, "", 0);
         local_address = (InetSocketAddress) udp_search.getLocalAddress();
         local_multicast = Network.configureMulticast(udp_search, PVASettings.EPICS_PVA_BROADCAST_PORT);
 
         // Beacon socket only receives, does not send broadcasts
-        udp_beacon = Network.createUDP(false, PVASettings.EPICS_PVA_BROADCAST_PORT);
+        udp_beacon = Network.createUDP(false, "", PVASettings.EPICS_PVA_BROADCAST_PORT);
 
         logger.log(Level.FINE, "Awaiting search replies on UDP " + local_address +
                                " and beacons on port " + PVASettings.EPICS_PVA_BROADCAST_PORT);

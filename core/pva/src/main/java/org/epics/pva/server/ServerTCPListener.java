@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -76,7 +76,11 @@ class ServerTCPListener
         socket.socket().setReuseAddress(true);
         try
         {
-            socket.bind(new InetSocketAddress(PVASettings.EPICS_PVA_SERVER_PORT));
+            if (PVASettings.EPICS_PVAS_INTF_ADDR_LIST.isEmpty())
+                socket.bind(new InetSocketAddress(PVASettings.EPICS_PVA_SERVER_PORT));
+            else
+                socket.bind(new InetSocketAddress(PVASettings.EPICS_PVAS_INTF_ADDR_LIST,
+                                                  PVASettings.EPICS_PVA_SERVER_PORT));
             return socket;
         }
         catch (BindException ex)
