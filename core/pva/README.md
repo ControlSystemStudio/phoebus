@@ -65,6 +65,8 @@ Key configuration parameters:
 
 `EPICS_PVAS_BROADCAST_PORT`: PVA server UDP port (default 5076) for name searches and beacons.
 
+`EPICS_PVAS_INTF_ADDR_LIST`: Interface where server listens to name searches. When empty (default), a wildcard address is used, i.e., server listens on all local interfaces. Can be set to a specific IP address to restrict the server to one interface.
+
 `EPICS_PVA_SERVER_PORT`: First PVA TCP port used by server, defaults to 5075.
 
 See `PVASettings` source code for complete settings.
