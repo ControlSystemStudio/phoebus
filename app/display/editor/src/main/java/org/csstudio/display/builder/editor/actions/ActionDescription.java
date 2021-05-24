@@ -724,7 +724,7 @@ public abstract class ActionDescription
             final int N = widgets.size();
             final Preferences prefs = PhoebusPreferenceService.userNodeForClass(DisplayEditorInstance.class);
 
-            if (N < 3)
+            if (N < 2)
                 return;
 
             int offset = prefs.getInt(DISTRIBUTION_HGAP, editor.getModel().propGridStepX().getValue());
@@ -784,7 +784,7 @@ public abstract class ActionDescription
             final int N = widgets.size();
             final Preferences prefs = PhoebusPreferenceService.userNodeForClass(DisplayEditorInstance.class);
 
-            if (N < 3)
+            if (N < 2)
                 return;
 
             int offset = prefs.getInt(DISTRIBUTION_VGAP, editor.getModel().propGridStepY().getValue());
