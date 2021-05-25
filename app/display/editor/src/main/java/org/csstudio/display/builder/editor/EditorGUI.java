@@ -148,6 +148,8 @@ public class EditorGUI
             editor.getUndoableActionManager().redoLast();
         else if (in_editor  &&  meta  &&  code == KeyCode.C)
             editor.copyToClipboard();
+        else if (in_editor  &&  !meta  &&  code == KeyCode.C)
+            editor.toggleCrosshair();
         else if (in_editor  &&  code == KeyCode.DELETE       &&  !editor.isReadonly())
             editor.removeWidgets();
         else if (in_editor  &&  meta  &&  code == KeyCode.X  &&  !editor.isReadonly())

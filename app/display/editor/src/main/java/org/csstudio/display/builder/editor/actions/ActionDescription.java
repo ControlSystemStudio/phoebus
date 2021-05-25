@@ -135,6 +135,17 @@ public abstract class ActionDescription
         }
     };
 
+    /** Enable/disable showing crosshair cursor */
+    public static final ActionDescription ENABLE_CROSS =
+        new ActionDescription("icons/crosshair.png", Messages.ShowCrosshair)
+        {
+            @Override
+            public void run(final DisplayEditor editor, final boolean selected)
+            {
+                editor.setCrosshair(selected);
+            }
+        };
+
     /** Order widgets by their index in the parent's list of children
      *  <p>Original list will not be modified
      *  @param widgets Widgets in any order, because user may have selected them in random order

@@ -89,6 +89,7 @@ public class Messages
     public static String SetPropertyFmt;
     public static String SetWidgetPoints;
     public static String ShowCoordinates;
+    public static String ShowCrosshair;
     public static String ShowProperties;
     public static String ShowWidgetTree;
     public static String Size;
