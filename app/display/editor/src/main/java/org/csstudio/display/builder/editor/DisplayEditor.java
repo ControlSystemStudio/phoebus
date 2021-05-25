@@ -907,8 +907,8 @@ public class DisplayEditor
 
     private final Line vLine = new Line();
     private final Line hline = new Line();
-    private Label xLabel = createCrosshairLabel();
-    private Label yLabel = createCrosshairLabel();
+    private final Label xLabel = createCrosshairLabel();
+    private final Label yLabel = createCrosshairLabel();
     private double lastMouseX = 0;
     private double lastMouseY = 0;
 
