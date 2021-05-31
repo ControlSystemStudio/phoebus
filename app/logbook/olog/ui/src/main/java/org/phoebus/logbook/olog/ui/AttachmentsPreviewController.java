@@ -20,6 +20,7 @@ package org.phoebus.logbook.olog.ui;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
@@ -28,10 +29,13 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
@@ -91,6 +95,8 @@ public class AttachmentsPreviewController {
 
     private BooleanProperty listSelectionEmpty = new SimpleBooleanProperty(true);
 
+    private SimpleObjectProperty<Attachment> selectedAttachment =
+            new SimpleObjectProperty<>();
 
     @FXML
     public void initialize() {
@@ -106,7 +112,8 @@ public class AttachmentsPreviewController {
              */
             @Override
             public void changed(ObservableValue<? extends Attachment> observable, Attachment oldValue, Attachment newValue) {
-                showPreview(newValue);
+                selectedAttachment.set(newValue);
+                showPreview();
             }
         });
 
@@ -171,22 +178,20 @@ public class AttachmentsPreviewController {
 
     /**
      * Shows selected attachment in preview pane.
-     *
-     * @param attachment
      */
-    private void showPreview(Attachment attachment) {
-        if (attachment == null) {
+    private void showPreview() {
+        if (selectedAttachment.get() == null) {
             imagePreview.visibleProperty().setValue(false);
             textPreview.visibleProperty().setValue(false);
             return;
         }
-        if (attachment.getContentType().startsWith("image")) {
-            showImagePreview(attachment);
+        if (selectedAttachment.get().getContentType().startsWith("image")) {
+            showImagePreview(selectedAttachment.get());
         } else {
             // Other file types...
             // Need some file content detection here (Apache Tika?) to determine if the file is
             // plain text and thus possible to preview in a TextArea.
-            showFilePreview(attachment);
+            showFilePreview(selectedAttachment.get());
         }
     }
 
@@ -244,5 +249,24 @@ public class AttachmentsPreviewController {
             return;
         }
         listSelectionChangeListeners.remove(changeListener);
+    }
+
+    @FXML
+    public void launchImageViewer(){
+        try {
+            BufferedImage bufferedImage = ImageIO.read(selectedAttachment.get().getFile());
+            Image image = SwingFXUtils.toFXImage(bufferedImage, null);
+            Alert alert = new Alert(AlertType.INFORMATION, "Error", ButtonType.OK);
+            ImageView imageView = new ImageView(image);
+            ScrollPane scrollPane = new ScrollPane();
+            scrollPane.hbarPolicyProperty().setValue(ScrollBarPolicy.ALWAYS);
+            scrollPane.vbarPolicyProperty().setValue(ScrollBarPolicy.ALWAYS);
+            scrollPane.contentProperty().setValue(imageView);
+            alert.setGraphic(scrollPane);
+            alert.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }
