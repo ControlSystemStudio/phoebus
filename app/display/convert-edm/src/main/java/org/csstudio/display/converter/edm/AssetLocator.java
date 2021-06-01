@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,6 +26,17 @@ import org.phoebus.framework.util.IOUtils;
 @SuppressWarnings("nls")
 public class AssetLocator
 {
+    /** @param name Display name.
+     *  @return Display name with '.edl' added when missing or when there is a different ending
+     */
+    public static String makeEdlEnding(final String name)
+    {
+        final int sep = name.lastIndexOf('.');
+        if (sep < 0)
+            return name + ".edl";
+        return name.substring(0, sep) + ".edl";
+    }
+
     /** @param name EDM display name. '.edl' will be added when missing
      *  @return File for that display or <code>null</code>
      *  @throws Exception on error
@@ -33,13 +44,7 @@ public class AssetLocator
     public File locateEdl(final String name) throws Exception
     {
         // Check EDM file search path for display_file
-        String edl_file = name;
-        final int sep = edl_file.lastIndexOf('.');
-        if (sep < 0)
-            edl_file = edl_file + ".edl";
-        else
-            edl_file = edl_file.substring(0, sep) + ".edl";
-        return locate(edl_file);
+        return locate(makeEdlEnding(name));
     }
 
     /** @param name EDM resource
