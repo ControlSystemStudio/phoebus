@@ -42,25 +42,28 @@ public class EdmAutoConverter implements DisplayAutoConverter
         try
         {
             // Since June 2021, EDM supports relative paths.
-            final File parent_file = new File(parent_display);
-            if (parent_file.canRead())
+            if (parent_display != null)
             {
-                // Check for EDM file relative to parent
-                final File input = new File(parent_file.getParentFile(), AssetLocator.makeEdlEnding(display_file));
-                if (input.canRead())
+                final File parent_file = new File(parent_display);
+                if (parent_file.canRead())
                 {
-                    final File output = new File(parent_file.getParentFile(), display_file);
-                    if (! output.exists())
+                    // Check for EDM file relative to parent
+                    final File input = new File(parent_file.getParentFile(), AssetLocator.makeEdlEnding(display_file));
+                    if (input.canRead())
                     {
-                        if (! output.getParentFile().canWrite())
+                        final File output = new File(parent_file.getParentFile(), display_file);
+                        if (! output.exists())
                         {
-                            logger.log(Level.WARNING, "Lacking write permission to auto-convert " + input + " to " + output);
-                            return null;
+                            if (! output.getParentFile().canWrite())
+                            {
+                                logger.log(Level.WARNING, "Lacking write permission to auto-convert " + input + " to " + output);
+                                return null;
+                            }
+                            logger.log(Level.INFO, "Auto-converting " + input + " to " + output);
+                            new EdmConverter(input, null).write(output);
                         }
-                        logger.log(Level.INFO, "Auto-converting " + input + " to " + output);
-                        new EdmConverter(input, null).write(output);
+                        return ModelLoader.loadModel(output.getPath());
                     }
-                    return ModelLoader.loadModel(output.getPath());
                 }
             }
 
