@@ -136,10 +136,6 @@ public class UtilitiesTest {
         result = Utilities.valueToString(val,100);
         assertEquals("[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]", result);
 
-        val = VStringArray.of(Arrays.asList("first", "second", "third"),alarm, time);
-        result = Utilities.valueToString(val);
-        assertTrue(result.contains("not supported"));
-
         val = VLongArray.of(ArrayLong.of(1,2,3,4,5),alarm,time,display);
         result = Utilities.valueToString(val,3);
         assertEquals("[1, 2, 3,...]", result);
@@ -179,6 +175,10 @@ public class UtilitiesTest {
         val = VBoolean.of(true, alarm, time);
         result = Utilities.valueToString(val);
         assertEquals("true", result);
+
+        val = VStringArray.of(Arrays.asList("a", "b", "c"), alarm, time);
+        result = Utilities.valueToString(val);
+        assertEquals("[\"a\", \"b\", \"c\"]", result);
     }
 
     /**
@@ -186,7 +186,6 @@ public class UtilitiesTest {
      */
     @Test
     public void testValueFromString() {
-
 
         Alarm alarm = Alarm.none();
         Display display = Display.none();
@@ -313,9 +312,8 @@ public class UtilitiesTest {
         result = Utilities.valueFromString("[1, 2, 3]", val);
         assertEquals(((VUByteArray)result).getData(), ((VUByteArray)val).getData());
 
-
         val = VStringArray.of(Arrays.asList("first", "second", "third"),alarm, time);
-        result = Utilities.valueFromString("[first, second, third]", val);
+        result = Utilities.valueFromString("[\"first\", \"second\", \"third\"]", val);
         assertTrue(result instanceof VStringArray);
         assertArrayEquals(new String[]{"first","second","third"}, ((VStringArray)result).getData().toArray(new String[0]));
 
@@ -325,7 +323,7 @@ public class UtilitiesTest {
         assertTrue(((VLongArray)result).getData() instanceof ListLong);
 
         val = VBooleanArray.of(ArrayBoolean.of(true,true,false,true),alarm,time);
-        result = Utilities.valueFromString("[true, true, false, true]", val);
+        result = Utilities.valueFromString("[1, 1, 0, 2]", val);
         assertTrue(result instanceof VBooleanArray);
         assertTrue(((VBooleanArray)result).getData() instanceof ListBoolean);
 
@@ -407,10 +405,9 @@ public class UtilitiesTest {
         ArrayDouble arrayDouble = ArrayDouble.of(1,2,3,4,5);
         val = VDoubleArray.of(arrayDouble,alarm,time,display);
         d = Utilities.toRawValue(val);
-        assertTrue(d instanceof ListNumber);
-        ListNumber l = (ListNumber)d;
-        for (int i = 0; i < l.size(); i++) {
-            assertEquals(arrayDouble.getDouble(i), l.getDouble(i), 0);
+        assertTrue(d instanceof double[]);
+        for (int i = 0; i < ((double[]) d).length; i++) {
+            assertEquals(arrayDouble.getDouble(i), ((double[]) d)[i], 0);
         }
 
         val = VStringArray.of(Arrays.asList("a", "b", "c"), alarm, time);
@@ -419,16 +416,15 @@ public class UtilitiesTest {
 
         val = VBooleanArray.of(ArrayBoolean.of(true, false, true), alarm, time);
         d = Utilities.toRawValue(val);
-        assertTrue(d instanceof ArrayBoolean);
-        ArrayBoolean arrayBoolean = (ArrayBoolean)d;
-        assertTrue(arrayBoolean.getBoolean(0));
-        assertFalse(arrayBoolean.getBoolean(1));
+        assertTrue(d instanceof boolean[]);
+        assertTrue(((boolean[])d)[0]);
+        assertFalse(((boolean[])d)[1]);
 
         val = VEnumArray.of(ArrayInteger.of(0, 1, 2, 3, 4), EnumDisplay.of("a", "b", "c", "d", "e"), alarm, time);
         d = Utilities.toRawValue(val);
-        assertTrue(d instanceof List);
-        assertEquals("a", ((List)d).get(0));
-        assertEquals("e", ((List)d).get(4));
+        assertTrue(d instanceof String[]);
+        assertEquals("a", ((String[])d)[0]);
+        assertEquals("e", ((String[])d)[4]);
 
         val = VBoolean.of(true, alarm, time);
         d = Utilities.toRawValue(val);
@@ -1096,16 +1092,16 @@ public class UtilitiesTest {
         val1 = VDoubleArray.of(ArrayDouble.of(1,2,3),alarm,time,display);
         val2 = VDoubleArray.of(ArrayDouble.of(1,2,3),alarm,time,display);
         result = Utilities.deltaValueToString(val1, val2, Optional.empty());
-        assertEquals("[1.0, 2.0, 3.0]", result.getString());
+        assertEquals("---", result.getString());
         assertEquals(0,result.getValuesEqual());
         assertTrue(result.isWithinThreshold());
 
-        val1 = VDoubleArray.of(ArrayDouble.of(1,2,3),alarm,time,display);
-        val2 = VLongArray.of(ArrayLong.of(1,2,3),alarm,time,display);
+        val1 = VBooleanArray.of(ArrayBoolean.of(true, false),alarm,time);
+        val2 = VBooleanArray.of(ArrayBoolean.of(true, false),alarm,time);
         result = Utilities.deltaValueToString(val1, val2, Optional.empty());
-        assertEquals("[1.0, 2.0, 3.0]", result.getString());
-        assertNotEquals(0, result.getValuesEqual());
-        assertFalse(result.isWithinThreshold());
+        assertEquals("---", result.getString());
+        assertEquals(0,result.getValuesEqual());
+        assertTrue(result.isWithinThreshold());
 
         //compare long values: equal, first less than second, second less than first
         val1 = VLong.of(6L,alarm,time,display);
@@ -1499,6 +1495,6 @@ public class UtilitiesTest {
 
         val1 = VStringArray.of(Arrays.asList("a", "b", "c"), alarm, time);
         val2 = VStringArray.of(Arrays.asList("a", "b", "c"), alarm, time);
-        assertFalse(Utilities.areValuesEqual(val1, val2, Optional.empty()));
+        assertTrue(Utilities.areValuesEqual(val1, val2, Optional.empty()));
     }
 }

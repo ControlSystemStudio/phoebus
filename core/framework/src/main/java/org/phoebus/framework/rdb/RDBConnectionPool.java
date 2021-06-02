@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -161,7 +161,7 @@ public class RDBConnectionPool
         }
         push(connection);
         logger.log(Level.FINER, "Released connection into " + this);
-        final Future<?> previous = cleanup.getAndSet(clear_timer.schedule(this::clear, timeout, TimeUnit.SECONDS));
+        final Future<?> previous = cleanup.getAndSet(clear_timer.schedule(this::closeIdleConnections, timeout, TimeUnit.SECONDS));
         if (previous != null)
             previous.cancel(false);
     }
@@ -185,6 +185,19 @@ public class RDBConnectionPool
     public void clear()
     {
         closed = true;
+
+        closeIdleConnections();
+        
+        logger.log(Level.INFO, () -> "Cleared " + this);
+
+        // In case a timer was running, cancel
+        final Future<?> previous = cleanup.getAndSet(null);
+        if (previous != null)
+            previous.cancel(false);
+    }
+
+    private void closeIdleConnections()
+    {
         synchronized (this)
         {
             final Iterator<Connection> iterator = pool.iterator();
@@ -196,12 +209,6 @@ public class RDBConnectionPool
             }
             pool.clear();
         }
-        logger.log(Level.FINE, () -> "Cleared " + this);
-
-        // In case a timer was running, cancel
-        final Future<?> previous = cleanup.getAndSet(null);
-        if (previous != null)
-            previous.cancel(false);
     }
 
     private void close(final Connection connection)

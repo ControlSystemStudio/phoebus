@@ -29,18 +29,32 @@
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>app-logbook-olog-client-es</artifactId>
+      <artifactId>app-logbook-inmemory</artifactId>
       <version>4.6.6-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-logbook-olog-ui</artifactId>
       <version>4.6.6-SNAPSHOT</version>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-logbook-elog</artifactId>
       <version>4.6.6-SNAPSHOT</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>app-logbook-olog-client</artifactId>
+      <version>4.6.6-SNAPSHOT</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>app-logbook-olog-client-es</artifactId>
+      <version>4.6.6-SNAPSHOT</version>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>

@@ -32,63 +32,67 @@ import static org.junit.Assert.*;
 
 public class VTypeHelperTest {
 
+    private static Alarm alarm = Alarm.none();
+    private static Time time = Time.now();
+    private static Display display = Display.none();
+
     @Test
     public void testToDouble(){
 
-        VDouble doubleValue = VDouble.of(7.7, Alarm.none(), Time.now(), Display.none());
+        VDouble doubleValue = VDouble.of(7.7, alarm, time, display);
         double result = VTypeHelper.toDouble(doubleValue);
         assertEquals(7.7, result, 0);
 
-        VString stringValue = VString.of("7.7", Alarm.none(), Time.now());
+        VString stringValue = VString.of("7.7", alarm, time);
         result = VTypeHelper.toDouble(doubleValue);
         assertEquals(7.7, result, 0);
 
-        stringValue = VString.of("NotANumber", Alarm.none(), Time.now());
+        stringValue = VString.of("NotANumber", alarm, time);
         result = VTypeHelper.toDouble(stringValue);
         assertEquals(Double.NaN, result, 0);
 
-        VEnum enumValue = VEnum.of(7, EnumDisplay.of("a", "b"), Alarm.none(), Time.now());
+        VEnum enumValue = VEnum.of(7, EnumDisplay.of("a", "b"), alarm, time);
         result = VTypeHelper.toDouble(enumValue);
         assertEquals(7.0, result, 0);
 
         VStatistics statisticsValue =
-                VStatistics.of(7.7, 0.1, 0.0, 10.0, 5, Alarm.none(), Time.now(), Display.none());
+                VStatistics.of(7.7, 0.1, 0.0, 10.0, 5, alarm, time, display);
         result = VTypeHelper.toDouble(statisticsValue);
         assertEquals(7.7, result, 0);
 
         VDoubleArray doubleArray =
-                VDoubleArray.of(ArrayDouble.of(7.7, 8.8), Alarm.none(), Time.now(), Display.none());
+                VDoubleArray.of(ArrayDouble.of(7.7, 8.8), alarm, time, display);
         result = VTypeHelper.toDouble(doubleArray);
         assertEquals(7.7, result, 0);
 
         VEnumArray enumArray =
-                VEnumArray.of(ArrayInteger.of(0, 1), EnumDisplay.of("a", "b"), Alarm.none(), Time.now());
+                VEnumArray.of(ArrayInteger.of(0, 1), EnumDisplay.of("a", "b"), alarm, time);
 
         result = VTypeHelper.toDouble(enumArray);
         assertEquals(0.0, result, 0);
 
-        VBoolean booleanValue = VBoolean.of(true, Alarm.none(), Time.now());
+        VBoolean booleanValue = VBoolean.of(true, alarm, time);
         assertEquals(1.0, VTypeHelper.toDouble(booleanValue), 0);
-        booleanValue = VBoolean.of(false, Alarm.none(), Time.now());
+        booleanValue = VBoolean.of(false, alarm, time);
         assertEquals(0.0, VTypeHelper.toDouble(booleanValue), 0);
     }
 
     @Test
     public void testArrayToDoubleWithValidIndex(){
         VDoubleArray doubleArray =
-                VDoubleArray.of(ArrayDouble.of(7.7, 8.8), Alarm.none(), Time.now(), Display.none());
+                VDoubleArray.of(ArrayDouble.of(7.7, 8.8), alarm, time, display);
         double result = VTypeHelper.toDouble(doubleArray, 0);
         assertEquals(7.7, result, 0);
         result = VTypeHelper.toDouble(doubleArray, 1);
         assertEquals(8.8, result, 0);
 
         VEnumArray enumArray =
-                VEnumArray.of(ArrayInteger.of(0, 1), EnumDisplay.of("a", "b"), Alarm.none(), Time.now());
+                VEnumArray.of(ArrayInteger.of(0, 1), EnumDisplay.of("a", "b"), alarm, time);
         result = VTypeHelper.toDouble(enumArray);
         assertEquals(0.0, result, 0);
         assertEquals(1.0, result, 1);
 
-        VDouble doubleValue = VDouble.of(7.7, Alarm.none(), Time.now(), Display.none());
+        VDouble doubleValue = VDouble.of(7.7, alarm, time, display);
         result = VTypeHelper.toDouble(doubleValue, 0);
         assertEquals(7.7, result, 0);
     }
@@ -96,7 +100,7 @@ public class VTypeHelperTest {
     @Test
     public void testArrayToDoubleWithInvalidIndex1(){
         VDoubleArray doubleArray =
-                VDoubleArray.of(ArrayDouble.of(7.7, 8.8), Alarm.none(), Time.now(), Display.none());
+                VDoubleArray.of(ArrayDouble.of(7.7, 8.8), alarm, time, display);
         double result = VTypeHelper.toDouble(doubleArray, 7);
         assertEquals(result, Double.NaN, 0);
     }
@@ -104,7 +108,7 @@ public class VTypeHelperTest {
     @Test
     public void testArrayToDoubleWithInvalidIndex2(){
         VEnumArray enumArray =
-                VEnumArray.of(ArrayInteger.of(0, 1), EnumDisplay.of("a", "b"), Alarm.none(), Time.now());
+                VEnumArray.of(ArrayInteger.of(0, 1), EnumDisplay.of("a", "b"), alarm, time);
         double result = VTypeHelper.toDouble(enumArray, 7);
         assertEquals(result, Double.NaN, 0);
     }
@@ -112,7 +116,7 @@ public class VTypeHelperTest {
     @Test
     public void testArrayToDoubleWithInvalidIndex3(){
         VDoubleArray doubleArray =
-                VDoubleArray.of(ArrayDouble.of(7.7, 8.8), Alarm.none(), Time.now(), Display.none());
+                VDoubleArray.of(ArrayDouble.of(7.7, 8.8), alarm, time, display);
         double result = VTypeHelper.toDouble(doubleArray, -1);
         assertEquals(result, Double.NaN, 0);
     }
@@ -120,13 +124,13 @@ public class VTypeHelperTest {
     @Test
     public void testToDoubles(){
         VDoubleArray doubleArray =
-                VDoubleArray.of(ArrayDouble.of(7.7, 8.8), Alarm.none(), Time.now(), Display.none());
+                VDoubleArray.of(ArrayDouble.of(7.7, 8.8), alarm, time, display);
         double[] result = VTypeHelper.toDoubles(doubleArray);
         assertEquals(2, result.length);
         assertEquals(7.7, result[0], 0);
         assertEquals(8.8, result[1], 0);
 
-        VDouble doubleValue = VDouble.of(7.7, Alarm.none(), Time.now(), Display.none());
+        VDouble doubleValue = VDouble.of(7.7, alarm, time, display);
         result = VTypeHelper.toDoubles(doubleValue);
 
         assertEquals(0, result.length);
@@ -141,44 +145,44 @@ public class VTypeHelperTest {
                 Arrays.asList(ArrayDouble.of(7.7)));
         assertNotNull(VTypeHelper.toString(table));
 
-        VDouble vDouble = VDouble.of(7.7, Alarm.disconnected(), Time.now(), Display.none());
+        VDouble vDouble = VDouble.of(7.7, Alarm.disconnected(), time, display);
         assertNull(VTypeHelper.toString(vDouble));
-        vDouble = VDouble.of(7.7, Alarm.none(), Time.now(), Display.none());
+        vDouble = VDouble.of(7.7, alarm, time, display);
         assertEquals("7.7", VTypeHelper.toString(vDouble));
 
-        VEnum enumValue = VEnum.of(0, EnumDisplay.of("a", "b"), Alarm.none(), Time.now());
+        VEnum enumValue = VEnum.of(0, EnumDisplay.of("a", "b"), alarm, time);
         assertEquals("a", VTypeHelper.toString(enumValue));
 
-        assertEquals("b", VTypeHelper.toString(VString.of("b", Alarm.none(), Time.now())));
+        assertEquals("b", VTypeHelper.toString(VString.of("b", alarm, time)));
     }
 
     @Test
     public void testIsNumericArray(){
 
-        VDouble vDouble = VDouble.of(7.7, Alarm.none(), Time.now(), Display.none());
+        VDouble vDouble = VDouble.of(7.7, alarm, time, display);
         assertFalse(VTypeHelper.isNumericArray(vDouble));
 
         VDoubleArray doubleArray =
-                VDoubleArray.of(ArrayDouble.of(7.7, 8.8), Alarm.none(), Time.now(), Display.none());
+                VDoubleArray.of(ArrayDouble.of(7.7, 8.8), alarm, time, display);
         assertTrue(VTypeHelper.isNumericArray(doubleArray));
 
         VEnumArray enumArray =
-                VEnumArray.of(ArrayInteger.of(0, 1), EnumDisplay.of("a", "b"), Alarm.none(), Time.now());
+                VEnumArray.of(ArrayInteger.of(0, 1), EnumDisplay.of("a", "b"), alarm, time);
         assertTrue(VTypeHelper.isNumericArray(enumArray));
     }
 
     @Test
     public void testGetArraySize(){
         VDoubleArray doubleArray =
-                VDoubleArray.of(ArrayDouble.of(7.7, 8.8), Alarm.none(), Time.now(), Display.none());
+                VDoubleArray.of(ArrayDouble.of(7.7, 8.8), alarm, time, display);
         assertEquals(2, VTypeHelper.getArraySize(doubleArray));
 
         VEnumArray enumArray =
-                VEnumArray.of(ArrayInteger.of(0, 1), EnumDisplay.of("a", "b"), Alarm.none(), Time.now());
+                VEnumArray.of(ArrayInteger.of(0, 1), EnumDisplay.of("a", "b"), alarm, time);
         assertEquals(2, VTypeHelper.getArraySize(enumArray));
 
         VStringArray stringArray =
-                VStringArray.of(Arrays.asList("a","b"), Alarm.none(), Time.now());
+                VStringArray.of(Arrays.asList("a","b"), alarm, time);
         assertEquals(2, VTypeHelper.getArraySize(stringArray));
     }
 
@@ -188,8 +192,8 @@ public class VTypeHelperTest {
         Time t1 = Time.of(Instant.EPOCH);
         Time t2 = Time.of(now);
 
-        VInt i1 = VInt.of(1, Alarm.none(), t1, Display.none());
-        VInt i2 = VInt.of(2, Alarm.none(), t2, Display.none());
+        VInt i1 = VInt.of(1, alarm, t1, display);
+        VInt i2 = VInt.of(2, alarm, t2, display);
 
         assertEquals(t2, VTypeHelper.lastestTimeOf(i1, i2));
         assertEquals(t2, VTypeHelper.lastestTimeOf(i2, i1));
@@ -200,11 +204,11 @@ public class VTypeHelperTest {
         Instant epoch = Instant.EPOCH;
         Time t = Time.of(epoch);
 
-        VInt i1 = VInt.of(1, Alarm.none(), t, Display.none());
+        VInt i1 = VInt.of(1, alarm, t, display);
         assertEquals(epoch, VTypeHelper.getTimestamp(i1));
 
         t = Time.nowInvalid();
-        i1 = VInt.of(1, Alarm.none(), t, Display.none());
+        i1 = VInt.of(1, alarm, t, display);
 
         Instant now = Instant.now();
         Thread.sleep(2);
@@ -216,29 +220,29 @@ public class VTypeHelperTest {
         Instant instant = Instant.now();
 
         VInt intValue =
-                VInt.of(7, Alarm.none(), Time.of(Instant.EPOCH), Display.none());
+                VInt.of(7, alarm, Time.of(Instant.EPOCH), display);
         intValue = (VInt)VTypeHelper.transformTimestamp(intValue, instant);
         assertEquals(instant, intValue.getTime().getTimestamp());
 
-        VDouble doubleValue = VDouble.of(7.7, Alarm.none(), Time.of(Instant.EPOCH), Display.none());
+        VDouble doubleValue = VDouble.of(7.7, alarm, Time.of(Instant.EPOCH), display);
         doubleValue = (VDouble)VTypeHelper.transformTimestamp(doubleValue, instant);
         assertEquals(instant, doubleValue.getTime().getTimestamp());
 
-        VString stringValue = VString.of("test", Alarm.none(), Time.of(Instant.EPOCH));
+        VString stringValue = VString.of("test", alarm, Time.of(Instant.EPOCH));
         stringValue = (VString)VTypeHelper.transformTimestamp(stringValue, instant);
         assertEquals(instant, stringValue.getTime().getTimestamp());
 
-        VEnum enumValue = VEnum.of(7, EnumDisplay.of("a", "b"), Alarm.none(), Time.now());
+        VEnum enumValue = VEnum.of(7, EnumDisplay.of("a", "b"), alarm, time);
         enumValue = (VEnum)VTypeHelper.transformTimestamp(enumValue, instant);
         assertEquals(instant, enumValue.getTime().getTimestamp());
 
         VDoubleArray doubleArray =
-                VDoubleArray.of(ArrayDouble.of(7.7, 8.8), Alarm.none(), Time.now(), Display.none());
+                VDoubleArray.of(ArrayDouble.of(7.7, 8.8), alarm, time, display);
         doubleArray = (VDoubleArray)VTypeHelper.transformTimestamp(doubleArray, instant);
         assertEquals(instant, doubleArray.getTime().getTimestamp());
 
         VEnumArray enumArray =
-                VEnumArray.of(ArrayInteger.of(0, 1), EnumDisplay.of("a", "b"), Alarm.none(), Time.now());
+                VEnumArray.of(ArrayInteger.of(0, 1), EnumDisplay.of("a", "b"), alarm, time);
 
         assertNull(VTypeHelper.transformTimestamp(enumArray, instant));
     }
@@ -246,8 +250,8 @@ public class VTypeHelperTest {
 
     @Test
     public void highestAlarmOf() {
-        VType arg1 = VInt.of(0, Alarm.none(), Time.now(), Display.none());
-        VType arg2 = VInt.of(0, Alarm.lolo(), Time.now(), Display.none());
+        VType arg1 = VInt.of(0, alarm, time, display);
+        VType arg2 = VInt.of(0, Alarm.lolo(), time, display);
 
         Alarm alarm =  VTypeHelper.highestAlarmOf(arg1, arg2);
 
@@ -258,7 +262,7 @@ public class VTypeHelperTest {
     @Test
     public void testFormatArrayNumbersArrayZeroLength(){
         ListInteger listInteger = ArrayInteger.of();
-        Array array = VNumberArray.of(listInteger, Alarm.none(), Time.now(), Display.none());
+        Array array = VNumberArray.of(listInteger, alarm, time, display);
         String string = VTypeHelper.formatArray(array, 3);
         assertEquals("VIntArray", string);
     }
@@ -266,7 +270,7 @@ public class VTypeHelperTest {
     @Test
     public void testFormatArrayZeroMax(){
         ListInteger listInteger = ArrayInteger.of(1, 2, 3, 4, 5);
-        Array array = VNumberArray.of(listInteger, Alarm.none(), Time.now(), Display.none());
+        Array array = VNumberArray.of(listInteger, alarm, time, display);
         String string = VTypeHelper.formatArray(array, 0);
         assertEquals("VIntArray", string);
     }
@@ -274,7 +278,7 @@ public class VTypeHelperTest {
     @Test
     public void testFormatArrayNegativeMax(){
         ListInteger listInteger = ArrayInteger.of(1, 2, 3, 4, 5);
-        Array array = VNumberArray.of(listInteger, Alarm.none(), Time.now(), Display.none());
+        Array array = VNumberArray.of(listInteger, alarm, time, display);
         String string = VTypeHelper.formatArray(array, -1);
         assertEquals("VIntArray[1, 2, 3, 4, 5]", string);
     }
@@ -283,7 +287,7 @@ public class VTypeHelperTest {
     public void testFormatArrayWithSizes(){
         ListInteger sizes = ArrayInteger.of(2, 3);
         ListInteger listInteger = ArrayInteger.of(11, 12, 21, 22, 31, 32);
-        Array array = VNumberArray.of(listInteger, sizes, Alarm.none(), Time.now(), Display.none());
+        Array array = VNumberArray.of(listInteger, sizes, alarm, time, display);
         String string = VTypeHelper.formatArray(array, 3);
         assertEquals("VIntArray[11, 12, 21,...", string);
         string = VTypeHelper.formatArray(array, 10);
@@ -293,14 +297,14 @@ public class VTypeHelperTest {
     @Test
     public void testFormatIntArray(){
         ListInteger listInteger = ArrayInteger.of(-1, 2, 3, 4, 5);
-        Array array = VIntArray.of(listInteger, Alarm.none(), Time.now(), Display.none());
+        Array array = VIntArray.of(listInteger, alarm, time, display);
         String string = VTypeHelper.formatArray(array, 3);
         assertEquals("VIntArray[-1, 2, 3,...", string);
         string = VTypeHelper.formatArray(array, 10);
         assertEquals("VIntArray[-1, 2, 3, 4, 5]", string);
 
         ListUInteger listUInteger = ArrayUInteger.of(1, 2, 3, 4, 5);
-        array = VUIntArray.of(listUInteger, Alarm.none(), Time.now(), Display.none());
+        array = VUIntArray.of(listUInteger, alarm, time, display);
         string = VTypeHelper.formatArray(array, 3);
         assertEquals("VUIntArray[1, 2, 3,...", string);
         string = VTypeHelper.formatArray(array, 10);
@@ -310,14 +314,14 @@ public class VTypeHelperTest {
     @Test
     public void testFormatLongArray(){
         ListLong list = ArrayLong.of(-1L, 2L, 3L, 4L, 5L);
-        Array array = VLongArray.of(list, Alarm.none(), Time.now(), Display.none());
+        Array array = VLongArray.of(list, alarm, time, display);
         String string = VTypeHelper.formatArray(array, 3);
         assertEquals("VLongArray[-1, 2, 3,...", string);
         string = VTypeHelper.formatArray(array, 10);
         assertEquals("VLongArray[-1, 2, 3, 4, 5]", string);
 
         ListULong listU = ArrayULong.of(1L, 2L, 3L, 4L, 5L);
-        array = VUIntArray.of(listU, Alarm.none(), Time.now(), Display.none());
+        array = VUIntArray.of(listU, alarm, time, display);
         string = VTypeHelper.formatArray(array, 3);
         assertEquals("VULongArray[1, 2, 3,...", string);
         string = VTypeHelper.formatArray(array, 10);
@@ -327,14 +331,14 @@ public class VTypeHelperTest {
     @Test
     public void testFormatShortArray(){
         ListShort list = ArrayShort.of((short)-1, (short)2, (short)3, (short)4, (short)5);
-        Array array = VShortArray.of(list, Alarm.none(), Time.now(), Display.none());
+        Array array = VShortArray.of(list, alarm, time, display);
         String string = VTypeHelper.formatArray(array, 3);
         assertEquals("VShortArray[-1, 2, 3,...", string);
         string = VTypeHelper.formatArray(array, 10);
         assertEquals("VShortArray[-1, 2, 3, 4, 5]", string);
 
         ListUShort listU = ArrayUShort.of((short)1, (short)2, (short)3, (short)4, (short)5);
-        array = VUShortArray.of(listU, Alarm.none(), Time.now(), Display.none());
+        array = VUShortArray.of(listU, alarm, time, display);
         string = VTypeHelper.formatArray(array, 3);
         assertEquals("VUShortArray[1, 2, 3,...", string);
         string = VTypeHelper.formatArray(array, 10);
@@ -344,14 +348,14 @@ public class VTypeHelperTest {
     @Test
     public void testFormatByteArray(){
         ListByte list = ArrayByte.of((byte)-1, (byte)2, (byte)3, (byte)4, (byte)5);
-        Array array = VByteArray.of(list, Alarm.none(), Time.now(), Display.none());
+        Array array = VByteArray.of(list, alarm, time, display);
         String string = VTypeHelper.formatArray(array, 3);
         assertEquals("VByteArray[-1, 2, 3,...", string);
         string = VTypeHelper.formatArray(array, 10);
         assertEquals("VByteArray[-1, 2, 3, 4, 5]", string);
 
         ListUByte listU = ArrayUByte.of((byte)1, (byte)2, (byte)3, (byte)4, (byte)5);
-        array = VUShortArray.of(listU, Alarm.none(), Time.now(), Display.none());
+        array = VUShortArray.of(listU, alarm, time, display);
         string = VTypeHelper.formatArray(array, 3);
         assertEquals("VUByteArray[1, 2, 3,...", string);
         string = VTypeHelper.formatArray(array, 10);
@@ -361,7 +365,7 @@ public class VTypeHelperTest {
     @Test
     public void testFormatBooleanArray(){
         ListBoolean list = ArrayBoolean.of(true, true, false, false ,false);
-        Array array = VBooleanArray.of(list, Alarm.none(), Time.now());
+        Array array = VBooleanArray.of(list, alarm, time);
         String string = VTypeHelper.formatArray(array, 3);
         assertEquals("VBooleanArray[true, true, false,...", string);
         string = VTypeHelper.formatArray(array, 10);
@@ -371,7 +375,7 @@ public class VTypeHelperTest {
     @Test
     public void testFormatDoubleArray(){
         ListDouble list = ArrayDouble.of(-1d, 0.27, 3.0f, 4.0f, 5.0f);
-        Array array = VDoubleArray.of(list, Alarm.none(), Time.now(), Display.none());
+        Array array = VDoubleArray.of(list, alarm, time, display);
         String string = VTypeHelper.formatArray(array, 3);
         assertEquals("VDoubleArray[-1.0, 0.27, 3.0,...", string);
         string = VTypeHelper.formatArray(array, 10);
@@ -381,7 +385,7 @@ public class VTypeHelperTest {
     @Test
     public void testFormatFloatArray(){
         ListFloat list = ArrayFloat.of(-1f, 0.27f, 3.0f, 4.0f, 5.0f);
-        Array array = VDoubleArray.of(list, Alarm.none(), Time.now(), Display.none());
+        Array array = VDoubleArray.of(list, alarm, time, display);
         String string = VTypeHelper.formatArray(array, 3);
         assertEquals("VFloatArray[-1.0, 0.27, 3.0,...", string);
         string = VTypeHelper.formatArray(array, 10);
@@ -390,7 +394,7 @@ public class VTypeHelperTest {
 
     @Test
     public void testFormatStringArray(){
-        Array array = VStringArray.of(Arrays.asList("a", "b", "c", "d", "e"), Alarm.none(), Time.now());
+        Array array = VStringArray.of(Arrays.asList("a", "b", "c", "d", "e"), alarm, time);
         String string = VTypeHelper.formatArray(array, 3);
         assertEquals("VStringArray[a, b, c,...", string);
         string = VTypeHelper.formatArray(array, 10);
@@ -400,7 +404,7 @@ public class VTypeHelperTest {
     @Test
     public void testFormatEnumArray(){
         ListInteger listInteger = ArrayInteger.of(0, 1, 2, 3, 4);
-        Array array = VEnumArray.of(listInteger, EnumDisplay.of("a", "b", "c", "d", "e"), Alarm.none(), Time.now());
+        Array array = VEnumArray.of(listInteger, EnumDisplay.of("a", "b", "c", "d", "e"), alarm, time);
         String string = VTypeHelper.formatArray(array, 3);
         assertEquals("VEnumArray[a, b, c,...", string);
         string = VTypeHelper.formatArray(array, 10);
@@ -410,30 +414,113 @@ public class VTypeHelperTest {
     @Test
     public void testToBoolean() {
         // Test parsing of VBoolean to boolean
-        VType vtype = VBoolean.of(Boolean.TRUE, Alarm.none(), Time.now());
+        VType vtype = VBoolean.of(Boolean.TRUE, alarm, time);
         assertEquals("Failed to parse boolean from VBoolean : " + vtype.toString(), true, VTypeHelper.toBoolean(vtype));
-        vtype = VBoolean.of(Boolean.FALSE, Alarm.none(), Time.now());
+        vtype = VBoolean.of(Boolean.FALSE, alarm, time);
         assertEquals("Failed to parse boolean from VBoolean : " + vtype.toString(), false, VTypeHelper.toBoolean(vtype));
 
         // Test parsing of VString to boolean
-        vtype = VString.of("true", Alarm.none(), Time.now());
+        vtype = VString.of("true", alarm, time);
         assertEquals("Failed to parse boolean from VString : " + vtype.toString(), true, VTypeHelper.toBoolean(vtype));
-        vtype = VString.of("TRUE", Alarm.none(), Time.now());
+        vtype = VString.of("TRUE", alarm, time);
         assertEquals("Failed to parse boolean from VString : " + vtype.toString(), true, VTypeHelper.toBoolean(vtype));
-        vtype = VString.of("false", Alarm.none(), Time.now());
+        vtype = VString.of("false", alarm, time);
         assertEquals("Failed to parse boolean from VString : " + vtype.toString(), false, VTypeHelper.toBoolean(vtype));
-        vtype = VString.of("FALSE", Alarm.none(), Time.now());
+        vtype = VString.of("FALSE", alarm, time);
         assertEquals("Failed to parse boolean from VString : " + vtype.toString(), false, VTypeHelper.toBoolean(vtype));
 
         // Test parsing of VNumber to boolean
-        vtype = VNumber.of(0, Alarm.none(), Time.now(), Display.none());
+        vtype = VNumber.of(0, alarm, time, display);
         assertEquals("Failed to parse boolean from VNumber : " + vtype.toString(), false, VTypeHelper.toBoolean(vtype));
-        vtype = VNumber.of(0.0, Alarm.none(), Time.now(), Display.none());
+        vtype = VNumber.of(0.0, alarm, time, display);
         assertEquals("Failed to parse boolean from VNumber : " + vtype.toString(), false, VTypeHelper.toBoolean(vtype));
-        vtype = VNumber.of(0.001, Alarm.none(), Time.now(), Display.none());
+        vtype = VNumber.of(0.001, alarm, time, display);
         assertEquals("Failed to parse boolean from VNumber : " + vtype.toString(), true, VTypeHelper.toBoolean(vtype));
-        vtype = VNumber.of(1, Alarm.none(), Time.now(), Display.none());
+        vtype = VNumber.of(1, alarm, time, display);
         assertEquals("Failed to parse boolean from VNumber : " + vtype.toString(), true, VTypeHelper.toBoolean(vtype));
     }
 
+    @Test
+    public void testArrayToIntegersWithValidIndex(){
+        VIntArray intArray =
+                VIntArray.of(ArrayInteger.of(7, 8), alarm, time, display);
+        int[] integers = VTypeHelper.toIntegers(intArray);
+        assertEquals(integers[0], 7);
+        assertEquals(integers[1], 8);
+
+        assertTrue(VTypeHelper.toIntegers(VDouble.of(7.0, alarm, time, display)).length == 0);
+
+        VUIntArray uintArray =
+                VUIntArray.of(ArrayUInteger.of(7, 8), alarm, time, display);
+        integers = VTypeHelper.toIntegers(uintArray);
+        assertEquals(integers[0], 7);
+        assertEquals(integers[1], 8);
+    }
+
+    @Test
+    public void testArrayToLongsWithValidIndex(){
+        VLongArray longArray =
+                VLongArray.of(ArrayLong.of(7L, 8L), alarm, time, display);
+        long[] longs = VTypeHelper.toLongs(longArray);
+        assertEquals(longs[0], 7);
+        assertEquals(longs[1], 8);
+
+        assertTrue(VTypeHelper.toLongs(VDouble.of(7.0, alarm, time, display)).length == 0);
+
+        VULongArray ulongArray =
+                VULongArray.of(ArrayULong.of(7L, 8L), alarm, time, display);
+        longs = VTypeHelper.toLongs(ulongArray);
+        assertEquals(longs[0], 7);
+        assertEquals(longs[1], 8);
+    }
+
+    @Test
+    public void testArrayToShortsWithValidIndex(){
+        VShortArray shortArray =
+                VShortArray.of(ArrayShort.of((short)7, (short)8), alarm, time, display);
+        short[] shorts = VTypeHelper.toShorts(shortArray);
+        assertEquals(shorts[0], 7);
+        assertEquals(shorts[1], 8);
+
+        assertTrue(VTypeHelper.toShorts(VDouble.of(7.0, alarm, time, display)).length == 0);
+
+        VUShortArray ushortArray =
+                VUShortArray.of(ArrayUShort.of((short)7, (short)8), alarm, time, display);
+        shorts = VTypeHelper.toShorts(ushortArray);
+        assertEquals(shorts[0], 7);
+        assertEquals(shorts[1], 8);
+    }
+
+    @Test
+    public void testArrayToFloatsWithValidIndex(){
+        VFloatArray floatArray =
+                VFloatArray.of(ArrayFloat.of(7.0f, 8.0f), alarm, time, display);
+        float[] floats = VTypeHelper.toFloats(floatArray);
+        assertEquals(floats[0], 7, 0);
+        assertEquals(floats[1], 8, 0);
+
+        assertTrue(VTypeHelper.toFloats(VDouble.of(7.0, alarm, time, display)).length == 0);
+    }
+
+    @Test
+    public void testArrayToBytesWithValidIndex(){
+        VByteArray byteArray =
+                VByteArray.of(ArrayByte.of((byte)7, (byte)8), alarm, time, display);
+        byte[] bytes = VTypeHelper.toBytes(byteArray);
+        assertEquals(bytes[0], 7);
+        assertEquals(bytes[1], 8);
+
+        assertTrue(VTypeHelper.toBytes(VDouble.of(7.0, alarm, time, display)).length == 0);
+    }
+
+    @Test
+    public void testArrayToBooleansWithValidIndex(){
+        VBooleanArray boolArray =
+                VBooleanArray.of(ArrayBoolean.of(true, false), alarm, time);
+        boolean[] booleans = VTypeHelper.toBooleans(boolArray);
+        assertTrue(booleans[0]);
+        assertFalse(booleans[1]);
+
+        assertTrue(VTypeHelper.toBooleans(VDouble.of(7.0, alarm, time, display)).length == 0);
+    }
 }

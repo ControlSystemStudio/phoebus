@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -302,9 +302,16 @@ class ServerModel
             {   // Done when creating leaf
                 // Use the known initial state, but only once (remove from map)
                 if (last &&  is_leaf)
-                    return new AlarmServerPV(this, parent, name, initial_states.remove(path));
+                {
+                    final AlarmServerPV pv = new AlarmServerPV(this, parent.getPathName(), name, initial_states.remove(path));
+                    pv.addToParent(parent);
+                    return pv;
+                }
                 else
-                    node = new AlarmServerNode(this, parent, name);
+                {
+                    node = new AlarmServerNode(this, parent.getPathName(), name);
+                    node.addToParent(parent);
+                }
             }
             // Reached desired node?
             if (last)

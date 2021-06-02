@@ -24,6 +24,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import org.phoebus.logbook.LogService;
 import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.LogbookPreferences;
 
 import java.text.MessageFormat;
 import java.util.Collection;
@@ -35,7 +36,7 @@ import java.util.Collection;
 public class LogbookAvailabilityChecker{
 
     public static boolean isLogbookAvailable(){
-        String logBookProviderId = LogbookUiPreferences.logbook_factory;
+        String logBookProviderId = LogbookPreferences.logbook_factory;
         Collection<Logbook> logbooks =
                 null;
         try {

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -53,29 +53,46 @@ abstract public class AlarmTreeItem<STATE extends BasicState>
     private List<TitleDetailDelay> actions = Collections.emptyList();
 
     /** Constructor for item or leaf
-     *  @param parent Parent item, <code>null</code> for root
+     *
+     *  <p>Will NOT add item to parent to allow complete
+     *  construction before then using <code>addToParent</code>
+     *  to register with parent.
+     *
+     *  @param parent_path Path name of parent, <code>null</code> for root
      *  @param name Name of this item
      *  @param children {@link CopyOnWriteArrayList} for item, empty list for leaf
+     *  @see #addToParent(AlarmTreeItem)
      */
-    protected AlarmTreeItem(final AlarmTreeItem<BasicState> parent, final String name, final List<AlarmTreeItem<?>> children)
+    protected AlarmTreeItem(final String parent_path, final String name, final List<AlarmTreeItem<?>> children)
     {
-        this.parent = parent;
+        // Original implementation set this.parent here and
+        // registered with parent.children, but that could result in
+        // parent.maximizeSeverity then fetching state of this item
+        // while we're still inside the constructor and not fully initialized.
+        // Construction thus became a 2-step process with need to explicitly
+        // call addToParent().
+        
         this.name = name;
         this.children = children;
-        if (parent == null)
-            path_name = AlarmTreePath.makePath(null, name);
-        else
-        {
-            path_name = AlarmTreePath.makePath(parent.getPathName(), name);
+        path_name = AlarmTreePath.makePath(parent_path, name);
+    }
 
-            // Keep sorted by inserting at appropriate index
-            // Note that getChild(name) depends on this order!
-            final int index = Collections.binarySearch(parent.children, this, (a, b) -> CompareNatural.compareTo(a.getName(), b.getName()));
-            if (index < 0)
-                parent.children.add(-index-1, this);
-            else
-                parent.children.add(index, this);
-        }
+    /** Add item to parent
+     *  @param parent Parent item, <code>null</code> for root
+     */
+    public void addToParent(final AlarmTreeItem<BasicState> parent)
+    {
+        this.parent = parent;
+        if (parent == null)
+            return;
+
+        // Keep sorted by inserting at appropriate index
+        // Note that getChild(name) depends on this order!
+        final int index = Collections.binarySearch(parent.children, this, (a, b) -> CompareNatural.compareTo(a.getName(), b.getName()));
+        if (index < 0)
+            parent.children.add(-index-1, this);
+        else
+            parent.children.add(index, this);
     }
 
     /** @return Name */

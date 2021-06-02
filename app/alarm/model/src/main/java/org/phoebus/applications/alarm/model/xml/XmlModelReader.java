@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -135,7 +135,8 @@ public class XmlModelReader
             throw new Exception("Component with duplicate name " + comp_node_name + " at " + parent.getPathName());
 
         // New component node.
-        final AlarmClientNode component = new AlarmClientNode(parent, comp_node_name);
+        final AlarmClientNode component = new AlarmClientNode(parent.getPathName(), comp_node_name);
+        component.addToParent(parent);
 
         // This does not refer to XML attributes but instead to the attributes of a model component node.
         processCompAttr(component, node);
@@ -226,7 +227,8 @@ public class XmlModelReader
         // Remember to prevent duplicates
         pv_names.put(pv_node_name, parent.getPathName());
 
-        final AlarmClientLeaf pv = new AlarmClientLeaf(parent, pv_node_name);
+        final AlarmClientLeaf pv = new AlarmClientLeaf(parent.getPathName(), pv_node_name);
+        pv.addToParent(parent);
 
         // New XML export always writes these three tags.
         // Legacy XML file only wrote them if false, true, true,

@@ -18,6 +18,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -410,18 +411,10 @@ class SnapshotTable extends TableView<TableEntry> {
             //for those entries, which have a read-only property, disable the checkbox
             setCellFactory(column -> {
                 TableCell<TableEntry, Boolean> cell = new CheckBoxTableCell<>(null,null);
+                // initialize the checkbox
+                UpdateCheckboxState(cell);
                 cell.itemProperty().addListener((a, o, n) -> {
-                    cell.getStyleClass().remove("check-box-table-cell-disabled");
-                    TableRow<?> row = cell.getTableRow();
-                    if (row != null) {
-                        TableEntry item = (TableEntry) row.getItem();
-                        if (item != null) {
-                            cell.setEditable(!item.readOnlyProperty().get());
-                            if (item.readOnlyProperty().get()) {
-                                cell.getStyleClass().add("check-box-table-cell-disabled");
-                            }
-                        }
-                    }
+                    UpdateCheckboxState(cell);
                 });
                 return cell;
             });
@@ -441,6 +434,21 @@ class SnapshotTable extends TableView<TableEntry> {
                     contextMenu.show(selectAllCheckBox, e.getScreenX(), e.getScreenY());
                 }
             });
+        }
+
+        private void UpdateCheckboxState(TableCell<TableEntry, Boolean> cell) {
+            cell.getStyleClass().remove("check-box-table-cell-disabled");
+
+            TableRow<?> row = cell.getTableRow();
+            if (row != null) {
+                TableEntry item = (TableEntry) row.getItem();
+                if (item != null) {
+                    cell.setEditable(!item.readOnlyProperty().get());
+                    if (item.readOnlyProperty().get()) {
+                        cell.getStyleClass().add("check-box-table-cell-disabled");
+                    }
+                }
+            }
         }
     }
 
@@ -516,7 +524,7 @@ class SnapshotTable extends TableView<TableEntry> {
                 return;
             }
 
-            selections.stream().forEach(item -> item.selectedProperty().setValue(!item.selectedProperty().get()));
+            selections.stream().filter(item -> !item.readOnlyProperty().get()).forEach(item -> item.selectedProperty().setValue(!item.selectedProperty().get()));
 
             // Somehow JavaFX TableView handles SPACE pressed event as going into edit mode of the cell.
             // Consuming event prevents NullPointerException.
@@ -541,6 +549,19 @@ class SnapshotTable extends TableView<TableEntry> {
                         contextMenu.getItems().clear();
                         SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME, selectedPVList);
                         ContextMenuHelper.addSupportedEntries(this, contextMenu);
+                        contextMenu.getItems().add(new SeparatorMenuItem());
+                        MenuItem toggle = new MenuItem();
+                        toggle.setText(item.readOnlyProperty().get() ? "Make restorable" : "Make readonly");
+                        CheckBox toggleIcon = new CheckBox();
+                        toggleIcon.setFocusTraversable(false);
+                        toggleIcon.setSelected(item.readOnlyProperty().get());
+                        toggle.setGraphic(toggleIcon);
+                        toggle.setOnAction(actionEvent -> {
+                            item.readOnlyProperty().setValue(!item.readOnlyProperty().get());
+                            item.selectedProperty().set(!item.readOnlyProperty().get());
+                            item.readonlyOverrideProperty().set(!item.readonlyOverrideProperty().get());
+                        });
+                        contextMenu.getItems().add(toggle);
                         contextMenu.show(this, event.getScreenX(), event.getScreenY());
                     });
                 }
@@ -626,9 +647,11 @@ class SnapshotTable extends TableView<TableEntry> {
         storedValueColumn.setCellFactory(e -> new VTypeCellEditor<>());
         storedValueColumn.setEditable(true);
         storedValueColumn.setOnEditCommit(e -> {
+            VType updatedValue = e.getRowValue().readOnlyProperty().get() ? e.getOldValue() : e.getNewValue();
+
             ObjectProperty<VTypePair> value = e.getRowValue().valueProperty();
-            value.setValue(new VTypePair(value.get().base, e.getNewValue(), value.get().threshold));
-            controller.updateSnapshot(0, e.getRowValue(), e.getNewValue());
+            value.setValue(new VTypePair(value.get().base, updatedValue, value.get().threshold));
+            controller.updateSnapshot(0, e.getRowValue(), updatedValue);
         });
 
         storedValueBaseColumn.getColumns().add(storedValueColumn);
@@ -735,13 +758,15 @@ class SnapshotTable extends TableView<TableEntry> {
         storedBaseSetpointValueColumn.setCellFactory(e -> new VTypeCellEditor<>());
         storedBaseSetpointValueColumn.setEditable(true);
         storedBaseSetpointValueColumn.setOnEditCommit(e -> {
+            VType updatedValue = e.getRowValue().readOnlyProperty().get() ? e.getOldValue() : e.getNewValue();
+
             ObjectProperty<VTypePair> value = e.getRowValue().valueProperty();
-            value.setValue(new VTypePair(value.get().base, e.getNewValue(), value.get().threshold));
-            controller.updateSnapshot(0, e.getRowValue(), e.getNewValue());
+            value.setValue(new VTypePair(value.get().base, updatedValue, value.get().threshold));
+            controller.updateSnapshot(0, e.getRowValue(), updatedValue);
 
             for (int i = 1; i < snapshots.size(); i++) {
                 ObjectProperty<VTypePair> compareValue = e.getRowValue().compareValueProperty(i);
-                compareValue.setValue(new VTypePair(e.getNewValue(), compareValue.get().value, compareValue.get().threshold));
+                compareValue.setValue(new VTypePair(updatedValue, compareValue.get().value, compareValue.get().threshold));
             }
         });
 
@@ -883,7 +908,7 @@ class SnapshotTable extends TableView<TableEntry> {
             // there is no harm if this is executed more than once, because only one line is allowed for these
             // two properties (see SingleListenerBooleanProperty for more details)
             e.selectedProperty()
-                .addListener((a, o, n) -> selectAllCheckBox.setSelected(n ? selectAllCheckBox.isSelected() : false));
+                .addListener((a, o, n) -> selectAllCheckBox.setSelected(n && selectAllCheckBox.isSelected()));
             e.liveStoredEqualProperty().addListener((a, o, n) -> {
                 if (controller.isHideEqualItems()) {
                     if (n) {

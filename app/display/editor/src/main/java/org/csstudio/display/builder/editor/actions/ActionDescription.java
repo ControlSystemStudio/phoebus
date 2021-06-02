@@ -135,6 +135,17 @@ public abstract class ActionDescription
         }
     };
 
+    /** Enable/disable showing crosshair cursor */
+    public static final ActionDescription ENABLE_CROSS =
+        new ActionDescription("icons/crosshair.png", Messages.ShowCrosshair)
+        {
+            @Override
+            public void run(final DisplayEditor editor, final boolean selected)
+            {
+                editor.setCrosshair(selected);
+            }
+        };
+
     /** Order widgets by their index in the parent's list of children
      *  <p>Original list will not be modified
      *  @param widgets Widgets in any order, because user may have selected them in random order
@@ -724,7 +735,7 @@ public abstract class ActionDescription
             final int N = widgets.size();
             final Preferences prefs = PhoebusPreferenceService.userNodeForClass(DisplayEditorInstance.class);
 
-            if (N < 3)
+            if (N < 2)
                 return;
 
             int offset = prefs.getInt(DISTRIBUTION_HGAP, editor.getModel().propGridStepX().getValue());
@@ -784,7 +795,7 @@ public abstract class ActionDescription
             final int N = widgets.size();
             final Preferences prefs = PhoebusPreferenceService.userNodeForClass(DisplayEditorInstance.class);
 
-            if (N < 3)
+            if (N < 2)
                 return;
 
             int offset = prefs.getInt(DISTRIBUTION_VGAP, editor.getModel().propGridStepY().getValue());

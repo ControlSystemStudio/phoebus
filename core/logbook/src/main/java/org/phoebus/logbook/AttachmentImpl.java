@@ -51,7 +51,8 @@ public class AttachmentImpl implements Attachment {
         return id;
     }
 
-    private void setId(String id){
+    @Override
+    public void setId(String id){
         this.id = id;
     }
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -385,7 +385,7 @@ public class AlarmClient
     {
         // Mark path as deleted so we ignore state updates
         deleted_paths.add(path);
-        
+
         final AlarmTreeItem<?> node = findNode(path);
         if (node == null)
             return null;
@@ -429,7 +429,8 @@ public class AlarmClient
             {   // Done when creating leaf
                 if (last &&  is_leaf)
                 {
-                    node = new AlarmClientLeaf(parent, name);
+                    node = new AlarmClientLeaf(parent.getPathName(), name);
+                    node.addToParent(parent);
                     logger.log(Level.FINE, "Create " + path);
                     for (final AlarmClientListener listener : listeners)
                         listener.itemAdded(node);
@@ -437,7 +438,8 @@ public class AlarmClient
                 }
                 else
                 {
-                    node = new AlarmClientNode(parent, name);
+                    node = new AlarmClientNode(parent.getPathName(), name);
+                    node.addToParent(parent);
                     for (final AlarmClientListener listener : listeners)
                         listener.itemAdded(node);
                 }

@@ -41,6 +41,17 @@ public class PVASettings
     /** First PVA port used by server */
     public static int EPICS_PVA_SERVER_PORT = 5075;
 
+    /** Local address to which server will bind.
+     *
+     *  <p>When empty, a wildcard address is used, i.e. the server
+     *  will listen to seach requests on all interfaces.
+     *  By setting this variable you can limit the interfaces
+     *  on which the server listens.
+     *  Note that at this time only a single address
+     *  is supported, not a list with two or more addresses.
+     */
+    public static String EPICS_PVAS_INTF_ADDR_LIST = "";
+
     /** PVA server port for name searches and beacons */
     public static int EPICS_PVAS_BROADCAST_PORT = EPICS_PVA_BROADCAST_PORT;
 
@@ -93,6 +104,14 @@ public class PVASettings
         EPICS_PVA_ADDR_LIST = get("EPICS_PVA_ADDR_LIST", EPICS_PVA_ADDR_LIST);
         EPICS_PVA_AUTO_ADDR_LIST = get("EPICS_PVA_AUTO_ADDR_LIST", EPICS_PVA_AUTO_ADDR_LIST);
         EPICS_PVA_SERVER_PORT = get("EPICS_PVA_SERVER_PORT", EPICS_PVA_SERVER_PORT);
+        EPICS_PVAS_INTF_ADDR_LIST = get("EPICS_PVAS_INTF_ADDR_LIST", EPICS_PVAS_INTF_ADDR_LIST).trim();
+        if (EPICS_PVAS_INTF_ADDR_LIST.contains(" "))
+        {   // Current implementation only handles empty (wildcard) and single address, not list with 2 or more
+            logger.log(Level.WARNING,
+                       "EPICS_PVAS_INTF_ADDR_LIST does at this time support at most one address, ignoring list '" +
+                       EPICS_PVAS_INTF_ADDR_LIST + "'");
+            EPICS_PVAS_INTF_ADDR_LIST = "";
+        }
         EPICS_PVA_BROADCAST_PORT = get("EPICS_PVA_BROADCAST_PORT", EPICS_PVA_BROADCAST_PORT);
         EPICS_PVAS_BROADCAST_PORT = get("EPICS_PVAS_BROADCAST_PORT", EPICS_PVAS_BROADCAST_PORT);
         EPICS_PVA_CONN_TMO = get("EPICS_PVA_CONN_TMO", EPICS_PVA_CONN_TMO);

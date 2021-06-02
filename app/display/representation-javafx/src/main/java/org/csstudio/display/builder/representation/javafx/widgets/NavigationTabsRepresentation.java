@@ -272,6 +272,7 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
     private void tabLookChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
         dirty_tab_look.mark();
+        dirty_active_tab.mark();
         toolkit.scheduleUpdate(this);
     }
 

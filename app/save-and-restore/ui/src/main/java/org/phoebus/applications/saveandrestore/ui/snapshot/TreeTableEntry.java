@@ -53,6 +53,7 @@ public class TreeTableEntry {
     public CheckBoxTreeItem<TreeTableEntry> cbti;
     public SimpleBooleanProperty selected = new SimpleBooleanProperty(this, "selected");
     public SimpleBooleanProperty indeterminate = new SimpleBooleanProperty(this, "indeterminate");
+    public SimpleBooleanProperty disabled = new SimpleBooleanProperty(this, "disabled");
     public BooleanProperty allSelectedCheckBoxProperty = null;
 
     private final ChangeListener<Boolean> tableEntrySelectedChangeListener_1 = (observableValue, oldValue, newValue) -> selected.set(newValue);
@@ -60,6 +61,8 @@ public class TreeTableEntry {
     private ChangeListener<Boolean> tableEntrySelectedChangeListener_3 = null;
     private final ChangeListener<Boolean> cbtiSelectedChangeListener = (observableValue, oldValue, newValue) -> tableEntry.selectedProperty().set(newValue);
     private ChangeListener<Boolean> equalPropertyChangeListener = null;
+
+    private ChangeListener<Boolean> tableEntryReadonlyChangeListener = null;
 
     public void initializeEqualPropertyChangeListener(SnapshotController controller) {
         equalPropertyChangeListener = (observableValue, oldValue, newValue) -> {
@@ -77,30 +80,52 @@ public class TreeTableEntry {
     public void initializeChangeListenerForColumnHeaderCheckBox(CheckBox allSelectedCheckBox) {
         allSelectedCheckBoxProperty = allSelectedCheckBox.selectedProperty();
 
-        tableEntrySelectedChangeListener_3 = (observableValue, oldValue, newValue) -> allSelectedCheckBoxProperty.set(newValue ? allSelectedCheckBoxProperty.get() : false);
+        tableEntrySelectedChangeListener_3 = (observableValue, oldValue, newValue) -> allSelectedCheckBoxProperty.set(newValue && allSelectedCheckBoxProperty.get());
 
         ((SingleListenerBooleanProperty) tableEntry.selectedProperty()).forceAddListener(tableEntrySelectedChangeListener_3);
+    }
+
+    public void initializeReadonlyChangeListenerForToggle() {
+        tableEntryReadonlyChangeListener = (observableValue, oldValue, newValue) -> {
+            if (newValue) {
+                cbti.setIndependent(newValue);
+                selected.set(!newValue);
+                disabled.set(newValue);
+                tableEntry.selectedProperty().removeListener(tableEntrySelectedChangeListener_3);
+            } else {
+                disabled.set(newValue);
+                cbti.setIndependent(newValue);
+                selected.set(!newValue);
+                ((SingleListenerBooleanProperty) tableEntry.selectedProperty()).forceAddListener(tableEntrySelectedChangeListener_3);
+            }
+        };
     }
 
     public void update(TableEntry tableEntry) {
         this.tableEntry.selectedProperty().removeListener(tableEntrySelectedChangeListener_1);
 
-        if (!folder && !tableEntry.readOnlyProperty().get()) {
+        if (!folder) {
             this.tableEntry.selectedProperty().removeListener(tableEntrySelectedChangeListener_2);
             this.tableEntry.selectedProperty().removeListener(tableEntrySelectedChangeListener_3);
             this.tableEntry.liveStoredEqualProperty().removeListener(equalPropertyChangeListener);
             cbti.selectedProperty().removeListener(cbtiSelectedChangeListener);
+
+            this.tableEntry.readOnlyProperty().removeListener(tableEntryReadonlyChangeListener);
         }
 
         this.tableEntry = tableEntry;
 
         ((SingleListenerBooleanProperty) tableEntry.selectedProperty()).forceAddListener(tableEntrySelectedChangeListener_1);
 
-        if (!folder && !tableEntry.readOnlyProperty().get()) {
+        if (!folder) {
             ((SingleListenerBooleanProperty) tableEntry.selectedProperty()).forceAddListener(tableEntrySelectedChangeListener_2);
             ((SingleListenerBooleanProperty) tableEntry.selectedProperty()).forceAddListener(tableEntrySelectedChangeListener_3);
             ((SingleListenerBooleanProperty) tableEntry.liveStoredEqualProperty()).forceAddListener(equalPropertyChangeListener);
             cbti.selectedProperty().addListener(cbtiSelectedChangeListener);
+
+            tableEntry.readOnlyProperty().addListener(tableEntryReadonlyChangeListener);
+            tableEntry.readOnlyProperty().set(!tableEntry.readOnlyProperty().get());
+            tableEntry.readOnlyProperty().set(!tableEntry.readOnlyProperty().get());
         }
     }
 
@@ -128,7 +153,7 @@ public class TreeTableEntry {
 
         selected.set(true);
 
-        if (!folder && !tableEntry.readOnlyProperty().get()) {
+        if (!folder) {
             ((SingleListenerBooleanProperty) tableEntry.selectedProperty()).forceAddListener(tableEntrySelectedChangeListener_2);
             this.cbti.selectedProperty().addListener(cbtiSelectedChangeListener);
         }

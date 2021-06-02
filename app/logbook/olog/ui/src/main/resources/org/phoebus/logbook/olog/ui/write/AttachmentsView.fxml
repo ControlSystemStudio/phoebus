@@ -23,7 +23,8 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox fx:id="root" maxHeight="1.7976931348623157E308" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.write.AttachmentsViewController">
+<VBox fx:id="root" maxHeight="1.7976931348623157E308" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.phoebus.logbook.olog.ui.write.AttachmentsViewController">
     <children>
         <fx:include fx:id="attachmentsPreview" source="../AttachmentsPreview.fxml" />
         <HBox fx:id="buttonBar" spacing="5.0" GridPane.rowIndex="2" VBox.vgrow="NEVER">
@@ -37,6 +38,11 @@
             <Button maxWidth="1.7976931348623157E308" onAction="#embedImage" text="%EmbedImage" HBox.hgrow="ALWAYS">
                 <tooltip>
                     <Tooltip text="%EmbedImageTooltip"/>
+                </tooltip>
+            </Button>
+            <Button fx:id="embedSelectedButton" maxWidth="1.7976931348623157E308" onAction="#embedSelected" text="%EmbedSelected" HBox.hgrow="ALWAYS">
+                <tooltip>
+                    <Tooltip text="%EmbedSelectedTooltip"/>
                 </tooltip>
             </Button>
             <Button fx:id="removeButton" maxWidth="1.7976931348623157E308" onAction="#removeFiles" text="%Remove" HBox.hgrow="ALWAYS" />

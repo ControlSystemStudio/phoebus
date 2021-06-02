@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -49,7 +49,8 @@ public class AlarmModelWriterTest
         final AlarmClientNode  root = new AlarmClientNode(null, "Test");
 
 		// Create an area with 2 PV's.
-		final AlarmClientNode area1 = new AlarmClientNode(root, "Area1");
+		final AlarmClientNode area1 = new AlarmClientNode(root.getPathName(), "Area1");
+		area1.addToParent(root);
 
 		final List<TitleDetail> area1Guidance = new ArrayList<>();
 
@@ -81,7 +82,8 @@ public class AlarmModelWriterTest
 		// Set area1 commands.
 		area1.setActions(area1Actions);
 
-		final AlarmClientLeaf a1pv1 = new AlarmClientLeaf(area1, "a1pv1");
+		final AlarmClientLeaf a1pv1 = new AlarmClientLeaf(area1.getPathName(), "a1pv1");
+		a1pv1.addToParent(area1);
 
 		a1pv1.setAnnunciating(true);
 		a1pv1.setCount(5);
@@ -91,17 +93,22 @@ public class AlarmModelWriterTest
 		a1pv1.setFilter("a1pv1 filter");
 		a1pv1.setLatching(true);
 
-		final AlarmClientLeaf a1pv2 = new AlarmClientLeaf(area1, "a1pv2");
+		final AlarmClientLeaf a1pv2 = new AlarmClientLeaf(area1.getPathName(), "a1pv2");
+		a1pv2.addToParent(area1);
 		a1pv2.setDescription("a1pv2 description");
 
-		final AlarmClientNode area2 = new AlarmClientNode(root, "Area2");
+		final AlarmClientNode area2 = new AlarmClientNode(root.getPathName(), "Area2");
+		area2.addToParent(root);
 
-		final AlarmClientLeaf a2pv1 = new AlarmClientLeaf(area2, "a2pv1");
+		final AlarmClientLeaf a2pv1 = new AlarmClientLeaf(area2.getPathName(), "a2pv1");
+		a2pv1.addToParent(area2);
 		a2pv1.setDescription("a2pv1 description");
 
-		final AlarmClientNode area3 = new AlarmClientNode(area2, "Area3");
+		final AlarmClientNode area3 = new AlarmClientNode(area2.getPathName(), "Area3");
+		area3.addToParent(area2);
 
-		final AlarmClientLeaf a3pv1 = new AlarmClientLeaf(area3, "a3pv1");
+		final AlarmClientLeaf a3pv1 = new AlarmClientLeaf(area3.getPathName(), "a3pv1");
+		a3pv1.addToParent(area3);
 		a3pv1.setDescription("a3pv1 description");
 
 		final ByteArrayOutputStream buf = new ByteArrayOutputStream();

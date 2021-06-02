@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -52,32 +52,46 @@ public class AlarmConfigProducerDemo
         // Create alarm tree model
         AlarmClientNode root = new AlarmClientNode(null, "Accelerator");
 
-        AlarmClientNode area = new AlarmClientNode(root, "Vacuum");
+        AlarmClientNode area = new AlarmClientNode(root.getPathName(), "Vacuum");
+        area.addToParent(root);
         area.setDisplays(List.of(new TitleDetail("A", "one.opi"), new TitleDetail("B", "other.opi")));
 
-        AlarmClientNode system = new AlarmClientNode(area, "Sector000001");
+        AlarmClientNode system = new AlarmClientNode(area.getPathName(), "Sector000001");
+        system.addToParent(area);
         system.setGuidance(List.of(new TitleDetail("Contacts", "Call Jane")));
 
-        AlarmClientLeaf pv1 = new AlarmClientLeaf(system, "SomePVName");
+        AlarmClientLeaf pv1 = new AlarmClientLeaf(system.getPathName(), "SomePVName");
+        pv1.addToParent(system);
         pv1.setDisplays(List.of(new TitleDetail("X", "Specific.opi")));
 
-        AlarmClientLeaf pv2 = new AlarmClientLeaf(system, "SomeOtherPVName");
+        AlarmClientLeaf pv2 = new AlarmClientLeaf(system.getPathName(), "SomeOtherPVName");
+        pv2.addToParent(system);
         pv2.setEnabled(false);
 
         // 1000 'sections' of 10 subsections of 10 PVs  -> 100k PVs
         for (int s=0; s<1000; ++s)
         {
-            final AlarmClientNode sys = s == 1 ? system : new AlarmClientNode(area, String.format("Sector%06d", s));
+            final AlarmClientNode sys;
+            if (s == 1)
+                sys = system;
+            else
+            {
+                sys = new AlarmClientNode(area.getPathName(), String.format("Sector%06d", s));
+                sys.addToParent(area);
+            }
+
             for (int sub=0; sub<10; ++sub)
             {
-                final AlarmClientNode subsys = new AlarmClientNode(sys, String.format("Sub%02d", sub));
+                final AlarmClientNode subsys = new AlarmClientNode(sys.getPathName(), String.format("Sub%02d", sub));
+                subsys.addToParent(sys);
                 for (int i=0; i<10; ++i)
                 {
                     // Create 1000 PVs that change, rest static
                     final int n = s*100 + sub*10 + i;
                     final AlarmClientLeaf pv = (n>0  &&  n <= 1000)
-                        ? new AlarmClientLeaf(subsys, String.format("sim://sine(-%d, %d, 1)", n, n))
-                        : new AlarmClientLeaf(subsys, String.format("loc://PV%06d(0)", n));
+                        ? new AlarmClientLeaf(subsys.getPathName(), String.format("sim://sine(-%d, %d, 1)", n, n))
+                        : new AlarmClientLeaf(subsys.getPathName(), String.format("loc://PV%06d(0)", n));
+                    pv.addToParent(subsys);
                     pv.setLatching(false);
                 }
             }

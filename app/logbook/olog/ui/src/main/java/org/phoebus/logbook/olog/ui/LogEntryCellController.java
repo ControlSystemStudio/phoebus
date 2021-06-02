@@ -4,6 +4,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.GridPane;
 import org.commonmark.Extension;
 import org.commonmark.ext.gfm.tables.TablesExtension;
 import org.commonmark.ext.image.attributes.ImageAttributesExtension;
@@ -18,7 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.phoebus.util.time.TimestampFormats.MILLI_FORMAT;
+import static org.phoebus.util.time.TimestampFormats.SECONDS_FORMAT;
 
 public class LogEntryCellController {
 
@@ -31,6 +32,9 @@ public class LogEntryCellController {
 
     // Model
     LogEntry logEntry;
+
+    @FXML
+    GridPane root;
 
     @FXML
     Label time;
@@ -47,7 +51,10 @@ public class LogEntryCellController {
     @FXML
     ImageView tagIcon;
     @FXML
-    Label attachments;
+    Label logEntryId;
+    @FXML
+    Label level;
+
     @FXML
     ImageView attachmentIcon;
 
@@ -63,50 +70,45 @@ public class LogEntryCellController {
 
     @FXML
     public void initialize() {
-        time.setStyle("-fx-font-weight: bold");
-        title.setStyle("-fx-font-weight: bold");
-
-        logbooks.setText("");
-        logbookIcon.setImage(null);
-        tags.setText("");
-        tagIcon.setImage(null);
-        attachments.setText("");
+        logbookIcon.setImage(logbook);
+        tagIcon.setImage(tag);
         attachmentIcon.setImage(null);
-
-        title.setText("");
-
-        description.setWrapText(true);
-
     }
 
     @FXML
     public void refresh() {
         if (logEntry != null) {
 
-            time.setText(MILLI_FORMAT.format(logEntry.getCreatedDate()));
+            time.setText(SECONDS_FORMAT.format(logEntry.getCreatedDate()));
             owner.setText(logEntry.getOwner());
             title.setText(logEntry.getTitle());
+            title.getStyleClass().add("title");
 
-            if ( !logEntry.getLogbooks().isEmpty() ) {
-                logbookIcon.setImage(logbook);
-                logbooks.setWrapText(true);
+            if (!logEntry.getLogbooks().isEmpty()) {
+                logbooks.setWrapText(false);
                 logbooks.setText(logEntry.getLogbooks().stream().map(Logbook::getName).collect(Collectors.joining(",")));
             }
-            if ( !logEntry.getTags().isEmpty() ) {
-                tagIcon.setImage(tag);
-                tags.setWrapText(true);
+            if (!logEntry.getTags().isEmpty()) {
                 tags.setText(logEntry.getTags().stream().map(Tag::getName).collect(Collectors.joining(",")));
+            } else {
+                tags.setText(null);
             }
-            if( !logEntry.getAttachments().isEmpty()) {
+            if (!logEntry.getAttachments().isEmpty()) {
                 attachmentIcon.setImage(attachment);
-                attachments.setText(String.valueOf(logEntry.getAttachments().size()));
+            } else {
+                attachmentIcon.setImage(null);
             }
-            if(logEntry.getSource() != null){
+            description.setWrapText(false);
+            if (logEntry.getSource() != null) {
                 description.setText(toText(logEntry.getSource()));
-            }
-            else if(logEntry.getDescription() != null){
+            } else if (logEntry.getDescription() != null) {
                 description.setText(toText(logEntry.getDescription()));
+            } else {
+                description.setText(null);
             }
+
+            logEntryId.setText(Long.toString(logEntry.getId()));
+            level.setText(logEntry.getLevel());
         }
     }
 
@@ -116,12 +118,16 @@ public class LogEntryCellController {
     }
 
     /**
-     * Converts Commonmark content to Text.
+     * Converts Commonmark content to Text. At most one line of text is returned, the newline character is
+     * used to detect line break.
+     *
      * @param commonmarkString Raw Commonmark string
      * @return The Text output of the Commonmark processor.
      */
-    private String toText(String commonmarkString){
+    private String toText(String commonmarkString) {
         org.commonmark.node.Node document = parser.parse(commonmarkString);
-        return textRenderer.render(document);
+        String text = textRenderer.render(document);
+        String[] lines = text.split("\r\n|\n|\r");
+        return lines[0];
     }
 }

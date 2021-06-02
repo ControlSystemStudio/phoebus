@@ -25,25 +25,11 @@ public class LogbookUiPreferences
     @Preference public static String[] default_logbooks;
     @Preference public static String default_logbook_query;
     @Preference public static boolean  save_credentials;
-    @Preference public static String   logbook_factory;
-    @Preference public static boolean  is_supported;
     @Preference public static String calendar_view_item_stylesheet;
     @Preference public static String level_field_name;
 
     static
     {
         final PreferencesReader prefs = AnnotatedPreferences.initialize(LogbookUiPreferences.class, "/log_ui_preferences.properties");
-
-        if (logbook_factory.isEmpty())
-        {
-            is_supported = false;
-            logger.log(Level.INFO, "No logbook factory selected");
-        }
-        else
-        {
-            is_supported = LogService.getInstance().getLogFactories(logbook_factory) != null;
-            if (! is_supported)
-                logger.log(Level.WARNING, "Cannot locate logbook factory '" + logbook_factory + "'");
-        }
     }
 }

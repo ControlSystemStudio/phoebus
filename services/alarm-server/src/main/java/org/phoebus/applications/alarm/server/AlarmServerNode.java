@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -44,9 +44,9 @@ public class AlarmServerNode extends AlarmClientNode
 
     private volatile String severity_pv_name = null;
 
-    public AlarmServerNode(final ServerModel model, final AlarmClientNode parent, final String name)
+    public AlarmServerNode(final ServerModel model, final String parent_path, final String name)
     {
-        super(parent, name);
+        super(parent_path, name);
         this.model = model;
     }
 
@@ -61,38 +61,45 @@ public class AlarmServerNode extends AlarmClientNode
      */
     public void maximizeSeverity()
     {
-        SeverityLevel new_severity = SeverityLevel.OK;
-
-        for (AlarmTreeItem<?> child : getChildren())
+        try
         {
-            // Skip disabled PVs
-            if ((child instanceof AlarmServerPV)  &&
-                ! ((AlarmServerPV) child).isEnabled())
-                continue;
-            final SeverityLevel child_severity = child.getState().severity;
-            if (child_severity.ordinal() > new_severity.ordinal())
-                new_severity = child_severity;
-        }
+            SeverityLevel new_severity = SeverityLevel.OK;
 
-        if (never_updated  ||  new_severity != getState().severity)
+            for (AlarmTreeItem<?> child : getChildren())
+            {
+                // Skip disabled PVs
+                if ((child instanceof AlarmServerPV)  &&
+                    ! ((AlarmServerPV) child).isEnabled())
+                    continue;
+                final SeverityLevel child_severity = child.getState().severity;
+                if (child_severity.ordinal() > new_severity.ordinal())
+                    new_severity = child_severity;
+            }
+
+            if (never_updated  ||  new_severity != getState().severity)
+            {
+                never_updated = false;
+                final BasicState new_state = new BasicState(new_severity);
+                setState(new_state);
+                model.sendStateUpdate(getPathName(), new_state);
+
+                // Update automated actions
+                AutomatedActionsHelper.update(automated_actions, new_severity);
+
+                // Write optional severity PV
+                final String pv = severity_pv_name;
+                if (pv != null)
+                    SeverityPVHandler.update(pv, new_severity);
+            }
+
+            // Percolate changes towards root
+            if (parent instanceof AlarmServerNode)
+                ((AlarmServerNode) parent).maximizeSeverity();
+        }
+        catch (Throwable ex)
         {
-            never_updated = false;
-            final BasicState new_state = new BasicState(new_severity);
-            setState(new_state);
-            model.sendStateUpdate(getPathName(), new_state);
-
-            // Update automated actions
-            AutomatedActionsHelper.update(automated_actions, new_severity);
-
-            // Write optional severity PV
-            final String pv = severity_pv_name;
-            if (pv != null)
-                SeverityPVHandler.update(pv, new_severity);
+            throw new RuntimeException(getPathName() + " failed to maximize severity", ex);
         }
-
-        // Percolate changes towards root
-        if (parent instanceof AlarmServerNode)
-            ((AlarmServerNode) parent).maximizeSeverity();
     }
 
     @Override

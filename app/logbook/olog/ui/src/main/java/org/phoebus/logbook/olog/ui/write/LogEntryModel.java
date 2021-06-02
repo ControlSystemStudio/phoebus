@@ -23,6 +23,7 @@ import org.phoebus.logbook.LogFactory;
 import org.phoebus.logbook.LogService;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookImpl;
+import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.TagImpl;
@@ -113,9 +114,9 @@ public class LogEntryModel {
 
         logService = LogService.getInstance();
 
-        logFactory = logService.getLogFactories().get(LogbookUIPreferences.logbook_factory);
+        logFactory = logService.getLogFactories().get(LogbookPreferences.logbook_factory);
         if (logFactory == null)
-            logger.log(Level.WARNING, "Undefined logbook factory " + LogbookUIPreferences.logbook_factory);
+            logger.log(Level.WARNING, "Undefined logbook factory " + LogbookPreferences.logbook_factory);
 
         tags = FXCollections.observableArrayList();
         logbooks = FXCollections.observableArrayList();
@@ -162,6 +163,9 @@ public class LogEntryModel {
         {
             addSelectedTag(tag.getName());
         });
+
+
+        attachmentList.addAll(template.getAttachments());
     }
 
     public void fetchStoredUserCredentials() {
@@ -182,6 +186,7 @@ public class LogEntryModel {
                 }
                 // Let anyone listening know that their credentials are now out of date.
                 updateCredentials.set(true);
+                checkIfReadyToSubmit();
             } catch (Exception ex) {
                 logger.log(Level.WARNING, "Secure Store file not found.", ex);
             }

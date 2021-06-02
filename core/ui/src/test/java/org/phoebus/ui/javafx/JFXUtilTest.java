@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 European Spallation Source ERIC.
+ * Copyright (C) 2020 European Spallation Source ERIC.
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -14,27 +14,29 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
  */
 
-package org.phoebus.logbook;
+package org.phoebus.ui.javafx;
 
-/**
- * Dedicated exception class for the logbook.
- */
-public class LogbookException extends Exception{
+import javafx.scene.paint.Color;
+import org.junit.Test;
 
-    private static final long serialVersionUID = -8343141863189296722L;
+import static org.junit.Assert.assertEquals;
 
-    public LogbookException(Throwable cause){
-        super(cause);
-    }
+public class JFXUtilTest {
 
-    public LogbookException(String message){
-        super(message);
-    }
+    @Test
+    public void testWebRGB(){
+        Color color = new Color(1.0, 1.0, 1.0, 1.0);
+        String webRGB = JFXUtil.webRGB(color);
+        assertEquals("#FFFFFFFF", webRGB);
 
-    public LogbookException(String extra, Throwable cause){
-        super(extra, cause);
+        color = new Color(1.0, 1.0, 1.0, 0.0);
+        webRGB = JFXUtil.webRGB(color);
+        assertEquals("#FFFFFF00", webRGB);
+
+        color = Color.color(1.0, 1.0, 1.0);
+        webRGB = JFXUtil.webRGB(color);
+        assertEquals("#FFFFFFFF", webRGB);
     }
 }
