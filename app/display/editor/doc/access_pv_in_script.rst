@@ -13,64 +13,45 @@ reference pvs using ``widget.getPV()`` or ``widget.getPVByName(my_pv_name)``.
 
 You can read/write PV or get its timestamp or severity via the utility APIs provided in ``PVUtil``.
 
-**The triggerPV object**
-
-The PV that triggers the execution of the script can be accessed via ``triggerPV`` object. When there are more
-than one trigger PV for a script and you need to know this execution is triggered by which PV, you can use this object. For example,
-
-.. code-block:: javascript
-
-    importPackage(Packages.org.csstudio.opibuilder.scriptUtil);
-    if(triggerPV == pvs[1]){
-        ConsoleUtil.writeInfo("I'm triggered by the second input PV.");
-    }
-
 **Examples**:
 
-*Get double value from PV:*
+**Get double value from PV:**
 
-.. code-block:: javascript
+.. code-block:: python
 
-    importPackage(Packages.org.csstudio.opibuilder.scriptUtil);
-    var value = PVUtil.getDouble(pvs[0]);
-    widget.setPropertyValue("start_angle", value);
+    from org.csstudio.display.builder.runtime.script import PVUtil
+    value = PVUtil.getDouble(pvs[0]);
 
-*Write PV Value*
+**Write PV Value**
 
-If writing a PV is forbidden by PV security, an exception will be thrown and shown in console. The method ``PV.setValue(data)`` accepts Double, Double[], Integer, String, maybe more.
+Several method argument types are supported, e.g. Double, Double[], Integer, String. If writing a PV is forbidden by
+PV security, an exception will be thrown and shown in console.
 
-.. code-block:: javascript
+.. code-block:: python
 
-    importPackage(Packages.org.csstudio.platform.data);
-    pvs[0].setValue(0);
+    pvs[0].write(0);
 
-*Get severity of PV*
+**Get severity of PV**
 
-.. code-block:: javascript
+.. code-block:: python
 
-    importPackage(Packages.org.csstudio.opibuilder.scriptUtil);
+    from org.csstudio.display.builder.runtime.script import PVUtil, ColorFontUtil
 
-    var RED = ColorFontUtil.RED;
-    var ORANGE = ColorFontUtil.getColorFromRGB(255,255,0);
-    var GREEN = ColorFontUtil.getColorFromHSB(120.0,1.0,1.0);
-    var PINK = ColorFontUtil.PINK;
+    RED = ColorFontUtil.RED
+    ORANGE = ColorFontUtil.getColorFromRGB(255, 255, 0)
+    GREEN = ColorFontUtil.getColorFromRGB(0, 255, 0)
+    PINK = ColorFontUtil.PINK
 
-    var severity = PVUtil.getSeverity(pvs[0]);
-    var color;
+    severity = PVUtil.getSeverity(pvs[0])
+    color = PINK
 
-    switch(severity){
-        case 0:  //OK
-            color = GREEN;
-            break;
-        case 1:  //MAJOR
-            color = RED;
-            break;
-        case 2:  //MINOR
-            color = ORANGE;
-            break;
-        case -1:  //INVALID
-        default:
-            color = PINK;
-    }
+    if severity == 0:
+    	color = GREEN
+    elif severity == 1:
+        color = ORANGE
+    elif severity == 2:
+        color = RED
+    else:
+        color = PINK
 
-    widget.setPropertyValue("foreground_color",color);
+    widget.setPropertyValue("foreground_color",color)
