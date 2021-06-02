@@ -11,14 +11,12 @@ store external objects or provide special methods for a particular widget.
 
 **Access to widgets in a display**
 
-A script may obtain a list of all widgets in a display like so:
+A script may locate a widget by name like so:
 
 .. code-block:: python
 
-    widget.getDisplayModel().getChildren()
-
-To find a specific widget the script may then loop over the list and use `getName()` to match on the widget
-name property.
+    from org.csstudio.display.builder.runtime.script import ScriptUtil
+    mywidget = ScriptUtil.findWidgetByName(widget, 'my widget name')
 
 **Widget class documentation**
 
