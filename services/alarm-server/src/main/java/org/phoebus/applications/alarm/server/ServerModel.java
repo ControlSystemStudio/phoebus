@@ -170,7 +170,8 @@ class ServerModel
                     {   // No config -> Delete node
                         final AlarmTreeItem<?> node = deleteNode(path);
                         if (node != null)
-                            stopPVs(node);
+                            stopDeletedPVs(node);
+                        // else: Deletion message for node we never created
                     }
                     else
                     {
@@ -360,14 +361,18 @@ class ServerModel
     /** Stop PVs in a subtree of the alarm hierarchy
      *  @param node Node where to start
      */
-    private void stopPVs(final AlarmTreeItem<?> node)
+    private void stopDeletedPVs(final AlarmTreeItem<?> node)
     {
-        // If this was a known PV, notify listener
         if (node instanceof AlarmServerPV)
+        {
+            // Stop the PV, i.e. no longer react to value updates
             ((AlarmServerPV) node).stop();
+            // Send a null "tombstone" status update
+            sendStateUpdate(node.getPathName(), null);
+        }
         else
             for (AlarmTreeItem<?> child : node.getChildren())
-                stopPVs(child);
+                stopDeletedPVs(child);
     }
 
     /** Send alarm update to 'state' topic
