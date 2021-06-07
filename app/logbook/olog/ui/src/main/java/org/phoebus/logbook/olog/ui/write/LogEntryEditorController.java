@@ -28,7 +28,6 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.olog.ui.AttachmentsPreviewController;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -61,7 +60,7 @@ public class LogEntryEditorController {
     @FXML
     private AttachmentsViewController attachmentsViewController;
     @FXML
-    private LogPropertiesEditorController propertiesViewController;
+    private LogPropertiesEditorController logPropertiesEditorController;
     @FXML
     private FieldsViewController fieldsViewController;
     @FXML
@@ -88,6 +87,7 @@ public class LogEntryEditorController {
         progressIndicator.visibleProperty().bind(progressIndicatorVisibility);
 
         attachmentsViewController.setTextArea(fieldsViewController.getTextArea());
+        fieldsViewController.setLevel(model.getLevel());
     }
 
     /**
@@ -105,7 +105,7 @@ public class LogEntryEditorController {
     public void submit(){
         progressIndicatorVisibility.setValue(true);
         completionMessageLabel.textProperty().setValue("");
-        model.setSelectedProperties(propertiesViewController.getProperties());
+        model.setSelectedProperties(logPropertiesEditorController.getProperties());
         try {
             Future<LogEntry> future = executorService.submit(() -> model.submitEntry());
             LogEntry result = future.get();

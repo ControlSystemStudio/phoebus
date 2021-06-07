@@ -44,7 +44,7 @@ public class SendToLogBookApp implements AppDescriptor
         if(!LogbookAvailabilityChecker.isLogbookAvailable()){
             return null;
         }
-        new LogEntryEditorStage(DockPane.getActiveDockPane(), new LogEntryModel(), null).show();
+        new LogEntryEditorStage(DockPane.getActiveDockPane(), new LogEntryModel()).show();
         return null;
     }
 

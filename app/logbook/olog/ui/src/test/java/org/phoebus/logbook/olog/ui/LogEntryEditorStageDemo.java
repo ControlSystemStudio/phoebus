@@ -32,7 +32,7 @@ public class LogEntryEditorStageDemo extends ApplicationWrapper
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
         LogEntryModel model = new LogEntryModel();
-        new LogEntryEditorStage(root, model, null).show();
+        new LogEntryEditorStage(root, model).show();
     }
 
 }

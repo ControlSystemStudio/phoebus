@@ -455,4 +455,22 @@ public class OlogClient implements LogClient {
         }
         return serviceUrl;
     }
+
+    @Override
+    public LogEntry updateLogEntry(LogEntry logEntry) throws LogbookException {
+        ClientResponse clientResponse;
+
+        try {
+            clientResponse = service.path("logs/" + logEntry.getId())
+                    .type(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_XML)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .post(ClientResponse.class, OlogObjectMappers.logEntrySerializer.writeValueAsString(logEntry));
+            return OlogObjectMappers.logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), OlogLog.class);
+        }
+        catch (Exception e){
+            logger.log(Level.SEVERE, "Unable to update log entry id=" + logEntry.getId(), e);
+            return null;
+        }
+    }
 }

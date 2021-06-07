@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<GridPane fx:id="root" maxHeight="-Infinity" prefWidth="400.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryCellController">
+<GridPane fx:id="root" maxHeight="-Infinity" prefWidth="400.0" style="-fx-border-color: transparent transparent #e4e4e4 transparent; -fx-border-width: 1px;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryCellController">
     <columnConstraints>
         <ColumnConstraints />
         <ColumnConstraints />
@@ -56,7 +56,7 @@
             </font>
         </Label>
     </children>
-    <padding>
-        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-    </padding>
+   <padding>
+      <Insets bottom="5.0" left="5.0" right="3.0" />
+   </padding>
 </GridPane>

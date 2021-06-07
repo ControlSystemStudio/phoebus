@@ -251,7 +251,7 @@ public class AlarmClient
         if (record.timestampType() != TimestampType.CREATE_TIME)
             logger.log(Level.WARNING, "Expect updates with CreateTime, got " + record.timestampType() + ": " + record.timestamp() + " " + path + " = " + node_config);
 
-        logger.log(Level.FINE, () ->
+        logger.log(Level.INFO, () ->
             record.topic() + " @ " +
             TimestampFormats.MILLI_FORMAT.format(Instant.ofEpochMilli(timestamp)) + " " +
             type + path + " = " + node_config);

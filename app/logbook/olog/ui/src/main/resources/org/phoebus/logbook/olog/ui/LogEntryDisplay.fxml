@@ -24,7 +24,7 @@
                         <RowConstraints />
                     </rowConstraints>
                     <children>
-                        <Label fx:id="logTime" contentDisplay="RIGHT" text="1970-01-01 00:00:00" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
+                        <Label fx:id="logTime" contentDisplay="RIGHT" text="1970-01-01 00:00:00" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2">
                             <padding>
                                 <Insets right="5.0" />
                             </padding>
@@ -32,7 +32,7 @@
                                 <Font name="Arial Bold" size="14.0" />
                             </font>
                         </Label>
-                        <Label fx:id="logTitle" text="title" GridPane.rowIndex="1">
+                        <Label fx:id="logTitle" text="title" GridPane.rowIndex="2">
                             <padding>
                                 <Insets left="5.0" />
                             </padding>
@@ -40,7 +40,7 @@
                                 <Font name="Arial Bold" size="14.0" />
                             </font>
                         </Label>
-                        <Label fx:id="logOwner" text="owner">
+                        <Label fx:id="logOwner" text="owner" GridPane.rowIndex="1">
                             <font>
                                 <Font size="20.0" />
                             </font>
@@ -51,7 +51,7 @@
                                 <Insets />
                             </GridPane.margin>
                         </Label>
-                        <GridPane GridPane.columnSpan="2" GridPane.rowIndex="2">
+                        <GridPane GridPane.columnSpan="2" GridPane.rowIndex="3">
                             <columnConstraints>
                                 <ColumnConstraints />
                                 <ColumnConstraints />
@@ -93,7 +93,12 @@
                                 <Insets bottom="5.0" left="5.0" top="2.0" />
                             </padding>
                         </GridPane>
-                        <WebView fx:id="logDescription" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.vgrow="ALWAYS" />
+                        <WebView fx:id="logDescription" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS" />
+                  <ToolBar fx:id="toolBar" prefHeight="40.0" prefWidth="200.0" GridPane.columnSpan="2">
+                    <items>
+                      <Button mnemonicParsing="false" text="%Reply" onAction="#reply"/>
+                    </items>
+                  </ToolBar>
                     </children>
                 </GridPane>
             </children>

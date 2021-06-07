@@ -1,5 +1,6 @@
 package org.phoebus.logbook.olog.ui.write;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -19,6 +20,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
 import javafx.util.converter.DefaultStringConverter;
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.PropertyImpl;
 
@@ -26,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -50,20 +54,36 @@ public class LogPropertiesEditorController {
     @FXML
     TableColumn propertyName;
 
-    public LogPropertiesEditorController() {
-    }
+    private List<LogPropertyProvider> factories = new ArrayList<LogPropertyProvider>();
 
-    public LogPropertiesEditorController(LogEntryModel model) {
-        this.model = model;
+    private LogClient logClient;
+
+    /**
+     *
+     * @param logClient A log client used to get available properties from service.
+     * @param selectedProperties A list of properties that a log entry template already contains, e.g.
+     *                           when copying or modifying an existing log entry. <code>null</code> may be
+     *                           specified to indicate absence of pre-selected properties.
+     */
+    public LogPropertiesEditorController(LogClient logClient, List<Property> selectedProperties){
+        this.logClient = logClient;
+        if(selectedProperties != null){
+            this.selectedProperties.addAll(selectedProperties);
+        }
     }
 
     @FXML
     public void initialize() {
-        if (this.model != null) {
-            // this.model.fetchProperties();
-            availableProperties = this.model.getProperties();
-            selectedProperties = this.model.getSelectedProperties();
-        }
+        ServiceLoader<LogPropertyProvider> loader = ServiceLoader.load(LogPropertyProvider.class);
+        loader.stream().forEach(p -> {
+            if(p.get().getProperty() != null){
+                factories.add(p.get());
+            }
+        });
+
+        setupProperties();
+        constructTree(selectedProperties);
+
         selectedProperties.addListener((ListChangeListener<Property>) p -> constructTree(selectedProperties));
 
         name.setMaxWidth(1f * Integer.MAX_VALUE * 40);
@@ -158,14 +178,6 @@ public class LogPropertiesEditorController {
         return treeProperties;
     }
 
-    public void setSelectedProperties(List<Property> properties) {
-        selectedProperties.setAll(properties);
-    }
-
-    public void setAvailableProperties(List<Property> properties) {
-        availableProperties.setAll(properties);
-    }
-
     /**
      * Move the user selected available properties from the available list to the selected properties tree view
      */
@@ -216,5 +228,42 @@ public class LogPropertiesEditorController {
         public void setValue(String value) {
             this.value.set(value);
         }
+    }
+
+    /**
+     * Refreshes the list of available properties. Properties provided by {@link LogPropertyProvider} implementations
+     * are considered first, and then properties available from service. However, adding items to the list of properties
+     * always consider equality, i.e. properties with same name are added only once. SPI implementations should therefore
+     * not support properties with same name, and should not implement properties available from service.
+     *
+     * On top of that, if the user is editing a copy (reply) based on another log entry, a set of properties may
+     * already be present in the new log entry. The list of available properties will not contain such properties
+     * as this would be confusing.
+     */
+    private void setupProperties(){
+        List<Property> list = new ArrayList<>();
+        // First add properties from SPI implementations
+        factories.stream()
+                .map(LogPropertyProvider::getProperty)
+                .forEach(property -> {
+                    if(!selectedProperties.contains(property)){
+                        list.add(property);
+                    }
+                });
+
+        JobManager.schedule("Fetch Properties from service", monitor ->
+        {
+
+            List<Property> propertyList = logClient.listProperties().stream().collect(Collectors.toList());
+            Platform.runLater(() ->
+            {
+                propertyList.forEach(property -> {
+                    if (!selectedProperties.contains(property) && !list.contains(property)) {
+                        list.add(property);
+                    }
+                });
+                availableProperties.setAll(list);
+            });
+        });
     }
 }

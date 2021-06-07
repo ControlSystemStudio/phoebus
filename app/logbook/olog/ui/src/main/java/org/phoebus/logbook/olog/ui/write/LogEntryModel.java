@@ -13,7 +13,6 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.scene.image.Image;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
@@ -33,10 +32,7 @@ import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.SimpleAuthenticationToken;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -61,24 +57,21 @@ public class LogEntryModel {
 
     private final LogService logService;
     private final LogFactory logFactory;
-    private final LogPropertyFactory logPropertyFactory;
 
     //private Node node;
     private String username;
     private String password;
-    private Instant date;
     private String level;
     private String title;
     private String text;
 
     private final ObservableList<String> logbooks;
     private final ObservableList<String> tags;
-    private final ObservableList<Property> properties;
     private final ObservableList<String> selectedLogbooks;
     private final ObservableList<String> selectedTags;
-    private final ObservableList<Property> selectedProperties;
     private final ObservableList<String> levels;
     private final ObservableList<Attachment> attachmentList;
+    private List<Property> properties;
 
     /**
      * Property that allows the model to define when the application is in an appropriate state to submit a log entry.
@@ -95,10 +88,6 @@ public class LogEntryModel {
     // List of temporary image files to delete.
     List<File> toDelete = new ArrayList<>();
 
-    /**
-     * onSubmitAction runnable - runnable to be executed after the submit action completes.
-     */
-    private Runnable onSubmitAction;
 
     private static final Logger LOGGER = Logger.getLogger(LogEntryModel.class.getName());
 
@@ -120,15 +109,12 @@ public class LogEntryModel {
 
         tags = FXCollections.observableArrayList();
         logbooks = FXCollections.observableArrayList();
-        levels = FXCollections.observableArrayList();
-        properties = FXCollections.observableArrayList();
+        levels = FXCollections.observableArrayList(logFactory.getLogClient().listLevels());
+        properties = new ArrayList<>();
 
         selectedLogbooks = FXCollections.observableArrayList();
         selectedTags = FXCollections.observableArrayList();
-        selectedProperties = FXCollections.observableArrayList();
         attachmentList = FXCollections.observableArrayList();
-
-        //node = callingNode;
 
         readyToSubmit = new SimpleBooleanProperty(false);
         readyToSubmitProperty = readyToSubmit;
@@ -139,9 +125,6 @@ public class LogEntryModel {
             LOGGER.log(Level.INFO, String.format("Adding default logbook \"%s\"", logbook));
             addSelectedLogbook(logbook.trim());
         }
-
-        // Find and set properties contributed
-        logPropertyFactory = LogPropertyFactory.getInstance();
     }
 
     public LogEntryModel(LogEntry template) {
@@ -151,7 +134,7 @@ public class LogEntryModel {
         }
 
         setTitle(template.getTitle());
-        setText(template.getDescription());
+        setText(template.getDescription() == null ? "" : template.getDescription());
         Collection<Logbook> logbooks = template.getLogbooks();
         logbooks.forEach(logbook ->
         {
@@ -164,8 +147,10 @@ public class LogEntryModel {
             addSelectedTag(tag.getName());
         });
 
-
         attachmentList.addAll(template.getAttachments());
+        //selectedProperties.addAll(template.getProperties());
+        properties = new ArrayList<>(template.getProperties());
+        level = template.getLevel();
     }
 
     public void fetchStoredUserCredentials() {
@@ -232,21 +217,16 @@ public class LogEntryModel {
     }
 
     /**
-     * Set the date.
-     *
-     * @param date log date
-     */
-    public void setDate(final Instant date) {
-        this.date = date;
-    }
-
-    /**
      * Set the level.
      *
      * @param level log level
      */
     public void setLevel(final String level) {
         this.level = level;
+    }
+
+    public String getLevel(){
+        return this.level;
     }
 
     /**
@@ -288,7 +268,7 @@ public class LogEntryModel {
      * @return - supported log levels
      */
     public ObservableList<String> getLevels() {
-        return FXCollections.unmodifiableObservableList(levels);
+        return levels;
     }
 
     /**
@@ -305,13 +285,8 @@ public class LogEntryModel {
      *
      * @return list of available properties
      */
-    public ObservableList<Property> getProperties() {
+    public List<Property> getProperties() {
         return properties;
-    }
-
-
-    public ObservableList<Property> getSelectedProperties() {
-        return selectedProperties;
     }
 
     /**
@@ -340,7 +315,11 @@ public class LogEntryModel {
      * @return
      */
     public boolean addSelectedLogbook(final String logbook) {
-        boolean result = selectedLogbooks.add(logbook);
+        boolean result = true;
+        // If created from a non-empty template, the log entry may already contain the default logbook
+        if(!selectedLogbooks.contains(logbook)){
+            result = selectedLogbooks.add(logbook);
+        }
         selectedLogbooks.sort(Comparator.naturalOrder());
         checkIfReadyToSubmit();
         return result;
@@ -450,7 +429,7 @@ public class LogEntryModel {
             logEntryBuilder.appendToLogbook(LogbookImpl.of(selectedLogbook));
         for (String selectedTag : selectedTags)
             logEntryBuilder.appendTag(TagImpl.of(selectedTag));
-        for (Property selectedProperty : selectedProperties)
+        for (Property selectedProperty : properties)
             logEntryBuilder.appendProperty(selectedProperty);
 
         for (Attachment ologAttachment : attachmentList) {
@@ -478,9 +457,6 @@ public class LogEntryModel {
         // Delete the temporary files.
         for (File file : toDelete)
             file.delete();
-        // Run the onSubmitAction runnable
-        if (null != onSubmitAction)
-            onSubmitAction.run();
 
         return result;
     }
@@ -512,64 +488,8 @@ public class LogEntryModel {
             });
     }
 
-    /**
-     * Fetch the available log properties on a separate thread.
-     */
-    public void fetchProperties() {
-        if (null != logFactory)
-            JobManager.schedule("Fetch Properties ", monitor ->
-            {
-                LogClient logClient = logFactory.getLogClient();
-
-                List<Property> propertyList = logClient.listProperties().stream().collect(Collectors.toList());
-
-                // Certain views have listeners to these observable lists. So, when they change, the call backs need to execute on the FX Application thread.
-                Platform.runLater(() ->
-                {
-                    propertyList.forEach(properties::add);
-                });
-            });
-    }
-
-
-    /**
-     * Fetch log properties provided by Log Properties Providers contributed via SPI on a separate thread.
-     */
-    public void fetchLogProperties() {
-        if (null != logPropertyFactory)
-            JobManager.schedule("Fetch Properties contributed via SPI ", monitor ->
-            {
-                List<Property> contributedProperties = this.logPropertyFactory.getLogProperties();
-
-                // Certain views have listeners to these observable lists. So, when they change, the call backs need to execute on the FX Application thread.
-                Platform.runLater(() ->
-                {
-                    selectedProperties.addAll(contributedProperties);
-                });
-            });
-    }
-
     public void setSelectedProperties(List<Property> properties) {
-        this.selectedProperties.setAll(properties);
-    }
-
-    /**
-     * Fetch the available log levels on a separate thread.
-     */
-    public void fetchLevels() {
-        if (null != logFactory)
-            JobManager.schedule("Fetch Levels ", monitor ->
-            {
-                LogClient logClient = logFactory.getLogClient();
-
-                List<String> levelList = logClient.listLevels().stream().collect(Collectors.toList());
-
-                // Certain views have listeners to these observable lists. So, when they change, the call backs need to execute on the FX Application thread.
-                Platform.runLater(() ->
-                {
-                    levelList.forEach(level -> levels.add(level));
-                });
-            });
+        this.properties = properties;
     }
 
     /**
@@ -619,5 +539,9 @@ public class LogEntryModel {
                 attachments.stream().collect(Collectors.mapping(Attachment::getFile, Collectors.toList()));
         attachmentList.removeAll(attachments);
         toDelete.removeAll(filesToNotDelete);
+    }
+
+    public LogClient getLogClient(){
+        return logFactory.getLogClient();
     }
 }

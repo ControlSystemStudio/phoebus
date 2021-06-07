@@ -127,11 +127,15 @@ public class LogEntryTableViewController extends LogbookSearchController {
         treeView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<TreeItem<LogEntry>>() {
             @Override
             public void changed(ObservableValue<? extends TreeItem<LogEntry>> observable, TreeItem<LogEntry> oldValue, TreeItem<LogEntry> newValue) {
-                logEntryDisplayController.setLogEntry(newValue.getValue());
+                // newValue may be null after search and refresh of the tree
+                if(newValue != null){
+                    logEntryDisplayController.setLogEntry(newValue.getValue());
+                }
             }
         });
 
         treeView.setCellFactory(tv -> new LogEntryTreeCell(tv));
+        treeView.getStylesheets().add(this.getClass().getResource("/tree_view.css").toExternalForm());
 
         // Bind ENTER key press to search
         query.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
@@ -237,10 +241,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
             } catch (IOException exc) {
                 throw new RuntimeException(exc);
             }
-
-            addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
-                System.out.println(event.isControlDown());
-            });
         }
 
         @Override

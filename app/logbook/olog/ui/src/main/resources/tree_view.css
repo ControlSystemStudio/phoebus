@@ -1,0 +1,21 @@
+.tree-cell {
+    -fx-padding: 0px;
+}
+
+.tree-cell .label {
+    -fx-padding: 0.0em 0.0em 0.0em 0.0em;
+}
+
+.tree-cell .tree-disclosure-node {
+    -fx-padding: 0px;
+    -fx-background-color: transparent;
+}
+
+.tree-cell .tree-disclosure-node .arrow {
+    -fx-background-color: -fx-mark-color;
+    -fx-padding: 0.0em;
+}
+
+.tree-view .tree-cell:selected{
+    -fx-background-color: #54accc;
+}

@@ -8,9 +8,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TitledPane;
+import javafx.scene.control.ToolBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -27,8 +27,16 @@ import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.LogbookException;
+import org.phoebus.logbook.Property;
 import org.phoebus.logbook.Tag;
+import org.phoebus.logbook.olog.ui.write.LogEntryCompletionHandler;
+import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
+import org.phoebus.logbook.olog.ui.write.LogEntryModel;
+import org.phoebus.olog.es.api.model.LogGroupProperty;
+import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.io.File;
@@ -36,6 +44,8 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static org.phoebus.util.time.TimestampFormats.SECONDS_FORMAT;
@@ -80,12 +90,11 @@ public class LogEntryDisplayController {
     @FXML
     private Label tags;
     @FXML
-    private AnchorPane attachmentsAndPropertiesPane;
-    @FXML
     private Label logEntryId;
     @FXML
     private Label level;
-
+    @FXML
+    private ToolBar toolBar;
 
     private LogEntry logEntry;
 
@@ -96,6 +105,8 @@ public class LogEntryDisplayController {
     public LogEntryDisplayController(LogClient logClient) {
         this.logClient = logClient;
     }
+
+    private Logger logger = Logger.getLogger(LogEntryCellController.class.getName());
 
     /**
      * List of attachments selected in the preview's {@link ListView}.
@@ -137,10 +148,13 @@ public class LogEntryDisplayController {
         tags.setText(null);
         logEntryId.setText(null);
         level.setText(null);
+        toolBar.visibleProperty().setValue(false);
     }
 
     public void refresh() {
         if (logEntry != null) {
+
+            toolBar.visibleProperty().setValue(true);
 
             logbookIcon.setImage(logbook);
             tagIcon.setImage(tag);
@@ -280,5 +294,35 @@ public class LogEntryDisplayController {
         } catch (Exception e) {
             ExceptionDetailsErrorDialog.openError(attachmentsPane.getParent(), Messages.FileSave, Messages.FileSaveFailed, e);
         }
+    }
+
+
+    @FXML
+    public void reply(){
+
+        Property logGroupProperty = logEntry.getProperty(LogGroupProperty.NAME);
+        if(logGroupProperty == null){
+            logGroupProperty = LogGroupProperty.create();
+            logEntry.getProperties().add(logGroupProperty);
+        }
+        OlogLog ologLog = new OlogLog();
+        ologLog.setTitle(logEntry.getTitle());
+        ologLog.setTags(logEntry.getTags());
+        ologLog.setLogbooks(logEntry.getLogbooks());
+        ologLog.setProperties(logEntry.getProperties());
+        ologLog.setLevel(logEntry.getLevel());
+
+        new LogEntryEditorStage(DockPane.getActiveDockPane(), new LogEntryModel(ologLog), l -> {
+            try {
+                updateLogEntry(logEntry);
+            } catch (LogbookException e) {
+                logger.log(Level.SEVERE, "Failed to update log entry id=" + logEntry.getId(), e);
+                return;
+            }
+        }).show();
+    }
+
+    private void updateLogEntry(LogEntry logEntry) throws LogbookException {
+        logClient.updateLogEntry(logEntry);
     }
 }

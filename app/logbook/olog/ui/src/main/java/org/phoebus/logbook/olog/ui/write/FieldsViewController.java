@@ -86,13 +86,13 @@ public class FieldsViewController implements Initializable {
         levelLabel.setText(LogbookUIPreferences.level_field_name);
         Instant now = Instant.now();
         dateField.setText(TimestampFormats.DATE_FORMAT.format(now));
-        model.setDate(now);
 
         logbooks.getChildren().add(new LogbooksTagsView(model));
 
         levelSelector.setItems(model.getLevels());
+        levelSelector.getSelectionModel().select(model.getLevel() != null && !model.getLevel().isEmpty() ?
+                model.getLevel() : model.getLevels().get(0));
 
-        model.fetchLevels();
         model.addLevelListener((ListChangeListener.Change<? extends String> c) ->
         {
             if (c.next()) {
@@ -158,6 +158,10 @@ public class FieldsViewController implements Initializable {
 
         setFieldActions();
         setTextActions();
+    }
+
+    public void setLevel(String level){
+        model.setLevel(level);
     }
 
     @FXML

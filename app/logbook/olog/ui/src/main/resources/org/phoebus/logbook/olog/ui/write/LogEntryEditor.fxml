@@ -42,7 +42,7 @@
                 <fx:include fx:id="attachmentsView" maxHeight="1.7976931348623157E308" source="AttachmentsView.fxml" />
             </TitledPane>
             <TitledPane animated="false" text="%Properties">
-                <fx:include fx:id="propertiesView" source="LogPropertiesEditor.fxml" />
+                <fx:include fx:id="logPropertiesEditor" source="LogPropertiesEditor.fxml" />
             </TitledPane>
         </panes>
     </Accordion>

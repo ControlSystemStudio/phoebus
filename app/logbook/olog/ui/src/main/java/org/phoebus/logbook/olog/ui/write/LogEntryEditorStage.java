@@ -19,13 +19,13 @@
 
 package org.phoebus.logbook.olog.ui.write;
 
-import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.phoebus.framework.nls.NLS;
+import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.olog.ui.AttachmentsPreviewController;
 import org.phoebus.logbook.olog.ui.Messages;
 
@@ -36,13 +36,23 @@ import java.util.logging.Logger;
 
 public class LogEntryEditorStage extends Stage
 {
+    /**
+     * A stand-alone window containing components needed to create a logbook entry.
+     * @param parent The {@link Node} from which the user - through context menu or application menu - requests a new
+     *               logbook entry.
+     * @param logEntryModel Pre-populated data for the log entry, e.g. date and (optionally) screen shot.
+     */
+    public LogEntryEditorStage(Node parent, LogEntryModel logEntryModel)
+    {
+        this(parent, logEntryModel, null);
+    }
 
     /**
      * A stand-alone window containing components needed to create a logbook entry.
      * @param parent The {@link Node} from which the user - through context menu or application menu - requests a new
      *               logbook entry.
      * @param logEntryModel Pre-populated data for the log entry, e.g. date and (optionally) screen shot.
-     * @param completionHandler If non-null, called when the submission to the logbook service has completed.
+     * @param completionHandler A completion handler called when service call completes.
      */
     public LogEntryEditorStage(Node parent, LogEntryModel logEntryModel, LogEntryCompletionHandler completionHandler)
     {
@@ -68,7 +78,7 @@ public class LogEntryEditorStage extends Stage
                     return clazz.getConstructor().newInstance();
                 }
                 else if(clazz.isAssignableFrom(LogPropertiesEditorController.class)) {
-                    return clazz.getConstructor(LogEntryModel.class).newInstance(logEntryModel);
+                    return clazz.getConstructor(LogClient.class, List.class).newInstance(logEntryModel.getLogClient(), logEntryModel.getProperties());
                 }
             } catch (Exception e) {
                 Logger.getLogger(LogEntryEditorStage.class.getName()).log(Level.SEVERE, "Failed to construct controller for log editor UI", e);
