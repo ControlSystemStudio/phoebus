@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -54,7 +54,8 @@ class ServerUDPHandler extends UDPHandler
     public ServerUDPHandler(final SearchHandler search_handler) throws Exception
     {
         this.search_handler = search_handler;
-        udp = Network.createUDP(false, PVASettings.EPICS_PVAS_BROADCAST_PORT);
+        udp = Network.createUDP(false, PVASettings.EPICS_PVAS_INTF_ADDR_LIST,
+                                       PVASettings.EPICS_PVAS_BROADCAST_PORT);
         local_multicast = Network.configureMulticast(udp, PVASettings.EPICS_PVAS_BROADCAST_PORT);
         local_address = (InetSocketAddress) udp.getLocalAddress();
         logger.log(Level.FINE, "Awaiting searches and sending beacons on UDP " + local_address);

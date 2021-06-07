@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,7 +20,7 @@ import org.csstudio.display.builder.model.spi.DisplayAutoConverter;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.opibuilder.converter.model.EdmModel;
 
-/** Phoebus application for EDM converter
+/** EDM auto-converter
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -31,25 +31,6 @@ public class EdmAutoConverter implements DisplayAutoConverter
     @Override
     public DisplayModel autoconvert(final String parent_display, String display_file) throws Exception
     {
-        // Is auto-converter enabled?
-        if (ConverterPreferences.auto_converter_dir == null)
-            return null;
-
-        // Special case:
-        // Parent display is null, and display_file is the complete path
-        // to a file within the auto_converter_dir.
-        // This can for example happen when opening an auto-converted file
-        // from the alarm display.
-        if (parent_display == null)
-        {
-            final File the_file = new File(display_file);
-            if (ConverterPreferences.auto_converter_dir.equals(the_file.getParentFile()))
-            {   // Use just the file name. doConvert() will add the auto_converter_dir
-                display_file = the_file.getName();
-            }
-        }
-        logger.log(Level.INFO, "For parent display " + parent_display + ", can " + display_file + " be auto-created from EDM file?");
-
         // Converter could be called in parallel for the same display_file
         // when a large display embeds the same content multiple times.
         // To prevent one thread clobbering the files downloaded and converted by the other,
@@ -60,6 +41,50 @@ public class EdmAutoConverter implements DisplayAutoConverter
         active.acquire();
         try
         {
+            // Since June 2021, EDM supports relative paths.
+            if (parent_display != null)
+            {
+                final File parent_file = new File(parent_display);
+                if (parent_file.canRead())
+                {
+                    // Check for EDM file relative to parent
+                    final File input = new File(parent_file.getParentFile(), AssetLocator.makeEdlEnding(display_file));
+                    if (input.canRead())
+                    {
+                        final File output = new File(parent_file.getParentFile(), display_file);
+                        if (! output.exists())
+                        {
+                            if (! output.getParentFile().canWrite())
+                            {
+                                logger.log(Level.WARNING, "Lacking write permission to auto-convert " + input + " to " + output);
+                                return null;
+                            }
+                            logger.log(Level.INFO, "Auto-converting " + input + " to " + output);
+                            new EdmConverter(input, null).write(output);
+                        }
+                        return ModelLoader.loadModel(output.getPath());
+                    }
+                }
+            }
+
+            // Is auto-converter for search path, writing into auto_converter_dir, enabled?
+            if (ConverterPreferences.auto_converter_dir == null)
+                return null;
+
+            // Special case:
+            // Parent display is null, and display_file is the complete path
+            // to a file within the auto_converter_dir.
+            // This can for example happen when opening an auto-converted file
+            // from the alarm display.
+            if (parent_display == null)
+            {
+                final File the_file = new File(display_file);
+                if (ConverterPreferences.auto_converter_dir.equals(the_file.getParentFile()))
+                {   // Use just the file name. doConvert() will add the auto_converter_dir
+                    display_file = the_file.getName();
+                }
+            }
+            logger.log(Level.INFO, "For parent display " + parent_display + ", can " + display_file + " be auto-created from EDM file?");
             return doConvert(parent_display, display_file);
         }
         finally

@@ -9,6 +9,7 @@ package org.csstudio.display.builder.editor;
 
 import static org.csstudio.display.builder.editor.Plugin.logger;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,7 +19,12 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.prefs.Preferences;
 
+import javafx.geometry.Pos;
+import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.shape.Line;
+import javafx.scene.text.TextAlignment;
 import org.csstudio.display.builder.editor.actions.ActionDescription;
 import org.csstudio.display.builder.editor.app.DisplayEditorInstance;
 import org.csstudio.display.builder.editor.palette.Palette;
@@ -152,6 +158,7 @@ public class DisplayEditor
     private ToggleButton grid;
     private ToggleButton snap;
     private ToggleButton coords;
+    private ToggleButton crosshair;
 
     public static final String
             SNAP_GRID = "snap_grid",
@@ -174,6 +181,9 @@ public class DisplayEditor
         selection_tracker = new SelectedWidgetUITracker(toolkit, group_handler, selection, undo);
         selection_tracker.enableSnap(true);
         selection_tracker.enableGrid(true);
+
+        vLine.setMouseTransparent(true);
+        hline.setMouseTransparent(true);
     }
 
     /** Create UI elements
@@ -288,9 +298,10 @@ public class DisplayEditor
 
 
         return new ToolBar(
-            grid = createToggleButton(ActionDescription.ENABLE_GRID),
-            snap = createToggleButton(ActionDescription.ENABLE_SNAP),
-            coords = createToggleButton(ActionDescription.ENABLE_COORDS),
+            grid = createToggleButton(ActionDescription.ENABLE_GRID, true),
+            snap = createToggleButton(ActionDescription.ENABLE_SNAP, true),
+            coords = createToggleButton(ActionDescription.ENABLE_COORDS, true),
+            crosshair = createToggleButton(ActionDescription.ENABLE_CROSS, false),
             new Separator(),
             order,
             align,
@@ -336,7 +347,7 @@ public class DisplayEditor
         return item;
     }
 
-    private ToggleButton createToggleButton(final ActionDescription action)
+    private ToggleButton createToggleButton(final ActionDescription action, boolean selected)
     {
         final ToggleButton button = new ToggleButton();
         try
@@ -348,7 +359,7 @@ public class DisplayEditor
             logger.log(Level.WARNING, "Cannot load action icon", ex);
         }
         button.setTooltip(new Tooltip(action.getToolTip()));
-        button.setSelected(true);
+        button.setSelected(selected);
         button.selectedProperty()
               .addListener((observable, old_value, enabled) -> action.run(this, enabled) );
         return button;
@@ -426,6 +437,8 @@ public class DisplayEditor
         WidgetTransfer.addDropSupport(widget_parent, group_handler, selection_tracker, widgets -> addWidgets(widgets, false));
 
         model_root.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyPress);
+
+        hookCrosshair();
     }
 
     private void handleKeyPress(final KeyEvent event)
@@ -438,6 +451,14 @@ public class DisplayEditor
         }
         else {
             WidgetTree.handleGroupOrOrderKeys(event, this);
+        }
+    }
+
+    private void handleMouseMove(final MouseEvent event) {
+        lastMouseX = event.getX();
+        lastMouseY = event.getY();
+        if (crosshair.isSelected()) {
+            setCrosshairCoordinates();
         }
     }
 
@@ -882,6 +903,81 @@ public class DisplayEditor
     public static void saveCoords(final boolean show)
     {
         prefs.putBoolean(SHOW_COORDS, show);
+    }
+
+    private final Line vLine = new Line();
+    private final Line hline = new Line();
+    private final Label xLabel = createCrosshairLabel();
+    private final Label yLabel = createCrosshairLabel();
+    private double lastMouseX = 0;
+    private double lastMouseY = 0;
+
+    /** Toggle crosshair cursor and refresh button look, from key handler  */
+    public void toggleCrosshair() {
+        crosshair.setSelected(!crosshair.isSelected());
+    }
+
+    /** Set crosshair cursor (button or toggle function)*/
+    public void setCrosshair(boolean crosshair) {
+        if (crosshair) {
+            widget_parent.getChildren().add(vLine);
+            widget_parent.getChildren().add(hline);
+            widget_parent.getChildren().add(xLabel);
+            widget_parent.getChildren().add(yLabel);
+            setCrosshairCoordinates();
+        }
+        else {
+            widget_parent.getChildren().remove(vLine);
+            widget_parent.getChildren().remove(hline);
+            widget_parent.getChildren().remove(xLabel);
+            widget_parent.getChildren().remove(yLabel);
+        }
+    }
+
+    /** Refresh coordinates from mouse handler */
+    private void setCrosshairCoordinates() {
+        double wpX = model_root.getViewportBounds().getMinX() / getZoom();
+        double wpY = model_root.getViewportBounds().getMinY() / getZoom();
+        //double w = model_root.getViewportBounds().getWidth();
+        //double h = model_root.getViewportBounds().getHeight();
+        double mX = lastMouseX / getZoom();
+        double mY = lastMouseY / getZoom();
+        //System.out.println("WPx" + wpX);
+        //System.out.println("WPy" + wpY);
+        vLine.setStartX(mX);
+        vLine.setStartY(0);
+        vLine.setEndX(mX);
+        vLine.setEndY(Math.floor(widget_parent.getHeight()-1));
+        hline.setStartX(0);
+        hline.setStartY(mY);
+        hline.setEndX(Math.floor(widget_parent.getWidth()-1));
+        hline.setEndY(mY);
+        final double gap = 3.;
+        xLabel.relocate(mX + gap, -wpY + gap);
+        yLabel.relocate(-wpX + gap, mY + gap);
+        xLabel.setText(MessageFormat.format("\u00A0\u00A0{0,number,###0}\u00A0\u00A0", mX));
+        yLabel.setText(MessageFormat.format("\u00A0\u00A0{0,number,###0}\u00A0\u00A0", mY));
+    }
+
+    /** At start, hook event filters */
+    private void hookCrosshair() {
+        widget_parent.getParent().addEventFilter(MouseEvent.MOUSE_MOVED, this::handleMouseMove);
+        widget_parent.getParent().addEventFilter(MouseEvent.MOUSE_DRAGGED, this::handleMouseMove);
+    }
+
+    /** Create labels for X and Y coordinates */
+    private Label createCrosshairLabel()
+    {
+        // Initial text is used to determine size
+        final Label lbl = new Label("\u00A0\u00A000\u00A0\u00A0");
+
+        lbl.getStyleClass().add("location_size");
+        lbl.setTextAlignment(TextAlignment.LEFT);
+        lbl.setAlignment(Pos.TOP_LEFT);
+        // Don't allow the label to capture mouse clicks.
+        lbl.setMouseTransparent(true);
+
+        return lbl;
     }
 
     public void dispose()

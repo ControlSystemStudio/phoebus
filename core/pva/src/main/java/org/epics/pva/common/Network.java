@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -125,11 +125,12 @@ public class Network
     /** Create UDP channel
      *
      *  @param broadcast Support broadcast?
+     *  @param address IP address of interface, use empty string for wildcard address
      *  @param port Port to use or 0 to auto-assign
      *  @return UDP channel
      *  @throws Exception on error
      */
-    public static DatagramChannel createUDP(boolean broadcast, int port) throws Exception
+    public static DatagramChannel createUDP(final boolean broadcast, final String address,  final int port) throws Exception
     {
         // Current use of multicast addresses works only with INET, not INET6
         final DatagramChannel udp = DatagramChannel.open(StandardProtocolFamily.INET);
@@ -137,7 +138,10 @@ public class Network
         if (broadcast)
             udp.socket().setBroadcast(true);
         udp.socket().setReuseAddress(true);
-        udp.bind(new InetSocketAddress(port));
+        if (address.isEmpty())
+            udp.bind(new InetSocketAddress(port));
+        else
+            udp.bind(new InetSocketAddress(address, port));
         return udp;
     }
 

@@ -28,6 +28,7 @@ public class LogbookUIPreferences
     @Preference public static String calendar_view_item_stylesheet;
     @Preference public static String level_field_name;
     @Preference public static String markup_help;
+    @Preference public static String web_client_root_URL;
 
     static
     {

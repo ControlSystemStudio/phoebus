@@ -33,6 +33,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.util.Callback;
 import javafx.util.Duration;
+import org.phoebus.framework.preferences.Preference;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.olog.ui.LogbookQueryUtil.Keys;
@@ -108,9 +109,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
     public void initialize() {
 
         searchParameters = FXCollections.observableHashMap();
-        searchParameters.put(Keys.SEARCH, "*");
-        searchParameters.put(Keys.STARTTIME, TimeParser.format(java.time.Duration.ofHours(8)));
-        searchParameters.put(Keys.ENDTIME, TimeParser.format(java.time.Duration.ZERO));
+
+        LogbookQueryUtil.parseQueryString(LogbookUIPreferences.default_logbook_query).entrySet().stream().forEach(entry -> {
+            searchParameters.put(Keys.findKey(entry.getKey()), entry.getValue());
+        });
         advancedSearchViewController.setSearchParameters(searchParameters);
 
         query.setText(searchParameters.entrySet().stream()
@@ -184,13 +186,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     @FXML
     void updateQuery() {
-        Arrays.asList(query.getText().split("&")).forEach(s -> {
-            String key = s.split("=")[0];
-            for (Keys k : Keys.values()) {
-                if (k.getName().equals(key)) {
-                    searchParameters.put(k, s.split("=")[1]);
-                }
-            }
+        String queryText = query.getText();
+        searchParameters.clear();
+        LogbookQueryUtil.parseHumanReadableQueryString(queryText).entrySet().stream().forEach(entry -> {
+            searchParameters.put(Keys.findKey(entry.getKey()), entry.getValue());
         });
     }
 

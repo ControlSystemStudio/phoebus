@@ -11,6 +11,8 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToolBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -96,6 +98,9 @@ public class LogEntryDisplayController {
     @FXML
     private ToolBar toolBar;
 
+    @FXML
+    private Button copyURLButton;
+
     private LogEntry logEntry;
 
     public LogEntryDisplayController() {
@@ -134,6 +139,9 @@ public class LogEntryDisplayController {
                 }
             }
         });
+
+        copyURLButton.visibleProperty().setValue(LogbookUIPreferences.web_client_root_URL != null
+            && !LogbookUIPreferences.web_client_root_URL.isEmpty());
 
         clearLogView();
     }
@@ -324,5 +332,17 @@ public class LogEntryDisplayController {
 
     private void updateLogEntry(LogEntry logEntry) throws LogbookException {
         logClient.updateLogEntry(logEntry);
+    }
+
+    /**
+     * Copies the URL of the log entry. The URL can be used to direct non-Phoebus clients to
+     * the HTML representation as served by the web client, see
+     * https://github.com/Olog/phoebus-olog-web-client
+     */
+    @FXML
+    public void copyURL(){
+        final ClipboardContent content = new ClipboardContent();
+        content.putString(LogbookUIPreferences.web_client_root_URL + "/" + logEntry.getId());
+        Clipboard.getSystemClipboard().setContent(content);
     }
 }

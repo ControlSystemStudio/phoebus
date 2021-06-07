@@ -342,34 +342,38 @@ public class Tracker extends Group
         final KeyCode code = event.getCode();
         boolean notify = false;
 
+        int delta = 1;
+        if (event.isShortcutDown())
+            delta = 10;
+
         switch (code)
         {
         case UP:
             if (event.isShiftDown())
-                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth(), tracker.getHeight() - 1);
+                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth(), tracker.getHeight() - delta);
             else
-                setPosition(tracker.getX(), tracker.getY() - 1, tracker.getWidth(), tracker.getHeight());
+                setPosition(tracker.getX(), tracker.getY() - delta, tracker.getWidth(), tracker.getHeight());
             notify = true;
             break;
         case DOWN:
             if (event.isShiftDown())
-                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth(), tracker.getHeight() + 1);
+                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth(), tracker.getHeight() + delta);
             else
-                setPosition(tracker.getX(), tracker.getY() + 1, tracker.getWidth(), tracker.getHeight());
+                setPosition(tracker.getX(), tracker.getY() + delta, tracker.getWidth(), tracker.getHeight());
             notify = true;
             break;
         case LEFT:
             if (event.isShiftDown())
-                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth() - 1, tracker.getHeight());
+                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth() - delta, tracker.getHeight());
             else
-                setPosition(tracker.getX() - 1, tracker.getY(), tracker.getWidth(), tracker.getHeight());
+                setPosition(tracker.getX() - delta, tracker.getY(), tracker.getWidth(), tracker.getHeight());
             notify = true;
             break;
         case RIGHT:
             if (event.isShiftDown())
-                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth() + 1, tracker.getHeight());
+                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth() + delta, tracker.getHeight());
             else
-                setPosition(tracker.getX() + 1, tracker.getY(), tracker.getWidth(), tracker.getHeight());
+                setPosition(tracker.getX() + delta, tracker.getY(), tracker.getWidth(), tracker.getHeight());
             notify = true;
             break;
         case ESCAPE:
