@@ -86,6 +86,7 @@ public class OlogLog implements LogEntry {
         createdDate = xmlLog.getCreatedDate().toInstant();
         modifiedDate = xmlLog.getModifiedDate().toInstant();
         description = xmlLog.getDescription();
+        source = xmlLog.getDescription();
 
         tags = xmlLog.getXmlTags().stream().map(t -> {return new OlogTag(t);}).collect(Collectors.toList());
         logbooks = xmlLog.getXmlLogbooks().stream().map(l -> {return new OlogLogbook(l);}).collect(Collectors.toList());
@@ -133,8 +134,7 @@ public class OlogLog implements LogEntry {
 
     @Override
     public String getTitle() {
-        // Not supported
-        return null;
+        return getSource().substring(0, getSource().length() < 50 ? getSource().length() : 50);
     }
 
     /**
