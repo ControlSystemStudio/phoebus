@@ -87,7 +87,7 @@ public class LogEntryEditorController {
         progressIndicator.visibleProperty().bind(progressIndicatorVisibility);
 
         attachmentsViewController.setTextArea(fieldsViewController.getTextArea());
-        fieldsViewController.setLevel(model.getLevel());
+
     }
 
     /**
@@ -106,6 +106,7 @@ public class LogEntryEditorController {
         progressIndicatorVisibility.setValue(true);
         completionMessageLabel.textProperty().setValue("");
         model.setSelectedProperties(logPropertiesEditorController.getProperties());
+        model.setLevel(fieldsViewController.getSelectedLevel());
         try {
             Future<LogEntry> future = executorService.submit(() -> model.submitEntry());
             LogEntry result = future.get();

@@ -21,7 +21,8 @@ package org.phoebus.logbook.olog.ui.write;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.ListChangeListener;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ComboBox;
@@ -34,12 +35,13 @@ import javafx.scene.paint.Color;
 import org.phoebus.logbook.LogService;
 import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
-import org.phoebus.logbook.olog.ui.Messages;
+import org.phoebus.olog.es.api.OlogProperties;
 import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.net.URL;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.ResourceBundle;
 
 public class FieldsViewController implements Initializable {
@@ -71,8 +73,10 @@ public class FieldsViewController implements Initializable {
     @FXML
     private TextArea textArea;
 
+    private ObservableList<String> levels = FXCollections.observableArrayList();
 
     private SimpleStringProperty textAreaContent = new SimpleStringProperty();
+    private SimpleStringProperty selectedLevel = new SimpleStringProperty();
 
     private LogEntryModel model;
 
@@ -84,24 +88,24 @@ public class FieldsViewController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         levelLabel.setText(LogbookUIPreferences.level_field_name);
+        selectedLevel.set(model.getLevel());
         Instant now = Instant.now();
         dateField.setText(TimestampFormats.DATE_FORMAT.format(now));
 
         logbooks.getChildren().add(new LogbooksTagsView(model));
 
-        levelSelector.setItems(model.getLevels());
-        levelSelector.getSelectionModel().select(model.getLevel() != null && !model.getLevel().isEmpty() ?
-                model.getLevel() : model.getLevels().get(0));
+        OlogProperties ologProperties = new OlogProperties();
+        String[] levelList = ologProperties.getPreferenceValue("levels").split(",");
+        levels.addAll(Arrays.asList(levelList));
 
-        model.addLevelListener((ListChangeListener.Change<? extends String> c) ->
-        {
-            if (c.next()) {
-                if (!model.getLevels().isEmpty() && model.getLevels().get(0) != null)
-                    levelSelector.getSelectionModel().select(model.getLevels().get(0));
-                else
-                    levelSelector.getSelectionModel().select(Messages.Normal);
-            }
-        });
+        levelSelector.setItems(levels);
+        /*
+        levelSelector.getSelectionModel().select(model.getLevel() != null && !model.getLevel().isEmpty() ?
+                model.getLevel() : levels.get(0));
+
+         */
+        levelSelector.getSelectionModel().select(selectedLevel.get() != null && !selectedLevel.get().isEmpty() ?
+                selectedLevel.get() : levels.get(0));
 
         userField.textProperty().addListener((changeListener, oldVal, newVal) ->
         {
@@ -160,13 +164,13 @@ public class FieldsViewController implements Initializable {
         setTextActions();
     }
 
-    public void setLevel(String level){
-        model.setLevel(level);
-    }
-
     @FXML
     public void setLevel() {
-        model.setLevel(levelSelector.getSelectionModel().getSelectedItem());
+        selectedLevel.set(levelSelector.getSelectionModel().getSelectedItem());
+    }
+
+    public String getSelectedLevel(){
+        return selectedLevel.get();
     }
 
     /**

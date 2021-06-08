@@ -69,7 +69,6 @@ public class LogEntryModel {
     private final ObservableList<String> tags;
     private final ObservableList<String> selectedLogbooks;
     private final ObservableList<String> selectedTags;
-    private final ObservableList<String> levels;
     private final ObservableList<Attachment> attachmentList;
     private List<Property> properties;
 
@@ -109,7 +108,6 @@ public class LogEntryModel {
 
         tags = FXCollections.observableArrayList();
         logbooks = FXCollections.observableArrayList();
-        levels = FXCollections.observableArrayList(logFactory.getLogClient().listLevels());
         properties = new ArrayList<>();
 
         selectedLogbooks = FXCollections.observableArrayList();
@@ -147,8 +145,6 @@ public class LogEntryModel {
             addSelectedTag(tag.getName());
         });
 
-        attachmentList.addAll(template.getAttachments());
-        //selectedProperties.addAll(template.getProperties());
         properties = new ArrayList<>(template.getProperties());
         level = template.getLevel();
     }
@@ -262,14 +258,6 @@ public class LogEntryModel {
         this.text = text;
     }
 
-    /**
-     * Get an unmodifiable list of supported log levels.
-     *
-     * @return - supported log levels
-     */
-    public ObservableList<String> getLevels() {
-        return levels;
-    }
 
     /**
      * Get an unmodifiable list of the log books.
@@ -508,15 +496,6 @@ public class LogEntryModel {
      */
     public void addLogbookListener(ListChangeListener<String> changeListener) {
         logbooks.addListener(changeListener);
-    }
-
-    /**
-     * Add a change listener to the available log level list.
-     *
-     * @param changeListener
-     */
-    public void addLevelListener(ListChangeListener<String> changeListener) {
-        levels.addListener(changeListener);
     }
 
     public ObservableList<Attachment> getAttachments() {
