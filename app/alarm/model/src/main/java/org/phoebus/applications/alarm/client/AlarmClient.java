@@ -292,9 +292,15 @@ public class AlarmClient
             else if (type.equals(AlarmSystem.STATE_PREFIX))
             {   // State update
                 if (json == null)
-                    logger.log(Level.WARNING, "Got state update with null content: " + record.key() + " " + node_config);
+                {   // State update for deleted node, ignore
+                    logger.log(Level.FINE, () -> "Got state update for deleted node: " + record.key() + " " + node_config);
+                    return;
+                }
                 else if (! JsonModelReader.isStateUpdate(json))
+                {
                     logger.log(Level.WARNING, "Got state update with config content: " + record.key() + " " + node_config);
+                    return;
+                }
                 else if (deleted_paths.contains(path))
                 {
                     // It it _deleted_??
