@@ -22,6 +22,9 @@ import javafx.util.Callback;
 import javafx.util.converter.DefaultStringConverter;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogService;
+import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.PropertyImpl;
 
@@ -35,10 +38,8 @@ import java.util.stream.Collectors;
 
 public class LogPropertiesEditorController {
 
-    // Model
-    private LogEntryModel model;
-    ObservableList<Property> availableProperties = FXCollections.observableArrayList();
-    ObservableList<Property> selectedProperties = FXCollections.observableArrayList();
+    private ObservableList<Property> availableProperties = FXCollections.observableArrayList();
+    private ObservableList<Property> selectedProperties = FXCollections.observableArrayList();
 
     @FXML
     TreeTableView<PropertyTreeNode> selectedPropertiesTree;
@@ -54,32 +55,18 @@ public class LogPropertiesEditorController {
     @FXML
     TableColumn propertyName;
 
-    private List<LogPropertyProvider> factories = new ArrayList<LogPropertyProvider>();
-
-    private LogClient logClient;
-
     /**
      *
-     * @param logClient A log client used to get available properties from service.
-     * @param selectedProperties A list of properties that a log entry template already contains, e.g.
-     *                           when copying or modifying an existing log entry. <code>null</code> may be
-     *                           specified to indicate absence of pre-selected properties.
+     * @param logEntry A {@link LogEntry} object serving as template.
      */
-    public LogPropertiesEditorController(LogClient logClient, List<Property> selectedProperties){
-        this.logClient = logClient;
+    public LogPropertiesEditorController(LogEntry logEntry){
         if(selectedProperties != null){
-            this.selectedProperties.addAll(selectedProperties);
+            this.selectedProperties.addAll(logEntry.getProperties());
         }
     }
 
     @FXML
     public void initialize() {
-        ServiceLoader<LogPropertyProvider> loader = ServiceLoader.load(LogPropertyProvider.class);
-        loader.stream().forEach(p -> {
-            if(p.get().getProperty() != null){
-                factories.add(p.get());
-            }
-        });
 
         setupProperties();
         constructTree(selectedProperties);
@@ -243,6 +230,13 @@ public class LogPropertiesEditorController {
     private void setupProperties(){
         List<Property> list = new ArrayList<>();
         // First add properties from SPI implementations
+        List<LogPropertyProvider> factories = new ArrayList<LogPropertyProvider>();
+        ServiceLoader<LogPropertyProvider> loader = ServiceLoader.load(LogPropertyProvider.class);
+        loader.stream().forEach(p -> {
+            if(p.get().getProperty() != null){
+                factories.add(p.get());
+            }
+        });
         factories.stream()
                 .map(LogPropertyProvider::getProperty)
                 .forEach(property -> {
@@ -253,7 +247,8 @@ public class LogPropertiesEditorController {
 
         JobManager.schedule("Fetch Properties from service", monitor ->
         {
-
+            LogClient logClient =
+                    LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory).getLogClient();
             List<Property> propertyList = logClient.listProperties().stream().collect(Collectors.toList());
             Platform.runLater(() ->
             {

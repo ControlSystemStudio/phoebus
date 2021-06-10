@@ -26,6 +26,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.olog.ui.AttachmentsPreviewController;
 import org.phoebus.logbook.olog.ui.Messages;
 
@@ -40,21 +41,21 @@ public class LogEntryEditorStage extends Stage
      * A stand-alone window containing components needed to create a logbook entry.
      * @param parent The {@link Node} from which the user - through context menu or application menu - requests a new
      *               logbook entry.
-     * @param logEntryModel Pre-populated data for the log entry, e.g. date and (optionally) screen shot.
+     * @param logEntry Pre-populated data for the log entry, e.g. date and (optionally) screen shot.
      */
-    public LogEntryEditorStage(Node parent, LogEntryModel logEntryModel)
+    public LogEntryEditorStage(Node parent, LogEntry logEntry)
     {
-        this(parent, logEntryModel, null);
+        this(parent, logEntry, null);
     }
 
     /**
      * A stand-alone window containing components needed to create a logbook entry.
      * @param parent The {@link Node} from which the user - through context menu or application menu - requests a new
      *               logbook entry.
-     * @param logEntryModel Pre-populated data for the log entry, e.g. date and (optionally) screen shot.
+     * @param logEntry Pre-populated data for the log entry, e.g. date and (optionally) screen shot.
      * @param completionHandler A completion handler called when service call completes.
      */
-    public LogEntryEditorStage(Node parent, LogEntryModel logEntryModel, LogEntryCompletionHandler completionHandler)
+    public LogEntryEditorStage(Node parent, LogEntry logEntry, LogEntryCompletionHandler completionHandler)
     {
         initModality(Modality.WINDOW_MODAL);
         ResourceBundle resourceBundle =  NLS.getMessages(Messages.class);
@@ -63,22 +64,22 @@ public class LogEntryEditorStage extends Stage
         fxmlLoader.setControllerFactory(clazz -> {
             try {
                 if(clazz.isAssignableFrom(LogEntryEditorController.class)){
-                    return clazz.getConstructor(Node.class, LogEntryModel.class, LogEntryCompletionHandler.class)
-                            .newInstance(parent, logEntryModel, completionHandler);
+                    return clazz.getConstructor(Node.class, LogEntryCompletionHandler.class)
+                            .newInstance(parent, completionHandler);
                 }
                 else if(clazz.isAssignableFrom(FieldsViewController.class)){
-                    return clazz.getConstructor(LogEntryModel.class)
-                            .newInstance(logEntryModel);
+                    return clazz.getConstructor(LogEntry.class)
+                            .newInstance(logEntry);
                 }
                 else if(clazz.isAssignableFrom(AttachmentsViewController.class)){
-                    return clazz.getConstructor(LogEntryModel.class, Boolean.class)
-                                    .newInstance(logEntryModel, true);
+                    return clazz.getConstructor(LogEntry.class)
+                                    .newInstance(logEntry);
                 }
                 else if(clazz.isAssignableFrom(AttachmentsPreviewController.class)){
                     return clazz.getConstructor().newInstance();
                 }
                 else if(clazz.isAssignableFrom(LogPropertiesEditorController.class)) {
-                    return clazz.getConstructor(LogClient.class, List.class).newInstance(logEntryModel.getLogClient(), logEntryModel.getProperties());
+                    return clazz.getConstructor(LogEntry.class).newInstance(logEntry);
                 }
             } catch (Exception e) {
                 Logger.getLogger(LogEntryEditorStage.class.getName()).log(Level.SEVERE, "Failed to construct controller for log editor UI", e);

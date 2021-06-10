@@ -22,6 +22,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
@@ -84,6 +85,11 @@ public class AttachmentsPreviewController {
     private ListView<Attachment> attachmentListView;
 
     /**
+     * List of attachments selected by user in the preview's {@link ListView}.
+     */
+    private ObservableList<Attachment> selectedAttachments = FXCollections.observableArrayList();
+
+    /**
      * List of listeners that will be notified when user has selected one or multiple attachments in
      * the {@link ListView}.
      */
@@ -118,15 +124,16 @@ public class AttachmentsPreviewController {
             @Override
             public void onChanged(Change<? extends Attachment> change) {
                 listSelectionEmpty.setValue(attachmentListView.getSelectionModel().isEmpty());
-                if (listSelectionChangeListeners == null) {
-                    return;
-                }
                 listSelectionChangeListeners.stream().forEach(l -> l.onChanged(change));
             }
         });
 
         imagePreview.fitWidthProperty().bind(previewPane.widthProperty());
         imagePreview.fitHeightProperty().bind(previewPane.heightProperty());
+    }
+
+    public ObservableList<Attachment> getSelectedAttachments(){
+        return attachmentListView.getSelectionModel().getSelectedItems();
     }
 
     /**

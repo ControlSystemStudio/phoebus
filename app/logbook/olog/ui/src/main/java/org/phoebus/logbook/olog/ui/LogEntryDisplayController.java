@@ -32,9 +32,7 @@ import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookException;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.Tag;
-import org.phoebus.logbook.olog.ui.write.LogEntryCompletionHandler;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
-import org.phoebus.logbook.olog.ui.write.LogEntryModel;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -141,7 +139,7 @@ public class LogEntryDisplayController {
         });
 
         copyURLButton.visibleProperty().setValue(LogbookUIPreferences.web_client_root_URL != null
-            && !LogbookUIPreferences.web_client_root_URL.isEmpty());
+                && !LogbookUIPreferences.web_client_root_URL.isEmpty());
 
         clearLogView();
     }
@@ -306,10 +304,10 @@ public class LogEntryDisplayController {
 
 
     @FXML
-    public void reply(){
+    public void reply() {
 
         Property logGroupProperty = logEntry.getProperty(LogGroupProperty.NAME);
-        if(logGroupProperty == null){
+        if (logGroupProperty == null) {
             logGroupProperty = LogGroupProperty.create();
             logEntry.getProperties().add(logGroupProperty);
         }
@@ -320,7 +318,7 @@ public class LogEntryDisplayController {
         ologLog.setProperties(logEntry.getProperties());
         ologLog.setLevel(logEntry.getLevel());
 
-        new LogEntryEditorStage(DockPane.getActiveDockPane(), new LogEntryModel(ologLog), l -> {
+        new LogEntryEditorStage(DockPane.getActiveDockPane(), ologLog, l -> {
             try {
                 updateLogEntry(logEntry);
             } catch (LogbookException e) {
@@ -340,7 +338,7 @@ public class LogEntryDisplayController {
      * https://github.com/Olog/phoebus-olog-web-client
      */
     @FXML
-    public void copyURL(){
+    public void copyURL() {
         final ClipboardContent content = new ClipboardContent();
         content.putString(LogbookUIPreferences.web_client_root_URL + "/" + logEntry.getId());
         Clipboard.getSystemClipboard().setContent(content);

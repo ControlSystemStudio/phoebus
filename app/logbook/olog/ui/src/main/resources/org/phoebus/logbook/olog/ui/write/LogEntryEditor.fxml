@@ -61,7 +61,7 @@
             </rowConstraints>
             </GridPane>
             <Pane HBox.hgrow="ALWAYS" />
-            <Button fx:id="cancel" alignment="CENTER_RIGHT" minWidth="57.0" mnemonicParsing="false" onAction="#cancel" text="%Cancel">
+            <Button fx:id="cancelButton" alignment="CENTER_RIGHT" minWidth="57.0" mnemonicParsing="false" onAction="#cancel" text="%Cancel">
                 <tooltip>
                     <Tooltip text="%CancelTooltip" />
                 </tooltip>
@@ -69,7 +69,7 @@
                     <Insets left="5.0" right="5.0" />
                 </HBox.margin>
             </Button>
-            <Button fx:id="submit" alignment="CENTER_RIGHT" minWidth="57.0" mnemonicParsing="false" onAction="#submit" text="%Submit">
+            <Button fx:id="submitButton" alignment="CENTER_RIGHT" minWidth="57.0" mnemonicParsing="false" onAction="#submit" text="%Submit">
                 <tooltip>
                     <Tooltip text="%SubmitTooltip" />
                 </tooltip>
