@@ -88,9 +88,14 @@ public class OpenDisplayActionDetailsController implements ActionDetailsControll
                 target = (Target)t1.getUserData();
             }
         });
-        toggleGroup.selectToggle(toggleGroup.getToggles().stream()
-                .filter(t -> t.getUserData().equals(openDisplayActionInfo.getTarget())).findFirst().get());
         target = openDisplayActionInfo.getTarget();
+        /*
+         * Standalone is a deprecated name for Window
+         */
+        if (target == Target.STANDALONE)
+            target = Target.WINDOW;
+        toggleGroup.selectToggle(toggleGroup.getToggles().stream()
+                .filter(t -> t.getUserData().equals(target)).findFirst().get());
 
         descriptionProperty.setValue(openDisplayActionInfo.getDescription());
         description.textProperty().bindBidirectional(descriptionProperty);
