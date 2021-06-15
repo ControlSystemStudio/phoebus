@@ -144,12 +144,12 @@ public class Services implements IServices {
 			String userName, String comment) {
 
 		logger.info("Saving snapshot for config id {}", configUniqueId);
-		logger.info("Snapshot name: {}, values:", snapshotName);
-		for (SnapshotItem snapshotItem : snapshotItems) {
-			logger.info(snapshotItem.toString());
-		}
-
-		return nodeDAO.saveSnapshot(configUniqueId, snapshotItems, snapshotName, comment, userName);
+		logger.info("Snapshot name: {}", snapshotName);
+		logger.info("PV count: {}", snapshotItems.size());
+		long start = System.currentTimeMillis();
+		Node node = nodeDAO.saveSnapshot(configUniqueId, snapshotItems, snapshotName, comment, userName);
+		logger.info("Saved snapshot in {} ms", (System.currentTimeMillis() - start));
+		return node;
 	}
 
 	@Override
