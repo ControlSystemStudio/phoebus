@@ -36,7 +36,7 @@ Here is an example where an application is including a context menu item to make
 
 case 1.
 
-Without the use of Adapters and Selection service, each potential menu contribution has to me manually included/excluded.
+Without the use of Adapters and Selection service, each potential menu contribution has to be manually included/excluded.
 
 .. code:: java
 
