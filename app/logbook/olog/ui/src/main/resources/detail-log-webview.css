@@ -49,3 +49,21 @@ blockquote{
   background-color: #0095CA;
   color: white;
 }
+
+.separator{
+    background-color: #54accc;
+    padding: 3px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    color: white;
+    font-weight: bold;
+    width: 99%;
+    border-radius: 3px;
+    border-color: #747474;
+    border-width: 1px;
+    border-style: solid;
+}
+
+.selected-log-entry{
+    background-color: #f4f4f4;
+}

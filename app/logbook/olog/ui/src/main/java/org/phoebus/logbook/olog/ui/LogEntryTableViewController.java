@@ -3,48 +3,32 @@ package org.phoebus.logbook.olog.ui;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
-import javafx.application.Platform;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.Hyperlink;
-import javafx.scene.control.Label;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeTableCell;
-import javafx.scene.control.TreeTableColumn;
-import javafx.scene.control.TreeTableView;
 import javafx.scene.control.TreeView;
-import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
-import javafx.util.Callback;
 import javafx.util.Duration;
-import org.phoebus.framework.preferences.Preference;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.olog.ui.LogbookQueryUtil.Keys;
 import org.phoebus.olog.es.api.model.OlogLog;
-import org.phoebus.ui.javafx.ImageCache;
-import org.phoebus.util.time.TimeParser;
 
 import java.io.IOException;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -57,13 +41,8 @@ import java.util.stream.Collectors;
  */
 public class LogEntryTableViewController extends LogbookSearchController {
 
-    static final Image tag = ImageCache.getImage(LogEntryDisplayController.class, "/icons/add_tag.png");
-    static final Image logbook = ImageCache.getImage(LogEntryDisplayController.class, "/icons/logbook-16.png");
-
     @FXML
     private Button resize;
-    @FXML
-    private Button search;
     @FXML
     private TextField query;
 
@@ -75,9 +54,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
     @FXML
     private TreeView<LogEntry> treeView;
 
-    // detail logview
-    @FXML
-    public SplitPane logEntryDisplay;
     @FXML
     private LogEntryDisplayController logEntryDisplayController;
 
@@ -130,7 +106,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
             @Override
             public void changed(ObservableValue<? extends TreeItem<LogEntry>> observable, TreeItem<LogEntry> oldValue, TreeItem<LogEntry> newValue) {
                 // newValue may be null after search and refresh of the tree
-                if(newValue != null){
+                if (newValue != null) {
                     logEntryDisplayController.setLogEntry(newValue.getValue());
                 }
             }
@@ -227,7 +203,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         }
     }
 
-    private class LogEntryTreeCell extends TreeCell<LogEntry>{
+    private class LogEntryTreeCell extends TreeCell<LogEntry> {
 
         private Node graphic;
         private LogEntryCellController controller;

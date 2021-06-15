@@ -153,7 +153,6 @@ public class FieldsViewController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
         userField.textProperty().bindBidirectional(usernameProperty);
-        userField.requestFocus();
         userField.textProperty().addListener((changeListener, oldVal, newVal) ->
         {
             if (newVal.trim().isEmpty())
@@ -180,12 +179,18 @@ public class FieldsViewController implements Initializable {
                 passwordField.setText(passwordProperty.get());
 
                 // Put focus on first required field that is empty.
-                if (userField.getText().isEmpty())
+                if (userField.getText().isEmpty()){
                     userField.requestFocus();
-                else if (passwordField.getText().isEmpty())
+                }
+                else if (passwordField.getText().isEmpty()){
                     passwordField.requestFocus();
-                else
+                }
+                else if(titleField.getText().isEmpty()){
                     titleField.requestFocus();
+                }
+                else{
+                    textArea.requestFocus();
+                }
             });
         });
         if (LogbookUIPreferences.save_credentials) {

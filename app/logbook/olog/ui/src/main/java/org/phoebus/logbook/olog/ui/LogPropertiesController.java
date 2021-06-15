@@ -22,6 +22,7 @@ import org.phoebus.logbook.PropertyImpl;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -143,11 +144,12 @@ public class LogPropertiesController {
     }
 
     private void constructTree(Collection<Property> properties) {
-        if (properties != null && !properties.isEmpty())
+        if (!properties.isEmpty())
         {
             TreeItem root = new TreeItem(new PropertyTreeNode("properties", " "));
             AtomicReference<Double> rowCount = new AtomicReference<>((double) 1);
-            root.getChildren().setAll(properties.stream().map(property -> {
+            root.getChildren().setAll(properties.stream()
+                    .map(property -> {
                 PropertyTreeNode node = new PropertyTreeNode(property.getName(), " ");
                 rowCount.set(rowCount.get() + 1);
                 TreeItem<PropertyTreeNode> treeItem = new TreeItem<>(node);

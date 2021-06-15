@@ -47,7 +47,7 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
         SplitPane root = new SplitPane();
 
         FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(this.getClass().getResource("LogEntryDisplay.fxml"));
+        loader.setLocation(this.getClass().getResource("LogEntryDisplayController.fxml"));
         loader.load();
         LogEntryDisplayController controller = loader.getController();
         root = loader.getRoot();

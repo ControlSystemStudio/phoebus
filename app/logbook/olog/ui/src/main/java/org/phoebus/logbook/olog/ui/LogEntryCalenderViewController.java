@@ -31,7 +31,6 @@ import jfxtras.scene.control.agenda.Agenda.AppointmentImplLocal;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
-import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.time.TimeRelativeIntervalPane;
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
@@ -120,10 +119,10 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                     ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
                     FXMLLoader loader = new FXMLLoader();
                     loader.setResources(resourceBundle);
-                    loader.setLocation(this.getClass().getResource("LogEntryDisplay.fxml"));
+                    loader.setLocation(this.getClass().getResource("LogEntryDisplayController.fxml"));
                     loader.setControllerFactory(clazz -> {
                         try {
-                            if (clazz.isAssignableFrom(LogEntryDisplayController.class)) {
+                            if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {
                                 return clazz.getConstructor(LogClient.class).newInstance(getClient());
                             }
                             else if(clazz.isAssignableFrom(AttachmentsPreviewController.class)){

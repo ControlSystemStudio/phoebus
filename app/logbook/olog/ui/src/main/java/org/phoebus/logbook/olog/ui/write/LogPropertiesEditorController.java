@@ -27,8 +27,10 @@ import org.phoebus.logbook.LogService;
 import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.PropertyImpl;
+import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -38,8 +40,20 @@ import java.util.stream.Collectors;
 
 public class LogPropertiesEditorController {
 
+    /**
+     * List of properties user may add to log entry. It is constructed from the properties as
+     * provided by the log service, plus optional properties providers, see {@link LogPropertyProvider}.
+     */
     private ObservableList<Property> availableProperties = FXCollections.observableArrayList();
+    /**
+     * List of properties selected by user to be included in the log record.
+     */
     private ObservableList<Property> selectedProperties = FXCollections.observableArrayList();
+    /**
+     * List of hidden properties, e.g. properties that are added automatically to the log record,
+     * but that should/must not be rendered in the properties view.
+     */
+    private List<Property> hiddenProperties = new ArrayList<>();
 
     @FXML
     TreeTableView<PropertyTreeNode> selectedPropertiesTree;
@@ -55,14 +69,18 @@ public class LogPropertiesEditorController {
     @FXML
     TableColumn propertyName;
 
+    private List<String> hiddenPropertiesNames = Arrays.asList(LogbookUIPreferences.hidden_properties);
+
     /**
      *
      * @param logEntry A {@link LogEntry} object serving as template.
      */
     public LogPropertiesEditorController(LogEntry logEntry){
-        if(selectedProperties != null){
-            this.selectedProperties.addAll(logEntry.getProperties());
-        }
+        // Log entry may already contain properties, so need to handle them accordingly.
+        this.hiddenProperties =
+                logEntry.getProperties().stream().filter(p -> hiddenPropertiesNames.contains(p.getName())).collect(Collectors.toList());
+        this.selectedProperties.addAll(
+                logEntry.getProperties().stream().filter(p -> !hiddenPropertiesNames.contains(p.getName())).collect(Collectors.toList()));
     }
 
     @FXML
@@ -131,7 +149,8 @@ public class LogPropertiesEditorController {
         if (properties != null && !properties.isEmpty()) {
             TreeItem root = new TreeItem(new PropertyTreeNode("properties", " "));
             AtomicReference<Double> rowCount = new AtomicReference<>((double) 1);
-            root.getChildren().setAll(properties.stream().map(property -> {
+            root.getChildren().setAll(properties.stream()
+                    .map(property -> {
                 PropertyTreeNode node = new PropertyTreeNode(property.getName(), " ");
                 rowCount.set(rowCount.get() + 1);
                 TreeItem<PropertyTreeNode> treeItem = new TreeItem<>(node);
@@ -148,10 +167,12 @@ public class LogPropertiesEditorController {
     }
 
     /**
-     * @return The list of logentry properties
+     * @return The list of log entry properties
      */
     public List<Property> getProperties() {
         List<Property> treeProperties = new ArrayList<>();
+        // Add the hidden properties
+        treeProperties.addAll(hiddenProperties);
         if (selectedPropertiesTree.getRoot() == null) {
             return treeProperties;
         }
@@ -226,6 +247,9 @@ public class LogPropertiesEditorController {
      * On top of that, if the user is editing a copy (reply) based on another log entry, a set of properties may
      * already be present in the new log entry. The list of available properties will not contain such properties
      * as this would be confusing.
+     *
+     * Also, properties to be excluded as listed in the preferences (properties_excluded_from_view) are not
+     * added to the properties tree.
      */
     private void setupProperties(){
         List<Property> list = new ArrayList<>();
@@ -240,6 +264,7 @@ public class LogPropertiesEditorController {
         factories.stream()
                 .map(LogPropertyProvider::getProperty)
                 .forEach(property -> {
+                    // Do not add a property that
                     if(!selectedProperties.contains(property)){
                         list.add(property);
                     }
@@ -261,4 +286,6 @@ public class LogPropertiesEditorController {
             });
         });
     }
+
+
 }

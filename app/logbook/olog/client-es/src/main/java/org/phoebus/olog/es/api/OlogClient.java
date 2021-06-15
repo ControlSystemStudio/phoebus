@@ -283,8 +283,9 @@ public class OlogClient implements LogClient {
     private List<LogEntry> findLogs(MultivaluedMap<String, String> mMap) {
         List<LogEntry> logs = new ArrayList<>();
         if (!mMap.containsKey("limit")) {
-            mMap.putSingle("limit", "100");
+            mMap.putSingle("limit", "5");
         }
+        mMap.putSingle("limit", "5");
         try {
             // Convert List<XmlLog> into List<LogEntry>
             final List <OlogLog> xmls = OlogObjectMappers.logEntryDeserializer.readValue(
@@ -462,6 +463,7 @@ public class OlogClient implements LogClient {
 
         try {
             clientResponse = service.path("logs/" + logEntry.getId())
+                    .queryParam("markup", "commonmark")
                     .type(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_XML)
                     .accept(MediaType.APPLICATION_JSON)
