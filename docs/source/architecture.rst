@@ -4,7 +4,7 @@ Architecture
 .. figure:: architecture.png
 
 The fundamental phoebus architecture consists of **core** modules,
-user-iterface related **core-ui** modules, and **app** modules.
+user-interface related **core-ui** modules, and **app** modules.
 The core modules provide the infrastructure, while app modules
 implement specific application functionality.
 Everything is based on Java version 9 or higher, using Java FX as
@@ -15,19 +15,19 @@ for example only one of Probe, PV Tree, PV Table, Display Builder Runtime,
 so you end up with several Phoebus products that each perform one function.
 Alternatively, you can assemble a Phoebus product that
 contains all these applications. This allows integration between the applications,
-for example via context menues that start other PV-related applications based
+for example via context menus that start other PV-related applications based
 on the current selection.
 
 Core Modules
 ------------
 
 core-framework:
-   Fundamentals that many applications use, for example prerences, persistence,
+   Fundamentals that many applications use, for example preferences, persistence,
    jobs, macros, localization, autocompletion.
    
    Defines the ``AppDescriptor`` and ``AppResourceDescriptor`` Java Service Provider Interfaces (SPI)
    which are used to locate applications.
-   Each application feature identifies itself by implementing an application descriptior
+   Each application feature identifies itself by implementing an application description
    that describes to the Phoebus framework what the name of
    the application is, which types of resources (e.g. data files) it might accept,
    and most importantly how to start one or more instances
@@ -71,7 +71,7 @@ core-ui:
    wrapped in a Phoebus ``DockItem`` that tracks the
    ``AppInstance`` to allow it to be saved and restored.
 
-   The toolbar, main menu and context menues accept
+   The toolbar, main menu and context menus accept
    SPI-based contributions.
 
    The ``selection`` package allows publishing and monitoring a selection of

@@ -94,7 +94,7 @@ File ../../app/alarm/model/src/main/resources/alarm_preferences.properties::
    
    # Period for repeated annunciation
    #
-   # If there are active alarms, i.e. alarms that have not been acknowleded,
+   # If there are active alarms, i.e. alarms that have not been acknowledged,
    # a message "There are 47 active alarms" will be issued
    #
    # Format is HH:MM:SS, for example 00:15:00 to nag every 15 minutes.
@@ -430,7 +430,7 @@ File ../../app/display/model/src/main/resources/display_model_preferences.proper
    # it will be changed into a "Label" widget and then re-parsed.
    # If more than a certain number of re-parse operations are triggered
    # within one 'level' of the file (number of widgets at the root of the display,
-   # or number of childred for a "Group" widget),
+   # or number of children for a "Group" widget),
    # the parser assumes that it entered an infinite re-parse loop
    # and aborts.
    max_reparse_iterations=5000
