@@ -82,4 +82,4 @@ With the use of adapters and the selection service, each application simply need
 
 Register zero or more
 `AdapterFactories <https://github.com/ControlSystemStudio/phoebus/blob/master/app/logbook/ui/src/main/java/org/phoebus/logbook/ui/adapters/AppSelectionAdapterFactory.java>`_
-which provide the mechanism to adapt an AppSelection to a simple LogEntry or an Olog LogEnrty
+which provide the mechanism to adapt an AppSelection to a simple LogEntry or an Olog LogEntry
