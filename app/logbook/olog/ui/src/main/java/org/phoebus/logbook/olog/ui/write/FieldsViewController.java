@@ -185,7 +185,7 @@ public class FieldsViewController implements Initializable {
                 else if (passwordField.getText().isEmpty()){
                     passwordField.requestFocus();
                 }
-                else if(titleField.getText().isEmpty()){
+                else if(titleField.getText() == null || titleField.getText().isEmpty()){
                     titleField.requestFocus();
                 }
                 else{
@@ -197,16 +197,15 @@ public class FieldsViewController implements Initializable {
             fetchStoredUserCredentials();
         }
 
-        // Sites may wish to define a different meaning and name for the "level" field.
         levelLabel.setText(LogbookUIPreferences.level_field_name);
-
+        // Sites may wish to define a different meaning and name for the "level" field.
         OlogProperties ologProperties = new OlogProperties();
         String[] levelList = ologProperties.getPreferenceValue("levels").split(",");
         availableLevels.addAll(Arrays.asList(levelList));
         levelSelector.setItems(availableLevels);
-        levelSelector.getSelectionModel().select(selectedLevelProperty.get() != null && !selectedLevelProperty.get().isEmpty() ?
-                selectedLevelProperty.get() : availableLevels.get(0));
-        selectedLevelProperty.set(logEntry.getLevel());
+        selectedLevelProperty.set(logEntry.getLevel() != null ? logEntry.getLevel() : availableLevels.get(0));
+
+        levelSelector.getSelectionModel().select(selectedLevelProperty.get());
 
         dateField.setText(TimestampFormats.DATE_FORMAT.format(Instant.now()));
 

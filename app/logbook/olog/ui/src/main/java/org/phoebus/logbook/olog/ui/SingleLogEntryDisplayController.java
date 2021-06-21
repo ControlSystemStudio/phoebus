@@ -73,8 +73,6 @@ public class SingleLogEntryDisplayController {
     @FXML
     public LogPropertiesController propertiesController;
     @FXML
-    private Button downloadButton;
-    @FXML
     private ImageView logbookIcon;
     @FXML
     private Label logbooks;
@@ -92,8 +90,6 @@ public class SingleLogEntryDisplayController {
     @FXML
     private Button copyURLButton;
 
-    @FXML
-    private GridPane headerPane;
 
     private Logger logger = Logger.getLogger(SingleLogEntryDisplayController.class.getName());
 
@@ -109,7 +105,7 @@ public class SingleLogEntryDisplayController {
      * List of attachments selected in the preview's {@link ListView}.
      */
 
-    private ObservableList<Attachment> selectedAttachments = FXCollections.observableArrayList();
+    //private ObservableList<Attachment> selectedAttachments = FXCollections.observableArrayList();
 
     public SingleLogEntryDisplayController() {
         this.logClient = null;
@@ -131,18 +127,6 @@ public class SingleLogEntryDisplayController {
         htmlRenderer = HtmlRenderer.builder()
                 .attributeProviderFactory(context -> new OlogAttributeProvider(logClient.getServiceUrl()))
                 .extensions(extensions).build();
-
-        downloadButton.disableProperty().bind(Bindings.isEmpty(selectedAttachments));
-        attachmentsPreviewController.addListSelectionChangeListener(change -> {
-            while (change.next()) {
-                if (change.wasAdded()) {
-                    selectedAttachments.addAll(change.getAddedSubList());
-                }
-                if (change.wasRemoved()) {
-                    selectedAttachments.removeAll(change.getRemoved());
-                }
-            }
-        });
 
         copyURLButton.visibleProperty().setValue(LogbookUIPreferences.web_client_root_URL != null
                 && !LogbookUIPreferences.web_client_root_URL.isEmpty());
@@ -221,32 +205,6 @@ public class SingleLogEntryDisplayController {
         return "<div id='olog'>\n" + html + "</div>";
     }
 
-    /**
-     * Downloads all selected attachments to folder selected by user.
-     */
-    @FXML
-    public void downloadSelectedAttachments() {
-        final DirectoryChooser dialog = new DirectoryChooser();
-        dialog.setTitle(Messages.SelectFolder);
-        dialog.setInitialDirectory(new File(System.getProperty("user.home")));
-        File targetFolder = dialog.showDialog(attachmentsPane.getScene().getWindow());
-        JobManager.schedule("Save attachments job", (monitor) ->
-        {
-            selectedAttachments.stream().forEach(a -> downloadAttachment(targetFolder, a));
-        });
-    }
-
-    private void downloadAttachment(File targetFolder, Attachment attachment) {
-        try {
-            File targetFile = new File(targetFolder, attachment.getName());
-            if (targetFile.exists()) {
-                throw new Exception("Target file " + targetFile.getAbsolutePath() + " exists");
-            }
-            Files.copy(attachment.getFile().toPath(), targetFile.toPath());
-        } catch (Exception e) {
-            ExceptionDetailsErrorDialog.openError(attachmentsPane.getParent(), Messages.FileSave, Messages.FileSaveFailed, e);
-        }
-    }
 
     /**
      * Copies the URL of the log entry. The URL can be used to direct non-Phoebus clients to
@@ -258,35 +216,5 @@ public class SingleLogEntryDisplayController {
         final ClipboardContent content = new ClipboardContent();
         content.putString(LogbookUIPreferences.web_client_root_URL + "/" + logEntry.getId());
         Clipboard.getSystemClipboard().setContent(content);
-    }
-
-
-    private void mergeLogEntries() {
-        StringBuilder stringBuilder = new StringBuilder();
-        logEntries.stream().forEach(l -> {
-            stringBuilder.append(createSeparator(l));
-            stringBuilder.append(toHtml(l.getSource()));
-        });
-        WebEngine webEngine = logDescription.getEngine();
-        webEngine.setUserStyleSheetLocation(getClass()
-                .getResource("/detail-log-webview.css").toExternalForm());
-        webEngine.loadContent(stringBuilder.toString());
-    }
-
-    /**
-     * Creates the log entry separator item inserted as a header for each log entry
-     * when showing the log group view.
-     *
-     * @param logEntry
-     * @return
-     */
-    private String createSeparator(LogEntry logEntry) {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("<div class='separator'>");
-        stringBuilder.append(SECONDS_FORMAT.format(logEntry.getCreatedDate())).append(". ");
-        stringBuilder.append(logEntry.getOwner()).append(", ").append(logEntry.getTitle()).append(", ");
-        stringBuilder.append(logEntry.getId());
-        stringBuilder.append("</div>");
-        return stringBuilder.toString();
     }
 }

@@ -36,13 +36,13 @@
     </top>
     <center>
         <StackPane fx:id="stackPane">
-            <BorderPane fx:id="emptyPane" visible="true">
+            <BorderPane fx:id="emptyPane" visible="false">
                 <center>
                     <Label text="%SelectLogEntry"/>
                 </center>
             </BorderPane>
             <fx:include fx:id="singleLogEntryDisplay" source="SingleLogEntryDisplay.fxml" visible="false"/>
-            <fx:include fx:id="mergedLogEntryDisplay" source="MergedLogEntryDisplay.fxml" visible="false"/>
+            <fx:include fx:id="mergedLogEntryDisplay2" source="MergedLogEntryDisplay2.fxml" visible="true"/>
         </StackPane>
     </center>
 </BorderPane>

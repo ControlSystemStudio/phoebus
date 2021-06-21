@@ -78,11 +78,6 @@ public class MergedLogEntryDisplayController {
                 .getResource("/detail-log-webview.css").toExternalForm());
     }
 
-    @FXML
-    public void downloadSelectedAttachments() {
-
-    }
-
     /**
      * Set the selected entry containing the log group property to be used for finding
      * other entries in the group.
@@ -96,10 +91,11 @@ public class MergedLogEntryDisplayController {
         List<Attachment> attachments = new ArrayList<>();
         StringBuilder stringBuilder = new StringBuilder();
         logEntries.stream().forEach(l -> {
-            stringBuilder.append(createSeparator(l));
             if(l.getId().equals(selectedLogEntry.getId())){
                 stringBuilder.append("<div class='selected-log-entry'>");
             }
+            stringBuilder.append(createSeparator(l));
+
             stringBuilder.append(toHtml(l.getSource()));
             if(l.getId().equals(selectedLogEntry.getId().longValue())){
                 stringBuilder.append("</div>");
@@ -130,7 +126,6 @@ public class MergedLogEntryDisplayController {
         stringBuilder.append(SECONDS_FORMAT.format(logEntry.getCreatedDate())).append(", ");
         stringBuilder.append(logEntry.getOwner()).append(", ");
         stringBuilder.append(logEntry.getTitle());
-        //stringBuilder.append(logEntry.getId());
         stringBuilder.append("</div>");
         return stringBuilder.toString();
     }

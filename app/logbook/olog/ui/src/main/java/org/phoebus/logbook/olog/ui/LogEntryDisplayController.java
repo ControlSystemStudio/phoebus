@@ -44,7 +44,7 @@ public class LogEntryDisplayController {
     @FXML
     private SingleLogEntryDisplayController singleLogEntryDisplayController;
     @FXML
-    private MergedLogEntryDisplayController mergedLogEntryDisplayController;
+    private MergedLogEntryDisplayController2 mergedLogEntryDisplay2Controller;
     @FXML
     private ToggleButton showHideLogEntryGroupButton;
     @FXML
@@ -56,11 +56,11 @@ public class LogEntryDisplayController {
     @FXML
     private Node singleLogEntryDisplay;
     @FXML
-    private Node mergedLogEntryDisplay;
+    private Node mergedLogEntryDisplay2;
 
     private LogClient logClient;
 
-    private SimpleBooleanProperty showLogGroup = new SimpleBooleanProperty(false);
+    private SimpleBooleanProperty showLogGroup = new SimpleBooleanProperty(true);
     private SimpleBooleanProperty logEntryNullProperty = new SimpleBooleanProperty(true);
 
     private LogEntry logEntry = null;
@@ -78,7 +78,7 @@ public class LogEntryDisplayController {
         singleLogEntryDisplay.visibleProperty().bind(Bindings
                 .createBooleanBinding(() -> !showLogGroup.get() && !logEntryNullProperty.get(),
                         showLogGroup, logEntryNullProperty));
-        mergedLogEntryDisplay.visibleProperty().bind(Bindings
+        mergedLogEntryDisplay2.visibleProperty().bind(Bindings
                 .createBooleanBinding(() -> showLogGroup.get() && !logEntryNullProperty.get(),
                         showLogGroup, logEntryNullProperty));
         showHideLogEntryGroupButton.selectedProperty().bindBidirectional(showLogGroup);
@@ -126,9 +126,9 @@ public class LogEntryDisplayController {
         showHideLogEntryGroupButton.setDisable(!hasLinkedEntries);
         singleLogEntryDisplayController.setLogEntry(logEntry);
         if(hasLinkedEntries){
-            mergedLogEntryDisplayController.setLogEntry(this.logEntry);
+            mergedLogEntryDisplay2Controller.setLogEntry(this.logEntry);
         }
-        showLogGroup.set(false);
+        //showLogGroup.set(false);
     }
 
     public LogEntry getLogEntry() {

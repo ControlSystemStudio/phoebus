@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.web.*?>
 
 <!--
   ~ Copyright (C) 2020 European Spallation Source ERIC.
@@ -22,15 +24,15 @@
   ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
   -->
 
-<BorderPane fx:id="root" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.MergedLogEntryDisplayController">
-    <center>
-        <WebView fx:id="logDescription" prefWidth="-1.0" />
-    </center>
-    <bottom>
-        <TitledPane fx:id="attachmentsPane" animated="false" prefHeight="250.0" text="Attachments">
-            <content>
-                <fx:include fx:id="attachmentsPreview" source="AttachmentsPreview.fxml" />
-            </content>
-        </TitledPane>
-    </bottom>
-</BorderPane>
+<?import javafx.scene.web.WebView?>
+<AnchorPane
+        xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="org.phoebus.logbook.olog.ui.MergedLogEntryDisplayController2"
+            fx:id="root">
+
+                        <ListView fx:id="listView" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+
+
+
+</AnchorPane>

@@ -15,6 +15,7 @@ public class Messages
                          Apply,
                          Clear,                                
                          Clear_Tooltip,
+                         DownloadSelected,
                          EmbedImageDialogTitle,
                          File,
                          FileSave,

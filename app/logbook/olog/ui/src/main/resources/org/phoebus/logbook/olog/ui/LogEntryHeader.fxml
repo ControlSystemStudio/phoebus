@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.web.*?>
-
 <!--
   ~ Copyright (C) 2020 European Spallation Source ERIC.
   ~
@@ -22,15 +18,27 @@
   ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
   -->
 
-<BorderPane fx:id="root" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.MergedLogEntryDisplayController">
-    <center>
-        <WebView fx:id="logDescription" prefWidth="-1.0" />
-    </center>
-    <bottom>
-        <TitledPane fx:id="attachmentsPane" animated="false" prefHeight="250.0" text="Attachments">
-            <content>
-                <fx:include fx:id="attachmentsPreview" source="AttachmentsPreview.fxml" />
-            </content>
-        </TitledPane>
-    </bottom>
-</BorderPane>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<HBox spacing="5.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryHeaderController">
+
+    <Label fx:id="time" text="2020-01-01 10:00:00">
+        <padding>
+            <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
+        </padding>
+        <font>
+            <Font size="15.0" />
+        </font>
+    </Label>
+    <Label fx:id="author" contentDisplay="CENTER" text="Log entry author">
+        <padding>
+            <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
+        </padding>
+      <font>
+         <Font size="15.0" />
+      </font>
+    </Label>
+</HBox>

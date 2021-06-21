@@ -89,7 +89,7 @@
             <HBox alignment="TOP_CENTER" spacing="5.0" VBox.vgrow="ALWAYS">
                <children>
                   <Label fx:id="textLabel" prefWidth="80.0" text="%Text" />
-                  <TextArea fx:id="textArea" prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS" />
+                  <TextArea fx:id="textArea" prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS" wrapText="true"/>
                </children>
             </HBox>
             <HBox>

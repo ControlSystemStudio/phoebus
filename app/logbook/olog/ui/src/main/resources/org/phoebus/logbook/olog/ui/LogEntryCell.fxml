@@ -6,6 +6,11 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
+<!--
+This is the cell UI for log entry items as presented in the search result list/tree, i.e. this is a
+summary of the log entry and its metadata.
+-->
+
 <GridPane fx:id="root" maxHeight="-Infinity" prefWidth="400.0" style="-fx-border-color: transparent transparent #e4e4e4 transparent; -fx-border-width: 1px;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryCellController">
     <columnConstraints>
         <ColumnConstraints />
