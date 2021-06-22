@@ -19,8 +19,11 @@
 package org.phoebus.logbook.olog.ui;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Worker.State;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -32,6 +35,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -118,7 +123,7 @@ public class LogEntryGroupCellController {
         tagIcon.setImage(tag);
         copyURLButton.visibleProperty().setValue(LogbookUIPreferences.web_client_root_URL != null
                 && !LogbookUIPreferences.web_client_root_URL.isEmpty());
-        /*
+
         try {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(this.getClass().getResource("LogEntryHeader.fxml"));
@@ -137,7 +142,6 @@ public class LogEntryGroupCellController {
             logger.log(Level.SEVERE, "Failed to load log entry header fxml", e);
         }
 
-         */
         List<Extension> extensions = Arrays.asList(TablesExtension.create(), ImageAttributesExtension.create());
         parser = Parser.builder().extensions(extensions).build();
         htmlRenderer = HtmlRenderer.builder()
@@ -149,8 +153,14 @@ public class LogEntryGroupCellController {
         webEngine = webView.getEngine();
         webEngine.setUserStyleSheetLocation(getClass()
                 .getResource("/detail-log-webview.css").toExternalForm());
-        webEngine.loadContent("MUSIGNY");
-
+        webView.getEngine().getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
+            @Override
+            public void changed(ObservableValue<? extends State> arg0, State oldState, State newState) {
+                if (newState == State.SUCCEEDED) {
+                    adjustHeight();
+                }
+            }
+        });
     }
 
     /**
@@ -207,16 +217,12 @@ public class LogEntryGroupCellController {
         logTitle.setWrapText(true);
         logTitle.setText(logEntry.getTitle());
 
-        /*
 
         if (logEntry.getSource() != null) {
             webEngine.loadContent(toHtml(logEntry.getSource()));
         } else if (logEntry.getDescription() != null) {
             webEngine.loadContent(toHtml(logEntry.getDescription()));
         }
-
-
-         */
 
 
         ObservableList<String> logbookList = FXCollections.observableArrayList();
@@ -266,15 +272,15 @@ public class LogEntryGroupCellController {
             public void run() {
                 try {
                     Object result = webEngine.executeScript(
-                            "document.getElementById('root').offsetHeight");
+                            "document.getElementById('olog').offsetHeight");
                     if(result instanceof Integer) {
                         Integer i = (Integer) result;
-                        double height = new Double(i);
-                        height = height + 20;
+                        double height = Double.valueOf(i);
+                        height = height + 40;
                         webView.setPrefHeight(height);
                     }
                 } catch (JSException e) {
-                    e.printStackTrace();
+                    logger.log(Level.SEVERE, "Unable to set height of WebView", e);
                 }
             }
         });

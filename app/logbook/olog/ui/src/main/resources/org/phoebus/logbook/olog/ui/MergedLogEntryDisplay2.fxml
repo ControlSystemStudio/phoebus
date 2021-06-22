@@ -30,8 +30,7 @@
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="org.phoebus.logbook.olog.ui.MergedLogEntryDisplayController2"
             fx:id="root">
-
-                        <ListView fx:id="listView" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+    <ListView fx:id="listView" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
 
 
 

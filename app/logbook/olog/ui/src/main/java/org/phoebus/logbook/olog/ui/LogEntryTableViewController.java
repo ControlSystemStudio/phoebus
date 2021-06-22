@@ -7,6 +7,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -201,6 +202,11 @@ public class LogEntryTableViewController extends LogbookSearchController {
             rootItem.getChildren().setAll(logEntries.stream().map(logEntry -> new TreeItem<>(logEntry)).collect(Collectors.toSet()));
             rootItem.getChildren().sort((o1, o2) -> o2.getValue().getCreatedDate().compareTo(o1.getValue().getCreatedDate()));
         }
+    }
+
+    private ObservableList<TreeItem<LogEntry>> getTreeStructure(){
+
+        return null;
     }
 
     private class LogEntryTreeCell extends TreeCell<LogEntry> {

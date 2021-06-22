@@ -60,7 +60,7 @@ public class LogEntryDisplayController {
 
     private LogClient logClient;
 
-    private SimpleBooleanProperty showLogGroup = new SimpleBooleanProperty(true);
+    private SimpleBooleanProperty showLogGroup = new SimpleBooleanProperty(false);
     private SimpleBooleanProperty logEntryNullProperty = new SimpleBooleanProperty(true);
 
     private LogEntry logEntry = null;

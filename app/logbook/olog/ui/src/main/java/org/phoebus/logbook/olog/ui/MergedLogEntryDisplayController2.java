@@ -79,6 +79,7 @@ public class MergedLogEntryDisplayController2 {
         String id =
                 logEntry.getProperties().stream()
                         .filter(p -> p.getName().equals(LogGroupProperty.NAME)).findFirst().get().getAttributes().get("id");
+
         logger.log(Level.INFO, "Fetching log entries for group " + id);
         try {
             Map<String, String> mMap = new HashMap<>();
@@ -89,6 +90,7 @@ public class MergedLogEntryDisplayController2 {
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Unable to locate log entry items using log entry group id " + id, e);
         }
+
     }
 
     private class LogEntryCell extends ListCell<LogEntry> {
@@ -103,7 +105,7 @@ public class MergedLogEntryDisplayController2 {
                 ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
                 FXMLLoader loader = new FXMLLoader();
                 loader.setResources(resourceBundle);
-                loader.setLocation(this.getClass().getResource("LogEntryGroupCellController.fxml"));
+                loader.setLocation(this.getClass().getResource("LogEntryGroupCell.fxml"));
                 loader.setControllerFactory(clazz -> {
                     try {
                         if(clazz.isAssignableFrom(LogEntryGroupCellController.class)) {
