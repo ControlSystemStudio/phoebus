@@ -24,7 +24,7 @@ Split Panes within a Window
 ---------------------------
 
 The tab context menu options to *Split Horizontally* or *Split Vertically*
-will create sub-panels witin the window between which tabs can be arranged.
+will create sub-panels within the window between which tabs can be arranged.
 
 .. figure:: split.png
 

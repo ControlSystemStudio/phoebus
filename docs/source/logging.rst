@@ -5,7 +5,7 @@ All phoebus code logs via the ``java.util.logging`` mechanism.
 
 The default log settings for the phoebus product are based on the
 ``logging.properties`` file of the ``core-launcher`` module.
-Services like the alarm server have a simular built-in log configuration file.
+Services like the alarm server have a similar built-in log configuration file.
 
 To override these built-in settings, create a copy of that file, adjust as desired,
 and pass it via the ``-logging /path/to/my_logging.properties`` command line option.
