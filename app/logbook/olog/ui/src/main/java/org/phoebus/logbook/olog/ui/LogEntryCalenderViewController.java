@@ -17,6 +17,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -120,7 +121,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                     ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
                     FXMLLoader loader = new FXMLLoader();
                     loader.setResources(resourceBundle);
-                    loader.setLocation(this.getClass().getResource("LogEntryDisplayController.fxml"));
+                    loader.setLocation(this.getClass().getResource("LogEntryDisplay.fxml"));
                     loader.setControllerFactory(clazz -> {
                         try {
                             if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {
@@ -129,6 +130,15 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                             else if(clazz.isAssignableFrom(AttachmentsPreviewController.class)){
                                 return clazz.getConstructor().newInstance();
                             }
+                            else if(clazz.isAssignableFrom(LogEntryDisplayController.class)){
+                                return clazz.getConstructor(LogClient.class).newInstance(getClient());
+                            }
+                            else if(clazz.isAssignableFrom(LogPropertiesController.class)){
+                                return clazz.getConstructor().newInstance();
+                            }
+                            else if(clazz.isAssignableFrom(MergedLogEntryDisplayController2.class)){
+                                return clazz.getConstructor(LogClient.class).newInstance(getClient());
+                            }
                         } catch (Exception e) {
                             logger.log(Level.SEVERE, "Failed to construct controller for log entry display", e);
                         }
@@ -136,9 +146,8 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                     });
                     loader.load();
                     LogEntryDisplayController controller = loader.getController();
-                    controller.setLogEntry(map.get(appointment));
-                    SplitPane root = loader.getRoot();
-                    Scene dialogScene = new Scene(root, 800, 600);
+                    controller.setLogEntryGroup(new LogEntryGroup(map.get(appointment)));
+                    Scene dialogScene = new Scene(loader.getRoot(), 800, 600);
                     dialog.setScene(dialogScene);
                     dialog.show();
                 }

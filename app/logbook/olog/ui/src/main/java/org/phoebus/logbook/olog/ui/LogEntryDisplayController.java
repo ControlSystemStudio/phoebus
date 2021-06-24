@@ -26,7 +26,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToolBar;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.StackPane;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogbookException;
@@ -118,17 +117,18 @@ public class LogEntryDisplayController {
         }).show();
     }
 
-    public void setLogEntry(LogEntry logEntry) {
-        this.logEntry = logEntry;
+    public void setLogEntryGroup(LogEntryGroup logEntryGroup){
+        this.logEntry = logEntryGroup.getSelectedLogEntry();
         logEntryNullProperty.set(false);
-        boolean hasLinkedEntries = logEntry.getProperties()
-                .stream().anyMatch(p -> p.getName().equals(LogGroupProperty.NAME));
-        showHideLogEntryGroupButton.setDisable(!hasLinkedEntries);
+        // When a new log entry is selected, pull back from the merged view
+        showLogGroup.set(false);
+        boolean hasRelatedEntries = logEntryGroup.getGroupedLogEntries() != null &&
+                logEntryGroup.getGroupedLogEntries().size() > 1;
+        showHideLogEntryGroupButton.setDisable(!hasRelatedEntries);
         singleLogEntryDisplayController.setLogEntry(logEntry);
-        if(hasLinkedEntries){
-            mergedLogEntryDisplay2Controller.setLogEntry(this.logEntry);
+        if(hasRelatedEntries){
+            mergedLogEntryDisplay2Controller.setLogEntries(logEntryGroup.getGroupedLogEntries());
         }
-        //showLogGroup.set(false);
     }
 
     public LogEntry getLogEntry() {

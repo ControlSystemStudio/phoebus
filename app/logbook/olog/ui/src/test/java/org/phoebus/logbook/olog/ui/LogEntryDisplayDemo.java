@@ -103,7 +103,7 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
                     "Fast correctors for the vertical orbit have glitched to near saturation. Archiver shows there have been several episodes the past 24 hrs. Appears that FOFB in vertical plane might have momentary bad BPM reading.")
                     .createdDate(Instant.now()).build();
             runLater(() -> {
-                controller.setLogEntry(log);
+                controller.setLogEntryGroup(new LogEntryGroup(log));
             });
         }, 2, TimeUnit.SECONDS);
 
@@ -116,11 +116,11 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
             logbooks.add(LogbookImpl.of("logbook2", "active"));
 
             runLater(() -> {
-                controller.setLogEntry(
+                controller.setLogEntryGroup(new LogEntryGroup(
                         LogEntryBuilder.log(controller.getLogEntry())
                                 .inLogbooks(logbooks)
                                 .id(2L)
-                                .withTags(tags).build());
+                                .withTags(tags).build()));
             });
 
         }, 2, TimeUnit.SECONDS);
@@ -172,7 +172,7 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
                         e.printStackTrace();
                     }
                 });
-                controller.setLogEntry(lb.build());
+                controller.setLogEntryGroup(new LogEntryGroup(lb.build()));
             });
 
         }, 2, TimeUnit.SECONDS);

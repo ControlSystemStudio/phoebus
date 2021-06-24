@@ -64,9 +64,6 @@ public class MergedLogEntryDisplayController2 {
     @FXML
     public void initialize() {
         listView.setCellFactory(c -> new LogEntryCell());
-        //listView.setId("log-entry-list");
-        //listView.getStylesheets().add(MergedLogEntryDisplayController2.class.getResource("/log_entry_group_list.css").toExternalForm());
-
     }
 
     /**
@@ -85,12 +82,15 @@ public class MergedLogEntryDisplayController2 {
             Map<String, String> mMap = new HashMap<>();
             mMap.put("properties", LogGroupProperty.NAME + ".id." + id);
             logEntries.setAll(logClient.findLogs(mMap));
-            List<LogEntry> d = listView.itemsProperty().get();
             listView.itemsProperty().set(logEntries);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Unable to locate log entry items using log entry group id " + id, e);
         }
+    }
 
+    public void setLogEntries(List<LogEntry> entries){
+        logEntries.setAll(entries);
+        listView.itemsProperty().set(logEntries);
     }
 
     private class LogEntryCell extends ListCell<LogEntry> {

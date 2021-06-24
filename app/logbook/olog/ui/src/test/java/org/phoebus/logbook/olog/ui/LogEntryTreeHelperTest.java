@@ -70,4 +70,30 @@ public class LogEntryTreeHelperTest {
         assertEquals(Long.valueOf(4L),
                 Long.valueOf(treeItemList.get(0).getChildren().get(1).getValue().getId()));
     }
+
+    @Test
+    public void testGetGroupedLogEntries(){
+        TreeItem<LogEntry> root = new TreeItem<>(new OlogLog());
+
+        TreeItem t1 = new TreeItem<>(new OlogLog());
+        TreeItem t2 = new TreeItem<>(new OlogLog());
+        TreeItem t3 = new TreeItem<>(new OlogLog());
+        TreeItem t4 = new TreeItem<>(new OlogLog());
+
+        t2.getChildren().addAll(t3, t4);
+
+        root.getChildren().addAll(t1, t2);
+
+        List<LogEntry> logEntries = LogEntryTreeHelper.getGroupedLogEntries(t2);
+        assertEquals(3, logEntries.size());
+
+        logEntries = LogEntryTreeHelper.getGroupedLogEntries(t3);
+        assertEquals(3, logEntries.size());
+
+        logEntries = LogEntryTreeHelper.getGroupedLogEntries(t4);
+        assertEquals(3, logEntries.size());
+
+        logEntries = LogEntryTreeHelper.getGroupedLogEntries(t1);
+        assertEquals(1, logEntries.size());
+    }
 }
