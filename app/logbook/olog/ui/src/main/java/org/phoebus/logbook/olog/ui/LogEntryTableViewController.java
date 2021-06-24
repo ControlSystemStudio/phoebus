@@ -9,25 +9,24 @@ import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.util.Duration;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
 import org.phoebus.logbook.olog.ui.LogbookQueryUtil.Keys;
-import org.phoebus.olog.es.api.model.OlogLog;
 
 import java.io.IOException;
 import java.util.List;
@@ -67,7 +66,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
     List<LogEntry> logEntries;
 
     // TreeTable root item
-    TreeItem<LogEntry> rootItem = new TreeItem<>(new OlogLog());
+    TreeItem<LogEntry> rootItem =
+            new TreeItem<>(LogEntryBuilder.log().id(-1L).description("Dummy root item").build());
 
     // Search parameters
     ObservableMap<Keys, String> searchParameters;
@@ -113,7 +113,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
             }
         });
 
-        treeView.setCellFactory(tv -> new LogEntryTreeCell(tv));
+        treeView.setCellFactory(tv -> new LogEntryTreeCell());
         treeView.getStylesheets().add(this.getClass().getResource("/tree_view.css").toExternalForm());
 
         // Bind ENTER key press to search
@@ -176,11 +176,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
         super.search(LogbookQueryUtil.parseQueryString(query.getText()));
     }
 
-    @FXML
-    public void setSelection() {
-
-    }
-
     @Override
     public void setLogs(List<LogEntry> logs) {
         this.logEntries = logs;
@@ -199,12 +194,11 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     private void refresh() {
         if (logEntries != null) {
-            rootItem.getChildren().setAll(logEntries.stream().map(logEntry -> new TreeItem<>(logEntry)).collect(Collectors.toSet()));
-            rootItem.getChildren().sort((o1, o2) -> o2.getValue().getCreatedDate().compareTo(o1.getValue().getCreatedDate()));
+            rootItem.getChildren().setAll(LogEntryTreeHelper.createTree(logEntries));
         }
     }
 
-    private ObservableList<TreeItem<LogEntry>> getTreeStructure(){
+    private ObservableList<TreeItem<LogEntry>> getTreeStructure() {
 
         return null;
     }
@@ -213,8 +207,12 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
         private Node graphic;
         private LogEntryCellController controller;
+        private final PseudoClass childlessTopLevel =
+                PseudoClass.getPseudoClass("childless-top-level");
+        private final PseudoClass child =
+                PseudoClass.getPseudoClass("child");
 
-        public LogEntryTreeCell(TreeView<LogEntry> treeView) {
+        public LogEntryTreeCell() {
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("LogEntryCell.fxml"));
                 graphic = loader.load();
@@ -229,10 +227,16 @@ public class LogEntryTableViewController extends LogbookSearchController {
             super.updateItem(logEntry, empty);
             if (empty) {
                 setGraphic(null);
+                return;
             } else {
                 controller.setLogEntry(logEntry);
                 setGraphic(graphic);
             }
+            boolean b1 = getTreeItem().getParent().getValue().getId() == -1L;
+            boolean b2 = getTreeItem().getChildren().size() == 0;
+            pseudoClassStateChanged(childlessTopLevel, b1 && b2);
+            pseudoClassStateChanged(child, !b1);
         }
     }
+
 }

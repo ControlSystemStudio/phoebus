@@ -1,41 +1,24 @@
 package org.phoebus.logbook.olog.ui;
 
-import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
-import javafx.stage.DirectoryChooser;
-import org.commonmark.Extension;
-import org.commonmark.ext.gfm.tables.TablesExtension;
-import org.commonmark.ext.image.attributes.ImageAttributesExtension;
-import org.commonmark.parser.Parser;
-import org.commonmark.renderer.html.HtmlRenderer;
-import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.logbook.Attachment;
-import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.Tag;
-import org.phoebus.olog.es.api.model.LogGroupProperty;
-import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
-import java.io.File;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
@@ -43,14 +26,10 @@ import java.util.stream.Collectors;
 
 import static org.phoebus.util.time.TimestampFormats.SECONDS_FORMAT;
 
-public class SingleLogEntryDisplayController {
+public class SingleLogEntryDisplayController extends HtmlAwareController {
 
     static final Image tag = ImageCache.getImage(SingleLogEntryDisplayController.class, "/icons/add_tag.png");
     static final Image logbook = ImageCache.getImage(SingleLogEntryDisplayController.class, "/icons/logbook-16.png");
-    private final LogClient logClient;
-
-    private HtmlRenderer htmlRenderer;
-    private Parser parser;
 
     @FXML
     Label logTime;
@@ -84,35 +63,18 @@ public class SingleLogEntryDisplayController {
     private Label logEntryId;
     @FXML
     private Label level;
-    @FXML
-    private Node attachmentsAndPropertiesPane;
 
     @FXML
     private Button copyURLButton;
 
 
-    private Logger logger = Logger.getLogger(SingleLogEntryDisplayController.class.getName());
-
-    /**
-     * List of log entries identified by the log group property, see {@link LogGroupProperty}.
-     * May initially be empty.
-     */
-    private List<LogEntry> logEntries;
+    private final Logger logger =
+            Logger.getLogger(SingleLogEntryDisplayController.class.getName());
 
     private LogEntry logEntry;
 
-    /**
-     * List of attachments selected in the preview's {@link ListView}.
-     */
-
-    //private ObservableList<Attachment> selectedAttachments = FXCollections.observableArrayList();
-
-    public SingleLogEntryDisplayController() {
-        this.logClient = null;
-    }
-
-    public SingleLogEntryDisplayController(LogClient logClient) {
-        this.logClient = logClient;
+    public SingleLogEntryDisplayController(String serviceUrl) {
+        super(serviceUrl);
     }
 
 
@@ -121,12 +83,6 @@ public class SingleLogEntryDisplayController {
 
         logbookIcon.setImage(logbook);
         tagIcon.setImage(tag);
-
-        List<Extension> extensions = Arrays.asList(TablesExtension.create(), ImageAttributesExtension.create());
-        parser = Parser.builder().extensions(extensions).build();
-        htmlRenderer = HtmlRenderer.builder()
-                .attributeProviderFactory(context -> new OlogAttributeProvider(logClient.getServiceUrl()))
-                .extensions(extensions).build();
 
         copyURLButton.visibleProperty().setValue(LogbookUIPreferences.web_client_root_URL != null
                 && !LogbookUIPreferences.web_client_root_URL.isEmpty());
@@ -137,7 +93,7 @@ public class SingleLogEntryDisplayController {
 
         attachmentsPane.setExpanded(logEntry.getAttachments() != null && !logEntry.getAttachments().isEmpty());
         attachmentsPane.setVisible(logEntry.getAttachments() != null && !logEntry.getAttachments().isEmpty());
-        if(!logEntry.getAttachments().isEmpty()){
+        if (!logEntry.getAttachments().isEmpty()) {
             attachmentsPreviewController
                     .setAttachments(FXCollections.observableArrayList(logEntry.getAttachments()));
         }
@@ -191,20 +147,6 @@ public class SingleLogEntryDisplayController {
         logEntryId.setText(Long.toString(logEntry.getId()));
         level.setText(logEntry.getLevel());
     }
-
-    /**
-     * Converts Commonmark content to HTML.
-     *
-     * @param commonmarkString Raw Commonmark string
-     * @return The HTML output of the Commonmark processor.
-     */
-    private String toHtml(String commonmarkString) {
-        org.commonmark.node.Node document = parser.parse(commonmarkString);
-        String html = htmlRenderer.render(document);
-        // Wrap the content in a named div so that a suitable height may be determined.
-        return "<div id='olog'>\n" + html + "</div>";
-    }
-
 
     /**
      * Copies the URL of the log entry. The URL can be used to direct non-Phoebus clients to

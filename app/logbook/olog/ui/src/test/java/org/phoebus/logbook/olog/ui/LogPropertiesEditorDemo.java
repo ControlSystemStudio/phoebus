@@ -46,7 +46,7 @@ public class LogPropertiesEditorDemo extends ApplicationWrapper {
         loader.setControllerFactory(clazz -> {
             try{
                 if(clazz.isAssignableFrom(LogPropertiesEditorController.class)) {
-                    return clazz.getConstructor(LogClient.class, List.class).newInstance(getDummyLogClient(), Arrays.asList(track));
+                    return clazz.getConstructor(Collection.class).newInstance(Arrays.asList(track));
                 }
             } catch (Exception e) {
                 Logger.getLogger(LogEntryEditorStage.class.getName()).log(Level.SEVERE, "Failed to construct controller for log editor UI", e);

@@ -109,7 +109,7 @@ public class MergedLogEntryDisplayController2 {
                 loader.setControllerFactory(clazz -> {
                     try {
                         if(clazz.isAssignableFrom(LogEntryGroupCellController.class)) {
-                            return clazz.getConstructor(LogClient.class).newInstance(logClient);
+                            return clazz.getConstructor(String.class).newInstance(logClient.getServiceUrl());
                         }
                         else if(clazz.isAssignableFrom(AttachmentsPreviewController.class)) {
                             return clazz.getConstructor().newInstance();

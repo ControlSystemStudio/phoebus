@@ -53,7 +53,7 @@ public class LogPropertiesEditorController {
      * List of hidden properties, e.g. properties that are added automatically to the log record,
      * but that should/must not be rendered in the properties view.
      */
-    private List<Property> hiddenProperties = new ArrayList<>();
+    private List<Property> hiddenProperties;
 
     @FXML
     TreeTableView<PropertyTreeNode> selectedPropertiesTree;
@@ -73,14 +73,14 @@ public class LogPropertiesEditorController {
 
     /**
      *
-     * @param logEntry A {@link LogEntry} object serving as template.
+     * @param properties A collection of {@link Property}s.
      */
-    public LogPropertiesEditorController(LogEntry logEntry){
+    public LogPropertiesEditorController(Collection<Property> properties){
         // Log entry may already contain properties, so need to handle them accordingly.
         this.hiddenProperties =
-                logEntry.getProperties().stream().filter(p -> hiddenPropertiesNames.contains(p.getName())).collect(Collectors.toList());
+                properties.stream().filter(p -> hiddenPropertiesNames.contains(p.getName())).collect(Collectors.toList());
         this.selectedProperties.addAll(
-                logEntry.getProperties().stream().filter(p -> !hiddenPropertiesNames.contains(p.getName())).collect(Collectors.toList()));
+                properties.stream().filter(p -> !hiddenPropertiesNames.contains(p.getName())).collect(Collectors.toList()));
     }
 
     @FXML

@@ -107,7 +107,7 @@ public class LogEntryCellController {
                 description.setText(null);
             }
 
-            logEntryId.setText(Long.toString(logEntry.getId()));
+            logEntryId.setText(logEntry.getId() != null ? logEntry.getId().toString() : "");
             level.setText(logEntry.getLevel());
         }
     }

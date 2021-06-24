@@ -28,15 +28,12 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -44,9 +41,6 @@ import netscape.javascript.JSException;
 import org.commonmark.Extension;
 import org.commonmark.ext.gfm.tables.TablesExtension;
 import org.commonmark.ext.image.attributes.ImageAttributesExtension;
-import org.commonmark.parser.Parser;
-import org.commonmark.renderer.html.HtmlRenderer;
-import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Property;
@@ -62,13 +56,10 @@ import java.util.stream.Collectors;
 
 import static org.phoebus.util.time.TimestampFormats.SECONDS_FORMAT;
 
-public class LogEntryGroupCellController {
+public class LogEntryGroupCellController extends HtmlAwareController {
 
     static final Image tag = ImageCache.getImage(SingleLogEntryDisplayController.class, "/icons/add_tag.png");
     static final Image logbook = ImageCache.getImage(SingleLogEntryDisplayController.class, "/icons/logbook-16.png");
-
-    private HtmlRenderer htmlRenderer;
-    private Parser parser;
 
     @FXML
     private VBox root;
@@ -107,18 +98,17 @@ public class LogEntryGroupCellController {
     @FXML
     private LogEntryHeaderController logEntryHeaderController;
 
-    private LogClient logClient;
     private LogEntry logEntry;
     private WebEngine webEngine;
 
     private Logger logger = Logger.getLogger(LogEntryGroupCellController.class.getName());
 
-    public LogEntryGroupCellController(LogClient logClient){
-        this.logClient = logClient;
+    public LogEntryGroupCellController(String serviceUrl) {
+        super(serviceUrl);
     }
 
     @FXML
-    public void initialize(){
+    public void initialize() {
         logbookIcon.setImage(logbook);
         tagIcon.setImage(tag);
         copyURLButton.visibleProperty().setValue(LogbookUIPreferences.web_client_root_URL != null
@@ -143,10 +133,6 @@ public class LogEntryGroupCellController {
         }
 
         List<Extension> extensions = Arrays.asList(TablesExtension.create(), ImageAttributesExtension.create());
-        parser = Parser.builder().extensions(extensions).build();
-        htmlRenderer = HtmlRenderer.builder()
-                .attributeProviderFactory(context -> new OlogAttributeProvider(logClient.getServiceUrl()))
-                .extensions(extensions).build();
 
         // Content is defined by the source (default) or description field. If both are null
         // or empty, do no load any content to the WebView.
@@ -178,14 +164,13 @@ public class LogEntryGroupCellController {
     public void setLogEntry(LogEntry logEntry) {
         this.logEntry = logEntry;
 
-        if(logEntry.getAttachments() == null || logEntry.getAttachments().isEmpty()){
+        if (logEntry.getAttachments() == null || logEntry.getAttachments().isEmpty()) {
             attachmentsPane.setVisible(false);
             attachmentsPane.setManaged(false);
-        }
-        else{
+        } else {
             attachmentsPane.setExpanded(logEntry.getAttachments() != null && !logEntry.getAttachments().isEmpty());
             attachmentsPane.setVisible(logEntry.getAttachments() != null && !logEntry.getAttachments().isEmpty());
-            if(!logEntry.getAttachments().isEmpty()){
+            if (!logEntry.getAttachments().isEmpty()) {
                 attachmentsPreviewController
                         .setAttachments(FXCollections.observableArrayList(logEntry.getAttachments()));
             }
@@ -197,11 +182,10 @@ public class LogEntryGroupCellController {
         // Remove the hidden properties
         List<Property> propertiesToShow =
                 logEntry.getProperties().stream().filter(property -> !hiddenPropertiesNames.contains(property.getName())).collect(Collectors.toList());
-        if(propertiesToShow.isEmpty()){
+        if (propertiesToShow.isEmpty()) {
             propertiesPane.setVisible(false);
             propertiesPane.setManaged(false);
-        }
-        else{
+        } else {
             propertiesPane.setExpanded(!propertiesToShow.isEmpty());
             propertiesPane.setVisible(!propertiesToShow.isEmpty());
             if (!propertiesToShow.isEmpty()) {
@@ -248,40 +232,19 @@ public class LogEntryGroupCellController {
         logEntryHeaderController.setLogEntry(logEntry);
     }
 
-    public void expandHeader(boolean expand){
-        headerPane.setExpanded(expand);
-    }
-
-    /**
-     * Converts Commonmark content to HTML.
-     *
-     * @param commonmarkString Raw Commonmark string
-     * @return The HTML output of the Commonmark processor.
-     */
-    private String toHtml(String commonmarkString) {
-
-        org.commonmark.node.Node document = parser.parse(commonmarkString);
-        String html = htmlRenderer.render(document);
-        // Wrap the content in a named div so that a suitable height may be determined.
-        return "<div id='olog'>\n" + html + "</div>";
-    }
-
     private void adjustHeight() {
-        Platform.runLater(new Runnable(){
-            @Override
-            public void run() {
-                try {
-                    Object result = webEngine.executeScript(
-                            "document.getElementById('olog').offsetHeight");
-                    if(result instanceof Integer) {
-                        Integer i = (Integer) result;
-                        double height = Double.valueOf(i);
-                        height = height + 40;
-                        webView.setPrefHeight(height);
-                    }
-                } catch (JSException e) {
-                    logger.log(Level.SEVERE, "Unable to set height of WebView", e);
+        Platform.runLater(() -> {
+            try {
+                Object result = webEngine.executeScript(
+                        "document.getElementById('olog').offsetHeight");
+                if (result instanceof Integer) {
+                    Integer i = (Integer) result;
+                    double height = Double.valueOf(i);
+                    height = height + 40;
+                    webView.setPrefHeight(height);
                 }
+            } catch (JSException e) {
+                logger.log(Level.SEVERE, "Unable to set height of WebView", e);
             }
         });
     }

@@ -36,6 +36,7 @@ import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
 import org.phoebus.util.time.TimestampFormats;
 
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
@@ -123,7 +124,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                     loader.setControllerFactory(clazz -> {
                         try {
                             if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {
-                                return clazz.getConstructor(LogClient.class).newInstance(getClient());
+                                return clazz.getConstructor(String.class).newInstance(getClient().getServiceUrl());
                             }
                             else if(clazz.isAssignableFrom(AttachmentsPreviewController.class)){
                                 return clazz.getConstructor().newInstance();
@@ -156,7 +157,11 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
 
         try {
             String styleSheetResource = LogbookUIPreferences.calendar_view_item_stylesheet;
-            agenda.getStylesheets().add(this.getClass().getResource(styleSheetResource).toString());
+            URL url = this.getClass().getResource(styleSheetResource);
+            // url may be null...
+            if(url != null){
+                agenda.getStylesheets().add(this.getClass().getResource(styleSheetResource).toString());
+            }
         } catch (Exception e) {
             logger.log(Level.WARNING, "Failed to set css style", e);
         }

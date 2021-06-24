@@ -30,6 +30,7 @@ import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.olog.ui.AttachmentsPreviewController;
 import org.phoebus.logbook.olog.ui.Messages;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -79,7 +80,7 @@ public class LogEntryEditorStage extends Stage
                     return clazz.getConstructor().newInstance();
                 }
                 else if(clazz.isAssignableFrom(LogPropertiesEditorController.class)) {
-                    return clazz.getConstructor(LogEntry.class).newInstance(logEntry);
+                    return clazz.getConstructor(Collection.class).newInstance(logEntry.getProperties());
                 }
             } catch (Exception e) {
                 Logger.getLogger(LogEntryEditorStage.class.getName()).log(Level.SEVERE, "Failed to construct controller for log editor UI", e);
