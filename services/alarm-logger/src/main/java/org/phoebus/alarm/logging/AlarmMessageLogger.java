@@ -98,8 +98,8 @@ public class AlarmMessageLogger implements Runnable {
         });
 
         alarms = alarms.map((key, value) -> {
-            logger.config("Processing alarm message with key : " + key != null ? key
-                    : "null" + " " + value != null ? value.toString() : "null");
+//            logger.config("Processing alarm message with key : " + key != null ? key
+//                    : "null" + " " + value != null ? value.toString() : "null");
             value.setKey(key);
             return new KeyValue<String, AlarmMessage>(key, value);
         });
@@ -180,8 +180,7 @@ public class AlarmMessageLogger implements Runnable {
 
         // Commit to elastic
         filteredAlarms.foreach((k, v) -> {
-            String topic_name = stateIndexNameHelper.getIndexName(v.getMessage_time());
-            ElasticClientHelper.getInstance().indexAlarmStateDocument(topic_name, v);
+            ElasticClientHelper.getInstance().indexAlarmStateDocuments(stateIndexNameHelper.getIndexName(v.getMessage_time()), v);
         });
 
     }
@@ -223,8 +222,7 @@ public class AlarmMessageLogger implements Runnable {
 
         // Commit to elastic
         alarmConfigMessages.foreach((k, v) -> {
-            String topic_name = configIndexNameHelper.getIndexName(v.getMessage_time());
-            ElasticClientHelper.getInstance().indexAlarmConfigDocument(topic_name, v);
+            ElasticClientHelper.getInstance().indexAlarmConfigDocuments(configIndexNameHelper.getIndexName(v.getMessage_time()), v);
         });
     }
 

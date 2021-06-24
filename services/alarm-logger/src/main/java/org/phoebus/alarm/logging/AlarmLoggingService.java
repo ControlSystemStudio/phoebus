@@ -27,7 +27,7 @@ import org.springframework.context.annotation.PropertySource;
 public class AlarmLoggingService {
 
     /** Alarm system logger */
-    public static final Logger logger = Logger.getLogger(AlarmLoggingService.class.getPackageName());
+    public static final Logger logger = Logger.getLogger(AlarmLoggingService.class.getName());
     private static ExecutorService Scheduler;
 
     private static ConfigurableApplicationContext context;
