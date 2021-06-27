@@ -118,7 +118,7 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
         // or empty, do no load any content to the WebView.
         WebEngine webEngine = logDescription.getEngine();
         webEngine.setUserStyleSheetLocation(getClass()
-                .getResource("/detail-log-webview.css").toExternalForm());
+                .getResource("/detail_log_webview.css").toExternalForm());
 
 
         if (logEntry.getSource() != null) {

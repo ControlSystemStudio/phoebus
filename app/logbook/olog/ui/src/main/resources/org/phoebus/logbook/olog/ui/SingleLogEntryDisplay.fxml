@@ -7,7 +7,7 @@
 <?import javafx.scene.text.*?>
 <?import javafx.scene.web.*?>
 
-<SplitPane dividerPositions="0.6" orientation="VERTICAL" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.SingleLogEntryDisplayController">
+<SplitPane dividerPositions="0.75" orientation="VERTICAL" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.SingleLogEntryDisplayController">
     <items>
         <VBox maxHeight="1.7976931348623157E308">
             <children>
@@ -115,12 +115,12 @@
                     <panes>
                         <TitledPane fx:id="attachmentsPane" animated="false" text="Attachments">
                             <content>
-                                <fx:include fx:id="attachmentsPreview" source="AttachmentsPreview.fxml"/>
+                                <fx:include fx:id="attachmentsPreview" source="AttachmentsPreview.fxml" />
                             </content>
                         </TitledPane>
                         <TitledPane fx:id="propertiesPane" animated="false" text="Properties">
                             <content>
-                                <fx:include fx:id="properties" source="LogProperties.fxml"/>
+                                <fx:include fx:id="properties" source="LogProperties.fxml" />
                             </content>
                         </TitledPane>
                     </panes>

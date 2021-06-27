@@ -29,7 +29,7 @@ public class LogbookUIPreferences
     @Preference public static String level_field_name;
     @Preference public static String markup_help;
     @Preference public static String web_client_root_URL;
-    @Preference public static boolean show_log_entry_display_toolbar;
+    @Preference public static boolean log_entry_groups_support;
     @Preference public static String[] hidden_properties;
 
     static

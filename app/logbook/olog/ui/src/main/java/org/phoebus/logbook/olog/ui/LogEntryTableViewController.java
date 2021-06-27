@@ -108,10 +108,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
             public void changed(ObservableValue<? extends TreeItem<LogEntry>> observable, TreeItem<LogEntry> oldValue, TreeItem<LogEntry> newValue) {
                 // newValue may be null after search and refresh of the tree
                 if (newValue != null) {
-                    List<LogEntry> logEntries =
-                            LogEntryTreeHelper.getGroupedLogEntries(newValue);
-                    LogEntryGroup logEntryGroup = new LogEntryGroup(newValue.getValue(), logEntries);
-                    logEntryDisplayController.setLogEntryGroup(logEntryGroup);
+                    logEntryDisplayController.setLogEntry(newValue.getValue());
                 }
             }
         });
@@ -197,7 +194,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     private void refresh() {
         if (logEntries != null) {
-            rootItem.getChildren().setAll(LogEntryTreeHelper.createTree(logEntries));
+            ObservableList<TreeItem<LogEntry>> tree =
+                    LogEntryTreeHelper.createTree(logEntries);
+            rootItem.getChildren().setAll(tree);
+            treeView.getSelectionModel().selectFirst();
         }
     }
 

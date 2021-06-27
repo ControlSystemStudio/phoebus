@@ -63,8 +63,6 @@ public class LogEntrySearchDemo extends ApplicationWrapper {
                     return clazz.getConstructor(LogClient.class).newInstance(getLogClient());
                 } else if (clazz.isAssignableFrom(MergedLogEntryDisplayController.class)) {
                     return clazz.getConstructor(LogClient.class).newInstance(getLogClient());
-                } else if (clazz.isAssignableFrom(MergedLogEntryDisplayController2.class)) {
-                    return clazz.getConstructor(LogClient.class).newInstance(getLogClient());
                 } else if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {
                     return clazz.getConstructor(String.class).newInstance(getLogClient().getServiceUrl());
                 } else {

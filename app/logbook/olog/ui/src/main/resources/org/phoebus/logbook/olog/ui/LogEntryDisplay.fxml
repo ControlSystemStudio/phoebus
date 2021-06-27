@@ -42,7 +42,7 @@
                 </center>
             </BorderPane>
             <fx:include fx:id="singleLogEntryDisplay" source="SingleLogEntryDisplay.fxml" visible="false"/>
-            <fx:include fx:id="mergedLogEntryDisplay2" source="MergedLogEntryDisplay2.fxml" visible="false"/>
+            <fx:include fx:id="mergedLogEntryDisplay" source="MergedLogEntryDisplay.fxml" visible="false"/>
         </StackPane>
     </center>
 </BorderPane>

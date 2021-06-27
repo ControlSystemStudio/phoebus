@@ -17,3 +17,7 @@
 .tree-cell:selected {
     -fx-background-color: #0098ce;
 }
+
+.tree-cell:empty {
+    -fx-background-color: white;
+}

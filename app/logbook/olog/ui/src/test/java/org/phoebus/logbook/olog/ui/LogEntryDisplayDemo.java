@@ -77,8 +77,6 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
                     return clazz.getConstructor(LogClient.class).newInstance(getLogClient());
                 } else if (clazz.isAssignableFrom(MergedLogEntryDisplayController.class)) {
                     return clazz.getConstructor(LogClient.class).newInstance(getLogClient());
-                } else if (clazz.isAssignableFrom(MergedLogEntryDisplayController2.class)) {
-                    return clazz.getConstructor(LogClient.class).newInstance(getLogClient());
                 } else if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {
                     return clazz.getConstructor(String.class).newInstance(getLogClient().getServiceUrl());
                 } else {
@@ -103,7 +101,7 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
                     "Fast correctors for the vertical orbit have glitched to near saturation. Archiver shows there have been several episodes the past 24 hrs. Appears that FOFB in vertical plane might have momentary bad BPM reading.")
                     .createdDate(Instant.now()).build();
             runLater(() -> {
-                controller.setLogEntryGroup(new LogEntryGroup(log));
+                controller.setLogEntry(log);
             });
         }, 2, TimeUnit.SECONDS);
 
@@ -116,11 +114,11 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
             logbooks.add(LogbookImpl.of("logbook2", "active"));
 
             runLater(() -> {
-                controller.setLogEntryGroup(new LogEntryGroup(
+                controller.setLogEntry(
                         LogEntryBuilder.log(controller.getLogEntry())
                                 .inLogbooks(logbooks)
                                 .id(2L)
-                                .withTags(tags).build()));
+                                .withTags(tags).build());
             });
 
         }, 2, TimeUnit.SECONDS);
@@ -172,7 +170,7 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
                         e.printStackTrace();
                     }
                 });
-                controller.setLogEntryGroup(new LogEntryGroup(lb.build()));
+                controller.setLogEntry(lb.build());
             });
 
         }, 2, TimeUnit.SECONDS);

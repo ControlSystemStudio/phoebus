@@ -62,12 +62,14 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
         // or empty, do no load any content to the WebView.
         WebEngine webEngine = logDescription.getEngine();
         webEngine.setUserStyleSheetLocation(getClass()
-                .getResource("/detail-log-webview.css").toExternalForm());
+                .getResource("/detail_log_webview.css").toExternalForm());
     }
 
     /**
      * Set the selected entry containing the log group property to be used for finding
-     * other entries in the group.
+     * other entries in the group. Note that this will query the service
+     * such that all log records in the group are retrieved, irrespective of how
+     * the specified log record was obtained.
      *
      * @param logEntry The log entry selected by user in the table/list view.
      */
@@ -92,7 +94,7 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
         });
         WebEngine webEngine = logDescription.getEngine();
         webEngine.setUserStyleSheetLocation(getClass()
-                .getResource("/detail-log-webview.css").toExternalForm());
+                .getResource("/detail_log_webview.css").toExternalForm());
         webEngine.loadContent(stringBuilder.toString());
 
         if (attachments.isEmpty()) {
@@ -114,6 +116,7 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
         stringBuilder.append(SECONDS_FORMAT.format(logEntry.getCreatedDate())).append(", ");
         stringBuilder.append(logEntry.getOwner()).append(", ");
         stringBuilder.append(logEntry.getTitle());
+        stringBuilder.append("<div style='float: right;'>").append(logEntry.getId()).append("</div>");
         stringBuilder.append("</div>");
         return stringBuilder.toString();
     }

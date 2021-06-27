@@ -20,6 +20,7 @@ package org.phoebus.logbook.olog.ui;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -43,7 +44,7 @@ public class LogEntryDisplayController {
     @FXML
     private SingleLogEntryDisplayController singleLogEntryDisplayController;
     @FXML
-    private MergedLogEntryDisplayController2 mergedLogEntryDisplay2Controller;
+    private MergedLogEntryDisplayController mergedLogEntryDisplayController;
     @FXML
     private ToggleButton showHideLogEntryGroupButton;
     @FXML
@@ -55,14 +56,13 @@ public class LogEntryDisplayController {
     @FXML
     private Node singleLogEntryDisplay;
     @FXML
-    private Node mergedLogEntryDisplay2;
+    private Node mergedLogEntryDisplay;
 
     private LogClient logClient;
 
     private SimpleBooleanProperty showLogGroup = new SimpleBooleanProperty(false);
-    private SimpleBooleanProperty logEntryNullProperty = new SimpleBooleanProperty(true);
-
-    private LogEntry logEntry = null;
+    private SimpleObjectProperty<LogEntry> logEntryProperty =
+            new SimpleObjectProperty<>();
 
     private Logger logger = Logger.getLogger(LogEntryDisplayController.class.getName());
 
@@ -72,21 +72,24 @@ public class LogEntryDisplayController {
 
     @FXML
     public void initialize() {
-        emptyPane.visibleProperty().bind(logEntryNullProperty);
-        replyButton.disableProperty().bind(logEntryNullProperty);
+        emptyPane.visibleProperty()
+                .bind(Bindings.createBooleanBinding(() -> logEntryProperty.get() == null, logEntryProperty));
+        replyButton.disableProperty()
+                .bind(Bindings.createBooleanBinding(() -> logEntryProperty.get() == null, logEntryProperty));
         singleLogEntryDisplay.visibleProperty().bind(Bindings
-                .createBooleanBinding(() -> !showLogGroup.get() && !logEntryNullProperty.get(),
-                        showLogGroup, logEntryNullProperty));
-        mergedLogEntryDisplay2.visibleProperty().bind(Bindings
-                .createBooleanBinding(() -> showLogGroup.get() && !logEntryNullProperty.get(),
-                        showLogGroup, logEntryNullProperty));
+                .createBooleanBinding(() -> !showLogGroup.get() && logEntryProperty.get() != null,
+                        showLogGroup, logEntryProperty));
+        mergedLogEntryDisplay.visibleProperty().bind(Bindings
+                .createBooleanBinding(() -> showLogGroup.get() && logEntryProperty.get() != null,
+                        showLogGroup, logEntryProperty));
         showHideLogEntryGroupButton.selectedProperty().bindBidirectional(showLogGroup);
-        toolBar.setVisible(LogbookUIPreferences.show_log_entry_display_toolbar);
-        toolBar.setManaged(LogbookUIPreferences.show_log_entry_display_toolbar);
+        toolBar.setVisible(LogbookUIPreferences.log_entry_groups_support);
+        toolBar.setManaged(LogbookUIPreferences.log_entry_groups_support);
     }
 
     @FXML
     public void reply() {
+        LogEntry logEntry = logEntryProperty.get();
         Property logGroupProperty = logEntry.getProperty(LogGroupProperty.NAME);
         if (logGroupProperty == null) {
             logGroupProperty = LogGroupProperty.create();
@@ -117,21 +120,22 @@ public class LogEntryDisplayController {
         }).show();
     }
 
-    public void setLogEntryGroup(LogEntryGroup logEntryGroup){
-        this.logEntry = logEntryGroup.getSelectedLogEntry();
-        logEntryNullProperty.set(false);
-        // When a new log entry is selected, pull back from the merged view
-        showLogGroup.set(false);
-        boolean hasRelatedEntries = logEntryGroup.getGroupedLogEntries() != null &&
-                logEntryGroup.getGroupedLogEntries().size() > 1;
-        showHideLogEntryGroupButton.setDisable(!hasRelatedEntries);
+    public void setLogEntry(LogEntry logEntry) {
+        logEntryProperty.set(logEntry);
         singleLogEntryDisplayController.setLogEntry(logEntry);
-        if(hasRelatedEntries){
-            mergedLogEntryDisplay2Controller.setLogEntries(logEntryGroup.getGroupedLogEntries());
+        if(LogbookUIPreferences.log_entry_groups_support){
+            boolean hasLinkedEntries = logEntry.getProperties()
+                    .stream().anyMatch(p -> p.getName().equals(LogGroupProperty.NAME));
+            showHideLogEntryGroupButton.setDisable(!hasLinkedEntries);
+            if(hasLinkedEntries){
+                mergedLogEntryDisplayController.setLogEntry(logEntry);
+            }
+            // When a new log entry is selected, show the single record view
+            showLogGroup.set(false);
         }
     }
 
     public LogEntry getLogEntry() {
-        return logEntry;
+        return logEntryProperty.get();
     }
 }

@@ -136,9 +136,6 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                             else if(clazz.isAssignableFrom(LogPropertiesController.class)){
                                 return clazz.getConstructor().newInstance();
                             }
-                            else if(clazz.isAssignableFrom(MergedLogEntryDisplayController2.class)){
-                                return clazz.getConstructor(LogClient.class).newInstance(getClient());
-                            }
                         } catch (Exception e) {
                             logger.log(Level.SEVERE, "Failed to construct controller for log entry display", e);
                         }
@@ -146,7 +143,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                     });
                     loader.load();
                     LogEntryDisplayController controller = loader.getController();
-                    controller.setLogEntryGroup(new LogEntryGroup(map.get(appointment)));
+                    controller.setLogEntry(map.get(appointment));
                     Scene dialogScene = new Scene(loader.getRoot(), 800, 600);
                     dialog.setScene(dialogScene);
                     dialog.show();

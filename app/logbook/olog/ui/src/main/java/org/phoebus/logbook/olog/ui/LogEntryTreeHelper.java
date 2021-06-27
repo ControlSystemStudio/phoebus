@@ -100,33 +100,4 @@ public class LogEntryTreeHelper {
         parent.expandedProperty().set(true);
         return parent;
     }
-
-    /**
-     * Inspects the specified {@link TreeItem}. If it has child items or
-     * is itself a child item, then it's value (a {@link LogEntry} belongs to
-     * a log entry group as defined by the special purpose property {@link LogGroupProperty}.
-     * In this case a list of all the {@link LogEntry}s associated with all
-     * child items and the parent item is returned. Otherwise the {@link LogEntry}
-     * associated with the specified {@link TreeItem} is returned as the single
-     * element of a {@link List}.
-     *
-     * @param logEntryTreeItem
-     * @return A list of {@link LogEntry}s with at least one element.
-     */
-    public static List<LogEntry> getGroupedLogEntries(TreeItem<LogEntry> logEntryTreeItem) {
-        if (logEntryTreeItem.getParent().getParent() == null) { // = Top level item
-            return getGroupedLogEntriesFromParent(logEntryTreeItem);
-        } else {
-            return getGroupedLogEntriesFromParent(logEntryTreeItem.getParent());
-        }
-    }
-
-    private static List<LogEntry> getGroupedLogEntriesFromParent(TreeItem<LogEntry> parent) {
-        List<LogEntry> logEntries = new ArrayList<>();
-        logEntries.add(parent.getValue());
-        logEntries.addAll(parent.getChildren()
-                .stream().map(TreeItem::getValue).collect(Collectors.toList()));
-        return logEntries;
-    }
-
 }
