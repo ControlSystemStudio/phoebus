@@ -567,11 +567,8 @@ public class DockItem extends Tab
         if (close_check != null)
             for (Supplier<Future<Boolean>> check : close_check)
             {
-                // Invoke each actual ok-to-close check on UI thread,
-                // since it may open dialogs etc. before starting a "save" thread
                 final CompletableFuture<Boolean> result = new CompletableFuture<>();
-                Platform.runLater(() ->
-                {
+                JobManager.schedule("Check if OK to close", monitor -> {
                     try
                     {
                         result.complete(check.get().get());
@@ -581,7 +578,6 @@ public class DockItem extends Tab
                         result.completeExceptionally(ex);
                     }
                 });
-                // .. then await result of check started in UI thread
                 if (! result.get())
                     return false;
             }
