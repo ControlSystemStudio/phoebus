@@ -521,8 +521,8 @@ public class DockItem extends Tab
     /** Register check for closing the tab
      *
      *  @param ok_to_close Will be called when tab prepares to close.
-     *                     Will be invoked on the UI thread, so it may
-     *                     prompt for "Do you want to save?".
+     *                     Will be invoked on a background (non-UI) thread, so callers
+     *                     must handle UI interaction (e.g. prompt or choose file) accordingly.
      *                     May return a completed future right away,
      *                     or start a background thread to for example
      *                     save the tab's content which will complete
