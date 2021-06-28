@@ -3,6 +3,8 @@ package org.phoebus.logbook.olog.ui;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.beans.binding.Binding;
+import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -14,6 +16,8 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeCell;
@@ -26,11 +30,16 @@ import javafx.util.Duration;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
+import org.phoebus.logbook.Property;
 import org.phoebus.logbook.olog.ui.LogbookQueryUtil.Keys;
+import org.phoebus.olog.es.api.model.LogGroupProperty;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -73,6 +82,11 @@ public class LogEntryTableViewController extends LogbookSearchController {
     ObservableMap<Keys, String> searchParameters;
 
     /**
+     * List of selected log entries
+     */
+    private ObservableList<LogEntry> selectedLogEntries = FXCollections.observableArrayList();
+
+    /**
      * Constructor.
      *
      * @param logClient Log client implementation
@@ -110,6 +124,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 if (newValue != null) {
                     logEntryDisplayController.setLogEntry(newValue.getValue());
                 }
+                selectedLogEntries
+                        .setAll(treeView.getSelectionModel().getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList()));
             }
         });
 
@@ -126,6 +142,17 @@ public class LogEntryTableViewController extends LogbookSearchController {
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         treeView.setRoot(rootItem);
         treeView.setShowRoot(false);
+
+        MenuItem groupSelectedEntries = new MenuItem(Messages.GroupSelectedEntries);
+        groupSelectedEntries.setOnAction(e -> {
+            createLogEntryGroup();
+        });
+        groupSelectedEntries.disableProperty()
+                .bind(Bindings.createBooleanBinding(() ->
+                        selectedLogEntries.size() < 2, selectedLogEntries));
+        ContextMenu contextMenu = new ContextMenu();
+        contextMenu.getItems().add(groupSelectedEntries);
+        treeView.setContextMenu(contextMenu);
 
     }
 
@@ -242,4 +269,25 @@ public class LogEntryTableViewController extends LogbookSearchController {
         }
     }
 
+    private void createLogEntryGroup(){
+        List<String> logGroupIds = getLogEntryGroupIds(selectedLogEntries);
+        if(logGroupIds.size() > 1){
+            // Show error dialog
+        }
+        else{
+
+        }
+    }
+
+    protected List<String> getLogEntryGroupIds(List<LogEntry> logEntries){
+        List<String> logEntryGroupIds = new ArrayList<>();
+        logEntries.forEach(l -> {
+            Optional<String> logGroupId =
+                    LogGroupProperty.getLogGroupId(l);
+            if(logGroupId.isPresent()){
+                logEntryGroupIds.add(logGroupId.get());
+            }
+        });
+        return logEntryGroupIds;
+    }
 }

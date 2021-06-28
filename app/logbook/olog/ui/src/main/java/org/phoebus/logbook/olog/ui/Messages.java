@@ -20,6 +20,7 @@ public class Messages
                          File,
                          FileSave,
                          FileSaveFailed,
+                         GroupSelectedEntries,
                          Level,
                          Logbooks,
                          LogbookServiceUnavailableTitle,
