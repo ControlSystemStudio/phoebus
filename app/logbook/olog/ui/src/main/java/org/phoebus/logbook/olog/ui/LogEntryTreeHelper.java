@@ -22,6 +22,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.Property;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 
 import java.util.ArrayList;
@@ -51,9 +52,12 @@ public class LogEntryTreeHelper {
         Map<String, List<LogEntry>> logEntryGroups = new HashMap<>();
         List<LogEntry> nonGroupedItems = new ArrayList<>();
         for (LogEntry logEntry : logEntries) {
-            Optional<String> logGroupId = LogGroupProperty.getLogGroupId(logEntry);
+            Optional<Property> logGroupId = LogGroupProperty.getLogGroupProperty(logEntry);
             if (logGroupId.isPresent()) {
-                String groupId = logGroupId.get();
+                String groupId = logGroupId.get().getAttributes().get(LogGroupProperty.ATTRIBUTE_ID);
+                if (groupId == null || groupId.isEmpty()) {
+                    continue;
+                }
                 List<LogEntry> logEntryGroup = logEntryGroups.get(groupId);
                 if (logEntryGroup == null) {
                     List<LogEntry> entries = new ArrayList<>();

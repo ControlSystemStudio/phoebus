@@ -60,13 +60,15 @@ public class LogEntryDisplayController {
 
     private LogClient logClient;
 
-    private SimpleBooleanProperty showLogGroup = new SimpleBooleanProperty(false);
     private SimpleObjectProperty<LogEntry> logEntryProperty =
             new SimpleObjectProperty<>();
 
     private Logger logger = Logger.getLogger(LogEntryDisplayController.class.getName());
 
-    public LogEntryDisplayController(LogClient logClient){
+    private SimpleBooleanProperty hasLinkedEntriesProperty = new SimpleBooleanProperty(false);
+    private SimpleBooleanProperty showMergedViewProperty = new SimpleBooleanProperty(false);
+
+    public LogEntryDisplayController(LogClient logClient) {
         this.logClient = logClient;
     }
 
@@ -76,15 +78,21 @@ public class LogEntryDisplayController {
                 .bind(Bindings.createBooleanBinding(() -> logEntryProperty.get() == null, logEntryProperty));
         replyButton.disableProperty()
                 .bind(Bindings.createBooleanBinding(() -> logEntryProperty.get() == null, logEntryProperty));
-        singleLogEntryDisplay.visibleProperty().bind(Bindings
-                .createBooleanBinding(() -> !showLogGroup.get() && logEntryProperty.get() != null,
-                        showLogGroup, logEntryProperty));
-        mergedLogEntryDisplay.visibleProperty().bind(Bindings
-                .createBooleanBinding(() -> showLogGroup.get() && logEntryProperty.get() != null,
-                        showLogGroup, logEntryProperty));
-        showHideLogEntryGroupButton.selectedProperty().bindBidirectional(showLogGroup);
+        showHideLogEntryGroupButton.disableProperty().bind(hasLinkedEntriesProperty.not());
+        singleLogEntryDisplay.visibleProperty().bind(showMergedViewProperty.not());
+        mergedLogEntryDisplay.visibleProperty().bind(showMergedViewProperty);
         toolBar.setVisible(LogbookUIPreferences.log_entry_groups_support);
         toolBar.setManaged(LogbookUIPreferences.log_entry_groups_support);
+    }
+
+    @FXML
+    public void showHideLogEntryGroup() {
+        if (showHideLogEntryGroupButton.selectedProperty().get()) {
+            showMergedViewProperty.set(true);
+            mergedLogEntryDisplayController.setLogEntry(logEntryProperty.get());
+        } else {
+            showMergedViewProperty.set(false);
+        }
     }
 
     @FXML
@@ -110,8 +118,8 @@ public class LogEntryDisplayController {
                 // the description field is the contents of the editor text area in the original log entry. This
                 // is processed on the server such that the description is set as source, while the description is
                 // generated as a plain text variant of the source markup content.
-                ((OlogLog)logEntry).setDescription(logEntry.getSource());
-                ((OlogLog)logEntry).setSource(null);
+                ((OlogLog) logEntry).setDescription(logEntry.getSource());
+                ((OlogLog) logEntry).setSource(null);
                 logClient.updateLogEntry(logEntry);
             } catch (LogbookException e) {
                 logger.log(Level.SEVERE, "Failed to update log entry id=" + logEntry.getId(), e);
@@ -123,16 +131,10 @@ public class LogEntryDisplayController {
     public void setLogEntry(LogEntry logEntry) {
         logEntryProperty.set(logEntry);
         singleLogEntryDisplayController.setLogEntry(logEntry);
-        if(LogbookUIPreferences.log_entry_groups_support){
-            boolean hasLinkedEntries = logEntry.getProperties()
-                    .stream().anyMatch(p -> p.getName().equals(LogGroupProperty.NAME));
-            showHideLogEntryGroupButton.setDisable(!hasLinkedEntries);
-            if(hasLinkedEntries){
-                mergedLogEntryDisplayController.setLogEntry(logEntry);
-            }
-            // When a new log entry is selected, show the single record view
-            showLogGroup.set(false);
-        }
+        showMergedViewProperty.set(false);
+        showHideLogEntryGroupButton.selectedProperty().set(false);
+        hasLinkedEntriesProperty.set(logEntry.getProperties()
+                .stream().anyMatch(p -> p.getName().equals(LogGroupProperty.NAME)));
     }
 
     public LogEntry getLogEntry() {

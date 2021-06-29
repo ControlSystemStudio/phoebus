@@ -21,27 +21,32 @@ package org.phoebus.logbook.olog.ui;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
-import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.phoebus.util.time.TimestampFormats.SECONDS_FORMAT;
 
+/**
+ * Controller for the merged log entry view. The idea is to create a single view of all the entries
+ * in a log entry group such that the entire content of the group (aka thread) can be read without the
+ * need to select the individual log entries from a list.
+ * <p>
+ * The attachments and properties of the individual log entries are intentionally left out as the
+ * purpose is to read a sequence of text, and not to show all details.
+ * <p>
+ * Embedded attachments (i.e. images) are maintained in the merged view, as are - of course - other
+ * Markdown elements like lists or tables.
+ */
 public class MergedLogEntryDisplayController extends HtmlAwareController {
 
-    @FXML
-    private Node attachmentsPane;
     @FXML
     WebView logDescription;
 
@@ -50,6 +55,8 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
     private final ObservableList<LogEntry> logEntries = FXCollections.observableArrayList();
 
     private final Logger logger = Logger.getLogger(MergedLogEntryDisplayController.class.getName());
+
+    private WebEngine webEngine;
 
     public MergedLogEntryDisplayController(LogClient logClient) {
         super(logClient.getServiceUrl());
@@ -60,7 +67,7 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
     public void initialize() {
         // Content is defined by the source (default) or description field. If both are null
         // or empty, do no load any content to the WebView.
-        WebEngine webEngine = logDescription.getEngine();
+        webEngine = logDescription.getEngine();
         webEngine.setUserStyleSheetLocation(getClass()
                 .getResource("/detail_log_webview.css").toExternalForm());
     }
@@ -78,7 +85,6 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
     }
 
     private void mergeAndRender(LogEntry selectedLogEntry) {
-        List<Attachment> attachments = new ArrayList<>();
         StringBuilder stringBuilder = new StringBuilder();
         logEntries.forEach(l -> {
             if (l.getId().equals(selectedLogEntry.getId())) {
@@ -90,17 +96,8 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
             if (l.getId().equals(selectedLogEntry.getId())) {
                 stringBuilder.append("</div>");
             }
-            attachments.addAll(l.getAttachments());
         });
-        WebEngine webEngine = logDescription.getEngine();
-        webEngine.setUserStyleSheetLocation(getClass()
-                .getResource("/detail_log_webview.css").toExternalForm());
         webEngine.loadContent(stringBuilder.toString());
-
-        if (attachments.isEmpty()) {
-            attachmentsPane.setManaged(false);
-            attachmentsPane.setVisible(false);
-        }
     }
 
     /**
@@ -125,7 +122,7 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
 
         String id =
                 logEntry.getProperties().stream()
-                        .filter(p -> p.getName().equals(LogGroupProperty.NAME)).findFirst().get().getAttributes().get("id");
+                        .filter(p -> p.getName().equals(LogGroupProperty.NAME)).findFirst().get().getAttributes().get(LogGroupProperty.ATTRIBUTE_ID);
         logger.log(Level.INFO, "Fetching log entries for group " + id);
         try {
             Map<String, String> mMap = new HashMap<>();

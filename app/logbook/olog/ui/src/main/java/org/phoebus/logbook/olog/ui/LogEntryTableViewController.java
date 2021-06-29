@@ -3,7 +3,6 @@ package org.phoebus.logbook.olog.ui;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
-import javafx.beans.binding.Binding;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -15,6 +14,8 @@ import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
@@ -27,20 +28,24 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.util.Duration;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
+import org.phoebus.logbook.LogbookException;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.olog.ui.LogbookQueryUtil.Keys;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
+import org.phoebus.ui.dialog.DialogHelper;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -85,6 +90,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
      * List of selected log entries
      */
     private ObservableList<LogEntry> selectedLogEntries = FXCollections.observableArrayList();
+
+    private Logger logger = Logger.getLogger(LogEntryTableViewController.class.getName());
 
     /**
      * Constructor.
@@ -153,7 +160,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
         ContextMenu contextMenu = new ContextMenu();
         contextMenu.getItems().add(groupSelectedEntries);
         treeView.setContextMenu(contextMenu);
-
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored
@@ -228,10 +234,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
         }
     }
 
-    private ObservableList<TreeItem<LogEntry>> getTreeStructure() {
-
-        return null;
-    }
 
     private class LogEntryTreeCell extends TreeCell<LogEntry> {
 
@@ -269,25 +271,55 @@ public class LogEntryTableViewController extends LogbookSearchController {
         }
     }
 
-    private void createLogEntryGroup(){
-        List<String> logGroupIds = getLogEntryGroupIds(selectedLogEntries);
-        if(logGroupIds.size() > 1){
-            // Show error dialog
-        }
-        else{
+    private void createLogEntryGroup() {
+        try {
+            Property logGroupProperty = getLogEntryGroupProperty(selectedLogEntries);
+            // Update all log entries asynchronously
+            JobManager.schedule("Update log entries", monitor -> {
+                selectedLogEntries.forEach(l -> {
+                    // Update only if log entry does not contains the log group property
+                    if (LogGroupProperty.getLogGroupProperty(l).isEmpty()) {
+                        l.getProperties().add(logGroupProperty);
+                        try {
+                            getClient().updateLogEntry(l);
+                        } catch (LogbookException e) {
+                            logger.log(Level.SEVERE, "Failed to update log entry " + l.getId(), e);
+                        }
+                    }
+                });
+                // When all log entries are updated, run the search to trigger an update of the UI
+                search();
+            });
 
+        } catch (LogbookException e) {
+            final Alert dialog = new Alert(AlertType.INFORMATION);
+            dialog.setHeaderText("Cannot create log entry group. Selected list of log entries references more than one existing group.");
+            DialogHelper.positionDialog(dialog, treeView, 0, 0);
+            dialog.showAndWait();
         }
     }
 
-    protected List<String> getLogEntryGroupIds(List<LogEntry> logEntries){
-        List<String> logEntryGroupIds = new ArrayList<>();
+    protected Property getLogEntryGroupProperty(List<LogEntry> logEntries) throws LogbookException {
+        List<Property> logGroupProperties = getLogEntryGroupProperties(logEntries);
+        if (logGroupProperties.size() > 1) {
+            throw new LogbookException("Selected log entries contain more than one log group property id");
+        }
+        if (logGroupProperties.isEmpty()) {
+            return LogGroupProperty.create();
+        } else {
+            return logGroupProperties.get(0);
+        }
+    }
+
+    private List<Property> getLogEntryGroupProperties(List<LogEntry> logEntries) {
+        List<Property> logEntryGroupProperties = new ArrayList<>();
         logEntries.forEach(l -> {
-            Optional<String> logGroupId =
-                    LogGroupProperty.getLogGroupId(l);
-            if(logGroupId.isPresent()){
-                logEntryGroupIds.add(logGroupId.get());
+            Optional<Property> logGroupProperty =
+                    LogGroupProperty.getLogGroupProperty(l);
+            if (logGroupProperty.isPresent()) {
+                logEntryGroupProperties.add(logGroupProperty.get());
             }
         });
-        return logEntryGroupIds;
+        return logEntryGroupProperties;
     }
 }

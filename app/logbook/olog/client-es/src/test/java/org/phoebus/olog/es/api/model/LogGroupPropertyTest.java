@@ -44,7 +44,7 @@ public class LogGroupPropertyTest {
         OlogLog logEntry = new OlogLog();
         logEntry.setProperties(Arrays.asList(property1, property2));
 
-        assertEquals("id value", LogGroupProperty.getLogGroupId(logEntry).get());
+        assertEquals("id value", LogGroupProperty.getLogGroupProperty(logEntry).get().getAttributes().get(LogGroupProperty.ATTRIBUTE_ID));
     }
 
     @Test
@@ -56,13 +56,13 @@ public class LogGroupPropertyTest {
         OlogLog logEntry = new OlogLog();
         logEntry.setProperties(Arrays.asList(property1));
 
-        assertTrue(LogGroupProperty.getLogGroupId(logEntry).isEmpty());
+        assertTrue(LogGroupProperty.getLogGroupProperty(logEntry).isEmpty());
     }
 
     @Test
     public void testHasNotLogGroup2() {
         OlogLog logEntry = new OlogLog();
-        assertTrue(LogGroupProperty.getLogGroupId(logEntry).isEmpty());
+        assertTrue(LogGroupProperty.getLogGroupProperty(logEntry).isEmpty());
     }
 
     @Test
@@ -78,7 +78,7 @@ public class LogGroupPropertyTest {
         OlogLog logEntry = new OlogLog();
         logEntry.setProperties(Arrays.asList(property1, property2));
 
-        assertTrue(LogGroupProperty.getLogGroupId(logEntry).isEmpty());
+        assertTrue(LogGroupProperty.getLogGroupProperty(logEntry).isEmpty());
     }
 
 }

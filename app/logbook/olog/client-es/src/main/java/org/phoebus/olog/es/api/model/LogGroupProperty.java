@@ -45,7 +45,7 @@ public class LogGroupProperty {
      * @return The value of the Log Entry Group id attribute, if property exists in the log entry
      * and if id attribute value is non-null and non-empty.
      */
-    public static Optional<String> getLogGroupId(LogEntry logEntry){
+    public static Optional<Property> getLogGroupProperty(LogEntry logEntry){
         Collection<Property> properties = logEntry.getProperties();
         if(properties == null || properties.isEmpty()){
             return Optional.empty();
@@ -55,7 +55,7 @@ public class LogGroupProperty {
         if(property.isPresent()){
             String id = property.get().getAttributes().get(ATTRIBUTE_ID);
             if(id != null && !id.isEmpty()){
-                return Optional.of(property.get().getAttributes().get(ATTRIBUTE_ID));
+                return Optional.of(property.get());
             }
             else return Optional.empty();
         }
