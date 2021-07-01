@@ -36,11 +36,7 @@
     </top>
     <center>
         <StackPane fx:id="stackPane">
-            <BorderPane fx:id="emptyPane" visible="true">
-                <center>
-                    <Label text="%SelectLogEntry"/>
-                </center>
-            </BorderPane>
+            <BorderPane fx:id="emptyPane" visible="true"/>
             <fx:include fx:id="singleLogEntryDisplay" source="SingleLogEntryDisplay.fxml" visible="false"/>
             <fx:include fx:id="mergedLogEntryDisplay" source="MergedLogEntryDisplay.fxml" visible="false"/>
         </StackPane>

@@ -20,6 +20,7 @@ package org.phoebus.logbook.olog.ui;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -66,7 +67,11 @@ public class LogEntryDisplayController {
     private Logger logger = Logger.getLogger(LogEntryDisplayController.class.getName());
 
     private SimpleBooleanProperty hasLinkedEntriesProperty = new SimpleBooleanProperty(false);
-    private SimpleBooleanProperty showMergedViewProperty = new SimpleBooleanProperty(false);
+
+    private static final int EMPTY = 0;
+    private static final int SINGLE = 1;
+    private static final int MERGED = 2;
+    private SimpleIntegerProperty currentViewProperty = new SimpleIntegerProperty(EMPTY);
 
     public LogEntryDisplayController(LogClient logClient) {
         this.logClient = logClient;
@@ -74,24 +79,26 @@ public class LogEntryDisplayController {
 
     @FXML
     public void initialize() {
-        emptyPane.visibleProperty()
-                .bind(Bindings.createBooleanBinding(() -> logEntryProperty.get() == null, logEntryProperty));
         replyButton.disableProperty()
                 .bind(Bindings.createBooleanBinding(() -> logEntryProperty.get() == null, logEntryProperty));
         showHideLogEntryGroupButton.disableProperty().bind(hasLinkedEntriesProperty.not());
-        singleLogEntryDisplay.visibleProperty().bind(showMergedViewProperty.not());
-        mergedLogEntryDisplay.visibleProperty().bind(showMergedViewProperty);
         toolBar.setVisible(LogbookUIPreferences.log_entry_groups_support);
         toolBar.setManaged(LogbookUIPreferences.log_entry_groups_support);
+        emptyPane.visibleProperty()
+                .bind(Bindings.createBooleanBinding(() -> currentViewProperty.get() == EMPTY, currentViewProperty));
+        singleLogEntryDisplay.visibleProperty()
+                .bind(Bindings.createBooleanBinding(() -> currentViewProperty.get() == SINGLE, currentViewProperty));
+        mergedLogEntryDisplay.visibleProperty()
+                .bind(Bindings.createBooleanBinding(() -> currentViewProperty.get() == MERGED, currentViewProperty));
     }
 
     @FXML
     public void showHideLogEntryGroup() {
         if (showHideLogEntryGroupButton.selectedProperty().get()) {
-            showMergedViewProperty.set(true);
+            currentViewProperty.set(MERGED);
             mergedLogEntryDisplayController.setLogEntry(logEntryProperty.get());
         } else {
-            showMergedViewProperty.set(false);
+            currentViewProperty.set(SINGLE);
         }
     }
 
@@ -129,12 +136,17 @@ public class LogEntryDisplayController {
     }
 
     public void setLogEntry(LogEntry logEntry) {
-        logEntryProperty.set(logEntry);
-        singleLogEntryDisplayController.setLogEntry(logEntry);
-        showMergedViewProperty.set(false);
-        showHideLogEntryGroupButton.selectedProperty().set(false);
-        hasLinkedEntriesProperty.set(logEntry.getProperties()
-                .stream().anyMatch(p -> p.getName().equals(LogGroupProperty.NAME)));
+        if(logEntry == null){
+            currentViewProperty.set(EMPTY);
+        }
+        else{
+            logEntryProperty.set(logEntry);
+            singleLogEntryDisplayController.setLogEntry(logEntry);
+            currentViewProperty.set(SINGLE);
+            showHideLogEntryGroupButton.selectedProperty().set(false);
+            hasLinkedEntriesProperty.set(logEntry.getProperties()
+                    .stream().anyMatch(p -> p.getName().equals(LogGroupProperty.NAME)));
+        }
     }
 
     public LogEntry getLogEntry() {

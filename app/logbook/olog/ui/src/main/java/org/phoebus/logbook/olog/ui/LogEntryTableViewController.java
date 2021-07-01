@@ -3,6 +3,7 @@ package org.phoebus.logbook.olog.ui;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -206,6 +207,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
     @FXML
     public void search() {
         // parse the various time representations to Instant
+        treeView.getSelectionModel().clearSelection();
         super.search(LogbookQueryUtil.parseQueryString(query.getText()));
     }
 
