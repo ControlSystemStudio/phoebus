@@ -27,7 +27,9 @@ import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -128,6 +130,7 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
             Map<String, String> mMap = new HashMap<>();
             mMap.put("properties", LogGroupProperty.NAME + ".id." + id);
             logEntries.setAll(logClient.findLogs(mMap));
+            logEntries.sort(Comparator.comparing(LogEntry::getCreatedDate));
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Unable to locate log entry items using log entry group id " + id, e);
         }
