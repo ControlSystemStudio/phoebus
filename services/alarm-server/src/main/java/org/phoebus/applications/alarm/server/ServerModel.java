@@ -177,6 +177,13 @@ class ServerModel
                     {
                         // Get node_config as JSON map to check for "pv" key
                         final Object json = JsonModelReader.parseJsonText(node_config);
+
+                        // Ignore 'delete' messages because they don't update the config
+                        // and would result in superfluous PV stop() and re-start().
+                        // The follow-up message with config == null will actually delete the AlarmServerPV
+                        if (JsonModelReader.isConfigDeletion(json))
+                            continue;
+
                         AlarmTreeItem<?> node = findNode(path);
 
                         // New node? Create it.
