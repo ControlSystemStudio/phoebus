@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
 <!--
@@ -21,18 +23,8 @@
   ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
   -->
 
-<?import javafx.scene.image.ImageView?>
-<?import javafx.geometry.Insets?>
-<SplitPane xmlns="http://javafx.com/javafx"
-           xmlns:fx="http://javafx.com/fxml"
-           fx:controller="org.phoebus.logbook.olog.ui.AttachmentsPreviewController"
-           fx:id="splitPane" dividerPositions="0.7">
+<SplitPane fx:id="splitPane" dividerPositions="0.3" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.AttachmentsPreviewController">
     <items>
-        <StackPane fx:id="previewPane">
-            <GridPane fx:id="noPreviewPane" visible="true" />
-            <ImageView fx:id="imagePreview" visible="false" preserveRatio="true" managed="false"/>
-            <TextArea fx:id="textPreview" visible="false" />
-        </StackPane>
         <VBox>
             <children>
                 <ListView fx:id="attachmentListView">
@@ -42,6 +34,11 @@
                 </ListView>
             </children>
         </VBox>
+        <StackPane fx:id="previewPane">
+            <GridPane fx:id="noPreviewPane" visible="true" />
+            <ImageView fx:id="imagePreview" managed="false" preserveRatio="true" visible="false" />
+            <TextArea fx:id="textPreview" visible="false" />
+        </StackPane>
     </items>
     <VBox.margin>
         <Insets bottom="-10.0" left="-5.0" right="-5.0" top="-5.0" />
