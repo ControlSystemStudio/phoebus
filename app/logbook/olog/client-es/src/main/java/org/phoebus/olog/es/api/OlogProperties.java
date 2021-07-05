@@ -14,7 +14,7 @@ public class OlogProperties {
 
     final PreferencesReader prefs;
 
-    OlogProperties() {
+    public OlogProperties() {
         prefs = new PreferencesReader(OlogProperties.class, "/olog_es_preferences.properties");
     }
 
@@ -23,7 +23,7 @@ public class OlogProperties {
      * @param key
      * @return
      */
-    String getPreferenceValue(String key) {
+    public String getPreferenceValue(String key) {
         return prefs.get(key);
     }
 

@@ -6,7 +6,12 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<GridPane fx:id="root" maxHeight="-Infinity" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryCellController">
+<!--
+This is the cell UI for log entry items as presented in the search result list/tree, i.e. this is a
+summary of the log entry and its metadata.
+-->
+
+<GridPane fx:id="root" maxHeight="-Infinity" prefWidth="400.0" style="-fx-border-color: transparent transparent #e4e4e4 transparent; -fx-border-width: 1px;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryCellController">
     <columnConstraints>
         <ColumnConstraints />
         <ColumnConstraints />
@@ -26,7 +31,7 @@
                 <Font size="20.0" />
             </font>
             <GridPane.margin>
-                <Insets bottom="-3.0" top="-3.0" />
+                <Insets />
             </GridPane.margin>
         </Label>
         <ImageView fx:id="attachmentIcon" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="0" />
@@ -38,14 +43,14 @@
         <Label fx:id="time" text="Time" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
         <ImageView fx:id="logbookIcon" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" GridPane.rowIndex="2">
             <GridPane.margin>
-                <Insets bottom="3.0" right="3.0" top="3.0" />
+                <Insets bottom="3.0" left="3.0" top="5.0" />
             </GridPane.margin>
         </ImageView>
         <Label fx:id="logbooks" text="Logbooks" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" />
         <Label fx:id="logEntryId" text="999" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
         <ImageView fx:id="tagIcon" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" GridPane.rowIndex="3">
             <GridPane.margin>
-                <Insets bottom="3.0" right="3.0" top="3.0" />
+                <Insets bottom="3.0" left="3.0" />
             </GridPane.margin>
         </ImageView>
         <Label fx:id="tags" text="Tags" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" />
@@ -56,7 +61,7 @@
             </font>
         </Label>
     </children>
-    <padding>
-        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-    </padding>
+   <padding>
+      <Insets bottom="5.0" right="5.0" />
+   </padding>
 </GridPane>

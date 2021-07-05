@@ -264,7 +264,10 @@ public class OlogLog implements LogEntry {
 
     @Override
     public Property getProperty(String propertyName) {
-        return null;
+        if(propertyName == null){
+            return null;
+        }
+        return getProperties().stream().filter(p -> propertyName.equals(p.getName())).findFirst().orElse(null);
     }
 
     /**

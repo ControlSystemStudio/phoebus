@@ -1,0 +1,12 @@
+.log-entry-header > .content{
+    -fx-border-color: #ffffff;
+}
+
+.log-entry-header > .title{
+    -fx-background-color: #ffffff;
+}
+
+.attachment-properties-header > .title{
+    -fx-background-color: #ffffff;
+    -fx-font-size: 12px;
+}

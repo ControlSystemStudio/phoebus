@@ -4,6 +4,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import org.phoebus.framework.nls.NLS;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.AttachmentImpl;
 import org.phoebus.logbook.LogClient;
@@ -26,6 +27,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -39,17 +41,32 @@ public class LogEntrySearchDemo extends ApplicationWrapper {
     @Override
     public void start(Stage primaryStage) throws Exception {
 
+        ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
         FXMLLoader loader = new FXMLLoader();
+        loader.setResources(resourceBundle);
         loader.setLocation(this.getClass().getResource("LogEntryTableView.fxml"));
         loader.setControllerFactory(clazz -> {
             try {
-                if(clazz.isAssignableFrom(LogEntryTableViewController.class)){
+                if (clazz.isAssignableFrom(LogEntryTableViewController.class)) {
                     return clazz.getConstructor(LogClient.class)
                             .newInstance(getLogClient());
-                }
-                else if(clazz.isAssignableFrom(AdvancedSearchViewController.class)){
+                } else if (clazz.isAssignableFrom(AdvancedSearchViewController.class)) {
                     return clazz.getConstructor(LogClient.class)
                             .newInstance(getLogClient());
+                } else if (clazz.isAssignableFrom(LogPropertiesController.class)) {
+                    return clazz.getConstructor().newInstance();
+                } else if (clazz.isAssignableFrom(AttachmentsPreviewController.class)) {
+                    return clazz.getConstructor().newInstance();
+                } else if (clazz.isAssignableFrom(LogEntryCellController.class)) {
+                    return clazz.getConstructor().newInstance();
+                } else if (clazz.isAssignableFrom(LogEntryDisplayController.class)) {
+                    return clazz.getConstructor(LogClient.class).newInstance(getLogClient());
+                } else if (clazz.isAssignableFrom(MergedLogEntryDisplayController.class)) {
+                    return clazz.getConstructor(LogClient.class).newInstance(getLogClient());
+                } else if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {
+                    return clazz.getConstructor(String.class).newInstance(getLogClient().getServiceUrl());
+                } else {
+                    throw new RuntimeException("No controller for class " + clazz.getName());
                 }
             } catch (Exception e) {
                 Logger.getLogger(LogEntryEditorStage.class.getName()).log(Level.SEVERE, "Failed to construct controller for log calendar view", e);
@@ -80,12 +97,13 @@ public class LogEntrySearchDemo extends ApplicationWrapper {
 
         for (int i = 0; i < 10; i++) {
             LogEntryBuilder lb = LogEntryBuilder.log()
-                           .owner("Owner")
-                           .title("log "+ i)
-                           .description("First line for log " + i)
-                           .createdDate(Instant.now())
-                           .inLogbooks(logbooks)
-                           .withTags(tags);
+                    .owner("Owner")
+                    .title("log " + i)
+                    .description("First line for log " + i)
+                    .createdDate(Instant.now())
+                    .inLogbooks(logbooks)
+                    .id(Long.valueOf(i))
+                    .withTags(tags);
             StringBuilder sb = new StringBuilder();
             for (int j = 0; j < i; j++) {
                 sb.append("Some additional log text");
@@ -104,7 +122,7 @@ public class LogEntrySearchDemo extends ApplicationWrapper {
         controller.setLogs(logs);
     }
 
-    private LogClient getLogClient(){
+    private LogClient getLogClient() {
         return new LogClient() {
             @Override
             public LogEntry set(LogEntry log) throws LogbookException {
