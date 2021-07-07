@@ -454,8 +454,9 @@ class ServerModel
      */
     private int countAlarmPVs(final AlarmTreeItem<?> item)
     {
+        // Only count enabled items
         if (item instanceof AlarmServerPV)
-            return item.getState().severity.isActive() ? 1 : 0;
+            return ((AlarmServerPV) item).isEnabled() &&  item.getState().severity.isActive() ? 1 : 0;
         int active = 0;
         for (AlarmTreeItem<?> child : item.getChildren())
             if (child.getState().severity.isActive())
