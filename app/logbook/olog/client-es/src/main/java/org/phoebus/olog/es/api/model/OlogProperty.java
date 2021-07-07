@@ -102,4 +102,18 @@ public class OlogProperty implements Property{
         this.attributes = attributes;
     }
 
+    @Override
+    public boolean equals(Object other){
+        if(!(other instanceof Property)){
+            return false;
+        }
+        Property otherProperty = (Property)other;
+        return name.equals(otherProperty.getName());
+    }
+
+    @Override
+    public int hashCode(){
+       return name.hashCode();
+    }
+
 }

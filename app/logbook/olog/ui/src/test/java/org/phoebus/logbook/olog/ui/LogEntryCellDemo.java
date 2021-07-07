@@ -2,7 +2,7 @@ package org.phoebus.logbook.olog.ui;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import org.phoebus.logbook.AttachmentImpl;
 import org.phoebus.logbook.LogEntry;
@@ -40,7 +40,7 @@ public class LogEntryCellDemo extends ApplicationWrapper {
         primaryStage.setTitle("LogEntry Cell Demo");
 
         //VBox root = new VBox();
-        AnchorPane root;
+        GridPane root;
 
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(this.getClass().getResource("LogEntryCell.fxml"));
@@ -55,7 +55,7 @@ public class LogEntryCellDemo extends ApplicationWrapper {
         // Every few seconds add a new log entry
 
         ex.schedule(() -> {
-            LogEntry log = LogEntryBuilder.log().description(
+            LogEntry log = LogEntryBuilder.log().id(1L).description(
                     "Fast correctors for the vertical orbit have glitched to near saturation. Archiver shows there have been several episodes the past 24 hrs. Appears that FOFB in vertical plane might have momentary bad BPM reading.")
                     .createdDate(Instant.now())
                     .owner("nsls2-user")
@@ -78,6 +78,7 @@ public class LogEntryCellDemo extends ApplicationWrapper {
                     "Fast correctors for the vertical orbit have glitched to near saturation. Archiver shows there have been several episodes the past 24 hrs. Appears that FOFB in vertical plane might have momentary bad BPM reading.")
                     .createdDate(Instant.now())
                     .inLogbooks(logbooks)
+                    .id(2L)
                     .withTags(tags)
                     .owner("nsls2-user")
                     .build();
@@ -111,8 +112,9 @@ public class LogEntryCellDemo extends ApplicationWrapper {
                 LogEntryBuilder lb = LogEntryBuilder.log()
                         .createdDate(Instant.now())
                         .title("A simple log Entry with some tags and logbooks")
+                        .id(3L)
                         .description(
-                        "Fast correctors for the vertical orbit have glitched to near saturation. Archiver shows there have been several episodes the past 24 hrs. Appears that FOFB in vertical plane might have momentary bad BPM reading.")
+                                "Fast correctors for the vertical orbit have glitched to near saturation. Archiver shows there have been several episodes the past 24 hrs. Appears that FOFB in vertical plane might have momentary bad BPM reading.")
                         .withTags(new HashSet<Tag>(Arrays.asList(TagImpl.of("Orbit", "active"), TagImpl.of("Studies", "active"))))
                         .inLogbooks(new HashSet<Logbook>(Arrays.asList(LogbookImpl.of("Operations", "active"), LogbookImpl.of("Electrical", "active"))))
                         .owner("nsls2-user");

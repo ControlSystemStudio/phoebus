@@ -47,6 +47,10 @@ public class LogEntryTable implements AppInstance {
                         {
                             return clazz.getConstructor(LogClient.class).newInstance(app.getClient());
                         }
+                        else if(clazz.isAssignableFrom(SingleLogEntryDisplayController.class))
+                        {
+                            return clazz.getConstructor(String.class).newInstance(app.getClient().getServiceUrl());
+                        }
                         else if(clazz.isAssignableFrom(LogEntryDisplayController.class))
                         {
                             return clazz.getConstructor(LogClient.class).newInstance(app.getClient());
@@ -61,6 +65,9 @@ public class LogEntryTable implements AppInstance {
                         }
                         else if(clazz.isAssignableFrom(AttachmentsViewController.class)){
                             return clazz.getConstructor().newInstance();
+                        }
+                        else if(clazz.isAssignableFrom(MergedLogEntryDisplayController.class)){
+                            return clazz.getConstructor(LogClient.class).newInstance(app.getClient());
                         }
                     }
                     else

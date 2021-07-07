@@ -18,11 +18,11 @@
 
 package org.phoebus.logbook.olog.ui;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
@@ -44,11 +44,10 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.util.IOUtils;
-import org.phoebus.framework.workbench.FileHelper;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.olog.ui.write.AttachmentsViewController;
-import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import javax.imageio.ImageIO;
@@ -88,12 +87,15 @@ public class AttachmentsPreviewController {
     private ListView<Attachment> attachmentListView;
 
     /**
+     * List of attachments selected by user in the preview's {@link ListView}.
+     */
+    private ObservableList<Attachment> selectedAttachments = FXCollections.observableArrayList();
+
+    /**
      * List of listeners that will be notified when user has selected one or multiple attachments in
      * the {@link ListView}.
      */
-    private List<ListChangeListener<Attachment>> listSelectionChangeListeners;
-
-    private BooleanProperty listSelectionEmpty = new SimpleBooleanProperty(true);
+    private List<ListChangeListener<Attachment>> listSelectionChangeListeners = new ArrayList<>();
 
     private SimpleObjectProperty<Attachment> selectedAttachment =
             new SimpleObjectProperty<>();
@@ -124,16 +126,24 @@ public class AttachmentsPreviewController {
              */
             @Override
             public void onChanged(Change<? extends Attachment> change) {
-                listSelectionEmpty.setValue(attachmentListView.getSelectionModel().isEmpty());
-                if (listSelectionChangeListeners == null) {
-                    return;
-                }
+                selectedAttachments.setAll(change.getList());
                 listSelectionChangeListeners.stream().forEach(l -> l.onChanged(change));
             }
         });
 
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem menuItem = new MenuItem(Messages.DownloadSelected);
+        menuItem.setOnAction(actionEvent -> downloadSelectedAttachments());
+        menuItem.disableProperty().bind(Bindings.createBooleanBinding(() -> selectedAttachments.isEmpty(), selectedAttachments));
+        contextMenu.getItems().add(menuItem);
+        attachmentListView.setContextMenu(contextMenu);
+
         imagePreview.fitWidthProperty().bind(previewPane.widthProperty());
         imagePreview.fitHeightProperty().bind(previewPane.heightProperty());
+    }
+
+    public ObservableList<Attachment> getSelectedAttachments() {
+        return attachmentListView.getSelectionModel().getSelectedItems();
     }
 
     /**
@@ -237,17 +247,37 @@ public class AttachmentsPreviewController {
         }
     }
 
-    public void addListSelectionChangeListener(ListChangeListener<Attachment> changeListener) {
-        if (listSelectionChangeListeners == null) {
-            listSelectionChangeListeners = new ArrayList<>();
+    /**
+     * Downloads all selected attachments to folder selected by user.
+     */
+    public void downloadSelectedAttachments() {
+        final DirectoryChooser dialog = new DirectoryChooser();
+        dialog.setTitle(Messages.SelectFolder);
+        dialog.setInitialDirectory(new File(System.getProperty("user.home")));
+        File targetFolder = dialog.showDialog(splitPane.getScene().getWindow());
+        JobManager.schedule("Save attachments job", (monitor) ->
+        {
+            selectedAttachments.stream().forEach(a -> downloadAttachment(targetFolder, a));
+        });
+    }
+
+    private void downloadAttachment(File targetFolder, Attachment attachment) {
+        try {
+            File targetFile = new File(targetFolder, attachment.getName());
+            if (targetFile.exists()) {
+                throw new Exception("Target file " + targetFile.getAbsolutePath() + " exists");
+            }
+            Files.copy(attachment.getFile().toPath(), targetFile.toPath());
+        } catch (Exception e) {
+            ExceptionDetailsErrorDialog.openError(splitPane.getParent(), Messages.FileSave, Messages.FileSaveFailed, e);
         }
+    }
+
+    public void addListSelectionChangeListener(ListChangeListener<Attachment> changeListener) {
         listSelectionChangeListeners.add(changeListener);
     }
 
     public void removeListSelectionChangeListener(ListChangeListener<Attachment> changeListener) {
-        if (listSelectionChangeListeners == null) {
-            return;
-        }
         listSelectionChangeListeners.remove(changeListener);
     }
 

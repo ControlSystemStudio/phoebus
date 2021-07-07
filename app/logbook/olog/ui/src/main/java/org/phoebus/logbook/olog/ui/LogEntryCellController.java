@@ -23,9 +23,9 @@ import static org.phoebus.util.time.TimestampFormats.SECONDS_FORMAT;
 
 public class LogEntryCellController {
 
-    static final Image tag = ImageCache.getImage(LogEntryDisplayController.class, "/icons/add_tag.png");
-    static final Image logbook = ImageCache.getImage(LogEntryDisplayController.class, "/icons/logbook-16.png");
-    static final Image attachment = ImageCache.getImage(LogEntryDisplayController.class, "/icons/attachment-16.png");
+    static final Image tag = ImageCache.getImage(SingleLogEntryDisplayController.class, "/icons/add_tag.png");
+    static final Image logbook = ImageCache.getImage(SingleLogEntryDisplayController.class, "/icons/logbook-16.png");
+    static final Image attachment = ImageCache.getImage(SingleLogEntryDisplayController.class, "/icons/attachment-16.png");
 
     private TextContentRenderer textRenderer;
     private Parser parser;
@@ -107,7 +107,7 @@ public class LogEntryCellController {
                 description.setText(null);
             }
 
-            logEntryId.setText(Long.toString(logEntry.getId()));
+            logEntryId.setText(logEntry.getId() != null ? logEntry.getId().toString() : "");
             level.setText(logEntry.getLevel());
         }
     }

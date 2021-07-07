@@ -477,4 +477,8 @@ public interface LogClient {
     default String getServiceUrl(){
         return null;
     }
+
+    default LogEntry updateLogEntry(LogEntry logEntry) throws LogbookException{
+        throw new LogbookException(new UnsupportedOperationException());
+    }
 }

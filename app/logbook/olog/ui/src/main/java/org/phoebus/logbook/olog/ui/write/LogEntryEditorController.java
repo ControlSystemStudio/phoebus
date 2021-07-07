@@ -28,7 +28,13 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.olog.ui.AttachmentsPreviewController;
+import org.phoebus.logbook.LogFactory;
+import org.phoebus.logbook.LogService;
+import org.phoebus.logbook.LogbookPreferences;
+import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
+import org.phoebus.olog.es.api.model.OlogLog;
+import org.phoebus.security.store.SecureStore;
+import org.phoebus.security.tokens.SimpleAuthenticationToken;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -45,15 +51,14 @@ import java.util.logging.Logger;
 public class LogEntryEditorController {
 
     private Node parent;
-    private LogEntryModel model;
     private LogEntryCompletionHandler completionHandler;
 
     private Logger logger = Logger.getLogger(LogEntryEditorController.class.getName());
 
     @FXML
-    private Button cancel;
+    private Button submitButton;
     @FXML
-    private Button submit;
+    private Button cancelButton;
     @FXML
     private ProgressIndicator progressIndicator;
     @FXML
@@ -61,11 +66,13 @@ public class LogEntryEditorController {
     @FXML
     private AttachmentsViewController attachmentsViewController;
     @FXML
-    private LogPropertiesEditorController propertiesViewController;
+    private LogPropertiesEditorController logPropertiesEditorController;
     @FXML
     private FieldsViewController fieldsViewController;
     @FXML
     private TextArea textArea;
+
+    private LogFactory logFactory;
 
     private ExecutorService executorService;
 
@@ -73,20 +80,18 @@ public class LogEntryEditorController {
             new SimpleBooleanProperty(false);
 
 
-    public LogEntryEditorController(Node parent, LogEntryModel model, LogEntryCompletionHandler logEntryCompletionHandler){
+    public LogEntryEditorController(Node parent, LogEntryCompletionHandler logEntryCompletionHandler) {
         this.parent = parent;
-        this.model = model;
         this.completionHandler = logEntryCompletionHandler;
         this.executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+        this.logFactory = LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory);
     }
 
     @FXML
-    public void initialize(){
-
-        submit.disableProperty().bind(model.getReadyToSubmitProperty().not());
+    public void initialize() {
+        submitButton.disableProperty().bind(fieldsViewController.getInputValidProperty().not());
         completionMessageLabel.visibleProperty().bind(completionMessageLabel.textProperty().isNotEmpty());
         progressIndicator.visibleProperty().bind(progressIndicatorVisibility);
-
         attachmentsViewController.setTextArea(fieldsViewController.getTextArea());
     }
 
@@ -94,43 +99,62 @@ public class LogEntryEditorController {
      * Handler for Cancel button
      */
     @FXML
-    public void cancel(){
-        ((Stage)cancel.getScene().getWindow()).close();
+    public void cancel() {
+        ((Stage) cancelButton.getScene().getWindow()).close();
     }
 
-    /**
-     * Handler for the Submit button
-     */
     @FXML
-    public void submit(){
+    public void submit() {
         progressIndicatorVisibility.setValue(true);
         completionMessageLabel.textProperty().setValue("");
-        model.setSelectedProperties(propertiesViewController.getProperties());
+        OlogLog ologLog = new OlogLog();
+        ologLog.setTitle(fieldsViewController.getTitle());
+        ologLog.setDescription(fieldsViewController.getDescription());
+        ologLog.setLevel(fieldsViewController.getSelectedLevel());
+        ologLog.setLogbooks(fieldsViewController.getSelectedLogbooks());
+        ologLog.setTags(fieldsViewController.getSelectedTags());
+        ologLog.setAttachments(attachmentsViewController.getAttachments());
+        ologLog.setProperties(logPropertiesEditorController.getProperties());
+
+        Future<LogEntry> future = executorService.submit(() -> {
+            if (LogbookUIPreferences.save_credentials) {
+                // Get the SecureStore. Store username and password.
+                try {
+                    SecureStore store = new SecureStore();
+                    store.set(FieldsViewController.USERNAME_TAG, fieldsViewController.getUsernameProperty());
+                    store.set(FieldsViewController.PASSWORD_TAG, fieldsViewController.getPasswordProperty());
+                } catch (Exception ex) {
+                    logger.log(Level.WARNING, "Secure Store file not found.", ex);
+                }
+            }
+
+            LogEntry result = logFactory
+                    .getLogClient(new SimpleAuthenticationToken(fieldsViewController.getUsernameProperty(), fieldsViewController.getPasswordProperty()))
+                    .set(ologLog);
+            return result;
+        });
         try {
-            Future<LogEntry> future = executorService.submit(() -> model.submitEntry());
             LogEntry result = future.get();
-            if(result != null){
-                if(completionHandler != null){
+            if (result != null) {
+                if (completionHandler != null) {
                     completionHandler.handleResult(result);
                 }
+                attachmentsViewController.deleteTemporaryFiles();
                 cancel();
             }
         } catch (InterruptedException e) {
             logger.log(Level.WARNING, "Unable to submit log entry", e);
             completionMessageLabel.textProperty().setValue(org.phoebus.logbook.Messages.SubmissionFailed);
-        } catch(ExecutionException e){
+        } catch (ExecutionException e) {
             logger.log(Level.WARNING, "Unable to submit log entry", e);
-            if(e.getCause() != null && e.getCause().getMessage() != null){
+            if (e.getCause() != null && e.getCause().getMessage() != null) {
                 completionMessageLabel.textProperty().setValue(e.getCause().getMessage());
-            }
-            else if(e.getMessage() != null){
+            } else if (e.getMessage() != null) {
                 completionMessageLabel.textProperty().setValue(e.getMessage());
-            }
-            else{
+            } else {
                 completionMessageLabel.textProperty().setValue(org.phoebus.logbook.Messages.SubmissionFailed);
             }
-        }
-        finally {
+        } finally {
             progressIndicatorVisibility.setValue(false);
         }
     }

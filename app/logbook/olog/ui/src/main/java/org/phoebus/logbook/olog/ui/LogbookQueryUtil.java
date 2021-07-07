@@ -26,7 +26,8 @@ public class LogbookQueryUtil {
         ENDTIME("end"),
         AUTHOR("owner"),
         TITLE("title"),
-        LEVEL("level");
+        LEVEL("level"),
+        PROPERTIES("properties");
 
         // The human readable name of the query key
         private final String name;
@@ -41,6 +42,7 @@ public class LogbookQueryUtil {
             lookupTable.put("owner", Keys.AUTHOR);
             lookupTable.put("title", Keys.TITLE);
             lookupTable.put("level", Keys.LEVEL);
+            lookupTable.put("properties", Keys.PROPERTIES);
         }
 
         Keys(String name) {
@@ -147,9 +149,7 @@ public class LogbookQueryUtil {
         public String apply(String t) {
 
             if (t.contains("=")) {
-                String key = t.split("=")[0];
-                String value = t.split("=")[1];
-                return value;
+                return t.split("=")[1];
             } else {
                 return "*";
             }

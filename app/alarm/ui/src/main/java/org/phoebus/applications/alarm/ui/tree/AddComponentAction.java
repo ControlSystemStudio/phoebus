@@ -136,7 +136,7 @@ class AddComponentAction extends MenuItem
         // Allowing not just space as mentioned in tooltip and message, but also comma or semicolon
         public static List<String> splitNames(final String names)
         {
-            return List.of(names.split("[\\s,;]+"));
+            return List.of(names.split("[\\s;]+"));
         }
     }
 

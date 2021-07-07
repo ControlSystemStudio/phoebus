@@ -17,6 +17,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -31,12 +32,12 @@ import jfxtras.scene.control.agenda.Agenda.AppointmentImplLocal;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
-import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.time.TimeRelativeIntervalPane;
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
 import org.phoebus.util.time.TimestampFormats;
 
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
@@ -123,10 +124,16 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                     loader.setLocation(this.getClass().getResource("LogEntryDisplay.fxml"));
                     loader.setControllerFactory(clazz -> {
                         try {
-                            if (clazz.isAssignableFrom(LogEntryDisplayController.class)) {
-                                return clazz.getConstructor(LogClient.class).newInstance(getClient());
+                            if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {
+                                return clazz.getConstructor(String.class).newInstance(getClient().getServiceUrl());
                             }
                             else if(clazz.isAssignableFrom(AttachmentsPreviewController.class)){
+                                return clazz.getConstructor().newInstance();
+                            }
+                            else if(clazz.isAssignableFrom(LogEntryDisplayController.class)){
+                                return clazz.getConstructor(LogClient.class).newInstance(getClient());
+                            }
+                            else if(clazz.isAssignableFrom(LogPropertiesController.class)){
                                 return clazz.getConstructor().newInstance();
                             }
                         } catch (Exception e) {
@@ -137,8 +144,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                     loader.load();
                     LogEntryDisplayController controller = loader.getController();
                     controller.setLogEntry(map.get(appointment));
-                    SplitPane root = loader.getRoot();
-                    Scene dialogScene = new Scene(root, 800, 600);
+                    Scene dialogScene = new Scene(loader.getRoot(), 800, 600);
                     dialog.setScene(dialogScene);
                     dialog.show();
                 }
@@ -157,7 +163,11 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
 
         try {
             String styleSheetResource = LogbookUIPreferences.calendar_view_item_stylesheet;
-            agenda.getStylesheets().add(this.getClass().getResource(styleSheetResource).toString());
+            URL url = this.getClass().getResource(styleSheetResource);
+            // url may be null...
+            if(url != null){
+                agenda.getStylesheets().add(this.getClass().getResource(styleSheetResource).toString());
+            }
         } catch (Exception e) {
             logger.log(Level.WARNING, "Failed to set css style", e);
         }

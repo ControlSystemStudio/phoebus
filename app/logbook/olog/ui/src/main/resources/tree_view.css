@@ -1,0 +1,23 @@
+.tree-cell{
+    -fx-padding: 0px 0px 0px 5px;
+}
+
+.tree-cell .tree-disclosure-node {
+    -fx-padding: 9px 0px 0px 7px;
+}
+
+.tree-cell:childless-top-level {
+    -fx-padding: 0px 0px 0px 0px;
+}
+
+.tree-cell:child {
+    -fx-background-color: #e8edee;
+}
+
+.tree-cell:selected {
+    -fx-background-color: #0098ce;
+}
+
+.tree-cell:empty {
+    -fx-background-color: white;
+}

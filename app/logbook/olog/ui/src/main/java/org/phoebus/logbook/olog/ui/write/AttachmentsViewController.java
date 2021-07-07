@@ -34,7 +34,9 @@ import javafx.scene.image.Image;
 import javafx.scene.input.Clipboard;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.Attachment;
+import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.olog.ui.AttachmentsPreviewController;
 import org.phoebus.logbook.olog.ui.Messages;
 import org.phoebus.olog.es.api.model.OlogAttachment;
@@ -53,6 +55,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class AttachmentsViewController {
 
@@ -70,42 +73,40 @@ public class AttachmentsViewController {
     @FXML
     private AttachmentsPreviewController attachmentsPreviewController;
 
-    private LogEntryModel model;
-
-    private boolean autoExpand;
+    private final Logger logger = Logger.getLogger(AttachmentsViewController.class.getName());
 
     /**
-     * List of attachments selected in the preview's {@link ListView}.
+     * List of all attachments to be persisted in the log entry.
      */
-
-    private ObservableList<Attachment> selectedAttachments = FXCollections.observableArrayList();
+    private ObservableList<Attachment> attachments = FXCollections.observableArrayList();
     private SimpleBooleanProperty imageAttachmentSelected = new SimpleBooleanProperty(false);
+    /**
+     * List of attachments corresponding to (temporary) files that must be deleted when
+     * log entry has been successfully persisted.
+     */
+    private List<Attachment> attachmentsToDelete = new ArrayList<>();
 
-
-    public AttachmentsViewController(LogEntryModel logEntryModel, Boolean autoExpand) {
-        this.autoExpand = autoExpand;
-        this.model = logEntryModel;
+    /**
+     * @param logEntry The log entry template potentially holding a set of attachments. Note
+     *                 that files associated with these attachments are considered temporary and
+     *                 are subject to removal when the log entry has been committed.
+     */
+    public AttachmentsViewController(LogEntry logEntry) {
+        attachments.addAll(logEntry.getAttachments());
+        attachmentsToDelete.addAll(logEntry.getAttachments());
     }
 
     @FXML
     public void initialize() {
 
         removeButton.setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
-        removeButton.disableProperty().bind(Bindings.isEmpty(selectedAttachments));
-        attachmentsPreviewController.setAttachments(model.getAttachments());
+        removeButton.disableProperty().bind(Bindings.isEmpty(attachmentsPreviewController.getSelectedAttachments()));
+        attachmentsPreviewController.setAttachments(attachments);
 
         attachmentsPreviewController.addListSelectionChangeListener(change -> {
-            while (change.next()) {
-                if (change.wasAdded()) {
-                    selectedAttachments.addAll(change.getAddedSubList());
-                }
-                if (change.wasRemoved()) {
-                    selectedAttachments.removeAll(change.getRemoved());
-                }
-            }
             // Enable "Embed Selected" button only if exactly one image attachment is selected.
-            imageAttachmentSelected.set(selectedAttachments.size() == 1 &&
-                    selectedAttachments.get(0).getContentType().toLowerCase().startsWith("image"));
+            imageAttachmentSelected.set(attachmentsPreviewController.getSelectedAttachments().size() == 1 &&
+                    attachmentsPreviewController.getSelectedAttachments().get(0).getContentType().toLowerCase().startsWith("image"));
         });
 
         embedSelectedButton.disableProperty().bind(imageAttachmentSelected.not());
@@ -146,15 +147,18 @@ public class AttachmentsViewController {
 
     @FXML
     public void removeFiles() {
-        selectedAttachments.stream().forEach(a -> {
-            if(a.getContentType().startsWith("image")){
+        List<Attachment> attachmentsToRemove =
+                attachmentsPreviewController.getSelectedAttachments().stream().collect(Collectors.toList());
+        attachmentsToRemove.forEach(a -> {
+            if (a.getContentType().startsWith("image")) {
                 String markup = textArea.getText();
-                String newMarkup = removeImageMarkup(markup, a.getId());
-                textArea.textProperty().set(newMarkup);
+                if(markup != null){
+                    String newMarkup = removeImageMarkup(markup, a.getId());
+                    textArea.textProperty().set(newMarkup);
+                }
             }
+            attachments.remove(a);
         });
-        model.removeAttachments(selectedAttachments);
-
     }
 
     @FXML
@@ -169,21 +173,34 @@ public class AttachmentsViewController {
     }
 
     @FXML
-    public void embedSelected(){
+    public void embedSelected() {
         // Just in case... launch dialog only if the first item in the selection is an image
-        if(selectedAttachments.get(0).getContentType().toLowerCase().startsWith("image")){
+        if (attachmentsPreviewController.getSelectedAttachments().get(0).getContentType().toLowerCase().startsWith("image")) {
             EmbedImageDialog embedImageDialog = new EmbedImageDialog();
-            embedImageDialog.setFile(selectedAttachments.get(0).getFile());
+            embedImageDialog.setFile(attachmentsPreviewController.getSelectedAttachments().get(0).getFile());
             Optional<EmbedImageDescriptor> descriptor = embedImageDialog.showAndWait();
             if (descriptor.isPresent()) {
                 String id = UUID.randomUUID().toString();
-                selectedAttachments.get(0).setId(id);
+                attachmentsPreviewController.getSelectedAttachments().get(0).setId(id);
                 addEmbeddedImageMarkup(id, descriptor.get().getWidth(), descriptor.get().getHeight());
             }
         }
     }
 
-    private void addEmbeddedImageMarkup(String id, int width, int height){
+    public List<Attachment> getAttachments() {
+        return attachments;
+    }
+
+    public void deleteTemporaryFiles() {
+        JobManager.schedule("Delete temporary attachment files", monitor -> {
+            attachmentsToDelete.stream().forEach(a -> {
+                logger.log(Level.INFO, "Deleting temporary attachment file " + a.getFile().getAbsolutePath());
+                a.getFile().delete();
+            });
+        });
+    }
+
+    private void addEmbeddedImageMarkup(String id, int width, int height) {
         // Insert markup at caret position. At this point an id must be set.
         int caretPosition = textArea.getCaretPosition();
         String imageMarkup =
@@ -193,9 +210,9 @@ public class AttachmentsViewController {
         textArea.insertText(caretPosition, imageMarkup);
     }
 
-    protected String removeImageMarkup(String markup, String imageId){
+    protected String removeImageMarkup(String markup, String imageId) {
         int index = markup.indexOf(imageId);
-        if(index == -1){
+        if (index == -1) {
             return markup;
         }
 
@@ -221,7 +238,6 @@ public class AttachmentsViewController {
 
     private void addFiles(List<File> files) {
         MimetypesFileTypeMap fileTypeMap = new MimetypesFileTypeMap();
-        List<OlogAttachment> attachments = new ArrayList<>();
         for (File file : files) {
             OlogAttachment ologAttachment = new OlogAttachment();
             ologAttachment.setFile(file);
@@ -234,7 +250,6 @@ public class AttachmentsViewController {
             }
             attachments.add(ologAttachment);
         }
-        model.addAttachments(attachments);
     }
 
     private void addImage(Image image) {
@@ -250,7 +265,8 @@ public class AttachmentsViewController {
             ologAttachment.setContentType("image");
             ologAttachment.setFile(imageFile);
             ologAttachment.setFileName(imageFile.getName());
-            model.addAttachment(ologAttachment, true);
+            attachments.add(ologAttachment);
+            attachmentsToDelete.add(ologAttachment);
         } catch (IOException e) {
             Logger.getLogger(AttachmentsViewController.class.getName())
                     .log(Level.INFO, "Unable to create temp file from clipboard image or embedded image", e);

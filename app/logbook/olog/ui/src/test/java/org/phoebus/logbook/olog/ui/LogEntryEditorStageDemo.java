@@ -11,28 +11,24 @@ import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
-import org.phoebus.logbook.olog.ui.write.LogEntryModel;
+import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
 /**
  * Demonstrate the {@link LogEntryEditorStage}
+ *
  * @author Evan Smith
  */
-public class LogEntryEditorStageDemo extends ApplicationWrapper
-{
-    public static void main(String[] args)
-    {
+public class LogEntryEditorStageDemo extends ApplicationWrapper {
+    public static void main(String[] args) {
         launch(LogEntryEditorStageDemo.class, args);
     }
 
     @Override
-    public void start(Stage primaryStage) throws Exception
-    {
+    public void start(Stage primaryStage) throws Exception {
         StackPane root = new StackPane();
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
-        LogEntryModel model = new LogEntryModel();
-        new LogEntryEditorStage(root, model, null).show();
+        new LogEntryEditorStage(root, new OlogLog()).show();
     }
-
 }

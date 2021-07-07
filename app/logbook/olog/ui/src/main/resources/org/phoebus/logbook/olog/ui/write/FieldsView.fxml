@@ -46,13 +46,50 @@
                   <TextField fx:id="titleField" HBox.hgrow="ALWAYS" />
                </children>
             </HBox>
-            <VBox fx:id="logbooks">
-
+            <VBox>
+               <children>
+                  <HBox>
+                     <children>
+                        <Label fx:id="logbooksLabel" prefHeight="27.0" prefWidth="80.0" text="%Logbooks" HBox.hgrow="ALWAYS"/>
+                        <TextField fx:id="logbooksSelection" HBox.hgrow="ALWAYS" editable="false">
+                           <HBox.margin>
+                              <Insets bottom="4.0" left="5.0" right="3.0"/>
+                           </HBox.margin>
+                        </TextField>
+                        <ToggleButton fx:id="logbooksDropdownButton" mnemonicParsing="false" onAction="#selectLogbooks"/>
+                        <Button fx:id="addLogbooks" onAction="#addLogbooks">
+                           <HBox.margin>
+                              <Insets left="3.0"/>
+                           </HBox.margin>
+                        </Button>
+                     </children>
+                  </HBox>
+                  <HBox>
+                     <children>
+                        <Label prefHeight="27.0" prefWidth="80.0" text="%Tags"/>
+                        <TextField fx:id="tagsSelection" HBox.hgrow="ALWAYS" editable="false">
+                           <HBox.margin>
+                              <Insets left="5.0" right="3.0" top="4.0"/>
+                           </HBox.margin>
+                        </TextField>
+                        <ToggleButton fx:id="tagsDropdownButton" mnemonicParsing="false" onAction="#selectTags">
+                           <HBox.margin>
+                              <Insets top="4.0"/>
+                           </HBox.margin>
+                        </ToggleButton>
+                        <Button fx:id="addTags" onAction="#addTags">
+                           <HBox.margin>
+                              <Insets left="3.0" top="4.0"/>
+                           </HBox.margin>
+                        </Button>
+                     </children>
+                  </HBox>
+               </children>
             </VBox>
             <HBox alignment="TOP_CENTER" spacing="5.0" VBox.vgrow="ALWAYS">
                <children>
                   <Label fx:id="textLabel" prefWidth="80.0" text="%Text" />
-                  <TextArea fx:id="textArea" prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS" />
+                  <TextArea fx:id="textArea" prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS" wrapText="true"/>
                </children>
             </HBox>
             <HBox>

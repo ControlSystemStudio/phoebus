@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.web.*?>
+
+<SplitPane dividerPositions="0.75" orientation="VERTICAL" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.SingleLogEntryDisplayController">
+    <items>
+        <VBox maxHeight="1.7976931348623157E308">
+            <children>
+                <GridPane fx:id="headerPane" hgap="1.0" vgap="1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                    </rowConstraints>
+                    <children>
+
+                        <Label fx:id="logOwner" text="owner">
+                            <font>
+                                <Font size="20.0" />
+                            </font>
+                            <padding>
+                                <Insets left="5.0" />
+                            </padding>
+                            <GridPane.margin>
+                                <Insets />
+                            </GridPane.margin>
+                        </Label>
+                        <Label fx:id="logTitle" text="title" GridPane.rowIndex="1">
+                            <padding>
+                                <Insets left="5.0" />
+                            </padding>
+                            <font>
+                                <Font name="Arial Bold" size="14.0" />
+                            </font>
+                        </Label>
+                        <Label fx:id="logTime" contentDisplay="RIGHT" text="1970-01-01 00:00:00" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
+                            <padding>
+                                <Insets right="5.0" />
+                            </padding>
+                            <font>
+                                <Font name="Arial Bold" size="14.0" />
+                            </font>
+                        </Label>
+
+                        <GridPane GridPane.columnSpan="2" GridPane.rowIndex="2">
+                            <columnConstraints>
+                                <ColumnConstraints />
+                                <ColumnConstraints />
+                                <ColumnConstraints />
+                            </columnConstraints>
+                            <rowConstraints>
+                                <RowConstraints />
+                                <RowConstraints />
+                            </rowConstraints>
+                            <children>
+                                <ImageView fx:id="logbookIcon" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
+                                    <GridPane.margin>
+                                        <Insets bottom="3.0" right="3.0" top="3.0" />
+                                    </GridPane.margin>
+                                </ImageView>
+                                <Label fx:id="logbooks" text="Logbooks" GridPane.columnIndex="1">
+                                    <GridPane.margin>
+                                        <Insets />
+                                    </GridPane.margin>
+                                </Label>
+                                <Label fx:id="logEntryId" text="999" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.hgrow="ALWAYS">
+                                    <GridPane.margin>
+                                        <Insets right="5.0" />
+                                    </GridPane.margin>
+                                </Label>
+                                <ImageView fx:id="tagIcon" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" GridPane.rowIndex="1">
+                                    <GridPane.margin>
+                                        <Insets bottom="3.0" right="3.0" top="3.0" />
+                                    </GridPane.margin>
+                                </ImageView>
+                                <Label fx:id="tags" text="Tags" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                <Label fx:id="level" text="Shift Start" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
+                                    <GridPane.margin>
+                                        <Insets right="5.0" />
+                                    </GridPane.margin>
+                                </Label>
+                            </children>
+                            <padding>
+                                <Insets bottom="5.0" left="5.0" top="2.0" />
+                            </padding>
+                        </GridPane>
+
+                        <Button fx:id="copyURLButton" contentDisplay="RIGHT" mnemonicParsing="false" onAction="#copyURL" text="%CopyURL" GridPane.columnIndex="1" GridPane.halignment="RIGHT">
+                            <GridPane.margin>
+                                <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
+                            </GridPane.margin>
+                        </Button>
+
+                    </children>
+                </GridPane>
+
+                <WebView fx:id="logDescription" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS" />
+            </children>
+        </VBox>
+
+        <AnchorPane fx:id="attachmentsAndPropertiesPane" minHeight="0.0" minWidth="0.0">
+            <children>
+                <Accordion AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <panes>
+                        <TitledPane fx:id="attachmentsPane" animated="false" text="Attachments">
+                            <content>
+                                <fx:include fx:id="attachmentsPreview" source="AttachmentsPreview.fxml" />
+                            </content>
+                        </TitledPane>
+                        <TitledPane fx:id="propertiesPane" animated="false" text="Properties">
+                            <content>
+                                <fx:include fx:id="properties" source="LogProperties.fxml" />
+                            </content>
+                        </TitledPane>
+                    </panes>
+                    <padding>
+                        <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
+                    </padding>
+                </Accordion>
+            </children>
+        </AnchorPane>
+    </items>
+</SplitPane>

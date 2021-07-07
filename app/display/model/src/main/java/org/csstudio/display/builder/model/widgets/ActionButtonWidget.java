@@ -21,6 +21,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.csstudio.display.builder.model.MacroizedWidgetProperty;
 import org.csstudio.display.builder.model.Version;
@@ -42,6 +43,8 @@ import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
 /** Widget that provides button for invoking actions.
@@ -155,6 +158,22 @@ public class ActionButtonWidget extends PVWidget
                 }
             }
 
+            // Support for translating the cs-studio actions to launch phoebus to simple open display actions
+            final Element original_actions = XMLUtil.getChildElement(xml, "actions");
+            if(original_actions != null)
+            {
+                NodeList list = original_actions.getElementsByTagName("action");
+                for (int i = 0; i < list.getLength(); i++)
+                {
+                    //list.item(i).
+                    Node node = list.item(i);
+                    if(node.getAttributes().getNamedItem("type").getNodeValue().equalsIgnoreCase("OPEN_PHOEBUS"))
+                    {
+                        node.getAttributes().getNamedItem("type").setNodeValue("OPEN_DISPLAY");
+                    }
+                }
+            }
+
             super.configureFromXML(model_reader, widget, xml);
 
             final ActionButtonWidget button = (ActionButtonWidget)widget;
@@ -190,6 +209,7 @@ public class ActionButtonWidget extends PVWidget
 
             return true;
         }
+
     }
 
     @Override

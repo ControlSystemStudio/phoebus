@@ -170,12 +170,20 @@ class ServerModel
                     {   // No config -> Delete node
                         final AlarmTreeItem<?> node = deleteNode(path);
                         if (node != null)
-                            stopPVs(node);
+                            stopDeletedPVs(node);
+                        // else: Deletion message for node we never created
                     }
                     else
                     {
                         // Get node_config as JSON map to check for "pv" key
                         final Object json = JsonModelReader.parseJsonText(node_config);
+
+                        // Ignore 'delete' messages because they don't update the config
+                        // and would result in superfluous PV stop() and re-start().
+                        // The follow-up message with config == null will actually delete the AlarmServerPV
+                        if (JsonModelReader.isConfigDeletion(json))
+                            continue;
+
                         AlarmTreeItem<?> node = findNode(path);
 
                         // New node? Create it.
@@ -360,14 +368,18 @@ class ServerModel
     /** Stop PVs in a subtree of the alarm hierarchy
      *  @param node Node where to start
      */
-    private void stopPVs(final AlarmTreeItem<?> node)
+    private void stopDeletedPVs(final AlarmTreeItem<?> node)
     {
-        // If this was a known PV, notify listener
         if (node instanceof AlarmServerPV)
+        {
+            // Stop the PV, i.e. no longer react to value updates
             ((AlarmServerPV) node).stop();
+            // Send a null "tombstone" status update
+            sendStateUpdate(node.getPathName(), null);
+        }
         else
             for (AlarmTreeItem<?> child : node.getChildren())
-                stopPVs(child);
+                stopDeletedPVs(child);
     }
 
     /** Send alarm update to 'state' topic

@@ -36,7 +36,7 @@ Here is an example where an application is including a context menu item to make
 
 case 1.
 
-Without the use of Adapters and Selection service, each potential menu contribution has to me manually included/excluded.
+Without the use of Adapters and Selection service, each potential menu contribution has to be manually included/excluded.
 
 .. code:: java
 
@@ -82,4 +82,4 @@ With the use of adapters and the selection service, each application simply need
 
 Register zero or more
 `AdapterFactories <https://github.com/ControlSystemStudio/phoebus/blob/master/app/logbook/ui/src/main/java/org/phoebus/logbook/ui/adapters/AppSelectionAdapterFactory.java>`_
-which provide the mechanism to adapt an AppSelection to a simple LogEntry or an Olog LogEnrty
+which provide the mechanism to adapt an AppSelection to a simple LogEntry or an Olog LogEntry

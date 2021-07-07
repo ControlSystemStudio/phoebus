@@ -4,10 +4,10 @@ Locations
 =========
 
 Phoebus uses the following Java System properties
-to locatehelp files, saved state etc.
+to locate help files, saved state etc.
 
 These system variables are typically set automatically
-as described below, but when necassary they can be
+as described below, but when necessary they can be
 set when starting the product.
 
 ``phoebus.install``:
@@ -33,7 +33,7 @@ The ``phoebus.install`` location is used for branding and site-specific settings
    This allows packing site-specific settings into your product.
    
 ``site_splash.png``:
-   This image will replace the default spash screen background
+   This image will replace the default splash screen background
    with a site-specific version.
    It should be sized 480x300.
 

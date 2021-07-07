@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -242,9 +242,25 @@ public class JsonModelReader
     {
         final JsonNode actual = (JsonNode) json;
         JsonNode jn = actual.get(JsonTags.NOTIFY);
-	return jn == null ? false : !jn.asBoolean();
+        return jn == null ? false : !jn.asBoolean();
     }
 
+    /** Check for config 'delete' info message
+     *  @param json
+     *  @return <code>true</code> if in disable_notify mode
+     */
+    public static boolean isConfigDeletion(final Object json)
+    {
+        final JsonNode actual = (JsonNode) json;
+        final JsonNode jn = actual.get(JsonTags.DELETE);
+        return jn != null;
+    }
+
+    
+    /** Update alarm state from received JSON
+     *  @param node Node to update
+     *  @param json JSON with state information
+     */
     public static boolean updateAlarmState(final AlarmTreeItem<?> node, final Object json)
     {
         final JsonNode actual = (JsonNode) json;

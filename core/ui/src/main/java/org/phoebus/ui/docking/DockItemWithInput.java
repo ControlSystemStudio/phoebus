@@ -14,12 +14,17 @@ import java.net.URI;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import javafx.scene.Scene;
+import javafx.stage.Window;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.JobRunnable;
@@ -209,23 +214,32 @@ public class DockItemWithInput extends DockItem
         if (! isDirty())
             return CompletableFuture.completedFuture(true);
 
-        final String text = MessageFormat.format(Messages.DockAlertMsg, getLabel());
-        final Alert prompt = new Alert(AlertType.NONE,
-                                       text,
-                                       ButtonType.NO, ButtonType.CANCEL, ButtonType.YES);
-        prompt.setTitle(Messages.DockAlertTitle);
-        prompt.getDialogPane().setMinSize(300, 100);
-        prompt.setResizable(true);
-        DialogHelper.positionDialog(prompt, getTabPane(), -200, -100);
-        final ButtonType result = prompt.showAndWait().orElse(ButtonType.CANCEL);
+        final FutureTask promptToSave = new FutureTask(() -> {
+            final String text = MessageFormat.format(Messages.DockAlertMsg, getLabel());
+            final Alert prompt = new Alert(AlertType.NONE,
+                    text,
+                    ButtonType.NO, ButtonType.CANCEL, ButtonType.YES);
+            prompt.setTitle(Messages.DockAlertTitle);
+            prompt.getDialogPane().setMinSize(300, 100);
+            prompt.setResizable(true);
+            DialogHelper.positionDialog(prompt, getTabPane(), -200, -100);
+            return prompt.showAndWait().orElse(ButtonType.CANCEL);
+        });
 
-        // Cancel the close request
-        if (result == ButtonType.CANCEL)
+        Platform.runLater(promptToSave);
+
+        try {
+            ButtonType result = (ButtonType)promptToSave.get();
+            // Cancel the close request
+            if (result == ButtonType.CANCEL)
+                return CompletableFuture.completedFuture(false);
+            // Close without saving?
+            if (result == ButtonType.NO)
+                return CompletableFuture.completedFuture(true);
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Unable to get result from save resource prompt", e);
             return CompletableFuture.completedFuture(false);
-
-        // Close without saving?
-        if (result == ButtonType.NO)
-            return CompletableFuture.completedFuture(true);
+        }
 
         // Save in background job ...
         final CompletableFuture<Boolean> done = new CompletableFuture<>();
@@ -233,7 +247,7 @@ public class DockItemWithInput extends DockItem
         {
             save(monitor);
             // Indicate if we may close, or need to stay open because of error
-            done.complete(! isDirty());
+            done.complete(!isDirty());
         });
         return done;
     }
@@ -244,7 +258,7 @@ public class DockItemWithInput extends DockItem
      *  menu items or when a 'dirty' tab is closed.
      *
      *  <p>Will never be called when the item remains clean,
-     *  i.e. never called {@link #setDirty(true)}.
+     *  i.e. never called {@link DockItemWithInput#setDirty(boolean)}.
      *
      *  @param monitor {@link JobMonitor} for reporting progress
      *  @return <code>true</code> on success

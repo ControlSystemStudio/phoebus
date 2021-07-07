@@ -19,6 +19,8 @@
 package org.phoebus.logbook.olog.ui.write;
 
 import org.junit.Test;
+import org.phoebus.olog.es.api.model.OlogLog;
+
 import static org.junit.Assert.*;
 
 public class AttachmentsViewControllerTest {
@@ -26,7 +28,7 @@ public class AttachmentsViewControllerTest {
     @Test
     public void testRemoveImageMarkup(){
         AttachmentsViewController attachmentsViewController =
-                new AttachmentsViewController(null, false);
+                new AttachmentsViewController(new OlogLog());
 
         String markup = "![](attachment/123456789){width=100 height=100}";
         String result = attachmentsViewController.removeImageMarkup(markup, "123456789");

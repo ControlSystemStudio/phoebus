@@ -66,7 +66,7 @@ after a restart.
 Settings loaded via either the ``-settings ..`` command line option
 or the ``Import Preferences`` button are stored in the user location (see :ref:`locations`).
 They remain effective until different settings are loaded or the user location is deleted.
-It is therefore not neccessary to always run the application with the same
+It is therefore not necessary to always run the application with the same
 ``-settings ..`` command line option. Just invoking with the command line option
 once or using the ``Import Preferences`` button once suffices to load settings.
 In practice, however, it is advisable to include the ``-settings ..`` command line option
@@ -81,7 +81,7 @@ for your site, there is usually no need to change them.
 
 Most important, these are not settings that an end user would need to see
 and frequently adjust during ordinary use of the application.
-For such runtime settings, each applicaition needs to offer user interface options
+For such runtime settings, each application needs to offer user interface options
 like context menus or configuration dialogs.
 
 When you package phoebus for distribution at your site, you can also place
