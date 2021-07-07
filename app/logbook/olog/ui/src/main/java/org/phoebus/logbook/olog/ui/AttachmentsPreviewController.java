@@ -19,6 +19,7 @@
 package org.phoebus.logbook.olog.ui;
 
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -27,20 +28,20 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.scene.Cursor;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
@@ -48,6 +49,7 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.util.IOUtils;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.olog.ui.write.AttachmentsViewController;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import javax.imageio.ImageIO;
@@ -91,14 +93,13 @@ public class AttachmentsPreviewController {
      */
     private ObservableList<Attachment> selectedAttachments = FXCollections.observableArrayList();
 
+    private SimpleObjectProperty<Attachment> selectedAttachment = new SimpleObjectProperty();
+
     /**
      * List of listeners that will be notified when user has selected one or multiple attachments in
      * the {@link ListView}.
      */
     private List<ListChangeListener<Attachment>> listSelectionChangeListeners = new ArrayList<>();
-
-    private SimpleObjectProperty<Attachment> selectedAttachment =
-            new SimpleObjectProperty<>();
 
     @FXML
     public void initialize() {
@@ -140,6 +141,20 @@ public class AttachmentsPreviewController {
 
         imagePreview.fitWidthProperty().bind(previewPane.widthProperty());
         imagePreview.fitHeightProperty().bind(previewPane.heightProperty());
+        imagePreview.hoverProperty().addListener((event)-> {
+            if(((ReadOnlyBooleanProperty)event).get()){
+                splitPane.getScene().setCursor(Cursor.HAND);
+            }
+            else{
+                splitPane.getScene().setCursor(Cursor.MOVE);
+            }
+        });
+        imagePreview.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
+            if(selectedAttachment.get() != null && selectedAttachment.get().getContentType().startsWith("image")){
+                launchImageViewer();
+            }
+            event.consume();
+        });
     }
 
     public ObservableList<Attachment> getSelectedAttachments() {
@@ -286,13 +301,15 @@ public class AttachmentsPreviewController {
         try {
             BufferedImage bufferedImage = ImageIO.read(selectedAttachment.get().getFile());
             Image image = SwingFXUtils.toFXImage(bufferedImage, null);
-            Alert alert = new Alert(AlertType.INFORMATION, "Error", ButtonType.OK);
+            Alert alert = new Alert(AlertType.INFORMATION);
+            alert.setTitle(null);
+            alert.setHeaderText(null);
             ImageView imageView = new ImageView(image);
-            ScrollPane scrollPane = new ScrollPane();
-            scrollPane.hbarPolicyProperty().setValue(ScrollBarPolicy.ALWAYS);
-            scrollPane.vbarPolicyProperty().setValue(ScrollBarPolicy.ALWAYS);
-            scrollPane.contentProperty().setValue(imageView);
-            alert.setGraphic(scrollPane);
+            alert.getDialogPane().setPadding(new Insets(10, 10, 5, 0));
+            alert.getDialogPane().setContent(imageView);
+            alert.setGraphic(null);
+            alert.setResizable(true);
+            DialogHelper.positionDialog(alert, splitPane, -200, -500);
             alert.showAndWait();
         } catch (IOException e) {
             e.printStackTrace();
