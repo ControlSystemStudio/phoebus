@@ -154,8 +154,8 @@ Method: GET
 Return:
 The details of the *parent* node of the node with id `{uniqueNodeId}`
 
-Get a children
-""""""""""""""
+Get children
+""""""""""""
 
 **.../node/{uniqueNodeId}/children**
 
@@ -212,7 +212,7 @@ Body:
 
 nodeType: "CONFIGURATION" or "FOLDER"
 
-The nodeType can be used to specify if we want to create a new folder or a new snapshot configuration
+The nodeType can be used to specify if we want to create a new folder or a new save set configuration
 
 Return:
 If the node was successfully created you will a 200 response with the details of the newly created node
