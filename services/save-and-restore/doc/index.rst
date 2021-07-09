@@ -1,7 +1,7 @@
 Save-and-restore service
 ========================
 
-The save-and-restore service implements the MASAR (MAchine Save And Restore) service as a collection
+The save-and-restore service implements the MASAR (MAchine SAve and Restore) service as a collection
 of REST endpoints. These can be used by clients to manage save sets (aka configurations) and
 snapshots, to compare snapshots and to restore settings from snapshots.
 
@@ -57,3 +57,215 @@ other than Postgresql or Mysql, use this checklist:
 Note that the persistence layer contains hard coded SQL which may be invalid for other database engines. If
 there is a need to modify the SQL statement, please discuss this with the community as addition of ORM may be a
 better alternative.
+
+REST API for Save Restore Service
+=================================
+
+**Configuration:**
+
+A Save Restore configuration is a set of PV's which are used to take a snapshot.
+The configuration can also consist of a few options parameters.
+
+- readback pv associated with the pv
+- flag to indicate if this pv should restored
+
+The configurations can be organized in the file system like directory structure.
+
+
+**Snapshot:**
+
+A Save set snapshot consists of a list ov pvs along with their values at a particular instant in time.
+
+REST Services
+-------------
+
+The service is implemented as a REST style web service, which – in this context – means:
+
+| •  The URL specifies the data element that the operation works upon.
+| •  The HTTP method specifies the type of operation.
+
+| GET: retrieve or query, does not modify data
+| PUT: create or update, replacing the addressed element
+| POST: create or update subordinates of the addressed element
+| DELETE: delete the addressed element
+
+
+Configuration Management
+------------------------
+
+Get the root node
+"""""""""""""""""
+
+**.../root**
+
+Method: GET
+
+Return:
+The root node of the save restore configuration tree
+
+.. code-block:: JSON
+
+    {
+        "id": 0,
+        "uniqueId": "25132263-9bee-41ef-8647-fb91632ab9a8",
+        "name": "Root folder",
+        "created": 1623700954000,
+        "lastModified": 1623701038000,
+        "nodeType": "FOLDER",
+        "userName": "Developer",
+        "properties": {
+            "root": "true"
+        },
+        "tags": []
+    }
+
+
+Get a node
+""""""""""
+
+**.../node/{uniqueNodeId}**
+
+Method: GET
+
+Return:
+The details of the node with id `{uniqueNodeId}`
+
+.. code-block:: JSON
+
+    {
+        "id": 3,
+        "uniqueId": "ae9c3d41-5aa0-423d-a24e-fc68712b0894",
+        "name": "CSX",
+        "created": 1623701056000,
+        "lastModified": 1623780701000,
+        "nodeType": "FOLDER",
+        "userName": "kunal",
+        "properties": {},
+        "tags": []
+    }
+
+Get a node parent
+"""""""""""""""""
+
+**.../node/{uniqueNodeId}/parent**
+
+Method: GET
+
+Return:
+The details of the *parent* node of the node with id `{uniqueNodeId}`
+
+Get children
+""""""""""""
+
+**.../node/{uniqueNodeId}/children**
+
+Method: GET
+
+Return:
+The a list of all the children nodes of the node with id `{uniqueNodeId}`
+
+.. code-block:: JSON
+
+    [
+        {
+            "id": 4,
+            "uniqueId": "8cab9311-0c77-4307-a508-a33677ecc631",
+            "name": "Camera",
+            "created": 1623701073000,
+            "lastModified": 1625836981000,
+            "nodeType": "CONFIGURATION",
+            "userName": "kunal",
+            "properties": {},
+            "tags": []
+        },
+        {
+            "id": 13,
+            "uniqueId": "3aa5baa3-8386-4a74-84bb-5fdd9afccc7f",
+            "name": "ROI",
+            "created": 1623780701000,
+            "lastModified": 1623780701000,
+            "nodeType": "CONFIGURATION",
+            "userName": "kunal",
+            "properties": {},
+            "tags": []
+        }
+    ]
+
+Create a new node
+"""""""""""""""""
+
+**.../node/{parentsUniqueId}**
+
+Method: PUT
+
+Body:
+
+.. code-block:: JSON
+
+    {
+        "name": "New_Node_Camera",
+        "nodeType": "CONFIGURATION",
+        "userName": "kunal",
+        "properties": {},
+        "tags": []
+    }
+
+nodeType: "CONFIGURATION" or "FOLDER"
+
+The nodeType can be used to specify if we want to create a new folder or a new save set configuration
+
+Return:
+If the node was successfully created you will a 200 response with the details of the newly created node
+
+.. code-block:: JSON
+
+    {
+        "id": 21,
+        "uniqueId": "c4302cfe-60e2-46ec-bf2b-dcd13c0ef4c0",
+        "name": "New_Node_Camera",
+        "created": 1625837873000,
+        "lastModified": 1625837873000,
+        "nodeType": "CONFIGURATION",
+        "userName": "kunal",
+        "properties": {},
+        "tags": []
+    }
+
+Update a configuration
+""""""""""""""""""""""
+
+**.../config/{uniqueNodeId}/update**
+
+Method: GET
+
+Body:
+
+.. code-block:: JSON
+
+    {
+        "config": {
+            "uniqueId": "8cab9311-0c77-4307-a508-a33677ecc631",
+            "userName": "kunal"
+        },
+        "configPvList" :
+        [
+            {
+                "pvName": "13SIM1:{SimDetector-Cam:1}cam1:BinX"
+            },
+            {
+                "pvName": "13SIM1:{SimDetector-Cam:1}cam1:BinY"
+            },
+            {
+                "pvName": "13SIM1:{SimDetector-Cam:2}cam2:BinX",
+                "readbackPvName": null,
+                "readOnly": false
+            },
+            {
+                "pvName": "13SIM1:{SimDetector-Cam:2}cam2:BinY",
+                "readbackPvName": null,
+                "readOnly": false
+            }
+        ]
+    }
+
+
