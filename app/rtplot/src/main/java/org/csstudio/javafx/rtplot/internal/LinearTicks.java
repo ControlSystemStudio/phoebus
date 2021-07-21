@@ -91,7 +91,7 @@ public class LinearTicks extends Ticks<Double>
         final boolean normal = low < high;
         final double range = Math.abs(high-low);
 
-        final long order_of_magnitude = Math.round(Log10.log10(range));
+        final long order_of_magnitude = Math.abs(Math.round(Log10.log10(range)));
 
         // Determine initial precision for displaying numbers in this range.
         // Precision must be set to format test entries, which
