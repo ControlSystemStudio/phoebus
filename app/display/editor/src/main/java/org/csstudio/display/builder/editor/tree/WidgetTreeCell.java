@@ -15,7 +15,6 @@ import org.csstudio.display.builder.model.MacroizedWidgetProperty;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.widgets.NavigationTabsWidget;
-import org.csstudio.display.builder.model.widgets.TabsWidget;
 import org.csstudio.display.builder.model.widgets.VisibleWidget;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.ui.javafx.ImageCache;
@@ -136,7 +135,7 @@ class WidgetTreeCell extends TextFieldTreeCell<WidgetOrTab>
 
                 // Extra icon for widgets with macros defined
                 Optional<WidgetProperty<Macros>> optMacros = widget.checkProperty(propMacros);
-                final String iconName = "/icons/money_dollar.png";
+                final String iconName = "/icons/macro_hint.png";
                 if (optMacros.isPresent() && optMacros.get().getValue().getNames().size() > 0)
                 {
                     ImageView macroIcon = ImageCache.getImageView(DisplayEditor.class.getResource(iconName));
