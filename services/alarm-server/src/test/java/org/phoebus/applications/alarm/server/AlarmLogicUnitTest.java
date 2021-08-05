@@ -1081,9 +1081,20 @@ public class AlarmLogicUnitTest
         logic.setEnabled(false);
 
         // .. and should still be ignored after delay expires because of disablement
-        System.out.println("Waiting for delayed alarm...");
+        System.out.println("Waiting for delayed alarm, but we're disabled");
         Thread.sleep(delay * 2 * 1000);
         logic.check(true, false, SeverityLevel.OK, OK, SeverityLevel.OK, Messages.Disabled);
         assertEquals("", logic.getAlarmState().getValue());
+
+        // When re-enabled, the timer needs to re-start
+        System.out.println("Re-enabling, awaiting delayed alarm");
+        // So there's no immediate alarm...
+        logic.setEnabled(true);
+        logic.check(true, false, SeverityLevel.MAJOR, "very high", SeverityLevel.OK, OK);
+        assertEquals("", logic.getAlarmState().getValue());
+
+        Thread.sleep(delay * 2 * 1000);
+        logic.check(true, true, SeverityLevel.MAJOR, "very high", SeverityLevel.MAJOR, "very high");
+        assertEquals("a", logic.getAlarmState().getValue());
     }
 }

@@ -199,7 +199,11 @@ public class AlarmLogic // implements GlobalAlarmListener
             listener.alarmStateChanged(current, alarm);
         }
         else
-        {   // (Re-)enabled
+        {
+            if (Messages.Disabled.equals(alarm_state.message))
+                alarm_state = new AlarmState(SeverityLevel.OK,
+                                             SeverityLevel.OK.name(), "", Instant.now());
+            // (Re-)enabled
             if (disabled_state != null)
             {
                 computeNewState(disabled_state);
