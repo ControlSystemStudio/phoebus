@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Template and Instances</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>550</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>This widget is similar to the Embedded Display widget, like the following one that displays the 'template' with some macro value.</text>
+    <y>40</y>
+    <width>470</width>
+    <height>40</height>
+  </widget>
+  <widget type="template" version="2.0.0">
+    <name>Template/Instance</name>
+    <file>template.bob</file>
+    <instances>
+      <instance>
+        <macros>
+          <I>1</I>
+        </macros>
+      </instance>
+      <instance>
+        <macros>
+          <I>2</I>
+        </macros>
+      </instance>
+      <instance>
+        <macros>
+          <I>3</I>
+        </macros>
+      </instance>
+    </instances>
+    <y>230</y>
+    <width>200</width>
+    <height>130</height>
+    <gap>5</gap>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>The Template &amp; Instances widget loads an embedded display file as a "template", which is then presented in N "instances".
+Each instance has its own macros.
+Each instance is shown at its original size, and consecutive instances are layed out horizontally or vertically with an optional gap.</text>
+    <y>130</y>
+    <width>470</width>
+    <height>90</height>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>Embedded Display</name>
+    <macros>
+      <I>42</I>
+    </macros>
+    <file>template.bob</file>
+    <y>80</y>
+    <width>200</width>
+    <height>40</height>
+    <resize>2</resize>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry</name>
+    <pv_name>test_calc.CALC</pv_name>
+    <x>150</x>
+    <y>570</y>
+    <width>290</width>
+    <height>30</height>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_1</name>
+    <pv_name>test_calc.CALC$</pv_name>
+    <x>150</x>
+    <y>610</y>
+    <width>290</width>
+    <height>30</height>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_2</name>
+    <pv_name>test_calc.CALC$</pv_name>
+    <x>150</x>
+    <y>650</y>
+    <width>290</width>
+    <height>30</height>
+    <format>6</format>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>CALC, Default:</text>
+    <x>40</x>
+    <y>580</y>
+    <width>110</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>CALC$, Default:</text>
+    <x>40</x>
+    <y>620</y>
+    <width>130</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>CALC$, String:</text>
+    <x>40</x>
+    <y>660</y>
+    <width>110</width>
+  </widget>
+</display>

@@ -20,6 +20,7 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.widgets.TemplateInstanceWidget;
+import org.csstudio.display.builder.model.widgets.TemplateInstanceWidget.InstanceProperty;
 import org.csstudio.display.builder.representation.EmbeddedDisplayRepresentationUtil.DisplayAndGroup;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
@@ -34,6 +35,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
+import javafx.scene.shape.Rectangle;
 
 /** Creates JavaFX item for model widget
  *
@@ -114,6 +116,8 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
         super.registerListeners();
         model_widget.propWidth().addUntypedPropertyListener(sizesChangedListener);
         model_widget.propHeight().addUntypedPropertyListener(sizesChangedListener);
+        model_widget.propInstances().addUntypedPropertyListener(sizesChangedListener);
+        model_widget.propGap().addUntypedPropertyListener(sizesChangedListener);
 
         model_widget.propFile().addUntypedPropertyListener(fileChangedListener);
         // TODO Array of macros model_widget.propMacros().addUntypedPropertyListener(fileChangedListener);
@@ -126,6 +130,9 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
     {
         model_widget.propWidth().removePropertyListener(sizesChangedListener);
         model_widget.propHeight().removePropertyListener(sizesChangedListener);
+        model_widget.propInstances().removePropertyListener(sizesChangedListener);
+        model_widget.propGap().removePropertyListener(sizesChangedListener);
+
         model_widget.propFile().removePropertyListener(fileChangedListener);
         // Array of macros model_widget.propMacros().removePropertyListener(fileChangedListener);
         super.unregisterListeners();
@@ -142,9 +149,7 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
             // Size to content
             final int content_width = content_model.propWidth().getValue();
             final int content_height = content_model.propHeight().getValue();
-
-            // TODO
-            final int count = 3;
+            final int count = model_widget.propInstances().size();
             final int gap = model_widget.propGap().getValue();
             final boolean horiz = model_widget.propHorizontal().getValue();
 
@@ -227,7 +232,7 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
                 new_model.propBackgroundColor().addUntypedPropertyListener(backgroundChangedListener);
 
                 if (old_model != null)
-                {   // Dispose old model
+                {   // Dispose old model  TODO Dispose N instances
                     final Future<Object> completion = toolkit.submit(() ->
                     {
                         toolkit.disposeRepresentation(old_model);
@@ -266,7 +271,24 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
             sizesChanged(null, null, null);
 
             // TODO Represent N times with different macros
+            final int w = content_model.propWidth().getValue();
+            final int h = content_model.propHeight().getValue();
+            int i = 0, x = 0, y = 0;
+            for (InstanceProperty instance : model_widget.propInstances().getValue())
+            {
+                final Rectangle hint = new Rectangle(x, y, w, h);
+                hint.setFill(new Color(0, 0, 1.0, 0.1));
+                inner.getChildren().add(hint);
+
+                if (model_widget.propHorizontal().getValue())
+                    x += w + model_widget.propGap().getValue();
+                else
+                    y += h + model_widget.propGap().getValue();
+                ++i;
+            }
+
             toolkit.representModel(inner, content_model);
+
             backgroundChanged(null, null, null);
         }
         catch (final Exception ex)

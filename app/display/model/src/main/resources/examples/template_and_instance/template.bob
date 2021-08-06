@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display</name>
+  <width>220</width>
+  <height>40</height>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Example $(I):</text>
+    <x>10</x>
+    <y>10</y>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <pv_name>loc://demo$(I)($(I))</pv_name>
+    <x>110</x>
+    <y>10</y>
+  </widget>
+</display>
