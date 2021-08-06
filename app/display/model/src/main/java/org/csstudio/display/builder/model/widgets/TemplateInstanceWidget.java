@@ -96,7 +96,7 @@ public class TemplateInstanceWidget extends VisibleWidget
         super.defineProperties(properties);
         properties.add(file = propFile.createProperty(this, ""));
         properties.add(horizontal = propHorizontal.createProperty(this, false));
-        properties.add(gap = propGap.createProperty(this, 0));
+        properties.add(gap = propGap.createProperty(this, 0)); // TODO Default 10?
         properties.add(embedded_model = runtimeModel.createProperty(this, null));
     }
 
