@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -40,6 +40,7 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
  *  @see AlarmLogicUnitTest
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class AlarmLogic // implements GlobalAlarmListener
 {
     /** @see #getMaintenanceMode() */
@@ -94,6 +95,7 @@ public class AlarmLogic // implements GlobalAlarmListener
     private volatile AlarmState alarm_state;
 
     /** Delay [seconds] after which a 'global' alarm state update is sent */
+    @SuppressWarnings("unused")
     final private int global_delay;
 
     /** Pending global alarm state update or <code>null</code> */
@@ -102,6 +104,7 @@ public class AlarmLogic // implements GlobalAlarmListener
     /** Is there an active 'global' alarm, i.e. a global alarm notification
      *  has been sent?
      */
+    @SuppressWarnings("unused")
     private boolean in_global_alarm = false;
 
     /** Initialize
@@ -137,7 +140,6 @@ public class AlarmLogic // implements GlobalAlarmListener
      *  @param maintenance_mode
      *  @see #getMaintenanceMode()
      */
-    @SuppressWarnings("nls")
     public static void setMaintenanceMode(final boolean maintenance_mode)
     {
         AlarmLogic.maintenance_mode = maintenance_mode;
@@ -160,7 +162,6 @@ public class AlarmLogic // implements GlobalAlarmListener
      *  @param disable_notify
      *  @see #getDisableNotify()
      */
-    @SuppressWarnings("nls")
     public static void setDisableNotify(final boolean disable_notify)
     {
         AlarmLogic.disable_notify = disable_notify;
@@ -198,7 +199,11 @@ public class AlarmLogic // implements GlobalAlarmListener
             listener.alarmStateChanged(current, alarm);
         }
         else
-        {   // (Re-)enabled
+        {
+            if (Messages.Disabled.equals(alarm_state.message))
+                alarm_state = new AlarmState(SeverityLevel.OK,
+                                             SeverityLevel.OK.name(), "", Instant.now());
+            // (Re-)enabled
             if (disabled_state != null)
             {
                 computeNewState(disabled_state);
@@ -433,7 +438,8 @@ public class AlarmLogic // implements GlobalAlarmListener
     /** Listener to delayed update */
     public void delayedStateUpdate(final AlarmState delayed_state)
     {
-        updateState(delayed_state, false);
+        if (isEnabled())
+            updateState(delayed_state, false);
     }
 
     /** Check if the new state adds up to 'count' alarms within 'delay'
@@ -528,6 +534,7 @@ public class AlarmLogic // implements GlobalAlarmListener
         final AlarmState current, alarm;
         // Cancel any scheduled 'global' update
 //        global_check.cancel();
+        @SuppressWarnings("unused")
         boolean clear_global_alarm = false;
         synchronized (this)
         {
@@ -564,7 +571,6 @@ public class AlarmLogic // implements GlobalAlarmListener
     }
 
     /** @return String representation for debugging */
-    @SuppressWarnings("nls")
     @Override
     public String toString()
     {

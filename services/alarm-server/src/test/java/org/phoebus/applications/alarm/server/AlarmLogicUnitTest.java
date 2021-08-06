@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2021 Oak Ridge National Laboratory.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -1039,5 +1039,62 @@ public class AlarmLogicUnitTest
         // Not really checking what was in the notification,
         // assuming that it matches the current alarm state:
         assertEquals(SeverityLevel.MAJOR, logic.getAlarmState().getSeverity());
+    }
+
+    /** Basic delayed alarm */
+    @Test
+    public void testDelayed() throws Exception
+    {
+        System.out.println("* Delayed");
+        final int delay = 2;
+        final AlarmLogicDemo logic = new AlarmLogicDemo(true, true, delay);
+        logic.check(false, false, SeverityLevel.OK, OK, SeverityLevel.OK, OK);
+        assertEquals("", logic.getAlarmState().getValue());
+
+        // MAJOR alarm has no immediate effect
+        logic.computeNewState("a", SeverityLevel.MAJOR, "very high");
+        logic.check(true, false, SeverityLevel.MAJOR, "very high", SeverityLevel.OK, OK);
+        assertEquals("", logic.getAlarmState().getValue());
+
+        // .. until the delay expires
+        System.out.println("Waiting for delayed alarm...");
+        Thread.sleep(delay * 2 * 1000);
+        logic.check(true, true, SeverityLevel.MAJOR, "very high", SeverityLevel.MAJOR, "very high");
+        assertEquals("a", logic.getAlarmState().getValue());
+    }
+
+    /** Test for https://github.com/ControlSystemStudio/phoebus/issues/1966 */
+    @Test
+    public void testDelayedThenDisabled() throws Exception
+    {
+        System.out.println("* Delayed, then disabled");
+        final int delay = 2;
+        final AlarmLogicDemo logic = new AlarmLogicDemo(true, true, delay);
+        logic.check(false, false, SeverityLevel.OK, OK, SeverityLevel.OK, OK);
+        assertEquals("", logic.getAlarmState().getValue());
+
+        // MAJOR alarm has no immediate effect
+        logic.computeNewState("a", SeverityLevel.MAJOR, "very high");
+        logic.check(true, false, SeverityLevel.MAJOR, "very high", SeverityLevel.OK, OK);
+        assertEquals("", logic.getAlarmState().getValue());
+
+        logic.setEnabled(false);
+
+        // .. and should still be ignored after delay expires because of disablement
+        System.out.println("Waiting for delayed alarm, but we're disabled");
+        Thread.sleep(delay * 2 * 1000);
+        logic.check(true, false, SeverityLevel.OK, OK, SeverityLevel.OK, Messages.Disabled);
+        assertEquals("", logic.getAlarmState().getValue());
+
+        // When re-enabled, the timer needs to re-start
+        System.out.println("Re-enabling, awaiting delayed alarm");
+        // So there's no immediate alarm...
+        logic.setEnabled(true);
+        logic.check(true, false, SeverityLevel.MAJOR, "very high", SeverityLevel.OK, OK);
+        assertEquals("", logic.getAlarmState().getValue());
+
+        Thread.sleep(delay * 2 * 1000);
+        logic.check(true, true, SeverityLevel.MAJOR, "very high", SeverityLevel.MAJOR, "very high");
+        assertEquals("a", logic.getAlarmState().getValue());
     }
 }
