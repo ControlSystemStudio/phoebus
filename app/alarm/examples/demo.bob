@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Alarm Demo</name>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Alarm Demo</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>550</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Alarm:</text>
+    <y>50</y>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry</name>
+    <pv_name>test_alarm</pv_name>
+    <x>60</x>
+    <y>50</y>
+  </widget>
+  <widget type="checkbox" version="2.0.0">
+    <name>Check Box</name>
+    <pv_name>test_enable</pv_name>
+    <label>Enabled</label>
+    <x>180</x>
+    <y>50</y>
+  </widget>
+</display>

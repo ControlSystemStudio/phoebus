@@ -177,6 +177,12 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     @Override
     public boolean setEnabled(final boolean enable)
     {
+        // When disabled, the PV won't run, because users complained about
+        // the alarm server trying to connect to disabled PVs.
+        // No PV means no value updates, mostly side-stepping the alarm logic.
+        // Still update the 'enabled' state to for example start/stop delayed alarm logic.
+        logic.setEnabled(enable);
+
         if (enabled.compareAndSet(! enable, enable))
         {
             AutomatedActionsHelper.configure(automated_actions,
