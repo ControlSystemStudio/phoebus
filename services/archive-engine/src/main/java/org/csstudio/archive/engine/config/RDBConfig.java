@@ -297,6 +297,20 @@ public class RDBConfig implements AutoCloseable
                 statement.executeUpdate();
             }
         }
+
+        if (enable)
+        {
+            // Register this channel as an 'enabling' channel for the group
+            try
+            (
+                PreparedStatement statement = connection.prepareStatement(sql.chan_grp_set_enable_channel);
+            )
+            {
+                statement.setInt(1, channel_id);
+                statement.setInt(2, group_id);
+                statement.executeUpdate();
+            }
+        }
     }
 
     /** @param config_name Name of engine config to delete

@@ -146,7 +146,7 @@ public class XMLConfig
                 final boolean monitor = XMLUtil.getChildElement(ce, MONITOR) != null;
                 final double period = SecondsParser.parseSeconds(XMLUtil.getChildString(ce, PERIOD).orElse("60.0"));
                 final double delta = XMLUtil.getChildDouble(ce, DELTA).orElse(-1.0);
-                final boolean enable = XMLUtil.getChildBoolean(ce, ENABLE).orElse(false);
+                final boolean enable = XMLUtil.getChildElement(ce, ENABLE) != null;
 
                 config.addChannel(group_id, duplicates, name, monitor, period, delta, enable);
             }

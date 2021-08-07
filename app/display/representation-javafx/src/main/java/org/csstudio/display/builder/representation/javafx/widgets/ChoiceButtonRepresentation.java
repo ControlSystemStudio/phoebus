@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -276,8 +276,13 @@ public class ChoiceButtonRepresentation extends JFXBaseRepresentation<TilePane, 
 
                 // Remove extra buttons
                 while (buttons.size() > save_items.size())
-                    buttons.remove(buttons.size() - 1);
-
+                {
+                    final Node last = buttons.get(buttons.size()-1);
+                    buttons.remove(last);
+                    // Adjust toggle group which is used to determine the value to write,
+                    // because simply removing button node won't detach it from its toggle group.
+                    toggle.getToggles().remove((Toggle)last);
+                }
                 // Set text of buttons, adding new ones as needed
                 for (int i = 0; i < save_items.size(); i++)
                     if (i < buttons.size())

@@ -7,12 +7,16 @@
  *******************************************************************************/
 package org.csstudio.display.builder.editor.tree;
 
+import javafx.scene.layout.HBox;
 import org.csstudio.display.builder.editor.DisplayEditor;
 import org.csstudio.display.builder.editor.undo.SetMacroizedWidgetPropertyAction;
 import org.csstudio.display.builder.editor.util.WidgetIcons;
 import org.csstudio.display.builder.model.MacroizedWidgetProperty;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.widgets.NavigationTabsWidget;
 import org.csstudio.display.builder.model.widgets.VisibleWidget;
+import org.phoebus.framework.macros.Macros;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.undo.UndoableAction;
 import org.phoebus.ui.undo.UndoableActionManager;
@@ -26,6 +30,10 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.util.StringConverter;
+
+import java.util.Optional;
+
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMacros;
 
 /** Tree cell that displays {@link WidgetOrTab} (name, icon, ..)
  *  @author Kay Kasemir
@@ -122,6 +130,28 @@ class WidgetTreeCell extends TextFieldTreeCell<WidgetOrTab>
                         l1.setStrokeWidth(2);
                         l2.setStrokeWidth(2);
                         graphic = new StackPane(graphic, l1, l2);
+                    }
+                }
+
+                // Extra icon for widgets with macros defined
+                Optional<WidgetProperty<Macros>> optMacros = widget.checkProperty(propMacros);
+                final String iconName = "/icons/macro_hint.png";
+                if (optMacros.isPresent() && optMacros.get().getValue().getNames().size() > 0)
+                {
+                    ImageView macroIcon = ImageCache.getImageView(DisplayEditor.class.getResource(iconName));
+                    graphic = new HBox(graphic, macroIcon);
+                }
+                if (widget instanceof NavigationTabsWidget)
+                {
+                    NavigationTabsWidget tabs = (NavigationTabsWidget)widget;
+                    for(NavigationTabsWidget.TabProperty tab : tabs.propTabs().getValue())
+                    {
+                        if (tab.macros().getValue().getNames().size() > 0)
+                        {
+                            ImageView macroIcon = ImageCache.getImageView(DisplayEditor.class.getResource(iconName));
+                            graphic = new HBox(graphic, macroIcon);
+                            break;
+                        }
                     }
                 }
             }

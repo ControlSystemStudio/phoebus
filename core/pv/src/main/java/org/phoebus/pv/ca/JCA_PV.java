@@ -523,13 +523,28 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
                 channel.put(val);
         }
         else if (new_value instanceof Long)
-        {   // Channel only supports put(int), not long
-            logger.log(Level.WARNING, "Truncating long to int for PV " + getName());
-            final int val = ((Long)new_value).intValue();
-            if (put_listener != null)
-                channel.put(val, put_listener);
+        {
+            final Long orig = (Long) new_value;
+            // ChannelAccess doesn't support long
+            if (orig.longValue() == orig.intValue())
+            {
+                // If value is small, write as int
+                final int val = orig.intValue();
+                if (put_listener != null)
+                    channel.put(val, put_listener);
+                else
+                    channel.put(val);
+            }
             else
-                channel.put(val);
+            {
+                // Write large values as double, warn about lost resolution
+                final double val = orig.doubleValue();
+                logger.log(Level.WARNING, "Writing long " + orig + " to double " + val + " for PV " + getName());
+                if (put_listener != null)
+                    channel.put(val, put_listener);
+                else
+                    channel.put(val);
+            }
         }
         else if (new_value instanceof Long [])
         {   // Channel only supports put(int[]), not long[]
