@@ -17,7 +17,7 @@
  *
  */
 
-package org.csstudio.display.builder.representation.javafx;
+package org.phoebus.applications.imageviewer;
 
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
@@ -25,15 +25,9 @@ import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.ImageTranscoder;
-import org.csstudio.display.builder.model.util.ModelResourceUtil;
-import org.phoebus.ui.javafx.ImageCache;
-import org.phoebus.ui.javafx.SVGTranscoder;
-
 import java.awt.image.BufferedImage;
-import java.io.*;
-import java.util.logging.Level;
+import java.io.InputStream;
 
-import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
 /**
  * Helper class to load SVG files. It is based on the following post on Stackoverflow:
@@ -52,22 +46,46 @@ public class SVGHelper {
      * Client code is hence advised to reload the SVG resource using the new width and height when
      * the container widget is resized.
      *
-     * @param imageFileName Non-null, absolute path to SVG resource.
+     * @param fileStream Non-null input stream to SVG file.
      * @param width The wanted width of the image.
      * @param height The wanted height of the image.
      * @return A {@link Image} object if the input stream can be parsed and transcoded.
      */
-    public static Image loadSVG(String imageFileName, double width, double height){
-        String cachedSVGFileName = imageFileName + "_" + width + "_" + height;
-        return ImageCache.cache(cachedSVGFileName, () ->
-        {
-            // Open the image from the stream created from the resource file.
-            try(InputStream inputStream = ModelResourceUtil.openResourceStream(imageFileName)){
-                return SVGTranscoder.loadSVG(inputStream, width, height);
-            } catch ( Exception ex ) {
-                logger.log(Level.WARNING, String.format("Failure loading image: %s", imageFileName), ex);
-            }
-            return null;
-        });
+    public static Image loadSVG(InputStream fileStream, double width, double height) throws Exception{
+        BufferedImageTranscoder bufferedImageTranscoder = new BufferedImageTranscoder();
+        TranscoderInput input = new TranscoderInput(fileStream);
+        try{
+            /*
+             * If one of the sizes is not set then aspect ratio is kept
+             */
+            if (width != 0.0)
+                bufferedImageTranscoder.addTranscodingHint(ImageTranscoder.KEY_WIDTH, (float)width);
+            if (height != 0.0)
+                bufferedImageTranscoder.addTranscodingHint(ImageTranscoder.KEY_HEIGHT, (float)height);
+            bufferedImageTranscoder.transcode(input, null);
+
+            return SwingFXUtils.toFXImage(bufferedImageTranscoder.getBufferedImage(), null);
+        } catch (TranscoderException e) {
+            throw new Exception("Unable to transcode SVG file", e);
+        }
+    }
+
+    private static class BufferedImageTranscoder extends ImageTranscoder {
+
+        private BufferedImage bufferedImage = null;
+
+        @Override
+        public BufferedImage createImage(int width, int height) {
+            return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        }
+
+        @Override
+        public void writeImage(BufferedImage bufferedImage, TranscoderOutput transcoderOutput) {
+            this.bufferedImage = bufferedImage;
+        }
+
+        public BufferedImage getBufferedImage() {
+            return bufferedImage;
+        }
     }
 }

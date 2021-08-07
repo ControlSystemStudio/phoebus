@@ -171,6 +171,11 @@
       <artifactId>app-console</artifactId>
       <version>4.6.6-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>app-imageviewer</artifactId>
+      <version>4.6.6-SNAPSHOT</version>
+    </dependency>
 
     <!-- A default implementation of contribututions db context menu -->
     <dependency>
