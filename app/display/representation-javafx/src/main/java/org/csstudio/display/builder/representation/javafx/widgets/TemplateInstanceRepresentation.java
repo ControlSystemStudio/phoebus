@@ -19,6 +19,8 @@ import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.csstudio.display.builder.model.widgets.LabelWidget;
 import org.csstudio.display.builder.model.widgets.TemplateInstanceWidget;
 import org.csstudio.display.builder.model.widgets.TemplateInstanceWidget.InstanceProperty;
 import org.csstudio.display.builder.representation.EmbeddedDisplayRepresentationUtil.DisplayAndGroup;
@@ -223,6 +225,36 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
             {   // Load new model (potentially slow)
                 final DisplayModel new_model = loadDisplayModel(model_widget, handle);
 
+                // TODO Loading the model, duplicating it into instances, and representing the result must be separate steps
+                // Changing the file triggers all 3 steps.
+                // Changing the gap or number of instances only triggers the last 2 steps.
+                // Each must be reverted as appropriate when changing the file, gap or number of instances
+
+                if (! toolkit.isEditMode())
+                {
+                    final int w = new_model.propWidth().getValue();
+                    final int h = new_model.propHeight().getValue();
+                    int x = 0, y = 0;
+                    for (InstanceProperty instance : model_widget.propInstances().getValue())
+                    {
+                        // TODO Duplicate model for the N instances
+                        final LabelWidget hint = new LabelWidget();
+                        hint.propText().setValue("Instance: " + instance.macros().getValue());
+                        hint.propBackgroundColor().setValue(new WidgetColor(0, 0, 255, 50));
+                        hint.propTransparent().setValue(false);
+                        hint.propX().setValue(x);
+                        hint.propY().setValue(y);
+                        hint.propWidth().setValue(w);
+                        hint.propHeight().setValue(h);
+                        new_model.runtimeChildren().addChild(hint);
+
+                        if (model_widget.propHorizontal().getValue())
+                            x += w + model_widget.propGap().getValue();
+                        else
+                            y += h + model_widget.propGap().getValue();
+                    }
+                }
+
                 // Stop (old) runtime
                 // EmbeddedWidgetRuntime tracks this property to start/stop the embedded model's runtime
                 model_widget.runtimePropEmbeddedModel().setValue(null);
@@ -232,7 +264,7 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
                 new_model.propBackgroundColor().addUntypedPropertyListener(backgroundChangedListener);
 
                 if (old_model != null)
-                {   // Dispose old model  TODO Dispose N instances
+                {   // Dispose old model
                     final Future<Object> completion = toolkit.submit(() ->
                     {
                         toolkit.disposeRepresentation(old_model);
@@ -270,21 +302,24 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
         {
             sizesChanged(null, null, null);
 
-            // TODO Represent N times with different macros
-            final int w = content_model.propWidth().getValue();
-            final int h = content_model.propHeight().getValue();
-            int i = 0, x = 0, y = 0;
-            for (InstanceProperty instance : model_widget.propInstances().getValue())
+            if (toolkit.isEditMode())
             {
-                final Rectangle hint = new Rectangle(x, y, w, h);
-                hint.setFill(new Color(0, 0, 1.0, 0.1));
-                inner.getChildren().add(hint);
+                // TODO Replace this with adding RegtangleWidget or LabelWidget to model
+                // Indicate outline of instances
+                final int w = content_model.propWidth().getValue();
+                final int h = content_model.propHeight().getValue();
+                int x = 0, y = 0;
+                for (int i=0;  i<model_widget.propInstances().size();  ++i)
+                {
+                    final Rectangle hint = new Rectangle(x, y, w, h);
+                    hint.setFill(new Color(0, 0, 1.0, 0.1));
+                    inner.getChildren().add(hint);
 
-                if (model_widget.propHorizontal().getValue())
-                    x += w + model_widget.propGap().getValue();
-                else
-                    y += h + model_widget.propGap().getValue();
-                ++i;
+                    if (model_widget.propHorizontal().getValue())
+                        x += w + model_widget.propGap().getValue();
+                    else
+                        y += h + model_widget.propGap().getValue();
+                }
             }
 
             toolkit.representModel(inner, content_model);
