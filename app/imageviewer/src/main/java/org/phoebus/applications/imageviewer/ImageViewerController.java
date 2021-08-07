@@ -24,14 +24,21 @@ import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.javafx.svg.SVGTranscoder;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Controller for the image viewer application UI. It intentionally does not
+ * use the {@link org.phoebus.ui.javafx.ImageCache} as the intention is to render
+ * images at original - potentially very high - resolution.
+ */
 public class ImageViewerController {
 
     @FXML
@@ -53,18 +60,30 @@ public class ImageViewerController {
         return root;
     }
 
+    /**
+     * Sets the image in the view. Shows error dialog if the image file
+     * cannot be loaded/rendered, e.g. non-image file or incompatible SVG.
+     * @param url
+     */
     public void setImage(URL url) {
         try {
-            BufferedImage bufferedImage = ImageIO.read(url);
             Image image;
             if(url.toExternalForm().endsWith("svg")){
-                image = SVGHelper.loadSVG(url.openStream(), 0, 0);
+                image = SVGTranscoder.loadSVG(url.openStream(), 0, 0);
             }
             else{
+                BufferedImage bufferedImage = ImageIO.read(url);
+                if(bufferedImage == null){
+                    throw new RuntimeException("Failed to create image from URL " + url.toExternalForm());
+                }
                 image = SwingFXUtils.toFXImage(bufferedImage, null);
             }
             imageView.setImage(image);
         } catch (Exception e) {
+            ExceptionDetailsErrorDialog.openError(root,
+                    Messages.ErrorDialogTitle,
+                    MessageFormat.format(Messages.ErrorDialogText,url.toExternalForm()),
+                    e);
             Logger.getLogger(ImageViewerController.class.getName())
                     .log(Level.SEVERE, "Unable to load image to image viewer", e);
         }

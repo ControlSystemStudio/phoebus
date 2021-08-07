@@ -24,7 +24,7 @@
     <vtype.version>1.0.4</vtype.version>
     <openjfx.version>16</openjfx.version>
     <jackson.version>2.10.1</jackson.version>
-    <batik.version>1.12</batik.version>
+    <batik.version>1.14</batik.version>
     <mockito.version>2.23.4</mockito.version>
     <postgresql.driver.version>42.2.9</postgresql.driver.version>
     <lombok.version>1.18.16</lombok.version>

@@ -51,7 +51,7 @@ public class SVGHelperTest {
      */
     @Test
     public void testSVGHelperPngFile(){
-        String path = null;
+        String path;
         try {
             path = getPath("interlock.png");
         } catch (Exception e) {
@@ -67,7 +67,7 @@ public class SVGHelperTest {
     @Test
     public void testSVGHelperJpgFile(){
 
-        String path = null;
+        String path;
         try {
             path = getPath("interlock.jpg");
         } catch (Exception e) {
@@ -82,7 +82,7 @@ public class SVGHelperTest {
      */
     @Test
     public void testSVGHelperGifFile() throws Exception{
-        String path = null;
+        String path;
         try {
             path = getPath("interlock.gif");
         } catch (Exception e) {
@@ -98,7 +98,7 @@ public class SVGHelperTest {
     @Test
     public void testSVGHelperTiffFile() throws Exception{
 
-        String path = null;
+        String path;
         try {
             path = getPath("interlock.tiff");
         } catch (Exception e) {

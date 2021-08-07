@@ -76,6 +76,7 @@
       <version>4.6.6-SNAPSHOT</version>
     </dependency>
 
+    <!-- Support for SVG -->
     <dependency>
       <groupId>org.apache.xmlgraphics</groupId>
       <artifactId>batik-svggen</artifactId>
