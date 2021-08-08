@@ -17,101 +17,100 @@
  */
 package org.phoebus.applications.imageviewer;
 
-import javafx.embed.swing.SwingFXUtils;
-import javafx.geometry.Insets;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import org.phoebus.applications.imageviewer.ImageViewerInstance.ViewMode;
-import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
-import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockStage;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
-/** Image Viewer App Descriptor
- *  @author Georg Weiss
+/**
+ * Image Viewer App Descriptor
+ *
+ * @author Georg Weiss
  */
 @SuppressWarnings("nls")
-public class ImageViewerAppDescriptor implements AppResourceDescriptor
-{
+public class ImageViewerAppDescriptor implements AppResourceDescriptor {
     static final String NAME = "imageviewer";
     static final String DISPLAY_NAME = "Image Viewer";
 
-    static final List<String> FILE_EXTENSIONS = Arrays.asList(
-            "jpg", "jpeg", "gif", "png", "svg"
-    );
 
     @Override
-    public String getName()
-    {
+    public String getName() {
         return NAME;
     }
 
     @Override
-    public String getDisplayName()
-    {
+    public String getDisplayName() {
         return DISPLAY_NAME;
     }
 
     @Override
-    public URL getIconURL()
-    {
+    public URL getIconURL() {
         return ImageViewerAppDescriptor.class.getResource("/icons/picture.png");
     }
 
     @Override
-    public AppInstance create()
-    {
+    public AppInstance create() {
         return new ImageViewerInstance(this, null, null);
     }
 
     @Override
-    public List<String> supportedFileExtentions()
-    {
-        return FILE_EXTENSIONS;
+    public List<String> supportedFileExtentions() {
+        return getSupportedFileExtensions();
     }
 
     @Override
-    public ImageViewerInstance create(final URI uri)
-    {
+    public ImageViewerInstance create(final URI uri) {
         Entry<String, String> entry = ResourceParser.getQueryItemStream(uri)
                 .filter(item -> item.getKey().equalsIgnoreCase("viewmode"))
                 .findFirst().orElse(null);
         ViewMode viewMode = ViewMode.TAB;
-        if(entry != null && entry.getValue() != null && entry.getValue().equalsIgnoreCase("dialog")){
+        if (entry != null && entry.getValue() != null && entry.getValue().equalsIgnoreCase("dialog")) {
             viewMode = ViewMode.DIALOG;
         }
 
-        if(viewMode == ViewMode.TAB){
+        if (viewMode == ViewMode.TAB) {
             final DockItemWithInput existing = DockStage.getDockItemWithInput(NAME, uri);
             final ImageViewerInstance instance;
             if (existing != null) {
                 instance = existing.getApplication();
                 instance.raise();
                 return null;
-            }
-            else{
+            } else {
                 return new ImageViewerInstance(this, uri, viewMode);
             }
-        }
-        else{
+        } else {
             return null;
         }
+    }
+
+    /**
+     * Determines the list of supported file extensions. Workbench settings
+     * are considered such that an external app for a particular extension
+     * is not overridden by this app.
+     *
+     * @return
+     */
+    protected List<String> getSupportedFileExtensions() {
+        List<String> potentialFileExtensions = Arrays.asList(
+                "jpg", "jpeg", "gif", "png", "svg"
+        );
+
+        List<String> supportedExtensions = new ArrayList<>();
+        for (String extension : potentialFileExtensions) {
+            if (!ApplicationService.getExtensionsHandledByExternalApp().contains(extension)) {
+                supportedExtensions.add(extension);
+            }
+        }
+        return supportedExtensions;
     }
 }
