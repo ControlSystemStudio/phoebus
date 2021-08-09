@@ -47,7 +47,6 @@ import javafx.util.Callback;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.data.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 
@@ -100,7 +99,6 @@ public class SaveSetController implements NodeChangedListener {
 	@FXML
 	private SimpleBooleanProperty readOnlyProperty = new SimpleBooleanProperty(false);
 
-	@Autowired
 	private SaveAndRestoreService saveAndRestoreService;
 
 	private static Executor UI_EXECUTOR = Platform::runLater;
@@ -123,6 +121,7 @@ public class SaveSetController implements NodeChangedListener {
 
 	@FXML
 	public void initialize() {
+		saveAndRestoreService = SaveAndRestoreService.getInstance();
 
 		dirty.addListener((observable, oldValue, newValue) -> {
 			if(newValue){

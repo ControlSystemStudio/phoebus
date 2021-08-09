@@ -36,7 +36,8 @@ import java.util.logging.Logger;
  */
 
 public class DirectoryUtilities {
-    private static final SaveAndRestoreService saveAndRestoreService = (SaveAndRestoreService) ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().getBean("saveAndRestoreService");
+    private static final SaveAndRestoreService saveAndRestoreService =
+            SaveAndRestoreService.getInstance();
 
     private static final Logger LOG = Logger.getLogger(SaveAndRestoreService.class.getName());
 

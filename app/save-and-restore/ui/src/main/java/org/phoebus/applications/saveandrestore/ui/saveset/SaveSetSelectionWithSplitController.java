@@ -36,7 +36,6 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.stage.Stage;
-import org.phoebus.applications.saveandrestore.ApplicationContextProvider;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
@@ -61,8 +60,7 @@ import java.util.stream.Collectors;
 
 public class SaveSetSelectionWithSplitController extends BaseSaveSetSelectionController implements Initializable {
 
-    private SaveAndRestoreService saveAndRestoreService = (SaveAndRestoreService) ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().getBean("saveAndRestoreService");
-
+    private SaveAndRestoreService saveAndRestoreService = SaveAndRestoreService.getInstance();
     @FXML
     private TreeView<Node> treeView;
 

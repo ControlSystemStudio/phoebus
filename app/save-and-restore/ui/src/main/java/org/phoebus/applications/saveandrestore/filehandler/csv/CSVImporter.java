@@ -22,6 +22,7 @@
 package org.phoebus.applications.saveandrestore.filehandler.csv;
 
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -70,8 +71,6 @@ import org.epics.vtype.VShortArray;
 import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
-import org.phoebus.applications.saveandrestore.ApplicationContextProvider;
-import org.phoebus.applications.saveandrestore.SpringFxmlLoader;
 import org.phoebus.applications.saveandrestore.datamigration.git.FileUtilities;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -81,6 +80,7 @@ import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetFromSelectionController;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -90,6 +90,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -99,8 +101,7 @@ import java.util.stream.Collectors;
  */
 
 public class CSVImporter extends CSVCommon {
-    final static private SaveAndRestoreService saveAndRestoreService = (SaveAndRestoreService) ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().getBean("saveAndRestoreService");
-
+    final static private SaveAndRestoreService saveAndRestoreService = SaveAndRestoreService.getInstance();
     static private CSVParser csvParser;
 
     static private Node parentOfImport = null;
@@ -138,13 +139,19 @@ public class CSVImporter extends CSVCommon {
             csvParser.setDescription(parentOfImport.getProperty("description") + System.lineSeparator() + System.lineSeparator() + "Description from importing:" + System.lineSeparator() + csvParser.getDescription());
         }
 
-        SpringFxmlLoader springFxmlLoader = new SpringFxmlLoader();
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(CSVImporter.class.getResource("ui/saveset/SaveSetFromSelection.fxml"));
         Stage dialog = new Stage();
         dialog.setTitle("Import Save Set");
         dialog.initModality(Modality.WINDOW_MODAL);
-        dialog.setScene(new Scene((Parent) springFxmlLoader.load("ui/saveset/SaveSetFromSelection.fxml")));
+        try {
+            dialog.setScene(new Scene(loader.load()));
+        } catch (IOException e) {
+            Logger.getLogger(CSVImporter.class.getName()).log(Level.SEVERE, "Unable to load fxml file", e);
+            return;
+        }
 
-        final SaveSetFromSelectionController controller = springFxmlLoader.getLoader().getController();
+        final SaveSetFromSelectionController controller = loader.getController();
         controller.disableSaveSetSelectionInBrowsing();
         controller.setData(parentOfImport, csvParser.getSavesetName(), csvParser.getDescription(), csvParser.getEntries());
         dialog.show();
@@ -208,13 +215,14 @@ public class CSVImporter extends CSVCommon {
             Optional<ButtonType> response = alert.showAndWait();
 
             if (response.isPresent() && response.get().equals(ButtonType.OK)) {
-                SpringFxmlLoader springFxmlLoader = new SpringFxmlLoader();
+                FXMLLoader loader = new FXMLLoader();
+                loader.setLocation(CSVImporter.class.getResource("ui/saveset/SaveSetFromSelection.fxml"));
                 Stage dialog = new Stage();
                 dialog.setTitle("Import Snapshot");
                 dialog.initModality(Modality.APPLICATION_MODAL);
-                dialog.setScene(new Scene((Parent) springFxmlLoader.load("ui/saveset/SaveSetFromSelection.fxml")));
+                dialog.setScene(new Scene(loader.load()));
 
-                final SaveSetFromSelectionController controller = springFxmlLoader.getLoader().getController();
+                final SaveSetFromSelectionController controller = loader.getController();
                 controller.disableSaveSetSelectionInBrowsing();
                 controller.setData(null, "", "", csvParser.getEntries());
                 SimpleObjectProperty<Node> createdSaveset = new SimpleObjectProperty<>(null);

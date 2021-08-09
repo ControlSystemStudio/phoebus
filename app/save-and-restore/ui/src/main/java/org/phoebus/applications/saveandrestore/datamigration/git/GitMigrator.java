@@ -36,9 +36,7 @@ import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.phoebus.framework.preferences.PreferencesReader;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -85,24 +83,28 @@ import java.util.*;
  */
 public class GitMigrator {
 
-    @Autowired
     private SaveAndRestoreService saveAndRestoreService;
 
-    @Autowired
     private Boolean useMultipleTag;
 
-    @Autowired
     private Boolean keepSavesetWithNoSnapshot;
 
-    @Autowired
     private Boolean ignoreDuplicateSnapshots;
 
-    @Autowired
     private Boolean addPVsForIncompatibleSaveset;
 
     private Git git;
     private File gitRoot;
     private Node migrationRootNode;
+
+    public GitMigrator(){
+        saveAndRestoreService = SaveAndRestoreService.getInstance();
+        PreferencesReader preferencesReader = new PreferencesReader(getClass(), "/save_and_restore_preferences.properties");
+        useMultipleTag = preferencesReader.getBoolean("useMultipleTag");
+        keepSavesetWithNoSnapshot = preferencesReader.getBoolean("keepSavesetWithNoSnapshot");
+        ignoreDuplicateSnapshots = preferencesReader.getBoolean("ignoreDuplicateSnapshots");
+        addPVsForIncompatibleSaveset = preferencesReader.getBoolean("addPVsForIncompatibleSaveset");
+    }
 
     public void run(String... args) {
 
@@ -111,10 +113,7 @@ public class GitMigrator {
             System.out.println("Git working directory " + gitRoot.getAbsolutePath() + " does not exist or is not a directory");
             System.exit(0);
         }
-
-        ApplicationContext ctx = new AnnotationConfigApplicationContext(GitMigratorConfig.class);
-        ctx.getAutowireCapableBeanFactory().autowireBean(this);
-
+        
         try {
             git = Git.open(new File(gitRoot, "/.git"));
         } catch (IOException e) {

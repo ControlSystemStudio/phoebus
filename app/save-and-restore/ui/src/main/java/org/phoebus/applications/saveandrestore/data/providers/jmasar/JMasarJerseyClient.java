@@ -22,20 +22,58 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.config.ClientConfig;
+import com.sun.jersey.api.client.config.DefaultClientConfig;
+import org.epics.vtype.gson.GsonMessageBodyHandler;
 import org.phoebus.applications.saveandrestore.data.DataProviderException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.phoebus.applications.saveandrestore.model.*;
+import org.phoebus.framework.preferences.PreferencesReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class JMasarJerseyClient implements JMasarClient{
 
-    @Autowired
+    private static final int DEFAULT_READ_TIMEOUT = 5000; // ms
+    private static final int DEFAULT_CONNECT_TIMEOUT = 3000; // ms
+
     private Client client;
 
     private static final String CONTENT_TYPE_JSON = "application/json; charset=UTF-8";
 
     private String jmasarServiceUrl;
+
+    Logger logger = LoggerFactory.getLogger(JMasarJerseyClient.class.getName());
+
+    public JMasarJerseyClient(){
+
+        PreferencesReader preferencesReader = new PreferencesReader(getClass(), "/save_and_restore_preferences.properties");
+
+        int readTimeout = DEFAULT_READ_TIMEOUT;
+        String readTimeoutString = preferencesReader.get("httpClient.readTimeout");
+        try {
+            readTimeout = Integer.parseInt(readTimeoutString);
+            logger.debug("JMasar client using read timeout " + readTimeout + " ms");
+        } catch (NumberFormatException e) {
+            logger.error("Property httpClient.readTimeout \"" + readTimeoutString + "\" is not a number, using default value " + DEFAULT_READ_TIMEOUT + " ms");
+        }
+
+        int connectTimeout = DEFAULT_CONNECT_TIMEOUT;
+        String connectTimeoutString = preferencesReader.get("httpClient.connectTimeout");
+        try {
+            connectTimeout = Integer.parseInt(connectTimeoutString);
+            logger.debug("JMasar client using connect timeout " + connectTimeout + " ms");
+        } catch (NumberFormatException e) {
+            logger.error("Property httpClient.connectTimeout \"" + connectTimeoutString + "\" is not a number, using default value " + DEFAULT_CONNECT_TIMEOUT + " ms");
+        }
+
+        DefaultClientConfig defaultClientConfig = new DefaultClientConfig();
+        defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_READ_TIMEOUT, readTimeout);
+        defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, connectTimeout);
+        defaultClientConfig.getClasses().add(GsonMessageBodyHandler.class);
+        client = Client.create(defaultClientConfig);
+    }
 
     public void setServiceUrl(String serviceUrl){
         this.jmasarServiceUrl = serviceUrl;

@@ -21,7 +21,6 @@ package org.phoebus.applications.saveandrestore.data.providers.jmasar;
 import org.phoebus.applications.saveandrestore.data.DataProvider;
 import org.phoebus.applications.saveandrestore.data.DataProviderException;
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
@@ -30,8 +29,11 @@ import java.util.List;
 
 public class JMasarDataProvider implements DataProvider {
 
-	@Autowired
 	private JMasarJerseyClient jmasarClient;
+
+	public JMasarDataProvider(){
+		jmasarClient = new JMasarJerseyClient();
+	}
 
 	@Override
 	public Node getRootNode() {
