@@ -14,6 +14,7 @@ import static org.csstudio.display.builder.representation.ToolkitRepresentation.
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
@@ -36,7 +37,6 @@ import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.persistence.XMLUtil;
 
 import javafx.geometry.Insets;
-import javafx.scene.Parent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -77,13 +77,8 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
     private final WidgetPropertyListener<String> fileChangedListener = this::fileChanged;
     private final WidgetPropertyListener<Macros> macrosChangedListener = this::macrosChanged;
 
-
-    /** Inner pane that holds child widgets
-     *
-     *  <p>Set to null when representation is disposed,
-     *  which is used as indicator to pending display updates.
-     */
-    private volatile Pane inner;
+    /** Has this representation been disposed? */
+    private AtomicBoolean disposed = new AtomicBoolean();
 
     /** The display file (and optional group inside that display) to load */
     private final AtomicReference<DisplayAndGroup> pending_template = new AtomicReference<>();
@@ -108,17 +103,11 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
     @Override
     public Pane createJFXNode() throws Exception
     {
-        inner = new Pane();
+        final Pane pane = new Pane();
         if (toolkit.isEditMode())
-            inner.setBackground(EDIT_TRANSPARENT_BACKGROUND);
+            pane.setBackground(EDIT_TRANSPARENT_BACKGROUND);
 
-        return new Pane(inner); // TODO Just use 'inner' or this pane, not both?
-    }
-
-    @Override
-    protected Parent getChildParent(final Parent parent)
-    {
-        return inner;
+        return pane;
     }
 
     @Override
@@ -267,7 +256,7 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
                 // System.out.println("Nothing to handle");
                 return;
             }
-            if (inner == null)
+            if (disposed.get())
             {
                 // System.out.println("Aborted: " + handle);
                 return;
@@ -394,7 +383,8 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
         try
         {
             sizesChanged(null, null, null);
-            toolkit.representModel(inner, content_model);
+            jfx_node.getChildren().clear();
+            toolkit.representModel(jfx_node, content_model);
         }
         catch (final Exception ex)
         {
@@ -406,7 +396,7 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
     public void updateChanges()
     {
         // Late update after disposal?
-        if (inner == null)
+        if (disposed.get())
             return;
         super.updateChanges();
         if (dirty_sizes.checkAndClear())
@@ -416,11 +406,8 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
 
             // set minimum and maximum size of jfx_node
             // to match the requested size
-            inner.setMinSize(width, height);
             jfx_node.setMinSize(width, height);
             jfx_node.setMaxSize(width, height);
-
-            jfx_node.getChildren().setAll(inner);
 
             // Check for overdrawing
             if (get_size_again.checkAndClear())
@@ -449,9 +436,8 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
         final DisplayModel em = active_content_model.getAndSet(null);
         model_widget.runtimePropEmbeddedModel().setValue(null);
 
-        if (inner != null  &&  em != null)
+        if (disposed.getAndSet(true) == false  &&  em != null)
             toolkit.disposeRepresentation(em);
-        inner = null;
 
         super.dispose();
     }
