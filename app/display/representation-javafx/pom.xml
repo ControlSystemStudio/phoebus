@@ -74,12 +74,5 @@
       <version>4.6.6-SNAPSHOT</version>
     </dependency>
 
-    <!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-transcoder -->
-    <dependency>
-      <groupId>org.apache.xmlgraphics</groupId>
-      <artifactId>batik-transcoder</artifactId>
-      <version>${batik.version}</version>
-    </dependency>
-
   </dependencies>
 </project>

@@ -28,10 +28,7 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.scene.Cursor;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -49,7 +46,7 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.util.IOUtils;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.olog.ui.write.AttachmentsViewController;
-import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import javax.imageio.ImageIO;
@@ -141,17 +138,17 @@ public class AttachmentsPreviewController {
 
         imagePreview.fitWidthProperty().bind(previewPane.widthProperty());
         imagePreview.fitHeightProperty().bind(previewPane.heightProperty());
-        imagePreview.hoverProperty().addListener((event)-> {
-            if(((ReadOnlyBooleanProperty)event).get()){
+        imagePreview.hoverProperty().addListener((event) -> {
+            if (((ReadOnlyBooleanProperty) event).get()) {
                 splitPane.getScene().setCursor(Cursor.HAND);
-            }
-            else{
+            } else {
                 splitPane.getScene().setCursor(Cursor.MOVE);
             }
         });
         imagePreview.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
-            if(selectedAttachment.get() != null && selectedAttachment.get().getContentType().startsWith("image")){
-                launchImageViewer();
+            if (selectedAttachment.get() != null && selectedAttachment.get().getContentType().startsWith("image")) {
+                ApplicationLauncherService.openFile(selectedAttachment.get().getFile(),
+                        false, null);
             }
             event.consume();
         });
@@ -294,26 +291,5 @@ public class AttachmentsPreviewController {
 
     public void removeListSelectionChangeListener(ListChangeListener<Attachment> changeListener) {
         listSelectionChangeListeners.remove(changeListener);
-    }
-
-    @FXML
-    public void launchImageViewer(){
-        try {
-            BufferedImage bufferedImage = ImageIO.read(selectedAttachment.get().getFile());
-            Image image = SwingFXUtils.toFXImage(bufferedImage, null);
-            Alert alert = new Alert(AlertType.INFORMATION);
-            alert.setTitle(null);
-            alert.setHeaderText(null);
-            ImageView imageView = new ImageView(image);
-            alert.getDialogPane().setPadding(new Insets(10, 10, 5, 0));
-            alert.getDialogPane().setContent(imageView);
-            alert.setGraphic(null);
-            alert.setResizable(true);
-            DialogHelper.positionDialog(alert, splitPane, -200, -500);
-            alert.showAndWait();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
     }
 }

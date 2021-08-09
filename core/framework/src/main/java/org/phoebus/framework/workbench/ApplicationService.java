@@ -40,6 +40,7 @@ public class ApplicationService
 
     private ApplicationService()
     {
+
         // SPI-provided applications that handle a resource
         for (AppResourceDescriptor app : ServiceLoader.load(AppResourceDescriptor.class))
         {
@@ -158,5 +159,29 @@ public class ApplicationService
             return null;
         }
         return (AI) app.create(resource);
+    }
+
+    /**
+     * Determines the list of file extensions for which an external app has
+     * been configured. A {@link AppResourceDescriptor} may use this to avoid
+     * override, i.e. a Phoebus app should not override an app that user
+     * has configured for a particular file extension.
+     *
+     * @return A list of file extensions supported by external apps.
+     */
+    public static List<String> getExtensionsHandledByExternalApp(){
+        List<String> extensionsHandledByExternalApp = new ArrayList<>();
+        for (String definition : WorkbenchPreferences.external_apps) {
+            if (definition.isEmpty()) {
+                continue;
+            }
+            final String[] items = definition.split(",");
+            if (items.length != 3) {
+                continue;
+            }
+            extensionsHandledByExternalApp.addAll(List.of(items[1].split("\\|")));
+        }
+
+        return extensionsHandledByExternalApp;
     }
 }
