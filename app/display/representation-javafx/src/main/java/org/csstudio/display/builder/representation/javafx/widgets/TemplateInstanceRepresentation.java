@@ -60,7 +60,6 @@ import javafx.scene.paint.Stop;
 @SuppressWarnings("nls")
 public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pane, TemplateInstanceWidget>
 {
-    private static final Background TRANSPARENT_BACKGROUND = new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY));
     private static final Background EDIT_TRANSPARENT_BACKGROUND = new Background(new BackgroundFill(
             new LinearGradient(
                 0, 0, 10, 10, false, CycleMethod.REPEAT,
@@ -72,8 +71,7 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
         ));
 
     private final DirtyFlag dirty_sizes = new DirtyFlag();
-    private final DirtyFlag dirty_background = new DirtyFlag();
-    private final DirtyFlag get_size_again = new DirtyFlag();
+    private final DirtyFlag get_size_again = new DirtyFlag(false);
     private final UntypedWidgetPropertyListener sizesChangedListener = this::sizesChanged;
     private final WidgetPropertyListener<List<InstanceProperty>> instancesChangedListener = this::instancesChanged;
     private final WidgetPropertyListener<String> fileChangedListener = this::fileChanged;
@@ -86,13 +84,12 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
      *  which is used as indicator to pending display updates.
      */
     private volatile Pane inner;
-    private volatile Background inner_background = Background.EMPTY;
 
     /** The display file (and optional group inside that display) to load */
     private final AtomicReference<DisplayAndGroup> pending_template = new AtomicReference<>();
 
-    /** Track active template's XML */
-    private final AtomicReference<DisplayModel> active_template_model = new AtomicReference<>();
+    /** Track active template, may be empty */
+    private final AtomicReference<DisplayModel> active_template_model = new AtomicReference<>(new DisplayModel());
 
     /** Track active model in a thread-safe way
      *  to assert that each one is represented and removed
@@ -112,8 +109,8 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
     public Pane createJFXNode() throws Exception
     {
         inner = new Pane();
-
-        get_size_again.checkAndClear();
+        if (toolkit.isEditMode())
+            inner.setBackground(EDIT_TRANSPARENT_BACKGROUND);
 
         return new Pane(inner); // TODO Just use 'inner' or this pane, not both?
     }
@@ -180,7 +177,7 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
             return;
 
         final DisplayModel template_model = active_template_model.get();
-        if (template_model != null)
+        if (template_model.getChildren().size() > 0)
         {
             // Size to content
             final int content_width = template_model.propWidth().getValue();
@@ -201,12 +198,12 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
                                                    : content_height * count + gap * (count-1));
 
             resizing = false;
-
-            if (property == model_widget.propGap() ||
-                property == model_widget.propInstances() ||
-                property == model_widget.propHorizontal())
-                scheduleInstanceUpdate();
         }
+
+        if (property == model_widget.propGap() ||
+            property == model_widget.propInstances() ||
+            property == model_widget.propHorizontal())
+            scheduleInstanceUpdate();
 
         dirty_sizes.mark();
         get_size_again.mark();
@@ -303,8 +300,6 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
     private void instantiateTemplateAndRepresent()
     {
         final DisplayModel template = active_template_model.get();
-        if (template == null)
-            return;
         try
         {
             final ByteArrayOutputStream xml = new ByteArrayOutputStream();
@@ -324,29 +319,32 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
             // in timeouts of the editor awaiting complete representation
             new_model.setUserData(DisplayModel.USER_DATA_EMBEDDING_WIDGET, model_widget);
 
-            final int w = template.propWidth().getValue();
-            final int h = template.propHeight().getValue();
-            int x = 0, y = 0;
-            for (InstanceProperty instance : model_widget.propInstances().getValue())
+            if (template.getChildren().size() > 0)
             {
-                final DisplayModel inst = ModelReader.parseXML(template_xml);
-                final GroupWidget wrapper = new GroupWidget();
-                wrapper.propStyle().setValue(Style.NONE);
-                wrapper.propX().setValue(x);
-                wrapper.propY().setValue(y);
-                wrapper.propWidth().setValue(w);
-                wrapper.propHeight().setValue(h);
+                final int w = template.propWidth().getValue();
+                final int h = template.propHeight().getValue();
+                int x = 0, y = 0;
+                for (InstanceProperty instance : model_widget.propInstances().getValue())
+                {
+                    final DisplayModel inst = ModelReader.parseXML(template_xml);
+                    final GroupWidget wrapper = new GroupWidget();
+                    wrapper.propStyle().setValue(Style.NONE);
+                    wrapper.propX().setValue(x);
+                    wrapper.propY().setValue(y);
+                    wrapper.propWidth().setValue(w);
+                    wrapper.propHeight().setValue(h);
 
-                for (Widget widget : inst.getChildren())
-                    wrapper.runtimeChildren().addChild(widget);
-                wrapper.propMacros().setValue(instance.macros().getValue());
+                    for (Widget widget : inst.getChildren())
+                        wrapper.runtimeChildren().addChild(widget);
+                    wrapper.propMacros().setValue(instance.macros().getValue());
 
-                new_model.runtimeChildren().addChild(wrapper);
+                    new_model.runtimeChildren().addChild(wrapper);
 
-                if (model_widget.propHorizontal().getValue())
-                    x += w + model_widget.propGap().getValue();
-                else
-                    y += h + model_widget.propGap().getValue();
+                    if (model_widget.propHorizontal().getValue())
+                        x += w + model_widget.propGap().getValue();
+                    else
+                        y += h + model_widget.propGap().getValue();
+                }
             }
 
             // Stop (old) runtime
@@ -397,23 +395,11 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
         {
             sizesChanged(null, null, null);
             toolkit.representModel(inner, content_model);
-            backgroundChanged(null, null, null);
         }
         catch (final Exception ex)
         {
             logger.log(Level.WARNING, "Failed to represent embedded display", ex);
         }
-    }
-
-    private void backgroundChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
-    {
-        if (toolkit.isEditMode())
-            inner_background = EDIT_TRANSPARENT_BACKGROUND;
-        else
-            inner_background = TRANSPARENT_BACKGROUND;
-
-        dirty_background.mark();
-        toolkit.scheduleUpdate(this);
     }
 
     @Override
@@ -444,8 +430,6 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
                 toolkit.scheduleUpdate(this);
             }
         }
-        if (dirty_background.checkAndClear())
-            inner.setBackground(inner_background);
     }
 
     @Override
