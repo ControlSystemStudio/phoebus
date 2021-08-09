@@ -12,6 +12,7 @@ import static org.csstudio.display.builder.representation.EmbeddedDisplayReprese
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
 import java.io.ByteArrayOutputStream;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
@@ -22,6 +23,7 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.properties.WidgetColor;
@@ -33,6 +35,7 @@ import org.csstudio.display.builder.model.widgets.TemplateInstanceWidget.Instanc
 import org.csstudio.display.builder.representation.EmbeddedDisplayRepresentationUtil.DisplayAndGroup;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
+import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.persistence.XMLUtil;
 
 import javafx.geometry.Insets;
@@ -74,9 +77,11 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
     private final DirtyFlag dirty_sizes = new DirtyFlag();
     private final DirtyFlag dirty_background = new DirtyFlag();
     private final DirtyFlag get_size_again = new DirtyFlag();
-    private final UntypedWidgetPropertyListener backgroundChangedListener = this::backgroundChanged;
-    private final UntypedWidgetPropertyListener fileChangedListener = this::fileChanged;
     private final UntypedWidgetPropertyListener sizesChangedListener = this::sizesChanged;
+    private final WidgetPropertyListener<List<InstanceProperty>> instancesChangedListener = this::instancesChanged;
+    private final WidgetPropertyListener<String> fileChangedListener = this::fileChanged;
+    private final WidgetPropertyListener<Macros> macrosChangedListener = this::macrosChanged;
+
 
     /** Inner pane that holds child widgets
      *
@@ -128,10 +133,11 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
         super.registerListeners();
         model_widget.propWidth().addUntypedPropertyListener(sizesChangedListener);
         model_widget.propHeight().addUntypedPropertyListener(sizesChangedListener);
-        model_widget.propInstances().addUntypedPropertyListener(sizesChangedListener);
         model_widget.propGap().addUntypedPropertyListener(sizesChangedListener);
 
-        model_widget.propFile().addUntypedPropertyListener(fileChangedListener);
+        model_widget.propInstances().addPropertyListener(instancesChangedListener);
+
+        model_widget.propFile().addPropertyListener(fileChangedListener);
 
         fileChanged(null, null, null);
     }
@@ -141,19 +147,39 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
     {
         model_widget.propWidth().removePropertyListener(sizesChangedListener);
         model_widget.propHeight().removePropertyListener(sizesChangedListener);
-        model_widget.propInstances().removePropertyListener(sizesChangedListener);
         model_widget.propGap().removePropertyListener(sizesChangedListener);
+
+        model_widget.propInstances().removePropertyListener(instancesChangedListener);
 
         model_widget.propFile().removePropertyListener(fileChangedListener);
 
         super.unregisterListeners();
     }
 
+    private void instancesChanged(final WidgetProperty<List<InstanceProperty>> property, final List<InstanceProperty> removed, final List<InstanceProperty> added)
+    {
+        // Listen to changes in macros, performing a full representation as if sizes were changed
+        if (removed != null)
+            for (InstanceProperty instance : removed)
+                instance.macros().removePropertyListener(macrosChangedListener);
+        if (added != null)
+            for (InstanceProperty instance : added)
+                instance.macros().addPropertyListener(macrosChangedListener);
+
+        sizesChanged(property, removed, added);
+    }
+
+    /** When macros changed (or sizes), re-create instances */
+    private void macrosChanged(final WidgetProperty<Macros> property, final Macros old_value, final Macros new_value)
+    {
+        scheduleInstanceUpdate();
+    }
+
     private void sizesChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
         if (resizing)
             return;
-
+    
         final DisplayModel template_model = active_template_model.get();
         if (template_model != null)
         {
@@ -163,9 +189,9 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
             final int count = model_widget.propInstances().size();
             final int gap = model_widget.propGap().getValue();
             final boolean horiz = model_widget.propHorizontal().getValue();
-
+    
             resizing = true;
-
+    
             if (content_width > 0)
                 model_widget.propWidth().setValue(horiz
                                                   ? content_width * count + gap * (count-1)
@@ -175,43 +201,48 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
                                                    ? content_height
                                                    : content_height * count + gap * (count-1));
             resizing = false;
-
+    
             if (property == model_widget.propGap() ||
                 property == model_widget.propInstances())
             {
-                toolkit.onRepresentationStarted();
-                JobManager.schedule("Update Instances", monitor ->
-                {
-                    try
-                    {
-                        instantiateTemplateAndRepresent();
-                    }
-                    finally
-                    {
-                        toolkit.onRepresentationFinished();
-                    }
-                });
+                scheduleInstanceUpdate();
             }
         }
-
+    
         dirty_sizes.mark();
         get_size_again.mark();
         toolkit.scheduleUpdate(this);
     }
 
-    private void fileChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
+    private void fileChanged(final WidgetProperty<String> property, final String old_value, final String new_value)
     {
         final DisplayAndGroup file_and_group =
             new DisplayAndGroup(model_widget.propFile().getValue(), "");
-
+    
         // System.out.println("Requested: " + file_and_group);
         final DisplayAndGroup skipped = pending_template.getAndSet(file_and_group);
         if (skipped != null)
             logger.log(Level.FINE, "Skipped: {0}", skipped);
-
+    
         // Load embedded display in background thread
         toolkit.onRepresentationStarted();
         JobManager.schedule("Load Template", this::loadTemplate);
+    }
+
+    private void scheduleInstanceUpdate()
+    {
+        toolkit.onRepresentationStarted();
+        JobManager.schedule("Update Instances", monitor ->
+        {
+            try
+            {
+                instantiateTemplateAndRepresent();
+            }
+            finally
+            {
+                toolkit.onRepresentationFinished();
+            }
+        });
     }
 
     /** Update to the next pending display
@@ -340,7 +371,6 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
 
             // Atomically update the 'active' model
             final DisplayModel old_model = active_content_model.getAndSet(new_model);
-            new_model.propBackgroundColor().addUntypedPropertyListener(backgroundChangedListener);
 
             if (old_model != null)
             {   // Dispose old model
