@@ -264,6 +264,12 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
         }
     }
 
+    /** Instantiate template and represent the expanded model
+     *
+     *  Loading the model, duplicating it into instances, and representing the result must be separate steps
+     *  Changing the file triggers all 3 steps.
+     *  Changing the gap or number of instances only triggers the last 2 steps.
+     */
     private void instantiateTemplateAndRepresent()
     {
         final DisplayModel template = active_template_model.get();
@@ -271,10 +277,6 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
             return;
         try
         {
-            // TODO Loading the model, duplicating it into instances, and representing the result must be separate steps
-            // Changing the file triggers all 3 steps.
-            // Changing the gap or number of instances only triggers the last 2 steps.
-            // Each must be reverted as appropriate when changing the file, gap or number of instances
             final ByteArrayOutputStream xml = new ByteArrayOutputStream();
             try
             (
@@ -333,7 +335,7 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
             }
 
             // Stop (old) runtime
-            // TODO EmbeddedWidgetRuntime tracks this property to start/stop the embedded model's runtime
+            // TemplateInstanceRuntime tracks this property to start/stop the embedded model's runtime
             model_widget.runtimePropEmbeddedModel().setValue(null);
 
             // Atomically update the 'active' model
@@ -365,7 +367,7 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
                 toolkit.onRepresentationFinished();
             }
 
-            // Allow EmbeddedWidgetRuntime to start the new runtime
+            // Allow TemplateInstanceRuntime to start the new runtime
             model_widget.runtimePropEmbeddedModel().setValue(new_model);
         }
         catch (Exception ex)
