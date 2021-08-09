@@ -13,7 +13,6 @@ import static org.csstudio.display.builder.representation.ToolkitRepresentation.
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -26,10 +25,8 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
-import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget.Style;
-import org.csstudio.display.builder.model.widgets.LabelWidget;
 import org.csstudio.display.builder.model.widgets.TemplateInstanceWidget;
 import org.csstudio.display.builder.model.widgets.TemplateInstanceWidget.InstanceProperty;
 import org.csstudio.display.builder.representation.EmbeddedDisplayRepresentationUtil.DisplayAndGroup;
@@ -134,6 +131,7 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
         model_widget.propWidth().addUntypedPropertyListener(sizesChangedListener);
         model_widget.propHeight().addUntypedPropertyListener(sizesChangedListener);
         model_widget.propGap().addUntypedPropertyListener(sizesChangedListener);
+        model_widget.propHorizontal().addUntypedPropertyListener(sizesChangedListener);
 
         model_widget.propInstances().addPropertyListener(instancesChangedListener);
 
@@ -148,6 +146,7 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
         model_widget.propWidth().removePropertyListener(sizesChangedListener);
         model_widget.propHeight().removePropertyListener(sizesChangedListener);
         model_widget.propGap().removePropertyListener(sizesChangedListener);
+        model_widget.propHorizontal().removePropertyListener(sizesChangedListener);
 
         model_widget.propInstances().removePropertyListener(instancesChangedListener);
 
@@ -179,7 +178,7 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
     {
         if (resizing)
             return;
-    
+
         final DisplayModel template_model = active_template_model.get();
         if (template_model != null)
         {
@@ -189,9 +188,9 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
             final int count = model_widget.propInstances().size();
             final int gap = model_widget.propGap().getValue();
             final boolean horiz = model_widget.propHorizontal().getValue();
-    
+
             resizing = true;
-    
+
             if (content_width > 0)
                 model_widget.propWidth().setValue(horiz
                                                   ? content_width * count + gap * (count-1)
@@ -200,15 +199,15 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
                 model_widget.propHeight().setValue(horiz
                                                    ? content_height
                                                    : content_height * count + gap * (count-1));
+
             resizing = false;
-    
+
             if (property == model_widget.propGap() ||
-                property == model_widget.propInstances())
-            {
+                property == model_widget.propInstances() ||
+                property == model_widget.propHorizontal())
                 scheduleInstanceUpdate();
-            }
         }
-    
+
         dirty_sizes.mark();
         get_size_again.mark();
         toolkit.scheduleUpdate(this);
@@ -218,12 +217,12 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
     {
         final DisplayAndGroup file_and_group =
             new DisplayAndGroup(model_widget.propFile().getValue(), "");
-    
+
         // System.out.println("Requested: " + file_and_group);
         final DisplayAndGroup skipped = pending_template.getAndSet(file_and_group);
         if (skipped != null)
             logger.log(Level.FINE, "Skipped: {0}", skipped);
-    
+
         // Load embedded display in background thread
         toolkit.onRepresentationStarted();
         JobManager.schedule("Load Template", this::loadTemplate);
@@ -330,34 +329,19 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
             int x = 0, y = 0;
             for (InstanceProperty instance : model_widget.propInstances().getValue())
             {
-                if (toolkit.isEditMode())
-                {   // Show hint for each instance
-                    final LabelWidget hint = new LabelWidget();
-                    hint.propText().setValue(Objects.toString(instance.macros().getValue()));
-                    hint.propBackgroundColor().setValue(new WidgetColor(0, 0, 255, 50));
-                    hint.propTransparent().setValue(false);
-                    hint.propX().setValue(x);
-                    hint.propY().setValue(y);
-                    hint.propWidth().setValue(w);
-                    hint.propHeight().setValue(h);
-                    new_model.runtimeChildren().addChild(hint);
-                }
-                else
-                {   // Duplicate model for each instance, wrapped in Group to set macros
-                    final DisplayModel inst = ModelReader.parseXML(template_xml);
-                    final GroupWidget wrapper = new GroupWidget();
-                    wrapper.propStyle().setValue(Style.NONE);
-                    wrapper.propX().setValue(x);
-                    wrapper.propY().setValue(y);
-                    wrapper.propWidth().setValue(w);
-                    wrapper.propHeight().setValue(h);
+                final DisplayModel inst = ModelReader.parseXML(template_xml);
+                final GroupWidget wrapper = new GroupWidget();
+                wrapper.propStyle().setValue(Style.NONE);
+                wrapper.propX().setValue(x);
+                wrapper.propY().setValue(y);
+                wrapper.propWidth().setValue(w);
+                wrapper.propHeight().setValue(h);
 
-                    for (Widget widget : inst.getChildren())
-                        wrapper.runtimeChildren().addChild(widget);
-                    wrapper.propMacros().setValue(instance.macros().getValue());
+                for (Widget widget : inst.getChildren())
+                    wrapper.runtimeChildren().addChild(widget);
+                wrapper.propMacros().setValue(instance.macros().getValue());
 
-                    new_model.runtimeChildren().addChild(wrapper);
-                }
+                new_model.runtimeChildren().addChild(wrapper);
 
                 if (model_widget.propHorizontal().getValue())
                     x += w + model_widget.propGap().getValue();
