@@ -11,6 +11,8 @@ import static org.csstudio.display.builder.representation.EmbeddedDisplayReprese
 import static org.csstudio.display.builder.representation.EmbeddedDisplayRepresentationUtil.loadDisplayModel;
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
+import java.io.ByteArrayOutputStream;
+import java.util.Objects;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -18,14 +20,20 @@ import java.util.logging.Level;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
+import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.persist.ModelReader;
+import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.csstudio.display.builder.model.widgets.GroupWidget;
+import org.csstudio.display.builder.model.widgets.GroupWidget.Style;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
 import org.csstudio.display.builder.model.widgets.TemplateInstanceWidget;
 import org.csstudio.display.builder.model.widgets.TemplateInstanceWidget.InstanceProperty;
 import org.csstudio.display.builder.representation.EmbeddedDisplayRepresentationUtil.DisplayAndGroup;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
+import org.phoebus.framework.persistence.XMLUtil;
 
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
@@ -37,7 +45,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
-import javafx.scene.shape.Rectangle;
 
 /** Creates JavaFX item for model widget
  *
@@ -80,7 +87,10 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
     private volatile Background inner_background = Background.EMPTY;
 
     /** The display file (and optional group inside that display) to load */
-    private final AtomicReference<DisplayAndGroup> pending_display_and_group = new AtomicReference<>();
+    private final AtomicReference<DisplayAndGroup> pending_template = new AtomicReference<>();
+
+    /** Track active template's XML */
+    private final AtomicReference<DisplayModel> active_template_model = new AtomicReference<>();
 
     /** Track active model in a thread-safe way
      *  to assert that each one is represented and removed
@@ -122,7 +132,6 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
         model_widget.propGap().addUntypedPropertyListener(sizesChangedListener);
 
         model_widget.propFile().addUntypedPropertyListener(fileChangedListener);
-        // TODO Array of macros model_widget.propMacros().addUntypedPropertyListener(fileChangedListener);
 
         fileChanged(null, null, null);
     }
@@ -136,7 +145,7 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
         model_widget.propGap().removePropertyListener(sizesChangedListener);
 
         model_widget.propFile().removePropertyListener(fileChangedListener);
-        // Array of macros model_widget.propMacros().removePropertyListener(fileChangedListener);
+
         super.unregisterListeners();
     }
 
@@ -145,12 +154,12 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
         if (resizing)
             return;
 
-        final DisplayModel content_model = active_content_model.get();
-        if (content_model != null)
+        final DisplayModel template_model = active_template_model.get();
+        if (template_model != null)
         {
             // Size to content
-            final int content_width = content_model.propWidth().getValue();
-            final int content_height = content_model.propHeight().getValue();
+            final int content_width = template_model.propWidth().getValue();
+            final int content_height = template_model.propHeight().getValue();
             final int count = model_widget.propInstances().size();
             final int gap = model_widget.propGap().getValue();
             final boolean horiz = model_widget.propHorizontal().getValue();
@@ -179,13 +188,13 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
             new DisplayAndGroup(model_widget.propFile().getValue(), "");
 
         // System.out.println("Requested: " + file_and_group);
-        final DisplayAndGroup skipped = pending_display_and_group.getAndSet(file_and_group);
+        final DisplayAndGroup skipped = pending_template.getAndSet(file_and_group);
         if (skipped != null)
             logger.log(Level.FINE, "Skipped: {0}", skipped);
 
         // Load embedded display in background thread
         toolkit.onRepresentationStarted();
-        JobManager.schedule("Embedded Display", this::updatePendingDisplay);
+        JobManager.schedule("Load Template", this::loadTemplate);
     }
 
     /** Update to the next pending display
@@ -194,21 +203,21 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
      *
      *  <p>Example: Displays A, B, C are requested in quick succession.
      *
-     *  <p>pending_display_and_group=A is submitted to executor thread A.
+     *  <p>pending_template=A is submitted to executor thread A.
      *
-     *  <p>While handling A, pending_display_and_group=B is submitted to executor thread B.
+     *  <p>While handling A, pending_template=B is submitted to executor thread B.
      *  Thread B will be blocked in synchronized method.
      *
-     *  <p>Then pending_display_and_group=C is submitted to executor thread C.
-     *  As thread A finishes, thread B finds pending_display_and_group==C.
-     *  As thread C finally continues, it finds pending_display_and_group empty.
+     *  <p>Then pending_template=C is submitted to executor thread C.
+     *  As thread A finishes, thread B finds pending_template==C.
+     *  As thread C finally continues, it finds pending_template empty.
      *  --> Showing A, then C, skipping B.
      */
-    private synchronized void updatePendingDisplay(final JobMonitor monitor)
+    private synchronized void loadTemplate(final JobMonitor monitor)
     {
         try
         {
-            final DisplayAndGroup handle = pending_display_and_group.getAndSet(null);
+            final DisplayAndGroup handle = pending_template.getAndSet(null);
             if (handle == null)
             {
                 // System.out.println("Nothing to handle");
@@ -221,77 +230,121 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
             }
 
             monitor.beginTask("Load " + handle);
+            final DisplayModel template;
             try
-            {   // Load new model (potentially slow)
-                final DisplayModel new_model = loadDisplayModel(model_widget, handle);
-
-                // TODO Loading the model, duplicating it into instances, and representing the result must be separate steps
-                // Changing the file triggers all 3 steps.
-                // Changing the gap or number of instances only triggers the last 2 steps.
-                // Each must be reverted as appropriate when changing the file, gap or number of instances
-
-                if (! toolkit.isEditMode())
-                {
-                    final int w = new_model.propWidth().getValue();
-                    final int h = new_model.propHeight().getValue();
-                    int x = 0, y = 0;
-                    for (InstanceProperty instance : model_widget.propInstances().getValue())
-                    {
-                        // TODO Duplicate model for the N instances
-                        final LabelWidget hint = new LabelWidget();
-                        hint.propText().setValue("Instance: " + instance.macros().getValue());
-                        hint.propBackgroundColor().setValue(new WidgetColor(0, 0, 255, 50));
-                        hint.propTransparent().setValue(false);
-                        hint.propX().setValue(x);
-                        hint.propY().setValue(y);
-                        hint.propWidth().setValue(w);
-                        hint.propHeight().setValue(h);
-                        new_model.runtimeChildren().addChild(hint);
-
-                        if (model_widget.propHorizontal().getValue())
-                            x += w + model_widget.propGap().getValue();
-                        else
-                            y += h + model_widget.propGap().getValue();
-                    }
-                }
-
-                // Stop (old) runtime
-                // EmbeddedWidgetRuntime tracks this property to start/stop the embedded model's runtime
-                model_widget.runtimePropEmbeddedModel().setValue(null);
-
-                // Atomically update the 'active' model
-                final DisplayModel old_model = active_content_model.getAndSet(new_model);
-                new_model.propBackgroundColor().addUntypedPropertyListener(backgroundChangedListener);
-
-                if (old_model != null)
-                {   // Dispose old model
-                    final Future<Object> completion = toolkit.submit(() ->
-                    {
-                        toolkit.disposeRepresentation(old_model);
-                        return null;
-                    });
-                    checkCompletion(model_widget, completion, "timeout disposing old representation");
-                }
-                // Represent new model on UI thread
-                toolkit.onRepresentationStarted();
-                final Future<Object> completion = toolkit.submit(() ->
-                {
-                    representContent(new_model);
-                    return null;
-                });
-                checkCompletion(model_widget, completion, "timeout representing new content");
-
-                // Allow EmbeddedWidgetRuntime to start the new runtime
-                model_widget.runtimePropEmbeddedModel().setValue(new_model);
+            {   // Load template's model (potentially slow)
+                template = loadDisplayModel(model_widget, handle);
             }
             catch (Exception ex)
             {
-                logger.log(Level.WARNING, "Failed to handle embedded display " + handle, ex);
+                logger.log(Level.WARNING, "Failed to load template " + handle, ex);
+                return;
             }
+            instantiateTemplateAndRepresent(template);
         }
         finally
         {
             toolkit.onRepresentationFinished();
+        }
+    }
+
+    private void instantiateTemplateAndRepresent(final DisplayModel template)
+    {
+        System.out.println("instantiateTemplateAndRepresent on " + Thread.currentThread());
+        try
+        {
+
+            active_template_model.set(template);
+
+            // TODO Loading the model, duplicating it into instances, and representing the result must be separate steps
+            // Changing the file triggers all 3 steps.
+            // Changing the gap or number of instances only triggers the last 2 steps.
+            // Each must be reverted as appropriate when changing the file, gap or number of instances
+            final ByteArrayOutputStream xml = new ByteArrayOutputStream();
+            try
+            (
+                final ModelWriter writer = new ModelWriter(xml)
+            )
+            {
+                writer.writeModel(template);
+            }
+            final String template_xml = xml.toString(XMLUtil.ENCODING);
+
+            // Copy template into new model
+            final DisplayModel new_model = new DisplayModel();
+
+            final int w = template.propWidth().getValue();
+            final int h = template.propHeight().getValue();
+            int x = 0, y = 0;
+            for (InstanceProperty instance : model_widget.propInstances().getValue())
+            {
+                if (toolkit.isEditMode())
+                {   // Show hint for each instance
+                    final LabelWidget hint = new LabelWidget();
+                    hint.propText().setValue(Objects.toString(instance.macros().getValue()));
+                    hint.propBackgroundColor().setValue(new WidgetColor(0, 0, 255, 50));
+                    hint.propTransparent().setValue(false);
+                    hint.propX().setValue(x);
+                    hint.propY().setValue(y);
+                    hint.propWidth().setValue(w);
+                    hint.propHeight().setValue(h);
+                    new_model.runtimeChildren().addChild(hint);
+                }
+                else
+                {   // Duplicate model for each instance, wrapped in Group to set macros
+                    final DisplayModel inst = ModelReader.parseXML(template_xml);
+                    final GroupWidget wrapper = new GroupWidget();
+                    wrapper.propStyle().setValue(Style.NONE);
+                    wrapper.propX().setValue(x);
+                    wrapper.propY().setValue(y);
+                    wrapper.propWidth().setValue(w);
+                    wrapper.propHeight().setValue(h);
+
+                    for (Widget widget : inst.getChildren())
+                        wrapper.runtimeChildren().addChild(widget);
+                    wrapper.propMacros().setValue(instance.macros().getValue());
+
+                    new_model.runtimeChildren().addChild(wrapper);
+                }
+
+                if (model_widget.propHorizontal().getValue())
+                    x += w + model_widget.propGap().getValue();
+                else
+                    y += h + model_widget.propGap().getValue();
+            }
+
+            // Stop (old) runtime
+            // TODO EmbeddedWidgetRuntime tracks this property to start/stop the embedded model's runtime
+            model_widget.runtimePropEmbeddedModel().setValue(null);
+
+            // Atomically update the 'active' model
+            final DisplayModel old_model = active_content_model.getAndSet(new_model);
+            new_model.propBackgroundColor().addUntypedPropertyListener(backgroundChangedListener);
+
+            if (old_model != null)
+            {   // Dispose old model
+                final Future<Object> completion = toolkit.submit(() ->
+                {
+                    toolkit.disposeRepresentation(old_model);
+                    return null;
+                });
+                checkCompletion(model_widget, completion, "timeout disposing old representation");
+            }
+            // Represent new model on UI thread
+            toolkit.onRepresentationStarted();
+            final Future<Object> completion = toolkit.submit(() ->
+            {
+                representContent(new_model);
+                return null;
+            });
+            checkCompletion(model_widget, completion, "timeout representing new content");
+
+            // Allow EmbeddedWidgetRuntime to start the new runtime
+            model_widget.runtimePropEmbeddedModel().setValue(new_model);
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Failed to instantiate template " + model_widget.propFile().getValue(), ex);
         }
     }
 
@@ -301,38 +354,12 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
         try
         {
             sizesChanged(null, null, null);
-
-            if (toolkit.isEditMode())
-            {
-                // TODO Replace this with adding RegtangleWidget or LabelWidget to model
-                // Indicate outline of instances
-                final int w = content_model.propWidth().getValue();
-                final int h = content_model.propHeight().getValue();
-                int x = 0, y = 0;
-                for (int i=0;  i<model_widget.propInstances().size();  ++i)
-                {
-                    final Rectangle hint = new Rectangle(x, y, w, h);
-                    hint.setFill(new Color(0, 0, 1.0, 0.1));
-                    inner.getChildren().add(hint);
-
-                    if (model_widget.propHorizontal().getValue())
-                        x += w + model_widget.propGap().getValue();
-                    else
-                        y += h + model_widget.propGap().getValue();
-                }
-            }
-
             toolkit.representModel(inner, content_model);
-
             backgroundChanged(null, null, null);
         }
         catch (final Exception ex)
         {
             logger.log(Level.WARNING, "Failed to represent embedded display", ex);
-        }
-        finally
-        {
-            toolkit.onRepresentationFinished();
         }
     }
 
@@ -382,7 +409,7 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
     @Override
     public void dispose()
     {
-        // When the file name is changed, updatePendingDisplay()
+        // When the file name is changed, loadTemplate()
         // will atomically update the active_content_model,
         // represent the new model, and then set runtimePropEmbeddedModel.
         //

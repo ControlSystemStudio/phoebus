@@ -15,4 +15,12 @@
     <x>110</x>
     <y>10</y>
   </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle</name>
+    <width>220</width>
+    <height>40</height>
+    <line_width>1</line_width>
+    <line_style>2</line_style>
+    <transparent>true</transparent>
+  </widget>
 </display>
