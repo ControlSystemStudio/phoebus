@@ -175,6 +175,23 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
                                                    ? content_height
                                                    : content_height * count + gap * (count-1));
             resizing = false;
+
+            if (property == model_widget.propGap() ||
+                property == model_widget.propInstances())
+            {
+                toolkit.onRepresentationStarted();
+                JobManager.schedule("Update Instances", monitor ->
+                {
+                    try
+                    {
+                        instantiateTemplateAndRepresent();
+                    }
+                    finally
+                    {
+                        toolkit.onRepresentationFinished();
+                    }
+                });
+            }
         }
 
         dirty_sizes.mark();
@@ -230,17 +247,16 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
             }
 
             monitor.beginTask("Load " + handle);
-            final DisplayModel template;
             try
             {   // Load template's model (potentially slow)
-                template = loadDisplayModel(model_widget, handle);
+                active_template_model.set(loadDisplayModel(model_widget, handle));
             }
             catch (Exception ex)
             {
                 logger.log(Level.WARNING, "Failed to load template " + handle, ex);
                 return;
             }
-            instantiateTemplateAndRepresent(template);
+            instantiateTemplateAndRepresent();
         }
         finally
         {
@@ -248,14 +264,13 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
         }
     }
 
-    private void instantiateTemplateAndRepresent(final DisplayModel template)
+    private void instantiateTemplateAndRepresent()
     {
-        System.out.println("instantiateTemplateAndRepresent on " + Thread.currentThread());
+        final DisplayModel template = active_template_model.get();
+        if (template == null)
+            return;
         try
         {
-
-            active_template_model.set(template);
-
             // TODO Loading the model, duplicating it into instances, and representing the result must be separate steps
             // Changing the file triggers all 3 steps.
             // Changing the gap or number of instances only triggers the last 2 steps.
@@ -272,6 +287,10 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
 
             // Copy template into new model
             final DisplayModel new_model = new DisplayModel();
+            // Mark new_model as _not_ being a top-level model,
+            // which would cause the toolkit to create a new 'phasor' and result
+            // in timeouts of the editor awaiting complete representation
+            new_model.setUserData(DisplayModel.USER_DATA_EMBEDDING_WIDGET, model_widget);
 
             final int w = template.propWidth().getValue();
             final int h = template.propHeight().getValue();
@@ -332,12 +351,19 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
             }
             // Represent new model on UI thread
             toolkit.onRepresentationStarted();
-            final Future<Object> completion = toolkit.submit(() ->
+            try
             {
-                representContent(new_model);
-                return null;
-            });
-            checkCompletion(model_widget, completion, "timeout representing new content");
+                final Future<Object> completion = toolkit.submit(() ->
+                {
+                    representContent(new_model);
+                    return null;
+                });
+                checkCompletion(model_widget, completion, "timeout representing new content");
+            }
+            finally
+            {
+                toolkit.onRepresentationFinished();
+            }
 
             // Allow EmbeddedWidgetRuntime to start the new runtime
             model_widget.runtimePropEmbeddedModel().setValue(new_model);
