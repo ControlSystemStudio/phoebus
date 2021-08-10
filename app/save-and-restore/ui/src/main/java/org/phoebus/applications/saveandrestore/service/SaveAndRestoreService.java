@@ -21,12 +21,11 @@ package org.phoebus.applications.saveandrestore.service;
 import org.phoebus.applications.saveandrestore.data.DataProvider;
 import org.phoebus.applications.saveandrestore.data.NodeAddedListener;
 import org.phoebus.applications.saveandrestore.data.NodeChangedListener;
+import org.phoebus.applications.saveandrestore.data.providers.jmasar.JMasarDataProvider;
 import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.model.VNoData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
@@ -37,21 +36,34 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-@Component
 public class SaveAndRestoreService {
 
-    @Autowired
-    private ExecutorService executor;
+    private final ExecutorService executor;
+    private final DataProvider dataProvider;
 
-    @Autowired
-    private DataProvider dataProvider;
-
-    private List<NodeChangedListener> nodeChangeListeners = Collections.synchronizedList(new ArrayList());
-    private List<NodeAddedListener> nodeAddedListeners = Collections.synchronizedList(new ArrayList());
+    private final List<NodeChangedListener> nodeChangeListeners = Collections.synchronizedList(new ArrayList());
+    private final List<NodeAddedListener> nodeAddedListeners = Collections.synchronizedList(new ArrayList());
 
     private static final Logger LOG = LoggerFactory.getLogger(SaveAndRestoreService.class.getName());
+
+    private static SaveAndRestoreService instance;
+
+    private SaveAndRestoreService(){
+        dataProvider = new JMasarDataProvider();
+        executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+    }
+
+    public static SaveAndRestoreService getInstance(){
+        if(instance == null){
+            instance = new SaveAndRestoreService();
+        }
+        return instance;
+    }
 
     public Node getRootNode() {
 
@@ -114,12 +126,7 @@ public class SaveAndRestoreService {
     }
 
     public boolean deleteNode(String uniqueNodeId) throws Exception {
-        Future<Boolean> future = executor.submit(() -> {
-
-            return dataProvider.deleteNode(uniqueNodeId);
-
-        });
-
+        Future<Boolean> future = executor.submit(() -> dataProvider.deleteNode(uniqueNodeId));
         return future.get();
     }
 

@@ -19,8 +19,7 @@
 
 package org.phoebus.applications.saveandrestore;
 
-
-import javafx.scene.Node;
+import javafx.fxml.FXMLLoader;
 import org.phoebus.applications.saveandrestore.ui.BaseSaveAndRestoreController;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.preferences.PreferencesReader;
@@ -29,7 +28,6 @@ import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.pv.ca.JCA_Preferences;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,7 +35,6 @@ import java.util.logging.Logger;
 public class SaveAndRestoreApplication implements AppDescriptor, AppInstance {
 	
 	public static final String NAME = "Save And Restore";
-	private AnnotationConfigApplicationContext context;
 	private BaseSaveAndRestoreController controller;
 
 	@Override
@@ -53,24 +50,24 @@ public class SaveAndRestoreApplication implements AppDescriptor, AppInstance {
 	@Override
 	public AppInstance create() {
 
-		context = new AnnotationConfigApplicationContext(AppConfig.class);
-
-		SpringFxmlLoader springFxmlLoader = new SpringFxmlLoader();
-
 		DockItem tab = null;
 
-		PreferencesReader preferencesReader = (PreferencesReader) context.getBean("preferencesReader");
+		PreferencesReader preferencesReader =
+				new PreferencesReader(getClass(), "/save_and_restore_preferences.properties");
+
+		FXMLLoader loader = new FXMLLoader();
 		try {
 		    if (preferencesReader.getBoolean("splitSnapshot")) {
-				tab = new DockItem(this, (Node) springFxmlLoader.load("ui/SaveAndRestoreUIWithSplit.fxml"));
+				loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/SaveAndRestoreUIWithSplit.fxml"));
 			} else {
-				tab = new DockItem(this, (Node) springFxmlLoader.load("ui/SaveAndRestoreUI.fxml"));
+				loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/SaveAndRestoreUI.fxml"));
 			}
+		    tab = new DockItem(this, loader.load());
 		} catch (Exception e) {
 			Logger.getLogger(SaveAndRestoreApplication.class.getName()).log(Level.SEVERE, "Failed loading fxml", e);
 		}
 
-		controller = springFxmlLoader.getLoader().getController();
+		controller = loader.getController();
 
 		tab.setOnCloseRequest(event -> controller.closeTagSearchWindow());
 

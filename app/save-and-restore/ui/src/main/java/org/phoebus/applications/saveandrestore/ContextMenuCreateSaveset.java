@@ -21,6 +21,7 @@
  */
 package org.phoebus.applications.saveandrestore;
 
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -33,7 +34,6 @@ import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetFromSelectionController;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.Selection;
-import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
@@ -41,6 +41,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -81,40 +82,29 @@ public class ContextMenuCreateSaveset implements ContextMenuEntry
     }
 
     @Override
-    public void call(final Selection selection) throws Exception
+    public void call(final Selection selection)
     {
-        try {
-            saveAndRestoreService = (SaveAndRestoreService) ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().getBean("saveAndRestoreService");
-        } catch (Exception e) {
-            try {
-                ApplicationService.createInstance(SaveAndRestoreApplication.NAME);
-                saveAndRestoreService = (SaveAndRestoreService) ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().getBean("saveAndRestoreService");
-            } catch (Exception ee) {
-                LOGGER.severe("Cannot open SaveAndRestore application nor create its service instance!");
-
-                ee.printStackTrace();
-            }
-        }
+        saveAndRestoreService = SaveAndRestoreService.getInstance();
 
         checkRootNode();
 
         final List<ProcessVariable> pvs = selection.getSelections();
 
         try {
-            SpringFxmlLoader springFxmlLoader = new SpringFxmlLoader();
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/SaveSetFromSelection.fxml"));
+            Parent root = loader.load();
             Stage dialog = new Stage();
             dialog.setTitle(getName());
             dialog.initModality(Modality.WINDOW_MODAL);
             dialog.getIcons().add(ImageCache.getImage(ImageCache.class, "/icons/logo.png"));
-            dialog.setScene(new Scene((Parent) springFxmlLoader.load("ui/saveset/SaveSetFromSelection.fxml")));
+            dialog.setScene(new Scene(root));
 
-            final SaveSetFromSelectionController controller = springFxmlLoader.getLoader().getController();
+            final SaveSetFromSelectionController controller = loader.getController();
             controller.setSelection(pvs);
             dialog.show();
         } catch (Exception e) {
-            LOGGER.severe("Cannot load SaveSetFromSelection.fxml file!");
-
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Cannot load SaveSetFromSelection.fxml file!", e);
         }
     }
 
@@ -137,10 +127,7 @@ public class ContextMenuCreateSaveset implements ContextMenuEntry
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setContentText(alertMessage);
                 alert.show();
-
-                LOGGER.severe(alertMessage);
-
-                e.printStackTrace();
+                LOGGER.log(Level.SEVERE, alertMessage, e);
             }
         }
     }

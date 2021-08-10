@@ -1,28 +1,28 @@
 /**
  * Copyright (C) 2020 Facility for Rare Isotope Beams
- *
+ * <p>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *
+ * <p>
  * Contact Information: Facility for Rare Isotope Beam,
- *                      Michigan State University,
- *                      East Lansing, MI 48824-1321
- *                      http://frib.msu.edu
+ * Michigan State University,
+ * East Lansing, MI 48824-1321
+ * http://frib.msu.edu
  */
 package org.phoebus.applications.saveandrestore.filehandler.csv;
 
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.scene.Parent;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -70,8 +70,7 @@ import org.epics.vtype.VShortArray;
 import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
-import org.phoebus.applications.saveandrestore.ApplicationContextProvider;
-import org.phoebus.applications.saveandrestore.SpringFxmlLoader;
+import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.datamigration.git.FileUtilities;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -81,6 +80,7 @@ import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetFromSelectionController;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -90,6 +90,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -99,8 +101,7 @@ import java.util.stream.Collectors;
  */
 
 public class CSVImporter extends CSVCommon {
-    final static private SaveAndRestoreService saveAndRestoreService = (SaveAndRestoreService) ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().getBean("saveAndRestoreService");
-
+    final static private SaveAndRestoreService saveAndRestoreService = SaveAndRestoreService.getInstance();
     static private CSVParser csvParser;
 
     static private Node parentOfImport = null;
@@ -115,9 +116,14 @@ public class CSVImporter extends CSVCommon {
         duplicateSavesetFound = false;
 
         switch (parent.getNodeType()) {
-            case        FOLDER: importSaveset();  break;
-            case CONFIGURATION: importSnapshot(); break;
-            default: throw new Exception("The node of " + parentOfImport.getNodeType() + " is not supported for import!");
+            case FOLDER:
+                importSaveset();
+                break;
+            case CONFIGURATION:
+                importSnapshot();
+                break;
+            default:
+                throw new Exception("The node of " + parentOfImport.getNodeType() + " is not supported for import!");
         }
     }
 
@@ -138,13 +144,19 @@ public class CSVImporter extends CSVCommon {
             csvParser.setDescription(parentOfImport.getProperty("description") + System.lineSeparator() + System.lineSeparator() + "Description from importing:" + System.lineSeparator() + csvParser.getDescription());
         }
 
-        SpringFxmlLoader springFxmlLoader = new SpringFxmlLoader();
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/SaveSetFromSelection.fxml"));
         Stage dialog = new Stage();
         dialog.setTitle("Import Save Set");
         dialog.initModality(Modality.WINDOW_MODAL);
-        dialog.setScene(new Scene((Parent) springFxmlLoader.load("ui/saveset/SaveSetFromSelection.fxml")));
+        try {
+            dialog.setScene(new Scene(loader.load()));
+        } catch (IOException e) {
+            Logger.getLogger(CSVImporter.class.getName()).log(Level.SEVERE, "Unable to load fxml file", e);
+            return;
+        }
 
-        final SaveSetFromSelectionController controller = springFxmlLoader.getLoader().getController();
+        final SaveSetFromSelectionController controller = loader.getController();
         controller.disableSaveSetSelectionInBrowsing();
         controller.setData(parentOfImport, csvParser.getSavesetName(), csvParser.getDescription(), csvParser.getEntries());
         dialog.show();
@@ -208,13 +220,14 @@ public class CSVImporter extends CSVCommon {
             Optional<ButtonType> response = alert.showAndWait();
 
             if (response.isPresent() && response.get().equals(ButtonType.OK)) {
-                SpringFxmlLoader springFxmlLoader = new SpringFxmlLoader();
+                FXMLLoader loader = new FXMLLoader();
+                loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/SaveSetFromSelection.fxml"));
                 Stage dialog = new Stage();
                 dialog.setTitle("Import Snapshot");
                 dialog.initModality(Modality.APPLICATION_MODAL);
-                dialog.setScene(new Scene((Parent) springFxmlLoader.load("ui/saveset/SaveSetFromSelection.fxml")));
+                dialog.setScene(new Scene(loader.load()));
 
-                final SaveSetFromSelectionController controller = springFxmlLoader.getLoader().getController();
+                final SaveSetFromSelectionController controller = loader.getController();
                 controller.disableSaveSetSelectionInBrowsing();
                 controller.setData(null, "", "", csvParser.getEntries());
                 SimpleObjectProperty<Node> createdSaveset = new SimpleObjectProperty<>(null);
@@ -233,7 +246,7 @@ public class CSVImporter extends CSVCommon {
 
         List<ConfigPv> configPvs = saveAndRestoreService.getConfigPvs(parentOfImport.getUniqueId());
         List<SnapshotItem> snapshotItems = new ArrayList<>();
-        for (Map<String, String> snapshotEntry: csvParser.getEntries()) {
+        for (Map<String, String> snapshotEntry : csvParser.getEntries()) {
             SnapshotItem snapshotItem = SnapshotItem.builder()
                     .configPv(configPvs.stream().filter(item -> item.equals(createConfigPv(snapshotEntry))).findFirst().get())
                     .value(createVType(snapshotEntry.get(H_TIMESTAMP), snapshotEntry.get(H_STATUS), snapshotEntry.get(H_SEVERITY), snapshotEntry.get(H_VALUE), snapshotEntry.get(H_VALUE_TYPE)))
@@ -279,7 +292,7 @@ public class CSVImporter extends CSVCommon {
         int numConfigPvsInSaveset = configPvs.size();
         int numMatching = 0;
 
-        for (Map<String, String> entry: entries) {
+        for (Map<String, String> entry : entries) {
             if (configPvs.stream().anyMatch(item -> item.equals(createConfigPv(entry)))) {
                 numMatching++;
             }
@@ -313,7 +326,7 @@ public class CSVImporter extends CSVCommon {
             return VDisconnectedData.INSTANCE;
         }
         String[] t = timestamp != null && timestamp.indexOf('.') > 0 ? timestamp.split("\\.")
-                : new String[] { "0", "0" };
+                : new String[]{"0", "0"};
         Time time = Time.of(Instant.ofEpochSecond(Long.parseLong(t[0]), Integer.parseInt(t[1])));
         AlarmStatus alarmStatus = null;
         try {
