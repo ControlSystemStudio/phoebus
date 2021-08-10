@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <display version="2.0.0">
   <name>Display</name>
+  <width>550</width>
+  <height>345</height>
   <widget type="label" version="2.0.0">
     <name>Label</name>
     <class>TITLE</class>
@@ -20,14 +22,17 @@
     <transparent use_class="true">true</transparent>
   </widget>
   <widget type="label" version="2.0.0">
-    <name>Label_1</name>
-    <text>This widget is similar to the Embedded Display widget, like the following one that displays the 'template' with some macro value.</text>
+    <name>Label_2</name>
+    <text>The Template &amp; Instances widget is similar to the Embedded Display widget.
+It loads a display file as a "template", which is then presented in N "instances".
+Each instance has its own macros.
+Each instance is shown at its original size, and consecutive instances are layed out horizontally or vertically with an optional gap.</text>
     <y>40</y>
     <width>470</width>
-    <height>40</height>
+    <height>140</height>
   </widget>
   <widget type="template" version="2.0.0">
-    <name>Template/Instance</name>
+    <name>Template/Instance_2</name>
     <file>template.bob</file>
     <instances>
       <instance>
@@ -47,38 +52,14 @@
       </instance>
       <instance>
         <macros>
-          <I>4</I>
-        </macros>
-      </instance>
-      <instance>
-        <macros>
-          <I>5</I>
+          <I>99</I>
         </macros>
       </instance>
     </instances>
-    <y>230</y>
+    <x>10</x>
+    <y>170</y>
     <width>220</width>
-    <height>280</height>
-    <gap>20</gap>
-  </widget>
-  <widget type="label" version="2.0.0">
-    <name>Label_2</name>
-    <text>The Template &amp; Instances widget loads an embedded display file as a "template", which is then presented in N "instances".
-Each instance has its own macros.
-Each instance is shown at its original size, and consecutive instances are layed out horizontally or vertically with an optional gap.</text>
-    <y>130</y>
-    <width>470</width>
-    <height>90</height>
-  </widget>
-  <widget type="embedded" version="2.0.0">
-    <name>Embedded Display</name>
-    <macros>
-      <I>42</I>
-    </macros>
-    <file>template.bob</file>
-    <y>80</y>
-    <width>220</width>
-    <height>40</height>
-    <resize>2</resize>
+    <height>175</height>
+    <gap>5</gap>
   </widget>
 </display>

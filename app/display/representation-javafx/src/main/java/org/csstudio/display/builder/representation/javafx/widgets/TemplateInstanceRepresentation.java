@@ -409,7 +409,6 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
             jfx_node.setMinSize(width, height);
             jfx_node.setMaxSize(width, height);
 
-            // Check for overdrawing
             if (get_size_again.checkAndClear())
             {
                 // Give the UI thread a chance to render the contents and update the width/height

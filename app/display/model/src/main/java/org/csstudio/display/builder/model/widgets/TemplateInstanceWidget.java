@@ -33,7 +33,6 @@ import org.phoebus.framework.macros.Macros;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-// TODO Is VisibleWidget the best base class?
 public class TemplateInstanceWidget extends VisibleWidget
 {
     public static final int DEFAULT_WIDTH = 400,

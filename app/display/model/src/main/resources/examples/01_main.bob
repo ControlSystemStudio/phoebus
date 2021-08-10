@@ -742,6 +742,21 @@ then press &lt;SPACE&gt; to activate button.</text>
     <height>26</height>
     <tooltip>$(actions)</tooltip>
   </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_21</name>
+    <actions>
+      <action type="open_display">
+        <file>template_and_instance/example.bob</file>
+        <target>replace</target>
+        <description>Template &amp; Inst.</description>
+      </action>
+    </actions>
+    <x>750</x>
+    <y>320</y>
+    <width>120</width>
+    <height>26</height>
+    <tooltip>$(actions)</tooltip>
+  </widget>
   <widget type="label" version="2.0.0">
     <name>Misc</name>
     <text>Miscellaneous</text>
