@@ -3,7 +3,6 @@ package org.phoebus.applications.saveandrestore.ui;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Modality;
@@ -12,7 +11,6 @@ import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.data.NodeAddedListener;
 import org.phoebus.applications.saveandrestore.data.NodeChangedListener;
-import org.phoebus.applications.saveandrestore.filehandler.csv.CSVImporter;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -41,7 +39,7 @@ public abstract class BaseSaveAndRestoreController implements Initializable, Nod
                 final ResourceBundle bundle = NLS.getMessages(SaveAndRestoreApplication.class);
 
                 FXMLLoader loader = new FXMLLoader();
-                loader.setLocation(CSVImporter.class.getResource("ui/SearchWindow.fxml"));
+                loader.setLocation(BaseSaveAndRestoreController.class.getResource("SearchWindow.fxml"));
                 loader.setResources(bundle);
                 searchWindow = new Stage();
                 searchWindow.getIcons().add(ImageCache.getImage(ImageCache.class, "/icons/logo.png"));
@@ -63,5 +61,7 @@ public abstract class BaseSaveAndRestoreController implements Initializable, Nod
         if (searchWindow != null) {
             searchWindow.close();
         }
-    };
+    }
+
+    ;
 }

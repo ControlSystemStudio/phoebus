@@ -59,7 +59,7 @@ public class SnapshotTab extends Tab {
         }
 
         FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(SnapshotTab.class.getResource("ui/snapshot/SnapshotEditor.fxml"));
+        loader.setLocation(SnapshotTab.class.getResource("SnapshotEditor.fxml"));
 
         VBox borderPane = null;
         try {

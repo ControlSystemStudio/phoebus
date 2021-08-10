@@ -45,6 +45,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVCommon;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -78,7 +79,8 @@ import java.util.logging.Logger;
 public class SaveSetFromSelectionController implements Initializable {
 
     private final SaveAndRestoreService saveAndRestoreService = SaveAndRestoreService.getInstance();
-    private final PreferencesReader preferencesReader = new PreferencesReader(getClass(), "/save_and_restore_preferences.properties");
+    private final PreferencesReader preferencesReader =
+            new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
     private final Logger LOGGER = Logger.getLogger(SaveAndRestoreService.class.getName());
 
     private final String DESCRIPTION_PROPERTY = "description";
@@ -201,9 +203,9 @@ public class SaveSetFromSelectionController implements Initializable {
                 dialog.getIcons().add(ImageCache.getImage(ImageCache.class, "/icons/logo.png"));
                 dialog.initModality(Modality.APPLICATION_MODAL);
                 if (preferencesReader.getBoolean("splitSaveset")) {
-                    loader.setLocation(SaveSetFromSelectionController.class.getResource("ui/saveset/SaveSetSelectorWithSplit.fxml"));
+                    loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/SaveSetSelectorWithSplit.fxml"));
                 } else {
-                    loader.setLocation(SaveSetFromSelectionController.class.getResource("ui/saveset/SaveSetSelector.fxml"));
+                    loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/SaveSetSelector.fxml"));
                 }
                 dialog.setScene(new Scene(loader.load()));
 

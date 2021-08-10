@@ -34,7 +34,6 @@ import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetFromSelectionController;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.Selection;
-import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
@@ -93,7 +92,7 @@ public class ContextMenuCreateSaveset implements ContextMenuEntry
 
         try {
             FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(ContextMenuCreateSaveset.class.getResource("ui/saveset/SaveSetFromSelection.fxml"));
+            loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/SaveSetFromSelection.fxml"));
             Parent root = loader.load();
             Stage dialog = new Stage();
             dialog.setTitle(getName());

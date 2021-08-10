@@ -21,6 +21,7 @@
  */
 package org.phoebus.applications.saveandrestore.ui.snapshot.hierarchyparser;
 
+import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.framework.preferences.PreferencesReader;
 
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ import java.util.stream.Collectors;
 
 public class RegexHierarchyParser implements IHierarchyParser {
 
-    private PreferencesReader preferencesReader = new PreferencesReader(getClass(), "/save_and_restore_preferences.properties");
+    private PreferencesReader preferencesReader = new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
     private final String regexListString = preferencesReader.get("regexHierarchyParser.regexList");
 
     @Override

@@ -56,7 +56,6 @@ public class SaveAndRestoreApplication implements AppDescriptor, AppInstance {
 				new PreferencesReader(getClass(), "/save_and_restore_preferences.properties");
 
 		FXMLLoader loader = new FXMLLoader();
-		loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/SaveSetFromSelection.fxml"));
 		try {
 		    if (preferencesReader.getBoolean("splitSnapshot")) {
 				loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/SaveAndRestoreUIWithSplit.fxml"));

@@ -92,7 +92,6 @@ import java.util.ResourceBundle;
 import java.util.Stack;
 import java.util.concurrent.Executor;
 import java.util.logging.Logger;
-import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 public class SaveAndRestoreWithSplitController extends BaseSaveAndRestoreController {
@@ -151,7 +150,7 @@ public class SaveAndRestoreWithSplitController extends BaseSaveAndRestoreControl
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         saveAndRestoreService = SaveAndRestoreService.getInstance();
-        preferencesReader = new PreferencesReader(getClass(), "/save_and_restore_preferences.properties");
+        preferencesReader = new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
 
         reconnectButton.setGraphic(ImageCache.getImageView(SaveAndRestoreApplication.class, "/icons/refresh.png"));
         reconnectButton.setTooltip(new Tooltip(Messages.buttonRefresh));

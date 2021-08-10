@@ -31,6 +31,9 @@ import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.ui.javafx.ImageCache;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class SaveSetTab extends Tab implements NodeChangedListener {
 
     private SaveSetController saveSetController;
@@ -48,15 +51,16 @@ public class SaveSetTab extends Tab implements NodeChangedListener {
 
         try {
             FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(SaveSetTab.class.getResource("ui/saveset/SaveSetEditor.fxml"));
+            loader.setLocation(SaveSetTab.class.getResource("SaveSetEditor.fxml"));
             setContent(loader.load());
             saveSetController = loader.getController();
             tabTitleProperty.set(node.getName());
             setGraphic(getTabGraphic());
             saveSetController.loadSaveSet(node);
         } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            Logger.getLogger(SaveSetTab.class.getName())
+                    .log(Level.SEVERE, "Failed to load fxml", e);
+            return;
         }
 
         setOnCloseRequest(event -> {

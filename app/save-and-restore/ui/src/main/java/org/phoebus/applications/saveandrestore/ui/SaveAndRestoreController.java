@@ -148,7 +148,7 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
         saveAndRestoreService = SaveAndRestoreService.getInstance();
 
         preferencesReader =
-                new PreferencesReader(getClass(), "/save_and_restore_preferences.properties");
+                new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
         reconnectButton.setGraphic(ImageCache.getImageView(SaveAndRestoreApplication.class, "/icons/refresh.png"));
         reconnectButton.setTooltip(new Tooltip(Messages.buttonRefresh));
 

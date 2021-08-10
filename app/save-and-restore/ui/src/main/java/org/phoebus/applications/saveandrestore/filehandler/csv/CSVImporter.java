@@ -1,29 +1,28 @@
 /**
  * Copyright (C) 2020 Facility for Rare Isotope Beams
- *
+ * <p>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *
+ * <p>
  * Contact Information: Facility for Rare Isotope Beam,
- *                      Michigan State University,
- *                      East Lansing, MI 48824-1321
- *                      http://frib.msu.edu
+ * Michigan State University,
+ * East Lansing, MI 48824-1321
+ * http://frib.msu.edu
  */
 package org.phoebus.applications.saveandrestore.filehandler.csv;
 
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -71,6 +70,7 @@ import org.epics.vtype.VShortArray;
 import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
+import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.datamigration.git.FileUtilities;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -116,9 +116,14 @@ public class CSVImporter extends CSVCommon {
         duplicateSavesetFound = false;
 
         switch (parent.getNodeType()) {
-            case        FOLDER: importSaveset();  break;
-            case CONFIGURATION: importSnapshot(); break;
-            default: throw new Exception("The node of " + parentOfImport.getNodeType() + " is not supported for import!");
+            case FOLDER:
+                importSaveset();
+                break;
+            case CONFIGURATION:
+                importSnapshot();
+                break;
+            default:
+                throw new Exception("The node of " + parentOfImport.getNodeType() + " is not supported for import!");
         }
     }
 
@@ -140,7 +145,7 @@ public class CSVImporter extends CSVCommon {
         }
 
         FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(CSVImporter.class.getResource("ui/saveset/SaveSetFromSelection.fxml"));
+        loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/SaveSetFromSelection.fxml"));
         Stage dialog = new Stage();
         dialog.setTitle("Import Save Set");
         dialog.initModality(Modality.WINDOW_MODAL);
@@ -216,7 +221,7 @@ public class CSVImporter extends CSVCommon {
 
             if (response.isPresent() && response.get().equals(ButtonType.OK)) {
                 FXMLLoader loader = new FXMLLoader();
-                loader.setLocation(CSVImporter.class.getResource("ui/saveset/SaveSetFromSelection.fxml"));
+                loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/SaveSetFromSelection.fxml"));
                 Stage dialog = new Stage();
                 dialog.setTitle("Import Snapshot");
                 dialog.initModality(Modality.APPLICATION_MODAL);
@@ -241,7 +246,7 @@ public class CSVImporter extends CSVCommon {
 
         List<ConfigPv> configPvs = saveAndRestoreService.getConfigPvs(parentOfImport.getUniqueId());
         List<SnapshotItem> snapshotItems = new ArrayList<>();
-        for (Map<String, String> snapshotEntry: csvParser.getEntries()) {
+        for (Map<String, String> snapshotEntry : csvParser.getEntries()) {
             SnapshotItem snapshotItem = SnapshotItem.builder()
                     .configPv(configPvs.stream().filter(item -> item.equals(createConfigPv(snapshotEntry))).findFirst().get())
                     .value(createVType(snapshotEntry.get(H_TIMESTAMP), snapshotEntry.get(H_STATUS), snapshotEntry.get(H_SEVERITY), snapshotEntry.get(H_VALUE), snapshotEntry.get(H_VALUE_TYPE)))
@@ -287,7 +292,7 @@ public class CSVImporter extends CSVCommon {
         int numConfigPvsInSaveset = configPvs.size();
         int numMatching = 0;
 
-        for (Map<String, String> entry: entries) {
+        for (Map<String, String> entry : entries) {
             if (configPvs.stream().anyMatch(item -> item.equals(createConfigPv(entry)))) {
                 numMatching++;
             }
@@ -321,7 +326,7 @@ public class CSVImporter extends CSVCommon {
             return VDisconnectedData.INSTANCE;
         }
         String[] t = timestamp != null && timestamp.indexOf('.') > 0 ? timestamp.split("\\.")
-                : new String[] { "0", "0" };
+                : new String[]{"0", "0"};
         Time time = Time.of(Instant.ofEpochSecond(Long.parseLong(t[0]), Integer.parseInt(t[1])));
         AlarmStatus alarmStatus = null;
         try {

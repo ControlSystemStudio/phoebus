@@ -588,7 +588,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
             }
         });
 
-        PreferencesReader preferencesReader = new PreferencesReader(getClass(), "/save_and_restore_preferences.properties");
+        PreferencesReader preferencesReader = new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
         String parserClassName = preferencesReader.get("treeTableView.hierarchyParser");
         try {
             hierarchyParser = (IHierarchyParser) Class.forName(getClass().getPackageName() + ".hierarchyparser." + parserClassName).getConstructor().newInstance();
