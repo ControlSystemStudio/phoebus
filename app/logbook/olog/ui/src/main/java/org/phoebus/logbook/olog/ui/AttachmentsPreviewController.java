@@ -145,6 +145,7 @@ public class AttachmentsPreviewController {
                 splitPane.getScene().setCursor(Cursor.MOVE);
             }
         });
+
         imagePreview.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
             if (selectedAttachment.get() != null && selectedAttachment.get().getContentType().startsWith("image")) {
                 ApplicationLauncherService.openFile(selectedAttachment.get().getFile(),
@@ -184,6 +185,10 @@ public class AttachmentsPreviewController {
                 }
             }
         });
+        // Automatically select first attachment.
+        if(attachments != null && attachments.size() > 0){
+            attachmentListView.getSelectionModel().select(attachments.get(0));
+        }
     }
 
     private class AttachmentRow extends ListCell<Attachment> {
