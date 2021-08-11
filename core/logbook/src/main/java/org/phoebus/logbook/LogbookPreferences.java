@@ -13,6 +13,9 @@ public class LogbookPreferences {
     @Preference
     public static String logbook_factory;
 
+    @Preference
+    public static boolean auto_title;
+
     /** Is there support for a logbook?
      *  Is the 'logbook_factory' configured and available?
      */

@@ -4,6 +4,8 @@ import org.phoebus.framework.adapter.AdapterFactory;
 import org.phoebus.logbook.AttachmentImpl;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
+import org.phoebus.logbook.LogbookPreferences;
+import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.selection.AppSelection;
 
@@ -40,7 +42,7 @@ public class AppSelectionAdapterFactory implements AdapterFactory {
 
         if (adapterType.isAssignableFrom(LogEntry.class))
         {
-            LogEntryBuilder log = log().title(selectionInfo.getTitle())
+            LogEntryBuilder log = log().title(LogbookPreferences.auto_title ? selectionInfo.getTitle() : "")
                                        .appendDescription(selectionInfo.getBody());
             try
             {
@@ -56,5 +58,4 @@ public class AppSelectionAdapterFactory implements AdapterFactory {
         }
         return Optional.ofNullable(null);
     }
-
 }
