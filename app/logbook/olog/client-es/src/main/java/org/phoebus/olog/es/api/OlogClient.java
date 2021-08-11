@@ -49,7 +49,6 @@ import com.sun.jersey.multipart.impl.MultiPartWriter;
 import org.phoebus.olog.es.api.model.OlogObjectMappers;
 import org.phoebus.olog.es.api.model.OlogAttachment;
 import org.phoebus.olog.es.api.model.OlogLog;
-import org.phoebus.security.managers.DummyX509TrustManager;
 
 /**
  * A client to the Olog-es webservice
@@ -282,6 +281,15 @@ public class OlogClient implements LogClient {
 
     private List<LogEntry> findLogs(MultivaluedMap<String, String> mMap) {
         List<LogEntry> logs = new ArrayList<>();
+        if (mMap.containsKey("limit")) {
+            // Check if limit can be parsed as a number. If not, remove it.
+            try {
+                Integer.parseInt(mMap.get("limit").get(0));
+            } catch (Exception e) {
+                logger.warning("Invalid request parameter value for 'limit'");
+                mMap.remove("limit");
+            }
+        }
         try {
             // Convert List<XmlLog> into List<LogEntry>
             final List <OlogLog> xmls = OlogObjectMappers.logEntryDeserializer.readValue(
