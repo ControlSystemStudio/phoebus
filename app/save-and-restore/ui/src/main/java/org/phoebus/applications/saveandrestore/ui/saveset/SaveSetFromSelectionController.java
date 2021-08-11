@@ -1,23 +1,23 @@
 /**
  * Copyright (C) 2020 Facility for Rare Isotope Beams
- *
+ * <p>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *
+ * <p>
  * Contact Information: Facility for Rare Isotope Beam,
- *                      Michigan State University,
- *                      East Lansing, MI 48824-1321
- *                      http://frib.msu.edu
+ * Michigan State University,
+ * East Lansing, MI 48824-1321
+ * http://frib.msu.edu
  */
 package org.phoebus.applications.saveandrestore.ui.saveset;
 
@@ -27,8 +27,8 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -43,10 +43,9 @@ import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import org.phoebus.applications.saveandrestore.ApplicationContextProvider;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
-import org.phoebus.applications.saveandrestore.SpringFxmlLoader;
+import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVCommon;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -79,9 +78,9 @@ import java.util.logging.Logger;
 
 public class SaveSetFromSelectionController implements Initializable {
 
-    private final SaveAndRestoreService saveAndRestoreService = (SaveAndRestoreService) ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().getBean("saveAndRestoreService");
-    private final PreferencesReader preferencesReader = (PreferencesReader) ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().getBean("preferencesReader");
-
+    private final SaveAndRestoreService saveAndRestoreService = SaveAndRestoreService.getInstance();
+    private final PreferencesReader preferencesReader =
+            new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
     private final Logger LOGGER = Logger.getLogger(SaveAndRestoreService.class.getName());
 
     private final String DESCRIPTION_PROPERTY = "description";
@@ -197,19 +196,20 @@ public class SaveSetFromSelectionController implements Initializable {
 
         browseButton.setOnAction(action -> {
             try {
-                SpringFxmlLoader springFxmlLoader = new SpringFxmlLoader();
 
+                FXMLLoader loader = new FXMLLoader();
                 Stage dialog = new Stage();
                 dialog.setTitle("Choose a folder, a saveset, or create one");
                 dialog.getIcons().add(ImageCache.getImage(ImageCache.class, "/icons/logo.png"));
                 dialog.initModality(Modality.APPLICATION_MODAL);
                 if (preferencesReader.getBoolean("splitSaveset")) {
-                    dialog.setScene(new Scene((Parent) springFxmlLoader.load("ui/saveset/SaveSetSelectorWithSplit.fxml")));
+                    loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/SaveSetSelectorWithSplit.fxml"));
                 } else {
-                    dialog.setScene(new Scene((Parent) springFxmlLoader.load("ui/saveset/SaveSetSelector.fxml")));
+                    loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/SaveSetSelector.fxml"));
                 }
+                dialog.setScene(new Scene(loader.load()));
 
-                final BaseSaveSetSelectionController saveSetSelectionController = springFxmlLoader.getLoader().getController();
+                final BaseSaveSetSelectionController saveSetSelectionController = loader.getController();
                 if (isDisabledSaveSetSelectionInBrowsing) {
                     saveSetSelectionController.disableSavesetSelection();
                 }

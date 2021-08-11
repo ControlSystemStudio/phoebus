@@ -31,5 +31,6 @@
     <module>console</module>
     <module>trends</module>
     <module>utility</module>
+    <module>imageviewer</module>
   </modules>
 </project>

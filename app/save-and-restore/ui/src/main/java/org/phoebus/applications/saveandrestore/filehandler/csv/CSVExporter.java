@@ -51,7 +51,6 @@ import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
-import org.phoebus.applications.saveandrestore.ApplicationContextProvider;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -70,8 +69,7 @@ import java.util.List;
 
 public class CSVExporter extends CSVCommon {
     static private PrintStream printStream;
-    static private SaveAndRestoreService saveAndRestoreService = (SaveAndRestoreService) ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().getBean("saveAndRestoreService");
-
+    static private final SaveAndRestoreService saveAndRestoreService = SaveAndRestoreService.getInstance();
     private static Node nodeToExport = null;
 
     static public void export(Node node, String path) throws Exception {

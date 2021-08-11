@@ -59,7 +59,6 @@ import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.util.Pair;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
-import org.phoebus.applications.saveandrestore.ApplicationContextProvider;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.data.DataProvider;
@@ -75,9 +74,9 @@ import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
 import org.phoebus.framework.persistence.Memento;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.ui.javafx.ImageCache;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.io.IOException;
@@ -93,7 +92,6 @@ import java.util.ResourceBundle;
 import java.util.Stack;
 import java.util.concurrent.Executor;
 import java.util.logging.Logger;
-import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 public class SaveAndRestoreWithSplitController extends BaseSaveAndRestoreController {
@@ -124,14 +122,11 @@ public class SaveAndRestoreWithSplitController extends BaseSaveAndRestoreControl
     @FXML
     private ListView<Node> listView;
 
-    @Autowired
     private SaveAndRestoreService saveAndRestoreService;
 
-    @Autowired
-    private Preferences preferences;
+    //private Preferences preferences;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     private ContextMenu folderContextMenu;
     private ContextMenu saveSetContextMenu;
@@ -154,7 +149,8 @@ public class SaveAndRestoreWithSplitController extends BaseSaveAndRestoreControl
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        preferencesReader = (PreferencesReader) ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().getBean("preferencesReader");
+        saveAndRestoreService = SaveAndRestoreService.getInstance();
+        preferencesReader = new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
 
         reconnectButton.setGraphic(ImageCache.getImageView(SaveAndRestoreApplication.class, "/icons/refresh.png"));
         reconnectButton.setTooltip(new Tooltip(Messages.buttonRefresh));
@@ -556,7 +552,7 @@ public class SaveAndRestoreWithSplitController extends BaseSaveAndRestoreControl
     }
 
     private List<String> getSavedTreeStructure(){
-        String savedTreeState = preferences.get(TREE_STATE, null);
+        String savedTreeState = PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).get(TREE_STATE, null);
         if(savedTreeState == null){
             return null;
         }
@@ -1027,7 +1023,7 @@ public class SaveAndRestoreWithSplitController extends BaseSaveAndRestoreControl
             return;
         }
         try {
-            preferences.put(TREE_STATE, objectMapper.writeValueAsString(expandedNodes));
+            PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).put(TREE_STATE, objectMapper.writeValueAsString(expandedNodes));
         } catch (JsonProcessingException e){
             e.printStackTrace();
         }

@@ -19,6 +19,7 @@ package org.phoebus.applications.saveandrestore.ui.snapshot;
 
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
@@ -27,10 +28,13 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.phoebus.applications.saveandrestore.Messages;
-import org.phoebus.applications.saveandrestore.SpringFxmlLoader;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SnapshotTab extends Tab {
 
@@ -54,9 +58,17 @@ public class SnapshotTab extends Tab {
             setId(node.getUniqueId());
         }
 
-        SpringFxmlLoader springFxmlLoader = new SpringFxmlLoader();
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(SnapshotTab.class.getResource("SnapshotEditor.fxml"));
 
-        VBox borderPane = (VBox)springFxmlLoader.load("ui/snapshot/SnapshotEditor.fxml");
+        VBox borderPane = null;
+        try {
+            borderPane = (VBox)loader.load();
+        } catch (IOException e) {
+            Logger.getLogger(SnapshotTab.class.getName())
+                    .log(Level.SEVERE, "Failed to load fxml", e);
+            return;
+        }
         setContent(borderPane);
 
         regularImage = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/snapshot.png");
@@ -72,7 +84,7 @@ public class SnapshotTab extends Tab {
 
         setGraphic(container);
 
-        snapshotController = springFxmlLoader.getLoader().getController();
+        snapshotController = loader.getController();
         snapshotController.setSnapshotTab(this);
         tabTitleProperty.set(node.getNodeType().equals(NodeType.SNAPSHOT) ? node.getName() : Messages.unnamedSnapshot);
 

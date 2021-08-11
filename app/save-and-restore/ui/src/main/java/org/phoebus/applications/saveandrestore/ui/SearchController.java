@@ -1,23 +1,23 @@
 /**
  * Copyright (C) 2020 Facility for Rare Isotope Beams
- *
+ * <p>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *
+ * <p>
  * Contact Information: Facility for Rare Isotope Beam,
- *                      Michigan State University,
- *                      East Lansing, MI 48824-1321
- *                      http://frib.msu.edu
+ * Michigan State University,
+ * East Lansing, MI 48824-1321
+ * http://frib.msu.edu
  */
 package org.phoebus.applications.saveandrestore.ui;
 
@@ -38,7 +38,6 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.ui.javafx.ImageCache;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -95,7 +94,6 @@ public class SearchController implements Initializable {
     @FXML
     private TableColumn<SearchEntry, String> creatorColumn;
 
-    @Autowired
     private SaveAndRestoreService saveAndRestoreService;
 
     private static final Logger LOG = Logger.getLogger(SaveAndRestoreService.class.getName());
@@ -128,6 +126,7 @@ public class SearchController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        saveAndRestoreService = SaveAndRestoreService.getInstance();
         refreshList();
         filterList(null);
 
@@ -193,12 +192,11 @@ public class SearchController implements Initializable {
                     boolean flag = false;
 
                     if (entry.getType().equals(EntryType.SNAPSHOT)) {
-                        flag |= searchOptionSnapshotName.isSelected()&entry.getName().toLowerCase().contains(keyword.toLowerCase());
-                        flag |= searchOptionSnapshotComment.isSelected()&entry.getComment().toLowerCase().contains(keyword.toLowerCase());
-                    }
-                    else {
-                        flag |= searchOptionTagName.isSelected()&entry.getName().toLowerCase().contains(keyword.toLowerCase());
-                        flag |= searchOptionTagComment.isSelected()&entry.getComment().toLowerCase().contains(keyword.toLowerCase());
+                        flag |= searchOptionSnapshotName.isSelected() & entry.getName().toLowerCase().contains(keyword.toLowerCase());
+                        flag |= searchOptionSnapshotComment.isSelected() & entry.getComment().toLowerCase().contains(keyword.toLowerCase());
+                    } else {
+                        flag |= searchOptionTagName.isSelected() & entry.getName().toLowerCase().contains(keyword.toLowerCase());
+                        flag |= searchOptionTagComment.isSelected() & entry.getComment().toLowerCase().contains(keyword.toLowerCase());
                     }
 
                     return flag;
@@ -212,7 +210,7 @@ public class SearchController implements Initializable {
         this.callerController = callerController;
     }
 
-    private enum EntryType { SNAPSHOT, TAG; }
+    private enum EntryType {SNAPSHOT, TAG;}
 
     private static class SearchEntry {
         private final EntryType type;

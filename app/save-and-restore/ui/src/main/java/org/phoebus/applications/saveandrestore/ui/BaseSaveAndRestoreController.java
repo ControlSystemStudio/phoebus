@@ -1,15 +1,14 @@
 package org.phoebus.applications.saveandrestore.ui;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
-import org.phoebus.applications.saveandrestore.SpringFxmlLoader;
 import org.phoebus.applications.saveandrestore.data.NodeAddedListener;
 import org.phoebus.applications.saveandrestore.data.NodeChangedListener;
 import org.phoebus.framework.nls.NLS;
@@ -38,14 +37,16 @@ public abstract class BaseSaveAndRestoreController implements Initializable, Nod
         try {
             if (searchWindow == null) {
                 final ResourceBundle bundle = NLS.getMessages(SaveAndRestoreApplication.class);
-                SpringFxmlLoader loader = new SpringFxmlLoader();
 
+                FXMLLoader loader = new FXMLLoader();
+                loader.setLocation(BaseSaveAndRestoreController.class.getResource("SearchWindow.fxml"));
+                loader.setResources(bundle);
                 searchWindow = new Stage();
                 searchWindow.getIcons().add(ImageCache.getImage(ImageCache.class, "/icons/logo.png"));
                 searchWindow.setTitle(Messages.searchWindowLabel);
                 searchWindow.initModality(Modality.WINDOW_MODAL);
-                searchWindow.setScene(new Scene((Parent) loader.load("ui/SearchWindow.fxml", bundle)));
-                ((SearchController) loader.getLoader().getController()).setCallerController(this);
+                searchWindow.setScene(new Scene(loader.load()));
+                ((SearchController) loader.getController()).setCallerController(this);
                 searchWindow.setOnCloseRequest(action -> searchWindow = null);
                 searchWindow.show();
             } else {
@@ -60,5 +61,7 @@ public abstract class BaseSaveAndRestoreController implements Initializable, Nod
         if (searchWindow != null) {
             searchWindow.close();
         }
-    };
+    }
+
+    ;
 }

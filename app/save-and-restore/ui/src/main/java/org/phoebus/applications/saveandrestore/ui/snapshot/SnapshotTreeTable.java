@@ -49,7 +49,6 @@ import org.epics.vtype.VEnum;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
-import org.phoebus.applications.saveandrestore.ApplicationContextProvider;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.Utilities;
@@ -589,7 +588,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
             }
         });
 
-        PreferencesReader preferencesReader = (PreferencesReader) ApplicationContextProvider.getApplicationContext().getBean("preferencesReader");
+        PreferencesReader preferencesReader = new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
         String parserClassName = preferencesReader.get("treeTableView.hierarchyParser");
         try {
             hierarchyParser = (IHierarchyParser) Class.forName(getClass().getPackageName() + ".hierarchyparser." + parserClassName).getConstructor().newInstance();

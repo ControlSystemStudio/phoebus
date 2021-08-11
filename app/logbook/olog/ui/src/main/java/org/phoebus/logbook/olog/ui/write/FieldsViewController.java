@@ -51,6 +51,7 @@ import org.phoebus.logbook.LogService;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.logbook.Tag;
+import org.phoebus.logbook.olog.ui.CommonmarkHelpViewer;
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 import org.phoebus.logbook.olog.ui.Messages;
 import org.phoebus.olog.es.api.OlogProperties;
@@ -293,15 +294,7 @@ public class FieldsViewController implements Initializable {
 
     @FXML
     public void showHelp() {
-        String url =  LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory).getLogClient().getServiceUrl();
-        if(url.endsWith("/")){
-            url = url.substring(0, url.length() - 1);
-        }
-        // Need to get rid of Olog path element under which all REST endpoints are published.
-        // The help file however is published directly on the context root.
-        int idx = url.indexOf("/Olog");
-        String helpUrl = url.substring(0, idx) + "/" + LogbookUIPreferences.markup_help;
-        Platform.runLater(() -> PhoebusApplication.INSTANCE.getHostServices().showDocument(helpUrl));
+        new CommonmarkHelpViewer().show();
     }
 
     public TextArea getTextArea() {
