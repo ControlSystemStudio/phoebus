@@ -113,12 +113,12 @@
             <children>
                 <Accordion AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                     <panes>
-                        <TitledPane fx:id="attachmentsPane" animated="false" text="Attachments">
+                        <TitledPane fx:id="attachmentsPane" animated="false" text="%Attachments">
                             <content>
                                 <fx:include fx:id="attachmentsPreview" source="AttachmentsPreview.fxml" />
                             </content>
                         </TitledPane>
-                        <TitledPane fx:id="propertiesPane" animated="false" text="Properties">
+                        <TitledPane fx:id="propertiesPane" animated="false" text="%Properties">
                             <content>
                                 <fx:include fx:id="properties" source="LogProperties.fxml" />
                             </content>
