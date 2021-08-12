@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2016-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -27,9 +27,10 @@ import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
 import org.csstudio.display.builder.model.widgets.NavigationTabsWidget;
+import org.csstudio.display.builder.model.widgets.TemplateInstanceWidget;
 import org.csstudio.display.builder.model.widgets.VisibleWidget;
 
-/** Helper for common (SWT, JFX) representation code of {@link EmbeddedDisplayWidget} and {@link NavigationTabsWidget}
+/** Helper for common (SWT, JFX) representation code of {@link EmbeddedDisplayWidget}, {@link TemplateInstanceWidget} and {@link NavigationTabsWidget}
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")

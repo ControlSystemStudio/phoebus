@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -203,6 +203,7 @@ public class Messages
     public static String WidgetProperties_Font;
     public static String WidgetProperties_ForegroundColor;
     public static String WidgetProperties_Format;
+    public static String WidgetProperties_Gap;
     public static String WidgetProperties_GridColor;
     public static String WidgetProperties_GridStepX;
     public static String WidgetProperties_GridStepY;
@@ -331,6 +332,7 @@ public class Messages
     public static String WidgetProperties_Visible;
     public static String WidgetProperties_Width;
     public static String WidgetProperties_WidthPVName;
+    public static String WidgetProperties_WrapCount;
     public static String WidgetProperties_WrapWords;
     public static String WidgetProperties_Writable;
     public static String WidgetProperties_WriteOnRelease;

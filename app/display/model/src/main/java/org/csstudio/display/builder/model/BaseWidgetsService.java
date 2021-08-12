@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -45,6 +45,7 @@ import org.csstudio.display.builder.model.widgets.SymbolWidget;
 import org.csstudio.display.builder.model.widgets.TableWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget;
 import org.csstudio.display.builder.model.widgets.TankWidget;
+import org.csstudio.display.builder.model.widgets.TemplateInstanceWidget;
 import org.csstudio.display.builder.model.widgets.TextEntryWidget;
 import org.csstudio.display.builder.model.widgets.TextSymbolWidget;
 import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
@@ -102,6 +103,7 @@ public class BaseWidgetsService implements WidgetsService
             TableWidget.WIDGET_DESCRIPTOR,
             TabsWidget.WIDGET_DESCRIPTOR,
             TankWidget.WIDGET_DESCRIPTOR,
+            TemplateInstanceWidget.WIDGET_DESCRIPTOR,
             TextEntryWidget.WIDGET_DESCRIPTOR,
             TextSymbolWidget.WIDGET_DESCRIPTOR,
             TextUpdateWidget.WIDGET_DESCRIPTOR,
