@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <display version="2.0.0">
   <name>Display</name>
-  <width>550</width>
-  <height>345</height>
+  <width>650</width>
+  <height>605</height>
   <widget type="label" version="2.0.0">
     <name>Label</name>
     <class>TITLE</class>
@@ -61,5 +61,113 @@ Each instance is shown at its original size, and consecutive instances are layed
     <width>220</width>
     <height>175</height>
     <gap>5</gap>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>The optional "Wrap Count" results in starting a new row of the horizontal layout respectively a new column in the vertical layout .</text>
+    <y>360</y>
+    <width>470</width>
+    <height>60</height>
+  </widget>
+  <widget type="template" version="2.0.0">
+    <name>Template/Instance_3</name>
+    <file>template.bob</file>
+    <instances>
+      <instance>
+        <macros>
+          <I>1</I>
+        </macros>
+      </instance>
+      <instance>
+        <macros>
+          <I>2</I>
+        </macros>
+      </instance>
+      <instance>
+        <macros>
+          <I>3</I>
+        </macros>
+      </instance>
+      <instance>
+        <macros>
+          <I>99</I>
+        </macros>
+      </instance>
+    </instances>
+    <x>10</x>
+    <y>410</y>
+    <width>445</width>
+    <height>85</height>
+    <gap>5</gap>
+    <wrap_count>2</wrap_count>
+  </widget>
+  <widget type="template" version="2.0.0">
+    <name>Template/Instance_4</name>
+    <file>template.bob</file>
+    <instances>
+      <instance>
+        <macros>
+          <I>1</I>
+        </macros>
+      </instance>
+      <instance>
+        <macros>
+          <I>2</I>
+        </macros>
+      </instance>
+      <instance>
+        <macros>
+          <I>3</I>
+        </macros>
+      </instance>
+      <instance>
+        <macros>
+          <I>99</I>
+        </macros>
+      </instance>
+    </instances>
+    <x>10</x>
+    <y>520</y>
+    <width>445</width>
+    <height>85</height>
+    <horizontal>true</horizontal>
+    <gap>5</gap>
+    <wrap_count>2</wrap_count>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>4 instances, vertical layout, wrap count 2.</text>
+    <x>480</x>
+    <y>430</y>
+    <width>170</width>
+    <height>50</height>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>4 instances, horizontal layout, wrap count 2.</text>
+    <x>480</x>
+    <y>530</y>
+    <width>170</width>
+    <height>50</height>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>4 instances, vertical layout.</text>
+    <x>270</x>
+    <y>240</y>
+    <width>170</width>
+    <height>50</height>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
   </widget>
 </display>

@@ -71,16 +71,28 @@ public class TemplateInstanceWidget extends VisibleWidget
     // 'instances' array
     private static final ArrayWidgetProperty.Descriptor<InstanceProperty> propInstances =
         new ArrayWidgetProperty.Descriptor<>(WidgetPropertyCategory.WIDGET, "instances", "Instances",
-                (widget, index) -> new InstanceProperty(widget, index));
+                (widget, index) -> new InstanceProperty(widget, index),
+                /* minimum count */ 1);
 
     /** 'gap' property: Gap between instances */
     public static final WidgetPropertyDescriptor<Integer> propGap =
-        new WidgetPropertyDescriptor<>(WidgetPropertyCategory.DISPLAY, "gap", Messages.Gap)
+        new WidgetPropertyDescriptor<>(WidgetPropertyCategory.DISPLAY, "gap", Messages.WidgetProperties_Gap)
         {
             @Override
             public WidgetProperty<Integer> createProperty(final Widget widget, final Integer value)
             {
                 return new IntegerWidgetProperty(this, widget, value, 0, 500);
+            }
+        };
+
+    /** 'wrap_count' property: Optional instance count for wrapping to next row/column */
+    public static final WidgetPropertyDescriptor<Integer> propWrapCount =
+        new WidgetPropertyDescriptor<>(WidgetPropertyCategory.DISPLAY, "wrap_count", Messages.WidgetProperties_WrapCount)
+        {
+            @Override
+            public WidgetProperty<Integer> createProperty(final Widget widget, final Integer value)
+            {
+                return new IntegerWidgetProperty(this, widget, value, 0, 1000);
             }
         };
 
@@ -108,6 +120,7 @@ public class TemplateInstanceWidget extends VisibleWidget
     private volatile ArrayWidgetProperty<InstanceProperty> instances;
     private volatile WidgetProperty<Boolean> horizontal;
     private volatile WidgetProperty<Integer> gap;
+    private volatile WidgetProperty<Integer> wrap_count;
     private volatile WidgetProperty<DisplayModel> embedded_model;
 
 
@@ -124,6 +137,7 @@ public class TemplateInstanceWidget extends VisibleWidget
         properties.add(instances = propInstances.createProperty(this, Arrays.asList(new InstanceProperty(this, 0))));
         properties.add(horizontal = propHorizontal.createProperty(this, false));
         properties.add(gap = propGap.createProperty(this, 10));
+        properties.add(wrap_count = propWrapCount.createProperty(this, 0));
         properties.add(embedded_model = runtimeModel.createProperty(this, null));
     }
 
@@ -149,6 +163,12 @@ public class TemplateInstanceWidget extends VisibleWidget
     public WidgetProperty<Integer> propGap()
     {
         return gap;
+    }
+
+    /** @return 'wrap_count' property */
+    public WidgetProperty<Integer> propWrapCount()
+    {
+        return wrap_count;
     }
 
     /** @return Runtime 'model' property for the embedded display */
