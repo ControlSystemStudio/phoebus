@@ -6,6 +6,7 @@ import org.phoebus.framework.adapter.AdapterFactory;
 import org.phoebus.logbook.AttachmentImpl;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
+import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.ui.javafx.Screenshot;
 
 import java.io.File;
@@ -58,7 +59,8 @@ public class DisplayBuilderAdapterFactory implements AdapterFactory {
         }
         else if (adapterType.isAssignableFrom(LogEntry.class))
         {
-            LogEntryBuilder log = log().title("Display Screenshot for : " + selectionInfo.getName())
+            LogEntryBuilder log = log().title(LogbookPreferences.auto_title ?
+                    "Display Screenshot for : " + selectionInfo.getName() : "")
                                        .appendDescription(getBody(selectionInfo));
             try
             {

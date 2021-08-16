@@ -10,6 +10,7 @@ import org.phoebus.applications.email.EmailEntry;
 import org.phoebus.framework.adapter.AdapterFactory;
 import org.phoebus.logbook.AttachmentImpl;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.ui.javafx.Screenshot;
 
 import static org.phoebus.logbook.LogEntryImpl.LogEntryBuilder.*;
@@ -46,7 +47,7 @@ public class DatabrowserAdapterFactory implements AdapterFactory {
                                                                Messages.ActionEmailBody,
                                                                List.of(databrowserSelection.getPlot()))));
         } else if (adapterType.isAssignableFrom(LogEntry.class)) {
-            LogEntryBuilder log = log().title(Messages.ActionLogbookTitle)
+            LogEntryBuilder log = log().title(LogbookPreferences.auto_title ? Messages.ActionLogbookTitle : "")
                                        .appendDescription(Messages.ActionLogbookBody);
             try {
                 final File image_file = databrowserSelection.getPlot() == null ? null : new Screenshot(databrowserSelection.getPlot()).writeToTempfile("image");

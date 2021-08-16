@@ -16,6 +16,7 @@ import org.phoebus.applications.email.EmailEntry;
 import org.phoebus.framework.adapter.AdapterFactory;
 import org.phoebus.logbook.AttachmentImpl;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
 
@@ -69,7 +70,7 @@ public class DatabrowserAdapterFactory implements AdapterFactory {
         }
         else if (adapterType.isAssignableFrom(LogEntry.class))
         {
-            LogEntryBuilder log = log().title("Databrowser Plot")
+            LogEntryBuilder log = log().title(LogbookPreferences.auto_title ? "Databrowser Plot" : "")
                                        .appendDescription(getBody(databrowserSelection));
             try
             {

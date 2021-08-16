@@ -21,7 +21,6 @@ import org.phoebus.ui.javafx.ImageCache;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static org.phoebus.util.time.TimestampFormats.SECONDS_FORMAT;
@@ -67,10 +66,6 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
     @FXML
     private Button copyURLButton;
 
-
-    private final Logger logger =
-            Logger.getLogger(SingleLogEntryDisplayController.class.getName());
-
     private LogEntry logEntry;
 
     public SingleLogEntryDisplayController(String serviceUrl) {
@@ -91,22 +86,16 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
     public void setLogEntry(LogEntry logEntry) {
         this.logEntry = logEntry;
 
-        attachmentsPane.setExpanded(logEntry.getAttachments() != null && !logEntry.getAttachments().isEmpty());
-        attachmentsPane.setVisible(logEntry.getAttachments() != null && !logEntry.getAttachments().isEmpty());
-        if (!logEntry.getAttachments().isEmpty()) {
-            attachmentsPreviewController
-                    .setAttachments(FXCollections.observableArrayList(logEntry.getAttachments()));
-        }
+        // Always expand properties pane.
+        attachmentsPane.setExpanded(true);
+        attachmentsPreviewController
+                .setAttachments(FXCollections.observableArrayList(logEntry.getAttachments()));
 
         List<String> hiddenPropertiesNames = Arrays.asList(LogbookUIPreferences.hidden_properties);
         // Remove the hidden properties
         List<Property> propertiesToShow =
                 logEntry.getProperties().stream().filter(property -> !hiddenPropertiesNames.contains(property.getName())).collect(Collectors.toList());
-        propertiesPane.setExpanded(!propertiesToShow.isEmpty());
-        propertiesPane.setVisible(!propertiesToShow.isEmpty());
-        if (!propertiesToShow.isEmpty()) {
-            propertiesController.setProperties(propertiesToShow);
-        }
+        propertiesController.setProperties(propertiesToShow);
 
         logTime.setText(SECONDS_FORMAT.format(logEntry.getCreatedDate()));
         logOwner.setText(logEntry.getOwner());

@@ -29,7 +29,7 @@
             <children>
                 <ListView fx:id="attachmentListView">
                     <placeholder>
-                        <Label text="No Attachments" />
+                        <Label text="%NoAttachments" />
                     </placeholder>
                 </ListView>
             </children>
