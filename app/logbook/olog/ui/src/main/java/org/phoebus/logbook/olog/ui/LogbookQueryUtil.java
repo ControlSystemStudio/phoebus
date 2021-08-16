@@ -74,7 +74,7 @@ public class LogbookQueryUtil {
     }
 
     /**
-     * This method parses a logbook query string and returns a map of search keys and their assocaited search patterns as
+     * This method parses a logbook query string and returns a map of search keys and their associated search patterns as
      * values.
      * The use of temporal descriptors like "1 day" etc are resolved to Unix time.
      * @param query the logbook query string
@@ -90,7 +90,7 @@ public class LogbookQueryUtil {
     }
 
     /**
-     * This method parses a logbook query string and returns a map of search keys and their assocaited search patterns as
+     * This method parses a logbook query string and returns a map of search keys and their associated search patterns as
      * values.
      * Temporal descriptors like "1 day" etc are not converted to unix time.
      * This method is primarily intended as a helper for UI controls.
@@ -125,8 +125,12 @@ public class LogbookQueryUtil {
         public String apply(String t) {
 
             if (t.contains("=")) {
-                String key = t.split("=")[0];
-                String value = t.split("=")[1];
+                String[] split = t.split("=");
+                if(split.length < 2){
+                    return "";
+                }
+                String key = split[0];
+                String value = split[1];
                 if (key.equals(Keys.STARTTIME.getName()) || key.equals(Keys.ENDTIME.getName())) {
                     Object time = TimeParser.parseInstantOrTemporalAmount(value);
                     if (time instanceof Instant) {
@@ -144,16 +148,20 @@ public class LogbookQueryUtil {
     }
 
     private static class SimpleValueParser implements Function<String, String> {
-
         @Override
         public String apply(String t) {
 
             if (t.contains("=")) {
-                return t.split("=")[1];
+                String[] split = t.split("=");
+                if(split.length < 2){
+                    return "";
+                }
+                else{
+                    return t.split("=")[1];
+                }
             } else {
                 return "*";
             }
         }
-
     }
 }
