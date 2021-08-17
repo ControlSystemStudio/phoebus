@@ -67,7 +67,7 @@ Additional Java options are added using `--java-options <my option>`.
  `jpackage --name <app_name> --app-version <app_version> --app-image <app_name> --type [msi|exe] --win-menu --win-shortcut --win-menu-group <menu_group>`
 
 ##### `jpackage` build step 2, Linux
- `jpackage --name <app_name> --app-version <app_version> --app-image <app_name>.app --type [deb|rpm]`
+ `jpackage --name <app_name> --app-version <app_version> --app-image <app_name> --type [deb|rpm]`
  
 #### Additional installer options 
 Additional customization of the installer is available for all platforms, 
