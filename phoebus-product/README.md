@@ -55,8 +55,10 @@ The following use cases have been verified:
  
  ##### `jpackage` build step 1
  `jpackage --name <app_name> --input unzipped --type app-image --main-jar product-<version>-<os>.jar
- --icon unzipped/<OS specific icon file> --java-options -Dprism.lcdtext=false --java-options  --java-options
+ --icon unzipped/<OS specific icon file> [--java-options -Dprism.lcdtext=false] --java-options  --java-options
  -Dcom.sun.webkit.useHTTP2Loader=false --runtime-image <jdk_root>`
+ 
+NOTE: the `--java-options -Dprism.lcdtext=false` portion is for MacOS only.
  
 Additional Java options are added using `--java-options <my option>`.
 
