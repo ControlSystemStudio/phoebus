@@ -118,11 +118,14 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
         model_widget.propHeight().addUntypedPropertyListener(sizesChangedListener);
         model_widget.propGap().addUntypedPropertyListener(sizesChangedListener);
         model_widget.propHorizontal().addUntypedPropertyListener(sizesChangedListener);
+        model_widget.propWrapCount().addUntypedPropertyListener(sizesChangedListener);
 
         model_widget.propInstances().addPropertyListener(instancesChangedListener);
 
         model_widget.propFile().addPropertyListener(fileChangedListener);
 
+        // Initial updates
+        instancesChanged(model_widget.propInstances(), null, model_widget.propInstances().getValue());
         fileChanged(null, null, null);
     }
 
@@ -133,6 +136,7 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
         model_widget.propHeight().removePropertyListener(sizesChangedListener);
         model_widget.propGap().removePropertyListener(sizesChangedListener);
         model_widget.propHorizontal().removePropertyListener(sizesChangedListener);
+        model_widget.propWrapCount().removePropertyListener(sizesChangedListener);
 
         model_widget.propInstances().removePropertyListener(instancesChangedListener);
 
@@ -166,32 +170,53 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
             return;
 
         final DisplayModel template_model = active_template_model.get();
-        if (template_model.getChildren().size() > 0)
+        final int content_width = template_model.propWidth().getValue();
+        final int content_height = template_model.propHeight().getValue();
+        if (template_model.getChildren().size() > 0  &&
+            content_width > 0  &&  content_height > 0)
         {
             // Size to content
-            final int content_width = template_model.propWidth().getValue();
-            final int content_height = template_model.propHeight().getValue();
             final int count = model_widget.propInstances().size();
             final int gap = model_widget.propGap().getValue();
+            final int wrap = model_widget.propWrapCount().getValue();
             final boolean horiz = model_widget.propHorizontal().getValue();
+
+            final int rows, cols;
+            if (count <= 0)
+            {
+                rows = cols = 1;
+            }
+            else if (wrap <= 0)
+            {
+                cols = horiz ? count : 1;
+                rows = horiz ? 1     : count;
+            }
+            else
+            {
+                if (horiz)
+                {
+                    cols = Math.min(count, wrap);
+                    rows = (count + wrap-1) / wrap;
+                }
+                else
+                {
+                    cols = (count + wrap-1) / wrap;
+                    rows = Math.min(count, wrap);
+                }
+            }
 
             resizing = true;
 
-            if (content_width > 0)
-                model_widget.propWidth().setValue(horiz
-                                                  ? content_width * count + gap * (count-1)
-                                                  : content_width);
-            if (content_height > 0)
-                model_widget.propHeight().setValue(horiz
-                                                   ? content_height
-                                                   : content_height * count + gap * (count-1));
+            model_widget.propWidth().setValue(content_width * cols + gap * (cols-1));
+            model_widget.propHeight().setValue(content_height * rows + gap * (rows-1));
 
             resizing = false;
         }
 
         if (property == model_widget.propGap() ||
             property == model_widget.propInstances() ||
-            property == model_widget.propHorizontal())
+            property == model_widget.propHorizontal() ||
+            property == model_widget.propWrapCount())
             scheduleInstanceUpdate();
 
         dirty_sizes.mark();
@@ -312,7 +337,9 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
             {
                 final int w = template.propWidth().getValue();
                 final int h = template.propHeight().getValue();
-                int x = 0, y = 0;
+                final boolean horizontal = model_widget.propHorizontal().getValue();
+                final int wrap = model_widget.propWrapCount().getValue();
+                int i = 0, x = 0, y = 0;
                 for (InstanceProperty instance : model_widget.propInstances().getValue())
                 {
                     final DisplayModel inst = ModelReader.parseXML(template_xml);
@@ -329,10 +356,24 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
 
                     new_model.runtimeChildren().addChild(wrapper);
 
-                    if (model_widget.propHorizontal().getValue())
+                    if (horizontal)
                         x += w + model_widget.propGap().getValue();
                     else
                         y += h + model_widget.propGap().getValue();
+
+                    // Wrap to next row/col?
+                    ++i;
+                    if (i > 0  &&  wrap > 0  &&  (i % wrap == 0))
+                        if (horizontal)
+                        {
+                            x = 0;
+                            y += h + model_widget.propGap().getValue();
+                        }
+                        else
+                        {
+                            x += w + model_widget.propGap().getValue();
+                            y = 0;
+                        }
                 }
             }
 
