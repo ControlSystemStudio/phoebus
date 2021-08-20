@@ -103,7 +103,7 @@ public class DockItemWithInput extends DockItem
         this.file_extensions =  file_extensions;
         this.save_handler = save_handler;
         setInput(input);
-
+        
         addCloseCheck(this::okToClose);
     }
 
@@ -211,10 +211,11 @@ public class DockItemWithInput extends DockItem
      */
     private Future<Boolean> okToClose()
     {
-        if (! isDirty())
+        if (! isDirty()) {
             return CompletableFuture.completedFuture(true);
 
-        final FutureTask promptToSave = new FutureTask(() -> {
+        @SuppressWarnings("unchecked")
+		final FutureTask promptToSave = new FutureTask(() -> {
             final String text = MessageFormat.format(Messages.DockAlertMsg, getLabel());
             final Alert prompt = new Alert(AlertType.NONE,
                     text,

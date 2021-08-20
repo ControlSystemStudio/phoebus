@@ -125,10 +125,11 @@ public class SplitDock extends SplitPane
         logger.log(Level.INFO, "SplitDock merging empty sections " + this);
         // First recurse to merge child splits.
         // Use copy to avoid comodification
-        for (Node child : new ArrayList<>(getItems()))
-            if (child instanceof SplitDock)
+        for (Node child : new ArrayList<>(getItems())) {
+            if (child instanceof SplitDock) {
                 ((SplitDock) child).merge();
-
+            }
+        }
         final DockPane empty_dock = findEmptyDock();
         if (empty_dock == null)
         {
@@ -166,11 +167,13 @@ public class SplitDock extends SplitPane
             logger.log(Level.WARNING, "Cannot merge " + this + ", parent is " + dock_parent);
             return;
         }
+        
 
         // Tell child about its new dock_parent
-        if (child instanceof DockPane)
+        if (child instanceof DockPane) {
             ((DockPane)child).setDockParent(dock_parent);
-        else if (child instanceof SplitDock)
+        }
+        else if (child instanceof SplitDock) {
             ((SplitDock)child).dock_parent = dock_parent;
     }
 

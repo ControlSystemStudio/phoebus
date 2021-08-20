@@ -71,7 +71,17 @@ public class DockPane extends TabPane
     private static boolean always_show_tabs = true;
 
     private Stage stage;
+    private Scene rootScene;
+   
 
+    public void setRootScene(Scene inScene){
+    	rootScene = inScene;
+    }
+    
+    public Scene getRootScene() {
+    	return rootScene;
+    }
+    
     public void setStage(Stage stage){
         this.stage = stage;
     }
@@ -379,7 +389,17 @@ public class DockPane extends TabPane
         // instead of remove, merge, .. add fails because scene graph
         // change in unforeseen ways
         if (getTabs().isEmpty())
+        {
+        	
+        	// When we split windows, we need to access the scene that was stored in
+        	// split function since the Pane becomes scene-less.
+        	if(getRootScene() != null) {
+	        	if(getRootScene().getWindow() != null) {
+	        		((Stage)getRootScene().getWindow()).close();	
+	        	}
+        	}
             Platform.runLater(this::mergeEmptyAnonymousSplit);
+        }
         else
             // Update tabs on next UI tick so that findTabHeader() can succeed
             // in case this is in a newly created SplitDock
@@ -581,6 +601,7 @@ public class DockPane extends TabPane
         final SplitDock split;
         if (dock_parent instanceof BorderPane)
         {
+        	setRootScene(getScene());
             final BorderPane parent = (BorderPane) dock_parent;
             // Remove this dock pane from BorderPane
             parent.setCenter(null);
@@ -588,7 +609,9 @@ public class DockPane extends TabPane
             final DockPane new_pane = new DockPane();
             split = new SplitDock(parent, horizontally, this, new_pane);
             setDockParent(split);
+
             new_pane.setDockParent(split);
+
             // Place that new split in the border pane
             parent.setCenter(split);
         }
@@ -625,12 +648,12 @@ public class DockPane extends TabPane
     /** If this pane is within a SplitDock, not named, and empty, merge! */
     void mergeEmptyAnonymousSplit()
     {
-        if (! (dock_parent instanceof SplitDock))
-        {
+        if (! (dock_parent instanceof SplitDock)) {
             Platform.runLater(this::applyEmptyDockPanePolicy);
             return;
         }
-        if (name.length() > 0)
+        
+        if (name.length() > 0){
             return;
 
         ((SplitDock) dock_parent).merge();
@@ -652,12 +675,15 @@ public class DockPane extends TabPane
     private void applyEmptyDockPanePolicy()
     {
         final Scene scene = getScene();
-        if(scene == null)
+        if(scene == null){
             return;
-
+        }
         final Object id = scene.getWindow().getProperties().get(DockStage.KEY_ID);
-        if (!DockStage.ID_MAIN.equals(id))
-            if (!SplitDock.class.isInstance(dock_parent))
+        if (!DockStage.ID_MAIN.equals(id)) {
+            if (!SplitDock.class.isInstance(dock_parent)){
                 getScene().getWindow().hide();
+            }
+        }
+        
     }
 }
