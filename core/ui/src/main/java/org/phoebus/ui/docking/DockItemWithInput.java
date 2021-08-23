@@ -211,7 +211,7 @@ public class DockItemWithInput extends DockItem
      */
     private Future<Boolean> okToClose()
     {
-        if (! isDirty()) {
+        if (! isDirty())
             return CompletableFuture.completedFuture(true);
 
         @SuppressWarnings("unchecked")

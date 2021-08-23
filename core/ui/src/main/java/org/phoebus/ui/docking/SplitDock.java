@@ -173,7 +173,7 @@ public class SplitDock extends SplitPane
         if (child instanceof DockPane) {
             ((DockPane)child).setDockParent(dock_parent);
         }
-        else if (child instanceof SplitDock) {
+        else if (child instanceof SplitDock)
             ((SplitDock)child).dock_parent = dock_parent;
     }
 

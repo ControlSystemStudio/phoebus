@@ -660,7 +660,7 @@ public class DockPane extends TabPane
             return;
         }
         
-        if (name.length() > 0){
+        if (name.length() > 0)
             return;
 
         ((SplitDock) dock_parent).merge();
