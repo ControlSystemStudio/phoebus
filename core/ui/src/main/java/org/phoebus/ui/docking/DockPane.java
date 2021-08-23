@@ -34,6 +34,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.image.Image;
@@ -390,13 +391,19 @@ public class DockPane extends TabPane
         // change in unforeseen ways
         if (getTabs().isEmpty())
         {
-        	
         	// When we split windows, we need to access the scene that was stored in
         	// split function since the Pane becomes scene-less.
         	if(getRootScene() != null) {
-	        	if(getRootScene().getWindow() != null) {
-	        		((Stage)getRootScene().getWindow()).close();	
-	        	}
+        		if(dock_parent != null) {    
+        			if(dock_parent instanceof SplitDock) {
+        				SplitDock parent = (SplitDock) dock_parent;
+        				if(parent.getItems().isEmpty()) {
+                			if(getRootScene().getWindow() != null) {
+                				((Stage)getRootScene().getWindow()).close();	
+                			}
+        				}
+        			}
+        		}
         	}
             Platform.runLater(this::mergeEmptyAnonymousSplit);
         }
