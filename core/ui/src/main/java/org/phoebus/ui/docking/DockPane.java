@@ -72,6 +72,9 @@ public class DockPane extends TabPane
 
     private Stage stage;
 
+    // A "cache" of the Scene
+    private Scene rootScene;
+
     public void setStage(Stage stage){
         this.stage = stage;
     }
@@ -579,9 +582,10 @@ public class DockPane extends TabPane
     public SplitDock split(final boolean horizontally)
     {
         final SplitDock split;
-        if (dock_parent instanceof BorderPane)
+            if (dock_parent instanceof BorderPane)
         {
             final BorderPane parent = (BorderPane) dock_parent;
+            rootScene = getScene();
             // Remove this dock pane from BorderPane
             parent.setCenter(null);
             // Place in split alongside a new dock pane
@@ -595,6 +599,7 @@ public class DockPane extends TabPane
         else if (dock_parent instanceof SplitDock)
         {
             final SplitDock parent = (SplitDock) dock_parent;
+            rootScene = getScene();
             // Remove this dock pane from parent
             final boolean first = parent.removeItem(this);
             // Place in split alongside a new dock pane
@@ -633,8 +638,11 @@ public class DockPane extends TabPane
         if (name.length() > 0)
             return;
 
-        ((SplitDock) dock_parent).merge();
-        Platform.runLater(this::applyEmptyDockPanePolicy);
+        SplitDock splitDock = (SplitDock)dock_parent;
+        splitDock.merge();
+        if(splitDock.getItems().size() == 0){
+            Platform.runLater(this::applyEmptyDockPanePolicy);
+        }
     }
 
     @Override
@@ -651,13 +659,12 @@ public class DockPane extends TabPane
      */
     private void applyEmptyDockPanePolicy()
     {
-        final Scene scene = getScene();
-        if(scene == null)
-            return;
-
-        final Object id = scene.getWindow().getProperties().get(DockStage.KEY_ID);
-        if (!DockStage.ID_MAIN.equals(id))
-            if (!SplitDock.class.isInstance(dock_parent))
-                getScene().getWindow().hide();
+        if(rootScene == null){
+            rootScene = getScene();
+        }
+        final Object id = rootScene.getWindow().getProperties().get(DockStage.KEY_ID);
+        if (!DockStage.ID_MAIN.equals(id)) {
+            rootScene.getWindow().hide();
+        }
     }
 }
