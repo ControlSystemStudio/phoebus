@@ -144,26 +144,23 @@ public class LogPropertiesController {
     }
 
     private void constructTree(Collection<Property> properties) {
-        if (!properties.isEmpty())
-        {
-            TreeItem root = new TreeItem(new PropertyTreeNode("properties", " "));
-            AtomicReference<Double> rowCount = new AtomicReference<>((double) 1);
-            root.getChildren().setAll(properties.stream()
-                    .map(property -> {
-                PropertyTreeNode node = new PropertyTreeNode(property.getName(), " ");
+        TreeItem root = new TreeItem(new PropertyTreeNode("properties", " "));
+        AtomicReference<Double> rowCount = new AtomicReference<>((double) 1);
+        root.getChildren().setAll(properties.stream()
+                .map(property -> {
+            PropertyTreeNode node = new PropertyTreeNode(property.getName(), " ");
+            rowCount.set(rowCount.get() + 1);
+            TreeItem<PropertyTreeNode> treeItem = new TreeItem<>(node);
+            property.getAttributes().entrySet().stream().forEach(entry -> {
                 rowCount.set(rowCount.get() + 1);
-                TreeItem<PropertyTreeNode> treeItem = new TreeItem<>(node);
-                property.getAttributes().entrySet().stream().forEach(entry -> {
-                    rowCount.set(rowCount.get() + 1);
-                    treeItem.getChildren().add(new TreeItem<>(new PropertyTreeNode(entry.getKey(), entry.getValue())));
-                });
-                treeItem.setExpanded(true);
-                return treeItem;
-            }).collect(Collectors.toSet()));
-            treeTableView.setRoot(root);
-            treeTableView.setShowRoot(false);
-            treeTableView.setPrefHeight(rowCount.get()*22);
-        }
+                treeItem.getChildren().add(new TreeItem<>(new PropertyTreeNode(entry.getKey(), entry.getValue())));
+            });
+            treeItem.setExpanded(true);
+            return treeItem;
+        }).collect(Collectors.toSet()));
+        treeTableView.setRoot(root);
+        treeTableView.setShowRoot(false);
+        //treeTableView.setPrefHeight(rowCount.get()*22);
     }
 
     /**
