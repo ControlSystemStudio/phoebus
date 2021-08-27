@@ -1,30 +1,21 @@
 package org.phoebus.ui.docking;
-import java.util.List;
 import java.util.Set;
 
 import org.assertj.core.api.Assertions;
-import org.junit.Before;
 import org.junit.Test;
-import org.testfx.api.FxAssert;
+import org.testfx.api.FxRobot;
 import org.testfx.framework.junit.ApplicationTest;
 
-import javafx.collections.ObservableList;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.Labeled;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.KeyCode;
-import org.phoebus.ui.application.Messages;
 
 public class SplitDockTest extends ApplicationTest {
     private DockPane tabs = null;
@@ -33,7 +24,8 @@ public class SplitDockTest extends ApplicationTest {
      * Will be called with {@code @Before} semantics, i. e. before each test method.
      */
     @Override
-    public void start(Stage stage) {
+    public void start(Stage stage) 
+    {
     	
         // Add dock items to the original stage
         final DockItem tab1 = new DockItem("Tab 1");
@@ -54,16 +46,39 @@ public class SplitDockTest extends ApplicationTest {
         stage.setX(0);
         stage.setY(0);
         stage.show();
-        
     }
     
-    @Override
-    public void stop() throws Exception {
-    	super.stop();	
-    	DockStage.prepareToCloseItems((Stage) tabs.getScene().getWindow());
-    	DockStage.closeItems((Stage) tabs.getScene().getWindow());
+    private void closePane() 
+    {
+    	interact(()->{try {
+        	DockStage.prepareToCloseItems((Stage) tabs.getScene().getWindow());
+        	DockStage.closeItems((Stage) tabs.getScene().getWindow());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}});
     }
     
+    static void invokeContextMenu(DockPane pane, FxRobot robot) 
+    {
+    	//Invoke the context menu on the first tab
+    	Bounds tabBounds = pane.getDockItems().get(0).getContent().getBoundsInLocal();
+    	robot.moveTo(new Point2D(pane.getDockItems().get(0).getContent().localToScene(tabBounds).getMinX() + 20, 
+    			pane.getDockItems().get(0).getContent().localToScene(tabBounds).getMinY()-10));
+    	robot.press(MouseButton.SECONDARY);	
+    }
+    
+    static void closePane(DockPane pane, FxRobot robot) 
+    {
+    	robot.interact(()->{try {
+        	DockStage.prepareToCloseItems((Stage) pane.getScene().getWindow());
+        	DockStage.closeItems((Stage) pane.getScene().getWindow());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}});
+    }
+
     @Test
     public void TestNumberOfDockItems() 
     {
@@ -71,83 +86,35 @@ public class SplitDockTest extends ApplicationTest {
     	    	
     	Node rootPane = menu.iterator().next(); 
     	
-    	Assertions.assertThat(rootPane instanceof BorderPane);
+    	Assertions.assertThat(rootPane instanceof BorderPane).isTrue();
     	
     	BorderPane pane = (BorderPane) rootPane;
     	
-    	Assertions.assertThat(pane.centerProperty().get() instanceof DockPane);
+    	Assertions.assertThat(pane.centerProperty().get() instanceof DockPane).isTrue();
     	
     	DockPane dockPane = (DockPane) pane.centerProperty().get();
     	
-    	Assertions.assertThat(dockPane.getDockItems().size() == 2);
+    	Assertions.assertThat(dockPane.getDockItems().size() == 2).isTrue();
     	
-    	Assertions.assertThat(dockPane.getTabs().get(0) instanceof DockItem);
-    	Assertions.assertThat(dockPane.getTabs().get(1) instanceof DockItem);
+    	Assertions.assertThat(dockPane.getTabs().get(0) instanceof DockItem).isTrue();
+    	Assertions.assertThat(dockPane.getTabs().get(1) instanceof DockItem).isTrue();
+    	
+    	closePane();
+    	Assertions.assertThat((Stage.getWindows().size() == 0)).isTrue();
     }
     
     @Test
-    public void TestContextMenu() 
-    {
-    	Bounds tabBounds = tabs.getDockItems().get(0).getContent().getBoundsInLocal();
+    public void TestDockSplit() throws Exception {
+    	invokeContextMenu(tabs, this);
     	
-    	moveTo(new Point2D(tabs.getDockItems().get(0).getContent().localToScene(tabBounds).getMinX() + 20, 
-    			tabs.getDockItems().get(0).getContent().localToScene(tabBounds).getMinY()-10));
-    	
-    	press(MouseButton.SECONDARY);
+    	// Select Split Option on ContextMenu
     	press(KeyCode.DOWN);
     	release(KeyCode.DOWN);
     	press(KeyCode.DOWN);
-    	
-    	Set<Node> menu = (Set<Node>) from(rootNode(Stage.getWindows().get(0))).queryAllAs(Node.class);
-    	    	
-    	Node rootPane = menu.iterator().next(); 
-    	    	
-    	BorderPane pane = (BorderPane) rootPane;
-    	    	
-    	DockPane dockPane = (DockPane) pane.centerProperty().get();
-
-    	DockItem firstTab = (DockItem) dockPane.getDockItems().get(0);
-    	
-    	Assertions.assertThat(firstTab.getContextMenu() != null);
-    	
-    	ObservableList<MenuItem> menuItems = from((Node)firstTab.getGraphic()).queryAs(Labeled.class).getContextMenu().getItems();
-    	    	
-    	Assertions.assertThat(menuItems.get(0).getText().equals(Messages.DockInfo));
-    	
-    	Assertions.assertThat(menuItems.get(1) instanceof SeparatorMenuItem);
-    	
-    	Assertions.assertThat(menuItems.get(2).getText().equals(Messages.DockDetach));
-    	Assertions.assertThat(menuItems.get(3).getText().equals(Messages.DockSplitH));
-    	Assertions.assertThat(menuItems.get(4).getText().equals(Messages.DockSplitV));
-    	
-    	Assertions.assertThat(menuItems.get(5) instanceof SeparatorMenuItem);
-    	
-    	Assertions.assertThat(menuItems.get(6).getText().equals(Messages.NamePaneHdr));
-    }
-    
-    @Test
-    public void TestDockSplit() {
-    	Bounds tabBounds = tabs.getDockItems().get(0).getContent().getBoundsInLocal();
-    	
-    	moveTo(new Point2D(tabs.getDockItems().get(0).getContent().localToScene(tabBounds).getMinX() + 20, 
-    			tabs.getDockItems().get(0).getContent().localToScene(tabBounds).getMinY()-10));
-    	
-    	press(MouseButton.SECONDARY);
-    	press(KeyCode.DOWN);
     	release(KeyCode.DOWN);
-    	press(KeyCode.DOWN);
+    	press(KeyCode.ENTER);
     	
-    	Set<Node> menu = (Set<Node>) from(rootNode(Stage.getWindows().get(0))).queryAllAs(Node.class);
-    	    	
-    	Node rootPane = menu.iterator().next(); 
-    	    	
-    	BorderPane pane = (BorderPane) rootPane;
-    	    	
-    	DockPane dockPane = (DockPane) pane.centerProperty().get();
-
-    	DockItem firstTab = (DockItem) dockPane.getDockItems().get(0);
-    	
-    	Assertions.assertThat(firstTab.getContextMenu() != null);
-    	
+    	closePane();
+    	Assertions.assertThat((Stage.getWindows().size() == 0)).isTrue();
     }
 }
