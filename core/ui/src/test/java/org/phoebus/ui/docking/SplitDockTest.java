@@ -59,12 +59,12 @@ public class SplitDockTest extends ApplicationTest {
 		}});
     }
     
-    static void invokeContextMenu(DockPane pane, FxRobot robot) 
+    static void invokeContextMenu(DockPane pane, FxRobot robot, int tab) 
     {
-    	//Invoke the context menu on the first tab
-    	Bounds tabBounds = pane.getDockItems().get(0).getContent().getBoundsInLocal();
-    	robot.moveTo(new Point2D(pane.getDockItems().get(0).getContent().localToScene(tabBounds).getMinX() + 20, 
-    			pane.getDockItems().get(0).getContent().localToScene(tabBounds).getMinY()-10));
+    	//Invoke the context menu on the tab
+    	Bounds tabBounds = pane.getDockItems().get(tab).getContent().getBoundsInLocal();
+    	robot.moveTo(new Point2D(pane.getDockItems().get(tab).getContent().localToScene(tabBounds).getMinX() + 20, 
+    			pane.getDockItems().get(tab).getContent().localToScene(tabBounds).getMinY()-10));
     	robot.press(MouseButton.SECONDARY);	
     }
     
@@ -105,7 +105,7 @@ public class SplitDockTest extends ApplicationTest {
     
     @Test
     public void TestDockSplit() throws Exception {
-    	invokeContextMenu(tabs, this);
+    	invokeContextMenu(tabs, this, 0);
     	
     	// Select Split Option on ContextMenu
     	press(KeyCode.DOWN);

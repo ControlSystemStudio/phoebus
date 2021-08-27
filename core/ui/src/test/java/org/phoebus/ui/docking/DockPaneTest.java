@@ -79,7 +79,7 @@ public class DockPaneTest extends ApplicationTest {
     @Test
     public void TestContextMenu() 
     {
-    	SplitDockTest.invokeContextMenu(tabs, this);
+    	SplitDockTest.invokeContextMenu(tabs, this, 0);
     	Set<Node> menu = (Set<Node>) from(rootNode(Stage.getWindows().get(0))).queryAllAs(Node.class);
     	    	
     	Node rootPane = menu.iterator().next(); 
