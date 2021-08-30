@@ -1,4 +1,5 @@
 package org.phoebus.ui.docking;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.assertj.core.api.Assertions;
@@ -61,10 +62,14 @@ public class SplitDockTest extends ApplicationTest {
     
     static void invokeContextMenu(DockPane pane, FxRobot robot, int tab) 
     {
+    	Object[] renderedTabs =  pane.lookup(".tab-header-area").lookupAll(".tab").toArray();
+    	Node     renderedTab = (Node)renderedTabs[tab];
+    	
     	//Invoke the context menu on the tab
-    	Bounds tabBounds = pane.getDockItems().get(tab).getContent().getBoundsInLocal();
-    	robot.moveTo(new Point2D(pane.getDockItems().get(tab).getContent().localToScene(tabBounds).getMinX() + 20, 
-    			pane.getDockItems().get(tab).getContent().localToScene(tabBounds).getMinY()-10));
+    	Bounds tabBounds = renderedTab.getBoundsInLocal();
+
+    	robot.moveTo(new Point2D(renderedTab.localToScene(tabBounds).getCenterX() , 
+    			renderedTab.localToScene(tabBounds).getCenterY() ));
     	robot.press(MouseButton.SECONDARY);	
     }
     
