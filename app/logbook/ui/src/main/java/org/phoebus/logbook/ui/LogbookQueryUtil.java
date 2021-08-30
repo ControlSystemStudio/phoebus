@@ -19,7 +19,7 @@ public class LogbookQueryUtil {
     // Ordered search keys
     public static enum Keys {
         SEARCH("search"),
-        LOGBOOKS("logbooks"),
+        LOGBOOKS("logbook"),
         TAGS("tag"),
         STARTTIME("start"),
         ENDTIME("end"),
