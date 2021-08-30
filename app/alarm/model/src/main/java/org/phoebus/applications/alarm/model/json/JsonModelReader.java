@@ -14,6 +14,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.time.LocalDateTime;
 
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
@@ -199,7 +202,23 @@ public class JsonModelReader
         boolean changed = node.setDescription(jn.asText());
 
         jn = json.get(JsonTags.ENABLED);
-        changed |= node.setEnabled(jn == null ? true : jn.asBoolean());
+
+        Pattern pattern = Pattern.compile("true|false", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(jn.asText());
+
+        if(matcher.matches()) {
+            changed |= node.setEnabled(jn == null ? true : jn.asBoolean());
+         } else {
+             try {
+                LocalDateTime expirationDate = LocalDateTime.parse(jn.asText());
+                changed |= node.setEnabled(false);
+                changed |= node.setEnabledDate(expirationDate);
+             }
+             catch (Exception ex) {
+                logger.log(Level.WARNING, "Bypass date incorrectly formatted." + jn + "'");
+
+             }
+         }
 
         jn = json.get(JsonTags.LATCHING);
         changed |= node.setLatching(jn == null ? true : jn.asBoolean());
