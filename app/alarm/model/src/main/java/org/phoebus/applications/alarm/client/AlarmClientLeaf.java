@@ -7,11 +7,15 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.client;
 
+import static org.phoebus.applications.alarm.AlarmSystem.logger;
+
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.model.AlarmTreeItemWithState;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
@@ -35,6 +39,7 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
     private final AtomicInteger count = new AtomicInteger(0);
 
     private volatile String filter = "";
+    private volatile LocalDateTime enabled_date;
 
     public AlarmClientLeaf(final String parent_path, final String name)
     {
@@ -52,6 +57,7 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
         final AlarmClientLeaf pv = new AlarmClientLeaf(null, getName());
         pv.setDescription(getDescription());
         pv.setEnabled(isEnabled());
+        pv.setEnabledDate(getEnabledDate());
         pv.setLatching(isLatching());
         pv.setAnnunciating(isAnnunciating());
         pv.setDelay(getDelay());
@@ -97,6 +103,28 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
     public boolean setEnabled(final boolean enable)
     {
         return enabled.compareAndSet(! enable, enable);
+    }
+
+    /** @param enable Enable the PV?
+     *  @return <code>true</code> if this is a change
+     */
+    @Override
+    public synchronized boolean setEnabledDate(final LocalDateTime new_enabled_date)
+    {
+        logger.log(Level.WARNING, "here");
+        if (enabled_date != null) {
+            if (enabled_date.equals(new_enabled_date))
+                return false;
+        }
+        enabled_date = new_enabled_date;
+        return true;
+    }
+
+    /** @return date for enabling pv */
+    @Override
+    public LocalDateTime getEnabledDate()
+    {
+        return enabled_date;
     }
 
     /** @return <code>true</code> if alarms from PV are latched */

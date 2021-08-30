@@ -13,6 +13,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
+import java.time.LocalDateTime;
 
 import org.junit.Test;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
@@ -81,7 +82,7 @@ public class AlarmModelReaderTest
 	+ "    </component>\n"
 	+ "    <pv name=\"a2pv1\">\n"
 	+ "      <description>a2pv1 description</description>\n"
-	+ "      <enabled>true</enabled>\n"
+	+ "      <enabled>2021-12-03T10:15:30</enabled>\n"
 	+ "      <latching>true</latching>\n"
 	+ "      <annunciating>true</annunciating>\n"
 	+ "    </pv>\n"
@@ -178,8 +179,13 @@ public class AlarmModelReaderTest
 
 		assertEquals("a2pv1", ((AlarmTreeItem<?>) a2pv1).getName());
 		assertEquals("a2pv1 description", a2pv1.getDescription());
-		assertTrue(a2pv1.isEnabled());
+		assertTrue( ! a2pv1.isEnabled() );
 		assertTrue(a2pv1.isLatching());
 		assertTrue(a2pv1.isAnnunciating());
+
+		/* try setting new date */
+		final LocalDateTime new_expiration_date = LocalDateTime.parse("2021-12-10T10:15:30");
+		a2pv1.setEnabledDate(new_expiration_date);
+
 	}
 }

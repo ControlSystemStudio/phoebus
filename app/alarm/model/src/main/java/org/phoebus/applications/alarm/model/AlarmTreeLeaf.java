@@ -36,7 +36,7 @@ public interface AlarmTreeLeaf
     /** @param enable Set expiration for enabling?
      *  @return <code>true</code> if this is a change
      */
-    public boolean setEnabledDate(final LocalDateTime enabledDate);
+    public boolean setEnabledDate(final LocalDateTime enabled_date);
 
     /** @return Enabled date if alarm is bypassed with set expiration */
     public LocalDateTime getEnabledDate();

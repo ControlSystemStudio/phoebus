@@ -17,7 +17,6 @@ import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -240,6 +239,7 @@ public class XmlModelReader
 
         String enabled_val = XMLUtil.getChildString(node, TAG_ENABLED).orElse("");
 
+        /* Handle enabling logic. Disable if enable date provided */
         if (! enabled_val.isEmpty()) {
             Pattern pattern = Pattern.compile("true|false", Pattern.CASE_INSENSITIVE);
             Matcher matcher = pattern.matcher(enabled_val);
@@ -248,11 +248,14 @@ public class XmlModelReader
                 pv.setEnabled(Boolean.parseBoolean(enabled_val));
              } else {
                  try {
-                    LocalDateTime expirationDate = LocalDateTime.parse(enabled_val);
-                    pv.setEnabledDate(expirationDate);
+                    final LocalDateTime expiration_date = LocalDateTime.parse(enabled_val);
+                    logger.log(Level.WARNING, enabled_val);
+                    pv.setEnabled(false);
+                    pv.setEnabledDate(expiration_date);
                  }
                  catch (Exception ex) {
                     logger.log(Level.WARNING, "Bypass date incorrectly formatted." +  enabled_val + "'");
+                    ex.printStackTrace(System.out);
     
                  }
              }

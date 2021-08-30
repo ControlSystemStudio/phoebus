@@ -29,6 +29,7 @@ public class AlarmConfigMessage {
     private String host;
     private String description;
     private boolean enabled = true;
+    private String enabled_date;
     private boolean latching = true;
     private boolean annunciating = true;
     private int delay;
@@ -78,6 +79,14 @@ public class AlarmConfigMessage {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public void setEnabledDate(String enabled_date) {
+        this.enabled_date = enabled_date;
+    }
+
+    public String getEnabledDate() {
+        return enabled_date;
     }
 
     public boolean isLatching() {
@@ -199,11 +208,13 @@ public class AlarmConfigMessage {
 
     @JsonIgnore
     public Map<String, String> sourceMap() {
+
         Map<String, String> map = new HashMap<>();
         map.put("config", getConfig());
         map.put("user", getUser());
         map.put("host", getHost());
         map.put("enabled", Boolean.toString(isEnabled()));
+        map.put("enabled_date", getEnabledDate());
         map.put("latching", Boolean.toString(isLatching()));
         map.put("config_msg", toString());
         map.put("message_time", formatter.withZone(ZoneId.of("UTC")).format(getMessage_time()));
