@@ -9,6 +9,7 @@ package org.phoebus.ui.docking;
 
 import java.lang.ref.WeakReference;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -70,10 +71,9 @@ public class DockPane extends TabPane
 
     private static boolean always_show_tabs = true;
 
-    private Stage stage;
+    private List<DockPaneEmptyListener> dockPaneEmptyListeners = new ArrayList<>();
 
-    // A "cache" of the Scene
-    private Scene rootScene;
+    private Stage stage;
 
     public void setStage(Stage stage){
         this.stage = stage;
@@ -381,8 +381,9 @@ public class DockPane extends TabPane
         // can complete before we merge,
         // instead of remove, merge, .. add fails because scene graph
         // change in unforeseen ways
-        if (getTabs().isEmpty())
+        if (getTabs().isEmpty()) {
             Platform.runLater(this::mergeEmptyAnonymousSplit);
+        }
         else
             // Update tabs on next UI tick so that findTabHeader() can succeed
             // in case this is in a newly created SplitDock
@@ -585,11 +586,11 @@ public class DockPane extends TabPane
             if (dock_parent instanceof BorderPane)
         {
             final BorderPane parent = (BorderPane) dock_parent;
-            rootScene = getScene();
             // Remove this dock pane from BorderPane
             parent.setCenter(null);
             // Place in split alongside a new dock pane
             final DockPane new_pane = new DockPane();
+            dockPaneEmptyListeners.stream().forEach(l -> new_pane.addDockPaneEmptyListener(l));
             split = new SplitDock(parent, horizontally, this, new_pane);
             setDockParent(split);
             new_pane.setDockParent(split);
@@ -599,11 +600,11 @@ public class DockPane extends TabPane
         else if (dock_parent instanceof SplitDock)
         {
             final SplitDock parent = (SplitDock) dock_parent;
-            rootScene = getScene();
             // Remove this dock pane from parent
             final boolean first = parent.removeItem(this);
             // Place in split alongside a new dock pane
             final DockPane new_pane = new DockPane();
+            dockPaneEmptyListeners.stream().forEach(l -> new_pane.addDockPaneEmptyListener(l));
             split = new SplitDock(parent, horizontally, this, new_pane);
             setDockParent(split);
             new_pane.setDockParent(split);
@@ -632,7 +633,7 @@ public class DockPane extends TabPane
     {
         if (! (dock_parent instanceof SplitDock))
         {
-            Platform.runLater(this::applyEmptyDockPanePolicy);
+            dockPaneEmptyListeners.stream().forEach(l -> l.allDockItemsClosed());
             return;
         }
         if (name.length() > 0)
@@ -640,9 +641,7 @@ public class DockPane extends TabPane
 
         SplitDock splitDock = (SplitDock)dock_parent;
         splitDock.merge();
-        if(splitDock.getItems().size() == 0){
-            Platform.runLater(this::applyEmptyDockPanePolicy);
-        }
+        dockPaneEmptyListeners.stream().forEach(l -> l.allDockItemsClosed());
     }
 
     @Override
@@ -652,19 +651,11 @@ public class DockPane extends TabPane
                Integer.toHexString(System.identityHashCode(this)) + " '" + name + "' "+ getTabs();
     }
 
-    /** Closes empty windows.
-     *  
-     *  <p>Windows become empty when all tabs have been dragged out, or closed explicitly.
-     *  The main window is never closed, though.
-     */
-    private void applyEmptyDockPanePolicy()
-    {
-        if(rootScene == null){
-            rootScene = getScene();
-        }
-        final Object id = rootScene.getWindow().getProperties().get(DockStage.KEY_ID);
-        if (!DockStage.ID_MAIN.equals(id)) {
-            rootScene.getWindow().hide();
-        }
+    public void addDockPaneEmptyListener(DockPaneEmptyListener listener){
+        dockPaneEmptyListeners.add(listener);
+    }
+
+    public void removeDockPaneEmptyListener(DockPaneEmptyListener listener){
+        dockPaneEmptyListeners.remove(listener);
     }
 }

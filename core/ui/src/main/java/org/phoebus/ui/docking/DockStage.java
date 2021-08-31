@@ -19,6 +19,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Level;
 
+import javafx.scene.control.SplitPane;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.application.Messages;
@@ -118,6 +119,23 @@ public class DockStage
 
         final BorderPane layout = new BorderPane(pane);
         pane.setDockParent(layout);
+
+        pane.addDockPaneEmptyListener(() -> {
+            if(!stage.getProperties().get(KEY_ID).equals(DockStage.ID_MAIN)){
+                if(layout.getChildren().get(0) instanceof DockPane){
+                    DockPane dockPane = (DockPane)layout.getChildren().get(0);
+                    if(dockPane.getDockItems().size() == 0){
+                        stage.getScene().getWindow().hide();
+                    }
+                }
+                else if(layout.getChildren().get(0) instanceof SplitPane){
+                    SplitPane splitPane = (SplitPane)layout.getChildren().get(0);
+                    if(splitPane.getItems().size() == 0){
+                        stage.getScene().getWindow().hide();
+                    }
+                }
+            }
+        });
 
         final Scene scene = new Scene(layout, 800, 600);
         stage.setScene(scene);
