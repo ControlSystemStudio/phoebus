@@ -10,6 +10,8 @@ package org.phoebus.applications.alarm.server;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -79,6 +81,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
      *  can be <code>null</code>
      */
     private volatile Filter filter = null;
+    private volatile LocalDateTime enabled_date = null;
 
     public AlarmServerPV(final ServerModel model, final String parent_path, final String name, final ClientState initial)
     {
@@ -193,6 +196,20 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
             return true;
         }
         return false;
+    }
+
+    @Override
+    public boolean setEnabledDate(final LocalDateTime new_enabled_date)
+    {
+        enabled_date = new_enabled_date;
+        return true;
+    }
+
+    @Override
+    public LocalDateTime getEnabledDate()
+    {
+        final LocalDateTime safe_copy = enabled_date;
+        return safe_copy;
     }
 
     @Override
