@@ -51,7 +51,8 @@ The following use cases have been verified:
  5. Determine a version for your application, in the following referred to as `app_version`.
  6. For Window installers determine a menu group in which the application will be placed. If the group does not
  exist, it will be created. 
- 7. Identify the path to the Java 11 SDK. In the following referred to as `<jdk_root>`.
+ 7. Identify the path to the Java 11 SDK. In the following referred to as `<jdk_root>`. See below for additional
+ information on the selecttion of target Java runtime.
  
  ##### `jpackage` build step 1
  `jpackage --name <app_name> --input unzipped --type app-image --main-jar product-<version>-<os>.jar
@@ -83,12 +84,18 @@ MacOS 10.15.7 the installation will complete, but the application may not be abl
 Consider either of the following workarounds:
 * Copy the installer from a file share. This is apparently considered more safe than HTTP download, and works for
 both Windows and MacOS.
-* Add a digital signature using a trusted certificate. `jpackage` support application signing, so it may be incorporated
+* Add a digital signature using a trusted certificate. `jpackage` supports application signing, so it may be incorporated
 into the `jpackage` build process. NOTE: this has not been verified.
 * Distribute installers - and updates! - using IT management tools. This is the current setup used for Windows
 and MacOS at the European Spallation Source.
 
+### Selection of target Java runtime
+During build (step 1) a target Java runtime is specified. If this option (`--runtime-image`) is omitted, `jpackage` will
+bundle the Java runtime containing the `jpackage` tool, i.e. Java 14+. Tests on Windows shows that the
+target runtime selection may impact the end result, i.e. the Phoebus application installed from the msi file. 
+For instance, while the Java runtime Adopt JDK 11.0.9 can be bundled into a working installation, 
+Adopt JDK 11.0.12 will not work when Phoebus is launched. On MacOS Adopt JDK 11.0.12 works fine.
 
- 
+
  
  
