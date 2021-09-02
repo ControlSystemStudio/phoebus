@@ -18,8 +18,8 @@ public class LogbookQueryUtil {
 
     // Ordered search keys
     public static enum Keys {
-        SEARCH("desc"),
-        LOGBOOKS("logbooks"),
+        SEARCH("search"),
+        LOGBOOKS("logbook"),
         TAGS("tag"),
         STARTTIME("start"),
         ENDTIME("end"),
@@ -84,9 +84,9 @@ public class LogbookQueryUtil {
                 if (key.equals(Keys.STARTTIME.getName()) || key.equals(Keys.ENDTIME.getName())) {
                     Object time = TimeParser.parseInstantOrTemporalAmount(value);
                     if (time instanceof Instant) {
-                        return MILLI_FORMAT.format((Instant)time);
+                        return String.valueOf(((Instant)time).toEpochMilli()/1000);
                     } else if (time instanceof TemporalAmount) {
-                        return MILLI_FORMAT.format(Instant.now().minus((TemporalAmount)time));
+                        return String.valueOf(Instant.now().minus((TemporalAmount)time).toEpochMilli()/1000);
                     }
                 }
                 return value;
