@@ -45,7 +45,6 @@ public class DockPaneTest extends ApplicationTest {
         // Initial tabs can be provided right away
         tabs = DockStage.configureStage(stage, tab1, tab2);
         
-        tabs.setStage(stage);
         stage.setX(0);
         stage.setY(0);
         stage.show();
