@@ -73,17 +73,6 @@ public class DockPane extends TabPane
 
     private List<DockPaneEmptyListener> dockPaneEmptyListeners = new ArrayList<>();
 
-    private Stage stage;
-
-    public void setStage(Stage stage){
-        this.stage = stage;
-    }
-
-    public void closeStage(){
-        stage.close();
-        stage = null;
-    }
-
     /** @param listener Listener to add
      *  @throws IllegalStateException if listener already added
      */
@@ -383,6 +372,7 @@ public class DockPane extends TabPane
         // change in unforeseen ways
         if (getTabs().isEmpty()) {
             Platform.runLater(this::mergeEmptyAnonymousSplit);
+
         }
         else
             // Update tabs on next UI tick so that findTabHeader() can succeed
@@ -590,7 +580,7 @@ public class DockPane extends TabPane
             parent.setCenter(null);
             // Place in split alongside a new dock pane
             final DockPane new_pane = new DockPane();
-            dockPaneEmptyListeners.stream().forEach(l -> new_pane.addDockPaneEmptyListener(l));
+            dockPaneEmptyListeners.stream().forEach(new_pane::addDockPaneEmptyListener);
             split = new SplitDock(parent, horizontally, this, new_pane);
             setDockParent(split);
             new_pane.setDockParent(split);
@@ -604,7 +594,7 @@ public class DockPane extends TabPane
             final boolean first = parent.removeItem(this);
             // Place in split alongside a new dock pane
             final DockPane new_pane = new DockPane();
-            dockPaneEmptyListeners.stream().forEach(l -> new_pane.addDockPaneEmptyListener(l));
+            dockPaneEmptyListeners.stream().forEach(new_pane::addDockPaneEmptyListener);
             split = new SplitDock(parent, horizontally, this, new_pane);
             setDockParent(split);
             new_pane.setDockParent(split);
@@ -633,7 +623,7 @@ public class DockPane extends TabPane
     {
         if (! (dock_parent instanceof SplitDock))
         {
-            dockPaneEmptyListeners.stream().forEach(l -> l.allDockItemsClosed());
+            dockPaneEmptyListeners.forEach(DockPaneEmptyListener::allTabsClosed);
             return;
         }
         if (name.length() > 0)
@@ -641,7 +631,7 @@ public class DockPane extends TabPane
 
         SplitDock splitDock = (SplitDock)dock_parent;
         splitDock.merge();
-        dockPaneEmptyListeners.stream().forEach(l -> l.allDockItemsClosed());
+        dockPaneEmptyListeners.forEach(DockPaneEmptyListener::allTabsClosed);
     }
 
     @Override

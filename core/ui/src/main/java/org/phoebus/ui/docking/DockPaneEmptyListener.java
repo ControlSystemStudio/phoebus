@@ -20,5 +20,5 @@ package org.phoebus.ui.docking;
 
 public interface DockPaneEmptyListener {
 
-    void allDockItemsClosed();
+    void allTabsClosed();
 }
