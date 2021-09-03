@@ -33,6 +33,8 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListCell;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Font;
+import org.phoebus.ui.vtype.FormatOption;
+import org.phoebus.ui.vtype.FormatOptionHandler;
 
 /** Creates JavaFX item for model widget
  *  @author Amanda Carpenter
@@ -190,7 +192,10 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
                 return;
         }
 
-        toolkit.fireWrite(model_widget, value);
+        final Object mappedValue = FormatOptionHandler.parse(model_widget.runtimePropValue().getValue(), value,
+                FormatOption.DEFAULT);
+
+        toolkit.fireWrite(model_widget, mappedValue);
     }
 
     private void styleChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
@@ -214,7 +219,6 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
      */
     private List<String> computeItems(final VType value, final boolean fromPV)
     {
-        // System.out.println("computeItems(" + value + ", " + fromPV + "): ");
         if (fromPV)
         {
             index = ((VEnum)value).getIndex();
@@ -234,9 +238,6 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
                 new_items.add(0, currValue);
                 new_index = 0;
             }
-
-            // System.out.println(new_items);
-            // System.out.println(new_index);
 
             index = new_index;
             return new_items;

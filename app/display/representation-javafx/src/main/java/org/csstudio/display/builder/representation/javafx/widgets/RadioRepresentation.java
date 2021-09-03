@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -272,8 +272,13 @@ public class RadioRepresentation extends JFXBaseRepresentation<TilePane, RadioWi
                         save_buttons.add(createRadioButton(save_items.get(i)));
                 }
                 while (i < save_buttons.size() && save_buttons.size() > 1)
-                    save_buttons.remove(save_buttons.size() - 1);
-
+                {
+                    final Node last = save_buttons.get(save_buttons.size()-1);
+                    save_buttons.remove(last);
+                    // Adjust toggle group which is used to determine the value to write,
+                    // because simply removing button node won't detach it from its toggle group.
+                    toggle.getToggles().remove((Toggle)last);
+                }
                 // Select one of the radio buttons
                 toggle.selectToggle(save_index < 0 || save_index >= save_buttons.size()
                                     ? null
