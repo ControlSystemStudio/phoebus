@@ -27,21 +27,8 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
+import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.util.Callback;
 import org.phoebus.applications.saveandrestore.Messages;
@@ -50,10 +37,13 @@ import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executor;
+import java.util.stream.Stream;
 
 public class SaveSetController implements NodeChangedListener {
 
@@ -116,6 +106,8 @@ public class SaveSetController implements NodeChangedListener {
 	private TableView.TableViewSelectionModel<ConfigPv> defaultSelectionModel;
 
 	private static final String DESCRIPTION_PROPERTY = "description";
+	private static final Tooltip pvNameTooltip = new Tooltip("A list of pv's separated by space or semi colon");
+	private static final Tooltip readbackPVNameTooltip = new Tooltip("A list of readback pv's separated by space or semi colon");
 
 	private String saveSetName;
 
@@ -223,7 +215,9 @@ public class SaveSetController implements NodeChangedListener {
 		});
 
 		pvNameField.textProperty().bindBidirectional(pvNameProperty);
+		pvNameField.setTooltip(pvNameTooltip);
 		readbackPvNameField.textProperty().bindBidirectional(readbackPvNameProperty);
+		readbackPvNameField.setTooltip(readbackPVNameTooltip);
 
 		saveSetEntries.addListener(new ListChangeListener<ConfigPv>() {
 			@Override
@@ -273,12 +267,21 @@ public class SaveSetController implements NodeChangedListener {
 	public void addPv(ActionEvent event){
 
 		UI_EXECUTOR.execute(() -> {
-			ConfigPv configPv = ConfigPv.builder()
-					.pvName(pvNameProperty.get().trim())
-					.readOnly(readOnlyProperty.get())
-					.readbackPvName(readbackPvNameProperty.get() == null || readbackPvNameProperty.get().isEmpty() ?  null : readbackPvNameProperty.get().trim())
-					.build();
-			saveSetEntries.add(configPv);
+			// Process a list of space or semi colon separated pvs
+			String[] pvNames = pvNameProperty.get().trim().split("[\\s;]+");
+			String[] readbackPvNames = readbackPvNameProperty.get().trim().split("[\\s;]+");
+
+			ArrayList<ConfigPv> configPVs = new ArrayList<>();
+			for (int i = 0; i < pvNames.length; i++) {
+				String readbackPV = i >= readbackPvNames.length ? null : readbackPvNames[i] == null || readbackPvNames[i].isEmpty() ?  null : readbackPvNames[i].trim();
+				ConfigPv configPV = ConfigPv.builder()
+						.pvName(pvNames[i].trim())
+						.readOnly(readOnlyProperty.get())
+						.readbackPvName(readbackPV)
+						.build();
+				configPVs.add(configPV);
+			}
+			saveSetEntries.addAll(configPVs);
 			resetAddPv();
 		});
 
