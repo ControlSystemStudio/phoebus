@@ -4,11 +4,16 @@ import com.google.common.base.Strings;
 import org.phoebus.util.time.TimeParser;
 
 import java.net.URI;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.Period;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAmount;
+import java.time.temporal.TemporalUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -135,8 +140,14 @@ public class LogbookQueryUtil {
                     Object time = TimeParser.parseInstantOrTemporalAmount(value);
                     if (time instanceof Instant) {
                         return MILLI_FORMAT.format((Instant)time);
-                    } else if (time instanceof TemporalAmount) {
-                        return MILLI_FORMAT.format(Instant.now().minus((TemporalAmount)time));
+                    } else if(time instanceof Period){ // If month or year, or both, are specified.
+                        Period period = (Period)time;
+                        // One year is on average 365.25 days when considering leap years
+                        // One month is on average 30.4375 days when considering leap years
+                        Duration duration = Duration.ofDays(Math.round(30.4375 * period.getMonths() + 365.25 * period.getYears()) + period.getDays());
+                        return MILLI_FORMAT.format(Instant.now().minus(duration));
+                    } else if (time instanceof TemporalAmount) { // If neither month or year is specified
+                        return MILLI_FORMAT.format(Instant.now().minus((TemporalAmount) time));
                     }
                 }
                 return value;

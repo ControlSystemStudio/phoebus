@@ -63,4 +63,15 @@ public class QueryParserTest {
         URI uri = URI.create("logbook://?desc=*Fault*Motor*&tag=operation&tag=loto");
         Map<String, String> queryParameters = LogbookQueryUtil.parseQueryURI(uri);
     }
+
+    @Test
+    public void testParseYearsMonthsDays(){
+        long now = System.currentTimeMillis();
+        URI uri = URI.create("logbook://?start=2%20years%208%20months%203days&end=now");
+        Map<String, String> queryParameters = LogbookQueryUtil.parseQueryURI(uri);
+        assertEquals(now, Instant.from(MILLI_FORMAT.parse(queryParameters.get(Keys.ENDTIME.getName()))).toEpochMilli(), 60000);
+        assertEquals((now-(Math.round((2*365.25 + 8*30.4375 + 3) * 24* 60 * 60 * 1000))),
+                Instant.from(MILLI_FORMAT.parse(queryParameters.get(Keys.STARTTIME.getName()))).toEpochMilli(), 60000);
+
+    }
 }
