@@ -18,7 +18,7 @@ import javafx.stage.Stage;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.KeyCode;
 
-public class SplitDockTest extends ApplicationTest {
+public class SplitDockTestUI extends ApplicationTest {
     private DockPane tabs = null;
 
     /**

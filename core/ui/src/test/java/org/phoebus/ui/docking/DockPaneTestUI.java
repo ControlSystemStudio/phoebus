@@ -20,7 +20,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
-public class DockPaneTest extends ApplicationTest {	
+public class DockPaneTestUI extends ApplicationTest {	
     private DockPane tabs = null;
 
     /**
@@ -71,14 +71,14 @@ public class DockPaneTest extends ApplicationTest {
     	Assertions.assertThat(dockPane.getTabs().get(0) instanceof DockItem).isTrue();
     	Assertions.assertThat(dockPane.getTabs().get(1) instanceof DockItem).isTrue();
     	
-    	SplitDockTest.closePane(tabs, this);
+    	SplitDockTestUI.closePane(tabs, this);
 		Assertions.assertThat((Stage.getWindows().size() == 0)).isTrue() ;
     }
     
     @Test
     public void TestContextMenu() 
     {
-    	SplitDockTest.invokeContextMenu(tabs, this, 0);
+    	SplitDockTestUI.invokeContextMenu(tabs, this, 0);
     	Set<Node> menu = (Set<Node>) from(rootNode(Stage.getWindows().get(0))).queryAllAs(Node.class);
     	    	
     	Node rootPane = menu.iterator().next(); 
@@ -126,7 +126,7 @@ public class DockPaneTest extends ApplicationTest {
         	Assertions.assertThat(menuItems.get(9).getText().equals(Messages.DockCloseAll)).isTrue();
     	}
     	
-    	SplitDockTest.closePane(tabs, this);    	
+    	SplitDockTestUI.closePane(tabs, this);    	
 		Assertions.assertThat((Stage.getWindows().size() == 0)).isTrue();
     }
     
