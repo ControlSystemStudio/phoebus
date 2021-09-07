@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -33,6 +33,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.text.Font;
 import javafx.scene.transform.Rotate;
+import javafx.scene.transform.Translate;
 
 /** Creates JavaFX item for model widget
  *  @author Amanda Carpenter
@@ -61,6 +62,14 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
 
     private volatile Shape[] leds = null;
     private volatile Label[] labels = null;
+
+    /** Was there ever any transformation applied to the jfx_node?
+    *
+    *  <p>Used to optimize:
+    *  If there never was a rotation, don't even _clear()_ it
+    *  to keep the Node's nodeTransformation == null
+    */
+    private boolean was_ever_transformed = false;
 
 
     @Override
@@ -150,10 +159,21 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
                 if (label != null)
                 {
                     label.relocate(x, y);
-                    label.resize(led_w, led_h);
                     label.setAlignment(Pos.CENTER);
                     if (horizontal)
-                        label.setRotate(-90);
+                    {
+                        label.resize(led_h, led_w);
+                        label.getTransforms().setAll(new Rotate(-90),
+                                                     new Translate(-led_h, 0));
+                        was_ever_transformed = true;
+                        // label.setBackground(new Background(new BackgroundFill(Color.BISQUE, CornerRadii.EMPTY, Insets.EMPTY)));
+                    }
+                    else
+                    {
+                        label.resize(led_w, led_h);
+                        if (was_ever_transformed)
+                            label.getTransforms().clear();
+                    }
                 }
             }
             else
@@ -169,6 +189,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
                     if (horizontal)
                     {
                         label.getTransforms().setAll(new Rotate(-90.0));
+                        was_ever_transformed = true;
                         // label.setBackground(new Background(new BackgroundFill(Color.BISQUE, CornerRadii.EMPTY, Insets.EMPTY)));
                         label.relocate(x, y+led_h);
                         label.resize(led_h - 2*rad - gap, led_w);
@@ -176,6 +197,8 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
                     }
                     else
                     {
+                        if (was_ever_transformed)
+                            label.getTransforms().clear();
                         label.relocate(x+2*rad+gap, y);
                         label.resize(led_w-2*rad-gap, led_h);
                     }
