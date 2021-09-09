@@ -20,6 +20,7 @@ import java.util.logging.Level;
 import org.phoebus.applications.alarm.model.AlarmTreeItemWithState;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.SeverityLevel;
+import org.phoebus.applications.alarm.model.EnabledState;
 
 /** Alarm tree leaf
  *
@@ -31,7 +32,6 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
 {
     private volatile String description;
 
-    private final AtomicBoolean enabled = new AtomicBoolean(true);
     private final AtomicBoolean latching = new AtomicBoolean(true);
     private final AtomicBoolean annunciating = new AtomicBoolean(true);
 
@@ -39,7 +39,7 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
     private final AtomicInteger count = new AtomicInteger(0);
 
     private volatile String filter = "";
-    private volatile LocalDateTime enabled_date;
+    private volatile EnabledState enabled = new EnabledState(true);
 
     public AlarmClientLeaf(final String parent_path, final String name)
     {
@@ -56,8 +56,7 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
     {
         final AlarmClientLeaf pv = new AlarmClientLeaf(null, getName());
         pv.setDescription(getDescription());
-        pv.setEnabled(isEnabled());
-        pv.setEnabledDate(getEnabledDate());
+        pv.setEnabled(getEnabled());
         pv.setLatching(isLatching());
         pv.setAnnunciating(isAnnunciating());
         pv.setDelay(getDelay());
@@ -93,7 +92,7 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
     @Override
     public boolean isEnabled()
     {
-        return enabled.get();
+        return enabled.enabled;
     }
 
     /** @param enable Enable the PV?
@@ -102,29 +101,51 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
     @Override
     public boolean setEnabled(final boolean enable)
     {
-        return enabled.compareAndSet(! enable, enable);
+        final EnabledState new_enabled_state = new EnabledState(enable);
+        if (enabled.equals(new_enabled_state)) {
+            return false;
+        }
+        enabled = new_enabled_state;
+        return true;
     }
 
     /** @param enable Enable the PV?
      *  @return <code>true</code> if this is a change
      */
     @Override
-    public synchronized boolean setEnabledDate(final LocalDateTime new_enabled_date)
+    public boolean setEnabled(final EnabledState enabled_state)
     {
-        logger.log(Level.WARNING, "here");
-        if (enabled_date != null) {
-            if (enabled_date.equals(new_enabled_date))
-                return false;
+        if (enabled.equals(enabled_state)) {
+            return false;
         }
-        enabled_date = new_enabled_date;
+        enabled = enabled_state;
         return true;
     }
 
-    /** @return date for enabling pv */
+    /** @param enable Enable the PV?
+     *  @return <code>true</code> if this is a change
+     */
     @Override
-    public LocalDateTime getEnabledDate()
+    public boolean setEnabledDate(final LocalDateTime enabled_date)
     {
-        return enabled_date;
+        final EnabledState new_enabled_state = new EnabledState(enabled_date);
+        if (enabled.equals(new_enabled_state)) {
+            return false;
+        }
+        enabled = new_enabled_state;
+        return true;
+    }
+
+    /** @return object representing enabled state */
+    @Override
+    public LocalDateTime getEnabledDate() {
+        return enabled.enabled_date;
+    }
+
+    /** @return object representing enabled state */
+    @Override
+    public EnabledState getEnabled() {
+        return enabled;
     }
 
     /** @return <code>true</code> if alarms from PV are latched */

@@ -27,6 +27,7 @@ import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.Messages;
 import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.AlarmState;
+import org.phoebus.applications.alarm.model.EnabledState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.SeverityLevel;
@@ -62,8 +63,6 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
 
     private volatile String description = "";
 
-    private final AtomicBoolean enabled = new AtomicBoolean(true);
-
     private final AlarmLogic logic;
 
     private final AtomicReference<PV> pv = new AtomicReference<>();
@@ -81,7 +80,8 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
      *  can be <code>null</code>
      */
     private volatile Filter filter = null;
-    private volatile LocalDateTime enabled_date = null;
+    private volatile EnabledState enabled = null;
+    private volatile EnabledDateTimeFilter enabled_datetime_filter = null;
 
     public AlarmServerPV(final ServerModel model, final String parent_path, final String name, final ClientState initial)
     {
@@ -174,43 +174,75 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     @Override
     public boolean isEnabled()
     {
-        return enabled.get();
+        return enabled.enabled;
     }
 
+
+    /** @param enable Enable the PV?
+     *  @return <code>true</code> if this is a change
+     */
     @Override
     public boolean setEnabled(final boolean enable)
     {
-        // When disabled, the PV won't run, because users complained about
-        // the alarm server trying to connect to disabled PVs.
-        // No PV means no value updates, mostly side-stepping the alarm logic.
-        // Still update the 'enabled' state to for example start/stop delayed alarm logic.
-        logic.setEnabled(enable);
-
-        if (enabled.compareAndSet(! enable, enable))
-        {
-            AutomatedActionsHelper.configure(automated_actions,
-                                             this,
-                                             logic.getAlarmState().severity,
-                                             enable,
-                                             getActions());
-            return true;
+        final EnabledState new_enabled_state = new EnabledState(enable);
+        if (enabled.equals(new_enabled_state)) {
+            return false;
         }
-        return false;
-    }
-
-    @Override
-    public boolean setEnabledDate(final LocalDateTime new_enabled_date)
-    {
-        enabled_date = new_enabled_date;
+        enabled = new_enabled_state;
+        if (enabled_datetime_filter != null) {
+            enabled_datetime_filter.teardown();
+            enabled_datetime_filter = null;
+        }
         return true;
     }
 
+    /** @param enable Enable the PV?
+     *  @return <code>true</code> if this is a change
+     * Set as listener to enable
+     */
+    @Override
+    public boolean setEnabled(final EnabledState enabled_state)
+    {
+        if (enabled.equals(enabled_state)) {
+            return false;
+        }
+        enabled = enabled_state;
+        return true;
+    }
+
+    /** @param enable Enable the PV?
+     *  @return <code>true</code> if this is a change
+     */
+    @Override
+    public boolean setEnabledDate(final LocalDateTime enabled_date)
+    {
+        final EnabledState new_enabled_state = new EnabledState(enabled_date);
+        if (enabled.equals(new_enabled_state)) {
+            return false;
+        }
+        enabled = new_enabled_state;
+        if (enabled_datetime_filter != null) {
+            enabled_datetime_filter.teardown();
+        }
+        enabled_datetime_filter = new EnabledDateTimeFilter(enabled_date, this::setEnabled);
+        return true;
+    }
+
+
+    /** @return object representing enabled state */
     @Override
     public LocalDateTime getEnabledDate()
     {
-        final LocalDateTime safe_copy = enabled_date;
+        final LocalDateTime safe_copy = enabled.enabled_date;
         return safe_copy;
     }
+
+    /** @return object representing enabled state */
+    @Override
+    public EnabledState getEnabled() {
+        return enabled;
+    }
+
 
     @Override
     public boolean isLatching()
@@ -295,6 +327,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         return true;
     }
 
+
     @Override
     public boolean setActions(final List<TitleDetailDelay> actions)
     {
@@ -361,6 +394,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
 
         logic.setEnabled(new_enable_state);
     }
+
 
     public void stop()
     {

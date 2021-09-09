@@ -211,7 +211,6 @@ public class JsonModelReader
          } else {
              try {
                 LocalDateTime expirationDate = LocalDateTime.parse(jn.asText());
-                changed |= node.setEnabled(false);
                 changed |= node.setEnabledDate(expirationDate);
              }
              catch (Exception ex) {
