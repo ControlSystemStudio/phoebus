@@ -57,7 +57,6 @@ public class EnabledState
     @Override
     public boolean equals(final Object obj)
     {
-        System.out.println("Checking equality");
         if (! (obj instanceof EnabledState))
             return false;
 

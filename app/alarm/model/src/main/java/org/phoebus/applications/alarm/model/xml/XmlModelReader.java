@@ -245,13 +245,10 @@ public class XmlModelReader
             Matcher matcher = pattern.matcher(enabled_val);
 
             if (matcher.matches()) {
-                System.out.println("here inside match");
                 pv.setEnabled(Boolean.parseBoolean(enabled_val));
-                System.out.println("match set");
             } else 
             {
                 try {
-                    System.out.println("here inside setting local datetime");
                     final LocalDateTime expiration_date = LocalDateTime.parse(enabled_val);
                     logger.log(Level.WARNING, enabled_val);
                     pv.setEnabledDate(expiration_date);
@@ -266,7 +263,6 @@ public class XmlModelReader
             /* Default true */
             pv.setEnabled(true);
         }
-        System.out.println("success");
 
 
         pv.setLatching(XMLUtil.getChildBoolean(node, TAG_LATCHING).orElse(false));

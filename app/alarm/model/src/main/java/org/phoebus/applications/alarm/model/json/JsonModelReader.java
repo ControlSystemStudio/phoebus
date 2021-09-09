@@ -203,21 +203,27 @@ public class JsonModelReader
 
         jn = json.get(JsonTags.ENABLED);
 
-        Pattern pattern = Pattern.compile("true|false", Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(jn.asText());
+        if (jn != null) {
+            Pattern pattern = Pattern.compile("true|false", Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pattern.matcher(jn.asText());
+    
+            if(matcher.matches()) {
+                changed |= node.setEnabled(jn.asBoolean());
+             } else {
+                 try {
+                    LocalDateTime expirationDate = LocalDateTime.parse(jn.asText());
+                    changed |= node.setEnabledDate(expirationDate);
+                 }
+                 catch (Exception ex) {
+                    logger.log(Level.WARNING, "Bypass date incorrectly formatted." + jn + "'");
+    
+                }
+            }
+        }
+        else {
+            node.setEnabled(true);
+        }
 
-        if(matcher.matches()) {
-            changed |= node.setEnabled(jn == null ? true : jn.asBoolean());
-         } else {
-             try {
-                LocalDateTime expirationDate = LocalDateTime.parse(jn.asText());
-                changed |= node.setEnabledDate(expirationDate);
-             }
-             catch (Exception ex) {
-                logger.log(Level.WARNING, "Bypass date incorrectly formatted." + jn + "'");
-
-             }
-         }
 
         jn = json.get(JsonTags.LATCHING);
         changed |= node.setLatching(jn == null ? true : jn.asBoolean());
