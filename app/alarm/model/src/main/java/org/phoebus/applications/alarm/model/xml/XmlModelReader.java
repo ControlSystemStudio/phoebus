@@ -244,27 +244,29 @@ public class XmlModelReader
             Pattern pattern = Pattern.compile("true|false", Pattern.CASE_INSENSITIVE);
             Matcher matcher = pattern.matcher(enabled_val);
 
-            if(matcher.matches()) {
+            if (matcher.matches()) {
+                System.out.println("here inside match");
                 pv.setEnabled(Boolean.parseBoolean(enabled_val));
-             } else {
-                 try {
+                System.out.println("match set");
+            } else 
+            {
+                try {
+                    System.out.println("here inside setting local datetime");
                     final LocalDateTime expiration_date = LocalDateTime.parse(enabled_val);
                     logger.log(Level.WARNING, enabled_val);
-                    pv.setEnabled(false);
                     pv.setEnabledDate(expiration_date);
-                 }
-                 catch (Exception ex) {
+                }
+                catch (Exception ex) {
                     logger.log(Level.WARNING, "Bypass date incorrectly formatted." +  enabled_val + "'");
                     ex.printStackTrace(System.out);
-    
-                 }
-             }
-
+                }
+            }
         }
         else {
             /* Default true */
             pv.setEnabled(true);
         }
+        System.out.println("success");
 
 
         pv.setLatching(XMLUtil.getChildBoolean(node, TAG_LATCHING).orElse(false));
