@@ -80,7 +80,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
      *  can be <code>null</code>
      */
     private volatile Filter filter = null;
-    private volatile EnabledState enabled = null;
+    private volatile EnabledState enabled = new EnabledState(true);
     private volatile EnabledDateTimeFilter enabled_datetime_filter = null;
 
     public AlarmServerPV(final ServerModel model, final String parent_path, final String name, final ClientState initial)
