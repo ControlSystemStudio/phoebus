@@ -122,6 +122,7 @@ class ItemConfigDialog extends Dialog<Boolean>
             final EventHandler relative_event_handler = new EventHandler<ActionEvent>() {
                 @Override public void handle(ActionEvent e) {
                     enabled.setSelected(false);
+
                     enabled_date_picker.getEditor().clear();
                 }
             };
@@ -131,8 +132,8 @@ class ItemConfigDialog extends Dialog<Boolean>
             enabled_date_picker.setOnAction(new EventHandler<ActionEvent>() {
                     @Override public void handle(ActionEvent e) {
                         relative_date.setOnAction(null);
-                        LocalDateTime date = enabled_date_picker.getDateTimeValue();
                         enabled.setSelected(false);
+                        enabled_date_picker.getEditor().commitValue();
                         relative_date.getSelectionModel().clearSelection();
                         relative_date.setValue(null);
                         relative_date.setOnAction(relative_event_handler);
@@ -140,8 +141,6 @@ class ItemConfigDialog extends Dialog<Boolean>
             });
 
             layout.add(new HBox(10, enabled_date_picker, relative_date), 1, row++);
-
-
 
             layout.add(new Label("Alarm Delay [seconds]:"), 0, row);
             delay = new Spinner<>(0, Integer.MAX_VALUE, leaf.getDelay());
@@ -303,7 +302,6 @@ class ItemConfigDialog extends Dialog<Boolean>
                     pv.setEnabledDate(update_date);
                 };
             };
-
             config = pv;
         }
         else
