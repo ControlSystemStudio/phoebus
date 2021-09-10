@@ -98,7 +98,10 @@ public class NLS
                     }
                     final Field field = fields.get(name);
                     if (field == null)
-                        getLogger().log(Level.SEVERE, clazz.getName() + " contains superflous message '" + name + "'");
+                        // fxml files may reference strings in a resource file, no need for a "Messages" class.
+                        // The below should log that a message is found in the resource file, but not in
+                        // a "Messages" class.
+                        getLogger().log(Level.FINEST, clazz.getName() + " does not reference resource string '" + name + "'");
                     else
                     {
                         field.set(null, value);
