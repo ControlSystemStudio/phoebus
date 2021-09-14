@@ -40,7 +40,7 @@ record(calc, "$(user):heat_Pwr")
     field(DESC, "Heater Power")
     field(EGU, "W")
     field(INPA, "$(user):heat_V PP NMS")
-# ~1100 Watt heater when run with 110V:
+# ~1000 Watt heater when run with 110V:
 # P = U I = U^2 / R,  R~12 Ohm
     field(CALC, "A*A/12.1")
 }
