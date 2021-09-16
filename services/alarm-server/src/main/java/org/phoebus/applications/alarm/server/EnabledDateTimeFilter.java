@@ -34,7 +34,7 @@ public class EnabledDateTimeFilter
 
     private volatile LocalDateTime enable_date = null;
 
-    public static final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+    public static final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     private volatile ScheduledFuture<?> scheduled_execution = null;
 
@@ -44,6 +44,7 @@ public class EnabledDateTimeFilter
     public EnabledDateTimeFilter(final LocalDateTime enable_date,
                   final Consumer<Boolean> listener)
     {
+        System.out.println("Scheduled timer");
         this.listener = listener;
         this.enable_date = enable_date;
         Duration duration = Duration.between(LocalDateTime.now(), this.enable_date);

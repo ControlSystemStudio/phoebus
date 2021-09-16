@@ -19,7 +19,7 @@ public class EnabledState
 {
     public final LocalDateTime enabled_date;
     public final boolean enabled;
-    public static final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+    public static final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     public EnabledState(final LocalDateTime enabled_date)
     {
@@ -31,7 +31,6 @@ public class EnabledState
             this.enabled_date = null;
             this.enabled = true;
         }
-        System.out.println("Initialized");
     }
 
     public EnabledState(final boolean enabled) {
@@ -77,7 +76,6 @@ public class EnabledState
     @Override
     public String toString()
     {
-
         if (enabled_date != null) {
             return enabled_date.format(formatter);
         }

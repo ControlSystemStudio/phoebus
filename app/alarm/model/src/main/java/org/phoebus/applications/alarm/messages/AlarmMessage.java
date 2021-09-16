@@ -2,16 +2,20 @@ package org.phoebus.applications.alarm.messages;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import org.phoebus.applications.alarm.model.EnabledState;
+import org.phoebus.applications.alarm.messages.EnabledSerializer;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 /**
@@ -20,6 +24,8 @@ import static org.phoebus.applications.alarm.AlarmSystem.logger;
  * @author Kunal Shroff
  *
  */
+
+
 @JsonInclude(Include.NON_NULL)
 public class AlarmMessage implements Serializable{
 
@@ -34,7 +40,7 @@ public class AlarmMessage implements Serializable{
     private Instant alarmTime;
 
     // config message
-    private boolean enabled = true;
+    private EnabledState enabled = new EnabledState(true);
     private boolean latching = true;
     private boolean annunciating = true;
     private int delay = 0;
@@ -47,6 +53,7 @@ public class AlarmMessage implements Serializable{
 
     private String delete;
 
+
     // state message
     private String severity;
     private String message;
@@ -57,9 +64,11 @@ public class AlarmMessage implements Serializable{
     private boolean notify = true;
     private boolean latch;
 
+
     // The following fields encapsulate additional information for simplifying processing
     // Flag describing if the message is a configuration message or a state update message
     private String key;
+
 
     public AlarmMessage() {
     }
@@ -96,11 +105,11 @@ public class AlarmMessage implements Serializable{
         this.time = time;
     }
 
-    public boolean isEnabled() {
+    public EnabledState getEnabled() {
         return enabled;
     }
 
-    public void setEnabled(boolean enabled) {
+    public void setEnabled(EnabledState enabled) {
         this.enabled = enabled;
     }
 
@@ -276,7 +285,6 @@ public class AlarmMessage implements Serializable{
             configMessage.setDelay(delay);
             configMessage.setCount(count);
             configMessage.setFilter(filter);
-
             configMessage.setGuidance(guidance);
             configMessage.setDisplays(displays);
             configMessage.setCommands(commands);
@@ -298,7 +306,7 @@ public class AlarmMessage implements Serializable{
             stateMessage.setCurrent_severity(current_severity);
             stateMessage.setCurrent_message(current_message);
             stateMessage.setMode(mode);
-	    stateMessage.setNotify(notify);
+	        stateMessage.setNotify(notify);
             stateMessage.setLatch(latch);
             return stateMessage;
         } else {
@@ -328,10 +336,14 @@ public class AlarmMessage implements Serializable{
         this.delete = delete;
     }
 
+
     // The methods and classes below this are examples for handling the combined alarm state and config message
     @JsonIgnore
     private static final ObjectMapper objectStateMapper = new ObjectMapper();
     static {
+        SimpleModule simple_module = new SimpleModule();
+        simple_module.addSerializer(new EnabledSerializer());
+        objectStateMapper.registerModule(simple_module);
         objectStateMapper.addMixIn(AlarmMessage.class, AlarmStateJsonMessage.class);
     }
     @JsonIgnore
@@ -356,7 +368,7 @@ public class AlarmMessage implements Serializable{
     }
 
 
-    private static class AlarmConfigJsonMessage {
+    private static class AlarmStateJsonMessage {
         @JsonIgnore
         private String severity;
         @JsonIgnore
@@ -369,15 +381,15 @@ public class AlarmMessage implements Serializable{
         private String current_message;
         @JsonIgnore
         private String mode;
-	@JsonIgnore
+	    @JsonIgnore
         private boolean notify;
         @JsonIgnore
         private boolean latch;
     }
 
-    private static class AlarmStateJsonMessage {
+    private static class AlarmConfigJsonMessage {
         @JsonIgnore
-        private boolean enabled;
+        private EnabledState enabled;
         @JsonIgnore
         private boolean annunciating;
         @JsonIgnore
