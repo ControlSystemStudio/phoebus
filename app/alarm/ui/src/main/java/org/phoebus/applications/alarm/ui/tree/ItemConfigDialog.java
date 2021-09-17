@@ -36,8 +36,6 @@ import javafx.stage.Modality;
 import javafx.util.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
-import tornadofx.control.DateTimePicker;
-
 
 
 /** Dialog for editing {@link AlarmTreeItem}

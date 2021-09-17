@@ -9,6 +9,8 @@ package org.phoebus.applications.alarm.server;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
+import org.phoebus.applications.alarm.client.AlarmClient;
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -44,7 +46,6 @@ public class EnabledDateTimeFilter
     public EnabledDateTimeFilter(final LocalDateTime enable_date,
                   final Consumer<Boolean> listener)
     {
-        System.out.println("Scheduled timer");
         this.listener = listener;
         this.enable_date = enable_date;
         Duration duration = Duration.between(LocalDateTime.now(), this.enable_date);
@@ -58,10 +59,10 @@ public class EnabledDateTimeFilter
         listener.accept(true);
     }
 
-    /** Teardown after being removed */
-    public void teardown() {
+    /** Cancel pending event */
+    public void cancel() {
+        listener.accept(true);
         scheduled_execution.cancel(false);
-        TIMER.shutdown();
     }
 
 

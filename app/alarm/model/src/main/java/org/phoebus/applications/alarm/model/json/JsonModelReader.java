@@ -209,10 +209,11 @@ public class JsonModelReader
     
             if(matcher.matches()) {
                 changed |= node.setEnabled(jn.asBoolean());
+
              } else {
                  try {
-                    LocalDateTime expirationDate = LocalDateTime.parse(jn.asText());
-                    changed |= node.setEnabledDate(expirationDate);
+                    LocalDateTime enabled_date = LocalDateTime.parse(jn.asText());
+                    changed |= node.setEnabledDate(enabled_date);
                  }
                  catch (Exception ex) {
                     logger.log(Level.WARNING, "Bypass date incorrectly formatted." + jn + "'");

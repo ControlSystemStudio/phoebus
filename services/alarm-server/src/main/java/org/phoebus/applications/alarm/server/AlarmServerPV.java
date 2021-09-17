@@ -125,6 +125,12 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
             {
                 model.sendAnnunciatorMessage(getPathName(), severity, description);
             }
+            @Override
+            public void alarmEnablementChanged(boolean enable) {
+                model.sendConfigUpdate(getPathName(), AlarmServerPV.this);
+            }
+
+
         };
         logic = new AlarmLogic(listener, true, true, 0, 0, current_state, alarm_state, 0);
     }
@@ -190,9 +196,10 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         }
         enabled = new_enabled_state;
         if (enabled_datetime_filter != null) {
-            enabled_datetime_filter.teardown();
+            enabled_datetime_filter.cancel();
             enabled_datetime_filter = null;
         }
+        logic.setEnabled(enable);
         return true;
     }
 
@@ -206,7 +213,9 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         if (enabled.equals(enabled_state)) {
             return false;
         }
+
         enabled = enabled_state;
+        logic.setEnabled(enabled.enabled);
         return true;
     }
 
@@ -220,11 +229,21 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         if (enabled.equals(new_enabled_state)) {
             return false;
         }
-        enabled = new_enabled_state;
-        if (enabled_datetime_filter != null) {
-            enabled_datetime_filter.teardown();
+        // if before current time, do not accept.
+        if (enabled_date.isBefore(LocalDateTime.now())) {
+            logger.log(Level.WARNING, "Enabled date is before current time.");
+            return false;
         }
-        enabled_datetime_filter = new EnabledDateTimeFilter(enabled_date, this::setEnabled);
+
+        enabled = new_enabled_state;
+        logic.setEnabled(false);
+
+        // cancel existing datetime filter and add new
+        if (enabled_datetime_filter != null) {
+            enabled_datetime_filter.cancel();
+        }
+
+        enabled_datetime_filter = new EnabledDateTimeFilter(enabled_date, this::enabledDateTimeFilterChanged);
         return true;
     }
 
@@ -395,6 +414,12 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         logic.setEnabled(new_enable_state);
     }
 
+    /** Listener to filter */
+    private void enabledDateTimeFilterChanged(final boolean enabled)
+    {
+        setEnabled(enabled);
+    }
+
 
     public void stop()
     {
@@ -420,6 +445,10 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
             {
                 conn_to.cancel(false);
                 connection_timeout_task = null;
+            }
+
+            if (enabled_datetime_filter != null) {
+                enabled_datetime_filter.cancel();
             }
 
             // Stop filter
