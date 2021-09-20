@@ -132,6 +132,7 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
         if ((enabled.equals(new_enabled_state)) || enabled_date.isBefore(LocalDateTime.now())) {
             return false;
         }
+        setEnabled(false);
         enabled = new_enabled_state;
         return true;
     }
