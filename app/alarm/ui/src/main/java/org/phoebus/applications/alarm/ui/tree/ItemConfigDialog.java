@@ -12,7 +12,6 @@ import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
-
 import org.phoebus.util.time.SecondsParser;
 
 import javafx.application.Platform;
@@ -35,7 +34,6 @@ import javafx.scene.control.ComboBox;
 import javafx.stage.Modality;
 import javafx.util.Duration;
 import java.time.LocalDateTime;
-import java.time.LocalDate;
 
 
 /** Dialog for editing {@link AlarmTreeItem}
