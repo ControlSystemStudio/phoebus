@@ -127,12 +127,15 @@ class ItemConfigDialog extends Dialog<Boolean>
             // setOnAction for relative date must be set to null as to not trigger event when setting value
             enabled_date_picker.setOnAction(new EventHandler<ActionEvent>() {
                     @Override public void handle(ActionEvent e) {
-                        relative_date.setOnAction(null);
-                        enabled.setSelected(false);
-                        enabled_date_picker.getEditor().commitValue();
-                        relative_date.getSelectionModel().clearSelection();
-                        relative_date.setValue(null);
-                        relative_date.setOnAction(relative_event_handler);
+                        if (enabled_date_picker.getDateTimeValue() != null) {
+                            System.out.println("INSIDE SETTING");
+                            relative_date.setOnAction(null);
+                            enabled.setSelected(false);
+                            enabled_date_picker.getEditor().commitValue();
+                            relative_date.getSelectionModel().clearSelection();
+                            relative_date.setValue(null);
+                            relative_date.setOnAction(relative_event_handler);
+                        };
                     }
             });
 
