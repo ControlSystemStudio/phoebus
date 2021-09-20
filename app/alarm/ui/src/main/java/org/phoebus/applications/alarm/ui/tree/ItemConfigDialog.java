@@ -120,7 +120,6 @@ class ItemConfigDialog extends Dialog<Boolean>
             final EventHandler relative_event_handler = new EventHandler<ActionEvent>() {
                 @Override public void handle(ActionEvent e) {
                     enabled.setSelected(false);
-
                     enabled_date_picker.getEditor().clear();
                 }
             };

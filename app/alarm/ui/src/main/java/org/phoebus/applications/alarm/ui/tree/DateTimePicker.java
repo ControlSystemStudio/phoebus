@@ -21,7 +21,7 @@ public class DateTimePicker extends DatePicker {
 	public static final String DefaultFormat = "yyyy-MM-dd HH:mm";
 
 	private DateTimeFormatter formatter;
-	private ObjectProperty<LocalDateTime> dateTimeValue = new SimpleObjectProperty<>(LocalDateTime.now());
+	private ObjectProperty<LocalDateTime> dateTimeValue = new SimpleObjectProperty<>(null);
 	private ObjectProperty<String> format = new SimpleObjectProperty<String>() {
 		public void set(String newValue) {
 			super.set(newValue);
@@ -38,7 +38,7 @@ public class DateTimePicker extends DatePicker {
 		setFormat(DefaultFormat);
 		setConverter(new InternalConverter());
         alignColumnCountWithFormat();
-        getEditor().setTextFormatter(new TextFormatter<>(getConverter()));
+        getEditor().setTextFormatter(new TextFormatter<>(new InternalConverter()));
 
 		// Syncronize changes to the underlying date value back to the dateTimeValue
 		valueProperty().addListener((observable, oldValue, newValue) -> {
