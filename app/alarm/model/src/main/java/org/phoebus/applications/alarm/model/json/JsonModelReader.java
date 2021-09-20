@@ -203,6 +203,7 @@ public class JsonModelReader
 
         jn = json.get(JsonTags.ENABLED);
 
+        // use pattern matching to determine whether boolean or datetime string
         if (jn != null) {
             Pattern pattern = Pattern.compile("true|false", Pattern.CASE_INSENSITIVE);
             Matcher matcher = pattern.matcher(jn.asText());
