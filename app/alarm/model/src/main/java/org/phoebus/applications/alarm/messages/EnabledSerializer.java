@@ -6,6 +6,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import java.io.IOException;
 
+/**
+ * Serializer used for writing varied date string/boolean enabled values
+ *
+ * @author Jacqueline Garrahan
+ *
+ */
 public class EnabledSerializer extends StdSerializer<EnabledState> {
     
     public EnabledSerializer() {
