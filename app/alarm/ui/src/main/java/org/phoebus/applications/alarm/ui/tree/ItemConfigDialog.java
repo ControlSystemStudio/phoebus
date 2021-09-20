@@ -124,6 +124,7 @@ class ItemConfigDialog extends Dialog<Boolean>
 
             relative_date.setOnAction(relative_event_handler);
 
+            // setOnAction for relative date must be set to null as to not trigger event when setting value
             enabled_date_picker.setOnAction(new EventHandler<ActionEvent>() {
                     @Override public void handle(ActionEvent e) {
                         relative_date.setOnAction(null);
