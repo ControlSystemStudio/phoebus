@@ -2,7 +2,6 @@ package org.phoebus.applications.alarm.messages;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +14,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.phoebus.applications.alarm.model.EnabledState;
-import org.phoebus.applications.alarm.messages.EnabledSerializer;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 /**
