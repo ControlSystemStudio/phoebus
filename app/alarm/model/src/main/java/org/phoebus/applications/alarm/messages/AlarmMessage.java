@@ -304,7 +304,7 @@ public class AlarmMessage implements Serializable{
             stateMessage.setCurrent_severity(current_severity);
             stateMessage.setCurrent_message(current_message);
             stateMessage.setMode(mode);
-	        stateMessage.setNotify(notify);
+            stateMessage.setNotify(notify);
             stateMessage.setLatch(latch);
             return stateMessage;
         } else {
