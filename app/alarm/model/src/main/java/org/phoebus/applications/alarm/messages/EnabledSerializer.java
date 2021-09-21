@@ -14,12 +14,9 @@ import java.io.IOException;
  */
 public class EnabledSerializer extends StdSerializer<EnabledState> {
     
+
     public EnabledSerializer() {
-        this(null);
-    }
-  
-    public EnabledSerializer(Class<EnabledState> t) {
-        super(t);
+        super(EnabledState.class);
     }
 
     @Override
