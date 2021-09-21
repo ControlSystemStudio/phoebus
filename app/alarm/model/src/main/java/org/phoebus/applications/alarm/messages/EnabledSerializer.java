@@ -25,7 +25,7 @@ public class EnabledSerializer extends StdSerializer<EnabledState> {
     @Override
     public void serialize(
         EnabledState enabled_state, JsonGenerator jgen, SerializerProvider provider) 
-      throws IOException, JsonProcessingException {
+      throws IOException {
  
         jgen.writeStartObject();
         if (enabled_state.enabled_date != null) {

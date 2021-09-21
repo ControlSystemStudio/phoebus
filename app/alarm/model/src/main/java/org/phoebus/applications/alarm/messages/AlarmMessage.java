@@ -349,7 +349,7 @@ public class AlarmMessage implements Serializable{
     static {
         SimpleModule simple_module = new SimpleModule();
         simple_module.addSerializer(new EnabledSerializer());
-        objectStateMapper.registerModule(simple_module);
+        objectConfigMapper.registerModule(simple_module);
         objectConfigMapper.addMixIn(AlarmMessage.class, AlarmConfigJsonMessage.class);
     }
 
