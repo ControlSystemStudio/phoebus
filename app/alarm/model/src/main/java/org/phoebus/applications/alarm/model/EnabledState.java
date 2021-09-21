@@ -19,7 +19,7 @@ public class EnabledState
 {
     public final LocalDateTime enabled_date;
     public final boolean enabled;
-    public static final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     public EnabledState(final LocalDateTime enabled_date)
     {
