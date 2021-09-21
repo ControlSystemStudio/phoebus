@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
@@ -194,6 +195,8 @@ public class JsonModelReader
     /** Update specifics of {@link AlarmTreeLeaf} */
     private static boolean updateAlarmLeafConfig(final AlarmTreeLeaf node, final JsonNode json)
     {
+
+        final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
         // Is this a leaf configuration message?
         JsonNode jn = json.get(JsonTags.DESCRIPTION);
         if (jn == null)
@@ -213,11 +216,11 @@ public class JsonModelReader
 
              } else {
                  try {
-                    LocalDateTime enabled_date = LocalDateTime.parse(jn.asText());
+                    LocalDateTime enabled_date = LocalDateTime.parse(jn.asText(), formatter);
                     changed |= node.setEnabledDate(enabled_date);
                  }
                  catch (Exception ex) {
-                    logger.log(Level.WARNING, "Bypass date incorrectly formatted." + jn + "'");
+                    logger.log(Level.WARNING, "Bypass date incorrectly formatted." + jn.asText() + "'");
     
                 }
             }
