@@ -23,8 +23,8 @@ public class MessageParser<T> implements Serializer<T>, Deserializer<T> {
         this.tClass = tClass;
         SimpleModule simple_module = new SimpleModule();
         simple_module.addSerializer(EnabledState.class, new EnabledSerializer());
+        simple_module.addDeserializer(EnabledState.class, new EnabledDeserializer());
         objectMapper.registerModule(simple_module);
-    //objectConfigMapper.addMixIn(AlarmMessage.class, AlarmConfigJsonMessage.class);
     }
 
     @Override
