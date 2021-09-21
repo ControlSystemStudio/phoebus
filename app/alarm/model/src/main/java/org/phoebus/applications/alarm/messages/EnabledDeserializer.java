@@ -29,9 +29,10 @@ public class EnabledDeserializer extends StdDeserializer<EnabledState> {
     public EnabledState deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
         ObjectCodec oc = jp.getCodec();
         JsonNode node = oc.readTree(jp);
+        System.out.println("Deserializing enabled state");
 
         node.get("enabled");
         
-        return new EnabledState(true);
+        return new EnabledState(false);
     }
 }
