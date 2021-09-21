@@ -339,14 +339,17 @@ public class AlarmMessage implements Serializable{
     @JsonIgnore
     private static final ObjectMapper objectStateMapper = new ObjectMapper();
     static {
-        SimpleModule simple_module = new SimpleModule();
-        simple_module.addSerializer(new EnabledSerializer());
-        objectStateMapper.registerModule(simple_module);
+       // SimpleModule simple_module = new SimpleModule();
+        //simple_module.addSerializer(new EnabledSerializer());
+       // objectStateMapper.registerModule(simple_module);
         objectStateMapper.addMixIn(AlarmMessage.class, AlarmStateJsonMessage.class);
     }
     @JsonIgnore
     private static final ObjectMapper objectConfigMapper = new ObjectMapper();
     static {
+        SimpleModule simple_module = new SimpleModule();
+        simple_module.addSerializer(new EnabledSerializer());
+        objectStateMapper.registerModule(simple_module);
         objectConfigMapper.addMixIn(AlarmMessage.class, AlarmConfigJsonMessage.class);
     }
 
