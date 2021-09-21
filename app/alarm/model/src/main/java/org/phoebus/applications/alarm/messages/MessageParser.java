@@ -46,6 +46,7 @@ public class MessageParser<T> implements Serializer<T>, Deserializer<T> {
 
     @Override
     public T deserialize(String arg0, byte[] bytes) {
+        System.out.println("Deserializing...");
         if (bytes == null)
             return null;
 
