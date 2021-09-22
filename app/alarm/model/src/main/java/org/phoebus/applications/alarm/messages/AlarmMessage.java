@@ -360,10 +360,8 @@ public class AlarmMessage implements Serializable{
      */
     public String toJson() throws JsonProcessingException {
         if (isConfig()) {
-            System.out.println("WRITING CONFIG");
             return objectConfigMapper.writeValueAsString(this);
         } else if (isState()){
-            System.out.println("WRITING STATE");
             return objectStateMapper.writeValueAsString(this);
         } else {
             return objectStateMapper.writeValueAsString("");
