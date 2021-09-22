@@ -51,8 +51,6 @@ public class EnabledDateTimeFilterTest
     @Test(timeout=8000)
     public void testEnableDate() throws Exception
     {
-        System.err.println("CHECKING ENABLE DATE");
-
         is_enabled = false;
 
 
