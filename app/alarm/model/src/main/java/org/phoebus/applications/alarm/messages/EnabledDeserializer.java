@@ -64,6 +64,7 @@ public class EnabledDeserializer extends StdDeserializer<EnabledState> {
                 }
             }
         }
+        System.out.println(json.toString());
         System.out.println("No json node.");
         return new EnabledState(true);
     }
