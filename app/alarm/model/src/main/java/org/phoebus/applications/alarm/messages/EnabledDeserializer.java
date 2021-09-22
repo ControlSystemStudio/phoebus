@@ -59,7 +59,7 @@ public class EnabledDeserializer extends StdDeserializer<EnabledState> {
                     return new EnabledState(enabled_date);
                  }
                  catch (Exception ex) {
-                    System.out.println("Poorly formatted enabled date")
+                    System.out.println("Poorly formatted enabled date");
                     logger.log(Level.WARNING, "Bypass date incorrectly formatted." + jn.asText() + "'");
                 }
             }
