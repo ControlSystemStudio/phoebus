@@ -50,14 +50,16 @@ public class EnabledDeserializer extends StdDeserializer<EnabledState> {
             Matcher matcher = pattern.matcher(jn.asText());
     
             if(matcher.matches()) {
+                System.out.println("Matched " + jn.asText());
                 return new EnabledState(jn.asBoolean());
-
              } else {
                  try {
                     LocalDateTime enabled_date = LocalDateTime.parse(jn.asText(), formatter);
+                    System.out.println("Enabled date is : " + jn.asText());
                     return new EnabledState(enabled_date);
                  }
                  catch (Exception ex) {
+                    System.out.println("Poorly formatted enabled date")
                     logger.log(Level.WARNING, "Bypass date incorrectly formatted." + jn.asText() + "'");
                 }
             }
