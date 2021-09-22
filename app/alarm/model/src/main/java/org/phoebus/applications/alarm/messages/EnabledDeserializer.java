@@ -40,9 +40,7 @@ public class EnabledDeserializer extends StdDeserializer<EnabledState> {
     @Override
     public EnabledState deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
         ObjectCodec oc = jp.getCodec();
-        JsonNode json = oc.readTree(jp);
-        
-        JsonNode jn = json.get(JsonTags.ENABLED);
+        JsonNode jn = oc.readTree(jp);
 
         // use pattern matching to determine whether boolean or datetime string
         if (jn != null) {
@@ -64,7 +62,7 @@ public class EnabledDeserializer extends StdDeserializer<EnabledState> {
                 }
             }
         }
-        System.out.println(json.toString());
+        System.out.println(jn.toString());
         System.out.println("No json node.");
         return new EnabledState(true);
     }
