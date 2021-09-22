@@ -128,7 +128,6 @@ class ItemConfigDialog extends Dialog<Boolean>
             enabled_date_picker.setOnAction(new EventHandler<ActionEvent>() {
                     @Override public void handle(ActionEvent e) {
                         if (enabled_date_picker.getDateTimeValue() != null) {
-                            System.out.println("INSIDE SETTING");
                             relative_date.setOnAction(null);
                             enabled.setSelected(false);
                             enabled_date_picker.getEditor().commitValue();
