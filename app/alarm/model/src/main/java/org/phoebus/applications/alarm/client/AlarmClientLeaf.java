@@ -7,15 +7,12 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.client;
 
-import static org.phoebus.applications.alarm.AlarmSystem.logger;
-
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.model.AlarmTreeItemWithState;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
