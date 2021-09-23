@@ -1,4 +1,4 @@
-package org.phoebus.applications.alarm.ui.tree;
+package org.phoebus.applications.alarm.ui.tree.datetimepicker;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
