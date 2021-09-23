@@ -17,7 +17,6 @@ import java.time.LocalDateTime;
 import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.model.EnabledState;
-import org.phoebus.applications.alarm.model.json.JsonTags;
 
 /**
  * Deserializer used for writing varied date string/boolean enabled values
