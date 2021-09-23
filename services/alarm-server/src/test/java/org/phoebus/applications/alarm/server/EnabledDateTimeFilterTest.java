@@ -63,9 +63,6 @@ public class EnabledDateTimeFilterTest
             while (! is_enabled)
                 wait();
         }
-        System.err.println("Received " + updates.get() + " updates");
-
-
         filter.cancel();
     }
 
