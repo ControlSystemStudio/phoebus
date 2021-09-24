@@ -217,7 +217,11 @@ public class JsonModelReader
              } else {
                  try {
                     LocalDateTime enabled_date = LocalDateTime.parse(jn.asText(), formatter);
-                    changed |= node.setEnabledDate(enabled_date);
+                    if (enabled_date.isAfter(LocalDateTime.now())) {
+                        changed |= node.setEnabledDate(enabled_date);
+                    } else {
+                        node.setEnabled(true);
+                    }
                  }
                  catch (Exception ex) {
                     logger.log(Level.WARNING, "Bypass date incorrectly formatted." + jn.asText() + "'");
