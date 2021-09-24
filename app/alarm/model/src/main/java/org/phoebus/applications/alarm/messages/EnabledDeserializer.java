@@ -58,7 +58,6 @@ public class EnabledDeserializer extends StdDeserializer<EnabledState> {
                 }
             }
         }
-        System.out.println(jn.toString());
         return new EnabledState(true);
     }
 }
