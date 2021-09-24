@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
+import java.time.LocalDateTime;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -210,6 +211,12 @@ class ServerModel
                             // before the PV connects
                             pv.getParent().maximizeSeverity();
                             pv.start();
+                            
+                            //check if using past disabled date
+                            LocalDateTime enabled_date = pv.getEnabledDate();
+                            if (enabled_date != null && enabled_date.isBefore(LocalDateTime.now())) {
+                                pv.setEnabled(true);
+                            }
                         }
                     }
                 }
