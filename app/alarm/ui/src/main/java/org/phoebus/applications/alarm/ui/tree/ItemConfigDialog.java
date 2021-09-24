@@ -275,9 +275,11 @@ class ItemConfigDialog extends Dialog<Boolean>
             final LocalDateTime selected_enable_date = enabled_date_picker.getDateTimeValue();
             final String relative_enable_date = relative_date.getValue();
 
-            if ((selected_enable_date != null) && ! selected_enable_date.isAfter(LocalDateTime.now())) {
+            if ((selected_enable_date != null) && selected_enable_date.isAfter(LocalDateTime.now())) {
                 pv.setEnabledDate(selected_enable_date);
-            };
+            } else {
+                pv.setEnabled(true);
+            }
 
             if (relative_enable_date != null) {
                 if (relative_enable_date.equals("6 hours")) {
