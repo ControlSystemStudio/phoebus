@@ -212,11 +212,13 @@ public class Launcher
         System.out.println("and the 'app=..' query parameter picks a specific app for opening the resource.");
         System.out.println();
         System.out.println("Examples:");
-        System.out.println("-resource /path/to/file                                                    - Opens that file with the default application.");
-        System.out.println("-resource file:/path/to/file                                               - Same, but makes the 'file' schema specific.");
-        System.out.println("-resource http://my.site/path/to/file                                      - Reads web link, opens with default application.");
-        System.out.println("-resource file:/path/to/file?app=display_runtime&MACRO1=value+1&MACRO2=abc - Opens file with 'display_runtime' app, passing macros.");
-        System.out.println("-resource pv://?sim://sine&app=probe                                       - Opens the 'sim://sine' PV with 'probe'.");
-        System.out.println("-resource pv://?Fred&sim://sine&app=pv_table                               - Opens two PVs PV with 'pv_table'.");
+        System.out.println("-resource '/path/to/file'                                                    - Opens that file with the default application.");
+        System.out.println("-resource 'file:/path/to/file'                                               - Same, but makes the 'file' schema specific.");
+        System.out.println("-resource 'http://my.site/path/to/file'                                      - Reads web link, opens with default application.");
+        System.out.println("-resource 'file:/path/to/file?app=display_runtime&MACRO1=value+1&MACRO2=abc' - Opens file with 'display_runtime' app, passing macros.");
+        System.out.println("-resource 'pv://?sim://sine&app=probe'                                       - Opens the 'sim://sine' PV with 'probe'.");
+        System.out.println("-resource 'pv://?Fred&sim://sine&app=pv_table'                               - Opens two PVs PV with 'pv_table'.");
+        System.out.println("-resource '...&target=window'                                                - Opens resource in separate window.");
+        System.out.println("-resource '...&target=name_of_pane'                                          - Opens resource in named pane.");
     }
 }
