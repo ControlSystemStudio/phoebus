@@ -217,7 +217,7 @@ without adding filtering that might not be obvious when later inspecting an alar
 
 Note again that the alarm system only reacts to the severity of alarm trigger PVs.
 For EPICS records, this is for example configured via the HIGH, HSV and HYST fields of analog records,
-o the ZSV and OSV fields of binary records.
+or the ZSV and OSV fields of binary records.
 Why, when and for how long an alarm trigger PV enters an alarm state is configured on the data source,
 and is not immediately obvious from the received alarm severity.
 
