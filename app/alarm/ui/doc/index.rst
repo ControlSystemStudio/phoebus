@@ -134,6 +134,8 @@ They can also be opened from the cmd line as follows::
 Alarm Configuration Options
 ---------------------------
 
+Alarm configurations are imported into the Alarm Server in an XML 
+format, the schema for which may be found `here <https://github.com/ControlSystemStudio/phoebus/app/alarm/examples/alarm_configuration.xsd>`_.
 The options for an entry in the hierarchical alarm configuration
 always include guidance, display links etc. as described further below.
 In addition, alarm PV entries have the following settings.
@@ -215,7 +217,7 @@ without adding filtering that might not be obvious when later inspecting an alar
 
 Note again that the alarm system only reacts to the severity of alarm trigger PVs.
 For EPICS records, this is for example configured via the HIGH, HSV and HYST fields of analog records,
-or the ZSV and OSV fields of binary records.
+o the ZSV and OSV fields of binary records.
 Why, when and for how long an alarm trigger PV enters an alarm state is configured on the data source,
 and is not immediately obvious from the received alarm severity.
 
@@ -355,4 +357,57 @@ Suggested PV template::
         field(PINI, "YES")
     }
  
- 
+Inclusions
+^^^^^^^^^^
+The Phoebus alarm server supports Xinclude, allowing for the breakup of hierarchies into multiple files.
+
+.. code-block:: xml
+
+  <?xml version='1.0' encoding='utf8'?>
+  <config name="HeartOfGold">
+      <pv name="NUTRIMATIC">
+          <enabled>true</enabled>
+          <latching>false</latching>
+          <annunciating>false</annunciating>
+          <description>Does not make tea</description>
+          <delay>10</delay>
+          <count>30</count>
+      </pv>
+      <pv name="INFINITE:IMPROBABILITY:DRIVE">
+          <enabled>true</enabled>
+          <latching>false</latching>
+          <annunciating>false</annunciating>
+          <filter> Marvin + Eddie == 0</filter>
+      </pv>
+      <xi:include href="/path/to/inclusion/file/includion_file.xml" xpointer="include-component" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  </config>
+
+Where the include component is identified in the inclusion file with a DID declared id component:
+
+.. code-block:: xml
+
+  <?xml version='1.0' encoding='utf8'?>
+  <!DOCTYPE config [
+    <!ATTLIST component id ID #IMPLIED>
+  ]>
+  <config name="GPP">
+      <component name="GPP" id ="component">
+          <pv name="EDDIE">
+              <enabled>true</enabled>
+              <latching>false</latching>
+              <annunciating>false</annunciating>
+              <description>Eddie the Computer</description>
+          </pv>
+          <pv name="MARVIN">
+              <enabled>true</enabled>
+              <latching>true</latching>
+              <annunciating>false</annunciating>
+              <description>Paranoid android</description>
+              <delay>100</delay>
+              <count>1000</count>
+          </pv>
+      </component>
+  </config>
+
+
+
