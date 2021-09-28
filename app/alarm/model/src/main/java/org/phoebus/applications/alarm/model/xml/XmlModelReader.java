@@ -75,7 +75,7 @@ public class XmlModelReader
     // Parse the xml stream and load the stream into a document.
     public void load(final InputStream stream) throws Exception
     {
-        final DocumentBuilderFactory docBuilderFactory =DocumentBuilderFactory.newInstance();
+        final DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
 
         // Enable xinclude parsing
         docBuilderFactory.setNamespaceAware(true);
