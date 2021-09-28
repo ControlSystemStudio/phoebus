@@ -66,18 +66,4 @@ public class EnabledDateTimeFilterTest
         filter.cancel();
     }
 
-
-    @Test(timeout=8000)
-    public void testEnableDateCancel() throws Exception
-    {
-        is_enabled = false;
-
-        final LocalDateTime update_date = LocalDateTime.now().plusSeconds(10);
-        final EnabledDateTimeFilter filter = new EnabledDateTimeFilter(update_date, this::filterChanged);
-        
-        // cancel filter and confirm enabled
-        filter.cancel();
-
-        assertEquals(is_enabled, true);
-    }
 }
