@@ -61,7 +61,6 @@ public class EnabledDateTimeFilter
 
     /** Cancel pending event */
     public void cancel() {
-        listener.accept(true);
         scheduled_execution.cancel(false);
     }
 
