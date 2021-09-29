@@ -10,13 +10,13 @@ package org.phoebus.applications.alarm.server;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
@@ -25,6 +25,7 @@ import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.Messages;
 import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.AlarmState;
+import org.phoebus.applications.alarm.model.EnabledState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.SeverityLevel;
@@ -60,8 +61,6 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
 
     private volatile String description = "";
 
-    private final AtomicBoolean enabled = new AtomicBoolean(true);
-
     private final AlarmLogic logic;
 
     private final AtomicReference<PV> pv = new AtomicReference<>();
@@ -79,6 +78,8 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
      *  can be <code>null</code>
      */
     private volatile Filter filter = null;
+    private volatile EnabledState enabled = new EnabledState(true);
+    private volatile EnabledDateTimeFilter enabled_datetime_filter = null;
 
     public AlarmServerPV(final ServerModel model, final String parent_path, final String name, final ClientState initial)
     {
@@ -122,6 +123,12 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
             {
                 model.sendAnnunciatorMessage(getPathName(), severity, description);
             }
+            @Override
+            public void alarmEnablementChanged(boolean enable) {
+                model.sendConfigUpdate(getPathName(), AlarmServerPV.this);
+            }
+
+
         };
         logic = new AlarmLogic(listener, true, true, 0, 0, current_state, alarm_state, 0);
     }
@@ -171,29 +178,88 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     @Override
     public boolean isEnabled()
     {
-        return enabled.get();
+        return enabled.enabled;
     }
 
+
+    /** @param enable Enable the PV?
+     *  @return <code>true</code> if this is a change
+     */
     @Override
     public boolean setEnabled(final boolean enable)
     {
-        // When disabled, the PV won't run, because users complained about
-        // the alarm server trying to connect to disabled PVs.
-        // No PV means no value updates, mostly side-stepping the alarm logic.
-        // Still update the 'enabled' state to for example start/stop delayed alarm logic.
-        logic.setEnabled(enable);
-
-        if (enabled.compareAndSet(! enable, enable))
-        {
-            AutomatedActionsHelper.configure(automated_actions,
-                                             this,
-                                             logic.getAlarmState().severity,
-                                             enable,
-                                             getActions());
-            return true;
+        final EnabledState new_enabled_state = new EnabledState(enable);
+        if (enabled.equals(new_enabled_state)) {
+            return false;
         }
-        return false;
+        enabled = new_enabled_state;
+        if (enabled_datetime_filter != null) {
+            enabled_datetime_filter.cancel();
+            enabled_datetime_filter = null;
+        }
+        logic.setEnabled(enable);
+        return true;
     }
+
+    /** @param enable Enable the PV?
+     *  @return <code>true</code> if this is a change
+     * Set as listener to enable
+     */
+    @Override
+    public boolean setEnabled(final EnabledState enabled_state)
+    {
+        if (enabled.equals(enabled_state)) {
+            return false;
+        }
+
+        enabled = enabled_state;
+        logic.setEnabled(enabled.enabled);
+        return true;
+    }
+
+    /** @param enable Enable the PV?
+     *  @return <code>true</code> if this is a change
+     */
+    @Override
+    public boolean setEnabledDate(final LocalDateTime enabled_date)
+    {
+        final EnabledState new_enabled_state = new EnabledState(enabled_date);
+        if (enabled.equals(new_enabled_state)) {
+            return false;
+        }
+        // if before current time, do not accept.
+        if (enabled_date.isBefore(LocalDateTime.now())) {
+            logger.log(Level.WARNING, "Enabled date is before current time.");
+            return false;
+        }
+
+        enabled = new_enabled_state;
+        logic.setEnabled(false);
+
+        // cancel existing datetime filter and add new
+        if (enabled_datetime_filter != null) {
+            enabled_datetime_filter.cancel();
+        }
+
+        enabled_datetime_filter = new EnabledDateTimeFilter(enabled_date, this::enabledDateTimeFilterChanged);
+        return true;
+    }
+
+
+    /** @return object representing enabled state */
+    @Override
+    public LocalDateTime getEnabledDate()
+    {
+        final LocalDateTime safe_copy = enabled.enabled_date;
+        return safe_copy;
+    }
+
+    /** @return object representing enabled state */
+    @Override
+    public EnabledState getEnabled() {
+        return enabled;
+    }
+
 
     @Override
     public boolean isLatching()
@@ -278,6 +344,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         return true;
     }
 
+
     @Override
     public boolean setActions(final List<TitleDetailDelay> actions)
     {
@@ -345,6 +412,13 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         logic.setEnabled(new_enable_state);
     }
 
+    /** Listener to filter */
+    private void enabledDateTimeFilterChanged(final boolean enabled)
+    {
+        setEnabled(enabled);
+    }
+
+
     public void stop()
     {
         try
@@ -369,6 +443,10 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
             {
                 conn_to.cancel(false);
                 connection_timeout_task = null;
+            }
+
+            if (enabled_datetime_filter != null) {
+                enabled_datetime_filter.cancel();
             }
 
             // Stop filter

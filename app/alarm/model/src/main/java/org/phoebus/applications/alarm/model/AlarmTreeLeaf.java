@@ -6,6 +6,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 package org.phoebus.applications.alarm.model;
+import java.time.LocalDateTime;
 
 /** Additional methods of an alarm tree leaf
  *
@@ -27,10 +28,27 @@ public interface AlarmTreeLeaf
     /** @return <code>true</code> if alarms from PV are enabled */
     public boolean isEnabled();
 
-    /** @param enable Enable the PV?
+    /** @param enabled_state Enable the PV?
      *  @return <code>true</code> if this is a change
      */
+    public boolean setEnabled(final EnabledState enabled_state);
+
+    /** @param enabled_state Enable the PV?
+     *  @return <code>true</code> if this is a change
+     */    
     public boolean setEnabled(final boolean enable);
+
+
+    /** @param enable Set expiration for enabling?
+     *  @return <code>true</code> if this is a change
+     */
+    public boolean setEnabledDate(final LocalDateTime enabled_date);
+
+    /** @return Enabled date if alarm is bypassed with set expiration */
+    public LocalDateTime getEnabledDate();
+
+    /** @return object representing enabled state */
+    public EnabledState getEnabled();
 
     /** @return <code>true</code> if alarms from PV are latched */
     public boolean isLatching();

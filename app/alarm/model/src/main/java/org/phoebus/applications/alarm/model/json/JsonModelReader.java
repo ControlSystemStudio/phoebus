@@ -14,6 +14,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
@@ -191,6 +195,8 @@ public class JsonModelReader
     /** Update specifics of {@link AlarmTreeLeaf} */
     private static boolean updateAlarmLeafConfig(final AlarmTreeLeaf node, final JsonNode json)
     {
+
+        final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
         // Is this a leaf configuration message?
         JsonNode jn = json.get(JsonTags.DESCRIPTION);
         if (jn == null)
@@ -199,7 +205,34 @@ public class JsonModelReader
         boolean changed = node.setDescription(jn.asText());
 
         jn = json.get(JsonTags.ENABLED);
-        changed |= node.setEnabled(jn == null ? true : jn.asBoolean());
+
+        // use pattern matching to determine whether boolean or datetime string
+        if (jn != null) {
+            Pattern pattern = Pattern.compile("true|false", Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pattern.matcher(jn.asText());
+    
+            if(matcher.matches()) {
+                changed |= node.setEnabled(jn.asBoolean());
+
+             } else {
+                 try {
+                    LocalDateTime enabled_date = LocalDateTime.parse(jn.asText(), formatter);
+                    if (enabled_date.isAfter(LocalDateTime.now())) {
+                        changed |= node.setEnabledDate(enabled_date);
+                    } else {
+                        node.setEnabled(true);
+                    }
+                 }
+                 catch (Exception ex) {
+                    logger.log(Level.WARNING, "Bypass date incorrectly formatted." + jn.asText() + "'");
+    
+                }
+            }
+        }
+        else {
+            node.setEnabled(true);
+        }
+
 
         jn = json.get(JsonTags.LATCHING);
         changed |= node.setLatching(jn == null ? true : jn.asBoolean());

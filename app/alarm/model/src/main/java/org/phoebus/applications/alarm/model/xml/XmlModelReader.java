@@ -14,6 +14,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.time.LocalDateTime;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -247,7 +250,35 @@ public class XmlModelReader
         // New XML export always writes these three tags.
         // Legacy XML file only wrote them if false, true, true,
         // i.e. missing tags meant true, false, false.
-        pv.setEnabled(XMLUtil.getChildBoolean(node, TAG_ENABLED).orElse(true));
+
+        String enabled_val = XMLUtil.getChildString(node, TAG_ENABLED).orElse("");
+
+        /* Handle enabling logic. Disable if enable date provided */
+        if (! enabled_val.isEmpty()) {
+            Pattern pattern = Pattern.compile("true|false", Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pattern.matcher(enabled_val);
+
+            if (matcher.matches()) {
+                pv.setEnabled(Boolean.parseBoolean(enabled_val));
+            } else 
+            {
+                try {
+                    final LocalDateTime expiration_date = LocalDateTime.parse(enabled_val);
+                    logger.log(Level.WARNING, enabled_val);
+                    pv.setEnabledDate(expiration_date);
+                }
+                catch (Exception ex) {
+                    logger.log(Level.WARNING, "Bypass date incorrectly formatted." +  enabled_val + "'");
+                    ex.printStackTrace(System.out);
+                }
+            }
+        }
+        else {
+            /* Default true */
+            pv.setEnabled(true);
+        }
+
+
         pv.setLatching(XMLUtil.getChildBoolean(node, TAG_LATCHING).orElse(false));
         pv.setAnnunciating(XMLUtil.getChildBoolean(node, TAG_ANNUNCIATING).orElse(false));
 

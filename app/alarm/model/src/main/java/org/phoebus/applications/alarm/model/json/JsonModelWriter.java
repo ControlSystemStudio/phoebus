@@ -126,8 +126,15 @@ public class JsonModelWriter
     private static void writeLeafDetail(final JsonGenerator jg, final AlarmTreeLeaf item) throws Exception
     {
         jg.writeStringField(JsonTags.DESCRIPTION, item.getDescription());
-        if (! item.isEnabled())
+
+        // if not enabled and not an enabled date, set false 
+        if ((! item.isEnabled()) && ( item.getEnabledDate() == null)) {
             jg.writeBooleanField(JsonTags.ENABLED, false);
+        }
+        // if enabled date is populated, write string field
+        if ( item.getEnabledDate() != null) {
+            jg.writeStringField(JsonTags.ENABLED, item.getEnabled().toString());
+        }
         if (! item.isLatching())
             jg.writeBooleanField(JsonTags.LATCHING, false);
         if (! item.isAnnunciating())

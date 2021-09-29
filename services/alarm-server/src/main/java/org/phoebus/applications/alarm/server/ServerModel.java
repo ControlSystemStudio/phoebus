@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
+import java.time.LocalDateTime;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -26,6 +27,7 @@ import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.client.KafkaHelper;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.AlarmState;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
@@ -209,6 +211,12 @@ class ServerModel
                             // before the PV connects
                             pv.getParent().maximizeSeverity();
                             pv.start();
+                            
+                            //check if using past disabled date
+                            LocalDateTime enabled_date = pv.getEnabledDate();
+                            if (enabled_date != null && enabled_date.isBefore(LocalDateTime.now())) {
+                                pv.setEnabled(true);
+                            }
                         }
                     }
                 }
@@ -398,6 +406,24 @@ class ServerModel
         catch (Throwable ex)
         {
             logger.log(Level.WARNING, "Cannot send state update for " + path, ex);
+        }
+    }
+
+        /** Send alarm update to 'config' topic
+     *  @param path Path of item that has a new state
+     *  @param new_state That new state
+     */
+    public void sendConfigUpdate(final String path, final AlarmTreeItem<AlarmState> config)
+    {
+        try
+        {
+            final String json = config == null ? null : new String(JsonModelWriter.toJsonBytes(config));
+            final ProducerRecord<String, String> record = new ProducerRecord<>(config_state_topic, AlarmSystem.CONFIG_PREFIX + path, json);
+            producer.send(record);
+        }
+        catch (Throwable ex)
+        {
+            logger.log(Level.WARNING, "Cannot send config update for " + path, ex);
         }
     }
 

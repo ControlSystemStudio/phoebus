@@ -11,10 +11,12 @@ import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.ui.tree.datetimepicker.DateTimePicker;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.util.time.SecondsParser;
 
 import javafx.application.Platform;
+import javafx.event.EventHandler;
 import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
@@ -29,8 +31,11 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.control.ComboBox;
 import javafx.stage.Modality;
 import javafx.util.Duration;
+import java.time.LocalDateTime;
+
 
 /** Dialog for editing {@link AlarmTreeItem}
  *
@@ -42,8 +47,10 @@ class ItemConfigDialog extends Dialog<Boolean>
 {
     private TextField description;
     private CheckBox enabled, latching, annunciating;
+    private DateTimePicker enabled_date_picker;
     private Spinner<Integer> delay, count;
     private TextField filter;
+    private ComboBox<String> relative_date;
     private final TitleDetailTable guidance, displays, commands;
     private final TitleDetailDelayTable actions;
 
@@ -81,6 +88,13 @@ class ItemConfigDialog extends Dialog<Boolean>
             enabled = new CheckBox("Enabled");
             enabled.setTooltip(new Tooltip("Enable alarms? See also filter expression"));
             enabled.setSelected(leaf.isEnabled());
+            enabled.setOnAction((event) -> {
+                relative_date.getSelectionModel().clearSelection();
+                relative_date.setValue(null);
+                enabled_date_picker.getEditor().clear();
+                enabled_date_picker.setValue(null); 
+                enabled.setSelected(true);
+            });
 
             latching = new CheckBox("Latch");
             latching.setTooltip(new Tooltip("Latch alarm until acknowledged?"));
@@ -91,6 +105,41 @@ class ItemConfigDialog extends Dialog<Boolean>
             annunciating.setSelected(leaf.isAnnunciating());
 
             layout.add(new HBox(10, enabled, latching, annunciating), 1, row++);
+
+            layout.add(new Label("Disable until:"), 0, row);
+            enabled_date_picker = new DateTimePicker();
+            enabled_date_picker.setDateTimeValue(leaf.getEnabledDate());
+            relative_date = new ComboBox<String>();
+            relative_date.getItems().add("6 hours");
+            relative_date.getItems().add("12 hours");
+            relative_date.getItems().add("1 day");
+            relative_date.getItems().add("7 days");
+            relative_date.getItems().add("30 days");
+
+            final EventHandler relative_event_handler = new EventHandler<ActionEvent>() {
+                @Override public void handle(ActionEvent e) {
+                    enabled.setSelected(false);
+                    enabled_date_picker.getEditor().clear();
+                }
+            };
+
+            relative_date.setOnAction(relative_event_handler);
+
+            // setOnAction for relative date must be set to null as to not trigger event when setting value
+            enabled_date_picker.setOnAction(new EventHandler<ActionEvent>() {
+                    @Override public void handle(ActionEvent e) {
+                        if (enabled_date_picker.getDateTimeValue() != null) {
+                            relative_date.setOnAction(null);
+                            enabled.setSelected(false);
+                            enabled_date_picker.getEditor().commitValue();
+                            relative_date.getSelectionModel().clearSelection();
+                            relative_date.setValue(null);
+                            relative_date.setOnAction(relative_event_handler);
+                        };
+                    }
+            });
+
+            layout.add(new HBox(10, enabled_date_picker, relative_date), 1, row++);
 
             layout.add(new Label("Alarm Delay [seconds]:"), 0, row);
             delay = new Spinner<>(0, Integer.MAX_VALUE, leaf.getDelay());
@@ -221,6 +270,39 @@ class ItemConfigDialog extends Dialog<Boolean>
             pv.setCount(count.getValue());
             // TODO Check filter expression
             pv.setFilter(filter.getText().trim());
+
+
+            final LocalDateTime selected_enable_date = enabled_date_picker.getDateTimeValue();
+            final String relative_enable_date = relative_date.getValue();
+
+            if ((selected_enable_date != null) && selected_enable_date.isAfter(LocalDateTime.now())) {
+                pv.setEnabledDate(selected_enable_date);
+            } else {
+                pv.setEnabled(true);
+            }
+
+            if (relative_enable_date != null) {
+                if (relative_enable_date.equals("6 hours")) {
+                    LocalDateTime update_date = LocalDateTime.now().plusHours(6);
+                    pv.setEnabledDate(update_date);
+                };
+                if (relative_enable_date.toString().equals("12 hours")) {
+                    LocalDateTime update_date = LocalDateTime.now().plusHours(12);
+                    pv.setEnabledDate(update_date);
+                };
+                if (relative_enable_date.toString().equals("1 day")) {
+                    LocalDateTime update_date = LocalDateTime.now().plusDays(1);
+                    pv.setEnabledDate(update_date);
+                };
+                if (relative_enable_date.toString().equals("7 days")) {
+                    LocalDateTime update_date = LocalDateTime.now().plusDays(7);
+                    pv.setEnabledDate(update_date);
+                };
+                if (relative_enable_date.toString().equals("30 days")) {
+                    LocalDateTime update_date = LocalDateTime.now().plusDays(30);
+                    pv.setEnabledDate(update_date);
+                };
+            };
             config = pv;
         }
         else

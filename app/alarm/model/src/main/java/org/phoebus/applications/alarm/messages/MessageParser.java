@@ -5,8 +5,10 @@ import java.util.Map;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serializer;
-
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.phoebus.applications.alarm.model.EnabledState;
+import java.time.format.DateTimeFormatter;
 
 public class MessageParser<T> implements Serializer<T>, Deserializer<T> {
 
@@ -20,6 +22,10 @@ public class MessageParser<T> implements Serializer<T>, Deserializer<T> {
      */
     public MessageParser(Class<T> tClass) {
         this.tClass = tClass;
+        SimpleModule simple_module = new SimpleModule();
+        simple_module.addSerializer(EnabledState.class, new EnabledSerializer());
+        simple_module.addDeserializer(EnabledState.class, new EnabledDeserializer());
+        objectMapper.registerModule(simple_module);
     }
 
     @Override

@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.phoebus.util.time.TimestampFormats;
+import org.phoebus.applications.alarm.model.EnabledState;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 /**
  *
  * A bean representing an alarm config message
@@ -28,7 +28,7 @@ public class AlarmConfigMessage {
     private String user;
     private String host;
     private String description;
-    private boolean enabled = true;
+    private EnabledState enabled = new EnabledState(true);
     private boolean latching = true;
     private boolean annunciating = true;
     private int delay;
@@ -73,10 +73,10 @@ public class AlarmConfigMessage {
     }
 
     public boolean isEnabled() {
-        return enabled;
+        return enabled.enabled;
     }
 
-    public void setEnabled(boolean enabled) {
+    public void setEnabled(EnabledState enabled) {
         this.enabled = enabled;
     }
 
@@ -199,11 +199,12 @@ public class AlarmConfigMessage {
 
     @JsonIgnore
     public Map<String, String> sourceMap() {
+
         Map<String, String> map = new HashMap<>();
         map.put("config", getConfig());
         map.put("user", getUser());
         map.put("host", getHost());
-        map.put("enabled", Boolean.toString(isEnabled()));
+        map.put("enabled", enabled.toString());
         map.put("latching", Boolean.toString(isLatching()));
         map.put("config_msg", toString());
         map.put("message_time", formatter.withZone(ZoneId.of("UTC")).format(getMessage_time()));
