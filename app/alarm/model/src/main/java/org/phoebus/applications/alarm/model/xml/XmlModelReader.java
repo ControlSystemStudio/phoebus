@@ -17,6 +17,7 @@ import java.util.logging.Level;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
@@ -74,9 +75,22 @@ public class XmlModelReader
     // Parse the xml stream and load the stream into a document.
     public void load(final InputStream stream) throws Exception
     {
-        final DocumentBuilder docBuilder =
-                DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        final DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+
+        // Enable xinclude parsing
+        docBuilderFactory.setNamespaceAware(true);
+
+        try {
+            docBuilderFactory.setFeature("http://apache.org/xml/features/xinclude", 
+                            true);
+        } 
+        catch (ParserConfigurationException e) {
+            System.err.println("could not set parser feature");
+        }
+
+        final DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
         final Document doc = docBuilder.parse(stream);
+
 
         buildModel(doc);
         // Clear map used to check for duplicates

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xi="http://www.w3.org/2001/XInclude" elementFormDefault="qualified">
+<xs:import namespace="http://www.w3.org/2001/XInclude" schemaLocation="http://www.w3.org/2001/xinclude.xsd"/>
+    <xs:element name="config">
+        <xs:complexType>
+            <xs:choice>
+                <xs:element maxOccurs="unbounded" ref="component" />
+                <xs:element minOccurs="0" maxOccurs="unbounded" ref="xi:include"/>
+            </xs:choice>
+            <xs:attribute name="name" use="required" type="xs:NCName" />
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="component">
+        <xs:complexType>
+            <xs:choice>
+                <xs:choice>
+                    <xs:element maxOccurs="unbounded" ref="guidance" />
+                    <xs:element maxOccurs="unbounded" ref="display" />
+                    <xs:element maxOccurs="unbounded" ref="command" />
+                    <xs:element maxOccurs="unbounded" ref="automated_action" />
+                </xs:choice>
+                <xs:choice minOccurs="1" maxOccurs="unbounded">
+                    <xs:element ref="component" />
+                    <xs:element ref="pv" />
+                    <xs:element ref="xi:include"/>
+                </xs:choice>
+            </xs:choice>
+            <xs:attribute name="name" use="required" type="xs:NCName" />
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="pv">
+        <xs:complexType>
+            <xs:choice>
+                <xs:element maxOccurs="1" ref="enabled" />
+                <xs:element maxOccurs="1" ref="latching" />
+                <xs:element minOccurs="0" maxOccurs="1" ref="description" />
+                <xs:element minOccurs="0" maxOccurs="1" ref="delay" />
+                <xs:choice minOccurs="0" maxOccurs="unbounded">
+                    <xs:element ref="command" />
+                    <xs:element ref="display" />
+                    <xs:element ref="guidance" />
+                    <xs:element ref="count" />
+                    <xs:element ref="filter" />
+                    <xs:element ref="automated_action"/>
+                </xs:choice>
+            </xs:choice>
+            <xs:attribute name="name" use="required" type="xs:NCName" />
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="enabled" type="xs:boolean" />
+    <xs:element name="latching" type="xs:boolean" />
+    <xs:element name="description" type="xs:string" />
+    <xs:element name="count" type="xs:integer" />
+    <xs:element name="filter" type="xs:string" />
+    <xs:element name="guidance">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="title" />
+                <xs:element ref="detail" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="display">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="title" />
+                <xs:element ref="detail" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="command">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="title" />
+                <xs:element ref="detail" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="automated_action">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="title" />
+                <xs:element ref="detail" />
+                <xs:element ref="delay" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="delay" type="xs:integer" />
+    <xs:element name="title" type="xs:string" />
+    <xs:element name="detail" type="xs:string" />
+</xs:schema>
