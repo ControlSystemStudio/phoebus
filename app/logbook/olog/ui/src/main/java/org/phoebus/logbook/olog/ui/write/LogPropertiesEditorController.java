@@ -78,6 +78,7 @@ public class LogPropertiesEditorController {
     TableColumn propertyName;
 
     private List<String> hiddenPropertiesNames = Arrays.asList(LogbookUIPreferences.hidden_properties);
+    private List<String> autoPropertiesNames = Arrays.asList(LogbookUIPreferences.auto_properties);
 
     /**
      * @param properties A collection of {@link Property}s.
@@ -137,7 +138,6 @@ public class LogPropertiesEditorController {
         });
         availablePropertiesView.setEditable(false);
         availablePropertiesView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        availablePropertiesView.setItems(availableProperties);
     }
 
     private void constructTree(Collection<Property> properties) {
@@ -293,6 +293,15 @@ public class LogPropertiesEditorController {
                 });
                 list.sort(Comparator.comparing(Property::getName));
                 availableProperties.setAll(list);
+                availablePropertiesView.setItems(availableProperties);
+                List<Property> autoSelected = new ArrayList<>();
+                availableProperties.stream().forEach(p -> {
+                    if(autoPropertiesNames.contains(p.getName())){
+                        selectedProperties.add(p);
+                        autoSelected.add(p);
+                    }
+                });
+                availableProperties.removeAll(autoSelected);
             });
         });
     }
