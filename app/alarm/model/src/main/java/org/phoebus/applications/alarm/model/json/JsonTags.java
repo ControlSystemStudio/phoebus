@@ -25,6 +25,7 @@ public interface JsonTags
     public static final String ANNUNCIATING = "annunciating";
     public static final String COMMAND = "command";
     public static final String COMMANDS = "commands";
+    public static final String TAGS = "tags";
     public static final String COUNT = "count";
     public static final String CURRENT_MESSAGE = "current_message";
     public static final String CURRENT_SEVERITY = "current_severity";

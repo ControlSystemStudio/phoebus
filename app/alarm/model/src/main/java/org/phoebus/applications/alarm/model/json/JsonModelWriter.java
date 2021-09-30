@@ -116,6 +116,7 @@ public class JsonModelWriter
             writeTitleDetail(jg, JsonTags.GUIDANCE, item.getGuidance());
             writeTitleDetail(jg, JsonTags.DISPLAYS, item.getDisplays());
             writeTitleDetail(jg, JsonTags.COMMANDS, item.getCommands());
+            writeTitleDetail(jg, JsonTags.TAGS, item.getTags());
             writeTitleDetailDelay(jg, JsonTags.ACTIONS, item.getActions());
 
             jg.writeEndObject();

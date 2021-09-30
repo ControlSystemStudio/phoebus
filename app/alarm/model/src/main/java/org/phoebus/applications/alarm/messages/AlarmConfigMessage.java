@@ -38,6 +38,7 @@ public class AlarmConfigMessage {
     private List<AlarmDetail> displays;
     private List<AlarmDetail> commands;
     private List<AlarmDetail> actions;
+    private List<AlarmDetail> tags;
 
     private String delete;
 
@@ -152,6 +153,14 @@ public class AlarmConfigMessage {
         this.actions = actions;
     }
 
+    public List<AlarmDetail> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<AlarmDetail> tags) {
+        this.tags = tags;
+    }
+
     public String getDelete() {
         return delete;
     }
@@ -194,6 +203,7 @@ public class AlarmConfigMessage {
                 ", displays=" + displays +
                 ", commands=" + commands +
                 ", actions=" + actions +
+                ", tags=" + tags +
                 ", delete=" + delete + "]";
     }
 

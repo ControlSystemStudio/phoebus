@@ -60,6 +60,7 @@ public class XmlModelReader
     public static final String TAG_DISPLAY = "display";
     public static final String TAG_COMMAND = "command";
     public static final String TAG_ACTIONS = "automated_action";
+    public static final String TAG_TAGS = "tags";
 
     // TitleDetail specific tags.
     public static final String TAG_TITLE = "title";
@@ -196,6 +197,17 @@ public class XmlModelReader
             td = new ArrayList<>();
         }
 
+        for (final Element child : XMLUtil.getChildElements(node, TAG_TAGS))
+        td.add(getTD(child));
+
+        if (td.size() > 0)
+        {
+            component.setTags(td);
+            td = new ArrayList<>();
+        }
+
+
+
         ArrayList<TitleDetailDelay> tdd = new ArrayList<>();
         for (final Element child : XMLUtil.getChildElements(node, TAG_ACTIONS))
             tdd.add(getTDD(child));
@@ -205,6 +217,7 @@ public class XmlModelReader
             component.setActions(tdd);
             tdd = new ArrayList<>();
         }
+
     }
 
     private void processPV(final AlarmClientNode parent, final Element node) throws Exception
@@ -332,6 +345,17 @@ public class XmlModelReader
             pv.setCommands(td);
             td = new ArrayList<>();
         }
+
+        for (final Element child : XMLUtil.getChildElements(node, TAG_TAGS))
+            td.add(getTD(child));
+
+        if (td.size() > 0)
+        {
+            pv.setTags(td);
+            td = new ArrayList<>();
+        }
+
+
 
         ArrayList<TitleDetailDelay> tdd = new ArrayList<>();
         for (final Element child : XMLUtil.getChildElements(node, TAG_ACTIONS))

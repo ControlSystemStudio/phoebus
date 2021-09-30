@@ -127,6 +127,16 @@ public class XmlModelWriter implements Closeable
             getTitleDetailDelayListXML(actions, XmlModelReader.TAG_ACTIONS);
         }
 
+        // Write XML for Guidance
+        final List<TitleDetail> tags = item.getTags();
+
+        if (!tags.isEmpty())
+        {
+            getTitleDetailListXML(tags, XmlModelReader.TAG_TAGS);
+        }
+
+        
+
     }
 
     private void getTitleDetailListXML(final List<TitleDetail> tdList, final String itemSubType) throws Exception
