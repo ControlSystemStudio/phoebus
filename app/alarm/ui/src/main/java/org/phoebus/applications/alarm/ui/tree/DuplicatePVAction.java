@@ -56,6 +56,7 @@ class DuplicatePVAction extends MenuItem
             template.setDisplays(original.getDisplays());
             template.setCommands(original.getCommands());
             template.setActions(original.getActions());
+            template.setTags(original.getTags());
 
             // Request adding new PV
             final String new_path = AlarmTreePath.makePath(original.getParent().getPathName(), new_name);

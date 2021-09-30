@@ -55,7 +55,7 @@ class ItemConfigDialog extends Dialog<Boolean>
     private Spinner<Integer> delay, count;
     private TextField filter;
     private ComboBox<String> relative_date;
-    private final TitleDetailTable guidance, displays, commands;
+    private final TitleDetailTable guidance, displays, commands, tags;
     private final TitleDetailDelayTable actions;
 
     public ItemConfigDialog(final AlarmClient model, final AlarmTreeItem<?> item)
@@ -227,6 +227,12 @@ class ItemConfigDialog extends Dialog<Boolean>
         actions.setPrefHeight(100);
         layout.add(actions, 0, row++, 2, 1);
 
+        // Commands:
+        layout.add(new Label("Tags:"), 0, row++);
+        tags = new TitleDetailTable(item.getTags());
+        tags.setPrefHeight(100);
+        layout.add(tags, 0, row++, 2, 1);
+
         // Dialog is quite high; allow scroll
         final ScrollPane scroll = new ScrollPane(layout);
 
@@ -294,6 +300,7 @@ class ItemConfigDialog extends Dialog<Boolean>
         config.setDisplays(displays.getItems());
         config.setCommands(commands.getItems());
         config.setActions(actions.getItems());
+        config.setTags(tags.getItems());
 
         try
         {
