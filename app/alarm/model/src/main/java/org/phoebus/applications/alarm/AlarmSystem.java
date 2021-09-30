@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,6 +8,8 @@
 package org.phoebus.applications.alarm;
 
 import java.io.File;
+import java.time.LocalDateTime;
+import java.time.temporal.TemporalAmount;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -16,6 +18,7 @@ import org.phoebus.framework.preferences.AnnotatedPreferences;
 import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.util.time.SecondsParser;
+import org.phoebus.util.time.TimeParser;
 
 /** Common alarm system code
  *  @author Kay Kasemir
@@ -121,10 +124,13 @@ public class AlarmSystem
     /** Disable notify feature */
     @Preference public static boolean disable_notify_visible;
 
+    /** "Disable until.." shortcuts */
+    @Preference public static String[] shelving_options;
+
     static
     {
     	final PreferencesReader prefs = AnnotatedPreferences.initialize(AlarmSystem.class, "/alarm_preferences.properties");
-        idle_timeout_ms = prefs.getInt("idle_timeout") * 1000L;        
+        idle_timeout_ms = prefs.getInt("idle_timeout") * 1000L;
         heartbeat_ms = prefs.getInt("heartbeat_secs") * 1000L;
 
         double secs = 0.0;
@@ -137,6 +143,23 @@ public class AlarmSystem
             logger.log(Level.WARNING, "Invalid nag_period " + prefs.get("nag_period"), ex);
         }
         nag_period_ms = Math.round(Math.max(0, secs) * 1000.0);
+
+        // Check if the provided options can be parsed to avoid later runtime errors
+        final LocalDateTime now = LocalDateTime.now();
+        for (String option : shelving_options)
+        {
+            try
+            {
+                final TemporalAmount amount = TimeParser.parseTemporalAmount(option);
+                final LocalDateTime end = now.plus(amount);
+                if (! end.isAfter(now))
+                    throw new Exception("Invalid 'shelving_options' value '" + option + "'");
+            }
+            catch (Throwable ex)
+            {
+                logger.log(Level.WARNING, "Error in 'shelving_options'", ex);
+            }
+        }
 
         IdentificationHelper.initialize();
     }
