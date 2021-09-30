@@ -78,6 +78,10 @@ public class AlarmModelReaderTest
 	+ "        <enabled>true</enabled>\n"
 	+ "        <latching>true</latching>\n"
 	+ "        <annunciating>true</annunciating>\n"
+	+ "        <tags>\n"
+	+ "          <title>a3pv1 Tag 1</title>\n"
+	+ "          <details>a3pv1 Tag Detail 1</details>\n"
+	+ "        </tags>\n"
 	+ "      </pv>\n"
 	+ "    </component>\n"
 	+ "    <pv name=\"a2pv1\">\n"
@@ -174,6 +178,12 @@ public class AlarmModelReaderTest
 		assertTrue(a3pv1.isEnabled());
 		assertTrue(a3pv1.isLatching());
 		assertTrue(a3pv1.isAnnunciating());
+
+		final List<TitleDetail> a3pv1_tags = ((AlarmTreeItem<?>)a3pv1).getTags();
+		assertEquals("a3pv1 Tag 1", a3pv1_tags.get(0).title);
+		assertEquals("a3pv1 Tag Detail 1", a3pv1_tags.get(0).detail);
+
+
 
 		final AlarmTreeLeaf a2pv1 = (AlarmTreeLeaf) area2.getChild("a2pv1");
 
