@@ -3,7 +3,6 @@ package org.phoebus.logbook.olog.ui;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
@@ -21,7 +20,6 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
@@ -76,7 +74,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
     private LogEntryDisplayController logEntryDisplayController;
 
     @FXML
-    private ProgressBar progressBar;
+    private ProgressIndicator progressIndicator;
     @FXML
     private Button search;
     @FXML
@@ -167,8 +165,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
         contextMenu.getItems().add(groupSelectedEntries);
         treeView.setContextMenu(contextMenu);
 
+        progressIndicator.visibleProperty().bind(searchInProgress);
         searchInProgress.addListener((observable, oldValue, newValue) -> {
-            Platform.runLater(() -> progressBar.setProgress(newValue ? ProgressBar.INDETERMINATE_PROGRESS : 0));
+            treeView.setDisable(newValue.booleanValue());
         });
     }
 
