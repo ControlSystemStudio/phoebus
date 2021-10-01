@@ -4,6 +4,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
@@ -293,7 +294,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
     @FXML
     public void search() {
         // parse the various time representations to Instant
-        super.search(LogbookQueryUtil.parseQueryString(query.getText()));
+        super.search(LogbookQueryUtil.parseQueryString(query.getText()), null);
     }
 
     public void setQuery(String parsedQuery) {

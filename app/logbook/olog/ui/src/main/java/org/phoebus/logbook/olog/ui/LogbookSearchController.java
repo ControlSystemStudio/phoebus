@@ -1,6 +1,7 @@
 package org.phoebus.logbook.olog.ui;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
@@ -8,6 +9,7 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * A basic controller for any ui performing logbook queries. The
@@ -31,14 +33,15 @@ public abstract class LogbookSearchController {
         this.client = client;
     }
 
-    public void search(Map<String, String> map) {
+    public void search(Map<String, String> map, Consumer<Boolean> progressHandler) {
         if (logbookSearchJob != null) {
             logbookSearchJob.cancel();
         }
         logbookSearchJob = LogbookSearchJob.submit(this.client,
                 map,
                 logs -> Platform.runLater(() -> setLogs(logs)),
-                (url, ex) -> ExceptionDetailsErrorDialog.openError("Logbook Search Error", ex.getMessage(), ex));
+                (url, ex) -> ExceptionDetailsErrorDialog.openError("Logbook Search Error", ex.getMessage(), ex),
+                progressHandler);
     }
 
     public abstract void setLogs(List<LogEntry> logs);

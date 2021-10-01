@@ -265,7 +265,7 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public List<LogEntry> findLogs(Map<String, String> map) {
+    public List<LogEntry> findLogs(Map<String, String> map) throws RuntimeException{
         MultivaluedMap<String, String> mMap = new MultivaluedMapImpl();
         map.forEach((k, v) -> {
             mMap.putSingle(k, v);
@@ -273,13 +273,13 @@ public class OlogClient implements LogClient {
         return findLogs(mMap);
     }
 
-    private List<LogEntry> findLogs(String queryParameter, String pattern) {
+    private List<LogEntry> findLogs(String queryParameter, String pattern) throws RuntimeException {
         MultivaluedMap<String, String> mMap = new MultivaluedMapImpl();
         mMap.putSingle(queryParameter, pattern);
         return findLogs(mMap);
     }
 
-    private List<LogEntry> findLogs(MultivaluedMap<String, String> mMap) {
+    private List<LogEntry> findLogs(MultivaluedMap<String, String> mMap) throws RuntimeException {
         List<LogEntry> logs = new ArrayList<>();
         if (mMap.containsKey("limit")) {
             // Check if limit can be parsed as a number. If not, remove it.
@@ -326,10 +326,12 @@ public class OlogClient implements LogClient {
                     ((OlogLog)log).setAttachments(populatedAttachment);
                 }
             });
+            return Collections.unmodifiableList(logs);
         } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
             logger.log(Level.WARNING, "failed to retrieve log entries", e);
+            throw new RuntimeException(e);
         }
-        return Collections.unmodifiableList(logs);
+        //return Collections.unmodifiableList(logs);
     }
 
     @Override

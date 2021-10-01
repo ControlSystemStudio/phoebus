@@ -5,6 +5,7 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -20,6 +21,8 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeCell;
@@ -73,7 +76,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
     private LogEntryDisplayController logEntryDisplayController;
 
     @FXML
-    private Node topLevelNode;
+    private ProgressBar progressBar;
+    @FXML
+    private Button search;
     @FXML
     private AdvancedSearchViewController advancedSearchViewController;
 
@@ -91,7 +96,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
      * List of selected log entries
      */
     private ObservableList<LogEntry> selectedLogEntries = FXCollections.observableArrayList();
-
     private Logger logger = Logger.getLogger(LogEntryTableViewController.class.getName());
 
     /**
@@ -103,6 +107,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         setClient(logClient);
     }
 
+    private SimpleBooleanProperty searchInProgress = new SimpleBooleanProperty(false);
 
     @FXML
     public void initialize() {
@@ -161,6 +166,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
         ContextMenu contextMenu = new ContextMenu();
         contextMenu.getItems().add(groupSelectedEntries);
         treeView.setContextMenu(contextMenu);
+
+        searchInProgress.addListener((observable, oldValue, newValue) -> {
+            Platform.runLater(() -> progressBar.setProgress(newValue ? ProgressBar.INDETERMINATE_PROGRESS : 0));
+        });
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored
@@ -206,9 +215,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     @FXML
     public void search() {
+        searchInProgress.set(true);
         // parse the various time representations to Instant
         treeView.getSelectionModel().clearSelection();
-        super.search(LogbookQueryUtil.parseQueryString(query.getText()));
+        super.search(LogbookQueryUtil.parseQueryString(query.getText()), (inProgress) -> searchInProgress.set(inProgress));
     }
 
     @Override
