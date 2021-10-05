@@ -62,12 +62,12 @@ public class LogEntryTreeHelperTest {
         // Only two elements on top-level
         assertEquals(2, treeItemList.size());
 
-        assertEquals(Long.valueOf(2L), Long.valueOf(treeItemList.get(0).getValue().getId()));
+        assertEquals(Long.valueOf(4L), Long.valueOf(treeItemList.get(0).getValue().getId()));
         assertEquals(Long.valueOf(1L), Long.valueOf(treeItemList.get(1).getValue().getId()));
 
         assertEquals(Long.valueOf(3L),
                 Long.valueOf(treeItemList.get(0).getChildren().get(0).getValue().getId()));
-        assertEquals(Long.valueOf(4L),
+        assertEquals(Long.valueOf(2L),
                 Long.valueOf(treeItemList.get(0).getChildren().get(1).getValue().getId()));
     }
 }

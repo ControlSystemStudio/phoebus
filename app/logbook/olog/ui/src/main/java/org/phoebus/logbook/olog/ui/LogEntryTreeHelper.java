@@ -85,15 +85,13 @@ public class LogEntryTreeHelper {
             treeItems.add(getGroupedTreeNode(group));
         }
 
-        // Lastly, order top level nodes in *descending* date order.
         treeItems.sort((t1, t2) -> t2.getValue().getCreatedDate().compareTo(t1.getValue().getCreatedDate()));
 
         return FXCollections.observableList(treeItems);
     }
 
     private static TreeItem<LogEntry> getGroupedTreeNode(List<LogEntry> group) {
-        // First sort the items in the group by *ascending* date
-        group.sort((o1, o2) -> o1.getCreatedDate().compareTo(o2.getCreatedDate()));
+        group.sort((o1, o2) -> o2.getCreatedDate().compareTo(o1.getCreatedDate()));
         // Use the first element to create the parent tree node
         TreeItem<LogEntry> parent = new TreeItem<>(group.get(0));
         int size = group.size();
