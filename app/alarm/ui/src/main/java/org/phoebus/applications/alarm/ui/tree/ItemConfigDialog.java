@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,10 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.tree;
 
+import java.time.LocalDateTime;
+import java.time.temporal.TemporalAmount;
+
+import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
@@ -14,14 +18,16 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.ui.tree.datetimepicker.DateTimePicker;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.util.time.SecondsParser;
+import org.phoebus.util.time.TimeParser;
 
 import javafx.application.Platform;
-import javafx.event.EventHandler;
 import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -31,10 +37,8 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.control.ComboBox;
 import javafx.stage.Modality;
 import javafx.util.Duration;
-import java.time.LocalDateTime;
 
 
 /** Dialog for editing {@link AlarmTreeItem}
@@ -92,7 +96,7 @@ class ItemConfigDialog extends Dialog<Boolean>
                 relative_date.getSelectionModel().clearSelection();
                 relative_date.setValue(null);
                 enabled_date_picker.getEditor().clear();
-                enabled_date_picker.setValue(null); 
+                enabled_date_picker.setValue(null);
                 enabled.setSelected(true);
             });
 
@@ -110,13 +114,9 @@ class ItemConfigDialog extends Dialog<Boolean>
             enabled_date_picker = new DateTimePicker();
             enabled_date_picker.setDateTimeValue(leaf.getEnabledDate());
             relative_date = new ComboBox<String>();
-            relative_date.getItems().add("6 hours");
-            relative_date.getItems().add("12 hours");
-            relative_date.getItems().add("1 day");
-            relative_date.getItems().add("7 days");
-            relative_date.getItems().add("30 days");
+            relative_date.getItems().addAll(AlarmSystem.shelving_options);
 
-            final EventHandler relative_event_handler = new EventHandler<ActionEvent>() {
+            final EventHandler<ActionEvent> relative_event_handler = new EventHandler<>() {
                 @Override public void handle(ActionEvent e) {
                     enabled.setSelected(false);
                     enabled_date_picker.getEditor().clear();
@@ -275,33 +275,16 @@ class ItemConfigDialog extends Dialog<Boolean>
             final LocalDateTime selected_enable_date = enabled_date_picker.getDateTimeValue();
             final String relative_enable_date = relative_date.getValue();
 
-            if ((selected_enable_date != null) && selected_enable_date.isAfter(LocalDateTime.now())) {
+            if ((selected_enable_date != null) && selected_enable_date.isAfter(LocalDateTime.now()))
                 pv.setEnabledDate(selected_enable_date);
-            } else {
+            else
                 pv.setEnabled(true);
-            }
 
-            if (relative_enable_date != null) {
-                if (relative_enable_date.equals("6 hours")) {
-                    LocalDateTime update_date = LocalDateTime.now().plusHours(6);
-                    pv.setEnabledDate(update_date);
-                };
-                if (relative_enable_date.toString().equals("12 hours")) {
-                    LocalDateTime update_date = LocalDateTime.now().plusHours(12);
-                    pv.setEnabledDate(update_date);
-                };
-                if (relative_enable_date.toString().equals("1 day")) {
-                    LocalDateTime update_date = LocalDateTime.now().plusDays(1);
-                    pv.setEnabledDate(update_date);
-                };
-                if (relative_enable_date.toString().equals("7 days")) {
-                    LocalDateTime update_date = LocalDateTime.now().plusDays(7);
-                    pv.setEnabledDate(update_date);
-                };
-                if (relative_enable_date.toString().equals("30 days")) {
-                    LocalDateTime update_date = LocalDateTime.now().plusDays(30);
-                    pv.setEnabledDate(update_date);
-                };
+            if (relative_enable_date != null)
+            {
+                final TemporalAmount amount = TimeParser.parseTemporalAmount(relative_enable_date);
+                final LocalDateTime update_date = LocalDateTime.now().plus(amount);
+                pv.setEnabledDate(update_date);
             };
             config = pv;
         }
