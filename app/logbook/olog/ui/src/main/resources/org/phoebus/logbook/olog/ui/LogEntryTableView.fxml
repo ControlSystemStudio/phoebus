@@ -45,10 +45,10 @@
                                 </Button>
                                 <StackPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnSpan="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS">
                                     <children>
-                                        <TreeView fx:id="treeView" />
-                                        <VBox alignment="CENTER">
+                                        <VBox fx:id="progressIndicatorVBox" alignment="CENTER">
                                             <ProgressIndicator fx:id="progressIndicator"/>
                                         </VBox>
+                                        <TreeView fx:id="treeView" />
                                     </children>
                                 </StackPane>
                             </children>
