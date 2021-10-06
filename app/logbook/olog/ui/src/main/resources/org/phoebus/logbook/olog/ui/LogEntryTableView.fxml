@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
 <SplitPane fx:id="topLevelNode" dividerPositions="0.6105960264900663" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryTableViewController">
@@ -11,15 +12,14 @@
             <items>
                 <AnchorPane minHeight="0.0" minWidth="250.0" prefWidth="600.0">
                     <children>
-                        <StackPane>
-
-                        </StackPane>
                         <GridPane fx:id="ViewSearchPane" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                             <columnConstraints>
                                 <ColumnConstraints minWidth="10.0" />
                                 <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
-                                <ColumnConstraints minWidth="10.0" prefWidth="60" />
+                                <ColumnConstraints minWidth="10.0" prefWidth="60.0" />
                                 <ColumnConstraints />
+                        <ColumnConstraints />
+                        <ColumnConstraints />
                             </columnConstraints>
                             <rowConstraints>
                                 <RowConstraints minHeight="10.0" prefHeight="30.0" />
@@ -38,15 +38,25 @@
                                         <Insets bottom="10.0" top="10.0" />
                                     </GridPane.margin>
                                 </TextField>
-                                <Button fx:id="search" text="%SearchButtonText" mnemonicParsing="false" onAction="#search" GridPane.columnIndex="3">
+                                <Button fx:id="search" mnemonicParsing="false" onAction="#search" text="%SearchButtonText" GridPane.columnIndex="3">
                                     <GridPane.margin>
-                                        <Insets left="3.0" />
+                                        <Insets left="3.0" right="5.0" />
                                     </GridPane.margin>
                                 </Button>
-                                <StackPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnSpan="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS">
+                                <ToggleButton fx:id="toggleSortOrder" onAction="#toggleSort" mnemonicParsing="false" GridPane.columnIndex="4">
+                                    <graphic>
+                                        <ImageView fx:id="sortOrderImageView" fitHeight="18.0" fitWidth="18.0">
+                                        <!-- Image not set here as this crashes the SceneBuilder -->
+                                        </ImageView>
+                                    </graphic>
+                                    <tooltip>
+                                        <Tooltip text="%SortOrderToggle" />
+                                    </tooltip>
+                                </ToggleButton>
+                                <StackPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnSpan="6" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS">
                                     <children>
-                                        <VBox fx:id="progressIndicatorVBox" alignment="CENTER">
-                                            <ProgressIndicator fx:id="progressIndicator"/>
+                                        <VBox alignment="CENTER">
+                                            <ProgressIndicator fx:id="progressIndicator" />
                                         </VBox>
                                         <TreeView fx:id="treeView" />
                                     </children>

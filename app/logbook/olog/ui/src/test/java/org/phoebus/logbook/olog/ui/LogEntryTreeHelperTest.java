@@ -57,7 +57,7 @@ public class LogEntryTreeHelperTest {
         List<LogEntry> logEntries = Arrays.asList(o1, o2, o3, o4);
 
         ObservableList<TreeItem<LogEntry>> treeItemList =
-                LogEntryTreeHelper.createTree(logEntries);
+                LogEntryTreeHelper.createTree(logEntries, false);
 
         // Only two elements on top-level
         assertEquals(2, treeItemList.size());
