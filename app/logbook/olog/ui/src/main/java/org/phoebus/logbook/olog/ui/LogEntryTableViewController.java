@@ -23,8 +23,6 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Toggle;
-import javafx.scene.control.ToggleButton;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -74,20 +72,14 @@ public class LogEntryTableViewController extends LogbookSearchController {
     // elements related to the table view of the log entires
     @FXML
     private TreeView<LogEntry> treeView;
-
     @FXML
     private LogEntryDisplayController logEntryDisplayController;
-
     @FXML
     private ProgressIndicator progressIndicator;
-    @FXML
-    private Button search;
     @FXML
     private AdvancedSearchViewController advancedSearchViewController;
     @FXML
     private ImageView sortOrderImageView;
-    @FXML
-    private ToggleButton toggleSortOrder;
 
     private Image upImage;
     private Image downImage;
@@ -359,7 +351,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     @FXML
     public void toggleSort(){
-        sortAscending.set(toggleSortOrder.isSelected());
+        sortAscending.set(sortAscending.not().get());
         refresh();
     }
 }

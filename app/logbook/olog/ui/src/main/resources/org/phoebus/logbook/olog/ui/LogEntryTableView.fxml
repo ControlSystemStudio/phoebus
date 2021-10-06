@@ -4,6 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
 <SplitPane fx:id="topLevelNode" dividerPositions="0.6105960264900663" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryTableViewController">
     <items>
@@ -18,22 +19,32 @@
                                 <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
                                 <ColumnConstraints minWidth="10.0" prefWidth="60.0" />
                                 <ColumnConstraints />
-                        <ColumnConstraints />
-                        <ColumnConstraints />
+                                <ColumnConstraints />
+                                <ColumnConstraints />
                             </columnConstraints>
                             <rowConstraints>
-                                <RowConstraints minHeight="10.0" prefHeight="30.0" />
+                                <RowConstraints prefHeight="35.0" />
                                 <RowConstraints />
-                                <RowConstraints />
+                        <RowConstraints />
                             </rowConstraints>
                             <children>
-                                <Button fx:id="resize" mnemonicParsing="false" onMouseClicked="#resize" prefHeight="25.0" prefWidth="30.0" text="&gt;" GridPane.halignment="RIGHT" GridPane.hgrow="NEVER" GridPane.vgrow="NEVER" />
-                                <Label alignment="CENTER_RIGHT" contentDisplay="CENTER" prefHeight="17.0" text="%Query" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.hgrow="NEVER" GridPane.vgrow="NEVER">
+                                <Button fx:id="resize" mnemonicParsing="false" onMouseClicked="#resize" text="&gt;" GridPane.halignment="RIGHT" GridPane.hgrow="NEVER" GridPane.vgrow="NEVER">
+                           <GridPane.margin>
+                              <Insets left="5.0" />
+                           </GridPane.margin>
+                                    <font>
+                                        <Font name="Arial Bold" size="14.0" />
+                                    </font>
+                                </Button>
+                                <Label alignment="CENTER_RIGHT" contentDisplay="CENTER" text="%Query" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.hgrow="NEVER" GridPane.vgrow="NEVER">
                                     <padding>
                                         <Insets left="5.0" />
                                     </padding>
+                           <GridPane.margin>
+                              <Insets right="3.0" />
+                           </GridPane.margin>
                                 </Label>
-                                <TextField fx:id="query" onAction="#updateQuery" prefHeight="27.0" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.vgrow="NEVER">
+                                <TextField fx:id="query" onAction="#updateQuery" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.vgrow="NEVER">
                                     <GridPane.margin>
                                         <Insets bottom="10.0" top="10.0" />
                                     </GridPane.margin>
@@ -43,7 +54,7 @@
                                         <Insets left="3.0" right="5.0" />
                                     </GridPane.margin>
                                 </Button>
-                                <ToggleButton fx:id="toggleSortOrder" onAction="#toggleSort" mnemonicParsing="false" GridPane.columnIndex="4">
+                                <Button fx:id="toggleSortOrder" mnemonicParsing="false" onAction="#toggleSort" GridPane.columnIndex="4">
                                     <graphic>
                                         <ImageView fx:id="sortOrderImageView" fitHeight="18.0" fitWidth="18.0">
                                         <!-- Image not set here as this crashes the SceneBuilder -->
@@ -52,7 +63,10 @@
                                     <tooltip>
                                         <Tooltip text="%SortOrderToggle" />
                                     </tooltip>
-                                </ToggleButton>
+                           <GridPane.margin>
+                              <Insets right="5.0" />
+                           </GridPane.margin>
+                                </Button>
                                 <StackPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnSpan="6" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS">
                                     <children>
                                         <VBox alignment="CENTER">
