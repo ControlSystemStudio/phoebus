@@ -26,6 +26,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
@@ -39,6 +41,7 @@ import org.phoebus.logbook.Property;
 import org.phoebus.logbook.olog.ui.LogbookQueryUtil.Keys;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.javafx.ImageCache;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -69,16 +72,18 @@ public class LogEntryTableViewController extends LogbookSearchController {
     // elements related to the table view of the log entires
     @FXML
     private TreeView<LogEntry> treeView;
-
     @FXML
     private LogEntryDisplayController logEntryDisplayController;
-
     @FXML
     private ProgressIndicator progressIndicator;
     @FXML
-    private Button search;
-    @FXML
     private AdvancedSearchViewController advancedSearchViewController;
+    @FXML
+    private ImageView sortOrderImageView;
+
+    private Image upImage;
+    private Image downImage;
+
 
     // Model
     List<LogEntry> logEntries;
@@ -106,6 +111,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
     }
 
     private SimpleBooleanProperty searchInProgress = new SimpleBooleanProperty(false);
+    private SimpleBooleanProperty sortAscending = new SimpleBooleanProperty(false);
 
     @FXML
     public void initialize() {
@@ -168,6 +174,15 @@ public class LogEntryTableViewController extends LogbookSearchController {
         progressIndicator.visibleProperty().bind(searchInProgress);
         searchInProgress.addListener((observable, oldValue, newValue) -> {
             treeView.setDisable(newValue.booleanValue());
+        });
+
+        upImage = ImageCache.getImage(LogEntryTableViewController.class, "/icons/arrow_up.png");
+        downImage = ImageCache.getImage(LogEntryTableViewController.class, "/icons/arrow_down.png");
+
+        sortOrderImageView.setImage(downImage);
+
+        sortAscending.addListener((observable, oldValue, newValue) -> {
+            sortOrderImageView.setImage(newValue ? upImage : downImage);
         });
     }
 
@@ -239,7 +254,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
     private void refresh() {
         if (logEntries != null) {
             ObservableList<TreeItem<LogEntry>> tree =
-                    LogEntryTreeHelper.createTree(logEntries);
+                    LogEntryTreeHelper.createTree(logEntries, sortAscending.get());
             rootItem.getChildren().setAll(tree);
             treeView.getSelectionModel().selectFirst();
         }
@@ -332,5 +347,11 @@ public class LogEntryTableViewController extends LogbookSearchController {
             }
         });
         return logEntryGroupProperties;
+    }
+
+    @FXML
+    public void toggleSort(){
+        sortAscending.set(sortAscending.not().get());
+        refresh();
     }
 }

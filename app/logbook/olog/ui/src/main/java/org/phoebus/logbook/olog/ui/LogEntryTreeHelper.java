@@ -42,13 +42,14 @@ public class LogEntryTreeHelper {
      * @param logEntries A set of {@link LogEntry}s where each item may or may not belong
      *                   to a log entry group as identified by the special purpose
      *                   property {@link LogGroupProperty#NAME}.
+     * @param ascendingOrder Specifies whether tree view items should be ordered in ascending created date order.
      * @return An {@link ObservableList} of {@link TreeItem}s where each {@link TreeItem} node
      * may or may not contain child {@link TreeItem}s. The top-level items are ordered
      * in descending date order (as determined by {@link LogEntry#getCreatedDate()}),
      * while the {@link TreeItem} child nodes of a top-level node will be ordered in
      * ascending time order.
      */
-    public static ObservableList<TreeItem<LogEntry>> createTree(List<LogEntry> logEntries) {
+    public static ObservableList<TreeItem<LogEntry>> createTree(List<LogEntry> logEntries, boolean ascendingOrder) {
         Map<String, List<LogEntry>> logEntryGroups = new HashMap<>();
         List<LogEntry> nonGroupedItems = new ArrayList<>();
         for (LogEntry logEntry : logEntries) {
@@ -82,18 +83,25 @@ public class LogEntryTreeHelper {
         // Next create tree nodes for each of the log entry groups and add them.
         List<List<LogEntry>> grouped = new ArrayList(logEntryGroups.values());
         for (List<LogEntry> group : grouped) {
-            treeItems.add(getGroupedTreeNode(group));
+            treeItems.add(getGroupedTreeNode(group, ascendingOrder));
         }
 
-        // Lastly, order top level nodes in *descending* date order.
-        treeItems.sort((t1, t2) -> t2.getValue().getCreatedDate().compareTo(t1.getValue().getCreatedDate()));
-
+        if(ascendingOrder){
+            treeItems.sort((t1, t2) -> t1.getValue().getCreatedDate().compareTo(t2.getValue().getCreatedDate()));
+        }
+        else{
+            treeItems.sort((t1, t2) -> t2.getValue().getCreatedDate().compareTo(t1.getValue().getCreatedDate()));
+        }
         return FXCollections.observableList(treeItems);
     }
 
-    private static TreeItem<LogEntry> getGroupedTreeNode(List<LogEntry> group) {
-        // First sort the items in the group by *ascending* date
-        group.sort((o1, o2) -> o1.getCreatedDate().compareTo(o2.getCreatedDate()));
+    private static TreeItem<LogEntry> getGroupedTreeNode(List<LogEntry> group, boolean ascendingOrder) {
+        if(ascendingOrder){
+            group.sort((o1, o2) -> o1.getCreatedDate().compareTo(o2.getCreatedDate()));
+        }
+        else{
+            group.sort((o1, o2) -> o2.getCreatedDate().compareTo(o1.getCreatedDate()));
+        }
         // Use the first element to create the parent tree node
         TreeItem<LogEntry> parent = new TreeItem<>(group.get(0));
         int size = group.size();
