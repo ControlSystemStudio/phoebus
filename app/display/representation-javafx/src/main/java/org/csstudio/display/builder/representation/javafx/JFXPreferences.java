@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,6 +17,8 @@ import org.phoebus.framework.preferences.Preference;
 public class JFXPreferences
 {
     @Preference public static boolean inc_dec_slider;
+    @Preference public static int tooltip_delay_ms;
+    @Preference public static int tooltip_display_sec;
 
     static
     {
