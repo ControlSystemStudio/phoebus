@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,6 +19,7 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.StringWidgetProperty;
 import org.csstudio.display.builder.representation.Preferences;
+import org.csstudio.display.builder.representation.javafx.JFXPreferences;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.Time;
@@ -126,11 +127,8 @@ public class TooltipSupport
             }
         });
 
-        // Show after 250 instead of 1000 ms
-        tooltip.setShowDelay(Duration.millis(250));
-
-        // Hide after 30 instead of 5 secs
-        tooltip.setShowDuration(Duration.seconds(30));
+        tooltip.setShowDelay(Duration.millis(JFXPreferences.tooltip_delay_ms));
+        tooltip.setShowDuration(Duration.seconds(JFXPreferences.tooltip_display_sec));
 
         Tooltip.install(node, tooltip);
         if (node.getProperties().get(TOOLTIP_PROP_KEY) != tooltip)
