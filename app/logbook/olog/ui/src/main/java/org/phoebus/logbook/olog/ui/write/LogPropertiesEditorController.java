@@ -276,7 +276,7 @@ public class LogPropertiesEditorController {
                     .forEach(property -> {
                         // Do not add a property that is already selected
                         if (!selectedProperties.contains(property)) {
-                            list.add(property);
+                            selectedProperties.add(property);
                         }
                     });
 
