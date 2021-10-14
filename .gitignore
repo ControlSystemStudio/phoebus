@@ -96,6 +96,7 @@ local.properties
 # These could be committed, but let's ignore them for now.
 *.iml
 .idea/
+*${project.build.directory}*
 
 ### Maven ###
 target/
