@@ -164,4 +164,28 @@ public class LogbookQueryUtil {
             }
         }
     }
+
+    /**
+     * In case <code>query</code> contains the "sort" query parameter (e.g. added manually by user), it will
+     * be removed. Then - if <code>sortAscending=true</code> - "&sort=ASC" is appended last.
+     * @param query
+     * @param sortAscending
+     * @return A query string that will determine sort order.
+     */
+    public static String addSortOrder(String query, boolean sortAscending){
+        Map<String, String> queryParams = LogbookQueryUtil.parseHumanReadableQueryString(query);
+        if(queryParams.containsKey("sort")){ // In case user did add sort=...
+            queryParams.remove("sort");
+        }
+        if(sortAscending){
+            queryParams.put("sort", "asc");
+        }
+        else{
+            queryParams.put("sort", "desc");
+        }
+        StringBuilder stringBuilder = new StringBuilder();
+        queryParams.keySet().stream().forEach(key -> stringBuilder.append(key + "=" + queryParams.get(key) + "&"));
+        String queryString = stringBuilder.toString();
+        return queryString.substring(0, queryString.length() - 1); // Remove trailing '&' char
+    }
 }

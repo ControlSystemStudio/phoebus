@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.phoebus.util.time.TimestampFormats.MILLI_FORMAT;
 
 /**
@@ -62,5 +63,27 @@ public class QueryParserTest {
     public void multiValueTest() {
         URI uri = URI.create("logbook://?desc=*Fault*Motor*&tag=operation&tag=loto");
         Map<String, String> queryParameters = LogbookQueryUtil.parseQueryURI(uri);
+    }
+
+    @Test
+    public void testDetermineSortOrder(){
+        String query = "a=b&C=D";
+        String modifiedQuery = LogbookQueryUtil.addSortOrder(query, false);
+        assertEquals("a=b&C=D&sort=desc", modifiedQuery);
+
+        modifiedQuery = LogbookQueryUtil.addSortOrder(query, true);
+        assertEquals("a=b&C=D&sort=asc", modifiedQuery);
+
+        query = "a=b&sort=asc&C=D";
+        modifiedQuery = LogbookQueryUtil.addSortOrder(query, false);
+        assertEquals("a=b&C=D&sort=desc", modifiedQuery);
+
+        query = "a=b&sort&C=D";
+        modifiedQuery = LogbookQueryUtil.addSortOrder(query, false);
+        assertEquals("a=b&C=D&sort=desc", modifiedQuery);
+
+        query = "a=b&sort=Ddesc&C=D";
+        modifiedQuery = LogbookQueryUtil.addSortOrder(query, true);
+        assertEquals("a=b&C=D&sort=asc", modifiedQuery);
     }
 }

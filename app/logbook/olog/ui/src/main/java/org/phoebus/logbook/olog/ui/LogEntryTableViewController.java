@@ -26,7 +26,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -78,12 +77,11 @@ public class LogEntryTableViewController extends LogbookSearchController {
     private ProgressIndicator progressIndicator;
     @FXML
     private AdvancedSearchViewController advancedSearchViewController;
+
     @FXML
-    private ImageView sortOrderImageView;
-
-    private Image upImage;
-    private Image downImage;
-
+    private ImageView searchDescendingImageView;
+    @FXML
+    private ImageView searchAscendingImageView;
 
     // Model
     List<LogEntry> logEntries;
@@ -176,14 +174,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
             treeView.setDisable(newValue.booleanValue());
         });
 
-        upImage = ImageCache.getImage(LogEntryTableViewController.class, "/icons/arrow_up.png");
-        downImage = ImageCache.getImage(LogEntryTableViewController.class, "/icons/arrow_down.png");
-
-        sortOrderImageView.setImage(downImage);
-
-        sortAscending.addListener((observable, oldValue, newValue) -> {
-            sortOrderImageView.setImage(newValue ? upImage : downImage);
-        });
+        searchDescendingImageView.setImage(ImageCache.getImage(LogEntryTableViewController.class, "/icons/arrow_down.png"));
+        searchAscendingImageView.setImage(ImageCache.getImage(LogEntryTableViewController.class, "/icons/arrow_up.png"));
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored
@@ -228,11 +220,26 @@ public class LogEntryTableViewController extends LogbookSearchController {
     }
 
     @FXML
-    public void search() {
+    public void searchDescending(){
+        sortAscending.set(false);
+        search();
+    }
+
+    @FXML
+    public void searchAscending(){
+        sortAscending.set(true);
+        search();
+    }
+
+    private void search() {
         searchInProgress.set(true);
         // parse the various time representations to Instant
         treeView.getSelectionModel().clearSelection();
-        super.search(LogbookQueryUtil.parseQueryString(query.getText()), (inProgress) -> searchInProgress.set(inProgress));
+        // Determine sort order
+        String searchStringWithSortOrder = LogbookQueryUtil.addSortOrder(query.getText(), sortAscending.get());
+        query.textProperty().set(searchStringWithSortOrder);
+        super.search(LogbookQueryUtil.parseQueryString(searchStringWithSortOrder),
+                (inProgress) -> searchInProgress.set(inProgress));
     }
 
     @Override
@@ -352,6 +359,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
     @FXML
     public void toggleSort(){
         sortAscending.set(sortAscending.not().get());
-        refresh();
+        // Do a new search where the wanted sort order is considered
+        search();
     }
 }

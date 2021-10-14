@@ -49,19 +49,31 @@
                                         <Insets bottom="10.0" top="10.0" />
                                     </GridPane.margin>
                                 </TextField>
-                                <Button fx:id="search" mnemonicParsing="false" onAction="#search" text="%SearchButtonText" GridPane.columnIndex="3">
+                                <Label text="%SearchButtonText" GridPane.columnIndex="3">
+                           <GridPane.margin>
+                              <Insets left="5.0" />
+                           </GridPane.margin></Label>
+                                <Button fx:id="search" mnemonicParsing="false" onAction="#searchDescending" GridPane.columnIndex="4">
                                     <GridPane.margin>
-                                        <Insets left="3.0" right="5.0" />
+                                        <Insets left="3.0" right="3.0" />
                                     </GridPane.margin>
-                                </Button>
-                                <Button fx:id="toggleSortOrder" mnemonicParsing="false" onAction="#toggleSort" GridPane.columnIndex="4">
                                     <graphic>
-                                        <ImageView fx:id="sortOrderImageView" fitHeight="18.0" fitWidth="18.0">
+                                        <ImageView fx:id="searchDescendingImageView" fitHeight="18.0" fitWidth="18.0">
+                                            <!-- Image not set here as this crashes the SceneBuilder -->
+                                        </ImageView>
+                                    </graphic>
+                                    <tooltip>
+                                        <Tooltip text="%SortDescending" />
+                                    </tooltip>
+                                </Button>
+                                <Button mnemonicParsing="false" onAction="#searchAscending" GridPane.columnIndex="5">
+                                    <graphic>
+                                        <ImageView fx:id="searchAscendingImageView" fitHeight="18.0" fitWidth="18.0">
                                         <!-- Image not set here as this crashes the SceneBuilder -->
                                         </ImageView>
                                     </graphic>
                                     <tooltip>
-                                        <Tooltip text="%SortOrderToggle" />
+                                        <Tooltip text="%SortAscending" />
                                     </tooltip>
                            <GridPane.margin>
                               <Insets right="5.0" />
