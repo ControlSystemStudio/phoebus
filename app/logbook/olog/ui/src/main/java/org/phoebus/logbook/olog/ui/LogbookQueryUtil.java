@@ -178,10 +178,10 @@ public class LogbookQueryUtil {
             queryParams.remove("sort");
         }
         if(sortAscending){
-            queryParams.put("sort", "asc");
+            queryParams.put("sort", "up");
         }
         else{
-            queryParams.put("sort", "desc");
+            queryParams.put("sort", "down");
         }
         StringBuilder stringBuilder = new StringBuilder();
         queryParams.keySet().stream().forEach(key -> stringBuilder.append(key + "=" + queryParams.get(key) + "&"));
