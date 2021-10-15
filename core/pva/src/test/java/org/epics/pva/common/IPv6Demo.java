@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.epics.pva.server;
+package org.epics.pva.common;
 
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -47,8 +47,8 @@ public class IPv6Demo
 
     private void listenTCP()
     {
-        System.out.println("Listening on TCP " + tcp_socket.socket().getInetAddress() +
-                           ", port " + tcp_socket.socket().getLocalPort());
+        System.out.println("Listening on TCP, access via 'nc -6 " + tcp_socket.socket().getInetAddress().getHostAddress() +
+                           " " + tcp_socket.socket().getLocalPort() + "'");
 
         try
         {
@@ -76,11 +76,10 @@ public class IPv6Demo
 
     private void listenUDP()
     {
-        System.out.println("Listening on UDP " + udp_socket.socket().getInetAddress() +
-                           ", port " + udp_socket.socket().getLocalPort());
-
         try
         {
+            System.out.println("Listening on UDP, access via 'nc -6 -u " + ((InetSocketAddress) udp_socket.getLocalAddress()).getHostString() +
+                               " " + udp_socket.socket().getLocalPort() + "'");
             while (running )
             {
                 final ByteBuffer message = ByteBuffer.allocate(500);
