@@ -217,7 +217,7 @@ class ClientUDPHandler extends UDPHandler
         final SearchRequest search = SearchRequest.decode(from, version, payload, buffer);
         try
         {
-            if (search != null  &&  search.unicast)
+            if (local_multicast != null  &&  search != null  &&  search.unicast)
             {
                 if (search.name == null)
                 {

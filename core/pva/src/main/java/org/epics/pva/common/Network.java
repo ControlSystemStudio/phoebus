@@ -9,6 +9,8 @@ package org.epics.pva.common;
 
 import static org.epics.pva.PVASettings.logger;
 
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.InterfaceAddress;
@@ -73,7 +75,17 @@ public class Network
         return addresses;
     }
 
-    /** @param search_addresses Array of "IP:port" or just "IP", defaulting to {@link PVASettings#EPICS_PVA_BROADCAST_PORT}
+    /** Parse network addresses
+     *
+     *  Supported formats:
+     *  <ul>
+     *  <li>IPv4       - "127.0.0.1"
+     *  <li>hostname   -  "my_ioc.site.org"
+     *  <li>IPv4:port  - "127.0.0.1:5076"
+     *  <li>[IPv6]     - "[::1]"
+     *  <li>[IPv6]:port - "[::1]:5076"
+     *  </ul>
+     *  @param search_addresses Array of "IP:port" or just "IP", defaulting to {@link PVASettings#EPICS_PVA_BROADCAST_PORT}
      *  @return {@link InetSocketAddress} list
      */
     public static List<InetSocketAddress> parseAddresses(final String... search_addresses)
@@ -81,8 +93,12 @@ public class Network
         final List<InetSocketAddress> addresses = new ArrayList<>();
         for (String search : search_addresses)
         {
+            // Don't confuse the last nibble of "[::1]" with a trailing ":1" port.
+            final int ip6 = search.lastIndexOf(']');
             final int sep = search.lastIndexOf(':');
-            if (sep > 0)
+            // Use ':' only if it was after the ']',
+            // or if there is no ']' (ip6 == -1)
+            if (sep > 0  &&  sep > ip6)
             {
                 final String hostname = search.substring(0, sep);
                 final int port = Integer.parseInt(search.substring(sep+1));
@@ -132,16 +148,23 @@ public class Network
      */
     public static DatagramChannel createUDP(final boolean broadcast, final String address,  final int port) throws Exception
     {
-        // Current use of multicast addresses works only with INET, not INET6
-        final DatagramChannel udp = DatagramChannel.open(StandardProtocolFamily.INET);
+        final InetAddress inet = address.isEmpty()
+                               ? null
+                               : InetAddress.getByName(address);
+
+        // TODO Current use of v4 multicast addresses works only with INET, not INET6
+        // TODO For address.isEmpty(), we always assume INET6...
+        final DatagramChannel udp = inet instanceof Inet4Address
+                                  ? DatagramChannel.open(StandardProtocolFamily.INET)
+                                  : DatagramChannel.open();
         udp.configureBlocking(true);
         if (broadcast)
             udp.socket().setBroadcast(true);
         udp.socket().setReuseAddress(true);
-        if (address.isEmpty())
+        if (inet == null)
             udp.bind(new InetSocketAddress(port));
         else
-            udp.bind(new InetSocketAddress(address, port));
+            udp.bind(new InetSocketAddress(inet, port));
         return udp;
     }
 
@@ -154,6 +177,15 @@ public class Network
     {
         try
         {
+            if (! (udp.getLocalAddress() instanceof InetSocketAddress))
+                throw new Exception("UDP socket is not bound");
+            // TODO What to use for IPv6?
+            if (((InetSocketAddress)udp.getLocalAddress()).getAddress() instanceof Inet6Address)
+            {
+                logger.log(Level.CONFIG, "For now not using any Multicast group while operating with IPv6");
+                return null;
+            }
+
             final NetworkInterface loopback = getLoopback();
             if (loopback != null)
             {
