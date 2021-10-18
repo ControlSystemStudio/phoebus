@@ -355,7 +355,7 @@ public class FieldsViewController implements Initializable {
     public void addTags(){
         ListSelectionDialog select =
                 new ListSelectionDialog(root.getScene().getRoot(),
-                        Messages.LogbooksTitle,
+                        Messages.TagsTitle,
                         this::getTagsAsStringList,
                         this::getSelectedTagsAsStringList,
                         this::addSelectedTag,
