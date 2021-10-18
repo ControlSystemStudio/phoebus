@@ -262,7 +262,6 @@ public class LogPropertiesEditorController {
     private void setupProperties() {
         JobManager.schedule("Fetch Properties from service", monitor ->
         {
-            List<Property> list = new ArrayList<>();
             // First add properties from SPI implementations
             List<LogPropertyProvider> factories = new ArrayList<>();
             ServiceLoader<LogPropertyProvider> loader = ServiceLoader.load(LogPropertyProvider.class);
@@ -271,23 +270,28 @@ public class LogPropertiesEditorController {
                     factories.add(p.get());
                 }
             });
+            // List of property names added if user is replying to a log entry.
+            List<String> selectedPropertyNames =
+                    selectedProperties.stream().map(Property::getName).collect(Collectors.toList());
             factories.stream()
                     .map(LogPropertyProvider::getProperty)
                     .forEach(property -> {
                         // Do not add a property that is already selected
-                        if (!selectedProperties.contains(property)) {
+                        if (!selectedPropertyNames.contains(property.getName())) {
                             selectedProperties.add(property);
+                            selectedPropertyNames.add(property.getName());
                         }
                     });
 
             LogClient logClient =
                     LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory).getLogClient();
             List<Property> propertyList = logClient.listProperties().stream().collect(Collectors.toList());
+            List<Property> list = new ArrayList<>();
             Platform.runLater(() ->
             {
                 propertyList.forEach(property -> {
                     // Do not add a property that is already selected or already added from provider
-                    if (!selectedProperties.contains(property) && !list.contains(property)) {
+                    if (!selectedPropertyNames.contains(property.getName())) {
                         list.add(property);
                     }
                 });
