@@ -33,12 +33,36 @@ public class MulticastDemo
     // Loopback doesn't always support MULTICAST!
     // If there are multiple network interfaces,
     // need to tell the program via cmd line which one to use.
-
+    //
+    // When receiving a message, that might indicate
+    // "Recevied: ... from /[fe80:....%5]..."
+    // with an interface index "%5" instead of a name,
+    // and the relationship between interface name and index
+    // isn't very obvious.
+    //
     // To connect as netcat 'sender', might have to add the network interface like this:
     //   nc -6 -u 'ff02::1%eno1' 9876
+    //
+    // Multicast address format: ffFS:xxxxxxxx
+    // ff - Multicast marker
+    // F  - Flag bits 0, Rendezvous point, Prefix, Transient
+    //      If not 'transient', address is _predefined_,
+    //      assigned/registered by IANA
+    // S  - Scope
+    //      1 Interface-local
+    //      2 Link local
+    //      4 Admin local
+    //      5 Site local
+    //      8 Org local
+    //      E Global
+    //
+    // Well known addresses:
+    // ff02::1    All nodes on interface
+    // ff02::1    All IPv6 devices on link, "broadcast"
+    private static final String GROUP = "ff02::42:1"; // "ff02::1";
 
+    // For IPv4 test:
 //    private static final String GROUP = "224.0.0.129";
-    private static final String GROUP = "ff02::1";
 
     private static final int PORT = 9876;
 
@@ -68,6 +92,8 @@ public class MulticastDemo
                                   : DatagramChannel.open(StandardProtocolFamily.INET6);
         udp.configureBlocking(true);
         udp.socket().setReuseAddress(true);
+        Integer ttl = 1;
+        udp.socket().setOption(StandardSocketOptions.IP_MULTICAST_TTL, ttl);
         udp.bind(new InetSocketAddress(0));
 
         udp.setOption(StandardSocketOptions.IP_MULTICAST_IF, iface);
