@@ -8,40 +8,104 @@
 package org.epics.pva.common;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import java.net.InetSocketAddress;
-import java.util.List;
+import java.net.NetworkInterface;
+import java.util.stream.Collectors;
 
 import org.epics.pva.PVASettings;
 import org.junit.Test;
 
-/** Unit test of Network
+/** Unit test of Network helper
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class NetworkTest
 {
     @Test
-    public void testIPv4()
+    public void testBroadcastAddresses() throws Exception
     {
-        List<InetSocketAddress> addr = Network.parseAddresses("127.0.0.1");
-        assertEquals("127.0.0.1", addr.get(0).getAddress().getHostAddress());
-        assertEquals(PVASettings.EPICS_PVA_BROADCAST_PORT, addr.get(0).getPort());
-
-        addr = Network.parseAddresses("127.0.0.1:5086");
-        assertEquals("127.0.0.1", addr.get(0).getAddress().getHostAddress());
-        assertEquals(5086, addr.get(0).getPort());
+        for (AddressInfo info : Network.getBroadcastAddresses(9876))
+            System.out.println("Broadcast " + info);
     }
 
     @Test
-    public void testIPv5()
+    public void testIPv4() throws Exception
     {
-        List<InetSocketAddress> addr = Network.parseAddresses("[::1]");
-        assertEquals("0:0:0:0:0:0:0:1", addr.get(0).getAddress().getHostAddress());
-        assertEquals(PVASettings.EPICS_PVA_BROADCAST_PORT, addr.get(0).getPort());
+        AddressInfo addr = Network.parseAddress("127.0.0.1");
+        System.out.println(addr);
+        assertEquals("127.0.0.1", addr.getAddress().getHostString());
+        assertEquals(PVASettings.EPICS_PVA_BROADCAST_PORT, addr.getAddress().getPort());
+        assertFalse(addr.isBroadcast());
 
-        addr = Network.parseAddresses("[::1]:5086");
-        assertEquals("0:0:0:0:0:0:0:1", addr.get(0).getAddress().getHostAddress());
-        assertEquals(5086, addr.get(0).getPort());
+        addr = Network.parseAddress("127.0.0.1:5086");
+        System.out.println(addr);
+        assertEquals("127.0.0.1", addr.getAddress().getHostString());
+        assertEquals(5086, addr.getAddress().getPort());
+        assertFalse(addr.isBroadcast());
+
+
+        addr = Network.parseAddress("224.0.2.3@127.0.0.1");
+        System.out.println(addr);
+        assertEquals("224.0.2.3", addr.getAddress().getHostString());
+        assertTrue(addr.getAddress().getAddress().isMulticastAddress());
+        assertEquals(PVASettings.EPICS_PVA_BROADCAST_PORT, addr.getAddress().getPort());
+        final String iface_addr = addr.getInterface()
+                                      .inetAddresses()
+                                      .map(iface -> iface.getHostAddress())
+                                      .collect(Collectors.joining(", "));
+        System.out.println("Interface addresses: " + iface_addr);
+        assertTrue(iface_addr.contains("127.0.0.1"));
+        assertFalse(addr.isBroadcast());
+
+        addr = Network.parseAddress("127.0.0.255");
+        System.out.println(addr);
+        assertEquals("127.0.0.255", addr.getAddress().getHostString());
+        assertTrue(addr.isBroadcast());
+    }
+
+    @Test
+    public void testIPv6() throws Exception
+    {
+        AddressInfo addr = Network.parseAddress("[::1]");
+        System.out.println(addr);
+        assertEquals("0:0:0:0:0:0:0:1", addr.getAddress().getHostString());
+        assertEquals(PVASettings.EPICS_PVA_BROADCAST_PORT, addr.getAddress().getPort());
+        assertFalse(addr.isBroadcast());
+
+        addr = Network.parseAddress("[::1]:5086");
+        System.out.println(addr);
+        assertEquals("0:0:0:0:0:0:0:1", addr.getAddress().getHostString());
+        assertEquals(5086, addr.getAddress().getPort());
+        assertFalse(addr.isBroadcast());
+
+
+        addr = Network.parseAddress("[ff02::42:1]");
+        System.out.println(addr);
+        assertEquals("ff02:0:0:0:0:0:42:1", addr.getAddress().getHostString());
+        assertTrue(addr.getAddress().getAddress().isMulticastAddress());
+        assertEquals(PVASettings.EPICS_PVA_BROADCAST_PORT, addr.getAddress().getPort());
+        assertFalse(addr.isBroadcast());
+
+        final NetworkInterface lo = Network.getLoopback();
+        if (lo == null)
+            System.out.println("Skipping loopback test");
+        else
+        {
+            addr = Network.parseAddress("[ff02::42:1]:5099@" + lo.getDisplayName());
+            System.out.println(addr);
+            assertEquals("ff02:0:0:0:0:0:42:1", addr.getAddress().getHostString());
+            assertTrue(addr.getAddress().getAddress().isMulticastAddress());
+            assertEquals(5099, addr.getAddress().getPort());
+            assertEquals(lo, addr.getInterface());
+            final String iface_addr = addr.getInterface()
+                                          .inetAddresses()
+                                          .map(iface -> iface.getHostAddress())
+                                          .collect(Collectors.joining(", "));
+            System.out.println("Interface addresses: " + iface_addr);
+            assertTrue(iface_addr.contains("0:0:0:0:0:0:0:1"));
+            assertFalse(addr.isBroadcast());
+        }
     }
 }

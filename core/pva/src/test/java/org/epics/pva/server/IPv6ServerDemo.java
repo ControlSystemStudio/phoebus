@@ -21,6 +21,9 @@ public class IPv6ServerDemo
         // Use IPv6 'localhost'
         PVASettings.EPICS_PVAS_INTF_ADDR_LIST = "::1";
 
+        // Use multicast group
+        PVASettings.EPICS_PVAS_INTF_ADDR_LIST = "[ff02::42:1]@lo0";
+
         ServerDemo.main(args);
     }
 }

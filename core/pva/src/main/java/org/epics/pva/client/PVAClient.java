@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 import org.epics.pva.PVASettings;
+import org.epics.pva.common.AddressInfo;
 import org.epics.pva.common.Network;
 import org.epics.pva.server.Guid;
 
@@ -73,7 +74,7 @@ public class PVAClient implements AutoCloseable
      */
     public PVAClient() throws Exception
     {
-        List<InetSocketAddress> search_addresses = Network.parseAddresses(PVASettings.EPICS_PVA_ADDR_LIST.split("\\s+"));
+        final List<AddressInfo> search_addresses = Network.parseAddresses(PVASettings.EPICS_PVA_ADDR_LIST.split("\\s+"));
         if (PVASettings.EPICS_PVA_AUTO_ADDR_LIST)
             search_addresses.addAll(Network.getBroadcastAddresses(PVASettings.EPICS_PVA_BROADCAST_PORT));
 

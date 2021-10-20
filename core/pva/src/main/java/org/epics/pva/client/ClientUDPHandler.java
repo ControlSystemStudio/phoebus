@@ -9,13 +9,16 @@ package org.epics.pva.client;
 
 import static org.epics.pva.PVASettings.logger;
 
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.StandardProtocolFamily;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.util.logging.Level;
 
 import org.epics.pva.PVASettings;
+import org.epics.pva.common.AddressInfo;
 import org.epics.pva.common.Network;
 import org.epics.pva.common.PVAHeader;
 import org.epics.pva.common.SearchRequest;
@@ -63,15 +66,15 @@ class ClientUDPHandler extends UDPHandler
     private final SearchResponseHandler search_response;
 
     // When multiple UDP sockets bind to the same port,
-    // broadcast traffic reaches all of them.
+    // IPv4 broadcast traffic reaches all of them.
     // Direct traffic is only received by the socket bound last.
     //
-    // Create one UDP socket for the search send/response,
-    // bound to a free port, so we can receive the search replies.
-    private final DatagramChannel udp_search;
-    private final InetSocketAddress local_address;
-    private final InetSocketAddress local_multicast;
-    private final ByteBuffer receive_buffer = ByteBuffer.allocate(PVASettings.MAX_UDP_PACKET);
+    // When sending search requests, we need separate IPv4 and IPv6 sockets.
+    // They're each bound to a free, unique port.
+    // Since the replies arrive via the port that sent the request,
+    // we use one receiver thread per 'search' socket.
+    private final DatagramChannel udp_search4, udp_search6;
+    private final AddressInfo local_multicast;
     private final ByteBuffer forward_buffer = ByteBuffer.allocate(PVASettings.MAX_UDP_PACKET);
 
     // Listen for UDP beacons on a separate socket, bound to the EPICS_PVA_BROADCAST_PORT,
@@ -80,7 +83,7 @@ class ClientUDPHandler extends UDPHandler
     private final DatagramChannel udp_beacon;
     private final ByteBuffer beacon_buffer = ByteBuffer.allocate(PVASettings.MAX_UDP_PACKET);
 
-    private volatile Thread search_thread, beacon_thread;
+    private volatile Thread search_thread4, search_thread6, beacon_thread;
 
     public ClientUDPHandler(final BeaconHandler beacon_handler,
                             final SearchResponseHandler search_response) throws Exception
@@ -88,42 +91,53 @@ class ClientUDPHandler extends UDPHandler
         this.beacon_handler = beacon_handler;
         this.search_response = search_response;
 
-        // Search buffer may send broadcasts and gets re-used
-        udp_search = Network.createUDP(true, "", 0);
-        local_address = (InetSocketAddress) udp_search.getLocalAddress();
-        local_multicast = Network.configureMulticast(udp_search, PVASettings.EPICS_PVA_BROADCAST_PORT);
+        // IPv4 socket, also used to send broadcasts and for the local re-sending
+        udp_search4 = Network.createUDP(StandardProtocolFamily.INET, 0);
+        udp_search4.socket().setBroadcast(true);
+        local_multicast = new AddressInfo(Network.configureMulticast(udp_search4, PVASettings.EPICS_PVA_BROADCAST_PORT),
+                                          1, null);
+
+        // IPv6 socket
+        udp_search6 = Network.createUDP(StandardProtocolFamily.INET6, 0);
 
         // Beacon socket only receives, does not send broadcasts
-        udp_beacon = Network.createUDP(false, "", PVASettings.EPICS_PVA_BROADCAST_PORT);
+        udp_beacon = Network.createUDP(StandardProtocolFamily.INET6, PVASettings.EPICS_PVA_BROADCAST_PORT);
 
-        logger.log(Level.FINE, "Awaiting search replies on UDP " + local_address +
-                               " and beacons on port " + PVASettings.EPICS_PVA_BROADCAST_PORT);
+        logger.log(Level.FINE, "Awaiting search replies on UDP " + Network.getLocalAddress(udp_search4) +
+                               " and " + Network.getLocalAddress(udp_search6) +
+                               ", and beacons on " + Network.getLocalAddress(udp_beacon));
     }
 
-    public InetSocketAddress getResponseAddress()
-    {
-        return local_address;
-    }
-
-    public void send(final ByteBuffer buffer, final InetSocketAddress target) throws Exception
+    public void send(final ByteBuffer buffer, final AddressInfo info) throws Exception
     {
         // synchronized (udp_search)?
         // Not necessary based on Javadoc for send():
         // "This method may be invoked at any time.
         //  If another thread has already initiated a write operation...
         //  invocation .. will block until the first operation is complete."
-        udp_search.send(buffer, target);
+
+        // TODO Set TTL
+        if (info.getAddress().getAddress() instanceof Inet4Address)
+            udp_search4.send(buffer, info.getAddress());
+        else
+            udp_search6.send(buffer, info.getAddress());
     }
 
     public void start()
     {
         // Same code for messages from the 'search' and 'beacon' socket,
         // though each socket is likely to see only one type of message.
-        search_thread = new Thread(() -> listen(udp_search, receive_buffer), "UDP-receiver " + local_address);
-        search_thread.setDaemon(true);
-        search_thread.start();
+        final ByteBuffer receive_buffer4 = ByteBuffer.allocate(PVASettings.MAX_UDP_PACKET);
+        search_thread4 = new Thread(() -> listen(udp_search4, receive_buffer4), "UDP4-receiver " + Network.getLocalAddress(udp_search4));
+        search_thread4.setDaemon(true);
+        search_thread4.start();
 
-        beacon_thread = new Thread(() -> listen(udp_beacon, beacon_buffer), "UDP-receiver " + local_address.getAddress() + ":" + PVASettings.EPICS_PVA_BROADCAST_PORT);
+        final ByteBuffer receive_buffer6 = ByteBuffer.allocate(PVASettings.MAX_UDP_PACKET);
+        search_thread6 = new Thread(() -> listen(udp_search6, receive_buffer6), "UDP6-receiver " + Network.getLocalAddress(udp_search6));
+        search_thread6.setDaemon(true);
+        search_thread6.start();
+
+        beacon_thread = new Thread(() -> listen(udp_beacon, beacon_buffer), "UDP-beacon-receiver " + Network.getLocalAddress(udp_beacon));
         beacon_thread.setDaemon(true);
         beacon_thread.start();
     }
@@ -317,11 +331,14 @@ class ClientUDPHandler extends UDPHandler
         // Close sockets, wait a little for threads to exit
         try
         {
-            udp_search.close();
+            udp_search6.close();
+            udp_search4.close();
             udp_beacon.close();
 
-            if (search_thread != null)
-                search_thread.join(5000);
+            if (search_thread6 != null)
+                search_thread6.join(5000);
+            if (search_thread4 != null)
+                search_thread4.join(5000);
             if (beacon_thread != null)
                 beacon_thread.join(5000);
         }

@@ -32,6 +32,7 @@ abstract public class UDPHandler
     protected void listen(final DatagramChannel udp, final ByteBuffer buffer)
     {
         logger.log(Level.FINE, "Starting " + Thread.currentThread().getName());
+        final String local = Network.getLocalAddress(udp);
         while (running)
         {
             try
@@ -43,7 +44,7 @@ abstract public class UDPHandler
 
                 // XXX Check against list of ignored addresses?
 
-                logger.log(Level.FINER, () -> "Received UDP from " + from + "\n" + Hexdump.toHexdump(buffer));
+                logger.log(Level.FINER, () -> "Received UDP from " + from + " on " + local + "\n" + Hexdump.toHexdump(buffer));
                 handleMessages(from, buffer);
             }
             catch (Exception ex)

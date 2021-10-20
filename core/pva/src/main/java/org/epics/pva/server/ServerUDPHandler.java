@@ -16,6 +16,7 @@ import java.nio.channels.DatagramChannel;
 import java.util.logging.Level;
 
 import org.epics.pva.PVASettings;
+import org.epics.pva.common.AddressInfo;
 import org.epics.pva.common.Network;
 import org.epics.pva.common.PVAHeader;
 import org.epics.pva.common.SearchRequest;
@@ -54,6 +55,11 @@ class ServerUDPHandler extends UDPHandler
     public ServerUDPHandler(final SearchHandler search_handler) throws Exception
     {
         this.search_handler = search_handler;
+
+        // TODO
+        final AddressInfo server_addr = Network.parseAddress(PVASettings.EPICS_PVAS_INTF_ADDR_LIST);
+        System.out.println(server_addr);
+
         udp = Network.createUDP(false, PVASettings.EPICS_PVAS_INTF_ADDR_LIST,
                                        PVASettings.EPICS_PVAS_BROADCAST_PORT);
         local_multicast = Network.configureMulticast(udp, PVASettings.EPICS_PVAS_BROADCAST_PORT);
