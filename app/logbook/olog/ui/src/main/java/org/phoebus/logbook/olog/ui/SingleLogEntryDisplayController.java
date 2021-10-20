@@ -1,5 +1,6 @@
 package org.phoebus.logbook.olog.ui;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -13,6 +14,7 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
@@ -102,10 +104,9 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
         // Always expand properties pane.
         attachmentsPane.setExpanded(true);
         // Get the attachments from service
-        Collection<Attachment> attachments = fetchAttachments();
-        ((OlogLog)logEntry).setAttachments(attachments);
-        attachmentsPreviewController
-                .setAttachments(FXCollections.observableArrayList(logEntry.getAttachments()));
+        fetchAttachments();
+        //attachmentsPreviewController
+        //        .setAttachments(FXCollections.observableArrayList(logEntry.getAttachments()));
 
         List<String> hiddenPropertiesNames = Arrays.asList(LogbookUIPreferences.hidden_properties);
         // Remove the hidden properties
@@ -170,27 +171,32 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
      * should be retrieved when user requests to see the details, not in connection to a log entry search.
      * @return A {@link Collection} of {@link Attachment}s holding the attachment content.
      */
-    private Collection<Attachment> fetchAttachments(){
-        Collection<Attachment> attachments = logEntry.getAttachments().stream()
-                .filter( (attachment) -> {
-                    return attachment.getName() != null && !attachment.getName().isEmpty();
-                })
-                .map((attachment) -> {
-                    OlogAttachment fileAttachment = new OlogAttachment();
-                    fileAttachment.setContentType(attachment.getContentType());
-                    fileAttachment.setThumbnail(false);
-                    fileAttachment.setFileName(attachment.getName());
-                    try {
-                        Path temp = Files.createTempFile("phoebus", attachment.getName());
-                        Files.copy(logClient.getAttachment(logEntry.getId(), attachment.getName()), temp, StandardCopyOption.REPLACE_EXISTING);
-                        fileAttachment.setFile(temp.toFile());
-                        temp.toFile().deleteOnExit();
-                    } catch (LogbookException | IOException e) {
-                        Logger.getLogger(SingleLogEntryDisplayController.class.getName())
-                                .log(Level.WARNING, "Failed to retrieve attachment " + fileAttachment.getFileName() ,e);
-                    }
-                    return fileAttachment;
-                }).collect(Collectors.toList());
-        return attachments;
+    private void fetchAttachments(){
+        JobManager.schedule("Fetch attachment data", monitor -> {
+            Collection<Attachment> attachments = logEntry.getAttachments().stream()
+                    .filter( (attachment) -> {
+                        return attachment.getName() != null && !attachment.getName().isEmpty();
+                    })
+                    .map((attachment) -> {
+                        OlogAttachment fileAttachment = new OlogAttachment();
+                        fileAttachment.setContentType(attachment.getContentType());
+                        fileAttachment.setThumbnail(false);
+                        fileAttachment.setFileName(attachment.getName());
+                        try {
+                            Path temp = Files.createTempFile("phoebus", attachment.getName());
+                            Files.copy(logClient.getAttachment(logEntry.getId(), attachment.getName()), temp, StandardCopyOption.REPLACE_EXISTING);
+                            fileAttachment.setFile(temp.toFile());
+                            temp.toFile().deleteOnExit();
+                        } catch (LogbookException | IOException e) {
+                            Logger.getLogger(SingleLogEntryDisplayController.class.getName())
+                                    .log(Level.WARNING, "Failed to retrieve attachment " + fileAttachment.getFileName() ,e);
+                        }
+                        return fileAttachment;
+                    }).collect(Collectors.toList());
+            // Update the log entry attachments object
+            ((OlogLog)logEntry).setAttachments(attachments);
+            // Update UI
+            Platform.runLater(() -> attachmentsPreviewController.setAttachments(FXCollections.observableArrayList(logEntry.getAttachments())));
+        });
     }
 }
