@@ -68,7 +68,7 @@ public class LogbookQueryUtil {
      */
     public static Map<String, String> parseQueryURI(URI query) {
         if (Strings.isNullOrEmpty(query.getQuery())) {
-            return Collections.emptyMap();
+            return new HashMap<>();
         } else {
             return Arrays.asList(query.getQuery().split("&")).stream()
                     .collect(Collectors.toMap(new KeyParser(), new ValueParser()));
@@ -84,7 +84,7 @@ public class LogbookQueryUtil {
      */
     public static Map<String, String> parseQueryString(String query) {
         if (Strings.isNullOrEmpty(query)) {
-            return Collections.emptyMap();
+            return new HashMap<>();
         } else {
             return Arrays.asList(query.split("&")).stream()
                     .collect(Collectors.toMap(new KeyParser(), new ValueParser()));
@@ -101,7 +101,7 @@ public class LogbookQueryUtil {
      */
     public static Map<String, String> parseHumanReadableQueryString(String query) {
         if (Strings.isNullOrEmpty(query)) {
-            return Collections.emptyMap();
+            return new HashMap<>();
         } else {
             return Arrays.asList(query.split("&")).stream()
                     .collect(Collectors.toMap(new KeyParser(), new SimpleValueParser()));

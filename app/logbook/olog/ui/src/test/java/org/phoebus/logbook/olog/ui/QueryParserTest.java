@@ -29,6 +29,11 @@ public class QueryParserTest {
         expectedMap.put("tag", "operation");
         assertEquals(expectedMap, queryParameters);
 
+        // Also test empty query
+        uri = URI.create("logbook://?");
+        queryParameters = LogbookQueryUtil.parseQueryURI(uri);
+        assertTrue(queryParameters.isEmpty());
+
     }
 
     @Test
@@ -85,5 +90,14 @@ public class QueryParserTest {
         query = "a=b&sort=down&C=D";
         modifiedQuery = LogbookQueryUtil.addSortOrder(query, true);
         assertEquals("a=b&C=D&sort=up", modifiedQuery);
+
+        // Also test empty query
+        query = "";
+        modifiedQuery = LogbookQueryUtil.addSortOrder(query, true);
+        assertEquals("sort=up", modifiedQuery);
+
+        query = null;
+        modifiedQuery = LogbookQueryUtil.addSortOrder(query, true);
+        assertEquals("sort=up", modifiedQuery);
     }
 }
