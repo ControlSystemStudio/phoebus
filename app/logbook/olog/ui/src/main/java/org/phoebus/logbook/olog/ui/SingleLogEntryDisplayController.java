@@ -13,14 +13,26 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import org.phoebus.logbook.Attachment;
+import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.LogbookException;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.Tag;
+import org.phoebus.olog.es.api.model.OlogAttachment;
+import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.ui.javafx.ImageCache;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static org.phoebus.util.time.TimestampFormats.SECONDS_FORMAT;
@@ -67,11 +79,12 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
     private Button copyURLButton;
 
     private LogEntry logEntry;
+    private LogClient logClient;
 
-    public SingleLogEntryDisplayController(String serviceUrl) {
-        super(serviceUrl);
+    public SingleLogEntryDisplayController(LogClient logClient) {
+        super(logClient.getServiceUrl());
+        this.logClient = logClient;
     }
-
 
     @FXML
     public void initialize() {
@@ -88,6 +101,9 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
 
         // Always expand properties pane.
         attachmentsPane.setExpanded(true);
+        // Get the attachments from service
+        Collection<Attachment> attachments = fetchAttachments();
+        ((OlogLog)logEntry).setAttachments(attachments);
         attachmentsPreviewController
                 .setAttachments(FXCollections.observableArrayList(logEntry.getAttachments()));
 
@@ -147,5 +163,34 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
         final ClipboardContent content = new ClipboardContent();
         content.putString(LogbookUIPreferences.web_client_root_URL + "/" + logEntry.getId());
         Clipboard.getSystemClipboard().setContent(content);
+    }
+
+    /**
+     * Retrieves the actual attachments from the remote service and copies them to temporary files. The idea is that attachments
+     * should be retrieved when user requests to see the details, not in connection to a log entry search.
+     * @return A {@link Collection} of {@link Attachment}s holding the attachment content.
+     */
+    private Collection<Attachment> fetchAttachments(){
+        Collection<Attachment> attachments = logEntry.getAttachments().stream()
+                .filter( (attachment) -> {
+                    return attachment.getName() != null && !attachment.getName().isEmpty();
+                })
+                .map((attachment) -> {
+                    OlogAttachment fileAttachment = new OlogAttachment();
+                    fileAttachment.setContentType(attachment.getContentType());
+                    fileAttachment.setThumbnail(false);
+                    fileAttachment.setFileName(attachment.getName());
+                    try {
+                        Path temp = Files.createTempFile("phoebus", attachment.getName());
+                        Files.copy(logClient.getAttachment(logEntry.getId(), attachment.getName()), temp, StandardCopyOption.REPLACE_EXISTING);
+                        fileAttachment.setFile(temp.toFile());
+                        temp.toFile().deleteOnExit();
+                    } catch (LogbookException | IOException e) {
+                        Logger.getLogger(SingleLogEntryDisplayController.class.getName())
+                                .log(Level.WARNING, "Failed to retrieve attachment " + fileAttachment.getFileName() ,e);
+                    }
+                    return fileAttachment;
+                }).collect(Collectors.toList());
+        return attachments;
     }
 }

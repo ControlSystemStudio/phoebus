@@ -4,7 +4,6 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
@@ -13,12 +12,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -53,13 +50,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import static org.phoebus.logbook.olog.ui.LogbookQueryUtil.*;
+import static org.phoebus.logbook.olog.ui.LogbookQueryUtil.Keys;
 import static org.phoebus.ui.time.TemporalAmountPane.Type.TEMPORAL_AMOUNTS_AND_NOW;
 
 /**
  * A controller for a log entry table with a collapsible advance search section.
- * @author Kunal Shroff
  *
+ * @author Kunal Shroff
  */
 public class LogEntryCalenderViewController extends LogbookSearchController {
 
@@ -95,10 +92,10 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
     @FXML
     private AdvancedSearchViewController advancedSearchViewController;
 
-    public LogEntryCalenderViewController(LogClient logClient){
+    public LogEntryCalenderViewController(LogClient logClient) {
         setClient(logClient);
     }
-    
+
     @FXML
     public void initialize() {
 
@@ -126,15 +123,12 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                     loader.setControllerFactory(clazz -> {
                         try {
                             if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {
-                                return clazz.getConstructor(String.class).newInstance(getClient().getServiceUrl());
-                            }
-                            else if(clazz.isAssignableFrom(AttachmentsPreviewController.class)){
-                                return clazz.getConstructor().newInstance();
-                            }
-                            else if(clazz.isAssignableFrom(LogEntryDisplayController.class)){
                                 return clazz.getConstructor(LogClient.class).newInstance(getClient());
-                            }
-                            else if(clazz.isAssignableFrom(LogPropertiesController.class)){
+                            } else if (clazz.isAssignableFrom(AttachmentsPreviewController.class)) {
+                                return clazz.getConstructor().newInstance();
+                            } else if (clazz.isAssignableFrom(LogEntryDisplayController.class)) {
+                                return clazz.getConstructor(LogClient.class).newInstance(getClient());
+                            } else if (clazz.isAssignableFrom(LogPropertiesController.class)) {
                                 return clazz.getConstructor().newInstance();
                             }
                         } catch (Exception e) {
@@ -166,7 +160,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
             String styleSheetResource = LogbookUIPreferences.calendar_view_item_stylesheet;
             URL url = this.getClass().getResource(styleSheetResource);
             // url may be null...
-            if(url != null){
+            if (url != null) {
                 agenda.getStylesheets().add(this.getClass().getResource(styleSheetResource).toString());
             }
         } catch (Exception e) {
@@ -327,10 +321,10 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                 appointment.withEndLocalDateTime(
                         LocalDateTime.ofInstant(logentry.getCreatedDate().plusSeconds(2400), ZoneId.systemDefault()));
                 List<String> logbookNames = getLogbookNames();
-                if(logbookNames !=null && !logbookNames.isEmpty()){
+                if (logbookNames != null && !logbookNames.isEmpty()) {
                     int index = logbookNames.indexOf(logentry.getLogbooks().iterator().next().getName());
-                    if(index >= 0 && index <= 22){
-                        appointment.setAppointmentGroup(appointmentGroupMap.get(String.format("group%02d",(index+1))));
+                    if (index >= 0 && index <= 22) {
+                        appointment.setAppointmentGroup(appointmentGroupMap.get(String.format("group%02d", (index + 1))));
                     } else {
                         appointment.setAppointmentGroup(appointmentGroupMap.get(String.format("group%02d", 23)));
                     }
@@ -349,7 +343,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
         agenda.appointments().setAll(map.keySet());
     }
 
-    private List<String> getLogbookNames(){
+    private List<String> getLogbookNames() {
         try {
             return getClient().listLogbooks().stream().map(l -> l.getName()).collect(Collectors.toList());
         } catch (Exception e) {
