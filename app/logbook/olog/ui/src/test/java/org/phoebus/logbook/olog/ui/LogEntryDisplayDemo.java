@@ -6,10 +6,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.logbook.Attachment;
-import org.phoebus.logbook.AttachmentImpl;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookException;
 import org.phoebus.logbook.LogbookImpl;
@@ -18,11 +16,11 @@ import org.phoebus.logbook.PropertyImpl;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.TagImpl;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
+import org.phoebus.olog.es.api.model.OlogAttachment;
+import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.net.URISyntaxException;
+import java.io.InputStream;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,7 +76,7 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
                 } else if (clazz.isAssignableFrom(MergedLogEntryDisplayController.class)) {
                     return clazz.getConstructor(LogClient.class).newInstance(getLogClient());
                 } else if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {
-                    return clazz.getConstructor(String.class).newInstance(getLogClient().getServiceUrl());
+                    return clazz.getConstructor(LogClient.class).newInstance(getLogClient());
                 } else {
                     throw new RuntimeException("No controller for class " + clazz.getName());
                 }
@@ -97,11 +95,11 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
         // Every few seconds add a new log entry
 
         ex.schedule(() -> {
-            LogEntry log = LogEntryBuilder.log().id(1L).description(
-                    "Fast correctors for the vertical orbit have glitched to near saturation. Archiver shows there have been several episodes the past 24 hrs. Appears that FOFB in vertical plane might have momentary bad BPM reading.")
-                    .createdDate(Instant.now()).build();
+            OlogLog ologLog = new OlogLog(1L);
+            ologLog.setDescription("Fast correctors for the vertical orbit have glitched to near saturation. Archiver shows there have been several episodes the past 24 hrs. Appears that FOFB in vertical plane might have momentary bad BPM reading.");
+            ologLog.setCreatedDate(Instant.now());
             runLater(() -> {
-                controller.setLogEntry(log);
+                controller.setLogEntry(ologLog);
             });
         }, 2, TimeUnit.SECONDS);
 
@@ -113,12 +111,15 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
             logbooks.add(LogbookImpl.of("logbook1", "active"));
             logbooks.add(LogbookImpl.of("logbook2", "active"));
 
+            LogEntry logEntry = controller.getLogEntry();
+
             runLater(() -> {
-                controller.setLogEntry(
-                        LogEntryBuilder.log(controller.getLogEntry())
-                                .inLogbooks(logbooks)
-                                .id(2L)
-                                .withTags(tags).build());
+                OlogLog anotherLog = new OlogLog(2L);
+                anotherLog.setDescription(controller.getLogEntry().getDescription());
+                anotherLog.setCreatedDate(controller.getLogEntry().getCreatedDate());
+                anotherLog.setTags(tags);
+                anotherLog.setLogbooks(logbooks);
+                controller.setLogEntry(anotherLog);
             });
 
         }, 2, TimeUnit.SECONDS);
@@ -130,16 +131,6 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
             Set<Logbook> logbooks = new HashSet<Logbook>();
             logbooks.add(LogbookImpl.of("logbook1", "active"));
             logbooks.add(LogbookImpl.of("logbook2", "active"));
-
-            List<File> listOfFiles = new ArrayList<>();
-            try {
-                File imageFile = new File(this.getClass().getClassLoader().getResource("image_1.png").toURI());
-                File textFile = new File(this.getClass().getClassLoader().getResource("file_phoebus.txt").toURI());
-                listOfFiles.add(textFile);
-                listOfFiles.add(imageFile);
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-            }
 
 
             Map<String, String> tracAttributes = new HashMap<>();
@@ -154,23 +145,24 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
             Property experimentProperty = PropertyImpl.of("Experiment", experimentAttributes);
 
             runLater(() -> {
-                LogEntryBuilder lb = LogEntryBuilder.log()
-                        .id(3L)
-                        .createdDate(Instant.now())
-                        .title("A report on the orbit studies")
-                        .description(
-                                "Fast correctors for the vertical orbit have glitched to near saturation. Archiver shows there have been several episodes the past 24 hrs. Appears that FOFB in vertical plane might have momentary bad BPM reading.")
-                        .withTags(new HashSet<Tag>(Arrays.asList(TagImpl.of("Orbit", "active"), TagImpl.of("Studies", "active"))))
-                        .inLogbooks(new HashSet<Logbook>(Arrays.asList(LogbookImpl.of("Operations", "active"))))
-                        .appendProperty(track).appendProperty(experimentProperty);
-                listOfFiles.forEach(file -> {
-                    try {
-                        lb.attach(AttachmentImpl.of(file));
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                });
-                controller.setLogEntry(lb.build());
+                OlogLog ologLog = new OlogLog(3L);
+                ologLog.setCreatedDate(Instant.now());
+                ologLog.setTitle("A report on the orbit studies");
+                ologLog.setDescription("Fast correctors for the vertical orbit have glitched to near saturation. Archiver shows there have been several episodes the past 24 hrs. Appears that FOFB in vertical plane might have momentary bad BPM reading.");
+                ologLog.setTags(new HashSet(Arrays.asList(TagImpl.of("Orbit", "active"), TagImpl.of("Studies", "active"))));
+                ologLog.setLogbooks(new HashSet(Arrays.asList(LogbookImpl.of("Operations", "active"))));
+                ologLog.setProperties(Arrays.asList(track, experimentProperty));
+                List<Attachment> attachments = new ArrayList<>();
+                OlogAttachment attachment1 = new OlogAttachment("image_1.png");
+                attachment1.setFileName("image_1.png");
+                attachment1.setContentType("image");
+                OlogAttachment attachment2 = new OlogAttachment("file_phoebus.txt");
+                attachment2.setFileName("file_phoebus.txt");
+                attachment2.setContentType("text");
+                attachments.add(attachment1);
+                attachments.add(attachment2);
+                ologLog.setAttachments(attachments);
+                controller.setLogEntry(ologLog);
             });
 
         }, 2, TimeUnit.SECONDS);
@@ -187,6 +179,11 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
             @Override
             public LogEntry getLog(Long logId) {
                 return null;
+            }
+
+            @Override
+            public InputStream getAttachment(Long logId, String attachmentName) throws LogbookException {
+                return this.getClass().getClassLoader().getResourceAsStream(attachmentName);
             }
 
             @Override
