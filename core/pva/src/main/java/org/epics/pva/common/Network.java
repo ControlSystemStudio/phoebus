@@ -107,7 +107,7 @@ public class Network
     public static AddressInfo parseAddress(final String setting) throws Exception
     {
         NetworkInterface iface = null;
-        int ttl = -1;
+        int ttl = 1;
         int port = PVASettings.EPICS_PVA_BROADCAST_PORT;
 
         String parsed = setting;

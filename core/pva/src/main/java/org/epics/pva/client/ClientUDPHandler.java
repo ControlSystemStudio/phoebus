@@ -13,6 +13,7 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.StandardProtocolFamily;
+import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.util.logging.Level;
@@ -112,16 +113,32 @@ class ClientUDPHandler extends UDPHandler
     public void send(final ByteBuffer buffer, final AddressInfo info) throws Exception
     {
         // synchronized (udp_search)?
-        // Not necessary based on Javadoc for send():
-        // "This method may be invoked at any time.
-        //  If another thread has already initiated a write operation...
-        //  invocation .. will block until the first operation is complete."
-
-        // TODO Set TTL
+        // Not necessary based on Javadoc for send(),
+        // but in case we set the multicast IF & TTL
         if (info.getAddress().getAddress() instanceof Inet4Address)
-            udp_search4.send(buffer, info.getAddress());
+        {
+            synchronized (udp_search4)
+            {
+                if (info.getAddress().getAddress().isMulticastAddress())
+                {
+                    udp_search4.setOption(StandardSocketOptions.IP_MULTICAST_IF, info.getInterface());
+                    udp_search4.setOption(StandardSocketOptions.IP_MULTICAST_TTL, info.getTTL());
+                }
+                udp_search4.send(buffer, info.getAddress());
+            }
+        }
         else
-            udp_search6.send(buffer, info.getAddress());
+        {
+            synchronized (udp_search6)
+            {
+                if (info.getAddress().getAddress().isMulticastAddress())
+                {
+                    udp_search6.setOption(StandardSocketOptions.IP_MULTICAST_IF, info.getInterface());
+                    udp_search6.setOption(StandardSocketOptions.IP_MULTICAST_TTL, info.getTTL());
+                }
+                udp_search6.send(buffer, info.getAddress());
+            }
+        }
     }
 
     public void start()

@@ -31,8 +31,18 @@ public class IPv6ClientDemo
             PVASettings.logger.setLevel(Level.ALL);
 
             PVASettings.EPICS_PVA_AUTO_ADDR_LIST = false;
+
+            // Connect to IPv6ServerDemo via unicast
             PVASettings.EPICS_PVA_ADDR_LIST = "[::1]:5076";
+
+            // IPv4 unicast
             // PVASettings.EPICS_PVA_ADDR_LIST = "127.0.0.1:5076";
+
+            // IPv6 multicast on loopback
+            // PVASettings.EPICS_PVA_ADDR_LIST = "[ff02::42:1],1@::1";
+
+            // IPv4 multicast on loopback
+            // PVASettings.EPICS_PVA_ADDR_LIST = "224.0.1.1,1@127.0.0.1";
         }
         catch (Exception ex)
         {
