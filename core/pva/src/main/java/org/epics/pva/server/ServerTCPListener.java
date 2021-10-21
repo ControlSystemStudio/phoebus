@@ -12,8 +12,6 @@ import static org.epics.pva.PVASettings.logger;
 import java.net.BindException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.ProtocolFamily;
-import java.net.StandardProtocolFamily;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.ExecutorService;
@@ -22,8 +20,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import org.epics.pva.PVASettings;
-import org.epics.pva.common.AddressInfo;
-import org.epics.pva.common.Network;
 
 /** Listen to TCP connections
  *
@@ -60,17 +56,7 @@ class ServerTCPListener
     {
         this.server = server;
 
-        // If any server address uses IPv6, create the TCP socket for IPv6,
-        // which will be backwards-compatible with IPv4.
-        // Otherwise support only IPv4
-        ProtocolFamily type = StandardProtocolFamily.INET;
-        for (AddressInfo info : Network.parseAddresses(PVASettings.EPICS_PVAS_INTF_ADDR_LIST))
-            if (info.isIPv6())
-            {
-                type = StandardProtocolFamily.INET6;
-                break;
-            }
-        server_socket = createSocket(type );
+        server_socket = createSocket();
 
         final InetSocketAddress local_address = (InetSocketAddress) server_socket.getLocalAddress();
         response_address = local_address.getAddress();
@@ -83,12 +69,10 @@ class ServerTCPListener
         listen_thread.start();
     }
 
-    /** @param family INET for only IPv4, or INET6 to support both
-     *  @return Socket bound to EPICS_PVA_SERVER_PORT or unused port
-     */
-    private static ServerSocketChannel createSocket(final ProtocolFamily family) throws Exception
+    /** @return Socket bound to EPICS_PVA_SERVER_PORT or unused port */
+    private static ServerSocketChannel createSocket() throws Exception
     {
-        ServerSocketChannel socket = ServerSocketChannel.open(family);
+        ServerSocketChannel socket = ServerSocketChannel.open();
         socket.configureBlocking(true);
         socket.socket().setReuseAddress(true);
         try
@@ -102,7 +86,7 @@ class ServerTCPListener
             final InetSocketAddress any = new InetSocketAddress(0);
             try
             {   // Must create new socket after bind() failed, cannot re-use
-                socket = ServerSocketChannel.open(family);
+                socket = ServerSocketChannel.open();
                 socket.configureBlocking(true);
                 socket.socket().setReuseAddress(true);
                 socket.bind(any);

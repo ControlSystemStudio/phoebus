@@ -32,6 +32,7 @@ public class IPv6ClientDemo
 
             PVASettings.EPICS_PVA_AUTO_ADDR_LIST = false;
             PVASettings.EPICS_PVA_ADDR_LIST = "[::1]:5076";
+            // PVASettings.EPICS_PVA_ADDR_LIST = "127.0.0.1:5076";
         }
         catch (Exception ex)
         {
