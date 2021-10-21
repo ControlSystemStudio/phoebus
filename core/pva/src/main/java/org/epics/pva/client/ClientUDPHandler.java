@@ -91,6 +91,8 @@ class ClientUDPHandler extends UDPHandler
         this.beacon_handler = beacon_handler;
         this.search_response = search_response;
 
+        // TODO Pass in search list, and only create sockets for the IPv4 or 6 if actually needed?
+
         // IPv4 socket, also used to send broadcasts and for the local re-sending
         udp_search4 = Network.createUDP(StandardProtocolFamily.INET, null, 0);
         udp_search4.socket().setBroadcast(true);

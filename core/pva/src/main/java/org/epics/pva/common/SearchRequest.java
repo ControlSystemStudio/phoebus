@@ -75,8 +75,8 @@ public class SearchRequest
         final int port = Short.toUnsignedInt(buffer.getShort());
 
         // Use address from message unless it's a generic local address
-        if (addr.isAnyLocalAddress())
-            search.client = new InetSocketAddress(from.getAddress(), port);
+        if (addr.isAnyLocalAddress() || port <= 0)
+            search.client = from;
         else
             search.client = new InetSocketAddress(addr, port);
 

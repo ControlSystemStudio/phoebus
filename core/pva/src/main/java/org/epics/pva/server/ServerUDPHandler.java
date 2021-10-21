@@ -178,8 +178,8 @@ class ServerUDPHandler extends UDPHandler
         {
             if (search.reply_required)
             {   // pvlist request
-                search_handler.handleSearchRequest(0, -1, null, search.client);
-                if (search.unicast)
+                final boolean handled = search_handler.handleSearchRequest(0, -1, null, search.client);
+                if (! handled  &&  search.unicast)
                     PVAServer.POOL.submit(() -> forwardSearchRequest(0, -1, null, search.client));
             }
         }
@@ -189,8 +189,8 @@ class ServerUDPHandler extends UDPHandler
             {
                 final int cid = search.cid[i];
                 final String name = search.name[i];
-                search_handler.handleSearchRequest(search.seq, cid, name, search.client);
-                if (search.unicast)
+                final boolean handled = search_handler.handleSearchRequest(search.seq, cid, name, search.client);
+                if (! handled && search.unicast)
                     PVAServer.POOL.submit(() -> forwardSearchRequest(search.seq, cid, name, search.client));
             }
         }
@@ -273,19 +273,7 @@ class ServerUDPHandler extends UDPHandler
             }
 
             send_buffer.flip();
-// TODO            logger.log(Level.FINER, () ->
-//            {
-//                String port;
-//                try
-//                {
-//                    port = Integer.toString(((InetSocketAddress) udp.getLocalAddress()).getPort());
-//                }
-//                catch (Exception ex)
-//                {
-//                    port = "unknown";
-//                }
-//                return "Sending search reply from port " + port + " to " + client + "\n" + Hexdump.toHexdump(send_buffer);
-//            });
+            logger.log(Level.FINER, () -> "Sending search reply to " + client + "\n" + Hexdump.toHexdump(send_buffer));
 
             try
             {
