@@ -12,6 +12,8 @@ import static org.epics.pva.PVASettings.logger;
 import java.net.BindException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.ProtocolFamily;
+import java.net.StandardProtocolFamily;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.ExecutorService;
@@ -20,6 +22,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import org.epics.pva.PVASettings;
+import org.epics.pva.common.AddressInfo;
+import org.epics.pva.common.Network;
 
 /** Listen to TCP connections
  *
@@ -55,7 +59,18 @@ class ServerTCPListener
     public ServerTCPListener(final PVAServer server) throws Exception
     {
         this.server = server;
-        server_socket = createSocket();
+
+        // If any server address uses IPv6, create the TCP socket for IPv6,
+        // which will be backwards-compatible with IPv4.
+        // Otherwise support only IPv4
+        ProtocolFamily type = StandardProtocolFamily.INET;
+        for (AddressInfo info : Network.parseAddresses(PVASettings.EPICS_PVAS_INTF_ADDR_LIST))
+            if (info.isIPv6())
+            {
+                type = StandardProtocolFamily.INET6;
+                break;
+            }
+        server_socket = createSocket(type );
 
         final InetSocketAddress local_address = (InetSocketAddress) server_socket.getLocalAddress();
         response_address = local_address.getAddress();
@@ -68,19 +83,17 @@ class ServerTCPListener
         listen_thread.start();
     }
 
-    /** @return Socket bound to EPICS_PVA_SERVER_PORT or unused port */
-    private static ServerSocketChannel createSocket() throws Exception
+    /** @param family INET for only IPv4, or INET6 to support both
+     *  @return Socket bound to EPICS_PVA_SERVER_PORT or unused port
+     */
+    private static ServerSocketChannel createSocket(final ProtocolFamily family) throws Exception
     {
-        ServerSocketChannel socket = ServerSocketChannel.open();
+        ServerSocketChannel socket = ServerSocketChannel.open(family);
         socket.configureBlocking(true);
         socket.socket().setReuseAddress(true);
         try
         {
-            if (PVASettings.EPICS_PVAS_INTF_ADDR_LIST.isEmpty())
-                socket.bind(new InetSocketAddress(PVASettings.EPICS_PVA_SERVER_PORT));
-            else
-                socket.bind(new InetSocketAddress(PVASettings.EPICS_PVAS_INTF_ADDR_LIST,
-                                                  PVASettings.EPICS_PVA_SERVER_PORT));
+            socket.bind(new InetSocketAddress(PVASettings.EPICS_PVA_SERVER_PORT));
             return socket;
         }
         catch (BindException ex)
@@ -89,7 +102,7 @@ class ServerTCPListener
             final InetSocketAddress any = new InetSocketAddress(0);
             try
             {   // Must create new socket after bind() failed, cannot re-use
-                socket = ServerSocketChannel.open();
+                socket = ServerSocketChannel.open(family);
                 socket.configureBlocking(true);
                 socket.socket().setReuseAddress(true);
                 socket.bind(any);
