@@ -142,7 +142,7 @@ public class AttachmentsPreviewController {
             if (((ReadOnlyBooleanProperty) event).get()) {
                 splitPane.getScene().setCursor(Cursor.HAND);
             } else {
-                splitPane.getScene().setCursor(Cursor.MOVE);
+                splitPane.getScene().setCursor(Cursor.DEFAULT);
             }
         });
 
