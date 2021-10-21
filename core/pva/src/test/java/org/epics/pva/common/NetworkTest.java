@@ -11,7 +11,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.NetworkInterface;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.epics.pva.PVASettings;
@@ -107,5 +110,27 @@ public class NetworkTest
             assertTrue(iface_addr.contains("0:0:0:0:0:0:0:1"));
             assertFalse(addr.isBroadcast());
         }
+    }
+
+    @Test
+    public void testAddressList() throws Exception
+    {
+        final String spec = "0.0.0.0 [::] 224.0.1.1,1@127.0.0.1 [ff02::42:1],1@::1";
+        System.out.println("Result of parsing '" + spec + "':");
+        final List<AddressInfo> infos = Network.parseAddresses(spec);
+        for (AddressInfo info : infos)
+            System.out.println(info);
+        assertEquals(4, infos.size());
+
+        assertTrue(infos.get(0).getAddress().getAddress() instanceof Inet4Address);
+        assertTrue(infos.get(1).getAddress().getAddress() instanceof Inet6Address);
+        assertTrue(infos.get(2).getAddress().getAddress() instanceof Inet4Address);
+        assertTrue(infos.get(3).getAddress().getAddress() instanceof Inet6Address);
+
+        assertTrue(((Inet4Address)infos.get(2).getAddress().getAddress()).isMulticastAddress());
+        assertTrue(((Inet6Address)infos.get(3).getAddress().getAddress()).isMulticastAddress());
+
+        assertTrue(infos.get(2).getInterface() != null);
+        assertTrue(infos.get(3).getInterface() != null);
     }
 }

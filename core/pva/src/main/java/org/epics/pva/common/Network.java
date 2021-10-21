@@ -150,12 +150,13 @@ public class Network
 
     /** Parse network addresses
      *
-     *  @param search_addresses Array of addresses
+     *  @param search_addresses String with space-separated list of addresses
      *  @return {@link InetSocketAddress} list
      *  @see #parseAddress(String)
      */
-    public static List<AddressInfo> parseAddresses(final String... search_addresses)
+    public static List<AddressInfo> parseAddresses(final String search_list)
     {
+        final String[] search_addresses = search_list.split("\\s+");
         final List<AddressInfo> addresses = new ArrayList<>();
         for (String search : search_addresses)
             try
@@ -197,81 +198,61 @@ public class Network
         return null;
     }
 
-
-    public static DatagramChannel createUDP(final StandardProtocolFamily family, final int port) throws Exception
-    {
-        final DatagramChannel udp = DatagramChannel.open(family);
-        udp.configureBlocking(true);
-        udp.socket().setReuseAddress(true);
-        udp.bind(new InetSocketAddress(port));
-        return udp;
-    }
-
     /** Create UDP channel
      *
-     *  @param broadcast Support broadcast?
-     *  @param address IP address of interface, use empty string for wildcard address
+     *  @param family {@link StandardProtocolFamily}
+     *  @param address {@link Inet4Address}, {@link Inet6Address} or <code>null</code>
      *  @param port Port to use or 0 to auto-assign
      *  @return UDP channel
      *  @throws Exception on error
      */
-    public static DatagramChannel createUDP(final boolean broadcast, final String address,  final int port) throws Exception
+    public static DatagramChannel createUDP(final StandardProtocolFamily family, final InetAddress address, final int port) throws Exception
     {
-        final InetAddress inet = address.isEmpty()
-                               ? null
-                               : InetAddress.getByName(address);
-
-        // TODO Current use of v4 multicast addresses works only with INET, not INET6
-        // TODO For address.isEmpty(), we always assume INET6...
-        final DatagramChannel udp = inet instanceof Inet4Address
-                                  ? DatagramChannel.open(StandardProtocolFamily.INET)
-                                  : DatagramChannel.open();
+        final DatagramChannel udp = DatagramChannel.open(family);
         udp.configureBlocking(true);
-        if (broadcast)
-            udp.socket().setBroadcast(true);
         udp.socket().setReuseAddress(true);
-        if (inet == null)
-            udp.bind(new InetSocketAddress(port));
+        if (address != null)
+            udp.bind(new InetSocketAddress(address, port));
         else
-            udp.bind(new InetSocketAddress(inet, port));
+            udp.bind(new InetSocketAddress(port));
         return udp;
     }
 
-    /** Try to listen to multicast messages
+    /** Configure IPv4 socket to receive local multicast messages
+     *
+     *  IPv4 unicasts are re-sent as local multicast,
+     *  and this configures a socket to receive them
+     *
      *  @param udp UDP channel that should listen to multicast messages
      *  @param port Port to use
      *  @return Local multicast address, or <code>null</code> if no multicast support
      */
-    public static InetSocketAddress configureMulticast(final DatagramChannel udp, final int port)
+    public static AddressInfo configureLocalIPv4Multicast(final DatagramChannel udp, final int port)
     {
         try
         {
             if (! (udp.getLocalAddress() instanceof InetSocketAddress))
                 throw new Exception("UDP socket is not bound");
-            // TODO What to use for IPv6?
             if (((InetSocketAddress)udp.getLocalAddress()).getAddress() instanceof Inet6Address)
-            {
-                logger.log(Level.CONFIG, "For now not using any Multicast group while operating with IPv6");
-                return null;
-            }
+                throw new Exception("Re-sending of unicast only used for legacy IPv4");
 
             final NetworkInterface loopback = getLoopback();
             if (loopback != null)
             {
                 final InetAddress group = InetAddress.getByName(PVASettings.EPICS_PVA_MULTICAST_GROUP);
-                final InetSocketAddress local_broadcast = new InetSocketAddress(group, port);
+                final InetSocketAddress local_multicast = new InetSocketAddress(group, port);
                 udp.join(group, loopback);
 
-                logger.log(Level.CONFIG, "Multicast group " + local_broadcast + " using network interface " + loopback.getDisplayName());
+                logger.log(Level.CONFIG, "Local multicast of IPv4 unicast using group " + local_multicast + " using network interface " + loopback.getDisplayName());
                 udp.setOption(StandardSocketOptions.IP_MULTICAST_LOOP, true);
                 udp.setOption(StandardSocketOptions.IP_MULTICAST_IF, loopback);
 
-                return local_broadcast;
+                return new AddressInfo(local_multicast, 1, loopback);
             }
         }
         catch (Exception ex)
         {
-            logger.log(Level.WARNING, "Cannot configure multicast support", ex);
+            logger.log(Level.WARNING, "Cannot configure local IPv4 multicast support", ex);
         }
         return null;
     }

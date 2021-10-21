@@ -92,16 +92,15 @@ class ClientUDPHandler extends UDPHandler
         this.search_response = search_response;
 
         // IPv4 socket, also used to send broadcasts and for the local re-sending
-        udp_search4 = Network.createUDP(StandardProtocolFamily.INET, 0);
+        udp_search4 = Network.createUDP(StandardProtocolFamily.INET, null, 0);
         udp_search4.socket().setBroadcast(true);
-        local_multicast = new AddressInfo(Network.configureMulticast(udp_search4, PVASettings.EPICS_PVA_BROADCAST_PORT),
-                                          1, null);
+        local_multicast = Network.configureLocalIPv4Multicast(udp_search4, PVASettings.EPICS_PVA_BROADCAST_PORT);
 
         // IPv6 socket
-        udp_search6 = Network.createUDP(StandardProtocolFamily.INET6, 0);
+        udp_search6 = Network.createUDP(StandardProtocolFamily.INET6, null, 0);
 
         // Beacon socket only receives, does not send broadcasts
-        udp_beacon = Network.createUDP(StandardProtocolFamily.INET6, PVASettings.EPICS_PVA_BROADCAST_PORT);
+        udp_beacon = Network.createUDP(StandardProtocolFamily.INET6, null, PVASettings.EPICS_PVA_BROADCAST_PORT);
 
         logger.log(Level.FINE, "Awaiting search replies on UDP " + Network.getLocalAddress(udp_search4) +
                                " and " + Network.getLocalAddress(udp_search6) +

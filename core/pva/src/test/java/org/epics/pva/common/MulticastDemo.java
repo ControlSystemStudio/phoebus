@@ -39,6 +39,10 @@ import java.util.concurrent.TimeUnit;
  *  and that in turn cannot send to the IPv6 multicast group,
  *  so need one socket per protocol type for sending.
  *
+ *  Both sending and receiving are specific to an interface.
+ *  Sending socket uses IP_MULTICAST_IF option to configure via which interface to send.
+ *  Receiving socket joins MC group on a specific interface.
+ *
  *  IPv6 Multicast address format: ffFS:xxxxxxxx
  *  ff - Multicast marker
  *  F  - Flag bits 0, Rendezvous point, Prefix, Transient

@@ -8,6 +8,7 @@
 package org.epics.pva.common;
 
 import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.util.Objects;
@@ -33,6 +34,18 @@ public class AddressInfo
         this.iface = iface;
     }
 
+    /** @return <code>true</code> if address is IPv4 */
+    public boolean isIPv4()
+    {
+        return address.getAddress() instanceof Inet4Address;
+    }
+
+    /** @return <code>true</code> if address is IPv6 */
+    public boolean isIPv6()
+    {
+        return address.getAddress() instanceof Inet6Address;
+    }
+
     /** @return Network address */
     public InetSocketAddress getAddress()
     {
@@ -42,7 +55,7 @@ public class AddressInfo
     /** @return <code>true</code> if address appears to be an IPv4 broadcast address */
     public boolean isBroadcast()
     {
-        if (! (address.getAddress() instanceof Inet4Address))
+        if (! isIPv4())
             return false;
 
         // How to determine bcast address?
@@ -95,7 +108,15 @@ public class AddressInfo
     public String toString()
     {
         final StringBuilder buf = new StringBuilder();
-        buf.append("Address ").append(address.getHostString());
+        if (isIPv6())
+            buf.append("IPv6 address ");
+        else if (isIPv4())
+            buf.append("IPv4 address ");
+        else
+            buf.append("Unknown INET type address ");
+        buf.append(address.getHostString());
+        if (address.getAddress().isAnyLocalAddress())
+            buf.append(" (ANY LOCAL)");
         if (address.getAddress().isLoopbackAddress())
             buf.append(" (LOOPBACK)");
         if (address.getAddress().isMulticastAddress())

@@ -18,11 +18,7 @@ public class IPv6ServerDemo
 {
     public static void main(String[] args) throws Exception
     {
-        // Use IPv6 'localhost'
-        PVASettings.EPICS_PVAS_INTF_ADDR_LIST = "::1";
-
-        // Use multicast group
-        PVASettings.EPICS_PVAS_INTF_ADDR_LIST = "[ff02::42:1]@lo0";
+        PVASettings.EPICS_PVAS_INTF_ADDR_LIST = "0.0.0.0 [::] 224.0.1.1,1@127.0.0.1 [ff02::42:1],1@::1";
 
         ServerDemo.main(args);
     }

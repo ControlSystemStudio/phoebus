@@ -74,7 +74,7 @@ public class PVAClient implements AutoCloseable
      */
     public PVAClient() throws Exception
     {
-        final List<AddressInfo> search_addresses = Network.parseAddresses(PVASettings.EPICS_PVA_ADDR_LIST.split("\\s+"));
+        final List<AddressInfo> search_addresses = Network.parseAddresses(PVASettings.EPICS_PVA_ADDR_LIST);
         if (PVASettings.EPICS_PVA_AUTO_ADDR_LIST)
             search_addresses.addAll(Network.getBroadcastAddresses(PVASettings.EPICS_PVA_BROADCAST_PORT));
 
