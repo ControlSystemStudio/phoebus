@@ -88,6 +88,7 @@ public class IPv6ClientDemo
 
             TimeUnit.SECONDS.sleep(5);
             sub.close();
+            TimeUnit.SECONDS.sleep(5);
         }
     }
 }
