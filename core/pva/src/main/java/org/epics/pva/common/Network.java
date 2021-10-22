@@ -95,10 +95,15 @@ public class Network
      *  Format: IPv4[:port][,TTL][@iface]
      *          '['IPv6']'[:port][,TTL][@iface]
      *
-     *  127.0.0.1   -> IPv4 address
-     *  [::1]       -> IPv6 address
+     *  <pre>
+     *  127.0.0.1                 -> IPv4 address
+     *  127.0.0.1:9876            -> IPv4 address with port
+     *  ::1                       -> IPv6 address
+     *  [::1]                     -> IPv6 address
+     *  [::1]:9876                -> IPv6 address with port
      *  224.0.2.3,255@192.168.1.1 -> IPv4 224.0.2.3, TTL 255, using interface with address 192.168.1.1
      *  [ff02::42:1]:5076,1@br0   -> IPv6 ff02::42:1, port 5076, TTL 1, interface br0
+     *  </pre>
      *
      *  @param setting Address "IP:port,TTL@iface" to parse
      *  @return {@link AddressInfo}
@@ -133,10 +138,34 @@ public class Network
             parsed = parsed.substring(0, sep);
         }
 
-        // Optional :port, but must be ':' after IPv6 '[...:...:...]'
-        final int ipv6 = parsed.lastIndexOf(']');
+        // An IPv6 address contains at least two ':'.
+        // It may be enclosed in '[...]', which is mandatory
+        // when a ':port' follows
+        boolean isv6 = false;
+        int colons = 0;
+        for (int i=0; i<parsed.length(); ++i)
+        {
+            if (parsed.charAt(i) == ':')
+                ++colons;
+            if (colons >= 2  ||  parsed.charAt(i) == '[')
+            {
+                isv6 = true;
+                break;
+            }
+        }
+
         sep = parsed.lastIndexOf(':');
-        if (sep >= 0  &&  sep > ipv6)
+        if (isv6)
+        {
+            // Optional :port must be after the ':' inside IPv6 '[...:...:...]'
+            final int ipv6 = parsed.lastIndexOf(']');
+            if (sep >= 0  &&  ipv6 > 0  &&  sep > ipv6)
+            {
+                port = Integer.parseInt(parsed.substring(sep+1));
+                parsed = parsed.substring(0, sep);
+            }
+        }
+        else if (sep >= 0)
         {
             port = Integer.parseInt(parsed.substring(sep+1));
             parsed = parsed.substring(0, sep);

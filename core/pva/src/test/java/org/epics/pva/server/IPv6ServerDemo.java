@@ -18,8 +18,10 @@ public class IPv6ServerDemo
 {
     public static void main(String[] args) throws Exception
     {
-        PVASettings.EPICS_PVAS_INTF_ADDR_LIST = "0.0.0.0 [::] 224.0.1.1,1@127.0.0.1 [ff02::42:1],1@::1";
-
+        if (args.length == 1)
+            PVASettings.EPICS_PVAS_INTF_ADDR_LIST = args[0];
+        else
+            PVASettings.EPICS_PVAS_INTF_ADDR_LIST = "0.0.0.0 [::] 224.0.1.1,1@127.0.0.1 [ff02::42:1],1@::1";
         ServerDemo.main(args);
     }
 }

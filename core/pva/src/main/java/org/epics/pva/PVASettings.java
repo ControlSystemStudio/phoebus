@@ -47,19 +47,26 @@ public class PVASettings
      *  support for that protocol family.
      *  There can be at most one address for each protocol family.
      *
+     *  <pre>
      *  Options for IPv4
-     *  0.0.0.0 - Listen to unicasts or broadcasts on any interface
+     *  0.0.0.0   - Listen to unicasts or broadcasts on any interface
      *  127.0.0.1 - Listen on a specific address
      *
      *  Options for IPv6
-     *  [::] - Listen on any interface
+     *  The square brackets are optional unless a port is provided
+     *  [::]       - Listen on any interface
+     *  ::         - Listen on any interface
+     *  ::1        - Listen on localhost
+     *  [::1]:9876 - Listen on localhost but use non-default port. Require
+     *
      *  [fe80:8263:4a27:9ef1%en0] - Listen on a specific address
      *
      *  Next, multicast groups may be added.
      *  Each multicast group must include an interface.
-     *  224.0.1.1,1@127.0.0.1 - Listen to local IPv4 multicasts
-     *  [ff02::42:1],1@::1    - Listen to local IPv6 multicasts
-     *  [ff02::42:1],1@en1    - Listen to IPv6 multicasts on network interface en1
+     *  224.0.1.1,1@127.0.0.1     - Listen to local IPv4 multicasts
+     *  [ff02::42:1],1@::1        - Listen to local IPv6 multicasts
+     *  [ff02::42:1],1@en1        - Listen to IPv6 multicasts on network interface en1
+     *  </pre>
      */
     public static String EPICS_PVAS_INTF_ADDR_LIST = "0.0.0.0 [::] 224.0.1.1,1@127.0.0.1 [ff02::42:1],1@::1";
 
