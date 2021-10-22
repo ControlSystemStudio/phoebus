@@ -75,6 +75,8 @@ class ClientUDPHandler extends UDPHandler
     // Since the replies arrive via the port that sent the request,
     // we use one receiver thread per 'search' socket.
     private final DatagramChannel udp_search4, udp_search6;
+    private final InetSocketAddress udp_localaddr4, udp_localaddr6;
+
     private final AddressInfo local_multicast;
     private final ByteBuffer forward_buffer = ByteBuffer.allocate(PVASettings.MAX_UDP_PACKET);
 
@@ -105,9 +107,20 @@ class ClientUDPHandler extends UDPHandler
         // Beacon socket only receives, does not send broadcasts
         udp_beacon = Network.createUDP(StandardProtocolFamily.INET6, null, PVASettings.EPICS_PVA_BROADCAST_PORT);
 
-        logger.log(Level.FINE, "Awaiting search replies on UDP " + Network.getLocalAddress(udp_search4) +
-                               " and " + Network.getLocalAddress(udp_search6) +
+        udp_localaddr4 = (InetSocketAddress) udp_search4.getLocalAddress();
+        udp_localaddr6 = (InetSocketAddress) udp_search6.getLocalAddress();
+
+        logger.log(Level.FINE, "Awaiting search replies on UDP " + udp_localaddr4 +
+                               " and " + udp_localaddr6 +
                                ", and beacons on " + Network.getLocalAddress(udp_beacon));
+    }
+
+    /** @param target Address to which message will be sent
+     *  @return Suitable local return address where server should sent reply
+     */
+    InetSocketAddress getResponseAddress(final AddressInfo target)
+    {
+        return target.isIPv4() ? udp_localaddr4 : udp_localaddr6;
     }
 
     public void send(final ByteBuffer buffer, final AddressInfo info) throws Exception
