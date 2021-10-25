@@ -35,6 +35,7 @@ public class PVAClientMain
         System.out.println("  -h             Help");
         System.out.println("  -w <seconds>   Wait time, default is 5.0 seconds");
         System.out.println("  -r <fields>    Field request. For 'info' command, optional field name");
+        System.out.println("                 Default 'value' for 'put', empty for other operations");
         System.out.println("  -v <level>     Verbosity, level 0-5");
         System.out.println("  --             End of options (to allow '-- put some_pv -100')");
         System.out.println();
@@ -203,7 +204,7 @@ public class PVAClientMain
             {
                 new_value = value;
             }
-            pv.write(name, new_value).get(timeout_ms, TimeUnit.MILLISECONDS);
+            pv.write(request, new_value).get(timeout_ms, TimeUnit.MILLISECONDS);
             pv.close();
         }
     }
@@ -288,7 +289,12 @@ public class PVAClientMain
         else if (command.equals("monitor"))
             monitor(names);
         else if (command.equals("put") && names.size() == 2)
+        {
+            // By default, write to the 'value' element data structure
+            if (request.isEmpty())
+                request = "value";
             put(names.get(0), names.get(1));
+        }
         else
             help();
 
