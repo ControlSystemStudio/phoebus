@@ -116,9 +116,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
         searchParameters = FXCollections.observableHashMap();
 
-        LogbookQueryUtil.parseQueryString(LogbookUIPreferences.default_logbook_query).entrySet().stream().forEach(entry -> {
-            searchParameters.put(Keys.findKey(entry.getKey()), entry.getValue());
-        });
         advancedSearchViewController.setSearchParameters(searchParameters);
 
         query.setText(searchParameters.entrySet().stream()

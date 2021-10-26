@@ -54,9 +54,9 @@
                     <Label fx:id="levelLabel" text="Level:" GridPane.rowIndex="4" />
                     <ComboBox fx:id="levelSelector" onAction="#setLevel" prefWidth="150.0" GridPane.columnSpan="2" GridPane.rowIndex="5" />
                     <Label text="Logbooks:" GridPane.rowIndex="6" />
-                    <TextField fx:id="searchLogbooks" GridPane.columnSpan="2" GridPane.rowIndex="7" />
+                    <TextField fx:id="searchLogbooks" editable="false" GridPane.columnSpan="2" GridPane.rowIndex="7" />
                     <Label text="Tags:" GridPane.rowIndex="8" />
-                    <TextField fx:id="searchTags" GridPane.columnSpan="2" GridPane.rowIndex="9" />
+                    <TextField fx:id="searchTags" editable="false" GridPane.columnSpan="2" GridPane.rowIndex="9" />
                     <Label text="Author:" GridPane.rowIndex="10" />
                     <TextField fx:id="searchAuthor" GridPane.columnSpan="2" GridPane.rowIndex="11" />
                     <Label text="Time:" GridPane.columnSpan="2" GridPane.rowIndex="12">
