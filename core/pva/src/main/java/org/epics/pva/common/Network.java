@@ -96,13 +96,13 @@ public class Network
      *          '['IPv6']'[:port][,TTL][@iface]
      *
      *  <pre>
-     *  127.0.0.1                 -> IPv4 address
-     *  127.0.0.1:9876            -> IPv4 address with port
-     *  ::1                       -> IPv6 address
-     *  [::1]                     -> IPv6 address
-     *  [::1]:9876                -> IPv6 address with port
-     *  224.0.2.3,255@192.168.1.1 -> IPv4 224.0.2.3, TTL 255, using interface with address 192.168.1.1
-     *  [ff02::42:1]:5076,1@br0   -> IPv6 ff02::42:1, port 5076, TTL 1, interface br0
+     *  127.0.0.1                  IPv4 address
+     *  127.0.0.1:9876             IPv4 address with port
+     *  ::1                        IPv6 address
+     *  [::1]                      IPv6 address
+     *  [::1]:9876                 IPv6 address with port
+     *  224.0.2.3,255@192.168.1.1  IPv4 224.0.2.3, TTL 255, using interface with address 192.168.1.1
+     *  [ff02::42:1]:5076,1@br0    IPv6 ff02::42:1, port 5076, TTL 1, interface br0
      *  </pre>
      *
      *  @param setting Address "IP:port,TTL@iface" to parse
@@ -179,7 +179,7 @@ public class Network
 
     /** Parse network addresses
      *
-     *  @param search_addresses String with space-separated list of addresses
+     *  @param search_list String with space-separated list of addresses
      *  @return {@link InetSocketAddress} list
      *  @see #parseAddress(String)
      */
