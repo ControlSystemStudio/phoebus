@@ -28,11 +28,47 @@ public class PVASettings
      *
      *  <p>May contain space-separated host names or IP addresses.
      *  Each may be followed by ":port", otherwise defaulting to EPICS_PVA_BROADCAST_PORT.
-     *  When empty, local subnet is used.
+     *  When empty, local IPv4 subnet is used.
+     *
+     *  <p>When configuring EPICS_PVA_ADDR_LIST, it is suggested to also set
+     *  EPICS_PVA_AUTO_ADDR_LIST=NO to assert that only the indented configuration
+     *  is used without automatically added items which might not be desired.
+     *
+     *  <p>Example entries:
+     *
+     *  <pre>
+     *  192.168.10.20              Search via unicast to IPv4 address
+     *  192.168.10.255             Search via broadcast to IPv4 subnet
+     *  192.168.10.255:9876         .. on port 9876 instead of EPICS_PVA_BROADCAST_PORT
+     *  224.0.2.3,255@192.168.1.1  Search via multicast to IPv4 224.0.2.3, TTL 255, using interface with address 192.168.1.1
+     *
+     *  ::1                        Search via IPv6 unicast to localhost
+     *  [::1]                      Same
+     *  [::1]:9876                 Same with non-standard port
+     *  [ff02::42:1]@eth2          Search via multicast to IPv6 ff02::42:1, interface eth2
+     *  [ff02::42:1]:9876,10@eth2  Same, but specify port 9876 and TTL 10
+     *  </pre>
+     *
+     *  IPv6 support is enabled by simply listing one or more IPv6 addresses.
+     *  Both IPv4 and IPv6 addresses can be listed at the same time.
+     *  The IPv6 multicast `[ff02::42:1]` effectively replaces the IPv4 broadcast,
+     *  but note that a network interface must be provided via
+     *  `[ff02::42:1]@iface`, the client will not automatically multicast
+     *  on each network interface.
+     *  </pre>
      */
     public static String EPICS_PVA_ADDR_LIST = "";
 
-    /** Add local broadcast addresses to addr list? */
+    /** Add local IPv4 broadcast addresses to addr list?
+     *
+     *  <p>Should be set to 'NO' (false) whenever EPICS_PVA_ADDR_LIST
+     *  is configured.
+     *
+     *  <p>When setting the environment variable or java property,
+     *  values 'YES' or 'NO' are used instead of 'true' and 'false'
+     *  for compatibility with EPICS base usage of these environment
+     *  variables.
+     */
     public static boolean EPICS_PVA_AUTO_ADDR_LIST = true;
 
     /** PVA client port for sending name searches and receiving beacons */
@@ -43,26 +79,29 @@ public class PVASettings
 
     /** Local addresses to which server will listen.
      *
-     *  First must be an IPv4 and IPv6 address that enables
+     *  <p>First must be an IPv4 and/or IPv6 address that enables
      *  support for that protocol family.
      *  There can be at most one address for each protocol family.
      *
+     *  <p>Options for IPv4:
      *  <pre>
-     *  Options for IPv4
      *  0.0.0.0   - Listen to unicasts or broadcasts on any interface
      *  127.0.0.1 - Listen on a specific address
+     *  </pre>
      *
-     *  Options for IPv6
-     *  The square brackets are optional unless a port is provided
-     *  [::]       - Listen on any interface
+     *  <p>Options for IPv6:
+     *  <pre>
      *  ::         - Listen on any interface
+     *  [::]       - Listen on any interface
      *  ::1        - Listen on localhost
-     *  [::1]:9876 - Listen on localhost but use non-default port. Require
-     *
+     *  [::1]:9876 - Listen on localhost but use non-default port
      *  [fe80:8263:4a27:9ef1%en0] - Listen on a specific address
+     *  </pre>
+     *  The square brackets are optional unless a port is provided.
      *
-     *  Next, multicast groups may be added.
+     *  <p>Next, multicast groups may be added.
      *  Each multicast group must include an interface.
+     *  <pre>
      *  224.0.1.1,1@127.0.0.1     - Listen to local IPv4 multicasts
      *  [ff02::42:1],1@::1        - Listen to local IPv6 multicasts
      *  [ff02::42:1],1@en1        - Listen to IPv6 multicasts on network interface en1
