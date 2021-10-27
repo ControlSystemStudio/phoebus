@@ -127,7 +127,6 @@ class ChannelSearch
         // In the original PVA implementation, the receiver would then re-send them via a local multicast group.
         // The original unicast messages were thus marked with a UNICAST flag,
         // while multicast and broadcast messages are not.
-        // TODO Remove the local multicast, just use multicast from the start
         for (AddressInfo addr : search_addresses)
         {
             // Trouble is, how do you recognize a unicast address?

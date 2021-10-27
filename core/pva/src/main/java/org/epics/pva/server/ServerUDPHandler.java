@@ -213,6 +213,7 @@ class ServerUDPHandler extends UDPHandler
      */
     private void forwardSearchRequest(final int seq, final int cid, final String name, final InetSocketAddress address)
     {
+        // TODO Remove the local IPv4 multicast re-send from the protocol, just use multicast from the start as with IPv6
         if (local_multicast == null)
             return;
         synchronized (send_buffer)
@@ -223,7 +224,6 @@ class ServerUDPHandler extends UDPHandler
             logger.log(Level.FINER, () -> "Forward search to " + local_multicast + "\n" + Hexdump.toHexdump(send_buffer));
             try
             {
-                // TODO TTL? Interface?
                 udp4.send(send_buffer, local_multicast.getAddress());
             }
             catch (Exception ex)
@@ -277,7 +277,6 @@ class ServerUDPHandler extends UDPHandler
 
             try
             {
-                // TODO TTL, interface
                 if (client.getAddress() instanceof Inet4Address)
                     udp4.send(send_buffer, client);
                 else
