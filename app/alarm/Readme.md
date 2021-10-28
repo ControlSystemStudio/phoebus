@@ -239,7 +239,8 @@ The full config topic JSON format for a alarm tree leaf:
         "guidance": [{"title": String, "details": String}],
         "displays": [{"title": String, "details": String}],
         "commands": [{"title": String, "details": String}],
-        "actions":  [{"title": String, "details": String}]
+        "actions":  [{"title": String, "details": String}],
+        "tags":     [{"title": String, "details": String}]"
     }
 
 The full config topic JSON format for a alarm tree node:
@@ -250,7 +251,8 @@ The full config topic JSON format for a alarm tree node:
         "guidance": [{"title": String, "details": String}],
         "displays": [{"title": String, "details": String}],
         "commands": [{"title": String, "details": String}],
-        "actions":  [{"title": String, "details": String}]
+        "actions":  [{"title": String, "details": String}],
+        "tags":     [{"title": String, "details": String}]
     }
 
 The configuration of an alarm tree leaf, i.e. a PV, will

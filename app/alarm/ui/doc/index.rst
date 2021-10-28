@@ -356,7 +356,25 @@ Suggested PV template::
         field(INP,  "0")
         field(PINI, "YES")
     }
- 
+
+Tags
+----
+
+Each alarm may optionally have one or more tags assigned to it. This field is an arbitrary tag/value
+pair that can contain any additional information an operator may find useful for handling the alarm,
+especially when it comes to searching for alarms by tag. Examples include additional information
+on the location/sector the alarm is coming from, or being able to tag multiple alarms for a scheduled
+maintenance period.
+
+ * Title:
+   A short title for the tag, for example Scheduled for Maintenance.
+
+
+ * Detail:
+   A slightly longer text providing additional information for the tag, for example the
+   date and time of the maintenance.
+
+
 Inclusions
 ^^^^^^^^^^
 The Phoebus alarm server supports Xinclude, allowing for the breakup of hierarchies into multiple files.
