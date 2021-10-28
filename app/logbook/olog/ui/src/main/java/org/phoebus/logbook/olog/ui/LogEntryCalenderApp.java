@@ -1,5 +1,6 @@
 package org.phoebus.logbook.olog.ui;
 
+import com.google.common.base.Strings;
 import javafx.scene.image.Image;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
@@ -17,7 +18,7 @@ public class LogEntryCalenderApp implements AppResourceDescriptor {
     public static final Logger logger = Logger.getLogger(LogEntryCalenderApp.class.getName());
     static final Image icon = ImageCache.getImage(LogEntryCalenderApp.class, "/icons/logbook-16.png");
     public static final String NAME = "logEntryCalender";
-    public static final String DISPLAYNAME = "Log Entry Calender";
+    public static String DISPLAYNAME = "Log Entry Calender";
 
     private static final String SUPPORTED_SCHEMA = "logCalender";
     private LogFactory logFactory;
@@ -25,6 +26,10 @@ public class LogEntryCalenderApp implements AppResourceDescriptor {
     @Override
     public void start() {
         logFactory = LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory);
+        String displayName = LogbookUIPreferences.log_entry_calendar_display_name;
+        if(!Strings.isNullOrEmpty(displayName)){
+            DISPLAYNAME = displayName;
+        }
     }
 
     @Override
