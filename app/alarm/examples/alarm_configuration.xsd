@@ -85,6 +85,14 @@
             </xs:sequence>
         </xs:complexType>
     </xs:element>
+    <xs:element name="tags" minOccurs="0">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="title" />
+                <xs:element ref="detail" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
     <xs:element name="delay" type="xs:integer" />
     <xs:element name="title" type="xs:string" />
     <xs:element name="detail" type="xs:string" />

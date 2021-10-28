@@ -198,15 +198,12 @@ public class XmlModelReader
         }
 
         for (final Element child : XMLUtil.getChildElements(node, TAG_TAGS))
-        td.add(getTD(child));
+            td.add(getTD(child));
 
-        if (td.size() > 0)
-        {
+        if (td.size() > 0) {
             component.setTags(td);
             td = new ArrayList<>();
         }
-
-
 
         ArrayList<TitleDetailDelay> tdd = new ArrayList<>();
         for (final Element child : XMLUtil.getChildElements(node, TAG_ACTIONS))
@@ -217,7 +214,6 @@ public class XmlModelReader
             component.setActions(tdd);
             tdd = new ArrayList<>();
         }
-
     }
 
     private void processPV(final AlarmClientNode parent, final Element node) throws Exception
@@ -354,8 +350,6 @@ public class XmlModelReader
             pv.setTags(td);
             td = new ArrayList<>();
         }
-
-
 
         ArrayList<TitleDetailDelay> tdd = new ArrayList<>();
         for (final Element child : XMLUtil.getChildElements(node, TAG_ACTIONS))

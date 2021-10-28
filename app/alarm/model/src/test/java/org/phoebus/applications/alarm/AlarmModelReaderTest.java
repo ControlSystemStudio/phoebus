@@ -183,8 +183,6 @@ public class AlarmModelReaderTest
 		assertEquals("a3pv1 Tag 1", a3pv1_tags.get(0).title);
 		assertEquals("a3pv1 Tag Detail 1", a3pv1_tags.get(0).detail);
 
-
-
 		final AlarmTreeLeaf a2pv1 = (AlarmTreeLeaf) area2.getChild("a2pv1");
 
 		assertEquals("a2pv1", ((AlarmTreeItem<?>) a2pv1).getName());

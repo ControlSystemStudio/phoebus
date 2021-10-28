@@ -134,9 +134,6 @@ public class XmlModelWriter implements Closeable
         {
             getTitleDetailListXML(tags, XmlModelReader.TAG_TAGS);
         }
-
-        
-
     }
 
     private void getTitleDetailListXML(final List<TitleDetail> tdList, final String itemSubType) throws Exception
