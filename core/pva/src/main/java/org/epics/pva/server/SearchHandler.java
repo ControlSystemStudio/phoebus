@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2020-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,7 +19,9 @@ public interface SearchHandler
      *  @param cid Client channel ID or -1
      *  @param name Channel name or <code>null</code>
      *  @param addr Client's address and TCP port
-     *  @return <code>true</code> if the search request was handled
+     *  @return <code>true</code> if the search request was handled,
+     *          i.e. the name was recognized and the request does not need
+     *          to be forwarded or passed to anybody else
      */
     public boolean handleSearchRequest(int seq, int cid, String name, InetSocketAddress addr);
 }

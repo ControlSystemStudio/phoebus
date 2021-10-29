@@ -12,6 +12,7 @@ import static org.epics.pva.PVASettings.logger;
 import java.net.BindException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.ExecutorService;
@@ -55,6 +56,7 @@ class ServerTCPListener
     public ServerTCPListener(final PVAServer server) throws Exception
     {
         this.server = server;
+
         server_socket = createSocket();
 
         final InetSocketAddress local_address = (InetSocketAddress) server_socket.getLocalAddress();
@@ -68,38 +70,106 @@ class ServerTCPListener
         listen_thread.start();
     }
 
-    /** @return Socket bound to EPICS_PVA_SERVER_PORT or unused port */
-    private static ServerSocketChannel createSocket() throws Exception
+    // How to check if the desired TCP server port is already in use?
+    //
+    // For IPv4, bind(desired_port) would fail, causing us to move to an automatically assigned free port.
+    // With IPv6, the socket defaults to a 'tcp46' type.
+    // Binding it to the desired port will succeed even if `netstat` already shows an existing 'tcp4' socket
+    // bound to that port.
+    //
+    // Could use a ServerSocketChannel.open(StandardProtocolFamily.INET) to test binding
+    // to tcp4, but that is only available from JDK15 on, and the following plain open() or open(INET6)
+    // will each again create a 'tcp46' type of socket that might miss an already bound tcp4 channel.
+    //
+    // Workaround: Try to connect to 127.0.0.1 at desired port.
+    // Seems a wasteful, but servers tend to run for a long time, so the initial overhead hardly matters.
+    // It's noted that we can still miss an existing tcp4 server simply because the connection
+    // takes too long and we time out, or the tcp4 server starts up just after we checked.
+    /** Attempt to check for a tcp4 server on port
+     *  @param desired_port
+     *  @return <code>true</code> if a tcp4 server was found
+     */
+    private static boolean checkForIPv4Server(final int desired_port)
     {
-        ServerSocketChannel socket = ServerSocketChannel.open();
-        socket.configureBlocking(true);
-        socket.socket().setReuseAddress(true);
         try
         {
-            if (PVASettings.EPICS_PVAS_INTF_ADDR_LIST.isEmpty())
-                socket.bind(new InetSocketAddress(PVASettings.EPICS_PVA_SERVER_PORT));
-            else
-                socket.bind(new InetSocketAddress(PVASettings.EPICS_PVAS_INTF_ADDR_LIST,
-                                                  PVASettings.EPICS_PVA_SERVER_PORT));
-            return socket;
-        }
-        catch (BindException ex)
-        {
-            logger.log(Level.INFO, "TCP port " + PVASettings.EPICS_PVA_SERVER_PORT + " already in use, switching to automatically assigned port");
-            final InetSocketAddress any = new InetSocketAddress(0);
-            try
-            {   // Must create new socket after bind() failed, cannot re-use
-                socket = ServerSocketChannel.open();
-                socket.configureBlocking(true);
-                socket.socket().setReuseAddress(true);
-                socket.bind(any);
-                return socket;
-            }
-            catch (Exception e)
+            final InetSocketAddress existing_server = new InetSocketAddress(InetAddress.getByName("127.0.0.1"), desired_port);
+            try (Socket check = new Socket())
             {
-                throw new Exception("Cannot bind to automatically assigned port " + any, e);
+                check.setReuseAddress(true);
+                try
+                {
+                    // Check for 1 second. Local connection is supposed to be much faster.
+                    check.connect(existing_server, 1000);
+                    // Managed to connect? Suggests existing IPv4 server on that port
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    // Cannot connect, assume there is no existing IPv4 server
+                }
             }
         }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot check for existing IPv4 server on port", ex);
+        }
+        return false;
+    }
+
+    /** Create server's TCP socket
+     *
+     *  @return Socket bound to EPICS_PVA_SERVER_PORT or unused port
+     *  @throws Exception on error
+     */
+    private static ServerSocketChannel createSocket() throws Exception
+    {
+        if (checkForIPv4Server(PVASettings.EPICS_PVA_SERVER_PORT))
+            logger.log(Level.FINE, "Found existing IPv4 server on port " + PVASettings.EPICS_PVA_SERVER_PORT);
+        else
+        {   // Try to bind to desired port
+            try
+            {
+                return createBoundSocket(new InetSocketAddress(PVASettings.EPICS_PVA_SERVER_PORT));
+            }
+            catch (BindException ex)
+            {
+                logger.log(Level.INFO, "TCP port " + PVASettings.EPICS_PVA_SERVER_PORT + " already in use, switching to automatically assigned port");
+            }
+        }
+
+        // Fall back to automatically assigned port
+        final InetSocketAddress any = new InetSocketAddress(0);
+        try
+        {
+            return createBoundSocket(any);
+        }
+        catch (Exception e)
+        {
+            throw new Exception("Cannot bind to automatically assigned port " + any, e);
+        }
+    }
+
+    /** Try to create socket that's bound to an address
+     *  @param addr Desired address
+     *  @return {@link ServerSocketChannel}
+     *  @throws Exception on error
+     */
+    private static ServerSocketChannel createBoundSocket(final InetSocketAddress addr) throws Exception
+    {
+        ServerSocketChannel socket = ServerSocketChannel.open();
+        try
+        {
+            socket.configureBlocking(true);
+            socket.socket().setReuseAddress(true);
+            socket.bind(addr);
+        }
+        catch (Exception ex)
+        {
+            socket.close();
+            throw ex;
+        }
+        return socket;
     }
 
     private void listen()

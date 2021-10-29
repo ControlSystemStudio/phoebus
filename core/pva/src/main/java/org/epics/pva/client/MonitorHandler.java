@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,7 +7,10 @@
  ******************************************************************************/
 package org.epics.pva.client;
 
+import static org.epics.pva.PVASettings.logger;
+
 import java.nio.ByteBuffer;
+import java.util.logging.Level;
 
 import org.epics.pva.common.CommandHandler;
 import org.epics.pva.common.PVAHeader;
@@ -33,9 +36,18 @@ class MonitorHandler implements CommandHandler<ClientTCPHandler>
         final int request_id = buffer.getInt(buffer.position());
 
         final ResponseHandler handler = tcp.getResponseHandler(request_id);
-        if (handler == null)
-            throw new Exception("Received unsolicited Monitor Response for request " + request_id);
-        handler.handleResponse(buffer);
+        if (handler != null)
+            handler.handleResponse(buffer);
+        else
+        {
+            // Is this a late update that was 'in flight' when the subscription got cancelled?
+            // Check if the request_id is in the range of values that we have used.
+            final int last_request = tcp.getClient().getLastRequestID();
+            if (request_id > 0  &&  request_id <= last_request)
+                logger.log(Level.FINE, "Received late Monitor Response for request " + request_id);
+            else
+                throw new Exception("Received Monitor Response for out-of-range request " + request_id);
+        }
         tcp.markAlive();
     }
 }

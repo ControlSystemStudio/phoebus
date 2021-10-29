@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -261,7 +261,7 @@ public class PVAChannel implements AutoCloseable
     /** Start a subscription
      *
      *  @param request Request, "" for all fields, or "field_a, field_b.subfield"
-     *  @param listener Will be invoked with channel and latest value
+     *  @param listener {@link MonitorListener} that will be invoked with channel and latest value
      *  @return {@link AutoCloseable}, used to close the subscription
      *  @throws Exception on error
      */
