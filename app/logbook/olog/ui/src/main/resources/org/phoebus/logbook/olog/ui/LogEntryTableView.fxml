@@ -8,7 +8,7 @@
 
 <SplitPane fx:id="topLevelNode" dividerPositions="0.6105960264900663" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryTableViewController">
     <items>
-        <fx:include fx:id="advancedSearchView" minWidth="-Infinity" source="AdvancedSearchView.fxml" />
+        <fx:include fx:id="advancedSearchView" source="AdvancedSearchView.fxml" />
         <SplitPane dividerPositions="0.33" prefHeight="160.0" prefWidth="200.0">
             <items>
                 <AnchorPane minHeight="0.0" minWidth="250.0" prefWidth="600.0">
