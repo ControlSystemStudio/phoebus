@@ -116,9 +116,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
         searchParameters = FXCollections.observableHashMap();
 
-        LogbookQueryUtil.parseQueryString(LogbookUIPreferences.default_logbook_query).entrySet().stream().forEach(entry -> {
-            searchParameters.put(Keys.findKey(entry.getKey()), entry.getValue());
-        });
         advancedSearchViewController.setSearchParameters(searchParameters);
 
         query.setText(searchParameters.entrySet().stream()
@@ -195,9 +192,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
                     resize.setText(">");
                     moving.set(false);
                 });
+                query.disableProperty().set(false);
             } else {
                 Duration cycleDuration = Duration.millis(400);
-                double width = ViewSearchPane.getWidth() / 3;
+                double width = ViewSearchPane.getWidth() / 2.5;
                 KeyValue kv = new KeyValue(advancedSearchViewController.getPane().minWidthProperty(), width);
                 KeyValue kv2 = new KeyValue(advancedSearchViewController.getPane().prefWidthProperty(), width);
                 Timeline timeline = new Timeline(new KeyFrame(cycleDuration, kv, kv2));
@@ -206,6 +204,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
                     resize.setText("<");
                     moving.set(false);
                 });
+                query.disableProperty().set(true);
+                advancedSearchViewController.updateSearchParamsFromQueryString(query.getText());
             }
         }
     }
@@ -354,12 +354,5 @@ public class LogEntryTableViewController extends LogbookSearchController {
             }
         });
         return logEntryGroupProperties;
-    }
-
-    @FXML
-    public void toggleSort(){
-        sortAscending.set(sortAscending.not().get());
-        // Do a new search where the wanted sort order is considered
-        search();
     }
 }
