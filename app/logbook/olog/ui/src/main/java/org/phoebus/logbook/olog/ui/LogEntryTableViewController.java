@@ -40,6 +40,7 @@ import org.phoebus.logbook.Property;
 import org.phoebus.logbook.olog.ui.LogbookQueryUtil.Keys;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.io.IOException;
@@ -232,12 +233,19 @@ public class LogEntryTableViewController extends LogbookSearchController {
     }
 
     private void search() {
-        searchInProgress.set(true);
         // parse the various time representations to Instant
         treeView.getSelectionModel().clearSelection();
         // Determine sort order
-        String searchStringWithSortOrder = LogbookQueryUtil.addSortOrder(query.getText(), sortAscending.get());
+        String searchStringWithSortOrder = null;
+        try {
+            searchStringWithSortOrder = LogbookQueryUtil.addSortOrder(query.getText(), sortAscending.get());
+        } catch (Exception ex) { // Parsing query may throw exception, e.g. search parameter specified multiple times.
+            logger.log(Level.INFO, "Unable to construct search query", ex);
+            ExceptionDetailsErrorDialog.openError("Unable to construct search query", ex.getMessage(), ex);
+            return;
+        }
         query.textProperty().set(searchStringWithSortOrder);
+        searchInProgress.set(true);
         super.search(LogbookQueryUtil.parseQueryString(searchStringWithSortOrder),
                 (inProgress) -> searchInProgress.set(inProgress));
     }
