@@ -155,17 +155,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
         treeView.setRoot(rootItem);
         treeView.setShowRoot(false);
 
-        MenuItem groupSelectedEntries = new MenuItem(Messages.GroupSelectedEntries);
-        groupSelectedEntries.setOnAction(e -> {
-            createLogEntryGroup();
-        });
-        groupSelectedEntries.disableProperty()
-                .bind(Bindings.createBooleanBinding(() ->
-                        selectedLogEntries.size() < 2, selectedLogEntries));
-        ContextMenu contextMenu = new ContextMenu();
-        contextMenu.getItems().add(groupSelectedEntries);
-        treeView.setContextMenu(contextMenu);
-
         progressIndicator.visibleProperty().bind(searchInProgress);
         searchInProgress.addListener((observable, oldValue, newValue) -> {
             treeView.setDisable(newValue.booleanValue());
@@ -302,57 +291,5 @@ public class LogEntryTableViewController extends LogbookSearchController {
             pseudoClassStateChanged(childlessTopLevel, b1 && b2);
             pseudoClassStateChanged(child, !b1);
         }
-    }
-
-    private void createLogEntryGroup() {
-        try {
-            Property logGroupProperty = getLogEntryGroupProperty(selectedLogEntries);
-            // Update all log entries asynchronously
-            JobManager.schedule("Update log entries", monitor -> {
-                selectedLogEntries.forEach(l -> {
-                    // Update only if log entry does not contains the log group property
-                    if (LogGroupProperty.getLogGroupProperty(l).isEmpty()) {
-                        l.getProperties().add(logGroupProperty);
-                        try {
-                            getClient().updateLogEntry(l);
-                        } catch (LogbookException e) {
-                            logger.log(Level.SEVERE, "Failed to update log entry " + l.getId(), e);
-                        }
-                    }
-                });
-                // When all log entries are updated, run the search to trigger an update of the UI
-                search();
-            });
-
-        } catch (LogbookException e) {
-            final Alert dialog = new Alert(AlertType.INFORMATION);
-            dialog.setHeaderText("Cannot create log entry group. Selected list of log entries references more than one existing group.");
-            DialogHelper.positionDialog(dialog, treeView, 0, 0);
-            dialog.showAndWait();
-        }
-    }
-
-    protected Property getLogEntryGroupProperty(List<LogEntry> logEntries) throws LogbookException {
-        List<Property> logGroupProperties = getLogEntryGroupProperties(logEntries);
-        if (logGroupProperties.size() > 1) {
-            throw new LogbookException("Selected log entries contain more than one log group property id");
-        }
-        if (logGroupProperties.isEmpty()) {
-            return LogGroupProperty.create();
-        } else {
-            return logGroupProperties.get(0);
-        }
-    }
-
-    private List<Property> getLogEntryGroupProperties(List<LogEntry> logEntries) {
-        List<Property> logEntryGroupProperties = new ArrayList<>();
-        logEntries.forEach(l -> {
-            Optional<Property> logGroupProperty =
-                    LogGroupProperty.getLogGroupProperty(l);
-            if (logGroupProperty.isPresent()) {
-                logEntryGroupProperties.add(logGroupProperty.get());
-            }
-        });
-        return logEntryGroupProperties;
     }
 }

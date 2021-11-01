@@ -105,11 +105,14 @@ public class LogEntryDisplayController {
     @FXML
     public void reply() {
         LogEntry logEntry = logEntryProperty.get();
+        /*
         Property logGroupProperty = logEntry.getProperty(LogGroupProperty.NAME);
         if (logGroupProperty == null) {
             logGroupProperty = LogGroupProperty.create();
             logEntry.getProperties().add(logGroupProperty);
         }
+
+         */
         OlogLog ologLog = new OlogLog();
         ologLog.setTitle(logEntry.getTitle());
         ologLog.setTags(logEntry.getTags());
@@ -119,20 +122,7 @@ public class LogEntryDisplayController {
 
         // Show a new editor dialog. When user selects to save the reply entry, update the original log entry
         // to ensure that it contains the log group property.
-        new LogEntryEditorStage(DockPane.getActiveDockPane(), ologLog, l -> {
-            try {
-                // NOTE: source is set to null, while description is set to the log entry source. Reason is that
-                // the description field is the contents of the editor text area in the original log entry. This
-                // is processed on the server such that the description is set as source, while the description is
-                // generated as a plain text variant of the source markup content.
-                ((OlogLog) logEntry).setDescription(logEntry.getSource());
-                ((OlogLog) logEntry).setSource(null);
-                logClient.updateLogEntry(logEntry);
-            } catch (LogbookException e) {
-                logger.log(Level.SEVERE, "Failed to update log entry id=" + logEntry.getId(), e);
-                return;
-            }
-        }).show();
+        new LogEntryEditorStage(DockPane.getActiveDockPane(), ologLog, logEntry, null).show();
     }
 
     public void setLogEntry(LogEntry logEntry) {

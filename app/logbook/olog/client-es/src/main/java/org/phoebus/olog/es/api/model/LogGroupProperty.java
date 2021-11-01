@@ -22,44 +22,32 @@ import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Property;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 public class LogGroupProperty {
 
     public static final String NAME = "Log Entry Group";
     public static final String ATTRIBUTE_ID = "id";
 
-    public static Property create(){
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(ATTRIBUTE_ID, UUID.randomUUID().toString());
-        return new OlogProperty(NAME, attributes);
-    }
 
     /**
-     *
      * @param logEntry
      * @return The value of the Log Entry Group id attribute, if property exists in the log entry
      * and if id attribute value is non-null and non-empty.
      */
-    public static Optional<Property> getLogGroupProperty(LogEntry logEntry){
+    public static Optional<Property> getLogGroupProperty(LogEntry logEntry) {
         Collection<Property> properties = logEntry.getProperties();
-        if(properties == null || properties.isEmpty()){
+        if (properties == null || properties.isEmpty()) {
             return Optional.empty();
         }
         Optional<Property> property =
                 properties.stream().filter(p -> p.getName().equals(NAME)).findFirst();
-        if(property.isPresent()){
+        if (property.isPresent()) {
             String id = property.get().getAttributes().get(ATTRIBUTE_ID);
-            if(id != null && !id.isEmpty()){
+            if (id != null && !id.isEmpty()) {
                 return Optional.of(property.get());
-            }
-            else return Optional.empty();
-        }
-        else {
+            } else return Optional.empty();
+        } else {
             return Optional.empty();
         }
     }
