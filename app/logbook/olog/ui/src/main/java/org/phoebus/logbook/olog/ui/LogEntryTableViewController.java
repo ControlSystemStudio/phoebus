@@ -43,10 +43,8 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -154,6 +152,17 @@ public class LogEntryTableViewController extends LogbookSearchController {
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         treeView.setRoot(rootItem);
         treeView.setShowRoot(false);
+
+        MenuItem groupSelectedEntries = new MenuItem(Messages.GroupSelectedEntries);
+        groupSelectedEntries.setOnAction(e -> {
+            createLogEntryGroup();
+        });
+        groupSelectedEntries.disableProperty()
+                .bind(Bindings.createBooleanBinding(() ->
+                        selectedLogEntries.size() < 2, selectedLogEntries));
+        ContextMenu contextMenu = new ContextMenu();
+        contextMenu.getItems().add(groupSelectedEntries);
+        treeView.setContextMenu(contextMenu);
 
         progressIndicator.visibleProperty().bind(searchInProgress);
         searchInProgress.addListener((observable, oldValue, newValue) -> {
@@ -290,6 +299,34 @@ public class LogEntryTableViewController extends LogbookSearchController {
             boolean b2 = getTreeItem().getChildren().size() == 0;
             pseudoClassStateChanged(childlessTopLevel, b1 && b2);
             pseudoClassStateChanged(child, !b1);
+        }
+    }
+
+    private void createLogEntryGroup() {
+        try {
+            Property logEntryGroupProperty = LogGroupProperty.getLogEntryGroupProperty(selectedLogEntries);
+            // Update all log entries asynchronously
+            JobManager.schedule("Update log entries", monitor -> {
+                selectedLogEntries.forEach(l -> {
+                    // Update only if log entry does not contains the log group property
+                    if (LogGroupProperty.getLogGroupProperty(l).isEmpty()) {
+                        l.getProperties().add(logEntryGroupProperty);
+                        try {
+                            getClient().updateLogEntry(l);
+                        } catch (LogbookException e) {
+                            logger.log(Level.SEVERE, "Failed to update log entry " + l.getId(), e);
+                        }
+                    }
+                });
+                // When all log entries are updated, run the search to trigger an update of the UI
+                search();
+            });
+        } catch (LogbookException e) {
+            logger.log(Level.INFO, "Unable to create log entry group from selection");
+            final Alert dialog = new Alert(AlertType.INFORMATION);
+            dialog.setHeaderText("Cannot create log entry group. Selected list of log entries references more than one existing group.");
+            DialogHelper.positionDialog(dialog, treeView, 0, 0);
+            dialog.showAndWait();
         }
     }
 }
