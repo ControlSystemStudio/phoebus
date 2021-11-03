@@ -92,6 +92,7 @@ public class AttachmentsViewController {
      *                 are subject to removal when the log entry has been committed.
      */
     public AttachmentsViewController(LogEntry logEntry) {
+        attachments.addAll(logEntry.getAttachments());
         attachmentsToDelete.addAll(logEntry.getAttachments());
     }
 
