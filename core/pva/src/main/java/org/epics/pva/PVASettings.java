@@ -80,10 +80,9 @@ public class PVASettings
      *  <p>Example entries:
      *
      *  <pre>
-     *  192.168.10.20              Send name lookups to that TCP address, EPICS_PVA_SERVER_PORT (d3fault 5075)
-     *
-     *  ::1                        Search to IPv6 localhost at EPICS_PVA_SERVER_PORT
-     *  [::1]:9876                 Same with non-standard port
+     *  192.168.10.20    Send name lookups to that IPv4 TCP address at EPICS_PVA_SERVER_PORT (default 5075)
+     *  ::1              Search to IPv6 localhost at EPICS_PVA_SERVER_PORT
+     *  [::1]:9876       Same with non-standard port
      *  </pre>
      */
     public static String EPICS_PVA_NAME_SERVERS = "";
