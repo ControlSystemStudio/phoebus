@@ -76,6 +76,15 @@ public class PVASettings
      *  Space separated list of addresses, each with optional port.
      *  To search for channels, client will connect to each one via TCP
      *  and send the search request.
+     *
+     *  <p>Example entries:
+     *
+     *  <pre>
+     *  192.168.10.20              Send name lookups to that TCP address, EPICS_PVA_SERVER_PORT (d3fault 5075)
+     *
+     *  ::1                        Search to IPv6 localhost at EPICS_PVA_SERVER_PORT
+     *  [::1]:9876                 Same with non-standard port
+     *  </pre>
      */
     public static String EPICS_PVA_NAME_SERVERS = "";
 
