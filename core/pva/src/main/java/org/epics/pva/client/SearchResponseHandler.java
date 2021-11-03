@@ -9,6 +9,7 @@ package org.epics.pva.client;
 
 import static org.epics.pva.PVASettings.logger;
 
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
 
@@ -45,6 +46,10 @@ class SearchResponseHandler implements CommandHandler<ClientTCPHandler>
             throw new Exception("PVA Server " + tcp + " sent invalid search reply", ex);
         }
 
+        InetSocketAddress server = response.server;
+        if (server.getAddress().isAnyLocalAddress())
+            server = tcp.getRemoteAddress();
+
         if (response.found)
         {
             for (int cid : response.cid)
@@ -52,10 +57,14 @@ class SearchResponseHandler implements CommandHandler<ClientTCPHandler>
                 final PVAChannel channel = tcp.getClient().getChannel(cid);
 
                 if (channel == null)
-                    logger.log(Level.FINE, "Got search response for unknown CID " + cid + " from " + response.server + " " + response.guid);
+                    logger.log(Level.FINE, "Got search response for unknown CID " + cid + " from " + server + " " +
+                               response.guid + " V" + response.version);
                 else
-                    logger.log(Level.FINE, "Got search response for " + channel + " from " + response.server + " " + response.guid);
-                // TODO search_response.handleSearchResponse(cid, server, version, guid);
+                {
+                    logger.log(Level.FINE, "Got search response for " + channel + " from " + response.server +
+                               " (using " + server + ") " + response.guid + " V" + response.version);
+                    tcp.getClient().handleSearchResponse(cid, server, response.version, response.guid);
+                }
             }
         }
 

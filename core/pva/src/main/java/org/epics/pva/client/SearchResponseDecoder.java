@@ -11,6 +11,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
+import org.epics.pva.common.PVAHeader;
 import org.epics.pva.data.PVAAddress;
 import org.epics.pva.data.PVABool;
 import org.epics.pva.data.PVAString;
@@ -22,6 +23,9 @@ import org.epics.pva.server.Guid;
 @SuppressWarnings("nls")
 class SearchResponseDecoder
 {
+    /** Server's protocol version */
+    public final int version;
+
     /** Server GUID */
     public final Guid guid;
 
@@ -45,6 +49,14 @@ class SearchResponseDecoder
      */
     public SearchResponseDecoder(final int payload, final ByteBuffer buffer) throws Exception
     {
+        // Get 'version' from within the PV
+        int pos = buffer.position();
+        if (pos < PVAHeader.HEADER_SIZE)
+            throw new Exception("Cannot peek into PVA header of search reply, size is " + pos);
+        buffer.position(pos - PVAHeader.HEADER_SIZE);
+        version = buffer.get(1);
+        buffer.position(pos);
+
         // Expect GUID + seqID + IP address + port + "tcp" + found + count ( + int[count] )
         if (payload < 12 + 4 + 16 + 2 + 4 + 1 + 2)
             throw new Exception("PVA Server sent only " + payload + " bytes for search reply");

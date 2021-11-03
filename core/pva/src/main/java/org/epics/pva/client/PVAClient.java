@@ -150,7 +150,7 @@ public class PVAClient implements AutoCloseable
         final PVAChannel channel = new PVAChannel(this, channel_name, listener);
         channels_by_id.putIfAbsent(channel.getCID(), channel);
 
-        // TODO Start searching via TCP
+        // Search via TCP
         for (AddressInfo name_server : name_server_addresses)
         {
             logger.log(Level.FINE, "Using TCP name server " + name_server.getAddress());
@@ -173,16 +173,19 @@ public class PVAClient implements AutoCloseable
             {
                 final RequestEncoder search_request = (version, buffer) ->
                 {
-                    logger.log(Level.FINE, () -> this + " searching for " + channel);
+                    logger.log(Level.FINE, () -> "Searching for " + channel + " via TCP " + tcp.getRemoteAddress());
 
-                    final int seq = 0x9876;
-                    final InetSocketAddress response_address = new InetSocketAddress(0x99);
+                    // Share search seq. ID with UDP searches
+                    final int seq = ChannelSearch.search_sequence.incrementAndGet();
+                    // Use 'any' reply address since reply will be via this TCP socket
+                    final InetSocketAddress response_address = new InetSocketAddress(0);
                     SearchRequest.encode(true, seq, channel.getCID(), channel.getName(), response_address , buffer);
                 };
                 tcp.submit(search_request);
             }
         }
 
+        // Register with UDP search
         search.register(channel, true);
         return channel;
     }
@@ -236,7 +239,7 @@ public class PVAClient implements AutoCloseable
         search.boost();
     }
 
-    private void handleSearchResponse(final int channel_id, final InetSocketAddress server, final int version, final Guid guid)
+    void handleSearchResponse(final int channel_id, final InetSocketAddress server, final int version, final Guid guid)
     {
         // Generic server 'list' response?
         if (channel_id < 0)
@@ -285,7 +288,12 @@ public class PVAClient implements AutoCloseable
         // In case of connection errors (TCP connection blocked by firewall),
         // tcp will be null
         if (tcp != null)
+        {
+            if (tcp.updateGuid(guid))
+                logger.log(Level.FINE, "Search-only TCP handler received GUID, now " + tcp);
+
             channel.registerWithServer(tcp);
+        }
     }
 
     /** Called by {@link ClientTCPHandler} when connection is lost or closed because unused
