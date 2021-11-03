@@ -9,29 +9,31 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableColumn.CellDataFeatures;
+import javafx.scene.control.TreeTableRow;
 import javafx.scene.control.TreeTableView;
 import javafx.scene.control.cell.TextFieldTreeTableCell;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
+import javafx.util.StringConverter;
 import javafx.util.converter.DefaultStringConverter;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogService;
 import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.logbook.Property;
-import org.phoebus.logbook.PropertyImpl;
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 import org.phoebus.ui.javafx.Messages;
 
@@ -40,7 +42,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.concurrent.atomic.AtomicReference;
@@ -52,16 +53,16 @@ public class LogPropertiesEditorController {
      * List of properties user may add to log entry. It is constructed from the properties as
      * provided by the log service, plus optional properties providers, see {@link LogPropertyProvider}.
      */
-    private ObservableList<Property> availableProperties = FXCollections.observableArrayList();
+    private final ObservableList<Property> availableProperties = FXCollections.observableArrayList();
     /**
      * List of properties selected by user to be included in the log record.
      */
-    private ObservableList<Property> selectedProperties = FXCollections.observableArrayList();
+    private final ObservableList<Property> selectedProperties = FXCollections.observableArrayList();
     /**
      * List of hidden properties, e.g. properties that are added automatically to the log record,
      * but that should/must not be rendered in the properties view.
      */
-    private List<Property> hiddenProperties;
+    private final List<Property> hiddenProperties;
 
     @FXML
     TreeTableView<PropertyTreeNode> selectedPropertiesTree;
@@ -77,7 +78,7 @@ public class LogPropertiesEditorController {
     @FXML
     TableColumn propertyName;
 
-    private List<String> hiddenPropertiesNames = Arrays.asList(LogbookUIPreferences.hidden_properties);
+    private final List<String> hiddenPropertiesNames = Arrays.asList(LogbookUIPreferences.hidden_properties);
 
     /**
      * @param properties A collection of {@link Property}s.
@@ -110,7 +111,7 @@ public class LogPropertiesEditorController {
         value.setEditable(true);
 
         value.setCellFactory((Callback<TreeTableColumn<PropertyTreeNode, String>, TreeTableCell<PropertyTreeNode, String>>) param ->
-                new TextFieldTreeTableCell<>(new DefaultStringConverter()));
+                new PropertyValueTreeTableCell(new DefaultStringConverter()));
 
         // Hide the headers
         selectedPropertiesTree.widthProperty().addListener(new ChangeListener<Number>() {
@@ -162,23 +163,15 @@ public class LogPropertiesEditorController {
     }
 
     /**
-     * @return The list of log entry properties
+     * @return The list of log entry properties. This may contain hidden properties, i.e.
+     * properties not rendered in the UI.
      */
     public List<Property> getProperties() {
-        List<Property> treeProperties = new ArrayList<>();
-        // Add the hidden properties
-        treeProperties.addAll(hiddenProperties);
         if (selectedPropertiesTree.getRoot() == null) {
-            return treeProperties;
+            return hiddenProperties;
         }
-        selectedPropertiesTree.getRoot().getChildren().stream().forEach(node -> {
-            Map<String, String> att = node.getChildren().stream()
-                    .map(TreeItem::getValue)
-                    .collect(Collectors.toMap(PropertyTreeNode::getName, PropertyTreeNode::getValue));
-            Property property = PropertyImpl.of(node.getValue().getName(), att);
-            treeProperties.add(property);
-        });
-        return treeProperties;
+        selectedProperties.addAll(hiddenProperties);
+        return selectedProperties;
     }
 
     /**
@@ -203,7 +196,7 @@ public class LogPropertiesEditorController {
         }
     }
 
-    private static class PropertyTreeNode {
+    private class PropertyTreeNode {
         private SimpleStringProperty name;
         private SimpleStringProperty value;
 
@@ -340,6 +333,59 @@ public class LogPropertiesEditorController {
                         .otherwise((ContextMenu) null));
                 setText(item);
             }
+        }
+    }
+
+    private class PropertyValueTreeTableCell extends TextFieldTreeTableCell<PropertyTreeNode, String> {
+
+        private final TextField textField = new TextField();
+
+        PropertyValueTreeTableCell(StringConverter stringConverter) {
+            super(stringConverter);
+            textField.setText(getItem());
+            textField.setOnKeyReleased((KeyEvent t) -> {
+                if (t.getCode() == KeyCode.ENTER) {
+                    commitEdit(textField.getText());
+                } else if (t.getCode() == KeyCode.ESCAPE) {
+                    cancelEdit();
+                }
+            });
+        }
+
+        @Override
+        public void commitEdit(String value) {
+            super.commitEdit(value);
+            TreeTableRow row = getTreeTableRow();
+            PropertyTreeNode parent = (PropertyTreeNode) row.getTreeItem().getParent().getValue();
+            String propertyName = parent.getName();
+            String attributeName = ((PropertyTreeNode) row.getTreeItem().getValue()).getName();
+            // Update the model too!
+            for (Property p : selectedProperties) {
+                if (!p.getName().equals(propertyName)) {
+                    continue;
+                }
+                if (p.getAttributes().containsKey(attributeName)) {
+                    p.getAttributes().put(attributeName, value);
+                    // Should be OK to break here
+                    break;
+                }
+            }
+        }
+
+        @Override
+        public void startEdit() {
+            super.startEdit();
+            setGraphic(textField);
+            textField.selectAll();
+            textField.requestFocus();
+        }
+
+        @Override
+        public void cancelEdit(){
+            super.cancelEdit();
+            // Make sure the unedited value is set in order to keep the
+            // text field content consistent.
+            textField.setText(getItem());
         }
     }
 }
