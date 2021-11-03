@@ -26,7 +26,6 @@ import org.epics.pva.common.SearchRequest;
 import org.epics.pva.common.UDPHandler;
 import org.epics.pva.data.Hexdump;
 import org.epics.pva.data.PVAAddress;
-import org.epics.pva.data.PVABool;
 import org.epics.pva.data.PVAFieldDesc;
 import org.epics.pva.data.PVAString;
 import org.epics.pva.server.Guid;
@@ -295,59 +294,26 @@ class ClientUDPHandler extends UDPHandler
     private boolean handleSearchReply(final InetSocketAddress from, final byte version,
                                       final int payload, final ByteBuffer buffer)
     {
-        // Expect GUID + ID + UP + port + "tcp" + found + count
-        if (payload < 12 + 4 + 16 + 2 + 4 + 1 + 2)
-        {
-            logger.log(Level.WARNING, "PVA Server " + from + " sent only " + payload + " bytes for search reply");
-            return false;
-        }
-
-        // Server GUID
-        final Guid guid = new Guid(buffer);
-
-        // Search Sequence ID
-        final int seq = buffer.getInt();
-
-        // Server's address and port
-        final InetAddress addr;
         try
         {
-            addr = PVAAddress.decode(buffer);
+            final SearchResponseDecoder response = new SearchResponseDecoder(payload, buffer);
+
+            // Did server sent specific address? Otherwise use remote address
+            InetSocketAddress server = response.server;
+            if (server.getAddress().isAnyLocalAddress())
+                server = new InetSocketAddress(from.getAddress(), server.getPort());
+
+            // Server may reply with list of PVs that it does _not_ have...
+            if (! response.found)
+                search_response.handleSearchResponse(-1, server, version, response.guid);
+            else
+                for (int cid : response.cid)
+                    search_response.handleSearchResponse(cid, server, version, response.guid);
         }
         catch (Exception ex)
         {
-            logger.log(Level.WARNING, "PVA Server " + from + " sent search reply with invalid address");
+            logger.log(Level.WARNING, "PVA Server " + from + " sent invalid search reply", ex);
             return false;
-        }
-        final int port = Short.toUnsignedInt(buffer.getShort());
-
-        // Use address from reply unless it's a generic local address
-        final InetSocketAddress server;
-        if (addr.isAnyLocalAddress())
-            server = new InetSocketAddress(from.getAddress(), port);
-        else
-            server = new InetSocketAddress(addr, port);
-
-        final String protocol = PVAString.decodeString(buffer);
-        if (! "tcp".equals(protocol))
-        {
-            logger.log(Level.WARNING, "PVA Server " + from + " sent search reply #" + seq + " for protocol '" + protocol + "'");
-            return false;
-        }
-
-        // Server may reply with list of PVs that it does _not_ have...
-        final boolean found = PVABool.decodeBoolean(buffer);
-        if (! found)
-        {
-            search_response.handleSearchResponse(-1, server, version, guid);
-            return true;
-        }
-
-        final int count = Short.toUnsignedInt(buffer.getShort());
-        for (int i=0; i<count; ++i)
-        {
-            final int cid = buffer.getInt();
-            search_response.handleSearchResponse(cid, server, version, guid);
         }
 
         return true;

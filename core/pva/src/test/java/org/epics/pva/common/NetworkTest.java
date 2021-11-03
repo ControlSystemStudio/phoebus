@@ -36,20 +36,20 @@ public class NetworkTest
     @Test
     public void testIPv4() throws Exception
     {
-        AddressInfo addr = Network.parseAddress("127.0.0.1");
+        AddressInfo addr = Network.parseAddress("127.0.0.1", PVASettings.EPICS_PVA_BROADCAST_PORT);
         System.out.println(addr);
         assertEquals("127.0.0.1", addr.getAddress().getHostString());
         assertEquals(PVASettings.EPICS_PVA_BROADCAST_PORT, addr.getAddress().getPort());
         assertFalse(addr.isBroadcast());
 
-        addr = Network.parseAddress("127.0.0.1:5086");
+        addr = Network.parseAddress("127.0.0.1:5086", PVASettings.EPICS_PVA_BROADCAST_PORT);
         System.out.println(addr);
         assertEquals("127.0.0.1", addr.getAddress().getHostString());
         assertEquals(5086, addr.getAddress().getPort());
         assertFalse(addr.isBroadcast());
 
 
-        addr = Network.parseAddress("224.0.2.3@127.0.0.1");
+        addr = Network.parseAddress("224.0.2.3@127.0.0.1", PVASettings.EPICS_PVA_BROADCAST_PORT);
         System.out.println(addr);
         assertEquals("224.0.2.3", addr.getAddress().getHostString());
         assertTrue(addr.getAddress().getAddress().isMulticastAddress());
@@ -62,7 +62,7 @@ public class NetworkTest
         assertTrue(iface_addr.contains("127.0.0.1"));
         assertFalse(addr.isBroadcast());
 
-        addr = Network.parseAddress("127.0.0.255");
+        addr = Network.parseAddress("127.0.0.255", PVASettings.EPICS_PVA_BROADCAST_PORT);
         System.out.println(addr);
         assertEquals("127.0.0.255", addr.getAddress().getHostString());
         assertTrue(addr.isBroadcast());
@@ -71,29 +71,29 @@ public class NetworkTest
     @Test
     public void testIPv6() throws Exception
     {
-        AddressInfo addr = Network.parseAddress("[::1]");
+        AddressInfo addr = Network.parseAddress("[::1]", PVASettings.EPICS_PVA_BROADCAST_PORT);
         System.out.println(addr);
         assertEquals("0:0:0:0:0:0:0:1", addr.getAddress().getHostString());
         assertEquals(PVASettings.EPICS_PVA_BROADCAST_PORT, addr.getAddress().getPort());
         assertFalse(addr.isBroadcast());
 
-        addr = Network.parseAddress("::1");
+        addr = Network.parseAddress("::1", 9876);
         System.out.println(addr);
         assertEquals("0:0:0:0:0:0:0:1", addr.getAddress().getHostString());
-        assertEquals(PVASettings.EPICS_PVA_BROADCAST_PORT, addr.getAddress().getPort());
+        assertEquals(9876, addr.getAddress().getPort());
         assertFalse(addr.isBroadcast());
 
-        addr = Network.parseAddress("[::1]:5086");
+        addr = Network.parseAddress("[::1]:5086", PVASettings.EPICS_PVA_BROADCAST_PORT+2);
         System.out.println(addr);
         assertEquals("0:0:0:0:0:0:0:1", addr.getAddress().getHostString());
         assertEquals(5086, addr.getAddress().getPort());
         assertFalse(addr.isBroadcast());
 
-        addr = Network.parseAddress("ff02::42:1");
+        addr = Network.parseAddress("ff02::42:1", PVASettings.EPICS_PVA_BROADCAST_PORT+3);
         System.out.println(addr);
         assertEquals("ff02:0:0:0:0:0:42:1", addr.getAddress().getHostString());
         assertTrue(addr.getAddress().getAddress().isMulticastAddress());
-        assertEquals(PVASettings.EPICS_PVA_BROADCAST_PORT, addr.getAddress().getPort());
+        assertEquals(PVASettings.EPICS_PVA_BROADCAST_PORT+3, addr.getAddress().getPort());
         assertFalse(addr.isBroadcast());
 
         final NetworkInterface lo = Network.getLoopback();
@@ -101,7 +101,7 @@ public class NetworkTest
             System.out.println("Skipping loopback test");
         else
         {
-            addr = Network.parseAddress("[ff02::42:1]:5099@" + lo.getDisplayName());
+            addr = Network.parseAddress("[ff02::42:1]:5099@" + lo.getDisplayName(), PVASettings.EPICS_PVA_BROADCAST_PORT);
             System.out.println(addr);
             assertEquals("ff02:0:0:0:0:0:42:1", addr.getAddress().getHostString());
             assertTrue(addr.getAddress().getAddress().isMulticastAddress());
@@ -122,7 +122,7 @@ public class NetworkTest
     {
         final String spec = "0.0.0.0 :: 224.0.1.1,1@127.0.0.1 [ff02::42:1],1@::1";
         System.out.println("Result of parsing '" + spec + "':");
-        final List<AddressInfo> infos = Network.parseAddresses(spec);
+        final List<AddressInfo> infos = Network.parseAddresses(spec, PVASettings.EPICS_PVA_BROADCAST_PORT);
         for (AddressInfo info : infos)
             System.out.println(info);
         assertEquals(4, infos.size());

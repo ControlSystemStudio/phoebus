@@ -62,7 +62,7 @@ class ServerUDPHandler extends UDPHandler
     {
         this.search_handler = search_handler;
 
-        for (AddressInfo info : Network.parseAddresses(PVASettings.EPICS_PVAS_INTF_ADDR_LIST))
+        for (AddressInfo info : Network.parseAddresses(PVASettings.EPICS_PVAS_INTF_ADDR_LIST, PVASettings.EPICS_PVAS_BROADCAST_PORT))
         {
             // First should be non-multicast addresses that create the IPv4 and/or IPv6 channel
             if (! info.getAddress().getAddress().isMulticastAddress())

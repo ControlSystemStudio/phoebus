@@ -42,7 +42,8 @@ import org.epics.pva.server.Guid;
 class ClientTCPHandler extends TCPHandler
 {
     private static final CommandHandlers<ClientTCPHandler> handlers =
-        new CommandHandlers<>(new ValidationHandler(),
+        new CommandHandlers<>(new SearchResponseHandler(),
+                              new ValidationHandler(),
                               new ValidatedHandler(),
                               new EchoHandler(),
                               new CreateChannelHandler(),
@@ -126,7 +127,6 @@ class ClientTCPHandler extends TCPHandler
         socket.socket().setKeepAlive(true);
         return socket;
     }
-
 
     /** @return Client context */
     PVAClient getClient()

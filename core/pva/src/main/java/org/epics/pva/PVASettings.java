@@ -71,6 +71,14 @@ public class PVASettings
      */
     public static boolean EPICS_PVA_AUTO_ADDR_LIST = true;
 
+    /** List of TCP name servers
+     *
+     *  Space separated list of addresses, each with optional port.
+     *  To search for channels, client will connect to each one via TCP
+     *  and send the search request.
+     */
+    public static String EPICS_PVA_NAME_SERVERS = "";
+
     /** PVA client port for sending name searches and receiving beacons */
     public static int EPICS_PVA_BROADCAST_PORT = 5076;
 
@@ -160,6 +168,7 @@ public class PVASettings
     {
         EPICS_PVA_ADDR_LIST = get("EPICS_PVA_ADDR_LIST", EPICS_PVA_ADDR_LIST);
         EPICS_PVA_AUTO_ADDR_LIST = get("EPICS_PVA_AUTO_ADDR_LIST", EPICS_PVA_AUTO_ADDR_LIST);
+        EPICS_PVA_NAME_SERVERS = get("EPICS_PVA_NAME_SERVERS", EPICS_PVA_NAME_SERVERS);
         EPICS_PVA_SERVER_PORT = get("EPICS_PVA_SERVER_PORT", EPICS_PVA_SERVER_PORT);
         EPICS_PVAS_INTF_ADDR_LIST = get("EPICS_PVAS_INTF_ADDR_LIST", EPICS_PVAS_INTF_ADDR_LIST).trim();
         EPICS_PVA_BROADCAST_PORT = get("EPICS_PVA_BROADCAST_PORT", EPICS_PVA_BROADCAST_PORT);
