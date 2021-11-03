@@ -225,14 +225,16 @@ public class AttachmentsPreviewController {
     /**
      * Shows image preview in preview pane. The size of the {@link ImageView} is calculated based on
      * the size of the preview pane and the actual image size such that the complete image is always shown.
-     * TODO: Viewing the image in original resolution should be implemented as a separate action, e.g. double
-     * click image attachment in list.
      *
      * @param attachment
      */
     private void showImagePreview(Attachment attachment) {
         try {
             BufferedImage bufferedImage = ImageIO.read(attachment.getFile());
+            // BufferedImage may be null due to lazy loading strategy.
+            if(bufferedImage == null){
+                return;
+            }
             Image image = SwingFXUtils.toFXImage(bufferedImage, null);
             imagePreview.visibleProperty().setValue(true);
             textPreview.visibleProperty().setValue(false);

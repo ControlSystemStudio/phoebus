@@ -5,6 +5,7 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -19,9 +20,13 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
@@ -30,6 +35,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
 import javafx.util.Duration;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.LogClient;
@@ -43,6 +49,7 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -67,8 +74,13 @@ public class LogEntryTableViewController extends LogbookSearchController {
     private GridPane ViewSearchPane;
 
     // elements related to the table view of the log entires
+    //@FXML
+    //private TreeView<LogEntry> treeView;
+    // elements related to the table view of the log entires
     @FXML
-    private TreeView<LogEntry> treeView;
+    private TableView<LogEntry> tableView;
+    @FXML
+    private TableColumn<LogEntry, LogEntry> descriptionCol;
     @FXML
     private LogEntryDisplayController logEntryDisplayController;
     @FXML
@@ -127,6 +139,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 .collect(Collectors.joining("&"))));
 
         // The log entry tree.
+        /*
         treeView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<TreeItem<LogEntry>>() {
             @Override
             public void changed(ObservableValue<? extends TreeItem<LogEntry>> observable, TreeItem<LogEntry> oldValue, TreeItem<LogEntry> newValue) {
@@ -142,6 +155,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
         treeView.setCellFactory(tv -> new LogEntryTreeCell());
         treeView.getStylesheets().add(this.getClass().getResource("/tree_view.css").toExternalForm());
 
+         */
+
         // Bind ENTER key press to search
         query.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.ENTER) {
@@ -149,9 +164,12 @@ public class LogEntryTableViewController extends LogbookSearchController {
             }
         });
 
+        /*
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         treeView.setRoot(rootItem);
         treeView.setShowRoot(false);
+
+         */
 
         MenuItem groupSelectedEntries = new MenuItem(Messages.GroupSelectedEntries);
         groupSelectedEntries.setOnAction(e -> {
@@ -162,11 +180,59 @@ public class LogEntryTableViewController extends LogbookSearchController {
                         selectedLogEntries.size() < 2, selectedLogEntries));
         ContextMenu contextMenu = new ContextMenu();
         contextMenu.getItems().add(groupSelectedEntries);
-        treeView.setContextMenu(contextMenu);
+        //treeView.setContextMenu(contextMenu);
+
+        // The display table.
+        tableView.getColumns().clear();
+        tableView.setEditable(false);
+        tableView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<>() {
+            @Override
+            public void changed(ObservableValue<? extends LogEntry> observable, LogEntry oldValue, LogEntry newValue) {
+                logEntryDisplayController.setLogEntry(newValue);
+            }
+        });
+
+        tableView.getStylesheets().add(this.getClass().getResource("/tree_view.css").toExternalForm());
+
+        descriptionCol = new TableColumn<>();
+        descriptionCol.setMaxWidth(1f * Integer.MAX_VALUE * 100);
+        descriptionCol.setCellValueFactory(col -> new SimpleObjectProperty(col.getValue()));
+        descriptionCol.setCellFactory(col -> {
+
+            return new TableCell<>() {
+                private Node graphic;
+                private LogEntryCellController controller;
+
+                {
+                    try {
+                        FXMLLoader loader = new FXMLLoader(getClass().getResource("LogEntryCell.fxml"));
+                        graphic = loader.load();
+                        controller = loader.getController();
+                    } catch (IOException exc) {
+                        throw new RuntimeException(exc);
+                    }
+                }
+
+                @Override
+                public void updateItem(LogEntry logEntry, boolean empty) {
+                    super.updateItem(logEntry, empty);
+                    if (empty) {
+                        setGraphic(null);
+                    } else {
+                        controller.setLogEntry(logEntry);
+                        setGraphic(graphic);
+                    }
+                }
+            };
+        });
+
+        tableView.getColumns().add(descriptionCol);
+        tableView.setPlaceholder(new Label(Messages.NoSearchResults));
 
         progressIndicator.visibleProperty().bind(searchInProgress);
         searchInProgress.addListener((observable, oldValue, newValue) -> {
-            treeView.setDisable(newValue.booleanValue());
+            //treeView.setDisable(newValue.booleanValue());
+            tableView.setDisable(newValue.booleanValue());
         });
 
         searchDescendingImageView.setImage(ImageCache.getImage(LogEntryTableViewController.class, "/icons/arrow_down.png"));
@@ -232,7 +298,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
     private void search() {
         searchInProgress.set(true);
         // parse the various time representations to Instant
-        treeView.getSelectionModel().clearSelection();
+        //treeView.getSelectionModel().clearSelection();
+        tableView.getSelectionModel().clearSelection();
         // Determine sort order
         String searchStringWithSortOrder = LogbookQueryUtil.addSortOrder(query.getText(), sortAscending.get());
         query.textProperty().set(searchStringWithSortOrder);
@@ -258,10 +325,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     private void refresh() {
         if (logEntries != null) {
-            ObservableList<TreeItem<LogEntry>> tree =
-                    LogEntryTreeHelper.createTree(logEntries, sortAscending.get());
-            rootItem.getChildren().setAll(tree);
-            treeView.getSelectionModel().selectFirst();
+            ObservableList<LogEntry> logsList = FXCollections.observableArrayList();
+            logsList.addAll(new ArrayList<>(logEntries));
+            tableView.setItems(logsList);
         }
     }
 
@@ -325,7 +391,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
             logger.log(Level.INFO, "Unable to create log entry group from selection");
             final Alert dialog = new Alert(AlertType.INFORMATION);
             dialog.setHeaderText("Cannot create log entry group. Selected list of log entries references more than one existing group.");
-            DialogHelper.positionDialog(dialog, treeView, 0, 0);
+            DialogHelper.positionDialog(dialog, tableView /*treeView*/, 0, 0);
             dialog.showAndWait();
         }
     }

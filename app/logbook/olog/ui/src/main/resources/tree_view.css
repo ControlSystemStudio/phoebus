@@ -1,23 +1,22 @@
-.tree-cell{
-    -fx-padding: 0px 0px 0px 5px;
+/* Styling of all rows/cells */
+.table-row-cell{
+    -fx-background-color: white; /* All rows to have white background, by default TableView alternates between white and grey */
+    -fx-border-color: transparent transparent #e4e4e4 transparent; /* Use a grey border at bottom each item */
 }
 
-.tree-cell .tree-disclosure-node {
-    -fx-padding: 9px 0px 0px 7px;
+/* Sets background on selected item */
+.table-row-cell:selected {
+    -fx-background-color: #00A8ce;
 }
 
-.tree-cell:childless-top-level {
-    -fx-padding: 0px 0px 0px 0px;
-}
-
-.tree-cell:child {
-    -fx-background-color: #e8edee;
-}
-
-.tree-cell:selected {
-    -fx-background-color: #0098ce;
-}
-
-.tree-cell:empty {
+/* Make empty cells appear as removed */
+.table-row-cell:empty {
     -fx-background-color: white;
+    -fx-border-color: transparent;
+}
+
+/* Hide column header */
+.column-header-background {
+    visibility: hidden; /* Visibility only, you also need ...*/
+    -fx-padding: -1em;  /* ... to "collapse" the header */
 }

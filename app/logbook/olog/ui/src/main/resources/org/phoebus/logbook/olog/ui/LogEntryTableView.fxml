@@ -84,7 +84,14 @@
                                         <VBox alignment="CENTER">
                                             <ProgressIndicator fx:id="progressIndicator" />
                                         </VBox>
-                                        <TreeView fx:id="treeView" />
+                                        <TableView fx:id="tableView" GridPane.columnSpan="4" GridPane.rowIndex="1" VBox.vgrow="ALWAYS">
+                                            <columns>
+                                                <TableColumn fx:id="descriptionCol" maxWidth="4000.0"/>
+                                            </columns>
+                                            <columnResizePolicy>
+                                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                            </columnResizePolicy>
+                                        </TableView>
                                     </children>
                                 </StackPane>
                             </children>
