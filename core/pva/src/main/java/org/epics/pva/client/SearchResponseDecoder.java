@@ -53,9 +53,7 @@ class SearchResponseDecoder
         int pos = buffer.position();
         if (pos < PVAHeader.HEADER_SIZE)
             throw new Exception("Cannot peek into PVA header of search reply, size is " + pos);
-        buffer.position(pos - PVAHeader.HEADER_SIZE);
-        version = buffer.get(1);
-        buffer.position(pos);
+        version = buffer.get(pos + 1 - PVAHeader.HEADER_SIZE);
 
         // Expect GUID + seqID + IP address + port + "tcp" + found + count ( + int[count] )
         if (payload < 12 + 4 + 16 + 2 + 4 + 1 + 2)
