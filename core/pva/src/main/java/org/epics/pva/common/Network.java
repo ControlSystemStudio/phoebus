@@ -183,7 +183,7 @@ public class Network
      *  @param search_list String with space-separated list of addresses
      *  @param default_port Port to use when address 'search_list' entry does not specify one
      *  @return {@link InetSocketAddress} list
-     *  @see #parseAddress(String)
+     *  @see #parseAddress(String, int)
      */
     public static List<AddressInfo> parseAddresses(final String search_list, final int default_port)
     {

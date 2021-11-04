@@ -44,6 +44,7 @@ public class SearchResponse
      *
      *  @param payload Size of valid payload (may be less than buffer.remaining())
      *  @param buffer {@link ByteBuffer}
+     *  @return {@link SearchResponse}
      *  @throws Exception on error
      */
     public static SearchResponse decode(final int payload, final ByteBuffer buffer) throws Exception

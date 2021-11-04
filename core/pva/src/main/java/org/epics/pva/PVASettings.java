@@ -55,7 +55,6 @@ public class PVASettings
      *  but note that a network interface must be provided via
      *  `[ff02::42:1]@iface`, the client will not automatically multicast
      *  on each network interface.
-     *  </pre>
      */
     public static String EPICS_PVA_ADDR_LIST = "";
 
