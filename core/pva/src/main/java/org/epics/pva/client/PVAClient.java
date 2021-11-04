@@ -175,10 +175,14 @@ public class PVAClient implements AutoCloseable
                 {
                     logger.log(Level.FINE, () -> "Searching for " + channel + " via TCP " + tcp.getRemoteAddress());
 
-                    // Share search seq. ID with UDP searches
-                    final int seq = ChannelSearch.search_sequence.incrementAndGet();
+                    // Search sequence identifies the potentially repeated UDP.
+                    // TCP search is once only, so PVXS always sends 0x66696E64 = "find".
+                    // We send "look".
+                    final int seq = 0x6C6F6F6B;
+
                     // Use 'any' reply address since reply will be via this TCP socket
                     final InetSocketAddress response_address = new InetSocketAddress(0);
+                    
                     SearchRequest.encode(true, seq, channel.getCID(), channel.getName(), response_address , buffer);
                 };
                 tcp.submit(search_request);

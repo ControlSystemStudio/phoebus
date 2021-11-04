@@ -64,7 +64,7 @@ class ChannelSearch
     }
 
     /** Search request sequence number */
-    static final AtomicInteger search_sequence = new AtomicInteger();
+    private static final AtomicInteger search_sequence = new AtomicInteger();
 
     private final ClientUDPHandler udp;
 
