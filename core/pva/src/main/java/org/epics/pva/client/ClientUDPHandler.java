@@ -23,6 +23,7 @@ import org.epics.pva.common.AddressInfo;
 import org.epics.pva.common.Network;
 import org.epics.pva.common.PVAHeader;
 import org.epics.pva.common.SearchRequest;
+import org.epics.pva.common.SearchResponse;
 import org.epics.pva.common.UDPHandler;
 import org.epics.pva.data.Hexdump;
 import org.epics.pva.data.PVAAddress;
@@ -296,7 +297,7 @@ class ClientUDPHandler extends UDPHandler
     {
         try
         {
-            final SearchResponseDecoder response = new SearchResponseDecoder(payload, buffer);
+            final SearchResponse response = SearchResponse.decode(payload, buffer);
 
             // Did server sent specific address? Otherwise use remote address
             InetSocketAddress server = response.server;

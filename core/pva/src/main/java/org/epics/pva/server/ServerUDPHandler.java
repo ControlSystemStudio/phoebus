@@ -22,11 +22,10 @@ import org.epics.pva.common.AddressInfo;
 import org.epics.pva.common.Network;
 import org.epics.pva.common.PVAHeader;
 import org.epics.pva.common.SearchRequest;
+import org.epics.pva.common.SearchResponse;
 import org.epics.pva.common.UDPHandler;
 import org.epics.pva.data.Hexdump;
 import org.epics.pva.data.PVAAddress;
-import org.epics.pva.data.PVABool;
-import org.epics.pva.data.PVAString;
 
 /** Listen to search requests, send beacons
  *  @author Kay Kasemir
@@ -34,7 +33,7 @@ import org.epics.pva.data.PVAString;
 @SuppressWarnings("nls")
 class ServerUDPHandler extends UDPHandler
 {
-    private final SearchHandler search_handler;
+    private final PVAServer server;
 
     /** UDP channels on which we listen to name searches,
      *  reply to them,
@@ -55,12 +54,12 @@ class ServerUDPHandler extends UDPHandler
 
 
     /** Start handling UDP search requests
-     *  @param search_handler Callback for received name searches
+     *  @param server PVA Server
      *  @throws Exception on error
      */
-    public ServerUDPHandler(final SearchHandler search_handler) throws Exception
+    public ServerUDPHandler(final PVAServer server) throws Exception
     {
-        this.search_handler = search_handler;
+        this.server = server;
 
         for (AddressInfo info : Network.parseAddresses(PVASettings.EPICS_PVAS_INTF_ADDR_LIST, PVASettings.EPICS_PVAS_BROADCAST_PORT))
         {
@@ -178,7 +177,7 @@ class ServerUDPHandler extends UDPHandler
         {
             if (search.reply_required)
             {   // pvlist request
-                final boolean handled = search_handler.handleSearchRequest(0, -1, null, search.client);
+                final boolean handled = server.handleSearchRequest(0, -1, null, search.client, null);
                 if (! handled  &&  search.unicast)
                     PVAServer.POOL.submit(() -> forwardSearchRequest(0, -1, null, search.client));
             }
@@ -189,7 +188,7 @@ class ServerUDPHandler extends UDPHandler
             {
                 final int cid = search.cid[i];
                 final String name = search.name[i];
-                final boolean handled = search_handler.handleSearchRequest(search.seq, cid, name, search.client);
+                final boolean handled = server.handleSearchRequest(search.seq, cid, name, search.client, null);
                 if (! handled && search.unicast)
                     PVAServer.POOL.submit(() -> forwardSearchRequest(search.seq, cid, name, search.client));
             }
@@ -245,35 +244,9 @@ class ServerUDPHandler extends UDPHandler
         synchronized (send_buffer)
         {
             send_buffer.clear();
-            PVAHeader.encodeMessageHeader(send_buffer, PVAHeader.FLAG_SERVER, PVAHeader.CMD_SEARCH_RESPONSE, 12+4+16+2+4+1+2+ (cid < 0 ? 0 : 4));
-
-            // Server GUID
-            guid.encode(send_buffer);
-
-            // Search Sequence ID
-            send_buffer.putInt(seq);
-
-            // Server's address and port
-            PVAAddress.encode(tcp.response_address, send_buffer);
-            send_buffer.putShort((short)tcp.response_port);
-
-            // Protocol
-            PVAString.encodeString("tcp", send_buffer);
-
-            // Found
-            PVABool.encodeBoolean(cid >= 0, send_buffer);
-
-            // int[] cid;
-            if (cid < 0)
-                send_buffer.putShort((short)0);
-            else
-            {
-                send_buffer.putShort((short)1);
-                send_buffer.putInt(cid);
-            }
-
+            SearchResponse.encode(guid, seq, cid, tcp.response_address, tcp.response_port, send_buffer);
             send_buffer.flip();
-            logger.log(Level.FINER, () -> "Sending search reply to " + client + "\n" + Hexdump.toHexdump(send_buffer));
+            logger.log(Level.FINER, () -> "Sending UDP search reply to " + client + "\n" + Hexdump.toHexdump(send_buffer));
 
             try
             {

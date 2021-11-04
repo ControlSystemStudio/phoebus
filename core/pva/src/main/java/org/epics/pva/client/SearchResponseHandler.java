@@ -15,6 +15,7 @@ import java.util.logging.Level;
 
 import org.epics.pva.common.CommandHandler;
 import org.epics.pva.common.PVAHeader;
+import org.epics.pva.common.SearchResponse;
 
 /** Handle a server's SEARCH reply
  *
@@ -36,10 +37,10 @@ class SearchResponseHandler implements CommandHandler<ClientTCPHandler>
     @Override
     public void handleCommand(final ClientTCPHandler tcp, final ByteBuffer buffer) throws Exception
     {
-        final SearchResponseDecoder response;
+        final SearchResponse response;
         try
         {
-            response = new SearchResponseDecoder(buffer.remaining(), buffer);
+            response = SearchResponse.decode(buffer.remaining(), buffer);
         }
         catch (Exception ex)
         {

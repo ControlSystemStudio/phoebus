@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,12 +9,15 @@ package org.epics.pva.server;
 
 import static org.epics.pva.PVASettings.logger;
 
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.logging.Level;
 
 import org.epics.pva.common.CommandHandlers;
 import org.epics.pva.common.PVAHeader;
+import org.epics.pva.common.RequestEncoder;
+import org.epics.pva.common.SearchResponse;
 import org.epics.pva.common.TCPHandler;
 import org.epics.pva.data.PVASize;
 import org.epics.pva.data.PVAString;
@@ -29,6 +32,7 @@ class ServerTCPHandler extends TCPHandler
     /** Handlers for various commands, re-used whenever a command is received */
     private static final CommandHandlers<ServerTCPHandler> handlers =
         new CommandHandlers<>(new ValidationHandler(),
+                              new SearchCommandHandler(),
                               new EchoHandler(),
                               new CreateChannelHandler(),
                               new GetHandler(),
@@ -129,5 +133,16 @@ class ServerTCPHandler extends TCPHandler
     {
         if (!handlers.handleCommand(command, this, buffer))
             super.handleApplicationMessage(command, buffer);
+    }
+
+    void submitSearchReply(final Guid guid, final int seq, final int cid)
+    {
+        final RequestEncoder encoder = (version, buffer) ->
+        {
+            logger.log(Level.FINER, "Sending TCP search reply");
+            final InetSocketAddress any = new InetSocketAddress(0);
+            SearchResponse.encode(guid, seq, cid, any.getAddress(), any.getPort(), buffer);
+        };
+        submit(encoder);
     }
 }

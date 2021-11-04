@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -126,6 +126,9 @@ public class PVAHeader
 
     /** Size of common PVA message header */
     public static final int HEADER_SIZE = 8;
+
+    /** Offset from start of common PVA message header to byte version */
+    public static final int HEADER_OFFSET_VERSION = 1;
 
     /** Offset from start of common PVA message header to int payload_size */
     public static final int HEADER_OFFSET_PAYLOAD_SIZE = 4;
