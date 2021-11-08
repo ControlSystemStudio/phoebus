@@ -55,7 +55,6 @@ public class PVASettings
      *  but note that a network interface must be provided via
      *  `[ff02::42:1]@iface`, the client will not automatically multicast
      *  on each network interface.
-     *  </pre>
      */
     public static String EPICS_PVA_ADDR_LIST = "";
 
@@ -70,6 +69,22 @@ public class PVASettings
      *  variables.
      */
     public static boolean EPICS_PVA_AUTO_ADDR_LIST = true;
+
+    /** List of TCP name servers
+     *
+     *  Space separated list of addresses, each with optional port.
+     *  To search for channels, client will connect to each one via TCP
+     *  and send the search request.
+     *
+     *  <p>Example entries:
+     *
+     *  <pre>
+     *  192.168.10.20    Send name lookups to that IPv4 TCP address at EPICS_PVA_SERVER_PORT (default 5075)
+     *  ::1              Search to IPv6 localhost at EPICS_PVA_SERVER_PORT
+     *  [::1]:9876       Same with non-standard port
+     *  </pre>
+     */
+    public static String EPICS_PVA_NAME_SERVERS = "";
 
     /** PVA client port for sending name searches and receiving beacons */
     public static int EPICS_PVA_BROADCAST_PORT = 5076;
@@ -160,6 +175,7 @@ public class PVASettings
     {
         EPICS_PVA_ADDR_LIST = get("EPICS_PVA_ADDR_LIST", EPICS_PVA_ADDR_LIST);
         EPICS_PVA_AUTO_ADDR_LIST = get("EPICS_PVA_AUTO_ADDR_LIST", EPICS_PVA_AUTO_ADDR_LIST);
+        EPICS_PVA_NAME_SERVERS = get("EPICS_PVA_NAME_SERVERS", EPICS_PVA_NAME_SERVERS);
         EPICS_PVA_SERVER_PORT = get("EPICS_PVA_SERVER_PORT", EPICS_PVA_SERVER_PORT);
         EPICS_PVAS_INTF_ADDR_LIST = get("EPICS_PVAS_INTF_ADDR_LIST", EPICS_PVAS_INTF_ADDR_LIST).trim();
         EPICS_PVA_BROADCAST_PORT = get("EPICS_PVA_BROADCAST_PORT", EPICS_PVA_BROADCAST_PORT);

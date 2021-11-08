@@ -61,6 +61,9 @@ Key configuration parameters:
 
 `EPICS_PVA_AUTO_ADDR_LIST`: 'YES' (default) or 'NO'. 
 
+`EPICS_PVA_NAME_SERVERS`: Space-separated list of TCP name servers, provided as IP address followed by optional ":port". Client will connect to each address and send name searches before using the `EPICS_PVA_ADDR_LIST` for UDP searches.
+Set `EPICS_PVA_ADDR_LIST` to empty and `EPICS_PVA_AUTO_ADDR_LIST=NO` to use only the TCP name servers and avoid all UDP traffic. This is a client-side option. Server will always allow search messages via its TCP port.
+
 `EPICS_PVA_BROADCAST_PORT`: PVA client UDP port (default 5076) for sending name searches and receiving beacons.
 
 `EPICS_PVAS_BROADCAST_PORT`: PVA server UDP port (default 5076) for name searches and beacons.
@@ -100,9 +103,9 @@ IPv6 Support
 
 Both the server and client support IPv6, which at this time needs to be enabled
 by configuring the `EPICS_PVAS_INTF_ADDR_LIST` of the server respectively the
-`EPICS_PVA_ADDR_LIST` of the client to provide the desired IPv6 addresses.
+`EPICS_PVA_ADDR_LIST` and/or `EPICS_PVA_NAME_SERVERS` of the client to provide the desired IPv6 addresses.
 
-See Javadoc of `EPICS_PVAS_INTF_ADDR_LIST` and `EPICS_PVA_ADDR_LIST` in `PVASettings`
+See Javadoc of `EPICS_PVAS_INTF_ADDR_LIST`, `EPICS_PVA_ADDR_LIST` and `EPICS_PVA_NAME_SERVERS` in `PVASettings`
 for details.
 
 Command-line Example

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -166,7 +166,7 @@ abstract public class TCPHandler
     {
         try
         {
-            Thread.currentThread().setName("TCP sender " + socket.getRemoteAddress());
+            Thread.currentThread().setName("TCP sender from " + socket.getLocalAddress() + " to " + socket.getRemoteAddress());
             logger.log(Level.FINER, Thread.currentThread().getName() + " started");
             while (true)
             {
@@ -205,7 +205,7 @@ abstract public class TCPHandler
      */
     protected void send(final ByteBuffer buffer) throws Exception
     {
-        logger.log(Level.FINER, () -> Thread.currentThread().getName() + ":\n" + Hexdump.toHexdump(buffer));
+        logger.log(Level.FINER, () -> Thread.currentThread().getName() + " sends:\n" + Hexdump.toHexdump(buffer));
 
         // Original AbstractCodec.send() mentions
         // Microsoft KB article KB823764:
@@ -275,7 +275,7 @@ abstract public class TCPHandler
                 }
                 // .. then decode
                 receive_buffer.flip();
-                logger.log(Level.FINER, () -> Thread.currentThread().getName() + ":\n" + Hexdump.toHexdump(receive_buffer));
+                logger.log(Level.FINER, () -> Thread.currentThread().getName() + " received:\n" + Hexdump.toHexdump(receive_buffer));
 
                 // While buffer may contain more data,
                 // limit it to the end of this message to prevent

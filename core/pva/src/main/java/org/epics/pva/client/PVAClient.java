@@ -20,6 +20,8 @@ import java.util.logging.Level;
 import org.epics.pva.PVASettings;
 import org.epics.pva.common.AddressInfo;
 import org.epics.pva.common.Network;
+import org.epics.pva.common.RequestEncoder;
+import org.epics.pva.common.SearchRequest;
 import org.epics.pva.server.Guid;
 
 /** PV Access Client
@@ -43,6 +45,8 @@ public class PVAClient implements AutoCloseable
 {
     /** Default channel listener logs state changes */
     private static final ClientChannelListener DEFAULT_CHANNEL_LISTENER = (ch, state) ->  logger.log(Level.INFO, ch.toString());
+
+    private final List<AddressInfo> name_server_addresses;
 
     private final ClientUDPHandler udp;
 
@@ -74,12 +78,14 @@ public class PVAClient implements AutoCloseable
      */
     public PVAClient() throws Exception
     {
-        final List<AddressInfo> search_addresses = Network.parseAddresses(PVASettings.EPICS_PVA_ADDR_LIST);
+        name_server_addresses = Network.parseAddresses(PVASettings.EPICS_PVA_NAME_SERVERS, PVASettings.EPICS_PVA_SERVER_PORT);
+
+        final List<AddressInfo> udp_search_addresses = Network.parseAddresses(PVASettings.EPICS_PVA_ADDR_LIST, PVASettings.EPICS_PVA_BROADCAST_PORT);
         if (PVASettings.EPICS_PVA_AUTO_ADDR_LIST)
-            search_addresses.addAll(Network.getBroadcastAddresses(PVASettings.EPICS_PVA_BROADCAST_PORT));
+            udp_search_addresses.addAll(Network.getBroadcastAddresses(PVASettings.EPICS_PVA_BROADCAST_PORT));
 
         udp = new ClientUDPHandler(this::handleBeacon, this::handleSearchResponse);
-        search = new ChannelSearch(udp, search_addresses);
+        search = new ChannelSearch(udp, udp_search_addresses);
 
         udp.start();
         search.start();
@@ -143,6 +149,47 @@ public class PVAClient implements AutoCloseable
     {
         final PVAChannel channel = new PVAChannel(this, channel_name, listener);
         channels_by_id.putIfAbsent(channel.getCID(), channel);
+
+        // Search via TCP
+        for (AddressInfo name_server : name_server_addresses)
+        {
+            logger.log(Level.FINE, "Using TCP name server " + name_server.getAddress());
+
+            final ClientTCPHandler tcp = tcp_handlers.computeIfAbsent(name_server.getAddress(), addr ->
+            {
+                try
+                {
+                    return new ClientTCPHandler(this, addr, Guid.EMPTY);
+                }
+                catch (Exception ex)
+                {
+                    logger.log(Level.WARNING, "Cannot connect to TCP " + addr, ex);
+                }
+                return null;
+            });
+            // In case of connection errors (TCP connection blocked by firewall),
+            // tcp will be null
+            if (tcp != null)
+            {
+                final RequestEncoder search_request = (version, buffer) ->
+                {
+                    logger.log(Level.FINE, () -> "Searching for " + channel + " via TCP " + tcp.getRemoteAddress());
+
+                    // Search sequence identifies the potentially repeated UDP.
+                    // TCP search is once only, so PVXS always sends 0x66696E64 = "find".
+                    // We send "look".
+                    final int seq = 0x6C6F6F6B;
+
+                    // Use 'any' reply address since reply will be via this TCP socket
+                    final InetSocketAddress response_address = new InetSocketAddress(0);
+                    
+                    SearchRequest.encode(true, seq, channel.getCID(), channel.getName(), response_address , buffer);
+                };
+                tcp.submit(search_request);
+            }
+        }
+
+        // Register with UDP search
         search.register(channel, true);
         return channel;
     }
@@ -196,7 +243,7 @@ public class PVAClient implements AutoCloseable
         search.boost();
     }
 
-    private void handleSearchResponse(final int channel_id, final InetSocketAddress server, final int version, final Guid guid)
+    void handleSearchResponse(final int channel_id, final InetSocketAddress server, final int version, final Guid guid)
     {
         // Generic server 'list' response?
         if (channel_id < 0)
@@ -245,7 +292,12 @@ public class PVAClient implements AutoCloseable
         // In case of connection errors (TCP connection blocked by firewall),
         // tcp will be null
         if (tcp != null)
+        {
+            if (tcp.updateGuid(guid))
+                logger.log(Level.FINE, "Search-only TCP handler received GUID, now " + tcp);
+
             channel.registerWithServer(tcp);
+        }
     }
 
     /** Called by {@link ClientTCPHandler} when connection is lost or closed because unused

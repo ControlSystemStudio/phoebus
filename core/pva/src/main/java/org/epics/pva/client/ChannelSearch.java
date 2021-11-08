@@ -218,6 +218,10 @@ class ChannelSearch
     /** Invoked by timer: Check searched channels for the next one to handle */
     private void runSearches()
     {
+        // Shortcut search, avoid log messages when lists are empty
+        if (unicast_search_addresses.isEmpty()  &&  b_or_mcast_search_addresses.isEmpty())
+            return;
+
         for (SearchedChannel searched : searched_channels.values())
         {
             final int counter = searched.search_counter.updateAndGet(val -> val >= MAX_SEARCH_COUNT ? MAX_SEARCH_RESET : val+1);

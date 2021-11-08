@@ -106,14 +106,15 @@ public class Network
      *  </pre>
      *
      *  @param setting Address "IP:port,TTL@iface" to parse
+     *  @param default_port Port to use when 'setting' does not specify one
      *  @return {@link AddressInfo}
      *  @throws Exception on error
      */
-    public static AddressInfo parseAddress(final String setting) throws Exception
+    public static AddressInfo parseAddress(final String setting, final int default_port) throws Exception
     {
         NetworkInterface iface = null;
         int ttl = 1;
-        int port = PVASettings.EPICS_PVA_BROADCAST_PORT;
+        int port = default_port;
 
         String parsed = setting;
         // Optional @interface
@@ -180,17 +181,20 @@ public class Network
     /** Parse network addresses
      *
      *  @param search_list String with space-separated list of addresses
+     *  @param default_port Port to use when address 'search_list' entry does not specify one
      *  @return {@link InetSocketAddress} list
-     *  @see #parseAddress(String)
+     *  @see #parseAddress(String, int)
      */
-    public static List<AddressInfo> parseAddresses(final String search_list)
+    public static List<AddressInfo> parseAddresses(final String search_list, final int default_port)
     {
+        // If search_list is empty, search_addresses will be [ "" ] with one empty entry
         final String[] search_addresses = search_list.split("\\s+");
         final List<AddressInfo> addresses = new ArrayList<>();
         for (String search : search_addresses)
             try
             {
-                addresses.add(parseAddress(search));
+                if (! search.isEmpty())
+                    addresses.add(parseAddress(search, default_port));
             }
             catch (Exception ex)
             {
