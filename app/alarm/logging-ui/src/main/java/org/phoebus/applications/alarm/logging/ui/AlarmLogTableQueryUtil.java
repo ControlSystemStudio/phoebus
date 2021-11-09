@@ -13,8 +13,7 @@ public class AlarmLogTableQueryUtil {
         HOST("host"),
         COMMAND("command"),
         STARTTIME("start"),
-        ENDTIME("end"),
-        CONFIG("config");
+        ENDTIME("end");
 
         private final String name;
 

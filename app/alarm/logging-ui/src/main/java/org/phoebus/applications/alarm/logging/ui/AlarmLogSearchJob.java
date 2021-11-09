@@ -53,7 +53,6 @@ public class AlarmLogSearchJob implements JobRunnable {
     public static Job submit(RestHighLevelClient client, final String pattern, Boolean isNodeTable, ObservableMap<Keys, String> searchParameters,
             final Consumer<List<AlarmLogTableType>> alarmMessageHandler,
             final BiConsumer<String, Exception> errorHandler) {
-
         return JobManager.schedule("searching alarm log messages for : " + pattern,
                 new AlarmLogSearchJob(client, pattern, isNodeTable, searchParameters, alarmMessageHandler, errorHandler));
     }
@@ -111,22 +110,17 @@ public class AlarmLogSearchJob implements JobRunnable {
                     }
                 }
                 if (key.equals("pv")) {
-                    if (isNodeTable == true) {
+                    if (isNodeTable) {
                         value = "*".concat(value).concat("*");
                         boolQuery.must(QueryBuilders.wildcardQuery("config", value));
                         configSet = true;
                     }
                     continue;
                 }
-                if(!key.equals(Keys.CONFIG.getName())){
-                    boolQuery.must(QueryBuilders.matchQuery(key, value));
-                }
-                else{
-                    boolQuery.must(QueryBuilders.wildcardQuery(key, value));
-                }
+                boolQuery.must(QueryBuilders.matchQuery(key, value));
             }
         }
-        if (configSet == false) {
+        if (!configSet) {
             boolQuery.must(QueryBuilders.wildcardQuery("config", searchPattern));
         }
         boolQuery.must(QueryBuilders.rangeQuery("message_time").from(from).to(to));
