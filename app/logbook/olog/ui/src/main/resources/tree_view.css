@@ -6,11 +6,19 @@
 
 /* Sets background on selected item */
 .table-row-cell:selected {
-    -fx-background-color: #00A8ce;
+    -fx-background-color: #c9e0f4;
+}
+
+.table-row-cell:selected .table-column:grouped{
+    -fx-background-color: #c9e0f4;
+}
+
+.table-column:grouped{
+    -fx-background-color: #e8edee;
 }
 
 /* Make empty cells appear as removed */
-.table-row-cell:empty {
+.table-cell:empty {
     -fx-background-color: white;
     -fx-border-color: transparent;
 }
@@ -19,4 +27,8 @@
 .column-header-background {
     visibility: hidden; /* Visibility only, you also need ...*/
     -fx-padding: -1em;  /* ... to "collapse" the header */
+}
+
+.label{
+    -fx-text-fill: black;
 }

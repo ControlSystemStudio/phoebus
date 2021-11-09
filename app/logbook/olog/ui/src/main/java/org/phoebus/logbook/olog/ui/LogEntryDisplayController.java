@@ -18,6 +18,7 @@
 
 package org.phoebus.logbook.olog.ui;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -97,6 +98,13 @@ public class LogEntryDisplayController {
         if (showHideLogEntryGroupButton.selectedProperty().get()) {
             currentViewProperty.set(MERGED);
             mergedLogEntryDisplayController.setLogEntry(logEntryProperty.get());
+            mergedLogEntryDisplayController.setLogSelectionHandler((logEntry) -> {
+                Platform.runLater(() -> {
+                    currentViewProperty.set(SINGLE);
+                    setLogEntry(logEntry);
+                });
+                return null;
+            });
         } else {
             currentViewProperty.set(SINGLE);
         }
@@ -105,14 +113,6 @@ public class LogEntryDisplayController {
     @FXML
     public void reply() {
         LogEntry logEntry = logEntryProperty.get();
-        /*
-        Property logGroupProperty = logEntry.getProperty(LogGroupProperty.NAME);
-        if (logGroupProperty == null) {
-            logGroupProperty = LogGroupProperty.create();
-            logEntry.getProperties().add(logGroupProperty);
-        }
-
-         */
         OlogLog ologLog = new OlogLog();
         ologLog.setTitle(logEntry.getTitle());
         ologLog.setTags(logEntry.getTags());

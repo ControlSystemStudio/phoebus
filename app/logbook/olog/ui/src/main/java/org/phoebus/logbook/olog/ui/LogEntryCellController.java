@@ -1,5 +1,6 @@
 package org.phoebus.logbook.olog.ui;
 
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -13,6 +14,7 @@ import org.commonmark.renderer.text.TextContentRenderer;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
+import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.util.Arrays;
@@ -102,12 +104,6 @@ public class LogEntryCellController {
                 attachmentIcon.setImage(attachment);
             } else {
                 attachmentIcon.setImage(null);
-            }
-            if(logEntry.getProperties().isEmpty()){
-               owner.setText(logEntry.getOwner());
-            }
-            else{
-                owner.setText("> " + logEntry.getOwner());
             }
             description.setWrapText(false);
             if (logEntry.getSource() != null) {

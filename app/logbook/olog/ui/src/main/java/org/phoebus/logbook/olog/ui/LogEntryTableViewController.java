@@ -157,6 +157,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
          */
 
+
+
         // Bind ENTER key press to search
         query.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.ENTER) {
@@ -201,6 +203,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
             return new TableCell<>() {
                 private Node graphic;
+                private final PseudoClass childlessTopLevel =
+                        PseudoClass.getPseudoClass("grouped");
                 private LogEntryCellController controller;
 
                 {
@@ -221,6 +225,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
                     } else {
                         controller.setLogEntry(logEntry);
                         setGraphic(graphic);
+                        boolean b = LogGroupProperty.getLogGroupProperty(logEntry).isPresent();
+                        pseudoClassStateChanged(childlessTopLevel, b);
                     }
                 }
             };
@@ -337,7 +343,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         private Node graphic;
         private LogEntryCellController controller;
         private final PseudoClass childlessTopLevel =
-                PseudoClass.getPseudoClass("childless-top-level");
+                PseudoClass.getPseudoClass("grouped");
         private final PseudoClass child =
                 PseudoClass.getPseudoClass("child");
 
@@ -363,8 +369,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
             }
             boolean b1 = getTreeItem().getParent().getParent() == null;
             boolean b2 = getTreeItem().getChildren().size() == 0;
-            pseudoClassStateChanged(childlessTopLevel, b1 && b2);
-            pseudoClassStateChanged(child, !b1);
+            pseudoClassStateChanged(childlessTopLevel, LogGroupProperty.getLogGroupProperty(logEntry).isPresent());
+            //pseudoClassStateChanged(child, !b1);
         }
     }
 

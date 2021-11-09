@@ -20,6 +20,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
@@ -273,13 +274,16 @@ public class OlogClient implements LogClient {
 
     @Override
     public LogEntry findLogById(Long logId) {
-        OlogLog xmlLog = service
-                .path("logs")
-                .path(logId.toString())
-                .accept(MediaType.APPLICATION_XML)
-                .accept(MediaType.APPLICATION_JSON)
-                .get(OlogLog.class);
-        return xmlLog;
+        try {
+            OlogLog ologLog = OlogObjectMappers.logEntryDeserializer.readValue(
+                service
+                    .path("logs")
+                    .path(logId.toString())
+                    .accept(MediaType.APPLICATION_JSON).get(String.class), OlogLog.class);
+            return ologLog;
+        } catch (JsonProcessingException e) {
+            return null;
+        }
     }
 
     @Override
