@@ -18,13 +18,16 @@
                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
              </rowConstraints>
              <children>
-                 <Label alignment="CENTER_RIGHT" contentDisplay="CENTER" text="Query: " GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.vgrow="NEVER" />
+                 <Label alignment="CENTER_RIGHT" contentDisplay="CENTER" text="%Query" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.vgrow="NEVER">
+               <GridPane.margin>
+                  <Insets right="5.0" />
+               </GridPane.margin></Label>
                  <TextField fx:id="query" onAction="#updateQuery" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" HBox.hgrow="ALWAYS">
                      <GridPane.margin>
                          <Insets bottom="10.0" top="10.0" />
                      </GridPane.margin>
                  </TextField>
-                 <Button fx:id="search" maxHeight="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#search" prefHeight="25.0" text="Search" GridPane.columnIndex="2">
+                 <Button fx:id="search" maxHeight="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#search" prefHeight="25.0" text="%Search" GridPane.columnIndex="2">
                      <GridPane.margin>
                          <Insets left="3.0" />
                      </GridPane.margin>
@@ -49,9 +52,12 @@
                     <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                     </columnResizePolicy>
+                    <placeholder>
+                        <Label text="%NoSearchResults" />
+                    </placeholder>
                 </TableView>
             </children>
         </GridPane>
-        <fx:include source="AdvancedSearchView.fxml" fx:id="advancedSearchView"/>
+        <fx:include fx:id="advancedSearchView" source="AdvancedSearchView.fxml" />
     </items>
 </SplitPane>

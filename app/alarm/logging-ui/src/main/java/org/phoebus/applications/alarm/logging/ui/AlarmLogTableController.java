@@ -249,6 +249,7 @@ public class AlarmLogTableController {
         searchParameters.put(Keys.HOST, "*");
         searchParameters.put(Keys.STARTTIME, TimeParser.format(java.time.Duration.ofDays(7)));
         searchParameters.put(Keys.ENDTIME, TimeParser.format(java.time.Duration.ZERO));
+        searchParameters.put(Keys.CONFIG, "*");
         advancedSearchViewController.setSearchParameters(searchParameters);
 
         query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
@@ -318,6 +319,7 @@ public class AlarmLogTableController {
         searchParameters.put(Keys.HOST, "*");
         searchParameters.put(Keys.STARTTIME, TimeParser.format(java.time.Duration.ofDays(7)));
         searchParameters.put(Keys.ENDTIME, TimeParser.format(java.time.Duration.ZERO));
+        searchParameters.put(Keys.CONFIG, "*");
 
         query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
             return e.getKey().getName().trim() + "=" + e.getValue().trim();

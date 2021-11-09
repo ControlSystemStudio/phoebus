@@ -3,10 +3,12 @@ package org.phoebus.applications.alarm.logging.ui;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
@@ -24,7 +26,9 @@ public class AlarmLogTable implements AppInstance {
     AlarmLogTable(final AlarmLogTableApp app) {
         this.app = app;
         try {
+            ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
             FXMLLoader loader = new FXMLLoader();
+            loader.setResources(resourceBundle);
             loader.setLocation(this.getClass().getResource("AlarmLogTable.fxml"));
             loader.setControllerFactory(clazz -> {
                 try {
