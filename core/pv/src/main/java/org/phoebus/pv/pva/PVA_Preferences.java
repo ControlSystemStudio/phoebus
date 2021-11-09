@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,13 +7,11 @@
  ******************************************************************************/
 package org.phoebus.pv.pva;
 
-import gov.aps.jca.Monitor;
-import org.phoebus.framework.preferences.PreferencesReader;
-import org.phoebus.pv.ca.JCA_PVFactory;
+import static org.phoebus.pv.PV.logger;
 
 import java.util.logging.Level;
 
-import static org.phoebus.pv.PV.logger;
+import org.phoebus.framework.preferences.PreferencesReader;
 
 /** Preferences for PVAccess
  *
@@ -34,6 +32,7 @@ public class PVA_Preferences
 
     private static final String EPICS_PVA_ADDR_LIST = "epics_pva_addr_list";
     private static final String EPICS_PVA_AUTO_ADDR_LIST = "epics_pva_auto_addr_list";
+    private static final String EPICS_PVA_NAME_SERVERS = "epics_pva_name_servers";
     private static final String EPICS_PVA_SERVER_PORT = "epics_pva_server_port";
     private static final String EPICS_PVA_BROADCAST_PORT = "epics_pva_broadcast_port";
     private static final String EPICS_PVA_CONN_TMO = "epics_pva_conn_tmo";
@@ -65,6 +64,10 @@ public class PVA_Preferences
         final String addr_list = prefs.get(EPICS_PVA_ADDR_LIST);
         setSystemProperty("EPICS_PVA_ADDR_LIST", addr_list);
         logger.log(Level.INFO, "PVA " + EPICS_PVA_ADDR_LIST + ": " + addr_list);
+
+        final String name_servers = prefs.get(EPICS_PVA_NAME_SERVERS);
+        setSystemProperty("EPICS_PVA_NAME_SERVERS", name_servers);
+        logger.log(Level.INFO, "PVA " + EPICS_PVA_NAME_SERVERS + ": " + name_servers);
 
         final String auto_addr = prefs.get(EPICS_PVA_AUTO_ADDR_LIST);
         setSystemProperty("EPICS_PVA_AUTO_ADDR_LIST", auto_addr);
