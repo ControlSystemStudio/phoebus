@@ -18,7 +18,7 @@
 }
 
 /* Make empty cells appear as removed */
-.table-cell:empty {
+.table-row-cell:empty {
     -fx-background-color: white;
     -fx-border-color: transparent;
 }
