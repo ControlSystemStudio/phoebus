@@ -23,24 +23,18 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TreeCell;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
 import javafx.util.Duration;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
 import org.phoebus.logbook.LogbookException;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.olog.ui.LogbookQueryUtil.Keys;
@@ -73,19 +67,18 @@ public class LogEntryTableViewController extends LogbookSearchController {
     @FXML
     private GridPane ViewSearchPane;
 
-    // elements related to the table view of the log entires
-    //@FXML
-    //private TreeView<LogEntry> treeView;
-    // elements related to the table view of the log entires
+    // elements related to the table view of the log entries
     @FXML
     private TableView<LogEntry> tableView;
     @FXML
     private TableColumn<LogEntry, LogEntry> descriptionCol;
     @FXML
+    @SuppressWarnings({"UnusedDeclaration"})
     private LogEntryDisplayController logEntryDisplayController;
     @FXML
     private ProgressIndicator progressIndicator;
     @FXML
+    @SuppressWarnings({"UnusedDeclaration"})
     private AdvancedSearchViewController advancedSearchViewController;
 
     @FXML
@@ -96,10 +89,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
     // Model
     List<LogEntry> logEntries;
 
-    // TreeTable root item
-    TreeItem<LogEntry> rootItem =
-            new TreeItem<>(LogEntryBuilder.log().id(-1L).description("Dummy root item").build());
-
     // Search parameters
     ObservableMap<Keys, String> searchParameters;
 
@@ -107,7 +96,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
      * List of selected log entries
      */
     private ObservableList<LogEntry> selectedLogEntries = FXCollections.observableArrayList();
-    private Logger logger = Logger.getLogger(LogEntryTableViewController.class.getName());
+    private final Logger logger = Logger.getLogger(LogEntryTableViewController.class.getName());
 
     /**
      * Constructor.
@@ -138,40 +127,12 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
                 .collect(Collectors.joining("&"))));
 
-        // The log entry tree.
-        /*
-        treeView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<TreeItem<LogEntry>>() {
-            @Override
-            public void changed(ObservableValue<? extends TreeItem<LogEntry>> observable, TreeItem<LogEntry> oldValue, TreeItem<LogEntry> newValue) {
-                // newValue may be null after search and refresh of the tree
-                if (newValue != null) {
-                    logEntryDisplayController.setLogEntry(newValue.getValue());
-                }
-                selectedLogEntries
-                        .setAll(treeView.getSelectionModel().getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList()));
-            }
-        });
-
-        treeView.setCellFactory(tv -> new LogEntryTreeCell());
-        treeView.getStylesheets().add(this.getClass().getResource("/tree_view.css").toExternalForm());
-
-         */
-
-
-
         // Bind ENTER key press to search
         query.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.ENTER) {
                 search();
             }
         });
-
-        /*
-        treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        treeView.setRoot(rootItem);
-        treeView.setShowRoot(false);
-
-         */
 
         MenuItem groupSelectedEntries = new MenuItem(Messages.GroupSelectedEntries);
         groupSelectedEntries.setOnAction(e -> {
@@ -182,7 +143,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
                         selectedLogEntries.size() < 2, selectedLogEntries));
         ContextMenu contextMenu = new ContextMenu();
         contextMenu.getItems().add(groupSelectedEntries);
-        //treeView.setContextMenu(contextMenu);
 
         // The display table.
         tableView.getColumns().clear();
@@ -194,7 +154,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
             }
         });
 
-        tableView.getStylesheets().add(this.getClass().getResource("/tree_view.css").toExternalForm());
+        tableView.getStylesheets().add(this.getClass().getResource("/search_result_view.css").toExternalForm());
 
         descriptionCol = new TableColumn<>();
         descriptionCol.setMaxWidth(1f * Integer.MAX_VALUE * 100);
@@ -237,7 +197,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
         progressIndicator.visibleProperty().bind(searchInProgress);
         searchInProgress.addListener((observable, oldValue, newValue) -> {
-            //treeView.setDisable(newValue.booleanValue());
             tableView.setDisable(newValue.booleanValue());
         });
 
@@ -290,13 +249,13 @@ public class LogEntryTableViewController extends LogbookSearchController {
     }
 
     @FXML
-    public void searchDescending(){
+    public void searchDescending() {
         sortAscending.set(false);
         search();
     }
 
     @FXML
-    public void searchAscending(){
+    public void searchAscending() {
         sortAscending.set(true);
         search();
     }
@@ -304,7 +263,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
     private void search() {
         searchInProgress.set(true);
         // parse the various time representations to Instant
-        //treeView.getSelectionModel().clearSelection();
         tableView.getSelectionModel().clearSelection();
         // Determine sort order
         String searchStringWithSortOrder = LogbookQueryUtil.addSortOrder(query.getText(), sortAscending.get());
@@ -334,43 +292,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
             ObservableList<LogEntry> logsList = FXCollections.observableArrayList();
             logsList.addAll(new ArrayList<>(logEntries));
             tableView.setItems(logsList);
-        }
-    }
-
-
-    private class LogEntryTreeCell extends TreeCell<LogEntry> {
-
-        private Node graphic;
-        private LogEntryCellController controller;
-        private final PseudoClass childlessTopLevel =
-                PseudoClass.getPseudoClass("grouped");
-        private final PseudoClass child =
-                PseudoClass.getPseudoClass("child");
-
-        public LogEntryTreeCell() {
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("LogEntryCell.fxml"));
-                graphic = loader.load();
-                controller = loader.getController();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
-        }
-
-        @Override
-        public void updateItem(LogEntry logEntry, boolean empty) {
-            super.updateItem(logEntry, empty);
-            if (empty) {
-                setGraphic(null);
-                return;
-            } else {
-                controller.setLogEntry(logEntry);
-                setGraphic(graphic);
-            }
-            boolean b1 = getTreeItem().getParent().getParent() == null;
-            boolean b2 = getTreeItem().getChildren().size() == 0;
-            pseudoClassStateChanged(childlessTopLevel, LogGroupProperty.getLogGroupProperty(logEntry).isPresent());
-            //pseudoClassStateChanged(child, !b1);
         }
     }
 

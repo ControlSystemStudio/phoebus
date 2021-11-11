@@ -48,10 +48,7 @@ public abstract class HtmlAwareController {
      * @return The HTML output of the Commonmark processor.
      */
     public String toHtml(String commonmarkString) {
-
         org.commonmark.node.Node document = parser.parse(commonmarkString);
-        String html = htmlRenderer.render(document);
-        // Wrap the content in a named div so that a suitable height may be determined.
-        return "<div id='olog'>\n" + html + "</div>";
+        return htmlRenderer.render(document);
     }
 }

@@ -23,12 +23,25 @@
 body{
     font-family: sans-serif;
     font-size: 14px;
+    margin: 0px;
 }
 
 blockquote{
     padding: 10px 20px;
     margin: 0 0 20px;
     border-left: 5px solid #eee;
+}
+
+.olog{
+    padding: 5px 8px 10px 8px;
+}
+
+.olog-merged{
+    padding: 0px 8px 13px 8px;
+}
+
+p{
+    margin-top: 5px;
 }
 
 .olog-table {
@@ -51,14 +64,8 @@ blockquote{
 }
 
 .separator{
-    padding: 5px;
+    padding: 8px 8px 8px 8px;
     font-family: Arial, Helvetica, sans-serif;
-    font-size: 16px;
-    width: 99%;
-    border: 1px solid #ddd;
+    font-size: 18px;
+    background-color: #f7f7f7;
 }
-
-.selected-log-entry{
-    background-color: white;
-}
-

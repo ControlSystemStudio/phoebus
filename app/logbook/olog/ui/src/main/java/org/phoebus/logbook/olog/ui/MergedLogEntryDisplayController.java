@@ -88,9 +88,6 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
                 // set an interface object named 'javaConnector' in the web engine's page
                 JSObject window = (JSObject) webEngine.executeScript("window");
                 window.setMember("javaConnector", javaConnector);
-
-                // get the Javascript connector object.
-                javascriptConnector = (JSObject) webEngine.executeScript("getJsConnector()");
             }
         });
     }
@@ -111,36 +108,17 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
         getLogEntries(logEntry);
     }
 
-    private void mergeAndRender(LogEntry selectedLogEntry) {
-        String html = "<script type=\"text/javascript\">\n" +
-                "            function sendToJava (id) {\n" +
-                "                javaConnector.toLowerCase(id);\n" +
-                "            };\n" +
-                "            var jsConnector = {\n" +
-                "               showResult: function (result) {\n" +
-                "                   document.getElementById('result').innerHTML = result;}\n" +
-                "            };\n" +
-                "            function getJsConnector() {\n" +
-                "               return jsConnector;\n" +
-                "            };\n" +
-                "        </script><div id='result'>\n";
+    private void mergeAndRender() {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(html);
+        stringBuilder.append("<html><body>");
         logEntries.forEach(l -> {
-            if (l.getId().equals(selectedLogEntry.getId())) {
-                stringBuilder.append("<div class='selected-log-entry'>");
-            }
             stringBuilder.append(createSeparator(l));
-
+            stringBuilder.append("<div class='olog-merged'>");
             stringBuilder.append(toHtml(l.getSource()));
-            if (l.getId().equals(selectedLogEntry.getId())) {
-                stringBuilder.append("</div>");
-            }
+            stringBuilder.append("</div>");
         });
-
-        stringBuilder.append("</div>");
-        String s = stringBuilder.toString();
-        webEngine.loadContent(s);
+        stringBuilder.append("</body><html>");
+        webEngine.loadContent(stringBuilder.toString());
     }
 
     /**
@@ -152,7 +130,7 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
      */
     private String createSeparator(LogEntry logEntry) {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("<div class='separator' onClick='sendToJava(" + logEntry.getId() + ")'>");
+        stringBuilder.append("<div class='separator' onClick='window.javaConnector.toLowerCase(" + logEntry.getId() + ")'>");
         stringBuilder.append(SECONDS_FORMAT.format(logEntry.getCreatedDate())).append(", ");
         stringBuilder.append(logEntry.getOwner()).append(", ");
         stringBuilder.append(logEntry.getTitle());
@@ -176,7 +154,7 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
             logger.log(Level.SEVERE, "Unable to locate log entry items using log entry group id " + id, e);
         }
 
-        mergeAndRender(logEntry);
+        mergeAndRender();
     }
 
     public class JavaConnector {
