@@ -34,21 +34,21 @@
                 <children>
                     <Label text="PV:" GridPane.rowIndex="0" />
                     <TextField fx:id="searchPV" GridPane.columnSpan="2" GridPane.rowIndex="1" />
-                    <Label text="Severity:" GridPane.rowIndex="2" />
+                    <Label text="%Severity" GridPane.rowIndex="2" />
                     <TextField fx:id="searchSeverity" GridPane.columnSpan="2" GridPane.rowIndex="3" />
-                    <Label text="Message:" GridPane.rowIndex="4" />
+                    <Label text="%Message" GridPane.rowIndex="4" />
                     <TextField fx:id="searchMessage" GridPane.columnSpan="2" GridPane.rowIndex="5" />
-                    <Label text="Current Severity:" GridPane.rowIndex="6" />
+                    <Label text="%CurrentSeverity" GridPane.rowIndex="6" />
                     <TextField fx:id="searchCurrentSeverity" GridPane.columnSpan="2" GridPane.rowIndex="7" />
-                    <Label text="Current Message:" GridPane.rowIndex="8" />
+                    <Label text="%CurrentMessage" GridPane.rowIndex="8" />
                     <TextField fx:id="searchCurrentMessage" GridPane.columnSpan="2" GridPane.rowIndex="9" />
-                    <Label text="User:" GridPane.rowIndex="10" />
+                    <Label text="%User" GridPane.rowIndex="10" />
                     <TextField fx:id="searchUser" GridPane.columnSpan="2" GridPane.rowIndex="11" />
-                    <Label text="Host:" GridPane.rowIndex="12" />
+                    <Label text="%Host" GridPane.rowIndex="12" />
                     <TextField fx:id="searchHost" GridPane.columnSpan="2" GridPane.rowIndex="13" />
-                    <Label text="Command:" GridPane.rowIndex="14" />
+                    <Label text="%Command" GridPane.rowIndex="14" />
                     <TextField fx:id="searchCommand" GridPane.columnSpan="2" GridPane.rowIndex="15" />
-                    <Label text="Time:" GridPane.columnSpan="2" GridPane.rowIndex="16">
+                    <Label text="%Time" GridPane.columnSpan="2" GridPane.rowIndex="16">
                         <GridPane.margin>
                             <Insets top="5.0" />
                         </GridPane.margin>
@@ -64,7 +64,7 @@
                             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                         </rowConstraints>
                         <children>
-                            <Label text="Start Time:" GridPane.rowIndex="0">
+                            <Label text="%StartTime" GridPane.rowIndex="0">
                                 <GridPane.margin>
                                     <Insets />
                                 </GridPane.margin></Label>
@@ -72,7 +72,7 @@
                                 <GridPane.margin>
                                     <Insets />
                                 </GridPane.margin></TextField>
-                            <Label text="End Time:" GridPane.rowIndex="1" />
+                            <Label text="%EndTime" GridPane.rowIndex="1" />
                             <TextField fx:id="endTime" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
                                 <GridPane.margin>
                                     <Insets />

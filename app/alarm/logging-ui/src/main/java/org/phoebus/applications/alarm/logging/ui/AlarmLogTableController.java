@@ -2,6 +2,8 @@ package org.phoebus.applications.alarm.logging.ui;
 
 import static org.phoebus.applications.alarm.logging.ui.AlarmLogTableApp.logger;
 
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.scene.control.ProgressIndicator;
 import org.phoebus.util.time.TimeParser;
 import java.util.Arrays;
 import java.util.List;
@@ -9,8 +11,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javafx.beans.binding.Bindings;
-import javafx.beans.value.ChangeListener;
+
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
@@ -105,6 +106,10 @@ public class AlarmLogTableController {
     private Job alarmLogSearchJob;
     private RestHighLevelClient searchClient;
 
+    @FXML
+    private ProgressIndicator progressIndicator;
+    private SimpleBooleanProperty searchInProgress = new SimpleBooleanProperty(false);
+
     public AlarmLogTableController(RestHighLevelClient client){
         setClient(client);
     }
@@ -152,8 +157,8 @@ public class AlarmLogTableController {
                 });
         tableView.getColumns().add(messageCol);
         
-      timeCol = new TableColumn<>("Time");
-      timeCol.setCellValueFactory(
+        timeCol = new TableColumn<>("Time");
+        timeCol.setCellValueFactory(
               new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
                   @Override
                   public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
@@ -164,7 +169,7 @@ public class AlarmLogTableController {
                 	  return null;
                   }
               });
-      tableView.getColumns().add(timeCol);
+        tableView.getColumns().add(timeCol);
         
         msgTimeCol = new TableColumn<>("Message Time");
         msgTimeCol.setCellValueFactory(
@@ -260,7 +265,7 @@ public class AlarmLogTableController {
             .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
             .collect(Collectors.joining("&"))));
 
-	query.setOnKeyPressed(new EventHandler<KeyEvent>() {
+	    query.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent keyEvent) {
                 if (keyEvent.getCode() == KeyCode.ENTER)  {
@@ -269,14 +274,21 @@ public class AlarmLogTableController {
             }
         });
 
-        peroidicSearch();
+	    progressIndicator.visibleProperty().bind(searchInProgress);
+        searchInProgress.addListener((observable, oldValue, newValue) -> {
+            tableView.setDisable(newValue.booleanValue());
+        });
+
+        search.disableProperty().bind(searchInProgress);
+
+        periodicSearch();
     }
 
     private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture<?> runningTask;
 
-    private void peroidicSearch() {
-        logger.info("Starting a peroidic search for alarm messages : " + searchString);
+    private void periodicSearch() {
+        logger.info("Starting a periodic search for alarm messages : " + searchString);
         if (runningTask != null) {
             runningTask.cancel(true);
         }
@@ -291,7 +303,11 @@ public class AlarmLogTableController {
                sortColType = sortTableCol.getSortType();
             }
             alarmLogSearchJob = AlarmLogSearchJob.submit(searchClient, searchString, isNodeTable, searchParameters,
-                    result -> Platform.runLater(() -> setAlarmMessages(result)), (url, ex) -> {
+                    result -> Platform.runLater(() -> {
+                        setAlarmMessages(result);
+                        searchInProgress.set(false);
+                        }), (url, ex) -> {
+                        searchInProgress.set(false);
                         logger.log(Level.WARNING, "Shutting down alarm log message scheduler.", ex);
                         runningTask.cancel(true);
                     });
@@ -388,7 +404,8 @@ public class AlarmLogTableController {
 
     @FXML
     public void search() {
-	tableView.getSortOrder().clear();
+        searchInProgress.set(true);
+	    tableView.getSortOrder().clear();
         updateQuery();
     }
 	
