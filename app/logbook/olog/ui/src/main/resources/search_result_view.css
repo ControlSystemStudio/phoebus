@@ -1,0 +1,34 @@
+/* Styling of all rows/cells */
+.table-row-cell{
+    -fx-background-color: white; /* All rows to have white background, by default TableView alternates between white and grey */
+    -fx-border-color: transparent transparent #e4e4e4 transparent; /* Use a grey border at bottom each item */
+}
+
+/* Sets background on selected item */
+.table-row-cell:selected {
+    -fx-background-color: #c9e0f4;
+}
+
+.table-row-cell:selected .table-column:grouped{
+    -fx-background-color: #c9e0f4;
+}
+
+.table-column:grouped{
+    -fx-background-color: #e8edee;
+}
+
+/* Make empty cells appear as removed */
+.table-row-cell:empty {
+    -fx-background-color: white;
+    -fx-border-color: transparent;
+}
+
+/* Hide column header */
+.column-header-background {
+    visibility: hidden; /* Visibility only, you also need ...*/
+    -fx-padding: -1em;  /* ... to "collapse" the header */
+}
+
+.label{
+    -fx-text-fill: black;
+}

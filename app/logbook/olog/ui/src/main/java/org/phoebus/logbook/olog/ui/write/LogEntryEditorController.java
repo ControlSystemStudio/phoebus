@@ -27,6 +27,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
+import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogFactory;
 import org.phoebus.logbook.LogService;
@@ -79,9 +80,12 @@ public class LogEntryEditorController {
     private SimpleBooleanProperty progressIndicatorVisibility =
             new SimpleBooleanProperty(false);
 
+    private LogEntry replyTo;
 
-    public LogEntryEditorController(Node parent, LogEntryCompletionHandler logEntryCompletionHandler) {
+
+    public LogEntryEditorController(Node parent, LogEntry replyTo, LogEntryCompletionHandler logEntryCompletionHandler) {
         this.parent = parent;
+        this.replyTo = replyTo;
         this.completionHandler = logEntryCompletionHandler;
         this.executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
         this.logFactory = LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory);
@@ -128,10 +132,15 @@ public class LogEntryEditorController {
                 }
             }
 
-            LogEntry result = logFactory
-                    .getLogClient(new SimpleAuthenticationToken(fieldsViewController.getUsernameProperty(), fieldsViewController.getPasswordProperty()))
-                    .set(ologLog);
-            return result;
+            LogClient logClient =
+                    logFactory.getLogClient(new SimpleAuthenticationToken(fieldsViewController.getUsernameProperty(), fieldsViewController.getPasswordProperty()));
+
+            if(replyTo == null){
+                return logClient.set(ologLog);
+            }
+            else {
+                return logClient.reply(ologLog, replyTo);
+            }
         });
         try {
             LogEntry result = future.get();

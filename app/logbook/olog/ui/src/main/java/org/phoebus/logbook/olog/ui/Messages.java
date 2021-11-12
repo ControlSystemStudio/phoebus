@@ -29,6 +29,7 @@ public class Messages
                          LogbooksTooltip,
                          NoClipboardContent,
                          Normal,
+                         NoSearchResults,
                          Remove_Tooltip,
                          SearchAvailableItems,
                          SelectFile,

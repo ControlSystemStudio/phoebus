@@ -11,7 +11,7 @@ This is the cell UI for log entry items as presented in the search result list/t
 summary of the log entry and its metadata.
 -->
 
-<GridPane fx:id="root" maxHeight="-Infinity" prefWidth="400.0" style="-fx-border-color: transparent transparent #e4e4e4 transparent; -fx-border-width: 1px;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryCellController">
+<GridPane fx:id="root" maxHeight="-Infinity" prefWidth="400.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryCellController">
     <columnConstraints>
         <ColumnConstraints />
         <ColumnConstraints />
@@ -26,7 +26,7 @@ summary of the log entry and its metadata.
         <RowConstraints />
     </rowConstraints>
     <children>
-        <Label fx:id="owner" text="Owner" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS">
+        <Label fx:id="owner" text="Owner" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS">
             <font>
                 <Font size="20.0" />
             </font>
@@ -34,7 +34,13 @@ summary of the log entry and its metadata.
                 <Insets />
             </GridPane.margin>
         </Label>
-        <ImageView fx:id="attachmentIcon" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="0" />
+        <HBox GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.hgrow="NEVER">
+            <children>
+                <Pane HBox.hgrow="ALWAYS"/>
+                <ImageView fx:id="conversationIcon" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" />
+                <ImageView fx:id="attachmentIcon" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" />
+            </children>
+        </HBox>
         <Label fx:id="title" text="Title" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
             <font>
                 <Font name="Arial Bold" size="14.0" />
@@ -62,6 +68,6 @@ summary of the log entry and its metadata.
         </Label>
     </children>
    <padding>
-      <Insets bottom="5.0" right="5.0" />
+      <Insets bottom="5.0" left="5.0" right="5.0" />
    </padding>
 </GridPane>

@@ -20,6 +20,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
@@ -179,12 +180,29 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public LogEntry set(LogEntry log) throws LogbookException{
+    public LogEntry set(LogEntry log) throws LogbookException {
+        return save(log, null);
+    }
+
+    /**
+     * Calls the back-end service to persist the log entry.
+     * @param log The log entry to save.
+     * @param inReplyTo If non-null, this save operation will treat the <code>log</code> parameter as a reply to
+     *                  the log entry represented by <code>inReplyTo</code>.
+     * @return The saved log entry.
+     * @throws LogbookException E.g. due to invalid log entry data.
+     */
+    private LogEntry save(LogEntry log, LogEntry inReplyTo) throws LogbookException {
         ClientResponse clientResponse;
 
         try {
+            MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+            queryParams.putSingle("markup", "commonmark");
+            if(inReplyTo != null){
+                queryParams.putSingle("inReplyTo", Long.toString(inReplyTo.getId()));
+            }
             clientResponse = service.path("logs")
-                    .queryParam("markup", "commonmark")
+                    .queryParams(queryParams)
                     .type(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_XML)
                     .accept(MediaType.APPLICATION_JSON)
@@ -237,6 +255,11 @@ public class OlogClient implements LogClient {
         }
     }
 
+    @Override
+    public LogEntry reply(LogEntry log, LogEntry inReplyTo) throws LogbookException{
+        return save(log, inReplyTo);
+    }
+
     /**
      * Returns a LogEntry that exactly matches the logId <code>logId</code>
      *
@@ -251,13 +274,16 @@ public class OlogClient implements LogClient {
 
     @Override
     public LogEntry findLogById(Long logId) {
-        OlogLog xmlLog = service
-                .path("logs")
-                .path(logId.toString())
-                .accept(MediaType.APPLICATION_XML)
-                .accept(MediaType.APPLICATION_JSON)
-                .get(OlogLog.class);
-        return xmlLog;
+        try {
+            OlogLog ologLog = OlogObjectMappers.logEntryDeserializer.readValue(
+                service
+                    .path("logs")
+                    .path(logId.toString())
+                    .accept(MediaType.APPLICATION_JSON).get(String.class), OlogLog.class);
+            return ologLog;
+        } catch (JsonProcessingException e) {
+            return null;
+        }
     }
 
     @Override

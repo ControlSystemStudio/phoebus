@@ -46,7 +46,7 @@ public class LogEntryEditorStage extends Stage
      */
     public LogEntryEditorStage(Node parent, LogEntry logEntry)
     {
-        this(parent, logEntry, null);
+        this(parent, logEntry, null, null);
     }
 
     /**
@@ -56,7 +56,7 @@ public class LogEntryEditorStage extends Stage
      * @param logEntry Pre-populated data for the log entry, e.g. date and (optionally) screen shot.
      * @param completionHandler A completion handler called when service call completes.
      */
-    public LogEntryEditorStage(Node parent, LogEntry logEntry, LogEntryCompletionHandler completionHandler)
+    public LogEntryEditorStage(Node parent, LogEntry logEntry, LogEntry replyTo, LogEntryCompletionHandler completionHandler)
     {
         initModality(Modality.WINDOW_MODAL);
         ResourceBundle resourceBundle =  NLS.getMessages(Messages.class);
@@ -65,8 +65,8 @@ public class LogEntryEditorStage extends Stage
         fxmlLoader.setControllerFactory(clazz -> {
             try {
                 if(clazz.isAssignableFrom(LogEntryEditorController.class)){
-                    return clazz.getConstructor(Node.class, LogEntryCompletionHandler.class)
-                            .newInstance(parent, completionHandler);
+                    return clazz.getConstructor(Node.class, LogEntry.class, LogEntryCompletionHandler.class)
+                            .newInstance(parent, replyTo, completionHandler);
                 }
                 else if(clazz.isAssignableFrom(FieldsViewController.class)){
                     return clazz.getConstructor(LogEntry.class)

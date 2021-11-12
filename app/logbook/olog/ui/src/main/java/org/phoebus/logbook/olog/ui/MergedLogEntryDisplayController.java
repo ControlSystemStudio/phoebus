@@ -20,9 +20,11 @@ package org.phoebus.logbook.olog.ui;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Worker;
 import javafx.fxml.FXML;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import netscape.javascript.JSObject;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
@@ -31,6 +33,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -60,6 +63,14 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
 
     private WebEngine webEngine;
 
+    /** for communication to the Javascript engine. */
+    private JSObject javascriptConnector;
+
+    /** for communication from the Javascript engine. */
+    private JavaConnector javaConnector = new JavaConnector();
+
+    private Function<LogEntry, Void> logSelectionHandler;
+
     public MergedLogEntryDisplayController(LogClient logClient) {
         super(logClient.getServiceUrl());
         this.logClient = logClient;
@@ -72,6 +83,17 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
         webEngine = logDescription.getEngine();
         webEngine.setUserStyleSheetLocation(getClass()
                 .getResource("/detail_log_webview.css").toExternalForm());
+        webEngine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
+            if (Worker.State.SUCCEEDED == newValue) {
+                // set an interface object named 'javaConnector' in the web engine's page
+                JSObject window = (JSObject) webEngine.executeScript("window");
+                window.setMember("javaConnector", javaConnector);
+            }
+        });
+    }
+
+    public void setLogSelectionHandler(Function<LogEntry, Void> handler){
+        this.logSelectionHandler = handler;
     }
 
     /**
@@ -86,19 +108,16 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
         getLogEntries(logEntry);
     }
 
-    private void mergeAndRender(LogEntry selectedLogEntry) {
+    private void mergeAndRender() {
         StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("<html><body>");
         logEntries.forEach(l -> {
-            if (l.getId().equals(selectedLogEntry.getId())) {
-                stringBuilder.append("<div class='selected-log-entry'>");
-            }
             stringBuilder.append(createSeparator(l));
-
+            stringBuilder.append("<div class='olog-merged'>");
             stringBuilder.append(toHtml(l.getSource()));
-            if (l.getId().equals(selectedLogEntry.getId())) {
-                stringBuilder.append("</div>");
-            }
+            stringBuilder.append("</div>");
         });
+        stringBuilder.append("</body><html>");
         webEngine.loadContent(stringBuilder.toString());
     }
 
@@ -111,7 +130,7 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
      */
     private String createSeparator(LogEntry logEntry) {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("<div class='separator'>");
+        stringBuilder.append("<div class='separator' onClick='window.javaConnector.toLowerCase(" + logEntry.getId() + ")'>");
         stringBuilder.append(SECONDS_FORMAT.format(logEntry.getCreatedDate())).append(", ");
         stringBuilder.append(logEntry.getOwner()).append(", ");
         stringBuilder.append(logEntry.getTitle());
@@ -135,6 +154,19 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
             logger.log(Level.SEVERE, "Unable to locate log entry items using log entry group id " + id, e);
         }
 
-        mergeAndRender(logEntry);
+        mergeAndRender();
+    }
+
+    public class JavaConnector {
+        /**
+         * called when the JS side wants a String to be converted.
+         *
+         * @param value
+         *         the String to convert
+         */
+        public void toLowerCase(String value) {
+            LogEntry logEntry = logEntries.stream().filter(l -> Long.toString(l.getId()).equals(value)).findFirst().get();
+            logSelectionHandler.apply(logEntry);
+        }
     }
 }

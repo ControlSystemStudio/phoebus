@@ -128,9 +128,9 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
 
 
         if (logEntry.getSource() != null) {
-            webEngine.loadContent(toHtml(logEntry.getSource()));
+            webEngine.loadContent(getFullHtml(logEntry.getSource()));
         } else if (logEntry.getDescription() != null) {
-            webEngine.loadContent(toHtml(logEntry.getDescription()));
+            webEngine.loadContent(getFullHtml(logEntry.getDescription()));
         }
         ObservableList<String> logbookList = FXCollections.observableArrayList();
         logbookList.addAll(logEntry.getLogbooks().stream().map(Logbook::getName).collect(Collectors.toList()));
@@ -198,5 +198,14 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
             // Update UI
             Platform.runLater(() -> attachmentsPreviewController.setAttachments(FXCollections.observableArrayList(logEntry.getAttachments())));
         });
+    }
+
+    private String getFullHtml(String commonmarkString){
+        StringBuffer stringBuffer = new StringBuffer();
+        stringBuffer.append("<html><body><div class='olog'>");
+        stringBuffer.append(toHtml(commonmarkString));
+        stringBuffer.append("</div></body></html>");
+
+        return stringBuffer.toString();
     }
 }
