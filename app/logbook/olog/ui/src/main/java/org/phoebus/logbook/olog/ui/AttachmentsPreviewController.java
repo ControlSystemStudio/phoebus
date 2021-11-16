@@ -42,6 +42,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.olog.ui.write.AttachmentsViewController;
 import org.phoebus.ui.application.ApplicationLauncherService;
@@ -114,6 +115,15 @@ public class AttachmentsPreviewController {
             if (me.getClickCount() == 2) {
                 Attachment attachment = attachmentListView.getSelectionModel()
                         .getSelectedItem();
+                if(!attachment.getContentType().startsWith("image")){
+                    // If there is no external app configured for the file type, show an error message and return.
+                    String fileName = attachment.getFile().getName();
+                    String[] parts = fileName.split("\\.");
+                    if(parts.length == 1 || !ApplicationService.getExtensionsHandledByExternalApp().contains(parts[parts.length - 1])){
+                        ExceptionDetailsErrorDialog.openError(Messages.PreviewOpenErrorTitle, Messages.PreviewOpenErrorBody, null);
+                        return;
+                    }
+                }
                 ApplicationLauncherService.openFile(attachment.getFile(),
                         false, null);
             }
