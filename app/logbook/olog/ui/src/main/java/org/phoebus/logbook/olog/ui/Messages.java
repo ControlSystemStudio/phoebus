@@ -30,6 +30,8 @@ public class Messages
                          NoClipboardContent,
                          Normal,
                          NoSearchResults,
+                         PreviewOpenErrorBody,
+                         PreviewOpenErrorTitle,
                          Remove_Tooltip,
                          SearchAvailableItems,
                          SelectFile,
