@@ -19,10 +19,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 import org.epics.pva.PVASettings;
 import org.epics.pva.common.AddressInfo;
+import org.epics.pva.common.RequestEncoder;
 import org.epics.pva.common.SearchRequest;
 import org.epics.pva.data.Hexdump;
 
@@ -34,9 +36,19 @@ import org.epics.pva.data.Hexdump;
  *  <p>Details of search timing are based on
  *  https://github.com/epics-base/epicsCoreJava/blob/master/pvAccessJava/src/org/epics/pvaccess/client/impl/remote/search/SimpleChannelSearchManagerImpl.java
  *
- *  Can send search requests to unicast (IPv4 and IPv6), multicast (4 & 6), broadcast (IPv4 only).
+ *  <p>Can send search requests to unicast (IPv4 and IPv6), multicast (4 & 6), broadcast (IPv4 only).
  *  Since only StandardProtocolFamily.INET sockets support IPv4 multicast,
  *  but then won't handle IPv6 traffic, need to maintain one socket per protocol family.
+ *
+ *  <p>Can also search via TCP. While TCP is fundamentally reliable, we don't expect lost
+ *  search requests as with UDP, search requests are still repeated because the PVA gateway
+ *  is stateless with respect to searches.
+ *  The gateway does not remember past searches.
+ *  When the gateway receives the first search request for an unknown channel,
+ *  the gateway itself will start to search for that channel on its client side.
+ *  Once it connects to the channel, the gateway then depends on another search request for the now
+ *  known channel to return a positive reply.
+ *  TCP searches thus need to be repeated, but compared to the UDP searches they are sent less frequently.
  *
  *  @author Kay Kasemir
  */
@@ -47,6 +59,7 @@ class ChannelSearch
     private class SearchedChannel
     {
         final AtomicInteger search_counter;
+        final AtomicInteger tcp_search_counter = new AtomicInteger(0);
         final PVAChannel channel;
 
         SearchedChannel(final PVAChannel channel)
@@ -67,6 +80,8 @@ class ChannelSearch
     private static final AtomicInteger search_sequence = new AtomicInteger();
 
     private final ClientUDPHandler udp;
+
+    private final Function<InetSocketAddress, ClientTCPHandler> tcp_provider;
 
     /** Basic search period */
     private static final int SEARCH_PERIOD_MS = 225;
@@ -115,11 +130,17 @@ class ChannelSearch
     private final ByteBuffer send_buffer = ByteBuffer.allocate(PVASettings.MAX_UDP_UNFRAGMENTED_SEND);
 
     /** Address list to which search requests are sent */
-    private final List<AddressInfo> unicast_search_addresses = new ArrayList<>(), b_or_mcast_search_addresses = new ArrayList<>();
+    private final List<AddressInfo> unicast_search_addresses = new ArrayList<>(),
+                                    b_or_mcast_search_addresses = new ArrayList<>(),
+                                    name_server_addresses = new ArrayList<>();
 
-    public ChannelSearch(final ClientUDPHandler udp, final List<AddressInfo> search_addresses) throws Exception
+    public ChannelSearch(final ClientUDPHandler udp,
+                         final List<AddressInfo> udp_addresses,
+                         final Function<InetSocketAddress, ClientTCPHandler> tcp_provider,
+                         final List<AddressInfo> name_server_addresses) throws Exception
     {
         this.udp = udp;
+        this.tcp_provider = tcp_provider;
 
         // Searches sent to multicast (IPv4, IPv6) or broadcast addresses (IPv4) reach every PVA server
         // on that multicast group or bcast subnet.
@@ -127,7 +148,7 @@ class ChannelSearch
         // In the original PVA implementation, the receiver would then re-send them via a local multicast group.
         // The original unicast messages were thus marked with a UNICAST flag,
         // while multicast and broadcast messages are not.
-        for (AddressInfo addr : search_addresses)
+        for (AddressInfo addr : udp_addresses)
         {
             // Trouble is, how do you recognize a unicast address?
             if (addr.getAddress().getAddress().isMulticastAddress())
@@ -147,6 +168,8 @@ class ChannelSearch
                 logger.log(Level.CONFIG, "Sending searches to " + addr + " (assume unicast)");
             }
         }
+
+        this.name_server_addresses.addAll(name_server_addresses);
     }
 
     public void start()
@@ -218,16 +241,12 @@ class ChannelSearch
     /** Invoked by timer: Check searched channels for the next one to handle */
     private void runSearches()
     {
-        // Shortcut search, avoid log messages when lists are empty
-        if (unicast_search_addresses.isEmpty()  &&  b_or_mcast_search_addresses.isEmpty())
-            return;
-
         for (SearchedChannel searched : searched_channels.values())
         {
             final int counter = searched.search_counter.updateAndGet(val -> val >= MAX_SEARCH_COUNT ? MAX_SEARCH_RESET : val+1);
             if (isPowerOfTwo(counter))
             {
-                logger.log(Level.FINE, () -> "Searching... " + searched.channel);
+                logger.log(Level.FINER, () -> "Searching... " + searched.channel);
                 search(searched.channel);
             }
         }
@@ -251,6 +270,45 @@ class ChannelSearch
      */
     private void search(final PVAChannel channel)
     {
+        // Search via TCP
+        for (AddressInfo name_server : name_server_addresses)
+        {
+            final SearchedChannel searched = searched_channels.get(channel.getCID());
+            if (searched == null)
+                continue;
+            // Compared to UDP, search only every other cycle
+            int count = searched.tcp_search_counter.incrementAndGet();
+            if (count % 2 != 0)
+                continue;
+
+            final ClientTCPHandler tcp = tcp_provider.apply(name_server.getAddress());
+
+            // In case of connection errors (TCP connection blocked by firewall),
+            // tcp will be null
+            if (tcp != null)
+            {
+                final RequestEncoder search_request = (version, buffer) ->
+                {
+                    logger.log(Level.FINE, () -> "Searching for " + channel + " via TCP " + tcp.getRemoteAddress() + ", take " + count/2);
+
+                    // Search sequence identifies the potentially repeated UDP.
+                    // TCP search is once only, so PVXS always sends 0x66696E64 = "find".
+                    // We send "look".
+                    final int seq = 0x6C6F6F6B;
+
+                    // Use 'any' reply address since reply will be via this TCP socket
+                    final InetSocketAddress response_address = new InetSocketAddress(0);
+
+                    SearchRequest.encode(true, seq, channel.getCID(), channel.getName(), response_address , buffer);
+                };
+                tcp.submit(search_request);
+            }
+        }
+
+        // Shortcut UDP search, avoid log messages when lists are empty
+        if (unicast_search_addresses.isEmpty()  &&  b_or_mcast_search_addresses.isEmpty())
+            return;
+
         // Search is invoked for new SearchedChannel(channel, now)
         // as well as by regular, timed search.
         // Lock the send buffer to avoid concurrent use.
