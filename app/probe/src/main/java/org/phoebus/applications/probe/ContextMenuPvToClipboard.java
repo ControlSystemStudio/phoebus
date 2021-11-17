@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,7 +20,7 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 
 // Not strictly related to probe, but seemed too small to start
-// its own application, so added it to the 'simplest' appliation
+// its own application, so added it to the 'simplest' application
 // which deals with PVs and already makes context menu contributions.
 
 /** Context menu entry for PV that copies PV name to clipboard
@@ -51,6 +51,11 @@ public class ContextMenuPvToClipboard implements ContextMenuEntry
         return supportedTypes;
     }
 
+    protected String createText(final List<ProcessVariable> pvs)
+    {
+        return pvs.stream().map(ProcessVariable::getName).collect(Collectors.joining(" "));
+    }
+
     @Override
     public void call(final Selection selection) throws Exception
     {
@@ -58,7 +63,7 @@ public class ContextMenuPvToClipboard implements ContextMenuEntry
 
         final Clipboard clipboard = Clipboard.getSystemClipboard();
         final ClipboardContent content = new ClipboardContent();
-        content.putString(pvs.stream().map(ProcessVariable::getName).collect(Collectors.joining(" ")));
+        content.putString(createText(pvs));
         clipboard.setContent(content);
     }
 }
