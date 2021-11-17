@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,7 @@ package org.phoebus.applications.pvtree.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -33,6 +34,9 @@ public class TreeModel
     /** Number of items in the tree to resolve, where fields are still to be fetched */
     private AtomicInteger links_to_resolve = new AtomicInteger();
 
+    /** Map of known PVs, mapping PV name to UI item */
+    private final ConcurrentHashMap<String, TreeModelItem> known_items = new ConcurrentHashMap<>();
+
     /** 'latched' = value updates should be ignored */
     private final AtomicBoolean latched = new AtomicBoolean();
 
@@ -54,6 +58,7 @@ public class TreeModel
      */
     public void setRootPV(final String pv_name)
     {
+        known_items.clear();
         item_count.set(1);
         final TreeModelItem new_root = new TreeModelItem(this, null, "PV", pv_name);
         final TreeModelItem old = root.getAndSet(new_root);
@@ -149,28 +154,13 @@ public class TreeModel
             getAlarmItems(alarms, link);
     }
 
-    /** Locate _another_ tree PV
-     *  @param existing Item that describes the PV to locate,
-     *                  ignoring that item itself
+    /** Check if a PV is already shown in tree to avoid infinite loops
+     *  @param existing Item that describes the PV to locate
      *  @return Other item for same PV in model, <code>null</code> if there's no other
      */
     protected TreeModelItem findDuplicate(final TreeModelItem existing)
     {
-        return findDuplicate(root.get(), existing);
-    }
-
-    private TreeModelItem findDuplicate(final TreeModelItem item, final TreeModelItem existing)
-    {
-        if (item != existing  &&
-            item.getPVName().equals(existing.getPVName()))
-            return item;
-        for (TreeModelItem link : item.getLinks())
-        {
-            final TreeModelItem found = findDuplicate(link, existing);
-            if (found != null)
-                return found;
-        }
-        return null;
+        return known_items.putIfAbsent(existing.getPVName(), existing);
     }
 
     void itemUpdated(final TreeModelItem item)
@@ -200,6 +190,7 @@ public class TreeModel
     /** Must be called to release PVs */
     public void dispose()
     {
+        known_items.clear();
         final TreeModelItem old = root.getAndSet(null);
         if (old != null)
             old.dispose();

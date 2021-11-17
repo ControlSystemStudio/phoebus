@@ -302,7 +302,7 @@ public class TreeModelItem
             type_flow = pv.onValueEvent().firstOrError().subscribe(value ->
             {
                 type = AlarmFormatter.formatValue(value);
-                logger.log(TRACE, "Type " + type);
+                logger.log(TRACE, () -> record_name + " has type " + type);
                 disposeTypePV();
                 // Notify model to redraw this PV
                 model.itemUpdated(TreeModelItem.this);
@@ -322,13 +322,13 @@ public class TreeModelItem
         final TreeModelItem dup = model.findDuplicate(this);
         if (dup != null)
         {
-            logger.log(TRACE, "Known item " + record_name + "." + info + ", not traversing inputs (again)");
+            logger.log(TRACE, () -> parent.record_name + "." + info + " is known item " + record_name + ", not traversing its links again");
             return;
         }
         final List<String> type_links = Settings.field_info.get(type);
         if (type_links == null)
         {
-            logger.log(TRACE, "Type " + type + " has no known links");
+            logger.log(TRACE, () -> "Type " + type + " has no known links");
             return;
         }
         // Could fetch all links in parallel,
