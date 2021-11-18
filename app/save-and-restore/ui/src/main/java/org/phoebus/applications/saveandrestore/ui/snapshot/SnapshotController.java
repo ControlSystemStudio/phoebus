@@ -496,7 +496,7 @@ public class SnapshotController implements NodeChangedListener {
             persistentSnapshotName = snapshot.getName();
             persistentGoldenState = Boolean.parseBoolean(snapshot.getProperty("golden"));
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.INFO, "Error loading snapshot", e);
         }
         loadSnapshotInternal(snapshot);
     }
@@ -523,7 +523,7 @@ public class SnapshotController implements NodeChangedListener {
                 snapshotTreeTable.updateTable(tableEntries, snapshots, false, false, false);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.INFO, "Error adding snapshot", e);
         }
     }
 
@@ -543,7 +543,7 @@ public class SnapshotController implements NodeChangedListener {
                 }
             });
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.INFO, "Error loading save set", e);
         }
     }
 
@@ -579,7 +579,7 @@ public class SnapshotController implements NodeChangedListener {
                     });
                 });
             } catch (Exception e) {
-                e.printStackTrace();
+                LOGGER.log(Level.INFO, "Error loading snapshot", e);
             }
         });
     }
@@ -617,7 +617,7 @@ public class SnapshotController implements NodeChangedListener {
                 try {
                     countDownLatch.await();
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    LOGGER.log(Level.INFO, "Encountered InterruptedException", e);
                 }
 
                 if (restoreFailed.isEmpty()) {
@@ -700,7 +700,7 @@ public class SnapshotController implements NodeChangedListener {
                 snapshotSaveableProperty.setValue(true);
             });
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.INFO, "Error taking snapshot", e);
         }
         finally{
 
@@ -1026,7 +1026,7 @@ public class SnapshotController implements NodeChangedListener {
             try {
                 pv = PVPool.getPV(pvName);
                 pv.onValueEvent().throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS).subscribe(value -> {
-                    pvValue = org.phoebus.pv.PV.isDisconnected(value) ? value = VDisconnectedData.INSTANCE : value;
+                    pvValue = org.phoebus.pv.PV.isDisconnected(value) ? VDisconnectedData.INSTANCE : value;
                     this.snapshotTableEntry.setLiveValue(pvValue);
                 });
 
@@ -1036,14 +1036,12 @@ public class SnapshotController implements NodeChangedListener {
                    readbackPv.onValueEvent()
                            .throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS)
                            .subscribe(value -> {
-                                if (showLiveReadbackProperty.get()) {
-                                    this.readbackValue = org.phoebus.pv.PV.isDisconnected(value) ? value : VDisconnectedData.INSTANCE;
-                                    this.snapshotTableEntry.setReadbackValue(this.readbackValue);
-                                }
+                                this.readbackValue = org.phoebus.pv.PV.isDisconnected(value) ? VDisconnectedData.INSTANCE : value;
+                                this.snapshotTableEntry.setReadbackValue(this.readbackValue);
                             });
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                LOGGER.log(Level.INFO, "Error connecting to PV", e);
             }
         }
 
