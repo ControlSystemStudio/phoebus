@@ -1026,7 +1026,7 @@ public class SnapshotController implements NodeChangedListener {
             try {
                 pv = PVPool.getPV(pvName);
                 pv.onValueEvent().throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS).subscribe(value -> {
-                    pvValue = org.phoebus.pv.PV.isDisconnected(value) ? value = VDisconnectedData.INSTANCE : value;
+                    pvValue = org.phoebus.pv.PV.isDisconnected(value) ? VDisconnectedData.INSTANCE : value;
                     this.snapshotTableEntry.setLiveValue(pvValue);
                 });
 
@@ -1037,7 +1037,7 @@ public class SnapshotController implements NodeChangedListener {
                            .throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS)
                            .subscribe(value -> {
                                 if (showLiveReadbackProperty.get()) {
-                                    this.readbackValue = org.phoebus.pv.PV.isDisconnected(value) ? value : VDisconnectedData.INSTANCE;
+                                    this.readbackValue = org.phoebus.pv.PV.isDisconnected(value) ? VDisconnectedData.INSTANCE : value;
                                     this.snapshotTableEntry.setReadbackValue(this.readbackValue);
                                 }
                             });
