@@ -1,8 +1,11 @@
 package org.phoebus.applications.probe;
 
+import static org.phoebus.applications.probe.Probe.logger;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 
 import org.phoebus.applications.probe.view.ProbeController;
 import org.phoebus.framework.nls.NLS;
@@ -20,6 +23,7 @@ import javafx.scene.control.TextField;
  * @author Kunal Shroff
  *
  */
+@SuppressWarnings("nls")
 public class ProbeInstance implements AppInstance {
 
     private final AppDescriptor appDescriptor;
@@ -42,7 +46,7 @@ public class ProbeInstance implements AppInstance {
             loader = new FXMLLoader(fxml, bundle);
             return loader.load();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Cannot load FXML", e);
         }
         return null;
     }
