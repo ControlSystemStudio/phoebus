@@ -89,6 +89,12 @@ public class AlarmSystem
     /** Limit for the number of context menu items */
     @Preference public static int alarm_menu_max_items;
 
+    /** Alarm table columns */
+    @Preference public static String[] alarm_table_columns;
+
+    /** Use background color to indicate alarm severity? Default: Text color */
+    @Preference public static boolean alarm_table_color_background;
+
     /** Alarm table row limit */
     @Preference public static int alarm_table_max_rows;
 
