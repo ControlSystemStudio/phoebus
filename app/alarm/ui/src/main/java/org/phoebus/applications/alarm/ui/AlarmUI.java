@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -57,6 +57,19 @@ public class AlarmUI
         ImageCache.getImage(AlarmUI.class, "/icons/undefined.png")
     };
 
+    private static final Background[] severity_backgrounds = new Background[]
+    {
+        null, // OK
+        new Background(new BackgroundFill(Color.rgb(180, 170,  70), CornerRadii.EMPTY, Insets.EMPTY)), // MINOR_ACK
+        new Background(new BackgroundFill(Color.rgb(255,  90,  90), CornerRadii.EMPTY, Insets.EMPTY)), // MAJOR_ACK
+        new Background(new BackgroundFill(Color.rgb(255, 128, 255), CornerRadii.EMPTY, Insets.EMPTY)), // INVALID_ACK
+        new Background(new BackgroundFill(Color.rgb(255, 128, 255), CornerRadii.EMPTY, Insets.EMPTY)), // UNDEFINED_ACK
+        new Background(new BackgroundFill(Color.rgb(207, 192,   0), CornerRadii.EMPTY, Insets.EMPTY)), // MINOR
+        new Background(new BackgroundFill(Color.rgb(255,   0,   0), CornerRadii.EMPTY, Insets.EMPTY)), // MAJOR
+        new Background(new BackgroundFill(Color.rgb(255,   0, 255), CornerRadii.EMPTY, Insets.EMPTY)), // INVALID
+        new Background(new BackgroundFill(Color.rgb(255,   0, 255), CornerRadii.EMPTY, Insets.EMPTY)), // UNDEFINED
+    };
+
     public static final Image disabled_icon = ImageCache.getImage(AlarmUI.class, "/icons/disabled.png");
 
     /** @param severity {@link SeverityLevel}
@@ -74,6 +87,14 @@ public class AlarmUI
     public static Image getIcon(final SeverityLevel severity)
     {
         return severity_icons[severity.ordinal()];
+    }
+
+    /** @param severity {@link SeverityLevel}
+     *  @return Background, may be <code>null</code>
+     */
+    public static Background getBackground(final SeverityLevel severity)
+    {
+        return severity_backgrounds[severity.ordinal()];
     }
 
     /** Verify authorization, qualified by model's current config
