@@ -89,6 +89,9 @@ public class AlarmSystem
     /** Limit for the number of context menu items */
     @Preference public static int alarm_menu_max_items;
 
+    /** Alarm table columns */
+    @Preference public static String[] alarm_table_columns;
+
     /** Alarm table row limit */
     @Preference public static int alarm_table_max_rows;
 
