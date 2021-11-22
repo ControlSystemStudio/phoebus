@@ -35,7 +35,7 @@ public class Messages {
     public static String contextMenuRename;
     public static String contextMenuDelete;
     public static String contextMenuEdit;
-    public static String contextMenuOpen;
+    public static String contextMenuCreateSnapshot;
     public static String contextMenuCompareSnapshots;
     public static String contextMenuTagAsGolden;
     public static String contextMenuRemoveGoldenTag;
