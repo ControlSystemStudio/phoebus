@@ -30,12 +30,20 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.ImageView;
 import javafx.util.Callback;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.data.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.ui.BaseSaveAndRestoreController;
+import org.phoebus.applications.saveandrestore.ui.snapshot.TableEntry;
+import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.javafx.ImageCache;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,6 +51,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class SaveSetController implements NodeChangedListener {
@@ -164,7 +173,8 @@ public class SaveSetController implements NodeChangedListener {
 
 		ContextMenu pvNameContextMenu = new ContextMenu();
 
-		MenuItem deleteMenuItem = new MenuItem(Messages.menuItemDeleteSelectedPVs);
+		MenuItem deleteMenuItem = new MenuItem(Messages.menuItemDeleteSelectedPVs,
+				new ImageView(ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/delete.png")));
 		deleteMenuItem.setOnAction(ae -> {
 			ObservableList<ConfigPv> selectedPvs = pvTable.getSelectionModel().getSelectedItems();
 			if(selectedPvs == null || selectedPvs.isEmpty()){
@@ -183,8 +193,6 @@ public class SaveSetController implements NodeChangedListener {
 		});
 
 		deleteMenuItem.disableProperty().bind(selectionEmpty);
-
-		pvNameContextMenu.getItems().addAll(deleteMenuItem);
 
 		pvNameColumn.setEditable(true);
 		pvNameColumn.setCellValueFactory(new PropertyValueFactory<>("pvName"));
@@ -209,7 +217,20 @@ public class SaveSetController implements NodeChangedListener {
 						}
 					}
 				};
+				cell.setOnContextMenuRequested(event -> {
+					pvNameContextMenu.hide();
+					pvNameContextMenu.getItems().clear();
+					pvNameContextMenu.getItems().addAll(deleteMenuItem);
+					pvNameContextMenu.getItems().add(new SeparatorMenuItem());
+					List<ProcessVariable> selectedPVList = pvTable.getSelectionModel().getSelectedItems().stream()
+							.map(tableEntry -> new ProcessVariable(tableEntry.getPvName()))
+							.collect(Collectors.toList());
+					SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME, selectedPVList);
+					ContextMenuHelper.addSupportedEntries(cell, pvNameContextMenu);
+					pvNameContextMenu.show(cell, event.getScreenX(), event.getScreenY());
+				});
 				cell.setContextMenu(pvNameContextMenu);
+
 				return cell;
 			}
 		});
