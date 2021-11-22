@@ -229,7 +229,7 @@ public class SaveAndRestoreWithSplitController extends BaseSaveAndRestoreControl
             renameNode(treeView.getSelectionModel().getSelectedItem());
         });
 
-        MenuItem openSaveSetMenuItem = new MenuItem(Messages.contextMenuOpen, new ImageView(saveSetIcon));
+        MenuItem openSaveSetMenuItem = new MenuItem(Messages.contextMenuCreateSnapshot, new ImageView(saveSetIcon));
         openSaveSetMenuItem.setOnAction(ae -> {
             openSaveSetForSnapshot(treeView.getSelectionModel().getSelectedItem());
         });
