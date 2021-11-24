@@ -220,8 +220,7 @@ public class SnapshotController implements NodeChangedListener {
 
         defaultEpicsProtocol =
                 new PreferencesReader(PVFactory.class, "/pv_preferences.properties").get("default");
-        isTreeTableViewEnabled =
-                new PreferencesReader(getClass(), "/save_and_restore_preferences.properties").getBoolean("treeTableView.enable");
+        isTreeTableViewEnabled = new PreferencesReader(getClass(), "/save_and_restore_preferences.properties").getBoolean("treeTableView.enable");
 
         snapshotNameLabel.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         snapshotNameLabel.getStyleClass().add("stand-out-mandatory");
