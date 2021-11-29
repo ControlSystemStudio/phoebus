@@ -29,15 +29,10 @@ curl -XPUT http://${es_host}:${es_port}/_template/alarms_state_template -H 'Cont
             "type" : "boolean"
           },
           "message" : {
-            "type" : "text",
-            "fields": {
-              "keyword": { 
-                "type": "keyword"
-              }
-            }
+            "type" : "keyword"
           },
           "value" : {
-            "type" : "text"
+            "type" : "keyword"
           },
           "time" : {
             "type" : "date",
@@ -51,12 +46,7 @@ curl -XPUT http://${es_host}:${es_port}/_template/alarms_state_template -H 'Cont
             "type" : "keyword"
           },
           "current_message" : {
-            "type" : "text",
-            "fields": {
-              "keyword": { 
-                "type": "keyword"
-              }
-            }
+            "type" : "keyword"
           },
           "mode" : {
             "type" : "keyword"

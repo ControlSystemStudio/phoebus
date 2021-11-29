@@ -32,15 +32,10 @@ curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}
             "type" : "boolean"
           },
           "message" : {
-            "type" : "text",
-            "fields": {
-              "keyword": { 
-                "type": "keyword"
-              }
-            }
+            "type" : "keyword"
           },
           "value" : {
-            "type" : "text"
+            "type" : "keyword"
           },
           "time" : {
             "type" : "date",
@@ -54,12 +49,7 @@ curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}
             "type" : "keyword"
           },
           "current_message" : {
-            "type" : "text",
-            "fields": {
-              "keyword": { 
-                "type": "keyword"
-              }
-            }
+            "type" : "keyword"
           },
           "mode" : {
             "type" : "keyword"
