@@ -1,25 +1,29 @@
 version: '2.2'
+
+networks:
+  rmoff_kafka:
+    name: rmoff_kafka
+
 services:
   zookeeper:
-    image: wurstmeister/zookeeper:latest
+    image: confluentinc/cp-zookeeper:5.5.0
+    container_name: zookeeper
     ports:
       - "2181:2181"
-    hostname: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
   kafka:
-    image: wurstmeister/kafka:latest
-    command: [start-kafka.sh]
+    image: confluentinc/cp-kafka:5.5.0
+    container_name: kafka
     ports:
       - "9092:9092"
-    hostname: kafka
-    environment:
-      KAFKA_ADVERTISED_HOST_NAME: 192.168.99.100 # docker-machine ip
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_PORT: 9092
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - "19092:19092"
     depends_on:
-      - "zookeeper"
-
-volumes:
-  esdata:
-    driver: local
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,CONNECTIONS_FROM_HOST://localhost:19092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONNECTIONS_FROM_HOST:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
