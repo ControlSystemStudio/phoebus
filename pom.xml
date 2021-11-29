@@ -31,6 +31,7 @@
     <jetty.version>9.4.30.v20200611</jetty.version>
     <apache.commons.math.version>3.6.1</apache.commons.math.version>
     <junit.version>4.13.1</junit.version>
+    <es.version>6.8.4</es.version>
     <!--<maven.repo.local>${project.build.directory}/.m2</maven.repo.local> -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

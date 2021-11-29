@@ -15,12 +15,12 @@
     <dependency>
       <groupId>org.elasticsearch.client</groupId>
       <artifactId>elasticsearch-rest-high-level-client</artifactId>
-      <version>6.4.2</version>
+      <version>${es.version}</version>
     </dependency>
     <dependency>
       <groupId>org.elasticsearch.client</groupId>
       <artifactId>elasticsearch-rest-client-sniffer</artifactId>
-      <version>6.4.2</version>
+      <version>${es.version}</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
