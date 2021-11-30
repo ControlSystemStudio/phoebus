@@ -226,6 +226,17 @@ public class SecureStoreTest {
         assertNotNull(secureStore.get("somethingElse"));
 
         secureStore.delete("somethingElse");
+    }
 
+    @Test
+    public void testOverwriteScopedAuthentication() throws Exception{
+        secureStore.setScopedAuthentication(new ScopedAuthenticationToken("scope1", "username1", "password1"));
+
+        ScopedAuthenticationToken token = secureStore.getScopedAuthenticationToken("scope1");
+        assertEquals("username1", token.getUsername());
+
+        secureStore.setScopedAuthentication(new ScopedAuthenticationToken("scope1", "username2", "password1"));
+        token = secureStore.getScopedAuthenticationToken("scope1");
+        assertEquals("username2", token.getUsername());
     }
 }
