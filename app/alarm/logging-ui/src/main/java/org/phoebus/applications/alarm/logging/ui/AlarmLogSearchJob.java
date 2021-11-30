@@ -118,7 +118,7 @@ public class AlarmLogSearchJob implements JobRunnable {
                     }
                     continue;
                 }
-                boolQuery.must(QueryBuilders.matchQuery(key, value));
+                boolQuery.must(QueryBuilders.wildcardQuery(key, value));
             }
         }
         if (configSet == false) {
