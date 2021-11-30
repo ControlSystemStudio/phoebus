@@ -1,53 +1,49 @@
 package org.phoebus.applications.alarm.logging.ui;
 
-import static org.phoebus.applications.alarm.logging.ui.AlarmLogTableApp.logger;
-
-import javafx.scene.control.*;
-import javafx.scene.control.cell.TextFieldTableCell;
-import javafx.scene.paint.Color;
-import org.phoebus.applications.alarm.model.SeverityLevel;
-import org.phoebus.applications.alarm.ui.AlarmUI;
-import org.phoebus.util.time.TimeParser;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import javafx.beans.binding.Bindings;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableMap;
-import javafx.event.EventHandler;
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-
-import org.elasticsearch.client.RestHighLevelClient;
-import org.phoebus.applications.alarm.logging.ui.AlarmLogTableQueryUtil.Keys;
-import org.phoebus.framework.jobs.Job;
-import org.phoebus.util.time.TimestampFormats;
-
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableMap;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.control.*;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableColumn.SortType;
-import javafx.util.Callback;
-import javafx.util.Duration;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
+import javafx.util.Callback;
+import javafx.util.Duration;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.phoebus.applications.alarm.logging.ui.AlarmLogTableQueryUtil.Keys;
+import org.phoebus.applications.alarm.model.SeverityLevel;
+import org.phoebus.applications.alarm.ui.AlarmUI;
+import org.phoebus.framework.jobs.Job;
+import org.phoebus.util.time.TimeParser;
+import org.phoebus.util.time.TimestampFormats;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
+
+import static org.phoebus.applications.alarm.logging.ui.AlarmLogTableApp.logger;
 
 public class AlarmLogTableController {
 
@@ -69,6 +65,8 @@ public class AlarmLogTableController {
     TableColumn<AlarmLogTableType, String> timeCol;
     @FXML
     TableColumn<AlarmLogTableType, String> msgTimeCol;
+    @FXML
+    TableColumn<AlarmLogTableType, String> deltaTimeCol;
     @FXML
     TableColumn<AlarmLogTableType, String> currentSeverityCol;
     @FXML
@@ -115,7 +113,7 @@ public class AlarmLogTableController {
 
     @FXML
     public void initialize() {
-        resize.setText(">");
+        resize.setText("<");
         tableView.getColumns().clear();
         configCol = new TableColumn<>("Config");
         configCol.setCellValueFactory(
@@ -197,6 +195,16 @@ public class AlarmLogTableController {
                     }
                 });
         tableView.getColumns().add(msgTimeCol);
+
+        deltaTimeCol = new TableColumn<>("Time Delta");
+        deltaTimeCol.setCellValueFactory(
+                alarmMessage -> {
+                    java.time.Duration delta = java.time.Duration.between(alarmMessage.getValue().getMessage_time(), Instant.now());
+                    return new SimpleStringProperty(delta.toHours() + ":" + delta.toMinutesPart() + ":" + delta.toSecondsPart()
+                            + "." + delta.toMillisPart());
+                });
+        deltaTimeCol.setVisible(false);
+        tableView.getColumns().add(deltaTimeCol);
 
         currentSeverityCol = new TableColumn<>("Current Severity");
         currentSeverityCol.setCellValueFactory(
