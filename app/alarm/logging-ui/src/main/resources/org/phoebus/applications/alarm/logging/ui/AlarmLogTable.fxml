@@ -39,7 +39,7 @@
                      </GridPane.margin>
                  </Button>
                  <Button fx:id="resize" alignment="TOP_LEFT" contentDisplay="TOP" layoutX="331.0" layoutY="2.0" mnemonicParsing="false" onMouseClicked="#resize" prefHeight="25.0" prefWidth="25.0" text="&lt;" GridPane.columnIndex="3" GridPane.halignment="RIGHT" />
-                 <TableView fx:id="tableView" tableMenuButtonVisible="true" GridPane.columnSpan="4" GridPane.rowIndex="1" VBox.vgrow="ALWAYS">
+                 <TableView fx:id="tableView" onContextMenuRequested="#createContextMenu" tableMenuButtonVisible="true" GridPane.columnSpan="4" GridPane.rowIndex="1" VBox.vgrow="ALWAYS">
                      <columns>
                          <TableColumn fx:id="configCol" minWidth="50.0" prefWidth="75.0" text="Config" />
                          <TableColumn fx:id="pvCol" minWidth="50.0" prefWidth="75.0" text="Pv" />

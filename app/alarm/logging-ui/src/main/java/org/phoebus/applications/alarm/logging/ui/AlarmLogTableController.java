@@ -8,6 +8,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -25,12 +26,13 @@ import org.phoebus.applications.alarm.logging.ui.AlarmLogTableQueryUtil.Keys;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.framework.jobs.Job;
+import org.phoebus.framework.selection.Selection;
+import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -284,6 +286,7 @@ public class AlarmLogTableController {
                     }
                 });
         tableView.getColumns().add(hostCol);
+        tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         searchParameters.put(Keys.PV, this.searchString);
         searchParameters.put(Keys.MESSAGE, "*");
@@ -466,6 +469,18 @@ public class AlarmLogTableController {
     public void search() {
         tableView.getSortOrder().clear();
         updateQuery();
+    }
+
+    @FXML
+    public void createContextMenu() {
+        final ContextMenu contextMenu = new ContextMenu();
+        Selection selection = SelectionService.getInstance().getSelection();
+
+        contextMenu.getItems().add(new SeparatorMenuItem());
+        ContextMenuHelper.addSupportedEntries(tableView, contextMenu);
+
+        tableView.setContextMenu(contextMenu);
+
     }
 
     public void shutdown() {
