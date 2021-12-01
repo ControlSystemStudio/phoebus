@@ -1,40 +1,10 @@
 package org.phoebus.applications.alarm.logging.ui;
 
-<<<<<<< HEAD
-=======
-import static org.phoebus.applications.alarm.logging.ui.AlarmLogTableApp.logger;
-
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.scene.control.ProgressIndicator;
-import org.phoebus.util.time.TimeParser;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableMap;
-import javafx.event.EventHandler;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-
-import org.elasticsearch.client.RestHighLevelClient;
-import org.phoebus.applications.alarm.logging.ui.AlarmLogTableQueryUtil.Keys;
-import org.phoebus.framework.jobs.Job;
-import org.phoebus.util.time.TimestampFormats;
-
->>>>>>> refs/remotes/origin/master
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -68,6 +38,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableMap;
+import javafx.event.EventHandler;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -139,16 +117,12 @@ public class AlarmLogTableController {
 
     private Job alarmLogSearchJob;
     private RestHighLevelClient searchClient;
-
-<<<<<<< HEAD
-    public AlarmLogTableController(RestHighLevelClient client) {
-=======
+    
     @FXML
     private ProgressIndicator progressIndicator;
     private SimpleBooleanProperty searchInProgress = new SimpleBooleanProperty(false);
 
-    public AlarmLogTableController(RestHighLevelClient client){
->>>>>>> refs/remotes/origin/master
+    public AlarmLogTableController(RestHighLevelClient client) {
         setClient(client);
     }
 
@@ -211,7 +185,6 @@ public class AlarmLogTableController {
                     }
                 });
         tableView.getColumns().add(messageCol);
-<<<<<<< HEAD
 
         timeCol = new TableColumn<>("Time");
         timeCol.setCellValueFactory(
@@ -227,23 +200,6 @@ public class AlarmLogTableController {
                 });
         tableView.getColumns().add(timeCol);
 
-=======
-        
-        timeCol = new TableColumn<>("Time");
-        timeCol.setCellValueFactory(
-              new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
-                  @Override
-                  public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
-                	  if (alarmMessage.getValue().getTime() != null) {
-                		  String time = TimestampFormats.MILLI_FORMAT.format(alarmMessage.getValue().getInstant());
-                		  return new SimpleStringProperty(time);
-                	  }
-                	  return null;
-                  }
-              });
-        tableView.getColumns().add(timeCol);
-        
->>>>>>> refs/remotes/origin/master
         msgTimeCol = new TableColumn<>("Message Time");
         msgTimeCol.setCellValueFactory(
                 new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
@@ -366,11 +322,7 @@ public class AlarmLogTableController {
                 .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
                 .collect(Collectors.joining("&"))));
 
-<<<<<<< HEAD
         query.setOnKeyPressed(new EventHandler<KeyEvent>() {
-=======
-	    query.setOnKeyPressed(new EventHandler<KeyEvent>() {
->>>>>>> refs/remotes/origin/master
             @Override
             public void handle(KeyEvent keyEvent) {
                 if (keyEvent.getCode() == KeyCode.ENTER) {
@@ -539,12 +491,8 @@ public class AlarmLogTableController {
 
     @FXML
     public void search() {
-<<<<<<< HEAD
-        tableView.getSortOrder().clear();
-=======
         searchInProgress.set(true);
-	    tableView.getSortOrder().clear();
->>>>>>> refs/remotes/origin/master
+        tableView.getSortOrder().clear();
         updateQuery();
     }
 
