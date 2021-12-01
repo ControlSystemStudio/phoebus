@@ -44,6 +44,20 @@ public class ScopedAuthenticationToken extends SimpleAuthenticationToken{
     }
 
     @Override
+    public boolean equals(Object other){
+        if(!(other instanceof ScopedAuthenticationToken)){
+            return false;
+        }
+        ScopedAuthenticationToken otherToken = (ScopedAuthenticationToken)other;
+        return (otherToken.getScope() + "." + otherToken.getUsername()).equals(getScope() + "." + getUsername());
+    }
+
+    @Override
+    public int hashCode(){
+        return (getScope() + "." + getUsername()).hashCode();
+    }
+
+    @Override
     public String toString(){
         return "Scope: " + scope + ", username: " + getUsername();
     }

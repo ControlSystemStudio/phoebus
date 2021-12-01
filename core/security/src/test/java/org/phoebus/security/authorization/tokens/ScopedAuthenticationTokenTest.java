@@ -48,9 +48,15 @@ public class ScopedAuthenticationTokenTest {
     public void testEqualsAndHashCode(){
         ScopedAuthenticationToken scopedAuthenticationToken1 = new ScopedAuthenticationToken("username", "password");
         ScopedAuthenticationToken scopedAuthenticationToken2 = new ScopedAuthenticationToken("username", "somethingelse");
+        ScopedAuthenticationToken scopedAuthenticationToken3 = new ScopedAuthenticationToken("scope", "username", "somethingelse");
+        ScopedAuthenticationToken scopedAuthenticationToken4 = new ScopedAuthenticationToken("scope", "username1", "somethingelse");
 
         assertEquals(scopedAuthenticationToken1, scopedAuthenticationToken2);
+        assertNotEquals(scopedAuthenticationToken1, scopedAuthenticationToken3);
+        assertNotEquals(scopedAuthenticationToken3, scopedAuthenticationToken4);
         assertEquals(scopedAuthenticationToken1.hashCode(), scopedAuthenticationToken2.hashCode());
+        assertNotEquals(scopedAuthenticationToken1.hashCode(), scopedAuthenticationToken3.hashCode());
+        assertNotEquals(scopedAuthenticationToken3.hashCode(), scopedAuthenticationToken4.hashCode());
 
         scopedAuthenticationToken2 = new ScopedAuthenticationToken("username1", "somethingelse");
         assertNotEquals(scopedAuthenticationToken1, scopedAuthenticationToken2);
