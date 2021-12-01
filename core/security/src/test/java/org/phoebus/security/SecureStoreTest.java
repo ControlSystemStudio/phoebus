@@ -230,9 +230,9 @@ public class SecureStoreTest {
 
     @Test
     public void testOverwriteScopedAuthentication() throws Exception{
-        secureStore.setScopedAuthentication(new ScopedAuthenticationToken("scope1", "username1", "password1"));
+        secureStore.setScopedAuthentication(new ScopedAuthenticationToken("Scope1", "username1", "password1"));
 
-        ScopedAuthenticationToken token = secureStore.getScopedAuthenticationToken("scope1");
+        ScopedAuthenticationToken token = secureStore.getScopedAuthenticationToken("Scope1");
         assertEquals("username1", token.getUsername());
 
         secureStore.setScopedAuthentication(new ScopedAuthenticationToken("scope1", "username2", "password1"));

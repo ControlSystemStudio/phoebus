@@ -16,35 +16,29 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.security.tokens;
+package org.phoebus.applications.credentialsmanagement;
 
-/**
- * Extension of  {@link SimpleAuthenticationToken}
- */
-public class ScopedAuthenticationToken extends SimpleAuthenticationToken{
+import javafx.scene.image.Image;
+import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.spi.ToolbarEntry;
 
-    private String scope;
+public class CredentialsManagementToolbarEntry implements ToolbarEntry {
 
-    public ScopedAuthenticationToken(String username, String password){
-        super(username, password);
-    }
-
-    public ScopedAuthenticationToken(String scope, String username, String password){
-        this(username, password);
-        if(scope != null && scope.trim().isEmpty()){
-            this.scope = null;
-        }
-        else{
-            this.scope = scope;
-        }
-    }
-
-    public String getScope(){
-        return scope;
+    @Override
+    public String getName() {
+        return CredentialsManagementApp.DisplayName;
     }
 
     @Override
-    public String toString(){
-        return "Scope: " + scope + ", username: " + getUsername();
+    public Image getIcon()
+    {
+        return ImageCache.getImage(CredentialsManagementApp.class, "/icons/credentials.png");
+    }
+
+    @Override
+    public Void call() throws Exception {
+        ApplicationService.createInstance(CredentialsManagementApp.name);
+        return null;
     }
 }

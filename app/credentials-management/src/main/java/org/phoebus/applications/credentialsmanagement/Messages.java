@@ -16,35 +16,25 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.security.tokens;
+package org.phoebus.applications.credentialsmanagement;
 
-/**
- * Extension of  {@link SimpleAuthenticationToken}
- */
-public class ScopedAuthenticationToken extends SimpleAuthenticationToken{
+import org.phoebus.framework.nls.NLS;
 
-    private String scope;
+public class Messages {
 
-    public ScopedAuthenticationToken(String username, String password){
-        super(username, password);
+    public static String DisplayName;
+    public static String ErrorDialogTitle;
+    public static String ErrorDialogBody;
+    public static String LogoutButtonText;
+    public static String Title;
+
+    static
+    {
+        NLS.initializeMessages(Messages.class);
     }
 
-    public ScopedAuthenticationToken(String scope, String username, String password){
-        this(username, password);
-        if(scope != null && scope.trim().isEmpty()){
-            this.scope = null;
-        }
-        else{
-            this.scope = scope;
-        }
-    }
-
-    public String getScope(){
-        return scope;
-    }
-
-    @Override
-    public String toString(){
-        return "Scope: " + scope + ", username: " + getUsername();
+    private Messages()
+    {
+        // Prevent instantiation
     }
 }

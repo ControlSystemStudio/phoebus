@@ -123,6 +123,9 @@ public class SecureStore
      */
     public void delete(String tag) throws Exception{
         store.deleteEntry(tag);
+        LOGGER.log(Level.INFO, "Deleting entry " + tag + " from secure store");
+        // Write file whenever an entry is changed
+        store.store(new FileOutputStream(secure_file), store_pass);
     }
 
     public ScopedAuthenticationToken getScopedAuthenticationToken(String scope) throws Exception{
