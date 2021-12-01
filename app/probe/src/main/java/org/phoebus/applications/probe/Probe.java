@@ -20,6 +20,9 @@ import org.phoebus.ui.docking.DockPane;
 @SuppressWarnings("nls")
 public class Probe implements AppResourceDescriptor {
 
+    /** Common Logger */
+    public static final Logger logger = Logger.getLogger(Probe.class.getPackageName());
+
     public static final String NAME = "probe";
     public static final String DISPLAYNAME = Messages.Probe;
 
@@ -65,7 +68,7 @@ public class Probe implements AppResourceDescriptor {
         }
         catch (Exception ex)
         {
-            Logger.getLogger(Probe.class.getPackageName()).log(Level.WARNING, "Cannot create probe instance", ex);
+            logger.log(Level.WARNING, "Cannot create probe instance", ex);
         }
         return probe;
     }

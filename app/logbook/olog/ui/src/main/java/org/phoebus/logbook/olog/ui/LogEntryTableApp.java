@@ -1,5 +1,6 @@
 package org.phoebus.logbook.olog.ui;
 
+import com.google.common.base.Strings;
 import javafx.scene.image.Image;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
@@ -17,7 +18,7 @@ public class LogEntryTableApp implements AppResourceDescriptor {
     public static final Logger logger = Logger.getLogger(LogEntryTableApp.class.getName());
     static final Image icon = ImageCache.getImage(LogEntryTableApp.class, "/icons/logbook-16.png");
     public static final String NAME = "logEntryTable";
-    public static final String DISPLAYNAME = "Log Entry Table";
+    public static String DISPLAYNAME = "Log Entry Table";
 
     private static final String SUPPORTED_SCHEMA = "logbook";
     private LogFactory logFactory;
@@ -25,6 +26,10 @@ public class LogEntryTableApp implements AppResourceDescriptor {
     @Override
     public void start() {
         logFactory = LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory);
+        String displayName = LogbookUIPreferences.log_entry_table_display_name;
+        if(!Strings.isNullOrEmpty(displayName)){
+            DISPLAYNAME = displayName;
+        }
     }
 
     @Override

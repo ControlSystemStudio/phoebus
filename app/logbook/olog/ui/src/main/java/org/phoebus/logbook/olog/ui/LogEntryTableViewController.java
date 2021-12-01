@@ -5,6 +5,7 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -19,13 +20,13 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TreeCell;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -34,19 +35,18 @@ import javafx.util.Duration;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
 import org.phoebus.logbook.LogbookException;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.olog.ui.LogbookQueryUtil.Keys;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -68,14 +68,18 @@ public class LogEntryTableViewController extends LogbookSearchController {
     @FXML
     private GridPane ViewSearchPane;
 
-    // elements related to the table view of the log entires
+    // elements related to the table view of the log entries
     @FXML
-    private TreeView<LogEntry> treeView;
+    private TableView<LogEntry> tableView;
     @FXML
+    private TableColumn<LogEntry, LogEntry> descriptionCol;
+    @FXML
+    @SuppressWarnings({"UnusedDeclaration"})
     private LogEntryDisplayController logEntryDisplayController;
     @FXML
     private ProgressIndicator progressIndicator;
     @FXML
+    @SuppressWarnings({"UnusedDeclaration"})
     private AdvancedSearchViewController advancedSearchViewController;
 
     @FXML
@@ -86,10 +90,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
     // Model
     List<LogEntry> logEntries;
 
-    // TreeTable root item
-    TreeItem<LogEntry> rootItem =
-            new TreeItem<>(LogEntryBuilder.log().id(-1L).description("Dummy root item").build());
-
     // Search parameters
     ObservableMap<Keys, String> searchParameters;
 
@@ -97,7 +97,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
      * List of selected log entries
      */
     private ObservableList<LogEntry> selectedLogEntries = FXCollections.observableArrayList();
-    private Logger logger = Logger.getLogger(LogEntryTableViewController.class.getName());
+    private final Logger logger = Logger.getLogger(LogEntryTableViewController.class.getName());
 
     /**
      * Constructor.
@@ -116,9 +116,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
         searchParameters = FXCollections.observableHashMap();
 
-        LogbookQueryUtil.parseQueryString(LogbookUIPreferences.default_logbook_query).entrySet().stream().forEach(entry -> {
-            searchParameters.put(Keys.findKey(entry.getKey()), entry.getValue());
-        });
         advancedSearchViewController.setSearchParameters(searchParameters);
 
         query.setText(searchParameters.entrySet().stream()
@@ -131,32 +128,12 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
                 .collect(Collectors.joining("&"))));
 
-        // The log entry tree.
-        treeView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<TreeItem<LogEntry>>() {
-            @Override
-            public void changed(ObservableValue<? extends TreeItem<LogEntry>> observable, TreeItem<LogEntry> oldValue, TreeItem<LogEntry> newValue) {
-                // newValue may be null after search and refresh of the tree
-                if (newValue != null) {
-                    logEntryDisplayController.setLogEntry(newValue.getValue());
-                }
-                selectedLogEntries
-                        .setAll(treeView.getSelectionModel().getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList()));
-            }
-        });
-
-        treeView.setCellFactory(tv -> new LogEntryTreeCell());
-        treeView.getStylesheets().add(this.getClass().getResource("/tree_view.css").toExternalForm());
-
         // Bind ENTER key press to search
         query.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.ENTER) {
                 search();
             }
         });
-
-        treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        treeView.setRoot(rootItem);
-        treeView.setShowRoot(false);
 
         MenuItem groupSelectedEntries = new MenuItem(Messages.GroupSelectedEntries);
         groupSelectedEntries.setOnAction(e -> {
@@ -167,11 +144,61 @@ public class LogEntryTableViewController extends LogbookSearchController {
                         selectedLogEntries.size() < 2, selectedLogEntries));
         ContextMenu contextMenu = new ContextMenu();
         contextMenu.getItems().add(groupSelectedEntries);
-        treeView.setContextMenu(contextMenu);
+
+        // The display table.
+        tableView.getColumns().clear();
+        tableView.setEditable(false);
+        tableView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<>() {
+            @Override
+            public void changed(ObservableValue<? extends LogEntry> observable, LogEntry oldValue, LogEntry newValue) {
+                logEntryDisplayController.setLogEntry(newValue);
+            }
+        });
+
+        tableView.getStylesheets().add(this.getClass().getResource("/search_result_view.css").toExternalForm());
+
+        descriptionCol = new TableColumn<>();
+        descriptionCol.setMaxWidth(1f * Integer.MAX_VALUE * 100);
+        descriptionCol.setCellValueFactory(col -> new SimpleObjectProperty(col.getValue()));
+        descriptionCol.setCellFactory(col -> {
+
+            return new TableCell<>() {
+                private Node graphic;
+                private final PseudoClass childlessTopLevel =
+                        PseudoClass.getPseudoClass("grouped");
+                private LogEntryCellController controller;
+
+                {
+                    try {
+                        FXMLLoader loader = new FXMLLoader(getClass().getResource("LogEntryCell.fxml"));
+                        graphic = loader.load();
+                        controller = loader.getController();
+                    } catch (IOException exc) {
+                        throw new RuntimeException(exc);
+                    }
+                }
+
+                @Override
+                public void updateItem(LogEntry logEntry, boolean empty) {
+                    super.updateItem(logEntry, empty);
+                    if (empty) {
+                        setGraphic(null);
+                    } else {
+                        controller.setLogEntry(logEntry);
+                        setGraphic(graphic);
+                        boolean b = LogGroupProperty.getLogGroupProperty(logEntry).isPresent();
+                        pseudoClassStateChanged(childlessTopLevel, b);
+                    }
+                }
+            };
+        });
+
+        tableView.getColumns().add(descriptionCol);
+        tableView.setPlaceholder(new Label(Messages.NoSearchResults));
 
         progressIndicator.visibleProperty().bind(searchInProgress);
         searchInProgress.addListener((observable, oldValue, newValue) -> {
-            treeView.setDisable(newValue.booleanValue());
+            tableView.setDisable(newValue.booleanValue());
         });
 
         searchDescendingImageView.setImage(ImageCache.getImage(LogEntryTableViewController.class, "/icons/arrow_down.png"));
@@ -195,9 +222,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
                     resize.setText(">");
                     moving.set(false);
                 });
+                query.disableProperty().set(false);
             } else {
                 Duration cycleDuration = Duration.millis(400);
-                double width = ViewSearchPane.getWidth() / 3;
+                double width = ViewSearchPane.getWidth() / 2.5;
                 KeyValue kv = new KeyValue(advancedSearchViewController.getPane().minWidthProperty(), width);
                 KeyValue kv2 = new KeyValue(advancedSearchViewController.getPane().prefWidthProperty(), width);
                 Timeline timeline = new Timeline(new KeyFrame(cycleDuration, kv, kv2));
@@ -206,6 +234,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
                     resize.setText("<");
                     moving.set(false);
                 });
+                query.disableProperty().set(true);
+                advancedSearchViewController.updateSearchParamsFromQueryString(query.getText());
             }
         }
     }
@@ -220,24 +250,31 @@ public class LogEntryTableViewController extends LogbookSearchController {
     }
 
     @FXML
-    public void searchDescending(){
+    public void searchDescending() {
         sortAscending.set(false);
         search();
     }
 
     @FXML
-    public void searchAscending(){
+    public void searchAscending() {
         sortAscending.set(true);
         search();
     }
 
     private void search() {
-        searchInProgress.set(true);
         // parse the various time representations to Instant
-        treeView.getSelectionModel().clearSelection();
+        tableView.getSelectionModel().clearSelection();
         // Determine sort order
-        String searchStringWithSortOrder = LogbookQueryUtil.addSortOrder(query.getText(), sortAscending.get());
+        String searchStringWithSortOrder = null;
+        try {
+            searchStringWithSortOrder = LogbookQueryUtil.addSortOrder(query.getText(), sortAscending.get());
+        } catch (Exception ex) { // Parsing query may throw exception, e.g. search parameter specified multiple times.
+            logger.log(Level.INFO, "Unable to construct search query", ex);
+            ExceptionDetailsErrorDialog.openError("Unable to construct search query", ex.getMessage(), ex);
+            return;
+        }
         query.textProperty().set(searchStringWithSortOrder);
+        searchInProgress.set(true);
         super.search(LogbookQueryUtil.parseQueryString(searchStringWithSortOrder),
                 (inProgress) -> searchInProgress.set(inProgress));
     }
@@ -260,59 +297,21 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     private void refresh() {
         if (logEntries != null) {
-            ObservableList<TreeItem<LogEntry>> tree =
-                    LogEntryTreeHelper.createTree(logEntries, sortAscending.get());
-            rootItem.getChildren().setAll(tree);
-            treeView.getSelectionModel().selectFirst();
-        }
-    }
-
-
-    private class LogEntryTreeCell extends TreeCell<LogEntry> {
-
-        private Node graphic;
-        private LogEntryCellController controller;
-        private final PseudoClass childlessTopLevel =
-                PseudoClass.getPseudoClass("childless-top-level");
-        private final PseudoClass child =
-                PseudoClass.getPseudoClass("child");
-
-        public LogEntryTreeCell() {
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("LogEntryCell.fxml"));
-                graphic = loader.load();
-                controller = loader.getController();
-            } catch (IOException exc) {
-                throw new RuntimeException(exc);
-            }
-        }
-
-        @Override
-        public void updateItem(LogEntry logEntry, boolean empty) {
-            super.updateItem(logEntry, empty);
-            if (empty) {
-                setGraphic(null);
-                return;
-            } else {
-                controller.setLogEntry(logEntry);
-                setGraphic(graphic);
-            }
-            boolean b1 = getTreeItem().getParent().getParent() == null;
-            boolean b2 = getTreeItem().getChildren().size() == 0;
-            pseudoClassStateChanged(childlessTopLevel, b1 && b2);
-            pseudoClassStateChanged(child, !b1);
+            ObservableList<LogEntry> logsList = FXCollections.observableArrayList();
+            logsList.addAll(new ArrayList<>(logEntries));
+            tableView.setItems(logsList);
         }
     }
 
     private void createLogEntryGroup() {
         try {
-            Property logGroupProperty = getLogEntryGroupProperty(selectedLogEntries);
+            Property logEntryGroupProperty = LogGroupProperty.getLogEntryGroupProperty(selectedLogEntries);
             // Update all log entries asynchronously
             JobManager.schedule("Update log entries", monitor -> {
                 selectedLogEntries.forEach(l -> {
                     // Update only if log entry does not contains the log group property
                     if (LogGroupProperty.getLogGroupProperty(l).isEmpty()) {
-                        l.getProperties().add(logGroupProperty);
+                        l.getProperties().add(logEntryGroupProperty);
                         try {
                             getClient().updateLogEntry(l);
                         } catch (LogbookException e) {
@@ -323,43 +322,12 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 // When all log entries are updated, run the search to trigger an update of the UI
                 search();
             });
-
         } catch (LogbookException e) {
+            logger.log(Level.INFO, "Unable to create log entry group from selection");
             final Alert dialog = new Alert(AlertType.INFORMATION);
             dialog.setHeaderText("Cannot create log entry group. Selected list of log entries references more than one existing group.");
-            DialogHelper.positionDialog(dialog, treeView, 0, 0);
+            DialogHelper.positionDialog(dialog, tableView /*treeView*/, 0, 0);
             dialog.showAndWait();
         }
-    }
-
-    protected Property getLogEntryGroupProperty(List<LogEntry> logEntries) throws LogbookException {
-        List<Property> logGroupProperties = getLogEntryGroupProperties(logEntries);
-        if (logGroupProperties.size() > 1) {
-            throw new LogbookException("Selected log entries contain more than one log group property id");
-        }
-        if (logGroupProperties.isEmpty()) {
-            return LogGroupProperty.create();
-        } else {
-            return logGroupProperties.get(0);
-        }
-    }
-
-    private List<Property> getLogEntryGroupProperties(List<LogEntry> logEntries) {
-        List<Property> logEntryGroupProperties = new ArrayList<>();
-        logEntries.forEach(l -> {
-            Optional<Property> logGroupProperty =
-                    LogGroupProperty.getLogGroupProperty(l);
-            if (logGroupProperty.isPresent()) {
-                logEntryGroupProperties.add(logGroupProperty.get());
-            }
-        });
-        return logEntryGroupProperties;
-    }
-
-    @FXML
-    public void toggleSort(){
-        sortAscending.set(sortAscending.not().get());
-        // Do a new search where the wanted sort order is considered
-        search();
     }
 }

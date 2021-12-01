@@ -5,7 +5,9 @@ PV Access client and server for Java, based on the
 [PV Access Protocol Description](https://github.com/epics-base/pvAccessCPP/wiki/protocol),
 consulting the
 [Reference Implementation](https://github.com/epics-base/epicsCoreJava)
-to clarify details.
+to clarify details,
+and tracking enhancements of the latest
+[C++ implementation](https://github.com/mdavidsaver/pvxs).
 
 Original motivation was understanding the protocol and implementing it based on the standard Java library,
 taking advantage of for example functional interfaces and concurrency classes,
@@ -24,13 +26,16 @@ Also includes a PVA Server implementation, which was mostly created
 to again better understand the protocol and to allow closed-loop tests.
 A 'proxy' combines server and client into a 'gateway' type application,
 again mostly to test if the implementations can handle common data types.
+The suggested gateway for production setups is the
+[C++ gateway implementation](https://mdavidsaver.github.io/p4p/gw.html).
+
 
 
 Prerequisites
 -------------
 `JAVA_HOME` set to JDK 8 or higher.
 
-While Phoebus generally targets JDK 9 or higher, the core-pva library
+While CS-Studio generally targets JDK 9 or higher, the core-pva library
 remains for the time being compatible with JDK 8 to allow using it
 with MATLAB.
 
@@ -40,12 +45,7 @@ Both Ant and Maven are supported:
 
     ant clean core-pva
     mvn clean install javadoc:javadoc
-    
 
-API Documentation
------------------
-
-Both Ant and Maven generate javadoc in target/site/apidocs/index.html
 
 Configuration
 -------------
@@ -61,6 +61,9 @@ Key configuration parameters:
 
 `EPICS_PVA_AUTO_ADDR_LIST`: 'YES' (default) or 'NO'. 
 
+`EPICS_PVA_NAME_SERVERS`: Space-separated list of TCP name servers, provided as IP address followed by optional ":port". Client will connect to each address and send name searches before using the `EPICS_PVA_ADDR_LIST` for UDP searches.
+Set `EPICS_PVA_ADDR_LIST` to empty and `EPICS_PVA_AUTO_ADDR_LIST=NO` to use only the TCP name servers and avoid all UDP traffic. This is a client-side option. Server will always allow search messages via its TCP port.
+
 `EPICS_PVA_BROADCAST_PORT`: PVA client UDP port (default 5076) for sending name searches and receiving beacons.
 
 `EPICS_PVAS_BROADCAST_PORT`: PVA server UDP port (default 5076) for name searches and beacons.
@@ -74,9 +77,10 @@ See `PVASettings` source code for complete settings.
 Network Details
 ---------------
 
-The protocol uses UDP port 5076, then TCP port 5075 for first server,
+The protocol uses UDP port 5076, then TCP port 5075 for the first server,
 and randomly chosen TCP ports for additional servers on the same host.
-Local PV name resolution also uses the multicast group 224.0.0.128.
+
+By default, IPv4 is used, and local PV name resolution also joins the multicast group 224.0.0.128.
 (These defaults can be changed via configuration settings, see `PVASettings`.)
 
 To debug connection issues on Linux, it can be helpful to disable the firewall:
@@ -93,6 +97,16 @@ Use `--remove-rule` to revert, add `--permanent` to persist the setting over fir
 
 When running more than one PVA server on a host, these use an unpredictable TCP port,
 so firewall needs to allow all TCP access.
+
+IPv6 Support
+------------
+
+Both the server and client support IPv6, which at this time needs to be enabled
+by configuring the `EPICS_PVAS_INTF_ADDR_LIST` of the server respectively the
+`EPICS_PVA_ADDR_LIST` and/or `EPICS_PVA_NAME_SERVERS` of the client to provide the desired IPv6 addresses.
+
+See Javadoc of `EPICS_PVAS_INTF_ADDR_LIST`, `EPICS_PVA_ADDR_LIST` and `EPICS_PVA_NAME_SERVERS` in `PVASettings`
+for details.
 
 Command-line Example
 --------------------
@@ -117,10 +131,13 @@ the tools provided by EPICS base:
     pvmonitor demo
 
 
-API
----
+    
+API Documentation
+-----------------
 
-See `ClientDemo` for client, `ServerDemo` for server.
+Both Ant and Maven generate javadoc in target/site/apidocs/index.html
+
+See `ClientDemo` for an example client, `ServerDemo` for an example server.
 
 Implementation Status
 ---------------------
@@ -150,6 +167,7 @@ PVA Client:
  * Close (destroy) channel
  * Close client
  * Info/get/monitor/put command line tool
+ * IPv6 support
  
 PVA Server:
 
@@ -161,6 +179,7 @@ PVA Server:
  * Reply to 'get'
  * Support 'monitor'
  * Support RPC
+ * IPv6 support
    
 TODO:
 

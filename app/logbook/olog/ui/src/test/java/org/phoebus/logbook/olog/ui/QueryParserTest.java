@@ -29,6 +29,11 @@ public class QueryParserTest {
         expectedMap.put("tag", "operation");
         assertEquals(expectedMap, queryParameters);
 
+        // Also test empty query
+        uri = URI.create("logbook://?");
+        queryParameters = LogbookQueryUtil.parseQueryURI(uri);
+        assertTrue(queryParameters.isEmpty());
+
     }
 
     @Test
@@ -69,21 +74,30 @@ public class QueryParserTest {
     public void testDetermineSortOrder(){
         String query = "a=b&C=D";
         String modifiedQuery = LogbookQueryUtil.addSortOrder(query, false);
-        assertEquals("a=b&C=D&sort=desc", modifiedQuery);
+        assertEquals("a=b&C=D&sort=down", modifiedQuery);
 
         modifiedQuery = LogbookQueryUtil.addSortOrder(query, true);
-        assertEquals("a=b&C=D&sort=asc", modifiedQuery);
+        assertEquals("a=b&C=D&sort=up", modifiedQuery);
 
-        query = "a=b&sort=asc&C=D";
+        query = "a=b&sort=up&C=D";
         modifiedQuery = LogbookQueryUtil.addSortOrder(query, false);
-        assertEquals("a=b&C=D&sort=desc", modifiedQuery);
+        assertEquals("a=b&C=D&sort=down", modifiedQuery);
 
         query = "a=b&sort&C=D";
         modifiedQuery = LogbookQueryUtil.addSortOrder(query, false);
-        assertEquals("a=b&C=D&sort=desc", modifiedQuery);
+        assertEquals("a=b&C=D&sort=down", modifiedQuery);
 
-        query = "a=b&sort=Ddesc&C=D";
+        query = "a=b&sort=down&C=D";
         modifiedQuery = LogbookQueryUtil.addSortOrder(query, true);
-        assertEquals("a=b&C=D&sort=asc", modifiedQuery);
+        assertEquals("a=b&C=D&sort=up", modifiedQuery);
+
+        // Also test empty query
+        query = "";
+        modifiedQuery = LogbookQueryUtil.addSortOrder(query, true);
+        assertEquals("sort=up", modifiedQuery);
+
+        query = null;
+        modifiedQuery = LogbookQueryUtil.addSortOrder(query, true);
+        assertEquals("sort=up", modifiedQuery);
     }
 }

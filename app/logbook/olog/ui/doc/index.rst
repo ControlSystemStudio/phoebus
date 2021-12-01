@@ -59,10 +59,17 @@ When the log entry editor is launched from a context menu, a screen shot is auto
 Additional images (or other type of attachments) may be added by expanding the Attachments editor:
 
 .. image:: images/Attachments.png
-Here user may select an image file from the file system (Add Image), a screen shot of the current CS Studio "desktop"
-(CSS Window) or paste an image from the clipboard (Clipboard Image).
+Here user may attach any number of files of arbitrary types:
 
-Other type of attachments are managed in the Files tab.
+- ``Add Files`` will launch the native file browser dialog from which user may select any number of files.
+- ``Clipboard`` will attach the file - if any - currently copied to the host OS clipboard.
+- ``CSS Window`` will attach an image of the current application window.
+- ``Embed New`` will launch the dialog to embed an image to the log entry body, see below.
+- ``Embed Selected`` will embed user selected image files previously added to the list of attachments.
+
+**NOTE**: The Olog service will not accept upload of attachments larger than the configured limit of 50MB. The Olog service
+can be configured to use a different limit, but users should keep in mind that download of large attachments to
+the log viewer may incur delays in terms of UI updates.
 
 Embedded images
 ---------------
@@ -119,6 +126,20 @@ the elements of a log entry as follows:
     - ``properties=property name 1|property name 2`` find log entries containing a property named "property name 1" **or** a property named "property name 2". The pipe character is used to separate search expressions.
 
 .. _preferences:
+
+Attachment Preview
+------------------
+
+When viewing a log entry, attachments are listed in the attachments view. A preview of an image attachment is shown
+when user selects it. To see the attachment in full resolution, user may click on the preview image, or double-click
+in the attachment list.
+
+If user double-clicks on a OPI file attachment (.bob file), the application will launch that OPI in run mode.
+
+If user double-clicks on a Data Browser attachment (.plt file), the application will launch the Data Browser.
+
+Preview of non-image files is not offered in the application. However, external viewers may be configured for
+arbitrary file extensions, see preference_settings_ (framework.workbench) for more information.
 
 Preferences
 -----------

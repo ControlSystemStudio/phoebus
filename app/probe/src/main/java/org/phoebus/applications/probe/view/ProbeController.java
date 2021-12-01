@@ -1,11 +1,12 @@
 package org.phoebus.applications.probe.view;
 
+import static org.phoebus.applications.probe.Probe.logger;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
@@ -15,7 +16,6 @@ import org.epics.vtype.VEnum;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VType;
 import org.phoebus.applications.probe.Messages;
-import org.phoebus.applications.probe.Probe;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.pv.PV;
@@ -116,8 +116,7 @@ public class ProbeController {
                 }
                 catch (Exception ex)
                 {
-                    Logger.getLogger(Probe.class.getPackageName())
-                    .log(Level.WARNING, "Cannot write '" + entered + "' to PV " + pv.getName(), ex);
+                    logger.log(Level.WARNING, "Cannot write '" + entered + "' to PV " + pv.getName(), ex);
                 }
                 break;
             default:

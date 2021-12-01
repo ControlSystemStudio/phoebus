@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,7 @@ package org.epics.pva.server;
 
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
 
 import org.epics.pva.PVASettings;
@@ -30,7 +31,9 @@ public class ServerDemo
 {
     public static void main(String[] args) throws Exception
     {
+        // Log everything
         LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/pva_logging.properties"));
+        PVASettings.logger.setLevel(Level.ALL);
 
         try
         (

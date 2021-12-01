@@ -3,9 +3,6 @@ package org.phoebus.olog.es.api;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,6 +20,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
@@ -47,7 +45,6 @@ import com.sun.jersey.multipart.FormDataMultiPart;
 import com.sun.jersey.multipart.file.FileDataBodyPart;
 import com.sun.jersey.multipart.impl.MultiPartWriter;
 import org.phoebus.olog.es.api.model.OlogObjectMappers;
-import org.phoebus.olog.es.api.model.OlogAttachment;
 import org.phoebus.olog.es.api.model.OlogLog;
 
 /**
@@ -183,12 +180,29 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public LogEntry set(LogEntry log) throws LogbookException{
+    public LogEntry set(LogEntry log) throws LogbookException {
+        return save(log, null);
+    }
+
+    /**
+     * Calls the back-end service to persist the log entry.
+     * @param log The log entry to save.
+     * @param inReplyTo If non-null, this save operation will treat the <code>log</code> parameter as a reply to
+     *                  the log entry represented by <code>inReplyTo</code>.
+     * @return The saved log entry.
+     * @throws LogbookException E.g. due to invalid log entry data.
+     */
+    private LogEntry save(LogEntry log, LogEntry inReplyTo) throws LogbookException {
         ClientResponse clientResponse;
 
         try {
+            MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+            queryParams.putSingle("markup", "commonmark");
+            if(inReplyTo != null){
+                queryParams.putSingle("inReplyTo", Long.toString(inReplyTo.getId()));
+            }
             clientResponse = service.path("logs")
-                    .queryParam("markup", "commonmark")
+                    .queryParams(queryParams)
                     .type(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_XML)
                     .accept(MediaType.APPLICATION_JSON)
@@ -207,17 +221,17 @@ public class OlogClient implements LogClient {
                     form.bodyPart(new FormDataBodyPart("filename", attachment.getName()));
                     form.bodyPart(new FormDataBodyPart("fileMetadataDescription", attachment.getContentType()));
 
-                    ClientResponse attachementResponse = service.path("logs")
+                    ClientResponse attachmentResponse = service.path("logs")
                             .path("attachments")
                             .path(String.valueOf(createdLog.getId()))
                            .type(MediaType.MULTIPART_FORM_DATA)
                            .accept(MediaType.APPLICATION_XML)
                            .accept(MediaType.APPLICATION_JSON)
                            .post(ClientResponse.class, form);
-                    if (attachementResponse.getStatus() > 300)
+                    if (attachmentResponse.getStatus() > 300)
                     {
                         // TODO failed to add attachments
-                        logger.log(Level.SEVERE, "Failed to submit attachment(s), HTTP status: " + attachementResponse.getStatus());
+                        logger.log(Level.SEVERE, "Failed to submit attachment(s), HTTP status: " + attachmentResponse.getStatus());
                     }
                 });
 
@@ -241,6 +255,11 @@ public class OlogClient implements LogClient {
         }
     }
 
+    @Override
+    public LogEntry reply(LogEntry log, LogEntry inReplyTo) throws LogbookException{
+        return save(log, inReplyTo);
+    }
+
     /**
      * Returns a LogEntry that exactly matches the logId <code>logId</code>
      *
@@ -255,13 +274,16 @@ public class OlogClient implements LogClient {
 
     @Override
     public LogEntry findLogById(Long logId) {
-        OlogLog xmlLog = service
-                .path("logs")
-                .path(logId.toString())
-                .accept(MediaType.APPLICATION_XML)
-                .accept(MediaType.APPLICATION_JSON)
-                .get(OlogLog.class);
-        return xmlLog;
+        try {
+            OlogLog ologLog = OlogObjectMappers.logEntryDeserializer.readValue(
+                service
+                    .path("logs")
+                    .path(logId.toString())
+                    .accept(MediaType.APPLICATION_JSON).get(String.class), OlogLog.class);
+            return ologLog;
+        } catch (JsonProcessingException e) {
+            return null;
+        }
     }
 
     @Override
@@ -279,59 +301,39 @@ public class OlogClient implements LogClient {
         return findLogs(mMap);
     }
 
-    private List<LogEntry> findLogs(MultivaluedMap<String, String> mMap) throws RuntimeException {
+    /**
+     * Retrieves {@link LogEntry}s matching the search criteria. Note that even if the matching {@link LogEntry}s
+     * may have a non-empty list of {@link Attachment}s, the {@link Attachment}s will NOT contains the actual
+     * data/content. This is essentially a lazy loading strategy to avoid fetching attachment data at this point.
+     * @param searchParams Map of search parameters/expressions
+     * @return A list of matching {@link LogEntry}s
+     * @throws RuntimeException
+     */
+    private List<LogEntry> findLogs(MultivaluedMap<String, String> searchParams) throws RuntimeException {
         List<LogEntry> logs = new ArrayList<>();
-        if (mMap.containsKey("limit")) {
+        if (searchParams.containsKey("limit")) {
             // Check if limit can be parsed as a number. If not, remove it.
             try {
-                Integer.parseInt(mMap.get("limit").get(0));
+                Integer.parseInt(searchParams.get("limit").get(0));
             } catch (Exception e) {
                 logger.warning("Invalid request parameter value for 'limit'");
-                mMap.remove("limit");
+                searchParams.remove("limit");
             }
         }
         try {
             // Convert List<XmlLog> into List<LogEntry>
             final List <OlogLog> xmls = OlogObjectMappers.logEntryDeserializer.readValue(
-                    service.path("logs").queryParams(mMap)
+                    service.path("logs").queryParams(searchParams)
                     .accept(MediaType.APPLICATION_JSON)
                     .get(String.class),
                     new TypeReference<List <OlogLog>>() {
                     });
-            for (OlogLog xml : xmls)
-                logs.add(xml);
-            logs.forEach(log -> {
-                // fetch attachment??
-                // This surely can be done better, move the fetch into a job and only invoke it when the client is trying to render the image
-                if (!log.getAttachments().isEmpty()) {
-                    Collection<Attachment> populatedAttachment = log.getAttachments().stream()
-                      .filter( (attachment) -> {
-                          return attachment.getName() != null && !attachment.getName().isEmpty();
-                      })
-                      .map((attachment) -> {
-                        OlogAttachment fileAttachment = new OlogAttachment();
-                        fileAttachment.setContentType(attachment.getContentType());
-                        fileAttachment.setThumbnail(false);
-                        fileAttachment.setFileName(attachment.getName());
-                        try {
-                            Path temp = Files.createTempFile("phoebus", attachment.getName());
-                            Files.copy(getAttachment(log.getId(), attachment.getName()), temp, StandardCopyOption.REPLACE_EXISTING);
-                            fileAttachment.setFile(temp.toFile());
-                            temp.toFile().deleteOnExit();
-                        } catch (IOException e) {
-                            logger.log(Level.WARNING, "Failed to retrieve attachment " + fileAttachment.getFileName() ,e);
-                        }
-                        return fileAttachment;
-                    }).collect(Collectors.toList());
-                    ((OlogLog)log).setAttachments(populatedAttachment);
-                }
-            });
+            logs = xmls.stream().collect(Collectors.toList());
             return Collections.unmodifiableList(logs);
         } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
             logger.log(Level.WARNING, "failed to retrieve log entries", e);
             throw new RuntimeException(e);
         }
-        //return Collections.unmodifiableList(logs);
     }
 
     @Override

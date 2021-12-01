@@ -42,7 +42,8 @@ import org.epics.pva.server.Guid;
 class ClientTCPHandler extends TCPHandler
 {
     private static final CommandHandlers<ClientTCPHandler> handlers =
-        new CommandHandlers<>(new ValidationHandler(),
+        new CommandHandlers<>(new SearchResponseHandler(),
+                              new ValidationHandler(),
                               new ValidatedHandler(),
                               new EchoHandler(),
                               new CreateChannelHandler(),
@@ -60,7 +61,7 @@ class ClientTCPHandler extends TCPHandler
     private final CopyOnWriteArrayList<PVAChannel> channels = new CopyOnWriteArrayList<>();
 
     /** Server's GUID */
-    private final Guid guid;
+    private volatile Guid guid;
 
     private final AtomicInteger server_changes = new AtomicInteger(-1);
 
@@ -127,7 +128,6 @@ class ClientTCPHandler extends TCPHandler
         return socket;
     }
 
-
     /** @return Client context */
     PVAClient getClient()
     {
@@ -156,6 +156,27 @@ class ClientTCPHandler extends TCPHandler
     public Guid getGuid()
     {
         return guid;
+    }
+
+    /** Update the Guid
+     *
+     *  <p>The Guid of a server is fixed,
+     *  but this TCP handler may start out with Guid.EMPTY
+     *  to issue searches to an IP address.
+     *  Upon the first successful search reply,
+     *  we set the Guid based on the search reply.
+     *
+     *  @param search_reply_guid Guid from search reply
+     *  @return <code>true</code> if this updated the Guid from EMPTY
+     */
+    public boolean updateGuid(final Guid search_reply_guid)
+    {
+        if (guid.equals(Guid.EMPTY))
+        {
+            guid = search_reply_guid;
+            return true;
+        }
+        return false;
     }
 
     /** Check if the server's beacon indicates changes
@@ -287,7 +308,7 @@ class ClientTCPHandler extends TCPHandler
             // configure it
             send_buffer.order(buffer.order());
 
-            logger.log(Level.FINE, () -> "Server Version " + server_version + " sent set-byte-order to " + send_buffer.order());
+            logger.log(Level.FINE, () -> "Server Version " + server_version + " sets byte order to " + send_buffer.order());
             // Payload indicates if the server will send messages in that same order,
             // or might change order for each message.
             // We always adapt based on the flags of each received message,

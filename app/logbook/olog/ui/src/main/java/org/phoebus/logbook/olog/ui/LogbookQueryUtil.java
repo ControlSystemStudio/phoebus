@@ -27,7 +27,8 @@ public class LogbookQueryUtil {
         AUTHOR("owner"),
         TITLE("title"),
         LEVEL("level"),
-        PROPERTIES("properties");
+        PROPERTIES("properties"),
+        SORT("sort");
 
         // The human readable name of the query key
         private final String name;
@@ -43,6 +44,7 @@ public class LogbookQueryUtil {
             lookupTable.put("title", Keys.TITLE);
             lookupTable.put("level", Keys.LEVEL);
             lookupTable.put("properties", Keys.PROPERTIES);
+            lookupTable.put("sort", Keys.SORT);
         }
 
         Keys(String name) {
@@ -66,7 +68,7 @@ public class LogbookQueryUtil {
      */
     public static Map<String, String> parseQueryURI(URI query) {
         if (Strings.isNullOrEmpty(query.getQuery())) {
-            return Collections.emptyMap();
+            return new HashMap<>();
         } else {
             return Arrays.asList(query.getQuery().split("&")).stream()
                     .collect(Collectors.toMap(new KeyParser(), new ValueParser()));
@@ -82,7 +84,7 @@ public class LogbookQueryUtil {
      */
     public static Map<String, String> parseQueryString(String query) {
         if (Strings.isNullOrEmpty(query)) {
-            return Collections.emptyMap();
+            return new HashMap<>();
         } else {
             return Arrays.asList(query.split("&")).stream()
                     .collect(Collectors.toMap(new KeyParser(), new ValueParser()));
@@ -99,7 +101,7 @@ public class LogbookQueryUtil {
      */
     public static Map<String, String> parseHumanReadableQueryString(String query) {
         if (Strings.isNullOrEmpty(query)) {
-            return Collections.emptyMap();
+            return new HashMap<>();
         } else {
             return Arrays.asList(query.split("&")).stream()
                     .collect(Collectors.toMap(new KeyParser(), new SimpleValueParser()));
@@ -178,10 +180,10 @@ public class LogbookQueryUtil {
             queryParams.remove("sort");
         }
         if(sortAscending){
-            queryParams.put("sort", "asc");
+            queryParams.put("sort", "up");
         }
         else{
-            queryParams.put("sort", "desc");
+            queryParams.put("sort", "down");
         }
         StringBuilder stringBuilder = new StringBuilder();
         queryParams.keySet().stream().forEach(key -> stringBuilder.append(key + "=" + queryParams.get(key) + "&"));

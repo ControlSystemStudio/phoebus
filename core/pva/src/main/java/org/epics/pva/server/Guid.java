@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,6 +17,8 @@ import java.util.Arrays;
 @SuppressWarnings("nls")
 public class Guid
 {
+    public static final Guid EMPTY = new Guid(new byte[]{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
+
     // Random number generator in holder to defer initialization
     private static class Holder
     {
@@ -37,6 +39,16 @@ public class Guid
     public Guid(final ByteBuffer buffer)
     {
         buffer.get(guid);
+    }
+
+    /** Set Guid from value
+     *  @param value 12-byte Guid value
+     */
+    private Guid(final byte[] value)
+    {
+        if (value.length != guid.length)
+            throw new IllegalArgumentException("Need 12, got " + guid.length + " bytes");
+        System.arraycopy(value, 0, guid, 0, guid.length);
     }
 
     /** @param buffer Buffer into which to encode Guid */

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,9 +15,11 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 import org.epics.pva.PVASettings;
+import org.epics.pva.common.AddressInfo;
 import org.epics.pva.common.Network;
 import org.epics.pva.server.Guid;
 
@@ -73,12 +75,33 @@ public class PVAClient implements AutoCloseable
      */
     public PVAClient() throws Exception
     {
-        List<InetSocketAddress> search_addresses = Network.parseAddresses(PVASettings.EPICS_PVA_ADDR_LIST.split("\\s+"));
-        if (PVASettings.EPICS_PVA_AUTO_ADDR_LIST)
-            search_addresses.addAll(Network.getBroadcastAddresses(PVASettings.EPICS_PVA_BROADCAST_PORT));
+        final List<AddressInfo> name_server_addresses = Network.parseAddresses(PVASettings.EPICS_PVA_NAME_SERVERS, PVASettings.EPICS_PVA_SERVER_PORT);
 
+        final List<AddressInfo> udp_search_addresses = Network.parseAddresses(PVASettings.EPICS_PVA_ADDR_LIST, PVASettings.EPICS_PVA_BROADCAST_PORT);
+        if (PVASettings.EPICS_PVA_AUTO_ADDR_LIST)
+            udp_search_addresses.addAll(Network.getBroadcastAddresses(PVASettings.EPICS_PVA_BROADCAST_PORT));
+
+        // Handler for UDP traffic
         udp = new ClientUDPHandler(this::handleBeacon, this::handleSearchResponse);
-        search = new ChannelSearch(udp, search_addresses);
+
+        // TCP traffic is handled by one ClientTCPHandler per address (IP, socket).
+        // Pass helper to channel search for getting such a handler.
+        final Function<InetSocketAddress, ClientTCPHandler> tcp_provider = the_addr ->
+            tcp_handlers.computeIfAbsent(the_addr, addr ->
+            {
+                try
+                {
+                    // If absent, create with initial empty GUID
+                    return new ClientTCPHandler(this, addr, Guid.EMPTY);
+                }
+                catch (Exception ex)
+                {
+                    logger.log(Level.WARNING, "Cannot connect to TCP " + addr, ex);
+                }
+                return null;
+
+            });
+        search = new ChannelSearch(udp, udp_search_addresses, tcp_provider, name_server_addresses);
 
         udp.start();
         search.start();
@@ -112,6 +135,12 @@ public class PVAClient implements AutoCloseable
         return request_ids.incrementAndGet();
     }
 
+    /** @return Last request ID used by this client and all its connections */
+    int getLastRequestID()
+    {
+        return request_ids.get();
+    }
+
     /** Create channel by name
     *
     *  <p>Starts search.
@@ -136,6 +165,8 @@ public class PVAClient implements AutoCloseable
     {
         final PVAChannel channel = new PVAChannel(this, channel_name, listener);
         channels_by_id.putIfAbsent(channel.getCID(), channel);
+
+        // Register with search
         search.register(channel, true);
         return channel;
     }
@@ -189,7 +220,7 @@ public class PVAClient implements AutoCloseable
         search.boost();
     }
 
-    private void handleSearchResponse(final int channel_id, final InetSocketAddress server, final int version, final Guid guid)
+    void handleSearchResponse(final int channel_id, final InetSocketAddress server, final int version, final Guid guid)
     {
         // Generic server 'list' response?
         if (channel_id < 0)
@@ -238,7 +269,12 @@ public class PVAClient implements AutoCloseable
         // In case of connection errors (TCP connection blocked by firewall),
         // tcp will be null
         if (tcp != null)
+        {
+            if (tcp.updateGuid(guid))
+                logger.log(Level.FINE, "Search-only TCP handler received GUID, now " + tcp);
+
             channel.registerWithServer(tcp);
+        }
     }
 
     /** Called by {@link ClientTCPHandler} when connection is lost or closed because unused

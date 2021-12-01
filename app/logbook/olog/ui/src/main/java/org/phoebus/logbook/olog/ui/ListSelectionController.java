@@ -7,6 +7,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import org.phoebus.ui.javafx.ImageCache;
@@ -52,6 +53,8 @@ public class ListSelectionController {
     private List<Function<List<String>, Boolean>> onCancel = new ArrayList<>();
 
     public synchronized void setAvailable(List<String> available) {
+        // Remove already selected items.
+        available.removeAll(selected);
         this.available = FXCollections.observableArrayList(available);
         refresh();
     }
@@ -92,6 +95,7 @@ public class ListSelectionController {
             clear.disableProperty().bind(Bindings.isEmpty(selectedItems.getItems()));
         });
 
+        availableItems.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         // Double click to add..
         availableItems.setOnMouseClicked(event -> {
             if (event.getClickCount() < 2)
@@ -99,6 +103,7 @@ public class ListSelectionController {
             addSelected();
             event.consume();
         });
+        selectedItems.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         // .. or remove items
         selectedItems.setOnMouseClicked(event -> {
             if (event.getClickCount() < 2)

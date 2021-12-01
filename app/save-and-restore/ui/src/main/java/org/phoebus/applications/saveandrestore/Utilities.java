@@ -31,7 +31,6 @@ import org.epics.util.array.ArrayUInteger;
 import org.epics.util.array.ArrayULong;
 import org.epics.util.array.ArrayUShort;
 import org.epics.util.array.ListBoolean;
-import org.epics.util.array.ListInteger;
 import org.epics.util.array.ListLong;
 import org.epics.util.array.ListNumber;
 import org.epics.util.array.ListUInteger;
@@ -100,13 +99,11 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- *
  * <code>Utilities</code> provides common methods to transform between different data types used by the save and
  * restore. This class also provides methods to transform the timestamps into human readable formats. All methods are
  * thread safe.
  *
  * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
- *
  */
 public final class Utilities {
 
@@ -117,17 +114,24 @@ public final class Utilities {
      * (-1). This only applies to scalar values. In case of array values the comparison can only result in 0 or 1.
      *
      * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
-     *
      */
     public static class VTypeComparison {
         private final String string;
         private final int valuesEqual;
         private final boolean withinThreshold;
+        private double absoluteDelta = 0.0;
 
         VTypeComparison(String string, int equal, boolean withinThreshold) {
             this.string = string;
             this.valuesEqual = equal;
             this.withinThreshold = withinThreshold;
+        }
+
+        VTypeComparison(String string, int equal, boolean withinThreshold, double absoluteDelta) {
+            this.string = string;
+            this.valuesEqual = equal;
+            this.withinThreshold = withinThreshold;
+            this.absoluteDelta = absoluteDelta;
         }
 
         /**
@@ -156,9 +160,15 @@ public final class Utilities {
         public boolean isWithinThreshold() {
             return withinThreshold;
         }
+
+        public double getAbsoluteDelta() {
+            return absoluteDelta;
+        }
     }
 
-    /** The character code for the greek delta letter */
+    /**
+     * The character code for the greek delta letter
+     */
     public static final char DELTA_CHAR = '\u0394';
     private static final char SEMI_COLON = ';';
     private static final char COMMA = ',';
@@ -171,16 +181,16 @@ public final class Utilities {
 
     });
     private static final ThreadLocal<DateFormat> LE_TIMESTAMP_FORMATTER = ThreadLocal
-        .withInitial(() -> new SimpleDateFormat("HH:mm:ss.SSS MMM dd"));
+            .withInitial(() -> new SimpleDateFormat("HH:mm:ss.SSS MMM dd"));
     private static final ThreadLocal<DateFormat> SLE_TIMESTAMP_FORMATTER = ThreadLocal
-        .withInitial(() -> new SimpleDateFormat("HH:mm:ss.SSS MMM dd yyyy"));
+            .withInitial(() -> new SimpleDateFormat("HH:mm:ss.SSS MMM dd yyyy"));
     private static final ThreadLocal<DateFormat> BE_TIMESTAMP_FORMATTER = ThreadLocal
-        .withInitial(() -> new SimpleDateFormat("MMM dd HH:mm:ss"));
+            .withInitial(() -> new SimpleDateFormat("MMM dd HH:mm:ss"));
     private static final ThreadLocal<DateFormat> SBE_TIMESTAMP_FORMATTER = ThreadLocal
-        .withInitial(() -> new SimpleDateFormat("yyyy MMM dd HH:mm:ss"));
+            .withInitial(() -> new SimpleDateFormat("yyyy MMM dd HH:mm:ss"));
     private static final Pattern COMMA_PATTERN = Pattern.compile("\\,");
     private static final ThreadLocal<DecimalFormat> NANO_FORMATTER = ThreadLocal
-        .withInitial(() -> new DecimalFormat("000000000"));
+            .withInitial(() -> new DecimalFormat("000000000"));
 
     /**
      * Private constructor to prevent instantiation of this class.
@@ -197,7 +207,7 @@ public final class Utilities {
      * {@link #valueToString(VType)}.
      *
      * @param indata the data to parse and transform into VType
-     * @param type the type of the destination object
+     * @param type   the type of the destination object
      * @return VType representing the data#
      * @throws IllegalArgumentException if the numbers of array elements do not match
      */
@@ -284,24 +294,21 @@ public final class Utilities {
             }
 
             return VNumberArray.of(list, alarm, time, Display.none());
-        }
-        else if(type instanceof VStringArray){
+        } else if (type instanceof VStringArray) {
             String[] elements = data.split("\\,");
             List<String> list = Arrays.asList(elements).stream().map(String::trim).collect(Collectors.toList());
             list = list.stream().map(s -> s.substring(1, s.length() - 1)).collect(Collectors.toList());
             return VStringArray.of(list, alarm, time);
-        }
-        else if(type instanceof VBooleanArray){
+        } else if (type instanceof VBooleanArray) {
             String[] elements = data.split("\\,");
             List<String> list = Arrays.asList(elements).stream().map(String::trim).collect(Collectors.toList());
             boolean[] booleans = new boolean[list.size()];
-            for(int i = 0; i < list.size(); i++){
+            for (int i = 0; i < list.size(); i++) {
                 booleans[i] = Integer.parseInt(list.get(i)) > 0 ? true : false;
             }
             ListBoolean listBoolean = ArrayBoolean.of(booleans);
             return VBooleanArray.of(listBoolean, alarm, time);
-        }
-        else if (type instanceof VDouble) {
+        } else if (type instanceof VDouble) {
             return VDouble.of(Double.parseDouble(data), alarm, time, Display.none());
         } else if (type instanceof VFloat) {
             return VFloat.of(Float.parseFloat(data), alarm, time, Display.none());
@@ -328,7 +335,7 @@ public final class Utilities {
                 try {
                     idx = Integer.parseInt(data);
                 } catch (NumberFormatException e) {
-                    throw new IllegalArgumentException(String.format("'%s' is not a valid enum value.",data));
+                    throw new IllegalArgumentException(String.format("'%s' is not a valid enum value.", data));
                 }
             }
             return VEnum.of(idx, EnumDisplay.of(labels), alarm, time);
@@ -366,22 +373,17 @@ public final class Utilities {
             return null;
         }
         if (type instanceof VNumberArray) {
-            if(type instanceof VIntArray || type instanceof VUIntArray){
+            if (type instanceof VIntArray || type instanceof VUIntArray) {
                 return VTypeHelper.toIntegers(type);
-            }
-            else if(type instanceof VDoubleArray){
+            } else if (type instanceof VDoubleArray) {
                 return VTypeHelper.toDoubles(type);
-            }
-            else if(type instanceof VFloatArray){
+            } else if (type instanceof VFloatArray) {
                 return VTypeHelper.toFloats(type);
-            }
-            else if(type instanceof VLongArray || type instanceof VULongArray){
+            } else if (type instanceof VLongArray || type instanceof VULongArray) {
                 return VTypeHelper.toLongs(type);
-            }
-            else if(type instanceof VShortArray || type instanceof VUShortArray){
+            } else if (type instanceof VShortArray || type instanceof VUShortArray) {
                 return VTypeHelper.toShorts(type);
-            }
-            else if(type instanceof VByteArray || type instanceof VUByteArray){
+            } else if (type instanceof VByteArray || type instanceof VUByteArray) {
                 return VTypeHelper.toBytes(type);
             }
         } else if (type instanceof VEnumArray) {
@@ -434,7 +436,7 @@ public final class Utilities {
      * given by the <code>arrayLimi</code> parameter. This method should only be used for presentation of the value on
      * the screen.
      *
-     * @param type the data to transform
+     * @param type       the data to transform
      * @param arrayLimit the maximum number of array elements to include
      * @return string representation of the data
      */
@@ -447,16 +449,16 @@ public final class Utilities {
             StringBuilder sb = new StringBuilder(size * 15 + 2);
             sb.append('[');
             Pattern pattern = Pattern.compile("\\,");
-            NumberFormat formatter = ((SimpleValueFormat)FORMAT.get()).getNumberFormat();
+            NumberFormat formatter = ((SimpleValueFormat) FORMAT.get()).getNumberFormat();
             if (type instanceof VDoubleArray) {
                 for (int i = 0; i < size; i++) {
                     sb.append(pattern.matcher(formatter.format(list.getDouble(i))).replaceAll("\\.")).append(COMMA)
-                        .append(' ');
+                            .append(' ');
                 }
             } else if (type instanceof VFloatArray) {
                 for (int i = 0; i < size; i++) {
                     sb.append(pattern.matcher(formatter.format(list.getFloat(i))).replaceAll("\\.")).append(COMMA)
-                        .append(' ');
+                            .append(' ');
                 }
             } else if (type instanceof VULongArray) {
                 for (int i = 0; i < size; i++) {
@@ -500,8 +502,7 @@ public final class Utilities {
                 sb.setCharAt(sb.length() - 2, ']');
             }
             return sb.toString().trim();
-        }
-        else if(type instanceof VStringArray){
+        } else if (type instanceof VStringArray) {
             List<String> list = ((VStringArray) type).getData();
             int size = Math.min(arrayLimit, list.size());
             StringBuilder sb = new StringBuilder(size * 15 + 2);
@@ -518,12 +519,11 @@ public final class Utilities {
                 sb.setCharAt(sb.length() - 2, ']');
             }
             return sb.toString().trim();
-        }
-        else if (type instanceof VNumber) {
+        } else if (type instanceof VNumber) {
             if (type instanceof VDouble) {
-                return ((SimpleValueFormat)FORMAT.get()).format(((VDouble) type).getValue());
+                return ((SimpleValueFormat) FORMAT.get()).format(((VDouble) type).getValue());
             } else if (type instanceof VFloat) {
-                return ((SimpleValueFormat)FORMAT.get()).format(((VFloat) type).getValue());
+                return ((SimpleValueFormat) FORMAT.get()).format(((VFloat) type).getValue());
             } else {
                 return String.valueOf(((VNumber) type).getValue());
             }
@@ -557,35 +557,37 @@ public final class Utilities {
      * If the base value and the transformed value are both of a {@link VNumber} type, the difference of the transformed
      * value to the base value is added to the returned string.
      *
-     * @param value the value to compare
+     * @param value     the value to compare
      * @param baseValue the base value to compare the value to
      * @param threshold the threshold values to use for comparing the values, if defined and difference is within
-     *            threshold limits the values are equal
+     *                  threshold limits the values are equal
      * @return string representing the value and the difference from the base value together with the flag indicating
-     *         the comparison result
+     * the comparison result
      */
     @SuppressWarnings("unchecked")
     public static VTypeComparison valueToCompareString(VType value, VType baseValue, Optional<Threshold<?>> threshold) {
         if (value == null && baseValue == null
-            || value == VDisconnectedData.INSTANCE && baseValue == VDisconnectedData.INSTANCE) {
+                || value == VDisconnectedData.INSTANCE && baseValue == VDisconnectedData.INSTANCE) {
             return new VTypeComparison(VDisconnectedData.INSTANCE.toString(), 0, true);
         } else if (value == null || baseValue == null) {
             return value == null ? new VTypeComparison(VDisconnectedData.INSTANCE.toString(), -1, false)
-                : new VTypeComparison(valueToString(value), 1, false);
+                    : new VTypeComparison(valueToString(value), 1, false);
         } else if (value == VDisconnectedData.INSTANCE || baseValue == VDisconnectedData.INSTANCE) {
             return value == VDisconnectedData.INSTANCE
-                ? new VTypeComparison(VDisconnectedData.INSTANCE.toString(), -1, false)
-                : new VTypeComparison(valueToString(value), 1, false);
+                    ? new VTypeComparison(VDisconnectedData.INSTANCE.toString(), -1, false)
+                    : new VTypeComparison(valueToString(value), 1, false);
         }
         if (value instanceof VNumber && baseValue instanceof VNumber) {
             StringBuilder sb = new StringBuilder(20);
             int diff = 0;
+            double absoluteDelta = 0.0;
             boolean withinThreshold = threshold.isPresent();
-            sb.append(((SimpleValueFormat)FORMAT.get()).format(value));
+            sb.append(((SimpleValueFormat) FORMAT.get()).format(value));
             if (value instanceof VDouble) {
                 double data = ((VDouble) value).getValue();
                 double base = ((VNumber) baseValue).getValue().doubleValue();
                 double newd = data - base;
+                absoluteDelta = Math.abs(newd);
                 diff = Double.compare(data, base);
                 if (threshold.isPresent()) {
                     withinThreshold = ((Threshold<Double>) threshold.get()).isWithinThreshold(data, base);
@@ -596,11 +598,12 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat) FORMAT.get()).format(newd));
             } else if (value instanceof VFloat) {
                 float data = ((VFloat) value).getValue();
                 float base = ((VNumber) baseValue).getValue().floatValue();
                 float newd = data - base;
+                absoluteDelta = Math.abs(newd);
                 diff = Float.compare(data, base);
                 if (threshold.isPresent()) {
                     withinThreshold = ((Threshold<Float>) threshold.get()).isWithinThreshold(data, base);
@@ -611,11 +614,12 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat) FORMAT.get()).format(newd));
             } else if (value instanceof VULong) {
                 BigInteger data = ((VULong) value).getValue().bigIntegerValue();
                 BigInteger base = ((VULong) baseValue).getValue().bigIntegerValue();
                 BigInteger newd = data.subtract(base);
+                absoluteDelta = Math.abs(newd.doubleValue());
                 diff = data.compareTo(base);
                 if (threshold.isPresent()) {
                     withinThreshold = ((Threshold<BigInteger>) threshold.get()).isWithinThreshold(data, base);
@@ -626,11 +630,12 @@ public final class Utilities {
                 if (newd.compareTo(BigInteger.ZERO) > 0) {
                     sb.append('+');
                 }
-                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat) FORMAT.get()).format(newd));
             } else if (value instanceof VLong) {
                 long data = ((VLong) value).getValue();
                 long base = ((VNumber) baseValue).getValue().longValue();
                 long newd = data - base;
+                absoluteDelta = Math.abs(newd);
                 diff = Long.compare(data, base);
                 if (threshold.isPresent()) {
                     withinThreshold = ((Threshold<Long>) threshold.get()).isWithinThreshold(data, base);
@@ -641,11 +646,12 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat) FORMAT.get()).format(newd));
             } else if (value instanceof VUInt) {
                 long data = ((VUInt) value).getValue().longValue();
                 long base = ((VUInt) baseValue).getValue().longValue();
                 long newd = data - base;
+                absoluteDelta = Math.abs(newd);
                 diff = Long.compare(data, base);
                 if (threshold.isPresent()) {
                     withinThreshold = ((Threshold<Long>) threshold.get()).isWithinThreshold(data, base);
@@ -656,11 +662,12 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat) FORMAT.get()).format(newd));
             } else if (value instanceof VInt) {
                 int data = ((VInt) value).getValue();
                 int base = ((VNumber) baseValue).getValue().intValue();
                 int newd = data - base;
+                absoluteDelta = Math.abs(newd);
                 diff = Integer.compare(data, base);
                 if (threshold.isPresent()) {
                     withinThreshold = ((Threshold<Integer>) threshold.get()).isWithinThreshold(data, base);
@@ -671,11 +678,12 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat) FORMAT.get()).format(newd));
             } else if (value instanceof VUShort) {
                 int data = ((VUShort) value).getValue().intValue();
                 int base = ((VUShort) baseValue).getValue().intValue();
                 int newd = data - base;
+                absoluteDelta = Math.abs(newd);
                 diff = Integer.compare(data, base);
                 if (threshold.isPresent()) {
                     withinThreshold = ((Threshold<Integer>) threshold.get()).isWithinThreshold(data, base);
@@ -686,11 +694,12 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat) FORMAT.get()).format(newd));
             } else if (value instanceof VShort) {
                 short data = ((VShort) value).getValue();
                 short base = ((VNumber) baseValue).getValue().shortValue();
                 short newd = (short) (data - base);
+                absoluteDelta = Math.abs(newd);
                 diff = Short.compare(data, base);
                 if (threshold.isPresent()) {
                     withinThreshold = ((Threshold<Short>) threshold.get()).isWithinThreshold(data, base);
@@ -701,11 +710,12 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat) FORMAT.get()).format(newd));
             } else if (value instanceof VUByte) {
                 int data = ((VUByte) value).getValue().intValue();
                 int base = ((VUByte) baseValue).getValue().intValue();
                 int newd = data - base;
+                absoluteDelta = Math.abs(newd);
                 diff = Integer.compare(data, base);
                 if (threshold.isPresent()) {
                     withinThreshold = ((Threshold<Integer>) threshold.get()).isWithinThreshold(data, base);
@@ -716,11 +726,12 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat) FORMAT.get()).format(newd));
             } else if (value instanceof VByte) {
                 byte data = ((VByte) value).getValue();
                 byte base = ((VNumber) baseValue).getValue().byteValue();
                 byte newd = (byte) (data - base);
+                absoluteDelta = Math.abs(newd);
                 diff = Byte.compare(data, base);
                 if (threshold.isPresent()) {
                     withinThreshold = ((Threshold<Byte>) threshold.get()).isWithinThreshold(data, base);
@@ -731,9 +742,9 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat) FORMAT.get()).format(newd));
             }
-            return new VTypeComparison(sb.toString(), diff, withinThreshold);
+            return new VTypeComparison(sb.toString(), diff, withinThreshold, absoluteDelta);
         } else if (value instanceof VBoolean && baseValue instanceof VBoolean) {
             String str = valueToString(value);
             boolean b = ((VBoolean) value).getValue();
@@ -767,35 +778,37 @@ public final class Utilities {
      * If the base value and the transformed value are both of a {@link VNumber} type, the difference of the transformed
      * value to the base value is returned as string.
      *
-     * @param value the value to compare
+     * @param value     the value to compare
      * @param baseValue the base value to compare the value to
      * @param threshold the threshold values to use for comparing the values, if defined and difference is within
-     *            threshold limits the values are equal
+     *                  threshold limits the values are equal
      * @return string representing the difference from the base value together with the flag indicating
-     *         the comparison result
+     * the comparison result
      */
     @SuppressWarnings("unchecked")
     public static VTypeComparison deltaValueToString(VType value, VType baseValue, Optional<Threshold<?>> threshold) {
         if (value == null && baseValue == null
-            || value == VDisconnectedData.INSTANCE && baseValue == VDisconnectedData.INSTANCE) {
+                || value == VDisconnectedData.INSTANCE && baseValue == VDisconnectedData.INSTANCE) {
             return new VTypeComparison(VDisconnectedData.INSTANCE.toString(), 0, true);
         } else if (value == null || baseValue == null) {
             return value == null ? new VTypeComparison(VDisconnectedData.INSTANCE.toString(), -1, false)
-                : new VTypeComparison(valueToString(value), 1, false);
+                    : new VTypeComparison(valueToString(value), 1, false);
         } else if (value == VDisconnectedData.INSTANCE || baseValue == VDisconnectedData.INSTANCE) {
             return value == VDisconnectedData.INSTANCE
-                ? new VTypeComparison(VDisconnectedData.INSTANCE.toString(), -1, false)
-                : new VTypeComparison(valueToString(value), 1, false);
+                    ? new VTypeComparison(VDisconnectedData.INSTANCE.toString(), -1, false)
+                    : new VTypeComparison(valueToString(value), 1, false);
         }
         if (value instanceof VNumber && baseValue instanceof VNumber) {
             StringBuilder sb = new StringBuilder(20);
             int diff = 0;
+            double absoluteDelta = 0.0;
             boolean withinThreshold = threshold.isPresent();
             if (value instanceof VDouble) {
                 double data = ((VDouble) value).getValue();
                 double base = ((VNumber) baseValue).getValue().doubleValue();
                 double newd = data - base;
                 diff = Double.compare(data, base);
+                absoluteDelta = Math.abs(newd);
                 if (threshold.isPresent()) {
                     withinThreshold = ((Threshold<Double>) threshold.get()).isWithinThreshold(data, base);
                 } else {
@@ -804,12 +817,13 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat) FORMAT.get()).format(newd));
             } else if (value instanceof VFloat) {
                 float data = ((VFloat) value).getValue();
                 float base = ((VNumber) baseValue).getValue().floatValue();
                 float newd = data - base;
                 diff = Float.compare(data, base);
+                absoluteDelta = Math.abs(newd);
                 if (threshold.isPresent()) {
                     withinThreshold = ((Threshold<Float>) threshold.get()).isWithinThreshold(data, base);
                 } else {
@@ -818,12 +832,13 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat) FORMAT.get()).format(newd));
             } else if (value instanceof VULong) {
                 BigInteger data = ((VULong) value).getValue().bigIntegerValue();
                 BigInteger base = ((VULong) baseValue).getValue().bigIntegerValue();
                 BigInteger newd = data.subtract(base);
                 diff = data.compareTo(base);
+                absoluteDelta = Math.abs(newd.doubleValue());
                 if (threshold.isPresent()) {
                     withinThreshold = ((Threshold<BigInteger>) threshold.get()).isWithinThreshold(data, base);
                 } else {
@@ -832,11 +847,12 @@ public final class Utilities {
                 if (newd.compareTo(BigInteger.ZERO) > 0) {
                     sb.append('+');
                 }
-                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat) FORMAT.get()).format(newd));
             } else if (value instanceof VLong) {
                 long data = ((VLong) value).getValue();
                 long base = ((VNumber) baseValue).getValue().longValue();
                 long newd = data - base;
+                absoluteDelta = Math.abs(newd);
                 diff = Long.compare(data, base);
                 if (threshold.isPresent()) {
                     withinThreshold = ((Threshold<Long>) threshold.get()).isWithinThreshold(data, base);
@@ -846,11 +862,12 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat) FORMAT.get()).format(newd));
             } else if (value instanceof VUInt) {
                 long data = ((VUInt) value).getValue().longValue();
                 long base = ((VUInt) baseValue).getValue().longValue();
                 long newd = data - base;
+                absoluteDelta = Math.abs(newd);
                 diff = Long.compare(data, base);
                 if (threshold.isPresent()) {
                     withinThreshold = ((Threshold<Long>) threshold.get()).isWithinThreshold(data, base);
@@ -860,11 +877,12 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat) FORMAT.get()).format(newd));
             } else if (value instanceof VInt) {
                 int data = ((VInt) value).getValue();
                 int base = ((VNumber) baseValue).getValue().intValue();
                 int newd = data - base;
+                absoluteDelta = Math.abs(newd);
                 diff = Integer.compare(data, base);
                 if (threshold.isPresent()) {
                     withinThreshold = ((Threshold<Integer>) threshold.get()).isWithinThreshold(data, base);
@@ -874,11 +892,12 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat) FORMAT.get()).format(newd));
             } else if (value instanceof VUShort) {
                 int data = ((VUShort) value).getValue().intValue();
                 int base = ((VUShort) baseValue).getValue().intValue();
                 int newd = data - base;
+                absoluteDelta = Math.abs(newd);
                 diff = Integer.compare(data, base);
                 if (threshold.isPresent()) {
                     withinThreshold = ((Threshold<Integer>) threshold.get()).isWithinThreshold(data, base);
@@ -888,11 +907,12 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat) FORMAT.get()).format(newd));
             } else if (value instanceof VShort) {
                 short data = ((VShort) value).getValue();
                 short base = ((VNumber) baseValue).getValue().shortValue();
                 short newd = (short) (data - base);
+                absoluteDelta = Math.abs(newd);
                 diff = Short.compare(data, base);
                 if (threshold.isPresent()) {
                     withinThreshold = ((Threshold<Short>) threshold.get()).isWithinThreshold(data, base);
@@ -902,11 +922,12 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat) FORMAT.get()).format(newd));
             } else if (value instanceof VUByte) {
                 int data = ((VUByte) value).getValue().intValue();
                 int base = ((VUByte) baseValue).getValue().intValue();
                 int newd = data - base;
+                absoluteDelta = Math.abs(newd);
                 diff = Integer.compare(data, base);
                 if (threshold.isPresent()) {
                     withinThreshold = ((Threshold<Integer>) threshold.get()).isWithinThreshold(data, base);
@@ -916,11 +937,12 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat) FORMAT.get()).format(newd));
             } else if (value instanceof VByte) {
                 byte data = ((VByte) value).getValue();
                 byte base = ((VNumber) baseValue).getValue().byteValue();
                 byte newd = (byte) (data - base);
+                absoluteDelta = Math.abs(newd);
                 diff = Byte.compare(data, base);
                 if (threshold.isPresent()) {
                     withinThreshold = ((Threshold<Byte>) threshold.get()).isWithinThreshold(data, base);
@@ -930,9 +952,9 @@ public final class Utilities {
                 if (newd > 0) {
                     sb.append('+');
                 }
-                sb.append(((SimpleValueFormat)FORMAT.get()).format(newd));
+                sb.append(((SimpleValueFormat) FORMAT.get()).format(newd));
             }
-            return new VTypeComparison(sb.toString(), diff, withinThreshold);
+            return new VTypeComparison(sb.toString(), diff, withinThreshold, absoluteDelta);
         } else if (value instanceof VBoolean && baseValue instanceof VBoolean) {
             String str = valueToString(value);
             boolean b = ((VBoolean) value).getValue();
@@ -953,16 +975,13 @@ public final class Utilities {
         } else if (value instanceof VNumberArray && baseValue instanceof VNumberArray) {
             boolean equal = areValuesEqual(value, baseValue, Optional.empty());
             return new VTypeComparison(equal ? "---" : "NOT EQUAL", equal ? 0 : 1, equal);
-        }
-        else if (value instanceof VStringArray && baseValue instanceof VStringArray) {
+        } else if (value instanceof VStringArray && baseValue instanceof VStringArray) {
             boolean equal = areValuesEqual(value, baseValue, Optional.empty());
             return new VTypeComparison(equal ? "---" : "NOT EQUAL", equal ? 0 : 1, equal);
-        }
-        else if (value instanceof VBooleanArray && baseValue instanceof VBooleanArray) {
+        } else if (value instanceof VBooleanArray && baseValue instanceof VBooleanArray) {
             boolean equal = areValuesEqual(value, baseValue, Optional.empty());
             return new VTypeComparison(equal ? "---" : "NOT EQUAL", equal ? 0 : 1, equal);
-        }
-        else {
+        } else {
             String str = valueToString(value);
             boolean valuesEqual = areValuesEqual(value, baseValue, Optional.empty());
             return new VTypeComparison(str, valuesEqual ? 0 : 1, valuesEqual);
@@ -974,7 +993,7 @@ public final class Utilities {
      * If the base va0lue and the transformed value are both of a {@link VNumber} type,
      * the formatted percentage of the transformed value to the base value is returned.
      *
-     * @param value the value to compare
+     * @param value     the value to compare
      * @param baseValue the base value to compare the value to
      * @return formatted percentage of the difference
      */
@@ -985,7 +1004,7 @@ public final class Utilities {
             double base = ((VNumber) baseValue).getValue().doubleValue();
             double newd = data - base;
 
-            double percentage = newd/data*100;
+            double percentage = newd / data * 100;
 
             if (Double.compare(newd, 0) == 0) {
                 return "";
@@ -1007,7 +1026,7 @@ public final class Utilities {
     /**
      * Transforms the timestamp to string, using the format HH:mm:ss.SSS MMM dd (yyyy).
      *
-     * @param t the timestamp to transform
+     * @param t           the timestamp to transform
      * @param includeYear true if the year should included in the format
      * @return string representation of the timestamp using the above format
      */
@@ -1016,14 +1035,14 @@ public final class Utilities {
             return null;
         }
         return includeYear ? SLE_TIMESTAMP_FORMATTER.get().format(Date.from(t))
-            : LE_TIMESTAMP_FORMATTER.get().format(Date.from(t));
+                : LE_TIMESTAMP_FORMATTER.get().format(Date.from(t));
     }
 
     /**
      * Transforms the date to string formatted as yyyy MMM dd HH:mm:ss. Year is only included if the parameter
      * <code>includeYear</code> is true.
      *
-     * @param t the date to transform
+     * @param t           the date to transform
      * @param includeYear true if the year should be included or false otherwise
      * @return string representation of the date
      */
@@ -1032,15 +1051,15 @@ public final class Utilities {
             return null;
         }
         return includeYear ? SBE_TIMESTAMP_FORMATTER.get().format(Date.from(t))
-            : BE_TIMESTAMP_FORMATTER.get().format(Date.from(t));
+                : BE_TIMESTAMP_FORMATTER.get().format(Date.from(t));
     }
 
     /**
      * Checks if the values of the given vtype are equal and returns true if they are or false if they are not.
      * Timestamps, alarms and other parameters are ignored.
      *
-     * @param v1 the first value to check
-     * @param v2 the second value to check
+     * @param v1        the first value to check
+     * @param v2        the second value to check
      * @param threshold the threshold values which define if the difference is within limits or not
      * @return true if the values are equal or false otherwise
      */
@@ -1141,12 +1160,12 @@ public final class Utilities {
             return b == c || b != null && b.equals(c);
         } else if (v1 instanceof VNumberArray && v2 instanceof VNumberArray) {
             if ((v1 instanceof VByteArray && v2 instanceof VByteArray)
-                || (v1 instanceof VUByteArray && v2 instanceof VUByteArray)
-                || (v1 instanceof VShortArray && v2 instanceof VShortArray)
-                || (v1 instanceof VUShortArray && v2 instanceof VUShortArray)
-                || (v1 instanceof VIntArray && v2 instanceof VIntArray)
-                || (v1 instanceof VFloatArray && v2 instanceof VFloatArray)
-                || (v1 instanceof VDoubleArray && v2 instanceof VDoubleArray)) {
+                    || (v1 instanceof VUByteArray && v2 instanceof VUByteArray)
+                    || (v1 instanceof VShortArray && v2 instanceof VShortArray)
+                    || (v1 instanceof VUShortArray && v2 instanceof VUShortArray)
+                    || (v1 instanceof VIntArray && v2 instanceof VIntArray)
+                    || (v1 instanceof VFloatArray && v2 instanceof VFloatArray)
+                    || (v1 instanceof VDoubleArray && v2 instanceof VDoubleArray)) {
                 ListNumber b = ((VNumberArray) v1).getData();
                 ListNumber c = ((VNumberArray) v2).getData();
                 int size = b.size();
@@ -1199,28 +1218,26 @@ public final class Utilities {
                 }
                 return true;
             }
-        }
-        else if (v1 instanceof VStringArray && v2 instanceof VStringArray) {
+        } else if (v1 instanceof VStringArray && v2 instanceof VStringArray) {
             List<String> value1 = ((VStringArray) v1).getData();
             List<String> value2 = ((VStringArray) v2).getData();
-            if(value1.size() != value2.size()){
+            if (value1.size() != value2.size()) {
                 return false;
             }
-            for(int i = 0; i < value1.size(); i++){
-                if(!value1.get(i).equals(value2.get(i))){
+            for (int i = 0; i < value1.size(); i++) {
+                if (!value1.get(i).equals(value2.get(i))) {
                     return false;
                 }
             }
             return true;
-        }
-        else if (v1 instanceof VBooleanArray && v2 instanceof VBooleanArray) {
+        } else if (v1 instanceof VBooleanArray && v2 instanceof VBooleanArray) {
             ListBoolean value1 = ((VBooleanArray) v1).getData();
             ListBoolean value2 = ((VBooleanArray) v2).getData();
-            if(value1.size() != value2.size()){
+            if (value1.size() != value2.size()) {
                 return false;
             }
-            for(int i = 0; i < value1.size(); i++){
-                if(Boolean.compare(value1.getBoolean(i), value2.getBoolean(i)) != 0){
+            for (int i = 0; i < value1.size(); i++) {
+                if (Boolean.compare(value1.getBoolean(i), value2.getBoolean(i)) != 0) {
                     return false;
                 }
             }
@@ -1236,8 +1253,8 @@ public final class Utilities {
      * are identical if their alarm signatures are identical, timestamps are the same, values are the same and in case
      * of enum and enum array also the labels have to be identical.
      *
-     * @param v1 the first value
-     * @param v2 the second value to compare to the first one
+     * @param v1                  the first value
+     * @param v2                  the second value to compare to the first one
      * @param compareAlarmAndTime true if alarm and time values should be compare or false if no
      * @return true if values are identical or false otherwise
      */
@@ -1309,13 +1326,13 @@ public final class Utilities {
             return false;
         } else if (v1 instanceof VNumberArray && v2 instanceof VNumberArray) {
             if ((v1 instanceof VByteArray && v2 instanceof VByteArray)
-                || (v1 instanceof VUByteArray && v2 instanceof VUByteArray)
-                || (v1 instanceof VShortArray && v2 instanceof VShortArray)
-                || (v1 instanceof VUShortArray && v2 instanceof VUShortArray)
-                || (v1 instanceof VIntArray && v2 instanceof VIntArray)
-                || (v1 instanceof VUIntArray && v2 instanceof VUIntArray)
-                || (v1 instanceof VFloatArray && v2 instanceof VFloatArray)
-                || (v1 instanceof VDoubleArray && v2 instanceof VDoubleArray)) {
+                    || (v1 instanceof VUByteArray && v2 instanceof VUByteArray)
+                    || (v1 instanceof VShortArray && v2 instanceof VShortArray)
+                    || (v1 instanceof VUShortArray && v2 instanceof VUShortArray)
+                    || (v1 instanceof VIntArray && v2 instanceof VIntArray)
+                    || (v1 instanceof VUIntArray && v2 instanceof VUIntArray)
+                    || (v1 instanceof VFloatArray && v2 instanceof VFloatArray)
+                    || (v1 instanceof VDoubleArray && v2 instanceof VDoubleArray)) {
                 ListNumber b = ((VNumberArray) v1).getData();
                 ListNumber c = ((VNumberArray) v2).getData();
                 int size = b.size();
@@ -1364,36 +1381,32 @@ public final class Utilities {
     private static boolean isAlarmAndTimeEqual(VType a1, VType a2) {
 
         if (a1 instanceof VNumber && a2 instanceof VNumber) {
-            VNumber vn1 = (VNumber)a1;
-            VNumber vn2 = (VNumber)a2;
+            VNumber vn1 = (VNumber) a1;
+            VNumber vn2 = (VNumber) a2;
             return vn1.getAlarm().getName().equals(vn2.getAlarm().getName()) &&
                     vn1.getAlarm().getSeverity().equals(vn2.getAlarm().getSeverity()) &&
                     vn1.getTime().getTimestamp().equals(vn2.getTime().getTimestamp());
-        }
-        else if (a1 instanceof VNumberArray && a2 instanceof VNumberArray) {
-            VNumberArray vn1 = (VNumberArray)a1;
-            VNumberArray vn2 = (VNumberArray)a2;
+        } else if (a1 instanceof VNumberArray && a2 instanceof VNumberArray) {
+            VNumberArray vn1 = (VNumberArray) a1;
+            VNumberArray vn2 = (VNumberArray) a2;
             return vn1.getAlarm().getName().equals(vn2.getAlarm().getName()) &&
                     vn1.getAlarm().getSeverity().equals(vn2.getAlarm().getSeverity()) &&
                     vn1.getTime().getTimestamp().equals(vn2.getTime().getTimestamp());
-        }
-        else if (a1 instanceof VNumber && a2 instanceof VNumberArray) {
-            VNumber vn1 = (VNumber)a1;
-            VNumberArray vn2 = (VNumberArray)a2;
+        } else if (a1 instanceof VNumber && a2 instanceof VNumberArray) {
+            VNumber vn1 = (VNumber) a1;
+            VNumberArray vn2 = (VNumberArray) a2;
             return vn1.getAlarm().getName().equals(vn2.getAlarm().getName()) &&
                     vn1.getAlarm().getSeverity().equals(vn2.getAlarm().getSeverity()) &&
                     vn1.getTime().getTimestamp().equals(vn2.getTime().getTimestamp());
-        }
-        else if (a1 instanceof VNumberArray && a2 instanceof VNumber) {
-            VNumberArray vn1 = (VNumberArray)a1;
-            VNumber vn2 = (VNumber)a2;
+        } else if (a1 instanceof VNumberArray && a2 instanceof VNumber) {
+            VNumberArray vn1 = (VNumberArray) a1;
+            VNumber vn2 = (VNumber) a2;
             return vn1.getAlarm().getName().equals(vn2.getAlarm().getName()) &&
                     vn1.getAlarm().getSeverity().equals(vn2.getAlarm().getSeverity()) &&
                     vn1.getTime().getTimestamp().equals(vn2.getTime().getTimestamp());
-        }
-        else if (a1 instanceof VEnum && a2 instanceof VEnum) {
-            VEnum vn1 = (VEnum)a1;
-            VEnum vn2 = (VEnum)a2;
+        } else if (a1 instanceof VEnum && a2 instanceof VEnum) {
+            VEnum vn1 = (VEnum) a1;
+            VEnum vn2 = (VEnum) a2;
             return vn1.getAlarm().getName().equals(vn2.getAlarm().getName()) &&
                     vn1.getAlarm().getSeverity().equals(vn2.getAlarm().getSeverity()) &&
                     vn1.getTime().getTimestamp().equals(vn2.getTime().getTimestamp());

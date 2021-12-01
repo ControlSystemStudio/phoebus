@@ -18,6 +18,7 @@
 
 package org.phoebus.logbook.olog.ui;
 
+import com.google.common.base.Strings;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
@@ -44,12 +45,15 @@ import org.phoebus.util.time.TimeRelativeInterval;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import static org.phoebus.logbook.olog.ui.LogbookQueryUtil.*;
+import static org.phoebus.logbook.olog.ui.LogbookQueryUtil.Keys;
 import static org.phoebus.ui.time.TemporalAmountPane.Type.TEMPORAL_AMOUNTS_AND_NOW;
 
 /**
@@ -103,7 +107,7 @@ public class AdvancedSearchViewController {
     @FXML
     private AnchorPane advancedSearchPane;
 
-    public AdvancedSearchViewController(LogClient logClient){
+    public AdvancedSearchViewController(LogClient logClient) {
         this.logClient = logClient;
     }
 
@@ -158,6 +162,7 @@ public class AdvancedSearchViewController {
         hbox.getChildren().addAll(apply, cancel);
         timeBox.getChildren().addAll(timeSelectionPane, hbox);
         timeSearchPopover = new PopOver(timeBox);
+
         startTime.focusedProperty().addListener(
                 (ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
                     if (newPropertyValue) {
@@ -166,6 +171,8 @@ public class AdvancedSearchViewController {
                         timeSearchPopover.hide();
                     }
                 });
+
+
 
         endTime.focusedProperty().addListener(
                 (ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
@@ -176,7 +183,6 @@ public class AdvancedSearchViewController {
                     }
                 });
 
-
         FXMLLoader logbookSelectionLoader = new FXMLLoader();
         logbookSelectionLoader.setLocation(this.getClass().getResource("ListSelection.fxml"));
         try {
@@ -184,7 +190,11 @@ public class AdvancedSearchViewController {
             logbookController = logbookSelectionLoader.getController();
             logbookController.setOnApply((List<String> t) -> {
                 Platform.runLater(() -> {
-                    searchParameters.put(Keys.LOGBOOKS, t.stream().collect(Collectors.joining(",")));
+                    if (t.isEmpty()) {
+                        searchParameters.remove(Keys.LOGBOOKS);
+                    } else {
+                        searchParameters.put(Keys.LOGBOOKS, t.stream().collect(Collectors.joining(",")));
+                    }
                     if (logbookSearchPopover.isShowing())
                         logbookSearchPopover.hide();
                 });
@@ -207,7 +217,11 @@ public class AdvancedSearchViewController {
             tagController = tagSelectionLoader.getController();
             tagController.setOnApply((List<String> t) -> {
                 Platform.runLater(() -> {
-                    searchParameters.put(Keys.TAGS, t.stream().collect(Collectors.joining(",")));
+                    if (t.isEmpty()) {
+                        searchParameters.remove(Keys.TAGS);
+                    } else {
+                        searchParameters.put(Keys.TAGS, t.stream().collect(Collectors.joining(",")));
+                    }
                     if (tagSearchPopover.isShowing())
                         tagSearchPopover.hide();
                 });
@@ -223,72 +237,165 @@ public class AdvancedSearchViewController {
             logger.log(Level.WARNING, "failed to open tag search dialog", e);
         }
 
-        searchTags.focusedProperty().addListener(
-                (ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
-                    if (newPropertyValue) {
-                        if(tagNames == null) {
-                            tagNames = logClient.listTags().stream().map(Tag::getName).sorted().collect(Collectors.toList());
-                        }
-                        tagController.setAvailable(tagNames);
-                        tagSearchPopover.show(searchTags);
-                    } else if (tagSearchPopover.isShowing()) {
-                        tagSearchPopover.hide();
-                    }
-                });
+        searchTags.setOnMouseClicked(mouseEvent -> {
+            if (tagSearchPopover.isShowing()) {
+                tagSearchPopover.hide();
+            } else {
+                tagNames = logClient.listTags().stream().map(Tag::getName).sorted().collect(Collectors.toList());
+                tagController.setAvailable(tagNames);
+                tagSearchPopover.show(searchTags);
+            }
+        });
 
-        searchLogbooks.focusedProperty().addListener((arg0, oldPropertyValue, newPropertyValue) -> {
-            if (newPropertyValue) {
-                if(logbookNames == null) {
-                    logbookNames = logClient.listLogbooks().stream().map(Logbook::getName).sorted().collect(Collectors.toList());
-                }
+        searchLogbooks.setOnMouseClicked(mouseEvent -> {
+            if (logbookSearchPopover.isShowing()) {
+                logbookSearchPopover.hide();
+            } else {
+                logbookNames = logClient.listLogbooks().stream().map(Logbook::getName).sorted().collect(Collectors.toList());
                 logbookController.setAvailable(logbookNames);
                 logbookSearchPopover.show(searchLogbooks);
-            } else if (logbookSearchPopover.isShowing()) {
-                logbookSearchPopover.hide();
             }
         });
 
         searchText.textProperty().addListener((observable, oldValue, newValue) -> {
-            searchParameters.put(Keys.SEARCH, newValue);
+            if (newValue.isEmpty()) {
+                searchParameters.remove(Keys.SEARCH);
+            } else {
+                searchParameters.put(Keys.SEARCH, newValue);
+            }
         });
 
         searchAuthor.textProperty().addListener((observable, oldValue, newValue) -> {
-            searchParameters.put(Keys.AUTHOR, newValue);
+            if (newValue.isEmpty()) {
+                searchParameters.remove(Keys.AUTHOR);
+            } else {
+                searchParameters.put(Keys.AUTHOR, newValue);
+            }
         });
 
         searchTitle.textProperty().addListener((observable, oldValue, newValue) -> {
-            searchParameters.put(Keys.TITLE, newValue);
+            if (newValue.isEmpty()) {
+                searchParameters.remove(Keys.TITLE);
+            } else {
+                searchParameters.put(Keys.TITLE, newValue);
+            }
         });
 
         List<String> levelList = logClient.listLevels().stream().collect(Collectors.toList());
         levelSelector.getItems().add("");
         levelSelector.getItems().addAll(levelList);
-
     }
 
     @FXML
-    public void setLevel(){
-        if(levelSelector.getSelectionModel().getSelectedItem().isEmpty()){
+    public void setLevel() {
+        if (levelSelector.getSelectionModel().getSelectedItem().isEmpty()) {
             searchParameters.remove(Keys.LEVEL);
-        }
-        else{
+        } else {
             searchParameters.put(Keys.LEVEL, levelSelector.getSelectionModel().getSelectedItem());
         }
     }
 
-    public void setSearchParameters(ObservableMap<Keys, String> params){
+    public void setSearchParameters(ObservableMap<Keys, String> params) {
         searchParameters = params;
         searchParameters.addListener((MapChangeListener<Keys, String>) change -> Platform.runLater(() -> {
             searchLogbooks.setText(searchParameters.get(Keys.LOGBOOKS));
             searchTags.setText(searchParameters.get(Keys.TAGS));
+            String levelValue = searchParameters.get(Keys.LEVEL);
+            levelSelector.getSelectionModel().select(levelValue == null ? "" : levelValue);
         }));
 
         startTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.STARTTIME));
         endTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.ENDTIME));
-        searchText.setText(searchParameters.get(Keys.SEARCH));
     }
 
-    public AnchorPane getPane(){
+    public AnchorPane getPane() {
         return advancedSearchPane;
+    }
+
+    /**
+     * Updates the search parameters map based on the query string in the text input field. The purpose is to:
+     * to populate the UI elements of the advanced search view using the parameter values inf the query string.
+     * At the same time some validation is applied to the level, logbooks and tags parameters. For instance:
+     * any invalid logbook name specified by user in the query string will be removed from the list of "selected"
+     * logbooks.
+     * <p>
+     * NOTE: Since this method updates the model, and since the query string text input field is updated based
+     * on this model, as a side effect this method may change the text entered by user.
+     *
+     * @param queryString
+     */
+    public void updateSearchParamsFromQueryString(String queryString) {
+        Map<String, String> queryStringParameters = LogbookQueryUtil.parseHumanReadableQueryString(queryString);
+        queryStringParameters.entrySet().stream().forEach(entry -> {
+            Keys keys = Keys.findKey(entry.getKey());
+            if (keys != null) {
+                if (keys.equals(Keys.LEVEL)) {
+                    List<String> levels = logClient.listLevels().stream().collect(Collectors.toList());
+                    if (levels.contains(entry.getValue())) {
+                        searchParameters.put(Keys.LEVEL, entry.getValue());
+                        levelSelector.getSelectionModel().select(entry.getValue());
+                    } else {
+                        searchParameters.remove(Keys.LEVEL);
+                        levelSelector.getSelectionModel().select("");
+                    }
+                } else if (keys.equals(Keys.LOGBOOKS)) {
+                    List<String> validatedLogbookNames = getValidatedLogbooksSelection(entry.getValue());
+                    if (validatedLogbookNames.isEmpty()) {
+                        searchParameters.remove(Keys.LOGBOOKS);
+                    } else {
+                        searchParameters.put(Keys.LOGBOOKS, validatedLogbookNames.stream().collect(Collectors.joining(",")));
+                    }
+                    logbookController.setSelected(validatedLogbookNames);
+                } else if (keys.equals(Keys.TAGS)) {
+                    List<String> validatedTagsNames = getValidatedTagsSelection(entry.getValue());
+                    if (validatedTagsNames.isEmpty()) {
+                        searchParameters.remove(Keys.TAGS);
+                    } else {
+                        searchParameters.put(Keys.TAGS, validatedTagsNames.stream().collect(Collectors.joining(",")));
+                    }
+                    tagController.setSelected(validatedTagsNames);
+                } else {
+                    searchParameters.put(Keys.findKey(entry.getKey()), entry.getValue());
+                }
+            }
+        });
+
+        // Now remove any search parameters that are not found in the query string, e.g. user has deleted
+        // a search parameter when editing the search query text field.
+        removedUnwantedSearchParameters(searchParameters, queryStringParameters);
+    }
+
+    protected List<String> getValidatedLogbooksSelection(String logbooks) {
+        if (Strings.isNullOrEmpty(logbooks)) {
+            return Collections.emptyList();
+        }
+        List<String> validLogbookNames =
+                logClient.listLogbooks().stream().map(Logbook::getName).sorted().collect(Collectors.toList());
+        List<String> logbooksFromQueryString =
+                Arrays.stream(logbooks.split(",")).map(s -> s.trim()).collect(Collectors.toList());
+        List<String> validatedLogbookNames =
+                logbooksFromQueryString.stream().filter(logbookName -> validLogbookNames.contains(logbookName)).collect(Collectors.toList());
+        return validatedLogbookNames;
+    }
+
+    protected List<String> getValidatedTagsSelection(String tags) {
+        if (Strings.isNullOrEmpty(tags)) {
+            return Collections.emptyList();
+        }
+        List<String> validTagsNames =
+                logClient.listTags().stream().map(Tag::getName).sorted().collect(Collectors.toList());
+        List<String> logbooksFromQueryString =
+                Arrays.stream(tags.split(",")).map(s -> s.trim()).collect(Collectors.toList());
+        List<String> validatedLogbookNames =
+                logbooksFromQueryString.stream().filter(logbookName -> validTagsNames.contains(logbookName)).collect(Collectors.toList());
+        return validatedLogbookNames;
+    }
+
+    protected void removedUnwantedSearchParameters(ObservableMap<Keys, String> searchParameters, Map<String, String> queryStringParameters){
+        Arrays.stream(Keys.values()).forEach(keys -> {
+            if (!queryStringParameters.containsKey(keys.getName())) {
+                searchParameters.remove(keys);
+            }
+        });
     }
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -75,8 +75,8 @@ public class SearchRequest
         final int port = Short.toUnsignedInt(buffer.getShort());
 
         // Use address from message unless it's a generic local address
-        if (addr.isAnyLocalAddress())
-            search.client = new InetSocketAddress(from.getAddress(), port);
+        if (addr.isAnyLocalAddress() || port <= 0)
+            search.client = from;
         else
             search.client = new InetSocketAddress(addr, port);
 
@@ -115,7 +115,7 @@ public class SearchRequest
             {
                 final int cid = buffer.getInt();
                 final String name = PVAString.decodeString(buffer);
-                logger.log(Level.FINER, () -> "PVA Client " + from + " sent search #" + search.seq + " for " + name + " [" + cid + "]");
+                logger.log(Level.FINER, () -> "PVA Client " + from + " sent search #" + search.seq + " for " + name + " [cid " + cid + "]");
                 search.name[i] = name;
                 search.cid[i] = cid;
             }

@@ -19,6 +19,7 @@
 package org.phoebus.olog.es.api.model;
 
 import org.junit.Test;
+import org.phoebus.logbook.LogbookException;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.PropertyImpl;
 
@@ -27,7 +28,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class LogGroupPropertyTest {
 
@@ -81,4 +84,72 @@ public class LogGroupPropertyTest {
         assertTrue(LogGroupProperty.getLogGroupProperty(logEntry).isEmpty());
     }
 
+    @Test
+    public void testCreate(){
+        Property property = LogGroupProperty.create();
+        assertEquals(1, property.getAttributes().size());
+        assertNotNull(property.getAttributes().get(LogGroupProperty.ATTRIBUTE_ID));
+    }
+
+    @Test
+    public void testCheckLogEntryGroupProperty(){
+        Map<String, String> attributes1 = new HashMap<>();
+        attributes1.put(LogGroupProperty.ATTRIBUTE_ID, "id value");
+        Property property1 = PropertyImpl.of(LogGroupProperty.NAME, attributes1);
+
+        OlogLog logEntry = new OlogLog();
+        logEntry.setProperties(Arrays.asList(property1));
+
+        Map<String, String> attributes2 = new HashMap<>();
+        attributes1.put("another attr", "value");
+        Property property2 = PropertyImpl.of("another name", attributes2);
+
+        OlogLog logEntry2 = new OlogLog();
+        logEntry2.setProperties(Arrays.asList(property2));
+
+        try {
+            Property property = LogGroupProperty.getLogEntryGroupProperty(Arrays.asList(logEntry, logEntry2));
+            assertEquals("id value", property.getAttributes().get(LogGroupProperty.ATTRIBUTE_ID));
+
+        } catch (LogbookException e) {
+            fail();
+        }
+    }
+
+    @Test
+    public void testCheckLogEntryGroupPropertyNoEntryHasProperties(){
+        Map<String, String> attributes1 = new HashMap<>();
+        attributes1.put("attr", "id value");
+        Property property1 = PropertyImpl.of("some name", attributes1);
+
+        OlogLog logEntry = new OlogLog();
+        logEntry.setProperties(Arrays.asList(property1));
+
+        Map<String, String> attributes2 = new HashMap<>();
+        attributes1.put("another attr", "value");
+        Property property2 = PropertyImpl.of("another name", attributes2);
+
+        OlogLog logEntry2 = new OlogLog();
+        logEntry2.setProperties(Arrays.asList(property2));
+
+        try {
+            Property property = LogGroupProperty.getLogEntryGroupProperty(Arrays.asList(logEntry, logEntry2));
+            assertNotNull(property.getAttributes().get(LogGroupProperty.ATTRIBUTE_ID));
+
+        } catch (LogbookException e) {
+            fail();
+        }
+    }
+
+    @Test(expected = LogbookException.class)
+    public void testCheckLogEntryGroupPropertyMultipleLogEntryGroups() throws LogbookException{
+
+        OlogLog logEntry = new OlogLog();
+        logEntry.setProperties(Arrays.asList(LogGroupProperty.create()));
+
+        OlogLog logEntry2 = new OlogLog();
+        logEntry2.setProperties(Arrays.asList(LogGroupProperty.create()));
+
+        LogGroupProperty.getLogEntryGroupProperty(Arrays.asList(logEntry, logEntry2));
+    }
 }

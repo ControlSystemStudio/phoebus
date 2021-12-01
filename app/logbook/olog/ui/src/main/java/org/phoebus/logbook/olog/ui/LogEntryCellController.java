@@ -1,5 +1,6 @@
 package org.phoebus.logbook.olog.ui;
 
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -13,6 +14,7 @@ import org.commonmark.renderer.text.TextContentRenderer;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
+import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.util.Arrays;
@@ -26,6 +28,7 @@ public class LogEntryCellController {
     static final Image tag = ImageCache.getImage(SingleLogEntryDisplayController.class, "/icons/add_tag.png");
     static final Image logbook = ImageCache.getImage(SingleLogEntryDisplayController.class, "/icons/logbook-16.png");
     static final Image attachment = ImageCache.getImage(SingleLogEntryDisplayController.class, "/icons/attachment-16.png");
+    static final Image conversation = ImageCache.getImage(SingleLogEntryDisplayController.class, "/icons/conversation.png");
 
     private TextContentRenderer textRenderer;
     private Parser parser;
@@ -61,6 +64,9 @@ public class LogEntryCellController {
     @FXML
     Label description;
 
+    @FXML
+    ImageView conversationIcon;
+
     public LogEntryCellController() {
 
         List<Extension> extensions = Arrays.asList(TablesExtension.create(), ImageAttributesExtension.create());
@@ -73,6 +79,7 @@ public class LogEntryCellController {
         logbookIcon.setImage(logbook);
         tagIcon.setImage(tag);
         attachmentIcon.setImage(null);
+        conversationIcon.setImage(null);
     }
 
     @FXML

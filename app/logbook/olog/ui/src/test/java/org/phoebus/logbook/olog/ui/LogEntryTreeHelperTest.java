@@ -25,10 +25,14 @@ import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Property;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.olog.es.api.model.OlogLog;
+import org.phoebus.olog.es.api.model.OlogProperty;
 
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
@@ -40,19 +44,21 @@ public class LogEntryTreeHelperTest {
         OlogLog o1 = new OlogLog(1L);
         o1.setCreatedDate(Instant.ofEpochMilli(100));
 
-        Property property = LogGroupProperty.create();
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(LogGroupProperty.ATTRIBUTE_ID, UUID.randomUUID().toString());
+        Property logGroupProperty2 = new OlogProperty(LogGroupProperty.NAME, attributes);
 
         OlogLog o2 = new OlogLog(2L);
         o2.setCreatedDate(Instant.ofEpochMilli(200));
-        o2.setProperties(Arrays.asList(property));
+        o2.setProperties(Arrays.asList(logGroupProperty2));
 
         OlogLog o3 = new OlogLog(3L);
         o3.setCreatedDate(Instant.ofEpochMilli(300));
-        o3.setProperties(Arrays.asList(property));
+        o3.setProperties(Arrays.asList(logGroupProperty2));
 
         OlogLog o4 = new OlogLog(4L);
         o4.setCreatedDate(Instant.ofEpochMilli(400));
-        o4.setProperties(Arrays.asList(property));
+        o4.setProperties(Arrays.asList(logGroupProperty2));
 
         List<LogEntry> logEntries = Arrays.asList(o1, o2, o3, o4);
 

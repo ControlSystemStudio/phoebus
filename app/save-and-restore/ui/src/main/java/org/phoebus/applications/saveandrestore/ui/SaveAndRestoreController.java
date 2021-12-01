@@ -32,6 +32,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.event.EventTarget;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -226,7 +227,7 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
             renameNode(treeView.getSelectionModel().getSelectedItem());
         });
 
-        MenuItem openSaveSetMenuItem = new MenuItem(Messages.contextMenuOpen, new ImageView(saveSetIcon));
+        MenuItem openSaveSetMenuItem = new MenuItem(Messages.contextMenuCreateSnapshot, new ImageView(saveSetIcon));
         openSaveSetMenuItem.setOnAction(ae -> {
             openSaveSetForSnapshot(treeView.getSelectionModel().getSelectedItem());
         });
@@ -630,7 +631,7 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
                         }
                     }
                     tabPane.getTabs().removeAll(tabsToRemove);
-                    treeView.getSelectionModel().select(null);
+                    treeView.getSelectionModel().clearSelection();
                 });
             }
         };

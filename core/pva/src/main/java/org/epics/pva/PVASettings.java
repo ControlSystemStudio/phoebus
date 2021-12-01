@@ -28,12 +28,63 @@ public class PVASettings
      *
      *  <p>May contain space-separated host names or IP addresses.
      *  Each may be followed by ":port", otherwise defaulting to EPICS_PVA_BROADCAST_PORT.
-     *  When empty, local subnet is used.
+     *  When empty, local IPv4 subnet is used.
+     *
+     *  <p>When configuring EPICS_PVA_ADDR_LIST, it is suggested to also set
+     *  EPICS_PVA_AUTO_ADDR_LIST=NO to assert that only the indented configuration
+     *  is used without automatically added items which might not be desired.
+     *
+     *  <p>Example entries:
+     *
+     *  <pre>
+     *  192.168.10.20              Search via unicast to IPv4 address
+     *  192.168.10.255             Search via broadcast to IPv4 subnet
+     *  192.168.10.255:9876         .. on port 9876 instead of EPICS_PVA_BROADCAST_PORT
+     *  224.0.2.3,255@192.168.1.1  Search via multicast to IPv4 224.0.2.3, TTL 255, using interface with address 192.168.1.1
+     *
+     *  ::1                        Search via IPv6 unicast to localhost
+     *  [::1]                      Same
+     *  [::1]:9876                 Same with non-standard port
+     *  [ff02::42:1]@eth2          Search via multicast to IPv6 ff02::42:1, interface eth2
+     *  [ff02::42:1]:9876,10@eth2  Same, but specify port 9876 and TTL 10
+     *  </pre>
+     *
+     *  IPv6 support is enabled by simply listing one or more IPv6 addresses.
+     *  Both IPv4 and IPv6 addresses can be listed at the same time.
+     *  The IPv6 multicast `[ff02::42:1]` effectively replaces the IPv4 broadcast,
+     *  but note that a network interface must be provided via
+     *  `[ff02::42:1]@iface`, the client will not automatically multicast
+     *  on each network interface.
      */
     public static String EPICS_PVA_ADDR_LIST = "";
 
-    /** Add local broadcast addresses to addr list? */
+    /** Add local IPv4 broadcast addresses to addr list?
+     *
+     *  <p>Should be set to 'NO' (false) whenever EPICS_PVA_ADDR_LIST
+     *  is configured.
+     *
+     *  <p>When setting the environment variable or java property,
+     *  values 'YES' or 'NO' are used instead of 'true' and 'false'
+     *  for compatibility with EPICS base usage of these environment
+     *  variables.
+     */
     public static boolean EPICS_PVA_AUTO_ADDR_LIST = true;
+
+    /** List of TCP name servers
+     *
+     *  Space separated list of addresses, each with optional port.
+     *  To search for channels, client will connect to each one via TCP
+     *  and send the search request.
+     *
+     *  <p>Example entries:
+     *
+     *  <pre>
+     *  192.168.10.20    Send name lookups to that IPv4 TCP address at EPICS_PVA_SERVER_PORT (default 5075)
+     *  ::1              Search to IPv6 localhost at EPICS_PVA_SERVER_PORT
+     *  [::1]:9876       Same with non-standard port
+     *  </pre>
+     */
+    public static String EPICS_PVA_NAME_SERVERS = "";
 
     /** PVA client port for sending name searches and receiving beacons */
     public static int EPICS_PVA_BROADCAST_PORT = 5076;
@@ -41,21 +92,42 @@ public class PVASettings
     /** First PVA port used by server */
     public static int EPICS_PVA_SERVER_PORT = 5075;
 
-    /** Local address to which server will bind.
+    /** Local addresses to which server will listen.
      *
-     *  <p>When empty, a wildcard address is used, i.e. the server
-     *  will listen to seach requests on all interfaces.
-     *  By setting this variable you can limit the interfaces
-     *  on which the server listens.
-     *  Note that at this time only a single address
-     *  is supported, not a list with two or more addresses.
+     *  <p>First must be an IPv4 and/or IPv6 address that enables
+     *  support for that protocol family.
+     *  There can be at most one address for each protocol family.
+     *
+     *  <p>Options for IPv4:
+     *  <pre>
+     *  0.0.0.0   - Listen to unicasts or broadcasts on any interface
+     *  127.0.0.1 - Listen on a specific address
+     *  </pre>
+     *
+     *  <p>Options for IPv6:
+     *  <pre>
+     *  ::         - Listen on any interface
+     *  [::]       - Listen on any interface
+     *  ::1        - Listen on localhost
+     *  [::1]:9876 - Listen on localhost but use non-default port
+     *  [fe80:8263:4a27:9ef1%en0] - Listen on a specific address
+     *  </pre>
+     *  The square brackets are optional unless a port is provided.
+     *
+     *  <p>Next, multicast groups may be added.
+     *  Each multicast group must include an interface.
+     *  <pre>
+     *  224.0.1.1,1@127.0.0.1     - Listen to local IPv4 multicasts
+     *  [ff02::42:1],1@::1        - Listen to local IPv6 multicasts
+     *  [ff02::42:1],1@en1        - Listen to IPv6 multicasts on network interface en1
+     *  </pre>
      */
-    public static String EPICS_PVAS_INTF_ADDR_LIST = "";
+    public static String EPICS_PVAS_INTF_ADDR_LIST = "0.0.0.0 [::] 224.0.1.1,1@127.0.0.1 [ff02::42:1],1@::1";
 
     /** PVA server port for name searches and beacons */
     public static int EPICS_PVAS_BROADCAST_PORT = EPICS_PVA_BROADCAST_PORT;
 
-    /** Multicast address */
+    /** Multicast address used for the local re-send of IPv4 unicasts */
     public static String EPICS_PVA_MULTICAST_GROUP = "224.0.0.128";
 
     /** TCP buffer size for sending data
@@ -103,15 +175,9 @@ public class PVASettings
     {
         EPICS_PVA_ADDR_LIST = get("EPICS_PVA_ADDR_LIST", EPICS_PVA_ADDR_LIST);
         EPICS_PVA_AUTO_ADDR_LIST = get("EPICS_PVA_AUTO_ADDR_LIST", EPICS_PVA_AUTO_ADDR_LIST);
+        EPICS_PVA_NAME_SERVERS = get("EPICS_PVA_NAME_SERVERS", EPICS_PVA_NAME_SERVERS);
         EPICS_PVA_SERVER_PORT = get("EPICS_PVA_SERVER_PORT", EPICS_PVA_SERVER_PORT);
         EPICS_PVAS_INTF_ADDR_LIST = get("EPICS_PVAS_INTF_ADDR_LIST", EPICS_PVAS_INTF_ADDR_LIST).trim();
-        if (EPICS_PVAS_INTF_ADDR_LIST.contains(" "))
-        {   // Current implementation only handles empty (wildcard) and single address, not list with 2 or more
-            logger.log(Level.WARNING,
-                       "EPICS_PVAS_INTF_ADDR_LIST does at this time support at most one address, ignoring list '" +
-                       EPICS_PVAS_INTF_ADDR_LIST + "'");
-            EPICS_PVAS_INTF_ADDR_LIST = "";
-        }
         EPICS_PVA_BROADCAST_PORT = get("EPICS_PVA_BROADCAST_PORT", EPICS_PVA_BROADCAST_PORT);
         EPICS_PVAS_BROADCAST_PORT = get("EPICS_PVAS_BROADCAST_PORT", EPICS_PVAS_BROADCAST_PORT);
         EPICS_PVA_CONN_TMO = get("EPICS_PVA_CONN_TMO", EPICS_PVA_CONN_TMO);

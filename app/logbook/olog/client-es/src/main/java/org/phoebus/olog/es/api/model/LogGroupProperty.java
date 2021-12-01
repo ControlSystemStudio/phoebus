@@ -19,8 +19,10 @@
 package org.phoebus.olog.es.api.model;
 
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogbookException;
 import org.phoebus.logbook.Property;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -33,34 +35,67 @@ public class LogGroupProperty {
     public static final String NAME = "Log Entry Group";
     public static final String ATTRIBUTE_ID = "id";
 
-    public static Property create(){
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(ATTRIBUTE_ID, UUID.randomUUID().toString());
-        return new OlogProperty(NAME, attributes);
+    /**
+     * Iterates through the list of log entries and collects all log group ids. The purpose is to establish
+     * whether the selected list contains log entries belonging to different log entry groups.
+     *
+     * @param logEntries List of (user selected) log entries
+     * @return The log entry group {@link Property} if only one single is found. If none are found a
+     * new log entry group {@link Property} is returned.
+     * @throws LogbookException if more than one log entry group {@link Property} is encountered.
+     */
+    public static Property getLogEntryGroupProperty(List<LogEntry> logEntries) throws LogbookException {
+        List<Property> logGroupProperties = getLogEntryGroupProperties(logEntries);
+        if (logGroupProperties.isEmpty()) {
+            return create();
+        }
+        if (logGroupProperties.size() == 1) {
+            return logGroupProperties.get(0);
+        }
+        throw new LogbookException("More than one log entry group property found.");
     }
 
+    private static List<Property> getLogEntryGroupProperties(List<LogEntry> logEntries) {
+        List<Property> logEntryGroupProperties = new ArrayList<>();
+        logEntries.forEach(l -> {
+            Optional<Property> logGroupProperty =
+                    LogGroupProperty.getLogGroupProperty(l);
+            if (logGroupProperty.isPresent()) {
+                logEntryGroupProperties.add(logGroupProperty.get());
+            }
+        });
+        return logEntryGroupProperties;
+    }
+
+
     /**
-     *
      * @param logEntry
      * @return The value of the Log Entry Group id attribute, if property exists in the log entry
      * and if id attribute value is non-null and non-empty.
      */
-    public static Optional<Property> getLogGroupProperty(LogEntry logEntry){
+    public static Optional<Property> getLogGroupProperty(LogEntry logEntry) {
         Collection<Property> properties = logEntry.getProperties();
-        if(properties == null || properties.isEmpty()){
+        if (properties == null || properties.isEmpty()) {
             return Optional.empty();
         }
         Optional<Property> property =
                 properties.stream().filter(p -> p.getName().equals(NAME)).findFirst();
-        if(property.isPresent()){
+        if (property.isPresent()) {
             String id = property.get().getAttributes().get(ATTRIBUTE_ID);
-            if(id != null && !id.isEmpty()){
+            if (id != null && !id.isEmpty()) {
                 return Optional.of(property.get());
-            }
-            else return Optional.empty();
-        }
-        else {
+            } else return Optional.empty();
+        } else {
             return Optional.empty();
         }
+    }
+
+    /**
+     * @return A new {@link Property} identifying a unique log entry group.
+     */
+    public static Property create() {
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(ATTRIBUTE_ID, UUID.randomUUID().toString());
+        return new OlogProperty(NAME, attributes);
     }
 }

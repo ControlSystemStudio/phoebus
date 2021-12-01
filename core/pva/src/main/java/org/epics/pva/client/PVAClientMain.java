@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,10 +12,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
-import java.util.logging.Logger;
 
 import org.epics.pva.PVASettings;
 import org.epics.pva.data.PVAData;
@@ -37,6 +35,7 @@ public class PVAClientMain
         System.out.println("  -h             Help");
         System.out.println("  -w <seconds>   Wait time, default is 5.0 seconds");
         System.out.println("  -r <fields>    Field request. For 'info' command, optional field name");
+        System.out.println("                 Default 'value' for 'put', empty for other operations");
         System.out.println("  -v <level>     Verbosity, level 0-5");
         System.out.println("  --             End of options (to allow '-- put some_pv -100')");
         System.out.println();
@@ -45,10 +44,7 @@ public class PVAClientMain
 
     private static void setLogLevel(final Level level)
     {
-        final Logger main = Logger.getLogger("");
-        main.setLevel(level);
-        for (Handler handler : main.getHandlers())
-            handler.setLevel(level);
+        PVASettings.logger.setLevel(level);
     }
 
     /** Get info for each PV on the list, then close PV
@@ -208,7 +204,7 @@ public class PVAClientMain
             {
                 new_value = value;
             }
-            pv.write(name, new_value).get(timeout_ms, TimeUnit.MILLISECONDS);
+            pv.write(request, new_value).get(timeout_ms, TimeUnit.MILLISECONDS);
             pv.close();
         }
     }
@@ -258,7 +254,7 @@ public class PVAClientMain
                     break;
                 case 5:
                 default:
-                    setLogLevel(Level.FINEST);
+                    setLogLevel(Level.ALL);
                 }
                 ++i;
             }
@@ -293,7 +289,12 @@ public class PVAClientMain
         else if (command.equals("monitor"))
             monitor(names);
         else if (command.equals("put") && names.size() == 2)
+        {
+            // By default, write to the 'value' element data structure
+            if (request.isEmpty())
+                request = "value";
             put(names.get(0), names.get(1));
+        }
         else
             help();
 

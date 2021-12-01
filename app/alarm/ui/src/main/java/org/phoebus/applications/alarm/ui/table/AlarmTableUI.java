@@ -1,11 +1,45 @@
 /*******************************************************************************
- * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.table;
+
+import static org.phoebus.applications.alarm.AlarmSystem.logger;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.regex.Pattern;
+
+import org.phoebus.applications.alarm.AlarmSystem;
+import org.phoebus.applications.alarm.client.AlarmClient;
+import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.SeverityLevel;
+import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
+import org.phoebus.applications.alarm.ui.AlarmUI;
+import org.phoebus.applications.alarm.ui.tree.ConfigureComponentAction;
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.persistence.Memento;
+import org.phoebus.framework.selection.Selection;
+import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.ui.application.ContextMenuService;
+import org.phoebus.ui.application.SaveSnapshotAction;
+import org.phoebus.ui.javafx.ClearingTextField;
+import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.PrintAction;
+import org.phoebus.ui.javafx.Screenshot;
+import org.phoebus.ui.javafx.ToolbarHelper;
+import org.phoebus.ui.selection.AppSelection;
+import org.phoebus.ui.spi.ContextMenuEntry;
+import org.phoebus.ui.text.RegExHelper;
+import org.phoebus.util.text.CompareNatural;
+import org.phoebus.util.time.TimestampFormats;
 
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
@@ -37,38 +71,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import org.phoebus.applications.alarm.AlarmSystem;
-import org.phoebus.applications.alarm.client.AlarmClient;
-import org.phoebus.applications.alarm.model.AlarmTreeItem;
-import org.phoebus.applications.alarm.model.SeverityLevel;
-import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
-import org.phoebus.applications.alarm.ui.AlarmUI;
-import org.phoebus.applications.alarm.ui.tree.ConfigureComponentAction;
-import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.framework.persistence.Memento;
-import org.phoebus.framework.selection.Selection;
-import org.phoebus.framework.selection.SelectionService;
-import org.phoebus.ui.application.ContextMenuService;
-import org.phoebus.ui.application.SaveSnapshotAction;
-import org.phoebus.ui.javafx.ClearingTextField;
-import org.phoebus.ui.javafx.ImageCache;
-import org.phoebus.ui.javafx.PrintAction;
-import org.phoebus.ui.javafx.Screenshot;
-import org.phoebus.ui.javafx.ToolbarHelper;
-import org.phoebus.ui.selection.AppSelection;
-import org.phoebus.ui.spi.ContextMenuEntry;
-import org.phoebus.ui.text.RegExHelper;
-import org.phoebus.util.text.CompareNatural;
-import org.phoebus.util.time.TimestampFormats;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.regex.Pattern;
-
-import static org.phoebus.applications.alarm.AlarmSystem.logger;
 /** Alarm Table UI
  *
  *  <p>Show list of active and acknowledged alarms.
@@ -196,12 +199,18 @@ public class AlarmTableUI extends BorderPane
             if (empty  ||  item == null)
             {
                 setText("");
-                setTextFill(Color.BLACK);
+                if (AlarmSystem.alarm_table_color_background)
+                    setBackground(null);
+                else
+                    setTextFill(Color.BLACK);
             }
             else
             {
                 setText(item.toString());
-                setTextFill(AlarmUI.getColor(item));
+                if (AlarmSystem.alarm_table_color_background)
+                    setBackground(AlarmUI.getBackground(item));
+                else
+                    setTextFill(AlarmUI.getColor(item));
             }
         }
     }
@@ -365,13 +374,14 @@ public class AlarmTableUI extends BorderPane
         // of the TableView is changed by the user clicking on table headers.
         sorted.comparatorProperty().bind(table.comparatorProperty());
 
+        // Prepare columns.
+        final List<TableColumn<AlarmInfoRow, ?>> cols = new ArrayList<>();
         TableColumn<AlarmInfoRow, SeverityLevel> sevcol = new TableColumn<>(/* Icon */);
         sevcol.setPrefWidth(25);
         sevcol.setReorderable(false);
-        sevcol.setResizable(false);
         sevcol.setCellValueFactory(cell -> cell.getValue().severity);
         sevcol.setCellFactory(c -> new SeverityIconCell());
-        table.getColumns().add(sevcol);
+        cols.add(sevcol);
 
         final TableColumn<AlarmInfoRow, String> pv_col = new TableColumn<>("PV");
         pv_col.setPrefWidth(240);
@@ -379,7 +389,7 @@ public class AlarmTableUI extends BorderPane
         pv_col.setCellValueFactory(cell -> cell.getValue().pv);
         pv_col.setCellFactory(c -> new DragPVCell());
         pv_col.setComparator(CompareNatural.INSTANCE);
-        table.getColumns().add(pv_col);
+        cols.add(pv_col);
 
         TableColumn<AlarmInfoRow, String> col = new TableColumn<>("Description");
         col.setPrefWidth(400);
@@ -387,49 +397,68 @@ public class AlarmTableUI extends BorderPane
         col.setCellValueFactory(cell -> cell.getValue().description);
         col.setCellFactory(c -> new DragPVCell());
         col.setComparator(CompareNatural.INSTANCE);
-        table.getColumns().add(col);
+        cols.add(col);
 
         sevcol = new TableColumn<>("Alarm Severity");
         sevcol.setPrefWidth(130);
         sevcol.setReorderable(false);
         sevcol.setCellValueFactory(cell -> cell.getValue().severity);
         sevcol.setCellFactory(c -> new SeverityLevelCell());
-        table.getColumns().add(sevcol);
+        cols.add(sevcol);
 
         col = new TableColumn<>("Alarm Status");
         col.setPrefWidth(130);
         col.setReorderable(false);
         col.setCellValueFactory(cell -> cell.getValue().status);
         col.setCellFactory(c -> new DragPVCell());
-        table.getColumns().add(col);
+        cols.add(col);
 
         TableColumn<AlarmInfoRow, Instant> timecol = new TableColumn<>("Alarm Time");
         timecol.setPrefWidth(200);
         timecol.setReorderable(false);
         timecol.setCellValueFactory(cell -> cell.getValue().time);
         timecol.setCellFactory(c -> new TimeCell());
-        table.getColumns().add(timecol);
+        cols.add(timecol);
 
         col = new TableColumn<>("Alarm Value");
         col.setPrefWidth(100);
         col.setReorderable(false);
         col.setCellValueFactory(cell -> cell.getValue().value);
         col.setCellFactory(c -> new DragPVCell());
-        table.getColumns().add(col);
+        cols.add(col);
 
         sevcol = new TableColumn<>("PV Severity");
         sevcol.setPrefWidth(130);
         sevcol.setReorderable(false);
         sevcol.setCellValueFactory(cell -> cell.getValue().pv_severity);
         sevcol.setCellFactory(c -> new SeverityLevelCell());
-        table.getColumns().add(sevcol);
+        cols.add(sevcol);
 
         col = new TableColumn<>("PV Status");
         col.setPrefWidth(130);
         col.setReorderable(false);
         col.setCellValueFactory(cell -> cell.getValue().pv_status);
         col.setCellFactory(c -> new DragPVCell());
-        table.getColumns().add(col);
+        cols.add(col);
+
+        // Each column is non-reorderable at runtime to avoid operator surprises.
+        // Sites can customize the order via preferences
+        for (String header : AlarmSystem.alarm_table_columns)
+        {
+            // "Icon" is used for the nameless icon column.
+            // Other column names used in pref must match header.
+            final String actual_header = header.equals("Icon")
+                                       ? ""
+                                       : header;
+            final Optional<TableColumn<AlarmInfoRow, ?>> to_add =
+                cols.stream()
+                    .filter(c -> actual_header.equals(c.getText()))
+                    .findFirst();
+            if (to_add.isPresent())
+                table.getColumns().add(to_add.get());
+            else
+                logger.log(Level.WARNING, "Unknown Alarm Table column '" + header + "'");
+        }
 
         // Initially, sort on PV name
         // - restore(Memento) might change that
