@@ -14,11 +14,6 @@ elasticsearch defaults to port 9200, however if elasticsearch is configured to u
 
     /src/main/resources/alarm_logging_preferences.properties
 
-
-### Create an elasticsearch index
-
-Use `/startup/create_alarm_template.sh` if you indent to create a new index each day, week or month.
-
 ### Run the alarm logging service
 
 #### Build the alarm server
@@ -77,7 +72,12 @@ curl -X GET 'http://localhost:9200/accelerator_alarms_state_2019-02-01/_search?f
 
 ## Data Management
 
-The two most common aspects for effectively configuring the alarm logger are: 
+The  most common aspects for effectively configuring the alarm logger are: 
+
+### Creating an elasticsearch index
+
+The new elastic indices are created based on the templates which are automatically created
+when the service is first launched.
 
 ### Index period
 
