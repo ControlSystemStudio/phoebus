@@ -1,0 +1,42 @@
+{
+  "properties": {
+    "APPLICATION-ID": {
+      "type": "text"
+    },
+    "config": {
+      "type": "keyword"
+    },
+    "pv": {
+      "type": "keyword"
+    },
+    "severity": {
+      "type": "keyword"
+    },
+    "latch": {
+      "type": "boolean"
+    },
+    "message": {
+      "type": "keyword"
+    },
+    "value": {
+      "type": "keyword"
+    },
+    "time": {
+      "type": "date",
+      "format": "yyyy-MM-dd HH:mm:ss.SSS"
+    },
+    "message_time": {
+      "type": "date",
+      "format": "yyyy-MM-dd HH:mm:ss.SSS"
+    },
+    "current_severity": {
+      "type": "keyword"
+    },
+    "current_message": {
+      "type": "keyword"
+    },
+    "mode": {
+      "type": "keyword"
+    }
+  }
+}

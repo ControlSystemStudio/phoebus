@@ -11,7 +11,7 @@ es_port=9200
 # Create the elastic index with the correct mapping for alarm state messages.
 # Create the Index
 # Set the mapping
-curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}_alarms_state -d'
+curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}_alarms_state?include_type_name=true -d'
 {
   "mappings" : {  
     "alarm" : {
@@ -32,15 +32,10 @@ curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}
             "type" : "boolean"
           },
           "message" : {
-            "type" : "text",
-            "fields": {
-              "keyword": { 
-                "type": "keyword"
-              }
-            }
+            "type" : "keyword"
           },
           "value" : {
-            "type" : "text"
+            "type" : "keyword"
           },
           "time" : {
             "type" : "date",
@@ -54,12 +49,7 @@ curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}
             "type" : "keyword"
           },
           "current_message" : {
-            "type" : "text",
-            "fields": {
-              "keyword": { 
-                "type": "keyword"
-              }
-            }
+            "type" : "keyword"
           },
           "mode" : {
             "type" : "keyword"
@@ -73,7 +63,7 @@ curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}
 # Create the elastic index with the correct mapping for alarm command messages.
 # Create the Index
 # Set the mapping
-curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}_alarms_cmd -d'
+curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}_alarms_cmd?include_type_name=true -d'
 {
   "mappings" : {  
     "alarm_cmd" : {
@@ -106,7 +96,7 @@ curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}
 # Create the elastic index with the correct mapping for alarm config messages.
 # Create the Index
 # Set the mapping
-curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}_alarms_config -d'
+curl -H 'Content-Type: application/json' -XPUT http://${es_host}:${es_port}/${1}_alarms_config?include_type_name=true -d'
 {
   "mappings" : {  
     "alarm_config" : {

@@ -7,7 +7,7 @@ es_port=9200
 # "alarm", ""alarm_cmd", "alarm_config"
 
 # Create the elastic template with the correct mapping for alarm state messages.
-curl -XPUT http://${es_host}:${es_port}/_template/alarms_state_template -H 'Content-Type: application/json' -d'
+curl -XPUT http://${es_host}:${es_port}/_template/alarms_state_template?include_type_name=true -H 'Content-Type: application/json' -d'
 {
   "index_patterns":["*_alarms_state*"],
   "mappings" : {  
@@ -29,15 +29,10 @@ curl -XPUT http://${es_host}:${es_port}/_template/alarms_state_template -H 'Cont
             "type" : "boolean"
           },
           "message" : {
-            "type" : "text",
-            "fields": {
-              "keyword": { 
-                "type": "keyword"
-              }
-            }
+            "type" : "keyword"
           },
           "value" : {
-            "type" : "text"
+            "type" : "keyword"
           },
           "time" : {
             "type" : "date",
@@ -51,12 +46,7 @@ curl -XPUT http://${es_host}:${es_port}/_template/alarms_state_template -H 'Cont
             "type" : "keyword"
           },
           "current_message" : {
-            "type" : "text",
-            "fields": {
-              "keyword": { 
-                "type": "keyword"
-              }
-            }
+            "type" : "keyword"
           },
           "mode" : {
             "type" : "keyword"
@@ -68,7 +58,7 @@ curl -XPUT http://${es_host}:${es_port}/_template/alarms_state_template -H 'Cont
 '
 
 # Create the elastic template with the correct mapping for alarm command messages.
-curl -XPUT http://${es_host}:${es_port}/_template/alarms_cmd_template -H 'Content-Type: application/json' -d'
+curl -XPUT http://${es_host}:${es_port}/_template/alarms_cmd_template?include_type_name=true -H 'Content-Type: application/json' -d'
 {
   "index_patterns":["*_alarms_cmd*"],
   "mappings" : {  
@@ -100,7 +90,7 @@ curl -XPUT http://${es_host}:${es_port}/_template/alarms_cmd_template -H 'Conten
 '
 
 # Create the elastic template with the correct mapping for alarm config messages.
-curl -XPUT http://${es_host}:${es_port}/_template/alarms_config_template -H 'Content-Type: application/json' -d'
+curl -XPUT http://${es_host}:${es_port}/_template/alarms_config_template?include_type_name=true -H 'Content-Type: application/json' -d'
 {
   "index_patterns":["*_alarms_config*"],
   "mappings" : {  
