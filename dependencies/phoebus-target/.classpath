@@ -48,9 +48,9 @@
     <classpathentry exported="true" kind="lib" path="target/lib/jackson-annotations-2.10.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jackson-core-2.10.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jackson-databind-2.10.1.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/jackson-dataformat-cbor-2.8.10.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/jackson-dataformat-smile-2.8.10.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/jackson-dataformat-yaml-2.8.10.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/jackson-dataformat-cbor-2.8.11.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/jackson-dataformat-smile-2.8.11.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/jackson-dataformat-yaml-2.8.11.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jackson-datatype-jdk8-2.9.8.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jackson-datatype-jsr310-2.10.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jackson-module-parameter-names-2.9.8.jar"/>
@@ -78,7 +78,7 @@
     <classpathentry exported="true" kind="lib" path="target/lib/jfxtras-fxml-9.0-r1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jmatio-1.2.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jna-4.5.1.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/joda-time-2.10.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/joda-time-2.10.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jopt-simple-5.0.2.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jsr311-api-1.1.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/junit-4.13.1.jar"/>
@@ -87,21 +87,21 @@
     <classpathentry exported="true" kind="lib" path="target/lib/kafka-streams-2.0.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/lang-mustache-client-6.8.4.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/log4j-api-2.11.1.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/lucene-analyzers-common-7.4.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/lucene-backward-codecs-7.4.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/lucene-core-7.4.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/lucene-grouping-7.4.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/lucene-highlighter-7.4.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/lucene-join-7.4.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/lucene-memory-7.4.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/lucene-misc-7.4.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/lucene-queries-7.4.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/lucene-queryparser-7.4.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/lucene-sandbox-7.4.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/lucene-spatial3d-7.4.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/lucene-spatial-7.4.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/lucene-spatial-extras-7.4.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/lucene-suggest-7.4.0.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/lucene-analyzers-common-7.7.2.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/lucene-backward-codecs-7.7.2.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/lucene-core-7.7.2.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/lucene-grouping-7.7.2.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/lucene-highlighter-7.7.2.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/lucene-join-7.7.2.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/lucene-memory-7.7.2.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/lucene-misc-7.7.2.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/lucene-queries-7.7.2.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/lucene-queryparser-7.7.2.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/lucene-sandbox-7.7.2.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/lucene-spatial3d-7.7.2.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/lucene-spatial-7.7.2.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/lucene-spatial-extras-7.7.2.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/lucene-suggest-7.7.2.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/mimepull-1.9.3.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/mockito-core-2.23.4.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/mysql-connector-java-5.1.45.jar"/>
