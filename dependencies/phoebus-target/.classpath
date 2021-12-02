@@ -23,14 +23,14 @@
     <classpathentry exported="true" kind="lib" path="target/lib/controlsfx-11.0.3.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/derby-10.14.1.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/eclipselink-2.7.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-6.4.2.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-cli-6.4.2.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-core-6.4.2.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-rest-client-6.4.2.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-rest-client-sniffer-6.4.2.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-rest-high-level-client-6.4.2.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-secure-sm-6.4.2.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-x-content-6.4.2.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-6.8.4.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-cli-6.8.4.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-core-6.8.4.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-rest-client-6.8.4.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-rest-client-sniffer-6.8.4.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-rest-high-level-client-6.8.4.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-secure-sm-6.8.4.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-x-content-6.8.4.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/epics-pvaccess-5.1.6.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/epics-pvdata-6.1.6.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/epics-util-1.0.4.jar"/>
@@ -85,7 +85,7 @@
     <classpathentry exported="true" kind="lib" path="target/lib/jython-standalone-2.7.2.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/kafka-clients-2.0.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/kafka-streams-2.0.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/lang-mustache-client-6.4.2.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/lang-mustache-client-6.8.4.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/log4j-api-2.11.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/lucene-analyzers-common-7.4.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/lucene-backward-codecs-7.4.0.jar"/>
@@ -111,7 +111,7 @@
     <classpathentry exported="true" kind="lib" path="target/lib/postgresql-42.2.9.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/protobuf-java-2.4.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/py4j-0.10.2.1.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/rank-eval-client-6.4.2.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/rank-eval-client-6.8.4.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/reactive-streams-1.0.3.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/rhino-1.7.12.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/rxjava-3.0.9.jar"/>
