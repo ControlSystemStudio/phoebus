@@ -9,7 +9,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -27,12 +26,13 @@ import org.phoebus.applications.alarm.logging.ui.AlarmLogTableQueryUtil.Keys;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.framework.jobs.Job;
-import org.phoebus.framework.selection.Selection;
-import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimestampFormats;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
@@ -41,18 +41,11 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableMap;
-import javafx.event.EventHandler;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 import static org.phoebus.applications.alarm.logging.ui.AlarmLogTableApp.logger;
 
@@ -499,7 +492,35 @@ public class AlarmLogTableController {
     @FXML
     public void createContextMenu() {
         final ContextMenu contextMenu = new ContextMenu();
-        Selection selection = SelectionService.getInstance().getSelection();
+        MenuItem configurationInfo = new MenuItem("Configuration Info");
+        configurationInfo.setOnAction( actionEvent -> {
+            List<String> configs = tableView.getSelectionModel().getSelectedItems()
+                    .stream().map(e -> {
+                        try {
+                            URI uri = new URI(e.getConfig());
+                            return uri.getSchemeSpecificPart();
+                        } catch (URISyntaxException ex) {
+                            ex.printStackTrace();
+                        }
+                        return null;
+                    })
+                    .collect(Collectors.toList());
+            // TODO place holder method for showing additional alarm info
+            AlarmLogConfigSearchJob.submit(searchClient,
+                    configs.get(0),
+                    result -> Platform.runLater(() -> {
+                        Alert alarmInfo = new Alert(Alert.AlertType.INFORMATION);
+                        alarmInfo.setTitle("Alarm information");
+                        alarmInfo.setHeaderText(null);
+                        alarmInfo.setResizable(true);
+                        alarmInfo.setContentText(result.get(0));
+                        alarmInfo.showAndWait();
+                    }),
+                    (url, ex) -> ExceptionDetailsErrorDialog.openError("Alarm Log Info Error", ex.getMessage(), ex)
+            );
+
+        });
+        contextMenu.getItems().add(configurationInfo);
 
         contextMenu.getItems().add(new SeparatorMenuItem());
         ContextMenuHelper.addSupportedEntries(tableView, contextMenu);
