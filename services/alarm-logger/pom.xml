@@ -92,6 +92,13 @@
       <version>4.6.6-SNAPSHOT</version>
     </dependency>
 
+    <!--log4j2 to slf4j adapter-->
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-to-slf4j</artifactId>
+      <version>2.14.1</version>
+    </dependency>
+
     <!--JUL bindings for sfl4j-->
     <dependency> 
       <groupId>org.slf4j</groupId>
