@@ -7,7 +7,12 @@
  ******************************************************************************/
 package org.phoebus.ui.statusbar;
 
+import javafx.scene.control.Button;
+import javafx.scene.image.ImageView;
+import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.Preferences;
+import org.phoebus.ui.credentials.CredentialsManagementApp;
+import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.ToolbarHelper;
 
 import javafx.geometry.Insets;
@@ -29,9 +34,14 @@ public class StatusBar extends HBox
         setPadding(new Insets(0, 5, 5, 5));
 
         // Show User ID?
-        if (Preferences.status_show_user)
-            getChildren().add(new Label(System.getProperty("user.name")));
-
+        if (Preferences.status_show_user){
+            Button button = new Button(System.getProperty("user.name"));
+            button.setGraphic(new ImageView(ImageCache.getImage(ImageCache.class, "/icons/credentials.png")));
+            button.setOnAction(e -> {
+                ApplicationService.createInstance(CredentialsManagementApp.name);
+            });
+            getChildren().add(button);
+        }
         // Filler between standard options and additions (update, progress, ...)
         getChildren().add(ToolbarHelper.createSpring());
     }

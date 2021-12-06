@@ -16,7 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.applications.credentialsmanagement;
+package org.phoebus.ui.credentials;
 
 import javafx.scene.image.Image;
 import org.phoebus.framework.workbench.ApplicationService;

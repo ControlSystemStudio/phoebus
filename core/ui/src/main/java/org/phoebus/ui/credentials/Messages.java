@@ -16,7 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.applications.credentialsmanagement;
+package org.phoebus.ui.credentials;
 
 import org.phoebus.framework.nls.NLS;
 
@@ -25,7 +25,10 @@ public class Messages {
     public static String DisplayName;
     public static String ErrorDialogTitle;
     public static String ErrorDialogBody;
+    public static String LoginButtonText;
     public static String LogoutButtonText;
+    public static String SecureStoreErrorTitle;
+    public static String SecureStoreErrorBody;
     public static String Title;
 
     static

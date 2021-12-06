@@ -16,12 +16,19 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.applications.credentialsmanagement;
+package org.phoebus.ui.credentials;
 
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.security.authorization.ServiceAuthenticationProvider;
+import org.phoebus.security.store.SecureStore;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import java.net.URL;
+import java.util.List;
+import java.util.ServiceLoader;
+import java.util.ServiceLoader.Provider;
+import java.util.stream.Collectors;
 
 /**
  * Simple app that launches an UI offering logout capabilities for scopes/applications that use and maintain
@@ -52,7 +59,14 @@ public class CredentialsManagementApp implements AppDescriptor {
 
     @Override
     public AppInstance create() {
-        new CredentialsManagementStage().show();
+        List<ServiceAuthenticationProvider> authenticationProviders =
+                ServiceLoader.load(ServiceAuthenticationProvider.class).stream().map(Provider::get).collect(Collectors.toList());
+        try {
+            SecureStore secureStore = new SecureStore();
+            new CredentialsManagementStage(authenticationProviders, secureStore).show();
+        } catch (Exception e) {
+            ExceptionDetailsErrorDialog.openError(Messages.SecureStoreErrorTitle, Messages.SecureStoreErrorBody, e);
+        }
         return null;
     }
 }

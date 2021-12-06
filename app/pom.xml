@@ -32,6 +32,5 @@
     <module>trends</module>
     <module>utility</module>
     <module>imageviewer</module>
-    <module>credentials-management</module>
   </modules>
 </project>

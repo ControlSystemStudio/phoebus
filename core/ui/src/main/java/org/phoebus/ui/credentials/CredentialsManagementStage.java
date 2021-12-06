@@ -16,15 +16,18 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.applications.credentialsmanagement;
+package org.phoebus.ui.credentials;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.phoebus.framework.nls.NLS;
+import org.phoebus.security.authorization.ServiceAuthenticationProvider;
+import org.phoebus.security.store.SecureStore;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,7 +37,7 @@ import java.util.logging.Logger;
  */
 public class CredentialsManagementStage extends Stage {
 
-    public CredentialsManagementStage() {
+    public CredentialsManagementStage(List<ServiceAuthenticationProvider> authenticationProviders, SecureStore secureStore) {
 
         initModality(Modality.APPLICATION_MODAL);
         ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
@@ -42,9 +45,22 @@ public class CredentialsManagementStage extends Stage {
         fxmlLoader.setResources(resourceBundle);
         URL url = this.getClass().getResource("CredentialsManagement.fxml");
         fxmlLoader.setLocation(url);
+        fxmlLoader.setControllerFactory(clazz -> {
+            try {
+                CredentialsManagementController controller =
+                        (CredentialsManagementController) clazz.getConstructor(List.class, SecureStore.class)
+                                .newInstance(authenticationProviders, secureStore);
+                return controller;
+
+            } catch (Exception e) {
+                Logger.getLogger(CredentialsManagementStage.class.getName()).log(Level.SEVERE, "Failed to construct CredentialsManagementController", e);
+            }
+            return null;
+        });
         try {
             fxmlLoader.load();
             Scene scene = new Scene(fxmlLoader.getRoot());
+            scene.getStylesheets().add(getClass().getResource("/css/credentials-management-style.css").toExternalForm());
             setTitle(Messages.Title);
             setScene(scene);
         } catch (Exception exception) {
