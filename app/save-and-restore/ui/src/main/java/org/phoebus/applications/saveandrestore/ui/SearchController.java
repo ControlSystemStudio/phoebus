@@ -56,7 +56,7 @@ import java.util.stream.Collectors;
 
 public class SearchController implements Initializable {
 
-    private BaseSaveAndRestoreController callerController;
+    private SaveAndRestoreController callerController;
     private List<Node> snapshotList;
     private List<Tag> tagList;
     private List<SearchEntry> tableEntries = new ArrayList<>();
@@ -206,7 +206,7 @@ public class SearchController implements Initializable {
         resultTableView.getItems().addAll(filteredList);
     }
 
-    public void setCallerController(BaseSaveAndRestoreController callerController) {
+    public void setCallerController(SaveAndRestoreController callerController) {
         this.callerController = callerController;
     }
 

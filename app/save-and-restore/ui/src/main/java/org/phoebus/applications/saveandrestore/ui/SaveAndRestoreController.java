@@ -1,16 +1,16 @@
 /**
  * Copyright (C) 2019 European Spallation Source ERIC.
- *
+ * <p>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -32,8 +32,10 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
-import javafx.event.EventTarget;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -52,16 +54,20 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.util.Pair;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.data.DataProvider;
+import org.phoebus.applications.saveandrestore.data.NodeAddedListener;
+import org.phoebus.applications.saveandrestore.data.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVExporter;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVImporter;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -73,12 +79,11 @@ import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotNewTagDialog;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
+import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.ui.javafx.ImageCache;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -93,9 +98,11 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Stack;
 import java.util.concurrent.Executor;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class SaveAndRestoreController extends BaseSaveAndRestoreController {
+public class SaveAndRestoreController implements Initializable, NodeChangedListener, NodeAddedListener, ISaveAndRestoreController {
 
     private static Executor UI_EXECUTOR = Platform::runLater;
 
@@ -120,7 +127,7 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
     @FXML
     private SplitPane splitPane;
 
-    private SaveAndRestoreService saveAndRestoreService;
+    protected SaveAndRestoreService saveAndRestoreService;
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -139,9 +146,23 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
 
     private static final String TREE_STATE = "tree_state";
 
-    private static final Logger LOG = LoggerFactory.getLogger(SaveAndRestoreService.class.getName());
+    protected static final Logger LOG = Logger.getLogger(SaveAndRestoreService.class.getName());
 
     private PreferencesReader preferencesReader;
+
+    public static final Image folderIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/folder.png");
+    public static final Image saveSetIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/saveset.png");
+    public static final Image editSaveSetIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/edit_saveset.png");
+    public static final Image deleteIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/delete.png");
+    public static final Image renameIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/rename_col.png");
+    public static final Image snapshotIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot.png");
+    public static final Image snapshotGoldenIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-golden.png");
+    public static final Image compareSnapshotIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/compare.png");
+    public static final Image snapshotTagsWithCommentIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-tags.png");
+    public static final Image csvImportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_import.png");
+    public static final Image csvExportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_export.png");
+
+    protected Stage searchWindow;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -299,14 +320,14 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
 
         MenuItem compareSaveSetMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, new ImageView(compareSnapshotIcon));
         compareSaveSetMenuItem.setOnAction(ae -> {
-            comapreSnapshot(treeView.getSelectionModel().getSelectedItem());
+            comapreSnapshot(treeView.getSelectionModel().getSelectedItem().getValue());
         });
 
         MenuItem tagAsGolden = new MenuItem(Messages.contextMenuTagAsGolden, new ImageView(snapshotGoldenIcon));
         tagAsGolden.textProperty().bind(toggleGoldenMenuItemText);
         tagAsGolden.graphicProperty().bind(toggleGoldenImageViewProperty);
         tagAsGolden.setOnAction(ae -> {
-            Node node = toggleGoldenProperty(treeView.getSelectionModel().getSelectedItem());
+            Node node = toggleGoldenProperty(treeView.getSelectionModel().getSelectedItem().getValue());
             treeView.getSelectionModel().getSelectedItem().setValue(node);
         });
 
@@ -417,7 +438,7 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
 
         treeView.setOnMouseClicked(me -> {
             TreeItem<Node> item = treeView.getSelectionModel().getSelectedItem();
-            if(item == null){
+            if (item == null) {
                 return;
             }
             if (item.getValue().getNodeType().equals(NodeType.SNAPSHOT)) {
@@ -459,7 +480,7 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
      * Loads the data for the tree root as provided (persisted) by the current
      * {@link DataProvider}.
      */
-    @SuppressWarnings({"rawtypes","unchecked"})
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @FXML
     public void loadTreeData() {
 
@@ -472,19 +493,18 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
                 // Check if there is a save tree structure. Also check that the first node id (=tree root)
                 // has the same unique id as the actual root node retrieved from the remote service. This check
                 // is needed to handle the case when the client connects to a different save-and-restore service.
-                if(savedTreeViewStructure != null && savedTreeViewStructure.get(0).equals(rootNode.getUniqueId())){
+                if (savedTreeViewStructure != null && savedTreeViewStructure.get(0).equals(rootNode.getUniqueId())) {
                     HashMap<String, List<TreeItem<Node>>> childNodesMap = new HashMap<>();
                     savedTreeViewStructure.stream().forEach(s -> {
                         List<Node> childNodes = saveAndRestoreService.getChildNodes(Node.builder().uniqueId(s).build());
-                        if(childNodes != null) { // This may be the case if the tree structure was modified outside of the UI
+                        if (childNodes != null) { // This may be the case if the tree structure was modified outside of the UI
                             List<TreeItem<Node>> childItems = childNodes.stream().map(n -> createNode(n)).collect(Collectors.toList());
                             childItems.sort(new TreeNodeComparator());
                             childNodesMap.put(s, childItems);
                         }
                     });
                     setChildItems(childNodesMap, rootItem);
-                }
-                else{
+                } else {
                     List<Node> childNodes = saveAndRestoreService.getChildNodes(rootItem.getValue());
                     List<TreeItem<Node>> childItems = childNodes.stream().map(n -> createNode(n)).collect(Collectors.toList());
                     treeViewEmpty.setValue(childItems.isEmpty());
@@ -496,7 +516,7 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
             }
 
             @Override
-            public void succeeded(){
+            public void succeeded() {
                 TreeItem<Node> rootItem = getValue();
                 jmasarServiceTitleProperty.set(saveAndRestoreService.getServiceIdentifier());
 
@@ -505,7 +525,7 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
             }
 
             @Override
-            public void failed(){
+            public void failed() {
                 jmasarServiceTitleProperty.set(MessageFormat.format(Messages.jmasarServiceUnavailable, saveAndRestoreService.getServiceIdentifier()));
             }
         };
@@ -513,25 +533,25 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
         new Thread(loadRootNode).start();
     }
 
-    private List<String> getSavedTreeStructure(){
+    protected List<String> getSavedTreeStructure() {
         String savedTreeState = PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).get(TREE_STATE, null);
-        if(savedTreeState == null){
+        if (savedTreeState == null) {
             return null;
         }
         try {
-            return objectMapper.readValue(savedTreeState, new TypeReference<List<String>>() {});
+            return objectMapper.readValue(savedTreeState, new TypeReference<List<String>>() {
+            });
         } catch (IOException e) {
-            LOG.error("Unable to obtain tree node data from service", e);
+            LOG.log(Level.WARNING, "Unable to obtain tree node data from service", e);
             return null;
         }
     }
 
-
-    private void expandTreeNode(TreeItem<Node> targetItem) {
+    protected void expandTreeNode(TreeItem<Node> targetItem) {
 
         targetItem.getChildren().clear();
 
-        List<Node> childNodes = saveAndRestoreService.getChildNodes(targetItem.getValue());;
+        List<Node> childNodes = saveAndRestoreService.getChildNodes(targetItem.getValue());
         Collections.sort(childNodes);
         targetItem.getChildren().addAll(childNodes.stream().map(n -> createNode(n)).collect(Collectors.toList()));
         targetItem.getChildren().sort(new TreeNodeComparator());
@@ -541,46 +561,45 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
      * Deletion of tree nodes when multiple nodes are selected is allowed only if all of the
      * selected nodes have the same parent node. This method checks the parent node(s) of
      * the selected nodes accordingly.
+     *
      * @param selectedItems The selected tree nodes.
      * @return <code>true</code> if all selected nodes have the same parent node, <code>false</code> otherwise.
      */
-    private boolean isDeletionPossible(ObservableList<TreeItem<Node>> selectedItems){
+    private boolean isDeletionPossible(ObservableList<TreeItem<Node>> selectedItems) {
         Node parentNode = selectedItems.get(0).getParent().getValue();
-        for(TreeItem<Node> treeItem : selectedItems){
-            if(!treeItem.getParent().getValue().getUniqueId().equals(parentNode.getUniqueId())){
+        for (TreeItem<Node> treeItem : selectedItems) {
+            if (!treeItem.getParent().getValue().getUniqueId().equals(parentNode.getUniqueId())) {
                 return false;
             }
         }
         return true;
     }
 
-    private void comapreSnapshot(TreeItem<Node> treeItem) {
+    protected void comapreSnapshot(Node snapshot) {
 
         try {
-            SnapshotTab currentTab = (SnapshotTab)tabPane.getSelectionModel().getSelectedItem();
-            if(currentTab == null){
+            SnapshotTab currentTab = (SnapshotTab) tabPane.getSelectionModel().getSelectedItem();
+            if (currentTab == null) {
                 return;
             }
-            currentTab.addSnapshot(treeItem.getValue());
+            currentTab.addSnapshot(snapshot);
         } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOG.log(Level.WARNING, "Failed to compare snapshot", e);
         }
     }
 
-    private Node toggleGoldenProperty(TreeItem<Node> treeItem) {
-
+    protected Node toggleGoldenProperty(Node node) {
         try {
-            return saveAndRestoreService.tagSnapshotAsGolden(treeItem.getValue(),
-                    !Boolean.parseBoolean(treeItem.getValue().getProperty("golden")));
+            return saveAndRestoreService.tagSnapshotAsGolden(node,
+                    !Boolean.parseBoolean(node.getProperty("golden")));
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.log(Level.WARNING, "Failed to toggle golden property", e);
             return null;
         }
     }
 
-    private void deleteNodes(ObservableList<TreeItem<Node>> selectedItems){
-        if(!isDeletionPossible(selectedItems)){
+    protected void deleteNodes(ObservableList<TreeItem<Node>> selectedItems) {
+        if (!isDeletionPossible(selectedItems)) {
             Alert alert = new Alert(AlertType.INFORMATION);
             alert.setTitle(Messages.promptDeleteSelectedTitle);
             alert.setHeaderText(Messages.deletionNotAllowedHeader);
@@ -608,9 +627,10 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
      * Deletes the {@link Node} associated with the {@link TreeItem}, and
      * removes the {@link TreeItem} from the tree view. If {@link Node} is associated
      * with an open tab, that tab is cleaned up and closed.
+     *
      * @param treeItem
      */
-    private void deleteTreeItem(TreeItem<Node> treeItem){
+    private void deleteTreeItem(TreeItem<Node> treeItem) {
         TreeItem<Node> parent = treeItem.getParent();
         Task<Void> task = new Task<>() {
             @Override
@@ -620,14 +640,14 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
             }
 
             @Override
-            public void succeeded(){
+            public void succeeded() {
                 UI_EXECUTOR.execute(() -> {
                     parent.getChildren().remove(treeItem);
                     List<Tab> tabsToRemove = new ArrayList<>();
-                    for(Tab tab : tabPane.getTabs()) {
-                        if(tab.getId().equals(treeItem.getValue().getUniqueId())) {
-                           tabsToRemove.add(tab);
-                           tab.getOnCloseRequest().handle(null);
+                    for (Tab tab : tabPane.getTabs()) {
+                        if (tab.getId().equals(treeItem.getValue().getUniqueId())) {
+                            tabsToRemove.add(tab);
+                            tab.getOnCloseRequest().handle(null);
                         }
                     }
                     tabPane.getTabs().removeAll(tabsToRemove);
@@ -639,7 +659,7 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
         new Thread(task).start();
     }
 
-    private void openSaveSetForSnapshot(TreeItem<Node> treeItem) {
+    protected void openSaveSetForSnapshot(TreeItem<Node> treeItem) {
         SnapshotTab tab = new SnapshotTab(treeItem.getValue(), saveAndRestoreService);
         tab.loadSaveSet(treeItem.getValue());
 
@@ -647,7 +667,7 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
         tabPane.getSelectionModel().select(tab);
     }
 
-    private void createNewFolder(TreeItem<Node> parentTreeItem) {
+    protected void createNewFolder(TreeItem<Node> parentTreeItem) {
 
         List<String> existingFolderNames =
                 parentTreeItem.getChildren().stream()
@@ -688,8 +708,8 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
     private void nodeDoubleClicked(TreeItem<Node> node) {
 
         // Disallow opening a tab multiple times for the same save set.
-        for(Tab tab : tabPane.getTabs()) {
-            if(tab.getId() != null && tab.getId().equals(node.getValue().getUniqueId())) {
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab.getId() != null && tab.getId().equals(node.getValue().getUniqueId())) {
                 return;
             }
         }
@@ -713,7 +733,7 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
         tabPane.getSelectionModel().select(tab);
     }
 
-    private void handleNewSaveSet(TreeItem<Node> parentTreeItem){
+    protected void handleNewSaveSet(TreeItem<Node> parentTreeItem) {
 
         List<String> existingFolderNames =
                 parentTreeItem.getChildren().stream()
@@ -761,9 +781,10 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
      * Renames a node through the service and its underlying data provider.
      * If there is a problem in the call to the remote JMasar service,
      * the user is shown a suitable error dialog and the name of the node is restored.
+     *
      * @param node The node being renamed
      */
-    private void renameNode(TreeItem<Node> node){
+    protected void renameNode(TreeItem<Node> node) {
 
         List<String> existingSiblingNodes =
                 node.getParent().getChildren().stream()
@@ -800,20 +821,20 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
         }
     }
 
-    private TreeItem<Node> createNode(final Node node){
-        return new TreeItem<>(node){
+    private TreeItem<Node> createNode(final Node node) {
+        return new TreeItem<>(node) {
             @Override
-            public boolean isLeaf(){
+            public boolean isLeaf() {
                 return node.getNodeType().equals(NodeType.SNAPSHOT);
             }
         };
     }
 
     @Override
-    public void nodeChanged(Node node){
+    public void nodeChanged(Node node) {
         // Find the node that has changed
         TreeItem<Node> nodeSubjectToUpdate = recursiveSearch(node.getUniqueId(), treeView.getRoot());
-        if(nodeSubjectToUpdate == null){
+        if (nodeSubjectToUpdate == null) {
             // TODO: log this?
             return;
         }
@@ -824,10 +845,10 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
     }
 
     @Override
-    public void nodeAdded(Node parentNode, Node newNode){
+    public void nodeAdded(Node parentNode, Node newNode) {
         // Find the parent to which the new node is to be added
         TreeItem<Node> parentTreeItem = recursiveSearch(parentNode.getUniqueId(), treeView.getRoot());
-        if(parentTreeItem == null){
+        if (parentTreeItem == null) {
             // TODO: log this?
             return;
         }
@@ -836,7 +857,7 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
         parentTreeItem.expandedProperty().setValue(true);
     }
 
-    private TreeItem<Node> recursiveSearch(String nodeIdToLocate, TreeItem<Node> node){
+    protected TreeItem<Node> recursiveSearch(String nodeIdToLocate, TreeItem<Node> node) {
         if (node.getValue().getUniqueId().equals(nodeIdToLocate))
             return node;
         List<TreeItem<Node>> childNodes = node.getChildren();
@@ -848,13 +869,13 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
     }
 
     @Override
-    public void save(final Memento memento){
+    public void save(final Memento memento) {
         saveTreeState();
         memento.setNumber("POS", splitPane.getDividers().get(0).getPosition());
     }
 
     @Override
-    public void restore(final Memento memento){
+    public void restore(final Memento memento) {
         memento.getNumber("POS").ifPresent(pos -> splitPane.setDividerPositions(pos.doubleValue()));
     }
 
@@ -874,24 +895,24 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
         treeView.scrollTo(treeView.getSelectionModel().getSelectedIndex());
     }
 
-    private void saveTreeState(){
-        if(treeView.getRoot() == null){
+    private void saveTreeState() {
+        if (treeView.getRoot() == null) {
             return;
         }
         List<String> expandedNodes = new ArrayList<>();
         findExpandedNodes(expandedNodes, treeView.getRoot());
-        if(expandedNodes.isEmpty()){
+        if (expandedNodes.isEmpty()) {
             return;
         }
         try {
             PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).put(TREE_STATE, objectMapper.writeValueAsString(expandedNodes));
-        } catch (JsonProcessingException e){
+        } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
     }
 
-    private void findExpandedNodes(List<String> expandedNodes, TreeItem<Node> treeItem){
-        if(treeItem.expandedProperty().get() && !treeItem.getChildren().isEmpty()){
+    protected void findExpandedNodes(List<String> expandedNodes, TreeItem<Node> treeItem) {
+        if (treeItem.expandedProperty().get() && !treeItem.getChildren().isEmpty()) {
             expandedNodes.add(treeItem.getValue().getUniqueId());
             treeItem.getChildren().stream().forEach(ti -> findExpandedNodes(expandedNodes, ti));
         }
@@ -901,14 +922,14 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
      * Loops through the the tree view model and expands all nodes that have a non-empty children
      * list. The tree view at this point has already been updated with data from the backend.
      */
-    private void restoreTreeState(){
+    private void restoreTreeState() {
         UI_EXECUTOR.execute(() -> {
             expandNodes(treeView.getRoot());
 
             // Must be added here, after nodes have been expanded. Adding the event handler
             // before expansion of nodes will break the expected behavior when restoring the tree state.
             treeView.getRoot().addEventHandler(TreeItem.branchExpandedEvent(), e -> {
-                expandTreeNode(((TreeItem.TreeModificationEvent)e).getTreeItem());
+                expandTreeNode(((TreeItem.TreeModificationEvent) e).getTreeItem());
             });
 
             // This is needed in the rare event that all top level folders have been deleted.
@@ -918,8 +939,8 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
         });
     }
 
-    private void setChildItems(HashMap<String, List<TreeItem<Node>>> allItems, TreeItem<Node> parentItem){
-        if(allItems.containsKey(parentItem.getValue().getUniqueId())){
+    private void setChildItems(HashMap<String, List<TreeItem<Node>>> allItems, TreeItem<Node> parentItem) {
+        if (allItems.containsKey(parentItem.getValue().getUniqueId())) {
             List<TreeItem<Node>> childItems = allItems.get(parentItem.getValue().getUniqueId());
             parentItem.getChildren().setAll(childItems);
             parentItem.getChildren().sort(new TreeNodeComparator());
@@ -927,30 +948,61 @@ public class SaveAndRestoreController extends BaseSaveAndRestoreController {
         }
     }
 
-    private void expandNodes(TreeItem<Node> parentNode){
-        if(!parentNode.getChildren().isEmpty()){
+    protected void expandNodes(TreeItem<Node> parentNode) {
+        if (!parentNode.getChildren().isEmpty()) {
             parentNode.setExpanded(true);
-            for(TreeItem<Node> childNode : parentNode.getChildren()){
+            for (TreeItem<Node> childNode : parentNode.getChildren()) {
                 expandNodes(childNode);
             }
         }
     }
 
-    private class TreeNodeComparator implements Comparator<TreeItem<Node>>{
+    protected class TreeNodeComparator implements Comparator<TreeItem<Node>> {
         @Override
-        public int compare(TreeItem<Node> t1, TreeItem<Node> t2){
+        public int compare(TreeItem<Node> t1, TreeItem<Node> t2) {
             if (t1.getValue().getNodeType().equals(NodeType.SNAPSHOT) && t2.getValue().getNodeType().equals(NodeType.SNAPSHOT)) {
-                return (preferencesReader.getBoolean("sortSnapshotsTimeReversed") ? -1 : 1)*t1.getValue().getCreated().compareTo(t2.getValue().getCreated());
+                return (preferencesReader.getBoolean("sortSnapshotsTimeReversed") ? -1 : 1) * t1.getValue().getCreated().compareTo(t2.getValue().getCreated());
             }
 
             return t1.getValue().compareTo(t2.getValue());
         }
     }
 
-    private class TagComparator implements Comparator<Tag> {
+    protected class TagComparator implements Comparator<Tag> {
         @Override
-        public int compare(Tag tag1, Tag tag2){
+        public int compare(Tag tag1, Tag tag2) {
             return -tag1.getCreated().compareTo(tag2.getCreated());
+        }
+    }
+
+    @FXML
+    protected void openSearchWindow() {
+        try {
+            if (searchWindow == null) {
+                final ResourceBundle bundle = NLS.getMessages(SaveAndRestoreApplication.class);
+
+                FXMLLoader loader = new FXMLLoader();
+                loader.setLocation(SaveAndRestoreController.class.getResource("SearchWindow.fxml"));
+                loader.setResources(bundle);
+                searchWindow = new Stage();
+                searchWindow.getIcons().add(ImageCache.getImage(ImageCache.class, "/icons/logo.png"));
+                searchWindow.setTitle(Messages.searchWindowLabel);
+                searchWindow.initModality(Modality.WINDOW_MODAL);
+                searchWindow.setScene(new Scene(loader.load()));
+                ((SearchController) loader.getController()).setCallerController(this);
+                searchWindow.setOnCloseRequest(action -> searchWindow = null);
+                searchWindow.show();
+            } else {
+                searchWindow.requestFocus();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void closeTagSearchWindow() {
+        if (searchWindow != null) {
+            searchWindow.close();
         }
     }
 }
