@@ -35,6 +35,7 @@ import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.security.store.SecureStore;
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.security.tokens.SimpleAuthenticationToken;
 
 import java.util.concurrent.ExecutionException;
@@ -125,8 +126,9 @@ public class LogEntryEditorController {
                 // Get the SecureStore. Store username and password.
                 try {
                     SecureStore store = new SecureStore();
-                    store.set(FieldsViewController.USERNAME_TAG, fieldsViewController.getUsernameProperty());
-                    store.set(FieldsViewController.PASSWORD_TAG, fieldsViewController.getPasswordProperty());
+                    ScopedAuthenticationToken scopedAuthenticationToken =
+                            new ScopedAuthenticationToken(LogService.AUTHENTICATION_SCOPE, fieldsViewController.getUsernameProperty(), fieldsViewController.getPasswordProperty());
+                    store.setScopedAuthentication(scopedAuthenticationToken);
                 } catch (Exception ex) {
                     logger.log(Level.WARNING, "Secure Store file not found.", ex);
                 }

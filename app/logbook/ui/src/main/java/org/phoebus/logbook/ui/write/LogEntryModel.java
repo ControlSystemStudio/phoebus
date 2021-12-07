@@ -57,8 +57,6 @@ import static org.phoebus.ui.application.PhoebusApplication.logger;
  */
 @SuppressWarnings("nls")
 public class LogEntryModel {
-    public static final String USERNAME_TAG = "username";
-    public static final String PASSWORD_TAG = "password";
 
     private final LogService logService;
     private final LogFactory logFactory;
@@ -188,11 +186,11 @@ public class LogEntryModel {
                 SecureStore store = new SecureStore();
                 // Could be accessed from JavaFX Application Thread when updating, so synchronize.
                 synchronized (username) {
-                    String result = store.get(LogEntryModel.USERNAME_TAG);
+                    String result = store.get(SecureStore.USERNAME_TAG);
                     username = (null == result) ? "" : result;
                 }
                 synchronized (password) {
-                    String result = store.get(LogEntryModel.PASSWORD_TAG);
+                    String result = store.get(SecureStore.PASSWORD_TAG);
                     password = (null == result) ? "" : result;
                 }
                 // Let anyone listening know that their credentials are now out of date.
@@ -523,8 +521,8 @@ public class LogEntryModel {
             // Get the SecureStore. Store username and password.
             try {
                 SecureStore store = new SecureStore();
-                store.set(USERNAME_TAG, username);
-                store.set(PASSWORD_TAG, password);
+                store.set(SecureStore.USERNAME_TAG, username);
+                store.set(SecureStore.PASSWORD_TAG, password);
             } catch (Exception ex) {
                 logger.log(Level.WARNING, "Secure Store file not found.", ex);
             }

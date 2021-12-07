@@ -21,6 +21,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.sun.jersey.api.client.ClientResponse.Status;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
@@ -133,7 +134,7 @@ public class OlogClient implements LogClient {
             return this;
         }
 
-        public OlogClient create() throws Exception {
+        public OlogClient create() {
             if (this.protocol.equalsIgnoreCase("http")) { //$NON-NLS-1$
                 this.clientConfig = new DefaultClientConfig();
             } else if (this.protocol.equalsIgnoreCase("https")) { //$NON-NLS-1$
@@ -481,6 +482,30 @@ public class OlogClient implements LogClient {
         catch (Exception e){
             logger.log(Level.SEVERE, "Unable to update log entry id=" + logEntry.getId(), e);
             return null;
+        }
+    }
+
+    /**
+     * Logs in to the Olog service.
+     * @param username User name, must not be <code>null</code>.
+     * @param password Password, must not be <code>null</code>.
+     * @throws Exception if the login fails, e.g. bad credentials or service off-line.
+     */
+    public void authenticate(String username, String password) throws Exception{
+        try {
+            ClientResponse clientResponse = service.path("login")
+                    .queryParam("username", username)
+                    .queryParam("password", password)
+                    .post(ClientResponse.class);
+            if(clientResponse.getStatus() == Status.UNAUTHORIZED.getStatusCode()){
+                throw new Exception("Failed to login: user unauthorized");
+            }
+            else if(clientResponse.getStatus() != Status.OK.getStatusCode()){
+                throw new Exception("Failed to login, got HTTP status " + clientResponse.getStatus());
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to log in to Olog service", e);
+            throw e;
         }
     }
 }
