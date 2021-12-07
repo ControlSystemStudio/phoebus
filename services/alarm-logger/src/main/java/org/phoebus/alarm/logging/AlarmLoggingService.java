@@ -20,10 +20,8 @@ import org.phoebus.util.shell.CommandShell;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.PropertySource;
 
 @SpringBootApplication
-@PropertySource("classpath:alarm_logger.properties")
 public class AlarmLoggingService {
 
     /** Alarm system logger */
@@ -79,7 +77,7 @@ public class AlarmLoggingService {
 
     public static void main(final String[] original_args) throws Exception {
         context = SpringApplication.run(AlarmLoggingService.class, original_args);
-        LogManager.getLogManager().readConfiguration(AlarmLoggingService.class.getResourceAsStream("/alarm_logger.properties"));
+        LogManager.getLogManager().readConfiguration(AlarmLoggingService.class.getResourceAsStream("/alarm_logger_logging.properties"));
 
         // load the default properties
         final Properties properties = PropertiesHelper.getProperties();
