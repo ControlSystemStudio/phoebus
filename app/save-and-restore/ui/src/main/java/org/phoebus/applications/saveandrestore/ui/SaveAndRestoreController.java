@@ -131,15 +131,15 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    private ContextMenu folderContextMenu;
-    private ContextMenu saveSetContextMenu;
-    private ContextMenu snapshotContextMenu;
-    private ContextMenu rootFolderContextMenu;
+    protected ContextMenu folderContextMenu;
+    protected ContextMenu saveSetContextMenu;
+    protected ContextMenu snapshotContextMenu;
+    protected ContextMenu rootFolderContextMenu;
 
-    private SimpleStringProperty toggleGoldenMenuItemText = new SimpleStringProperty();
-    private SimpleStringProperty jmasarServiceTitleProperty = new SimpleStringProperty();
+    protected SimpleStringProperty toggleGoldenMenuItemText = new SimpleStringProperty();
+    protected SimpleStringProperty jmasarServiceTitleProperty = new SimpleStringProperty();
     private BooleanProperty treeViewEmpty = new SimpleBooleanProperty(false);
-    private SimpleObjectProperty<ImageView> toggleGoldenImageViewProperty = new SimpleObjectProperty<>();
+    protected SimpleObjectProperty<ImageView> toggleGoldenImageViewProperty = new SimpleObjectProperty<>();
 
     private ImageView snapshotImageView = new ImageView(snapshotIcon);
     private ImageView snapshotGoldenImageView = new ImageView(snapshotGoldenIcon);
@@ -163,6 +163,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     public static final Image csvExportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_export.png");
 
     protected Stage searchWindow;
+
+    protected MenuItem tagAsGolden;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -323,7 +325,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             comapreSnapshot(treeView.getSelectionModel().getSelectedItem().getValue());
         });
 
-        MenuItem tagAsGolden = new MenuItem(Messages.contextMenuTagAsGolden, new ImageView(snapshotGoldenIcon));
+        tagAsGolden = new MenuItem(Messages.contextMenuTagAsGolden, new ImageView(snapshotGoldenIcon));
         tagAsGolden.textProperty().bind(toggleGoldenMenuItemText);
         tagAsGolden.graphicProperty().bind(toggleGoldenImageViewProperty);
         tagAsGolden.setOnAction(ae -> {
