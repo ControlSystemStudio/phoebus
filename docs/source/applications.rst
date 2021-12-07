@@ -12,6 +12,7 @@ The following sections describe details of specific application features.
    core/framework/doc/index
    core/formula/doc/index
    app/perfmon/doc/index
+   app/credentials-management/doc/index
    app/errlog/doc/index
    app/update/doc/index
    app/logbook/olog/ui/doc/index

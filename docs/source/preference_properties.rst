@@ -978,7 +978,7 @@ File ../../app/logbook/olog/client-es/src/main/resources/olog_es_preferences.pro
    username=admin
    password=1234
    
-   # Enable debugging of http request and resposnsed
+   # Enable debugging of http request and responses
    debug=false
    
    # The connection timeout for the Jersey client, in ms. 0 = infinite.

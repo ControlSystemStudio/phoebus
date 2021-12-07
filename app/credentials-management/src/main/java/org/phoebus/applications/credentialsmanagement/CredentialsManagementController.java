@@ -16,7 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.ui.credentials;
+package org.phoebus.applications.credentialsmanagement;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -97,7 +97,6 @@ public class CredentialsManagementController {
                             else{
                                 logOut(serviceItem.getScope());
                             }
-                            updateTable();
                         });
                     }
 
@@ -156,6 +155,7 @@ public class CredentialsManagementController {
     private void logOut(String scope) {
         try {
             secureStore.deleteScopedAuthenticationToken(scope);
+            updateTable();
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to logout from scope " + scope, e);
             ExceptionDetailsErrorDialog.openError(parent, Messages.ErrorDialogTitle, Messages.ErrorDialogBody, e);

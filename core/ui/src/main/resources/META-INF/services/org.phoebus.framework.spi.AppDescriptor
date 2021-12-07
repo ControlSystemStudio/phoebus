@@ -3,4 +3,3 @@ org.phoebus.ui.pv.PVListApplication
 org.phoebus.ui.jobs.JobViewerApplication
 org.phoebus.ui.help.HelpApplication
 org.phoebus.ui.web.WebBrowserApplication
-org.phoebus.ui.credentials.CredentialsManagementApp
