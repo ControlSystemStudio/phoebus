@@ -149,7 +149,7 @@ public class SaveSetController implements NodeChangedListener {
 		commentLabel.getStyleClass().add("stand-out-mandatory");
 		commentTextArea.textProperty().bindBidirectional(saveSetCommentProperty);
 		commentTextArea.textProperty().addListener((observableValue, oldvalue, newValue) -> {
-		    if (newValue.isEmpty()) {
+		    if (newValue == null || newValue.isEmpty()) {
 				commentLabel.getStyleClass().add("stand-out-mandatory");
 			} else {
 				commentLabel.getStyleClass().remove("stand-out-mandatory");

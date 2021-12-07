@@ -148,7 +148,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     protected static final Logger LOG = Logger.getLogger(SaveAndRestoreService.class.getName());
 
-    private PreferencesReader preferencesReader;
+    protected PreferencesReader preferencesReader;
 
     public static final Image folderIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/folder.png");
     public static final Image saveSetIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/saveset.png");
@@ -821,7 +821,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
-    private TreeItem<Node> createNode(final Node node) {
+    protected TreeItem<Node> createNode(final Node node) {
         return new TreeItem<>(node) {
             @Override
             public boolean isLeaf() {
@@ -922,7 +922,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * Loops through the the tree view model and expands all nodes that have a non-empty children
      * list. The tree view at this point has already been updated with data from the backend.
      */
-    private void restoreTreeState() {
+    protected void restoreTreeState() {
         UI_EXECUTOR.execute(() -> {
             expandNodes(treeView.getRoot());
 
@@ -939,7 +939,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         });
     }
 
-    private void setChildItems(HashMap<String, List<TreeItem<Node>>> allItems, TreeItem<Node> parentItem) {
+    protected void setChildItems(HashMap<String, List<TreeItem<Node>>> allItems, TreeItem<Node> parentItem) {
         if (allItems.containsKey(parentItem.getValue().getUniqueId())) {
             List<TreeItem<Node>> childItems = allItems.get(parentItem.getValue().getUniqueId());
             parentItem.getChildren().setAll(childItems);
@@ -996,7 +996,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 searchWindow.requestFocus();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.log(Level.WARNING, "Failed to load fxml for search window", e);
         }
     }
 

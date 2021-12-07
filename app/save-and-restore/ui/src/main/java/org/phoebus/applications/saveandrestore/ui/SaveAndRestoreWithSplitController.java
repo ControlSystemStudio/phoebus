@@ -22,7 +22,6 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -75,8 +74,10 @@ import org.phoebus.ui.javafx.ImageCache;
 
 import java.io.File;
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -113,8 +114,6 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
     @FXML
     private ListView<Node> listView;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
-
     private ContextMenu folderContextMenu;
     private ContextMenu saveSetContextMenu;
     private ContextMenu snapshotContextMenu;
@@ -127,10 +126,6 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
 
     private ImageView snapshotImageView = new ImageView(snapshotIcon);
     private ImageView snapshotGoldenImageView = new ImageView(snapshotGoldenIcon);
-
-    private static final String TREE_STATE = "tree_state";
-
-    private PreferencesReader preferencesReader;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -584,7 +579,8 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
         }
     }
 
-    private TreeItem<Node> createNode(final Node node) {
+    @Override
+    protected TreeItem<Node> createNode(final Node node) {
         return new TreeItem<>(node) {
             @Override
             public boolean isLeaf() {
@@ -668,4 +664,56 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
         }
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @FXML
+    public void loadTreeData() {
+
+        Task<TreeItem<Node>> loadRootNode = new Task<>() {
+            @Override
+            protected TreeItem<Node> call() throws Exception {
+                Node rootNode = saveAndRestoreService.getRootNode();
+                TreeItem<Node> rootItem = createNode(rootNode);
+                List<String> savedTreeViewStructure = getSavedTreeStructure();
+                // Check if there is a save tree structure. Also check that the first node id (=tree root)
+                // has the same unique id as the actual root node retrieved from the remote service. This check
+                // is needed to handle the case when the client connects to a different save-and-restore service.
+                if (savedTreeViewStructure != null && savedTreeViewStructure.get(0).equals(rootNode.getUniqueId())) {
+                    HashMap<String, List<TreeItem<Node>>> childNodesMap = new HashMap<>();
+                    savedTreeViewStructure.stream().forEach(s -> {
+                        List<Node> childNodes = saveAndRestoreService.getChildNodes(Node.builder().uniqueId(s).build());
+                        if (childNodes != null) { // This may be the case if the tree structure was modified outside of the UI
+                            List<TreeItem<Node>> childItems = childNodes.stream().map(n -> createNode(n)).collect(Collectors.toList());
+                            childItems.sort(new TreeNodeComparator());
+                            childNodesMap.put(s, childItems);
+                        }
+                    });
+                    setChildItems(childNodesMap, rootItem);
+                } else {
+                    List<Node> childNodes = saveAndRestoreService.getChildNodes(rootItem.getValue());
+                    List<TreeItem<Node>> childItems = childNodes.stream().map(n -> createNode(n)).collect(Collectors.toList());
+                    treeViewEmpty.setValue(childItems.isEmpty());
+                    childItems.sort(new TreeNodeComparator());
+                    rootItem.getChildren().addAll(childItems);
+                }
+
+                return rootItem;
+            }
+
+            @Override
+            public void succeeded() {
+                TreeItem<Node> rootItem = getValue();
+                jmasarServiceTitleProperty.set(saveAndRestoreService.getServiceIdentifier());
+
+                treeView.setRoot(rootItem);
+                restoreTreeState();
+            }
+
+            @Override
+            public void failed() {
+                jmasarServiceTitleProperty.set(MessageFormat.format(Messages.jmasarServiceUnavailable, saveAndRestoreService.getServiceIdentifier()));
+            }
+        };
+
+        new Thread(loadRootNode).start();
+    }
 }
