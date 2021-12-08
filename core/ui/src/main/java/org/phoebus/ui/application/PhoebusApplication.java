@@ -908,14 +908,7 @@ public class PhoebusApplication extends Application {
                 if (end < 0)
                     end = query.length();
                 final String target = query.substring(i+7, end);
-                if (target.equals("window"))
-                {
-                    // Open new Stage in which this app will be opened
-                    final Stage new_stage = new Stage();
-                    DockStage.configureStage(new_stage);
-                    new_stage.show();
-                }
-                else
+                if (!target.equals("window"))
                 {
                     // Should the new panel open in a specific, named pane?
                     final DockPane existing = DockStage.getDockPaneByName(target);
