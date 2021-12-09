@@ -104,13 +104,13 @@ import java.util.stream.Collectors;
 
 public class SaveAndRestoreController implements Initializable, NodeChangedListener, NodeAddedListener, ISaveAndRestoreController {
 
-    private static Executor UI_EXECUTOR = Platform::runLater;
+    protected static Executor UI_EXECUTOR = Platform::runLater;
 
     @FXML
-    private TreeView<Node> treeView;
+    protected TreeView<Node> treeView;
 
     @FXML
-    private TabPane tabPane;
+    protected TabPane tabPane;
 
     @FXML
     private Label jmasarServiceTitle;
@@ -125,7 +125,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     private Label emptyTreeInstruction;
 
     @FXML
-    private SplitPane splitPane;
+    protected SplitPane splitPane;
 
     protected SaveAndRestoreService saveAndRestoreService;
 
@@ -138,11 +138,11 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     protected SimpleStringProperty toggleGoldenMenuItemText = new SimpleStringProperty();
     protected SimpleStringProperty jmasarServiceTitleProperty = new SimpleStringProperty();
-    private BooleanProperty treeViewEmpty = new SimpleBooleanProperty(false);
+    protected BooleanProperty treeViewEmpty = new SimpleBooleanProperty(false);
     protected SimpleObjectProperty<ImageView> toggleGoldenImageViewProperty = new SimpleObjectProperty<>();
 
-    private ImageView snapshotImageView = new ImageView(snapshotIcon);
-    private ImageView snapshotGoldenImageView = new ImageView(snapshotGoldenIcon);
+    protected ImageView snapshotImageView = new ImageView(snapshotIcon);
+    protected ImageView snapshotGoldenImageView = new ImageView(snapshotGoldenIcon);
 
     private static final String TREE_STATE = "tree_state";
 
@@ -152,7 +152,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     public static final Image folderIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/folder.png");
     public static final Image saveSetIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/saveset.png");
-    public static final Image editSaveSetIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/edit_saveset.png");
     public static final Image deleteIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/delete.png");
     public static final Image renameIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/rename_col.png");
     public static final Image snapshotIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot.png");
@@ -172,7 +171,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         saveAndRestoreService = SaveAndRestoreService.getInstance();
 
         preferencesReader =
-                new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
+                new PreferencesReader(SaveAndRestoreApplication.class, "save_and_restore_preferences.properties");
         reconnectButton.setGraphic(ImageCache.getImageView(SaveAndRestoreApplication.class, "/icons/refresh.png"));
         reconnectButton.setTooltip(new Tooltip(Messages.buttonRefresh));
 
@@ -185,256 +184,17 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         emptyTreeInstruction.textProperty().setValue(Messages.labelCreateFolderEmptyTree);
 
-
-        folderContextMenu = new ContextMenu();
-        MenuItem newFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(folderIcon));
-        newFolderMenuItem.setOnAction(ae -> {
-            createNewFolder(treeView.getSelectionModel().getSelectedItem());
-        });
-
-        MenuItem renameFolderMenuItem = new MenuItem(Messages.contextMenuRename, new ImageView(renameIcon));
-        renameFolderMenuItem.setOnAction(ae -> {
-            renameNode(treeView.getSelectionModel().getSelectedItem());
-        });
-
-        MenuItem deleteFolderMenuItem = new MenuItem(Messages.contextMenuDelete, new ImageView(deleteIcon));
-        deleteFolderMenuItem.setOnAction(ae -> {
-            deleteNodes(treeView.getSelectionModel().getSelectedItems());
-        });
-
-        MenuItem newSaveSetMenuItem = new MenuItem(Messages.contextMenuNewSaveSet, new ImageView(saveSetIcon));
-        newSaveSetMenuItem.setOnAction(ae -> {
-            handleNewSaveSet(treeView.getSelectionModel().getSelectedItem());
-        });
-
-        ImageView importSaveSetIconImageView = new ImageView(csvImportIcon);
-        importSaveSetIconImageView.setFitWidth(18);
-        importSaveSetIconImageView.setFitHeight(18);
-
-        MenuItem importSaveSetMenuItem = new MenuItem(Messages.importSaveSetLabel, importSaveSetIconImageView);
-        importSaveSetMenuItem.setOnAction(ae -> {
-            try {
-                FileChooser fileChooser = new FileChooser();
-                fileChooser.setTitle(Messages.importSaveSetLabel);
-                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Supported file formats (CSV, SNP)", "*.csv", "*.bms"));
-                File file = fileChooser.showOpenDialog(splitPane.getScene().getWindow());
-                if (file != null) {
-                    CSVImporter.importFile(treeView.getSelectionModel().getSelectedItem().getValue(), file);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-
-        folderContextMenu.getItems().addAll(newFolderMenuItem, renameFolderMenuItem, deleteFolderMenuItem, newSaveSetMenuItem);
-        if (preferencesReader.getBoolean("enableCSVIO")) {
-            folderContextMenu.getItems().add(importSaveSetMenuItem);
-        }
+        folderContextMenu = new ContextMenuFolder(this, preferencesReader.getBoolean("enableCSVIO"));
+        saveSetContextMenu = new ContextMenuSaveSet(this, preferencesReader.getBoolean("enableCSVIO"));
 
         rootFolderContextMenu = new ContextMenu();
         MenuItem newRootFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(folderIcon));
         newRootFolderMenuItem.setOnAction(ae -> {
-            createNewFolder(treeView.getSelectionModel().getSelectedItem());
+            createNewFolder();
         });
         rootFolderContextMenu.getItems().add(newRootFolderMenuItem);
 
-        saveSetContextMenu = new ContextMenu();
-
-        MenuItem deleteSaveSetMenuItem = new MenuItem(Messages.contextMenuDelete, new ImageView(deleteIcon));
-        deleteSaveSetMenuItem.setOnAction(ae -> {
-            deleteNodes(treeView.getSelectionModel().getSelectedItems());
-        });
-
-        MenuItem renameSaveSetMenuItem = new MenuItem(Messages.contextMenuRename, new ImageView(renameIcon));
-        renameSaveSetMenuItem.setOnAction(ae -> {
-            renameNode(treeView.getSelectionModel().getSelectedItem());
-        });
-
-        MenuItem openSaveSetMenuItem = new MenuItem(Messages.contextMenuCreateSnapshot, new ImageView(saveSetIcon));
-        openSaveSetMenuItem.setOnAction(ae -> {
-            openSaveSetForSnapshot(treeView.getSelectionModel().getSelectedItem());
-        });
-
-        MenuItem editSaveSetMenuItem = new MenuItem(Messages.contextMenuEdit, new ImageView(editSaveSetIcon));
-        editSaveSetMenuItem.setOnAction(ae -> {
-            nodeDoubleClicked(treeView.getSelectionModel().getSelectedItem());
-        });
-
-        ImageView exportSaveSetIconImageView = new ImageView(csvExportIcon);
-        exportSaveSetIconImageView.setFitWidth(18);
-        exportSaveSetIconImageView.setFitHeight(18);
-
-        MenuItem exportSaveSetMenuItem = new MenuItem(Messages.exportSaveSetLabel, exportSaveSetIconImageView);
-        exportSaveSetMenuItem.setOnAction(ae -> {
-            try {
-                FileChooser fileChooser = new FileChooser();
-                fileChooser.setTitle(Messages.exportSaveSetLabel);
-                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV (BMS compatible)", "*.csv"));
-                fileChooser.setInitialFileName(treeView.getSelectionModel().getSelectedItem().getValue().getName());
-                File file = fileChooser.showSaveDialog(splitPane.getScene().getWindow());
-                if (file != null) {
-                    if (!file.getAbsolutePath().toLowerCase().endsWith("csv")) {
-                        file = new File(file.getAbsolutePath() + ".csv");
-                    }
-
-                    CSVExporter.export(treeView.getSelectionModel().getSelectedItem().getValue(), file.getAbsolutePath());
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-
-        ImageView importSnapshotIconImageView = new ImageView(csvImportIcon);
-        importSnapshotIconImageView.setFitWidth(18);
-        importSnapshotIconImageView.setFitHeight(18);
-
-        MenuItem importSnapshotMenuItem = new MenuItem(Messages.importSnapshotLabel, importSnapshotIconImageView);
-        importSnapshotMenuItem.setOnAction(ae -> {
-            try {
-                FileChooser fileChooser = new FileChooser();
-                fileChooser.setTitle(Messages.importSnapshotLabel);
-                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Supported file formats (CSV, SNP)", "*.csv", "*.snp"));
-                File file = fileChooser.showOpenDialog(splitPane.getScene().getWindow());
-                if (file != null) {
-                    CSVImporter.importFile(treeView.getSelectionModel().getSelectedItem().getValue(), file);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-
-        saveSetContextMenu.getItems().addAll(openSaveSetMenuItem, editSaveSetMenuItem, renameSaveSetMenuItem, deleteSaveSetMenuItem);
-        if (preferencesReader.getBoolean("enableCSVIO")) {
-            saveSetContextMenu.getItems().addAll(exportSaveSetMenuItem, importSnapshotMenuItem);
-        }
-
-        snapshotContextMenu = new ContextMenu();
-
-        MenuItem deleteSnapshotMenuItem = new MenuItem(Messages.contextMenuDelete, new ImageView(deleteIcon));
-        deleteSnapshotMenuItem.setOnAction(ae -> {
-            deleteNodes(treeView.getSelectionModel().getSelectedItems());
-        });
-
-        MenuItem renameSnapshotItem = new MenuItem(Messages.contextMenuRename, new ImageView(renameIcon));
-        renameSnapshotItem.setOnAction(ae -> {
-            renameNode(treeView.getSelectionModel().getSelectedItem());
-        });
-
-        MenuItem compareSaveSetMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, new ImageView(compareSnapshotIcon));
-        compareSaveSetMenuItem.setOnAction(ae -> {
-            comapreSnapshot(treeView.getSelectionModel().getSelectedItem().getValue());
-        });
-
-        tagAsGolden = new MenuItem(Messages.contextMenuTagAsGolden, new ImageView(snapshotGoldenIcon));
-        tagAsGolden.textProperty().bind(toggleGoldenMenuItemText);
-        tagAsGolden.graphicProperty().bind(toggleGoldenImageViewProperty);
-        tagAsGolden.setOnAction(ae -> {
-            Node node = toggleGoldenProperty(treeView.getSelectionModel().getSelectedItem().getValue());
-            treeView.getSelectionModel().getSelectedItem().setValue(node);
-        });
-
-        ImageView snapshotTagsWithCommentIconImage = new ImageView(snapshotTagsWithCommentIcon);
-        snapshotTagsWithCommentIconImage.setFitHeight(22);
-        snapshotTagsWithCommentIconImage.setFitWidth(22);
-        Menu tagWithComment = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
-        tagWithComment.setOnShowing(event -> {
-            Node node = treeView.getSelectionModel().getSelectedItem().getValue();
-
-            ObservableList<MenuItem> tagList = tagWithComment.getItems();
-
-            while (tagList.size() > 2) {
-                tagList.remove(tagList.size() - 1);
-            }
-
-            if (node.getTags().isEmpty()) {
-                CustomMenuItem noTags = TagWidget.NoTagMenuItem();
-                noTags.setDisable(true);
-                tagList.add(noTags);
-            } else {
-                node.getTags().sort(new TagComparator());
-                node.getTags().stream().forEach(tag -> {
-                    CustomMenuItem tagItem = TagWidget.TagWithCommentMenuItem(tag);
-
-                    tagItem.setOnAction(actionEvent -> {
-                        Alert confirmation = new Alert(AlertType.CONFIRMATION);
-                        confirmation.setTitle(Messages.tagRemoveConfirmationTitle);
-                        String locationString = DirectoryUtilities.CreateLocationString(node, true);
-                        javafx.scene.Node headerNode = TagUtil.CreateRemoveHeader(locationString, node.getName(), tag);
-                        confirmation.getDialogPane().setHeader(headerNode);
-                        confirmation.setContentText(Messages.tagRemoveConfirmationContent);
-
-                        Optional<ButtonType> result = confirmation.showAndWait();
-                        result.ifPresent(buttonType -> {
-                            if (buttonType == ButtonType.OK) {
-                                try {
-                                    saveAndRestoreService.removeTagFromSnapshot(node, tag);
-                                } catch (Exception e) {
-
-                                }
-                            }
-                        });
-                    });
-                    tagList.add(tagItem);
-                });
-            }
-        });
-
-        CustomMenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
-        addTagWithCommentMenuItem.setOnAction(action -> {
-            Node selectedNode = treeView.getSelectionModel().getSelectedItem().getValue();
-            SnapshotNewTagDialog snapshotNewTagDialog = new SnapshotNewTagDialog(selectedNode.getTags());
-            snapshotNewTagDialog.initModality(Modality.APPLICATION_MODAL);
-
-            String locationString = DirectoryUtilities.CreateLocationString(selectedNode, true);
-            snapshotNewTagDialog.getDialogPane().setHeader(TagUtil.CreateAddHeader(locationString, selectedNode.getName()));
-
-            Optional<Pair<String, String>> result = snapshotNewTagDialog.showAndWait();
-            result.ifPresent(items -> {
-                Tag aNewTag = Tag.builder()
-                        .snapshotId(selectedNode.getUniqueId())
-                        .name(items.getKey())
-                        .comment(items.getValue())
-                        .userName(System.getProperty("user.name"))
-                        .build();
-
-                try {
-                    saveAndRestoreService.addTagToSnapshot(selectedNode, aNewTag);
-                } catch (Exception e) {
-
-                }
-            });
-        });
-
-        tagWithComment.getItems().addAll(addTagWithCommentMenuItem, new SeparatorMenuItem());
-
-        ImageView exportSnapshotIconImageView = new ImageView(csvExportIcon);
-        exportSnapshotIconImageView.setFitWidth(18);
-        exportSnapshotIconImageView.setFitHeight(18);
-
-        MenuItem exportSnapshotMenuItem = new MenuItem(Messages.exportSnapshotLabel, exportSnapshotIconImageView);
-        exportSnapshotMenuItem.setOnAction(ae -> {
-            try {
-                FileChooser fileChooser = new FileChooser();
-                fileChooser.setTitle(Messages.exportSnapshotLabel);
-                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV (SNP compatible)", "*.csv"));
-                fileChooser.setInitialFileName(treeView.getSelectionModel().getSelectedItem().getValue().getName());
-                File file = fileChooser.showSaveDialog(splitPane.getScene().getWindow());
-                if (file != null) {
-                    if (!file.getAbsolutePath().toLowerCase().endsWith("csv")) {
-                        file = new File(file.getAbsolutePath() + ".csv");
-                    }
-
-                    CSVExporter.export(treeView.getSelectionModel().getSelectedItem().getValue(), file.getAbsolutePath());
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-
-        snapshotContextMenu.getItems().addAll(renameSnapshotItem, deleteSnapshotMenuItem, compareSaveSetMenuItem, tagAsGolden, tagWithComment);
-        if (preferencesReader.getBoolean("enableCSVIO")) {
-            snapshotContextMenu.getItems().add(exportSnapshotMenuItem);
-        }
+        snapshotContextMenu = getSnapshotContextMenu();
 
         treeView.setEditable(true);
 
@@ -577,8 +337,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         return true;
     }
 
-    protected void comapreSnapshot(Node snapshot) {
-
+    protected void comapreSnapshot() {
+        Node snapshot = treeView.getSelectionModel().getSelectedItem().getValue();
         try {
             SnapshotTab currentTab = (SnapshotTab) tabPane.getSelectionModel().getSelectedItem();
             if (currentTab == null) {
@@ -600,7 +360,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
-    protected void deleteNodes(ObservableList<TreeItem<Node>> selectedItems) {
+    protected void deleteNodes() {
+        ObservableList<TreeItem<Node>> selectedItems = treeView.getSelectionModel().getSelectedItems();
         if (!isDeletionPossible(selectedItems)) {
             Alert alert = new Alert(AlertType.INFORMATION);
             alert.setTitle(Messages.promptDeleteSelectedTitle);
@@ -661,12 +422,17 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         new Thread(task).start();
     }
 
-    protected void openSaveSetForSnapshot(TreeItem<Node> treeItem) {
+    protected void openSaveSetForSnapshot() {
+        TreeItem<Node> treeItem = treeView.getSelectionModel().getSelectedItem();
         SnapshotTab tab = new SnapshotTab(treeItem.getValue(), saveAndRestoreService);
         tab.loadSaveSet(treeItem.getValue());
 
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
+    }
+
+    protected void createNewFolder(){
+        createNewFolder(treeView.getSelectionModel().getSelectedItem());
     }
 
     protected void createNewFolder(TreeItem<Node> parentTreeItem) {
@@ -707,6 +473,10 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
+    public void nodeDoubleClicked(){
+        nodeDoubleClicked(treeView.getSelectionModel().getSelectedItem());
+    }
+
     private void nodeDoubleClicked(TreeItem<Node> node) {
 
         // Disallow opening a tab multiple times for the same save set.
@@ -735,8 +505,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         tabPane.getSelectionModel().select(tab);
     }
 
-    protected void handleNewSaveSet(TreeItem<Node> parentTreeItem) {
+    protected void handleNewSaveSet() {
 
+        TreeItem<Node> parentTreeItem = treeView.getSelectionModel().getSelectedItem();
         List<String> existingFolderNames =
                 parentTreeItem.getChildren().stream()
                         .filter(item -> item.getValue().getNodeType().equals(NodeType.CONFIGURATION))
@@ -783,11 +554,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * Renames a node through the service and its underlying data provider.
      * If there is a problem in the call to the remote JMasar service,
      * the user is shown a suitable error dialog and the name of the node is restored.
-     *
-     * @param node The node being renamed
      */
-    protected void renameNode(TreeItem<Node> node) {
-
+    protected void renameNode() {
+        TreeItem<Node> node = treeView.getSelectionModel().getSelectedItem();
         List<String> existingSiblingNodes =
                 node.getParent().getChildren().stream()
                         .filter(item -> item.getValue().getNodeType().equals(node.getValue().getNodeType()))
@@ -1005,6 +774,188 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     public void closeTagSearchWindow() {
         if (searchWindow != null) {
             searchWindow.close();
+        }
+    }
+
+    protected ContextMenu getSnapshotContextMenu(){
+
+        ContextMenu contextMenu = new ContextMenu();
+
+        MenuItem deleteSnapshotMenuItem = new MenuItem(Messages.contextMenuDelete, new ImageView(deleteIcon));
+        deleteSnapshotMenuItem.setOnAction(ae -> {
+            deleteNodes();
+        });
+
+        MenuItem renameSnapshotItem = new MenuItem(Messages.contextMenuRename, new ImageView(renameIcon));
+        renameSnapshotItem.setOnAction(ae -> {
+            renameNode();
+        });
+
+        MenuItem compareSaveSetMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, new ImageView(compareSnapshotIcon));
+        compareSaveSetMenuItem.setOnAction(ae -> {
+            comapreSnapshot();
+        });
+
+        tagAsGolden = new MenuItem(Messages.contextMenuTagAsGolden, new ImageView(snapshotGoldenIcon));
+        tagAsGolden.textProperty().bind(toggleGoldenMenuItemText);
+        tagAsGolden.graphicProperty().bind(toggleGoldenImageViewProperty);
+        tagAsGolden.setOnAction(ae -> {
+            Node node = toggleGoldenProperty(treeView.getSelectionModel().getSelectedItem().getValue());
+            treeView.getSelectionModel().getSelectedItem().setValue(node);
+        });
+
+        ImageView snapshotTagsWithCommentIconImage = new ImageView(snapshotTagsWithCommentIcon);
+        snapshotTagsWithCommentIconImage.setFitHeight(22);
+        snapshotTagsWithCommentIconImage.setFitWidth(22);
+        Menu tagWithComment = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
+        tagWithComment.setOnShowing(event -> {
+            Node node = treeView.getSelectionModel().getSelectedItem().getValue();
+
+            ObservableList<MenuItem> tagList = tagWithComment.getItems();
+
+            while (tagList.size() > 2) {
+                tagList.remove(tagList.size() - 1);
+            }
+
+            if (node.getTags().isEmpty()) {
+                CustomMenuItem noTags = TagWidget.NoTagMenuItem();
+                noTags.setDisable(true);
+                tagList.add(noTags);
+            } else {
+                node.getTags().sort(new TagComparator());
+                node.getTags().stream().forEach(tag -> {
+                    CustomMenuItem tagItem = TagWidget.TagWithCommentMenuItem(tag);
+
+                    tagItem.setOnAction(actionEvent -> {
+                        Alert confirmation = new Alert(AlertType.CONFIRMATION);
+                        confirmation.setTitle(Messages.tagRemoveConfirmationTitle);
+                        String locationString = DirectoryUtilities.CreateLocationString(node, true);
+                        javafx.scene.Node headerNode = TagUtil.CreateRemoveHeader(locationString, node.getName(), tag);
+                        confirmation.getDialogPane().setHeader(headerNode);
+                        confirmation.setContentText(Messages.tagRemoveConfirmationContent);
+
+                        Optional<ButtonType> result = confirmation.showAndWait();
+                        result.ifPresent(buttonType -> {
+                            if (buttonType == ButtonType.OK) {
+                                try {
+                                    saveAndRestoreService.removeTagFromSnapshot(node, tag);
+                                } catch (Exception e) {
+
+                                }
+                            }
+                        });
+                    });
+                    tagList.add(tagItem);
+                });
+            }
+        });
+
+        CustomMenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
+        addTagWithCommentMenuItem.setOnAction(action -> {
+            Node selectedNode = treeView.getSelectionModel().getSelectedItem().getValue();
+            SnapshotNewTagDialog snapshotNewTagDialog = new SnapshotNewTagDialog(selectedNode.getTags());
+            snapshotNewTagDialog.initModality(Modality.APPLICATION_MODAL);
+
+            String locationString = DirectoryUtilities.CreateLocationString(selectedNode, true);
+            snapshotNewTagDialog.getDialogPane().setHeader(TagUtil.CreateAddHeader(locationString, selectedNode.getName()));
+
+            Optional<Pair<String, String>> result = snapshotNewTagDialog.showAndWait();
+            result.ifPresent(items -> {
+                Tag aNewTag = Tag.builder()
+                        .snapshotId(selectedNode.getUniqueId())
+                        .name(items.getKey())
+                        .comment(items.getValue())
+                        .userName(System.getProperty("user.name"))
+                        .build();
+
+                try {
+                    saveAndRestoreService.addTagToSnapshot(selectedNode, aNewTag);
+                } catch (Exception e) {
+
+                }
+            });
+        });
+
+        tagWithComment.getItems().addAll(addTagWithCommentMenuItem, new SeparatorMenuItem());
+
+        ImageView exportSnapshotIconImageView = new ImageView(csvExportIcon);
+        exportSnapshotIconImageView.setFitWidth(18);
+        exportSnapshotIconImageView.setFitHeight(18);
+
+        contextMenu.getItems().addAll(renameSnapshotItem, deleteSnapshotMenuItem, compareSaveSetMenuItem, tagAsGolden, tagWithComment);
+        if (preferencesReader.getBoolean("enableCSVIO")) {
+            MenuItem exportSnapshotMenuItem = new MenuItem(Messages.exportSnapshotLabel, exportSnapshotIconImageView);
+            exportSnapshotMenuItem.setOnAction(ae -> {
+                exportSnapshot(treeView.getSelectionModel().getSelectedItem().getValue());
+            });
+            contextMenu.getItems().add(exportSnapshotMenuItem);
+        }
+
+        return contextMenu;
+    }
+
+    protected void importSaveSet(){
+        try {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle(Messages.importSaveSetLabel);
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Supported file formats (CSV, SNP)", "*.csv", "*.bms"));
+            File file = fileChooser.showOpenDialog(splitPane.getScene().getWindow());
+            if (file != null) {
+                CSVImporter.importFile(treeView.getSelectionModel().getSelectedItem().getValue(), file);
+            }
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "CSV import failed", e);
+        }
+    }
+
+    protected void exportSaveSet(){
+        try {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle(Messages.exportSaveSetLabel);
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV (BMS compatible)", "*.csv"));
+            fileChooser.setInitialFileName(treeView.getSelectionModel().getSelectedItem().getValue().getName());
+            File file = fileChooser.showSaveDialog(splitPane.getScene().getWindow());
+            if (file != null) {
+                if (!file.getAbsolutePath().toLowerCase().endsWith("csv")) {
+                    file = new File(file.getAbsolutePath() + ".csv");
+                }
+
+                CSVExporter.export(treeView.getSelectionModel().getSelectedItem().getValue(), file.getAbsolutePath());
+            }
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Save set export failed", e);
+        }
+    }
+
+    protected void importSnapshot(){
+        try {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle(Messages.importSnapshotLabel);
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Supported file formats (CSV, SNP)", "*.csv", "*.snp"));
+            File file = fileChooser.showOpenDialog(splitPane.getScene().getWindow());
+            if (file != null) {
+                CSVImporter.importFile(treeView.getSelectionModel().getSelectedItem().getValue(), file);
+            }
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Snapshot import failed", e);
+        }
+    }
+
+    protected void exportSnapshot(Node node){
+        try {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle(Messages.exportSnapshotLabel);
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV (SNP compatible)", "*.csv"));
+            fileChooser.setInitialFileName(treeView.getSelectionModel().getSelectedItem().getValue().getName());
+            File file = fileChooser.showSaveDialog(splitPane.getScene().getWindow());
+            if (file != null) {
+                if (!file.getAbsolutePath().toLowerCase().endsWith("csv")) {
+                    file = new File(file.getAbsolutePath() + ".csv");
+                }
+                CSVExporter.export(node, file.getAbsolutePath());
+            }
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Failed to export snapshot", e);
         }
     }
 }
