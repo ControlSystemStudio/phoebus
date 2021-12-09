@@ -1,10 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 
-<SplitPane fx:id="topLevelNode" dividerPositions="0.6105960264900663" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="623.0" prefWidth="757.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.alarm.logging.ui.AlarmLogTableController">
+<SplitPane fx:id="topLevelNode" dividerPositions="0.6105960264900663" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="623.0" prefWidth="757.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.alarm.logging.ui.AlarmLogTableController">
      <items>
          <fx:include fx:id="advancedSearchView" source="AdvancedSearchView.fxml" />
          <GridPane fx:id="ViewSearchPane">
@@ -42,7 +53,7 @@
                          <VBox alignment="CENTER">
                              <ProgressIndicator fx:id="progressIndicator" />
                          </VBox>
-                         <TableView fx:id="tableView">
+                         <TableView fx:id="tableView" onContextMenuRequested="#createContextMenu" tableMenuButtonVisible="true">
                              <columns>
                                  <TableColumn fx:id="configCol" minWidth="50.0" prefWidth="75.0" text="%Config" />
                                  <TableColumn fx:id="pvCol" minWidth="50.0" prefWidth="75.0" text="PV" />

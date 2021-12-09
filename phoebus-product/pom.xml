@@ -184,34 +184,6 @@
       <version>4.6.6-SNAPSHOT</version>
       <optional>true</optional>
     </dependency>
-
-    <!-- diirt
-    <dependency>
-      <groupId>org.diirt</groupId>
-      <artifactId>datasource-sim</artifactId>
-      <version>${diirt.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.diirt</groupId>
-      <artifactId>datasource-sys</artifactId>
-      <version>${diirt.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.diirt</groupId>
-      <artifactId>datasource-loc</artifactId>
-      <version>${diirt.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.diirt.support</groupId>
-      <artifactId>diirt-ca</artifactId>
-      <version>${diirt.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.diirt.support</groupId>
-      <artifactId>diirt-pva</artifactId>
-      <version>${diirt.version}</version>
-    </dependency>
-      -->
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-channel-views</artifactId>
@@ -225,6 +197,11 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-save-and-restore-ui</artifactId>
+      <version>4.6.6-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>app-credentials-management</artifactId>
       <version>4.6.6-SNAPSHOT</version>
     </dependency>
     <dependency>

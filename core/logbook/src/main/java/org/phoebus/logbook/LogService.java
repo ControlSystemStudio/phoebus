@@ -27,6 +27,8 @@ public class LogService {
 
     static final java.lang.String SERVICE_NAME = "LoggingService";
 
+    public static final String AUTHENTICATION_SCOPE = "Logbook";
+
     private static LogService logService;
     private ServiceLoader<LogFactory> loader;
     private Map<String, LogFactory> logFactories;
