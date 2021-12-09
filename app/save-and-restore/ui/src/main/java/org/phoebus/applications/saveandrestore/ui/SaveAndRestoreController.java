@@ -46,7 +46,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -151,19 +150,10 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     protected PreferencesReader preferencesReader;
 
     public static final Image folderIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/folder.png");
-    public static final Image saveSetIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/saveset.png");
-    public static final Image deleteIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/delete.png");
-    public static final Image renameIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/rename_col.png");
     public static final Image snapshotIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot.png");
     public static final Image snapshotGoldenIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-golden.png");
-    public static final Image compareSnapshotIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/compare.png");
-    public static final Image snapshotTagsWithCommentIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-tags.png");
-    public static final Image csvImportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_import.png");
-    public static final Image csvExportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_export.png");
 
     protected Stage searchWindow;
-
-    protected MenuItem tagAsGolden;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -194,7 +184,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         });
         rootFolderContextMenu.getItems().add(newRootFolderMenuItem);
 
-        snapshotContextMenu = getSnapshotContextMenu();
+        snapshotContextMenu = new ContextMenuSnapshot(this, preferencesReader.getBoolean("enableCSVIO"),
+                toggleGoldenMenuItemText, toggleGoldenImageViewProperty);
 
         treeView.setEditable(true);
 
@@ -337,31 +328,41 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         return true;
     }
 
-    protected void comapreSnapshot() {
-        Node snapshot = treeView.getSelectionModel().getSelectedItem().getValue();
+    public void comapreSnapshot() {
+        compareSnapshot(treeView.getSelectionModel().getSelectedItem().getValue());
+    }
+
+    protected void compareSnapshot(Node node) {
         try {
             SnapshotTab currentTab = (SnapshotTab) tabPane.getSelectionModel().getSelectedItem();
             if (currentTab == null) {
                 return;
             }
-            currentTab.addSnapshot(snapshot);
+            currentTab.addSnapshot(node);
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Failed to compare snapshot", e);
         }
     }
 
-    protected Node toggleGoldenProperty(Node node) {
+    protected void toggleGoldenProperty() {
+        toggleGoldenProperty(treeView.getSelectionModel().getSelectedItem().getValue());
+    }
+
+    private void toggleGoldenProperty(Node node) {
         try {
-            return saveAndRestoreService.tagSnapshotAsGolden(node,
+            Node updatedNode = saveAndRestoreService.tagSnapshotAsGolden(node,
                     !Boolean.parseBoolean(node.getProperty("golden")));
+            treeView.getSelectionModel().getSelectedItem().setValue(updatedNode);
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Failed to toggle golden property", e);
-            return null;
         }
     }
 
     protected void deleteNodes() {
-        ObservableList<TreeItem<Node>> selectedItems = treeView.getSelectionModel().getSelectedItems();
+        deleteNodes(treeView.getSelectionModel().getSelectedItems());
+    }
+
+    private void deleteNodes(ObservableList<TreeItem<Node>> selectedItems) {
         if (!isDeletionPossible(selectedItems)) {
             Alert alert = new Alert(AlertType.INFORMATION);
             alert.setTitle(Messages.promptDeleteSelectedTitle);
@@ -431,7 +432,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         tabPane.getSelectionModel().select(tab);
     }
 
-    protected void createNewFolder(){
+    protected void createNewFolder() {
         createNewFolder(treeView.getSelectionModel().getSelectedItem());
     }
 
@@ -473,7 +474,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
-    public void nodeDoubleClicked(){
+    public void nodeDoubleClicked() {
         nodeDoubleClicked(treeView.getSelectionModel().getSelectedItem());
     }
 
@@ -562,13 +563,16 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                         .filter(item -> item.getValue().getNodeType().equals(node.getValue().getNodeType()))
                         .map(item -> item.getValue().getName())
                         .collect(Collectors.toList());
+        renameNode(node.getValue(), existingSiblingNodes);
+    }
 
+    public void renameNode(Node node, List<String> existingSiblingNodes) {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle(Messages.promptRenameNodeTitle);
         dialog.setContentText(Messages.promptRenameNodeContent);
         dialog.setHeaderText(null);
         dialog.getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
-        dialog.getEditor().textProperty().setValue(node.getValue().getName());
+        dialog.getEditor().textProperty().setValue(node.getName());
 
 
         dialog.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
@@ -580,9 +584,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         Optional<String> result = dialog.showAndWait();
 
         if (result.isPresent()) {
-            node.getValue().setName(result.get());
+            node.setName(result.get());
             try {
-                saveAndRestoreService.updateNode(node.getValue());
+                saveAndRestoreService.updateNode(node);
             } catch (Exception e) {
                 Alert alert = new Alert(AlertType.ERROR);
                 alert.setTitle(Messages.errorActionFailed);
@@ -777,138 +781,23 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
-    protected ContextMenu getSnapshotContextMenu(){
-
-        ContextMenu contextMenu = new ContextMenu();
-
-        MenuItem deleteSnapshotMenuItem = new MenuItem(Messages.contextMenuDelete, new ImageView(deleteIcon));
-        deleteSnapshotMenuItem.setOnAction(ae -> {
-            deleteNodes();
-        });
-
-        MenuItem renameSnapshotItem = new MenuItem(Messages.contextMenuRename, new ImageView(renameIcon));
-        renameSnapshotItem.setOnAction(ae -> {
-            renameNode();
-        });
-
-        MenuItem compareSaveSetMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, new ImageView(compareSnapshotIcon));
-        compareSaveSetMenuItem.setOnAction(ae -> {
-            comapreSnapshot();
-        });
-
-        tagAsGolden = new MenuItem(Messages.contextMenuTagAsGolden, new ImageView(snapshotGoldenIcon));
-        tagAsGolden.textProperty().bind(toggleGoldenMenuItemText);
-        tagAsGolden.graphicProperty().bind(toggleGoldenImageViewProperty);
-        tagAsGolden.setOnAction(ae -> {
-            Node node = toggleGoldenProperty(treeView.getSelectionModel().getSelectedItem().getValue());
-            treeView.getSelectionModel().getSelectedItem().setValue(node);
-        });
-
-        ImageView snapshotTagsWithCommentIconImage = new ImageView(snapshotTagsWithCommentIcon);
-        snapshotTagsWithCommentIconImage.setFitHeight(22);
-        snapshotTagsWithCommentIconImage.setFitWidth(22);
-        Menu tagWithComment = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
-        tagWithComment.setOnShowing(event -> {
-            Node node = treeView.getSelectionModel().getSelectedItem().getValue();
-
-            ObservableList<MenuItem> tagList = tagWithComment.getItems();
-
-            while (tagList.size() > 2) {
-                tagList.remove(tagList.size() - 1);
-            }
-
-            if (node.getTags().isEmpty()) {
-                CustomMenuItem noTags = TagWidget.NoTagMenuItem();
-                noTags.setDisable(true);
-                tagList.add(noTags);
-            } else {
-                node.getTags().sort(new TagComparator());
-                node.getTags().stream().forEach(tag -> {
-                    CustomMenuItem tagItem = TagWidget.TagWithCommentMenuItem(tag);
-
-                    tagItem.setOnAction(actionEvent -> {
-                        Alert confirmation = new Alert(AlertType.CONFIRMATION);
-                        confirmation.setTitle(Messages.tagRemoveConfirmationTitle);
-                        String locationString = DirectoryUtilities.CreateLocationString(node, true);
-                        javafx.scene.Node headerNode = TagUtil.CreateRemoveHeader(locationString, node.getName(), tag);
-                        confirmation.getDialogPane().setHeader(headerNode);
-                        confirmation.setContentText(Messages.tagRemoveConfirmationContent);
-
-                        Optional<ButtonType> result = confirmation.showAndWait();
-                        result.ifPresent(buttonType -> {
-                            if (buttonType == ButtonType.OK) {
-                                try {
-                                    saveAndRestoreService.removeTagFromSnapshot(node, tag);
-                                } catch (Exception e) {
-
-                                }
-                            }
-                        });
-                    });
-                    tagList.add(tagItem);
-                });
-            }
-        });
-
-        CustomMenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
-        addTagWithCommentMenuItem.setOnAction(action -> {
-            Node selectedNode = treeView.getSelectionModel().getSelectedItem().getValue();
-            SnapshotNewTagDialog snapshotNewTagDialog = new SnapshotNewTagDialog(selectedNode.getTags());
-            snapshotNewTagDialog.initModality(Modality.APPLICATION_MODAL);
-
-            String locationString = DirectoryUtilities.CreateLocationString(selectedNode, true);
-            snapshotNewTagDialog.getDialogPane().setHeader(TagUtil.CreateAddHeader(locationString, selectedNode.getName()));
-
-            Optional<Pair<String, String>> result = snapshotNewTagDialog.showAndWait();
-            result.ifPresent(items -> {
-                Tag aNewTag = Tag.builder()
-                        .snapshotId(selectedNode.getUniqueId())
-                        .name(items.getKey())
-                        .comment(items.getValue())
-                        .userName(System.getProperty("user.name"))
-                        .build();
-
-                try {
-                    saveAndRestoreService.addTagToSnapshot(selectedNode, aNewTag);
-                } catch (Exception e) {
-
-                }
-            });
-        });
-
-        tagWithComment.getItems().addAll(addTagWithCommentMenuItem, new SeparatorMenuItem());
-
-        ImageView exportSnapshotIconImageView = new ImageView(csvExportIcon);
-        exportSnapshotIconImageView.setFitWidth(18);
-        exportSnapshotIconImageView.setFitHeight(18);
-
-        contextMenu.getItems().addAll(renameSnapshotItem, deleteSnapshotMenuItem, compareSaveSetMenuItem, tagAsGolden, tagWithComment);
-        if (preferencesReader.getBoolean("enableCSVIO")) {
-            MenuItem exportSnapshotMenuItem = new MenuItem(Messages.exportSnapshotLabel, exportSnapshotIconImageView);
-            exportSnapshotMenuItem.setOnAction(ae -> {
-                exportSnapshot(treeView.getSelectionModel().getSelectedItem().getValue());
-            });
-            contextMenu.getItems().add(exportSnapshotMenuItem);
-        }
-
-        return contextMenu;
-    }
-
-    protected void importSaveSet(){
+    protected void importSaveSet() {
+        Node node = treeView.getSelectionModel().getSelectedItem().getValue();
         try {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle(Messages.importSaveSetLabel);
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Supported file formats (CSV, SNP)", "*.csv", "*.bms"));
             File file = fileChooser.showOpenDialog(splitPane.getScene().getWindow());
             if (file != null) {
-                CSVImporter.importFile(treeView.getSelectionModel().getSelectedItem().getValue(), file);
+                CSVImporter.importFile(node, file);
             }
         } catch (Exception e) {
             LOG.log(Level.WARNING, "CSV import failed", e);
         }
     }
 
-    protected void exportSaveSet(){
+    protected void exportSaveSet() {
+        Node node = treeView.getSelectionModel().getSelectedItem().getValue();
         try {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle(Messages.exportSaveSetLabel);
@@ -920,28 +809,33 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                     file = new File(file.getAbsolutePath() + ".csv");
                 }
 
-                CSVExporter.export(treeView.getSelectionModel().getSelectedItem().getValue(), file.getAbsolutePath());
+                CSVExporter.export(node, file.getAbsolutePath());
             }
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Save set export failed", e);
         }
     }
 
-    protected void importSnapshot(){
+    protected void importSnapshot() {
+        Node node = treeView.getSelectionModel().getSelectedItem().getValue();
         try {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle(Messages.importSnapshotLabel);
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Supported file formats (CSV, SNP)", "*.csv", "*.snp"));
             File file = fileChooser.showOpenDialog(splitPane.getScene().getWindow());
             if (file != null) {
-                CSVImporter.importFile(treeView.getSelectionModel().getSelectedItem().getValue(), file);
+                CSVImporter.importFile(node, file);
             }
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Snapshot import failed", e);
         }
     }
 
-    protected void exportSnapshot(Node node){
+    protected void exportSnapshot() {
+        exportSnapshot(treeView.getSelectionModel().getSelectedItem().getValue());
+    }
+
+    public void exportSnapshot(Node node) {
         try {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle(Messages.exportSnapshotLabel);
@@ -956,6 +850,77 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             }
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Failed to export snapshot", e);
+        }
+    }
+
+    protected void addTagToSnapshot() {
+        addTagToSnapshot(treeView.getSelectionModel().getSelectedItem().getValue());
+    }
+
+    public void addTagToSnapshot(Node node) {
+        SnapshotNewTagDialog snapshotNewTagDialog = new SnapshotNewTagDialog(node.getTags());
+        snapshotNewTagDialog.initModality(Modality.APPLICATION_MODAL);
+
+        String locationString = DirectoryUtilities.CreateLocationString(node, true);
+        snapshotNewTagDialog.getDialogPane().setHeader(TagUtil.CreateAddHeader(locationString, node.getName()));
+
+        Optional<Pair<String, String>> result = snapshotNewTagDialog.showAndWait();
+        result.ifPresent(items -> {
+            Tag aNewTag = Tag.builder()
+                    .snapshotId(node.getUniqueId())
+                    .name(items.getKey())
+                    .comment(items.getValue())
+                    .userName(System.getProperty("user.name"))
+                    .build();
+
+            try {
+                saveAndRestoreService.addTagToSnapshot(node, aNewTag);
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Failed to add tag to snapshot");
+            }
+        });
+    }
+
+    protected void tagWithComment(ObservableList<MenuItem> tagList) {
+        Node node = treeView.getSelectionModel().getSelectedItem().getValue();
+        tagWithComment(node, tagList);
+    }
+
+    public void tagWithComment(Node node, ObservableList<MenuItem> tagList){
+        while (tagList.size() > 2) {
+            tagList.remove(tagList.size() - 1);
+        }
+
+        if (node.getTags().isEmpty()) {
+            CustomMenuItem noTags = TagWidget.NoTagMenuItem();
+            noTags.setDisable(true);
+            tagList.add(noTags);
+        } else {
+            node.getTags().sort(new TagComparator());
+            node.getTags().stream().forEach(tag -> {
+                CustomMenuItem tagItem = TagWidget.TagWithCommentMenuItem(tag);
+
+                tagItem.setOnAction(actionEvent -> {
+                    Alert confirmation = new Alert(AlertType.CONFIRMATION);
+                    confirmation.setTitle(Messages.tagRemoveConfirmationTitle);
+                    String locationString = DirectoryUtilities.CreateLocationString(node, true);
+                    javafx.scene.Node headerNode = TagUtil.CreateRemoveHeader(locationString, node.getName(), tag);
+                    confirmation.getDialogPane().setHeader(headerNode);
+                    confirmation.setContentText(Messages.tagRemoveConfirmationContent);
+
+                    Optional<ButtonType> result = confirmation.showAndWait();
+                    result.ifPresent(buttonType -> {
+                        if (buttonType == ButtonType.OK) {
+                            try {
+                                saveAndRestoreService.removeTagFromSnapshot(node, tag);
+                            } catch (Exception e) {
+                                LOG.log(Level.WARNING, "Failed to remove tag from snapshot", e);
+                            }
+                        }
+                    });
+                });
+                tagList.add(tagItem);
+            });
         }
     }
 }

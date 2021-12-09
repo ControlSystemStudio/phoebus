@@ -28,42 +28,26 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.ListView;
-import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tab;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TreeItem;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.stage.Modality;
-import javafx.util.Pair;
-import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetTab;
-import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotNewTagDialog;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
-import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
-import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
 
 import java.net.URL;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Stack;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class SaveAndRestoreWithSplitController extends SaveAndRestoreController {
@@ -120,7 +104,9 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
         loadTreeData();
     }
 
-    private void deleteSnapshots(ObservableList<Node> selectedItems) {
+    @Override
+    protected void deleteNodes() {
+        ObservableList<Node> selectedItems = listView.getSelectionModel().getSelectedItems();
         Alert alert = new Alert(AlertType.CONFIRMATION);
         alert.setTitle(Messages.promptDeleteSelectedTitle);
         alert.setHeaderText(Messages.promptDeleteSelectedHeader);
@@ -192,38 +178,15 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
         tabPane.getSelectionModel().select(tab);
     }
 
-    private void renameSnapshot(Node node) {
+    @Override
+    protected void renameNode() {
+        Node node = listView.getSelectionModel().getSelectedItem();
         List<String> existingSiblingNodes =
                 listView.getItems().stream()
                         .map(item -> item.getName())
                         .collect(Collectors.toList());
 
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle(Messages.promptRenameNodeTitle);
-        dialog.setContentText(Messages.promptRenameNodeContent);
-        dialog.setHeaderText(null);
-        dialog.getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
-        dialog.getEditor().textProperty().setValue(node.getName());
-
-        dialog.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
-            String value = newValue.trim();
-            dialog.getDialogPane().lookupButton(ButtonType.OK)
-                    .setDisable(existingSiblingNodes.contains(value) || value.isEmpty());
-        });
-
-        Optional<String> result = dialog.showAndWait();
-
-        if (result.isPresent()) {
-            node.setName(result.get());
-            try {
-                saveAndRestoreService.updateNode(node);
-            } catch (Exception e) {
-                Alert alert = new Alert(AlertType.ERROR);
-                alert.setTitle(Messages.errorActionFailed);
-                alert.setHeaderText(e.getMessage());
-                alert.showAndWait();
-            }
-        }
+        renameNode(node, existingSiblingNodes);
     }
 
     @Override
@@ -311,189 +274,24 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
         }
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    @FXML
-    public void loadTreeData() {
-
-        Task<TreeItem<Node>> loadRootNode = new Task<>() {
-            @Override
-            protected TreeItem<Node> call() throws Exception {
-                Node rootNode = saveAndRestoreService.getRootNode();
-                TreeItem<Node> rootItem = createNode(rootNode);
-                List<String> savedTreeViewStructure = getSavedTreeStructure();
-                // Check if there is a save tree structure. Also check that the first node id (=tree root)
-                // has the same unique id as the actual root node retrieved from the remote service. This check
-                // is needed to handle the case when the client connects to a different save-and-restore service.
-                if (savedTreeViewStructure != null && savedTreeViewStructure.get(0).equals(rootNode.getUniqueId())) {
-                    HashMap<String, List<TreeItem<Node>>> childNodesMap = new HashMap<>();
-                    savedTreeViewStructure.stream().forEach(s -> {
-                        List<Node> childNodes = saveAndRestoreService.getChildNodes(Node.builder().uniqueId(s).build());
-                        if (childNodes != null) { // This may be the case if the tree structure was modified outside of the UI
-                            List<TreeItem<Node>> childItems = childNodes.stream().map(n -> createNode(n)).collect(Collectors.toList());
-                            childItems.sort(new TreeNodeComparator());
-                            childNodesMap.put(s, childItems);
-                        }
-                    });
-                    setChildItems(childNodesMap, rootItem);
-                } else {
-                    List<Node> childNodes = saveAndRestoreService.getChildNodes(rootItem.getValue());
-                    List<TreeItem<Node>> childItems = childNodes.stream().map(n -> createNode(n)).collect(Collectors.toList());
-                    treeViewEmpty.setValue(childItems.isEmpty());
-                    childItems.sort(new TreeNodeComparator());
-                    rootItem.getChildren().addAll(childItems);
-                }
-
-                return rootItem;
-            }
-
-            @Override
-            public void succeeded() {
-                TreeItem<Node> rootItem = getValue();
-                jmasarServiceTitleProperty.set(saveAndRestoreService.getServiceIdentifier());
-
-                treeView.setRoot(rootItem);
-                restoreTreeState();
-            }
-
-            @Override
-            public void failed() {
-                jmasarServiceTitleProperty.set(MessageFormat.format(Messages.jmasarServiceUnavailable, saveAndRestoreService.getServiceIdentifier()));
-            }
-        };
-
-        new Thread(loadRootNode).start();
+    @Override
+    public void comapreSnapshot() {
+        compareSnapshot(listView.getSelectionModel().getSelectedItem());
     }
 
     @Override
-    protected ContextMenu getSnapshotContextMenu() {
-
-        ContextMenu contextMenu = new ContextMenu();
-
-        MenuItem deleteSnapshotMenuItem = new MenuItem(Messages.contextMenuDelete, new ImageView(deleteIcon));
-        deleteSnapshotMenuItem.setOnAction(ae -> {
-            deleteSnapshots(listView.getSelectionModel().getSelectedItems());
-        });
-
-        MenuItem renameSnapshotItem = new MenuItem(Messages.contextMenuRename, new ImageView(renameIcon));
-        renameSnapshotItem.setOnAction(ae -> {
-            renameSnapshot(listView.getSelectionModel().getSelectedItem());
-        });
-
-        MenuItem compareSaveSetMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, new ImageView(compareSnapshotIcon));
-        compareSaveSetMenuItem.setOnAction(ae -> {
-            comapreSnapshot();
-        });
-
-        MenuItem tagAsGolden = new MenuItem(Messages.contextMenuTagAsGolden, new ImageView(snapshotGoldenIcon));
-        tagAsGolden.textProperty().bind(toggleGoldenMenuItemText);
-        tagAsGolden.graphicProperty().bind(toggleGoldenImageViewProperty);
-        tagAsGolden.setOnAction(ae -> {
-            Node node = toggleGoldenProperty(listView.getSelectionModel().getSelectedItem());
-            nodeChanged(node);
-        });
-
-        ImageView snapshotTagsWithCommentIconImage = new ImageView(snapshotTagsWithCommentIcon);
-        snapshotTagsWithCommentIconImage.setFitHeight(22);
-        snapshotTagsWithCommentIconImage.setFitWidth(22);
-        Menu tagWithComment = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
-        tagWithComment.setOnShowing(event -> {
-            Node node = listView.getSelectionModel().getSelectedItem();
-
-            ObservableList<MenuItem> tagList = tagWithComment.getItems();
-
-            while (tagList.size() > 2) {
-                tagList.remove(tagList.size() - 1);
-            }
-
-            if (node.getTags().isEmpty()) {
-                CustomMenuItem noTags = TagWidget.NoTagMenuItem();
-                noTags.setDisable(true);
-                tagList.add(noTags);
-            } else {
-                node.getTags().sort(new TagComparator());
-                node.getTags().stream().forEach(tag -> {
-                    CustomMenuItem tagItem = TagWidget.TagWithCommentMenuItem(tag);
-
-                    tagItem.setOnAction(actionEvent -> {
-                        Alert confirmation = new Alert(AlertType.CONFIRMATION);
-                        confirmation.setTitle(Messages.tagRemoveConfirmationTitle);
-                        String locationString = DirectoryUtilities.CreateLocationString(node, true);
-                        javafx.scene.Node headerNode = TagUtil.CreateRemoveHeader(locationString, node.getName(), tag);
-                        confirmation.getDialogPane().setHeader(headerNode);
-                        confirmation.setContentText(Messages.tagRemoveConfirmationContent);
-
-                        Optional<ButtonType> result = confirmation.showAndWait();
-                        result.ifPresent(buttonType -> {
-                            if (buttonType == ButtonType.OK) {
-                                try {
-                                    saveAndRestoreService.removeTagFromSnapshot(node, tag);
-                                } catch (Exception e) {
-
-                                }
-                            }
-                        });
-                    });
-                    tagList.add(tagItem);
-                });
-            }
-        });
-
-        CustomMenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
-        addTagWithCommentMenuItem.setOnAction(action -> {
-            Node selectedNode = listView.getSelectionModel().getSelectedItem();
-            SnapshotNewTagDialog snapshotNewTagDialog = new SnapshotNewTagDialog(selectedNode.getTags());
-            snapshotNewTagDialog.initModality(Modality.APPLICATION_MODAL);
-
-            String locationString = DirectoryUtilities.CreateLocationString(selectedNode, true);
-            snapshotNewTagDialog.getDialogPane().setHeader(TagUtil.CreateAddHeader(locationString, selectedNode.getName()));
-
-            Optional<Pair<String, String>> result = snapshotNewTagDialog.showAndWait();
-            result.ifPresent(items -> {
-                Tag aNewTag = Tag.builder()
-                        .snapshotId(selectedNode.getUniqueId())
-                        .name(items.getKey())
-                        .comment(items.getValue())
-                        .userName(System.getProperty("user.name"))
-                        .build();
-
-                try {
-                    saveAndRestoreService.addTagToSnapshot(selectedNode, aNewTag);
-                } catch (Exception e) {
-
-                }
-            });
-        });
-
-        tagWithComment.getItems().addAll(addTagWithCommentMenuItem, new SeparatorMenuItem());
-
-        ImageView exportSnapshotIconImageView = new ImageView(csvExportIcon);
-        exportSnapshotIconImageView.setFitWidth(18);
-        exportSnapshotIconImageView.setFitHeight(18);
-
-        MenuItem exportSnapshotMenuItem = new MenuItem(Messages.exportSnapshotLabel, exportSnapshotIconImageView);
-        exportSnapshotMenuItem.setOnAction(ae -> {
-            exportSnapshot(listView.getSelectionModel().getSelectedItem());
-        });
-
-        contextMenu.getItems().addAll(renameSnapshotItem, deleteSnapshotMenuItem, compareSaveSetMenuItem, tagAsGolden, tagWithComment);
-        if (preferencesReader.getBoolean("enableCSVIO")) {
-            contextMenu.getItems().add(exportSnapshotMenuItem);
-        }
-
-        return contextMenu;
+    public void exportSnapshot() {
+        exportSnapshot(listView.getSelectionModel().getSelectedItem());
     }
 
     @Override
-    protected void comapreSnapshot() {
-        Node snapshot = listView.getSelectionModel().getSelectedItem();
-        try {
-            SnapshotTab currentTab = (SnapshotTab) tabPane.getSelectionModel().getSelectedItem();
-            if (currentTab == null) {
-                return;
-            }
-            currentTab.addSnapshot(snapshot);
-        } catch (Exception e) {
-            LOG.log(Level.WARNING, "Failed to compare snapshot", e);
-        }
+    protected void addTagToSnapshot(){
+        addTagToSnapshot(listView.getSelectionModel().getSelectedItem());
+    }
+
+    @Override
+    protected void tagWithComment(ObservableList<MenuItem> tagList) {
+        Node node = listView.getSelectionModel().getSelectedItem();
+        tagWithComment(node, tagList);
     }
 }
