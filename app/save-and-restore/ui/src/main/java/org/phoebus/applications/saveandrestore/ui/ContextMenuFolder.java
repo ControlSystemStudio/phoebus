@@ -33,7 +33,7 @@ public class ContextMenuFolder extends ContextMenuBase {
 
         MenuItem newSaveSetMenuItem = new MenuItem(Messages.contextMenuNewSaveSet, new ImageView(saveSetIcon));
         newSaveSetMenuItem.setOnAction(ae -> {
-            saveAndRestoreController.handleNewSaveSet();
+            saveAndRestoreController.createNewSaveSet();
         });
 
         getItems().addAll(newFolderMenuItem, renameNodeMenuItem, deleteNodesMenuItem, newSaveSetMenuItem);

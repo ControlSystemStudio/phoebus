@@ -14,10 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * <a target="_blank" href="https://icons8.com/icons/set/tags">Tags icon</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
- * <a target="_blank" href="https://icons8.com/icons/set/export">Export icon</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
- * <a target="_blank" href="https://icons8.com/icons/set/import">Import icon</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
  */
 
 package org.phoebus.applications.saveandrestore.ui;
@@ -40,8 +36,10 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -97,7 +95,7 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
             }
 
             if (action.getClickCount() == 2) {
-                nodeDoubleClicked(new TreeItem<Node>(node));
+                nodeDoubleClicked(new TreeItem<>(node));
             }
         });
 
@@ -105,7 +103,7 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
     }
 
     @Override
-    protected void deleteNodes() {
+    protected void deleteSnapshots(){
         ObservableList<Node> selectedItems = listView.getSelectionModel().getSelectedItems();
         Alert alert = new Alert(AlertType.CONFIRMATION);
         alert.setTitle(Messages.promptDeleteSelectedTitle);
@@ -118,7 +116,7 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
         });
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get().equals(ButtonType.OK)) {
-            selectedItems.stream().forEach(item -> deleteListItem(item));
+            selectedItems.forEach(this::deleteListItem);
         }
     }
 
@@ -132,18 +130,26 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
 
             @Override
             public void succeeded() {
-                UI_EXECUTOR.execute(() -> {
-                    listView.getItems().remove(listItem);
-                    List<Tab> tabsToRemove = new ArrayList<>();
-                    for (Tab tab : tabPane.getTabs()) {
-                        if (tab.getId().equals(listItem.getUniqueId())) {
-                            tabsToRemove.add(tab);
-                            tab.getOnCloseRequest().handle(null);
-                        }
+                listView.getItems().remove(listItem);
+                List<Tab> tabsToRemove = new ArrayList<>();
+                for (Tab tab : tabPane.getTabs()) {
+                    if (tab.getId().equals(listItem.getUniqueId())) {
+                        tabsToRemove.add(tab);
+                        tab.getOnCloseRequest().handle(null);
                     }
-                    tabPane.getTabs().removeAll(tabsToRemove);
-                    listView.getSelectionModel().select(null);
-                });
+                }
+                tabPane.getTabs().removeAll(tabsToRemove);
+                listView.getSelectionModel().select(null);
+            }
+
+            @Override
+            public void failed(){
+                Node node = saveAndRestoreService.getNode(listItem.getUniqueId());
+                if(node == null){
+                    listView.getItems().remove(listItem);
+                }
+                ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
+                        MessageFormat.format(Messages.errorDeleteNodeFailed, listItem.getName()), null);
             }
         };
 
@@ -183,14 +189,14 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
         Node node = listView.getSelectionModel().getSelectedItem();
         List<String> existingSiblingNodes =
                 listView.getItems().stream()
-                        .map(item -> item.getName())
+                        .map(Node::getName)
                         .collect(Collectors.toList());
 
         renameNode(node, existingSiblingNodes);
     }
 
     @Override
-    protected TreeItem<Node> createNode(final Node node) {
+    protected TreeItem<Node> createTreeItem(final Node node) {
         return new TreeItem<>(node) {
             @Override
             public boolean isLeaf() {
@@ -205,7 +211,6 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
         if (node.getNodeType() != NodeType.SNAPSHOT) {
             TreeItem<Node> nodeSubjectToUpdate = recursiveSearch(node.getUniqueId(), treeView.getRoot());
             if (nodeSubjectToUpdate == null) {
-                // TODO: log this?
                 return;
             }
             nodeSubjectToUpdate.setValue(node);
@@ -232,10 +237,9 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
             // Find the parent to which the new node is to be added
             TreeItem<Node> parentTreeItem = recursiveSearch(parentNode.getUniqueId(), treeView.getRoot());
             if (parentTreeItem == null) {
-                // TODO: log this?
                 return;
             }
-            parentTreeItem.getChildren().add(createNode(newNode));
+            parentTreeItem.getChildren().add(createTreeItem(newNode));
             parentTreeItem.getChildren().sort(new TreeNodeComparator());
             parentTreeItem.expandedProperty().setValue(true);
         } else {

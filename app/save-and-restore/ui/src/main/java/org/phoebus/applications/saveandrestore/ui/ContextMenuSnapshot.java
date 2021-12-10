@@ -45,7 +45,7 @@ public class ContextMenuSnapshot extends ContextMenuBase {
 
         MenuItem deleteSnapshotMenuItem = new MenuItem(Messages.contextMenuDelete, new ImageView(deleteIcon));
         deleteSnapshotMenuItem.setOnAction(ae -> {
-            saveAndRestoreController.deleteNodes();
+            saveAndRestoreController.deleteSnapshots();
         });
 
         MenuItem renameSnapshotItem = new MenuItem(Messages.contextMenuRename, new ImageView(renameIcon));
@@ -80,12 +80,13 @@ public class ContextMenuSnapshot extends ContextMenuBase {
 
         tagWithComment.getItems().addAll(addTagWithCommentMenuItem, new SeparatorMenuItem());
 
-        ImageView exportSnapshotIconImageView = new ImageView(csvExportIcon);
-        exportSnapshotIconImageView.setFitWidth(18);
-        exportSnapshotIconImageView.setFitHeight(18);
-
         getItems().addAll(renameSnapshotItem, deleteSnapshotMenuItem, compareSaveSetMenuItem, tagAsGolden, tagWithComment);
+
         if (csvEnabled) {
+            ImageView exportSnapshotIconImageView = new ImageView(csvExportIcon);
+            exportSnapshotIconImageView.setFitWidth(18);
+            exportSnapshotIconImageView.setFitHeight(18);
+
             MenuItem exportSnapshotMenuItem = new MenuItem(Messages.exportSnapshotLabel, exportSnapshotIconImageView);
             exportSnapshotMenuItem.setOnAction(ae -> {
                 saveAndRestoreController.exportSnapshot();
