@@ -337,15 +337,12 @@ public class AlarmMessage implements Serializable{
 
     // The methods and classes below this are examples for handling the combined alarm state and config message
     @JsonIgnore
-    private static final ObjectMapper objectStateMapper = new ObjectMapper();
+    static final ObjectMapper objectStateMapper = new ObjectMapper();
     static {
-       // SimpleModule simple_module = new SimpleModule();
-        //simple_module.addSerializer(new EnabledSerializer());
-       // objectStateMapper.registerModule(simple_module);
         objectStateMapper.addMixIn(AlarmMessage.class, AlarmStateJsonMessage.class);
     }
     @JsonIgnore
-    private static final ObjectMapper objectConfigMapper = new ObjectMapper();
+    static final ObjectMapper objectConfigMapper = new ObjectMapper();
     static {
         SimpleModule simple_module = new SimpleModule();
         simple_module.addSerializer(new EnabledSerializer());

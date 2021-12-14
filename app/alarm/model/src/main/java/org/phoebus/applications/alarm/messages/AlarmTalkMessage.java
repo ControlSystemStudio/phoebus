@@ -1,7 +1,14 @@
 package org.phoebus.applications.alarm.messages;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.logging.Level;
+
+import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 @JsonInclude(Include.NON_NULL)
 public class AlarmTalkMessage {
@@ -38,4 +45,16 @@ public class AlarmTalkMessage {
         this.talk = talk;
     }
 
+    @JsonIgnore
+    static final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Override
+    public String toString() {
+        try {
+            return objectMapper.writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            logger.log(Level.WARNING, "failed to parse the alarm talk message ", e);
+        }
+        return "";
+    }
 }
