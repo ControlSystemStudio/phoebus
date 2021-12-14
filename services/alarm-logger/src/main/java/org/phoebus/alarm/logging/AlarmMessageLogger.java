@@ -64,10 +64,15 @@ public class AlarmMessageLogger implements Runnable {
 
         Properties props = new Properties();
         props.putAll(PropertiesHelper.getProperties());
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-"+topic+"-alarm-messages");
 
-        if (!props.containsKey(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG)) {
-            props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        Properties kafkaProps = new Properties();
+        kafkaProps.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-"+topic+"-alarm-messages");
+
+        if (props.containsKey(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG)){
+            kafkaProps.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG,
+                           props.get(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG));
+        } else {
+            kafkaProps.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         }
         
         
@@ -113,7 +118,7 @@ public class AlarmMessageLogger implements Runnable {
         processAlarmStateStream(alarmBranches[0], props);
         processAlarmConfigurationStream(alarmBranches[1], props);
 
-        final KafkaStreams streams = new KafkaStreams(builder.build(), props);
+        final KafkaStreams streams = new KafkaStreams(builder.build(), kafkaProps);
         final CountDownLatch latch = new CountDownLatch(1);
 
         // attach shutdown handler to catch control-c
