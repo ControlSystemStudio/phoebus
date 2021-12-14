@@ -12,13 +12,17 @@
 	<artifactId>service-save-and-restore</artifactId>
 	<version>4.6.7-SNAPSHOT</version>
 
+	<properties>
+		<spring.boot.version>2.1.5.RELEASE</spring.boot.version>
+	</properties>
+
 	<dependencyManagement>
 		<dependencies>
 			<!-- Spring Boot BOM -->
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-dependencies</artifactId>
-				<version>2.1.5.RELEASE</version>
+				<version>${spring.boot.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -43,7 +47,7 @@
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-actuator</artifactId>
+			<artifactId>spring-boot-starter</artifactId>
 			<exclusions>
 				<exclusion>
 					<groupId>org.springframework.boot</groupId>
@@ -51,6 +55,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
@@ -64,7 +69,14 @@
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-log4j2</artifactId>
+			<artifactId>spring-boot-starter-logging</artifactId>
+			<version>${spring.boot.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.logging.log4j</groupId>
+					<artifactId>log4j-to-slf4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.glassfish/javax.json -->
@@ -102,17 +114,13 @@
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/com.impossibl.pgjdbc-ng/pgjdbc-ng -->
+		<!-- PostgreSQL JDBC driver -->
 		<dependency>
 			<groupId>com.impossibl.pgjdbc-ng</groupId>
 			<artifactId>pgjdbc-ng</artifactId>
 			<version>0.7.1</version>
 		</dependency>
 
-		<dependency>
-			<groupId>biz.paluch.logging</groupId>
-			<artifactId>logstash-gelf</artifactId>
-			<version>1.12.1</version>
-		</dependency>
 
 		<dependency>
 			<groupId>org.postgresql</groupId>
@@ -161,6 +169,7 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-collections4 -->
