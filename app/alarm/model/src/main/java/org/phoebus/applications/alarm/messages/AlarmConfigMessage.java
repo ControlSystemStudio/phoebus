@@ -190,7 +190,7 @@ public class AlarmConfigMessage {
     @Override
     public String toString() {
         try {
-            return AlarmMessage.objectConfigMapper.writeValueAsString(this);
+            return AlarmMessageUtil.objectConfigMapper.writeValueAsString(this);
         } catch (JsonProcessingException e) {
             logger.log(Level.WARNING, "failed to parse the alarm config message ", e);
         }

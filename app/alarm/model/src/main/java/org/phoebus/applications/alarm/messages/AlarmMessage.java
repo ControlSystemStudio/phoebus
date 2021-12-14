@@ -16,6 +16,9 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.phoebus.applications.alarm.model.EnabledState;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
+import static org.phoebus.applications.alarm.messages.AlarmMessageUtil.objectConfigMapper;
+import static org.phoebus.applications.alarm.messages.AlarmMessageUtil.objectStateMapper;
+
 /**
  * A message which describes both state and configuration events
  * 
@@ -332,22 +335,6 @@ public class AlarmMessage implements Serializable{
     @JsonIgnore
     public void setDelete(String delete) {
         this.delete = delete;
-    }
-
-
-    // The methods and classes below this are examples for handling the combined alarm state and config message
-    @JsonIgnore
-    static final ObjectMapper objectStateMapper = new ObjectMapper();
-    static {
-        objectStateMapper.addMixIn(AlarmMessage.class, AlarmStateJsonMessage.class);
-    }
-    @JsonIgnore
-    static final ObjectMapper objectConfigMapper = new ObjectMapper();
-    static {
-        SimpleModule simple_module = new SimpleModule();
-        simple_module.addSerializer(new EnabledSerializer());
-        objectConfigMapper.registerModule(simple_module);
-        objectConfigMapper.addMixIn(AlarmMessage.class, AlarmConfigJsonMessage.class);
     }
 
     /**

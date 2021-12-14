@@ -16,6 +16,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
+import static org.phoebus.applications.alarm.messages.AlarmMessageUtil.objectMapper;
 
 /**
  *
@@ -91,9 +92,6 @@ public class AlarmCommandMessage {
         map.put("message_time", formatter.withZone(ZoneId.of("UTC")).format(getMessage_time()));
         return map;
     }
-
-    @JsonIgnore
-    static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public String toString() {

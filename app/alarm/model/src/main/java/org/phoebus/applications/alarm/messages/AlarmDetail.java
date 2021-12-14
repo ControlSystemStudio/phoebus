@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.logging.Level;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
+import static org.phoebus.applications.alarm.messages.AlarmMessageUtil.objectMapper;
 
 public class AlarmDetail {
 
@@ -47,9 +48,6 @@ public class AlarmDetail {
     public void setDelay(int delay) {
         this.delay = delay;
     }
-
-    @JsonIgnore
-    static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public String toString() {

@@ -178,7 +178,7 @@ public class AlarmStateMessage {
     @Override
     public String toString() {
         try {
-            return AlarmMessage.objectStateMapper.writeValueAsString(this);
+            return AlarmMessageUtil.objectStateMapper.writeValueAsString(this);
         } catch (JsonProcessingException e) {
             logger.log(Level.WARNING, "failed to parse the alarm state message ", e);
         }
