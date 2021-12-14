@@ -352,47 +352,6 @@ public class AlarmMessage implements Serializable{
         }
     }
 
-
-    private static class AlarmStateJsonMessage {
-        @JsonIgnore
-        private String severity;
-        @JsonIgnore
-        private String message;
-        @JsonIgnore
-        private String value;
-        @JsonIgnore
-        private String current_severity;
-        @JsonIgnore
-        private String current_message;
-        @JsonIgnore
-        private String mode;
-	    @JsonIgnore
-        private boolean notify;
-        @JsonIgnore
-        private boolean latch;
-    }
-
-    private static class AlarmConfigJsonMessage {
-        @JsonIgnore
-        private EnabledState enabled;
-        @JsonIgnore
-        private boolean annunciating;
-        @JsonIgnore
-        private int delay;
-        @JsonIgnore
-        private int count;
-        @JsonIgnore
-        private String filter;
-        @JsonIgnore
-        private List<AlarmDetail> guidance;
-        @JsonIgnore
-        private List<AlarmDetail> displays;
-        @JsonIgnore
-        private List<AlarmDetail> commands;
-        @JsonIgnore
-        private List<AlarmDetail> actions;
-    }
-
     @Override
     public String toString() {
         try {
