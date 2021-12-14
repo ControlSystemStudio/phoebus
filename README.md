@@ -229,7 +229,7 @@ The remaining build is the same, for example `ant clean dist` to build the distr
 
 ## Release
 
-There is a release profile which helps prepare and deploy the a phoebus release.
+There is a release profile which helps prepare and deploy a phoebus release.
 
 ```
 mvn -P release release:prepare

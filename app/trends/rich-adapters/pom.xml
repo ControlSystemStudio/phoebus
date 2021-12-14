@@ -24,11 +24,6 @@
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>app-email-ui</artifactId>
-      <version>4.6.6-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.phoebus</groupId>
       <artifactId>core-logbook</artifactId>
       <version>4.6.6-SNAPSHOT</version>
     </dependency>

@@ -1,0 +1,10 @@
+<project default="app-log-configuration">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="app-credentials-management" depends="compile-app">
+    <jar destfile="${build}/app-credentials-management-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+</project>

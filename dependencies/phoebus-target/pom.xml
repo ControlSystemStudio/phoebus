@@ -337,23 +337,6 @@
       <version>0.15.2</version>
     </dependency>
 
-    <!-- https://mvnrepository.com/artifact/com.atlassian.commonmark/commonmark -->
-    <dependency>
-      <groupId>com.atlassian.commonmark</groupId>
-      <artifactId>commonmark</artifactId>
-      <version>0.15.2</version>
-    </dependency>
-    <dependency>
-      <groupId>com.atlassian.commonmark</groupId>
-      <artifactId>commonmark-ext-gfm-tables</artifactId>
-      <version>0.15.2</version>
-    </dependency>
-    <dependency>
-      <groupId>com.atlassian.commonmark</groupId>
-      <artifactId>commonmark-ext-image-attributes</artifactId>
-      <version>0.15.2</version>
-    </dependency>
-
     <!-- Display Builder -->
     <dependency>
       <groupId>org.controlsfx</groupId>
@@ -507,6 +490,12 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter</artifactId>
       <version>${spring.boot-version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-logging</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -524,6 +513,13 @@
       <groupId>javax.validation</groupId>
       <artifactId>validation-api</artifactId>
       <version>2.0.1.Final</version>
+    </dependency>
+
+    <!--log4j2 to slf4j adapter-->
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-to-slf4j</artifactId>
+      <version>2.14.1</version>
     </dependency>
 
     <!--JUL bindings for sfl4j-->

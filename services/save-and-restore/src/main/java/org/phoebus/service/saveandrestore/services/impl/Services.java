@@ -25,19 +25,19 @@ import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.services.IServices;
 import org.phoebus.service.saveandrestore.services.exception.SnapshotNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Services implements IServices {
 
 	@Autowired
 	private NodeDAO nodeDAO;
 
-	private Logger logger = LoggerFactory.getLogger(Services.class);
+	private Logger logger = Logger.getLogger(Services.class.getName());
 
 	@Override
 	public Node getParentNode(String uniqueNodeId) {
@@ -46,7 +46,7 @@ public class Services implements IServices {
 
 	@Override
 	public List<Node> getSnapshots(String configUniqueId) {
-		logger.info("Obtaining snapshot for config id={}", configUniqueId);
+		logger.log(Level.INFO,"Obtaining snapshot for config id="+ configUniqueId);
 		return nodeDAO.getSnapshots(configUniqueId);
 	}
 
@@ -55,10 +55,10 @@ public class Services implements IServices {
 		Node snapshot = nodeDAO.getSnapshot(snapshotUniqueId);
 		if (snapshot == null) {
 			String message = String.format("Snapshot with id=%s not found", snapshotUniqueId);
-			logger.error(message);
+			logger.log(Level.WARNING, message);
 			throw new SnapshotNotFoundException(message);
 		}
-		logger.info("Retrieved snapshot id={}", snapshotUniqueId);
+		logger.log(Level.INFO,"Retrieved snapshot id=" + snapshotUniqueId);
 		return snapshot;
 	}
 
@@ -69,33 +69,33 @@ public class Services implements IServices {
 		if (parentFolder == null || !parentFolder.getNodeType().equals(NodeType.FOLDER)) {
 			String message = String.format("Cannot create new folder as parent folder with id=%s does not exist.",
 					parentsUniqueId);
-			logger.error(message);
+			logger.log(Level.WARNING, message);
 			throw new IllegalArgumentException(message);
 		}
 
 		node = nodeDAO.createNode(parentsUniqueId, node);
-		logger.info("Created new node: {}", node);
+		logger.log(Level.INFO,"Created new node: " + node);
 		return node;
 	}
 
 	@Override
 	@Transactional
 	public Node moveNode(String nodeId, String targetNodeId, String userName) {
-		logger.info("Moving node id {} to raget node id {}", nodeId, targetNodeId);
+		logger.log(Level.INFO, "Moving node id=  " + nodeId + " to target node id= " + targetNodeId);
 		return nodeDAO.moveNode(nodeId, targetNodeId, userName);
 	}
 
 	@Override
 	@Transactional
 	public void deleteNode(String nodeId) {
-		logger.info("Deleting node id={}", nodeId);
+		logger.log(Level.INFO,"Deleting node id=" + nodeId);
 		nodeDAO.deleteNode(nodeId);
 	}
 
 	@Override
 	@Transactional
 	public Node updateConfiguration(Node configToUpdate, List<ConfigPv> configPvs) {
-		logger.info("Updating configuration unique id: {}", configToUpdate.getUniqueId());
+		logger.log(Level.INFO, "Updating configuration unique id=" + configToUpdate.getUniqueId());
 		return nodeDAO.updateConfiguration(configToUpdate, configPvs);
 	}
 
@@ -106,19 +106,19 @@ public class Services implements IServices {
 
 	@Override
 	public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration) {
-		logger.info("Updating node unique id: {}", nodeToUpdate.getUniqueId());
+		logger.log(Level.INFO,"Updating node unique id=" + nodeToUpdate.getUniqueId());
 		return nodeDAO.updateNode(nodeToUpdate, customTimeForMigration);
 	}
 
 	@Override
 	public Node getNode(String nodeId) {
-		logger.info("Getting node {}", nodeId);
+		logger.log(Level.INFO,"Getting node id=" + nodeId);
 		return nodeDAO.getNode(nodeId);
 	}
 
 	@Override
 	public List<Node> getChildNodes(String nodeUniqueId) {
-		logger.info("Getting child nodes for node unique id={}", nodeUniqueId);
+		logger.log(Level.INFO,"Getting child nodes for node unique id=" + nodeUniqueId);
 		return nodeDAO.getChildNodes(nodeUniqueId);
 	}
 
@@ -129,13 +129,13 @@ public class Services implements IServices {
 
 	@Override
 	public List<ConfigPv> getConfigPvs(String configUniqueId) {
-		logger.info("Getting config pvs config id id {}", configUniqueId);
+		logger.log(Level.INFO,"Getting config pvs config id=" + configUniqueId);
 		return nodeDAO.getConfigPvs(configUniqueId);
 	}
 
 	@Override
 	public List<SnapshotItem> getSnapshotItems(String snapshotUniqueId) {
-		logger.info("Getting snapshot items for snapshot id {}", snapshotUniqueId);
+		logger.log(Level.INFO,"Getting snapshot items for snapshot id=" + snapshotUniqueId);
 		return nodeDAO.getSnapshotItems(snapshotUniqueId);
 	}
 
@@ -143,18 +143,18 @@ public class Services implements IServices {
 	public Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName,
 			String userName, String comment) {
 
-		logger.info("Saving snapshot for config id {}", configUniqueId);
-		logger.info("Snapshot name: {}", snapshotName);
-		logger.info("PV count: {}", snapshotItems.size());
+		logger.log(Level.INFO,"Saving snapshot for config id=" + configUniqueId);
+		logger.log(Level.INFO,"Snapshot name: " + snapshotName);
+		logger.log(Level.INFO,"PV count: " + snapshotItems.size());
 		long start = System.currentTimeMillis();
 		Node node = nodeDAO.saveSnapshot(configUniqueId, snapshotItems, snapshotName, comment, userName);
-		logger.info("Saved snapshot in {} ms", (System.currentTimeMillis() - start));
+		logger.log(Level.INFO,"Saved snapshot in " +  (System.currentTimeMillis() - start) + " ms");
 		return node;
 	}
 
 	@Override
 	public List<Tag> getTags(String snapshotUniqueId) {
-		logger.info("Getting tags of snapshot id={}", snapshotUniqueId);
+		logger.log(Level.INFO, "Getting tags of snapshot id=" + snapshotUniqueId);
 
 		return nodeDAO.getTags(snapshotUniqueId);
 	}

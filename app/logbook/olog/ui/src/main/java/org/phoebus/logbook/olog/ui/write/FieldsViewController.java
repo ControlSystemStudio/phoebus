@@ -56,6 +56,7 @@ import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 import org.phoebus.logbook.olog.ui.Messages;
 import org.phoebus.olog.es.api.OlogProperties;
 import org.phoebus.security.store.SecureStore;
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.dialog.ListSelectionDialog;
 import org.phoebus.ui.javafx.ImageCache;
@@ -496,14 +497,13 @@ public class FieldsViewController implements Initializable {
             // Get the SecureStore. Retrieve username and password.
             try {
                 SecureStore store = new SecureStore();
+                ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(LogService.AUTHENTICATION_SCOPE);
                 // Could be accessed from JavaFX Application Thread when updating, so synchronize.
                 synchronized (usernameProperty) {
-                    String result = store.get(USERNAME_TAG);
-                    usernameProperty.set((null == result) ? "" : result);
+                    usernameProperty.set(scopedAuthenticationToken == null ? "" : scopedAuthenticationToken.getUsername());
                 }
                 synchronized (passwordProperty) {
-                    String result = store.get(PASSWORD_TAG);
-                    passwordProperty.set((null == result) ? "" : result);
+                    passwordProperty.set(scopedAuthenticationToken == null ? "" : scopedAuthenticationToken.getPassword());
                 }
                 // Let anyone listening know that their credentials are now out of date.
                 updateCredentials.set(true);
