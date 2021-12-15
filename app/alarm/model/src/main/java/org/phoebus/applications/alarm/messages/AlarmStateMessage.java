@@ -5,12 +5,16 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.phoebus.util.time.TimestampFormats;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 /**
  * A bean representing a alarm state message
@@ -167,15 +171,18 @@ public class AlarmStateMessage {
         map.put("current_severity", getCurrent_severity());
         map.put("current_message", getCurrent_message());
         map.put("mode", getMode());
-	map.put("notify", Boolean.toString(getNotify()));
+        map.put("notify", Boolean.toString(getNotify()));
         return map;
     }
 
     @Override
     public String toString() {
-        return "AlarmStateMessage [severity=" + severity + ", message=" + message + ", value=" + value + ", time="
-                + time + ", current_severity=" + current_severity + ", current_message=" + current_message + ", mode="
-	    + mode + ", notify=" + Boolean.toString(notify) + "]";
+        try {
+            return AlarmMessageUtil.objectStateMapper.writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            logger.log(Level.WARNING, "failed to parse the alarm state message ", e);
+        }
+        return "";
     }
 
     @Override

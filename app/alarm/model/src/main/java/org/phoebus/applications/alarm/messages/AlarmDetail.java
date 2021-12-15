@@ -1,5 +1,14 @@
 package org.phoebus.applications.alarm.messages;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.logging.Level;
+
+import static org.phoebus.applications.alarm.AlarmSystem.logger;
+import static org.phoebus.applications.alarm.messages.AlarmMessageUtil.objectMapper;
+
 public class AlarmDetail {
 
     private String title;
@@ -42,7 +51,12 @@ public class AlarmDetail {
 
     @Override
     public String toString() {
-        return "AlarmDetail [title=" + title + ", details=" + details + ", delay=" + delay + "]";
+        try {
+            return objectMapper.writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            logger.log(Level.WARNING, "failed to parse the alarm detail message ", e);
+        }
+        return "";
     }
 
 }

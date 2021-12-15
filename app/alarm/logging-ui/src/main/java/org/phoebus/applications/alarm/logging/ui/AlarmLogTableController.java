@@ -497,7 +497,7 @@ public class AlarmLogTableController {
             List<String> configs = tableView.getSelectionModel().getSelectedItems()
                     .stream().map(e -> {
                         try {
-                            URI uri = new URI(e.getConfig());
+                            URI uri = new URI(e.getConfig().replace(" ", "%20"));
                             return uri.getSchemeSpecificPart();
                         } catch (URISyntaxException ex) {
                             ex.printStackTrace();
@@ -514,7 +514,7 @@ public class AlarmLogTableController {
                         alarmInfo.setHeaderText(null);
                         alarmInfo.setResizable(true);
                         alarmInfo.setContentText(result.get(0));
-                        alarmInfo.showAndWait();
+                        alarmInfo.show();
                     }),
                     (url, ex) -> ExceptionDetailsErrorDialog.openError("Alarm Log Info Error", ex.getMessage(), ex)
             );

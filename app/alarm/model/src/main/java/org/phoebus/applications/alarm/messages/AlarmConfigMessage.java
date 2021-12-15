@@ -6,13 +6,18 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.phoebus.util.time.TimestampFormats;
 import org.phoebus.applications.alarm.model.EnabledState;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+import static org.phoebus.applications.alarm.AlarmSystem.logger;
+
 /**
  *
  * A bean representing an alarm config message
@@ -184,17 +189,12 @@ public class AlarmConfigMessage {
     @JsonIgnore
     @Override
     public String toString() {
-        return "AlarmConfigMessage [user=" + user + ","
-                + " host=" + host +
-                ", description=" + description +
-                ", delay=" + delay +
-                ", count=" + count +
-                ", filter=" + filter +
-                ", guidance=" + guidance +
-                ", displays=" + displays +
-                ", commands=" + commands +
-                ", actions=" + actions +
-                ", delete=" + delete + "]";
+        try {
+            return AlarmMessageUtil.objectConfigMapper.writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            logger.log(Level.WARNING, "failed to parse the alarm config message ", e);
+        }
+        return "";
     }
 
     @JsonIgnore
