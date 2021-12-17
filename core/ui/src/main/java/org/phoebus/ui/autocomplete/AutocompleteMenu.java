@@ -110,7 +110,7 @@ public class AutocompleteMenu
     private final EventHandler<KeyEvent> key_released_filter = event ->
     {
         logger.log(Level.FINE, () -> "Text field Key release " + event.getCode() + " on " + event.getSource());
-        final TextField field = (TextField) event.getSource();
+        final TextInputControl field = (TextInputControl) event.getSource();
         final KeyCode code = event.getCode();
         if (code != KeyCode.SPACE    &&
             code != KeyCode.ENTER    &&
