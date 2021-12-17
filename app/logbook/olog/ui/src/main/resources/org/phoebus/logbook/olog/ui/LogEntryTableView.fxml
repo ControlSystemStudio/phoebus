@@ -25,13 +25,13 @@
                             <rowConstraints>
                                 <RowConstraints prefHeight="35.0" />
                                 <RowConstraints />
-                        <RowConstraints />
+                                <RowConstraints />
                             </rowConstraints>
                             <children>
                                 <Button fx:id="resize" mnemonicParsing="false" onMouseClicked="#resize" text="&gt;" GridPane.halignment="RIGHT" GridPane.hgrow="NEVER" GridPane.vgrow="NEVER">
-                           <GridPane.margin>
-                              <Insets left="5.0" />
-                           </GridPane.margin>
+                                    <GridPane.margin>
+                                        <Insets left="5.0" />
+                                    </GridPane.margin>
                                     <font>
                                         <Font name="Arial Bold" size="14.0" />
                                     </font>
@@ -40,9 +40,9 @@
                                     <padding>
                                         <Insets left="5.0" />
                                     </padding>
-                           <GridPane.margin>
-                              <Insets right="3.0" />
-                           </GridPane.margin>
+                                    <GridPane.margin>
+                                        <Insets right="3.0" />
+                                    </GridPane.margin>
                                 </Label>
                                 <TextField fx:id="query" onAction="#search" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.vgrow="NEVER">
                                     <GridPane.margin>
@@ -50,9 +50,10 @@
                                     </GridPane.margin>
                                 </TextField>
                                 <Label text="%SearchButtonText" GridPane.columnIndex="3">
-                           <GridPane.margin>
-                              <Insets left="5.0" />
-                           </GridPane.margin></Label>
+                                    <GridPane.margin>
+                                        <Insets left="5.0" />
+                                    </GridPane.margin>
+                                </Label>
                                 <Button fx:id="search" mnemonicParsing="false" onAction="#searchDescending" GridPane.columnIndex="4">
                                     <GridPane.margin>
                                         <Insets left="3.0" right="3.0" />
@@ -69,22 +70,22 @@
                                 <Button mnemonicParsing="false" onAction="#searchAscending" GridPane.columnIndex="5">
                                     <graphic>
                                         <ImageView fx:id="searchAscendingImageView" fitHeight="18.0" fitWidth="18.0">
-                                        <!-- Image not set here as this crashes the SceneBuilder -->
+                                            <!-- Image not set here as this crashes the SceneBuilder -->
                                         </ImageView>
                                     </graphic>
                                     <tooltip>
                                         <Tooltip text="%SortAscending" />
                                     </tooltip>
-                           <GridPane.margin>
-                              <Insets right="5.0" />
-                           </GridPane.margin>
+                                    <GridPane.margin>
+                                        <Insets right="5.0" />
+                                    </GridPane.margin>
                                 </Button>
                                 <StackPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnSpan="6" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS">
                                     <children>
                                         <VBox alignment="CENTER">
                                             <ProgressIndicator fx:id="progressIndicator" />
                                         </VBox>
-                                       <VBox fx:id="searchResultView">
+                                        <VBox fx:id="searchResultView">
                                             <TableView fx:id="tableView" GridPane.columnSpan="4" GridPane.rowIndex="1" VBox.vgrow="ALWAYS">
                                                 <columns>
                                                     <TableColumn fx:id="descriptionCol" maxWidth="4000.0" />
@@ -95,20 +96,49 @@
                                             </TableView>
                                             <HBox>
                                                 <Label text="%HitsPerPage">
-                                                   <HBox.margin>
-                                                      <Insets left="3.0" right="5.0" top="12.0" />
-                                                   </HBox.margin>
+                                                    <HBox.margin>
+                                                        <Insets left="3.0" right="5.0" top="12.0" />
+                                                    </HBox.margin>
                                                 </Label>
 
                                                 <TextField fx:id="pageSizeTextField" onAction="#search" prefColumnCount="3" promptText="30">
-                                       <HBox.margin>
-                                          <Insets top="8.0" />
-                                       </HBox.margin></TextField>
+                                                    <HBox.margin>
+                                                        <Insets top="8.0" />
+                                                    </HBox.margin>
+                                                </TextField>
                                                 <Label maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
-                                                <Pagination fx:id="pagination" />
-                                    <padding>
-                                       <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
-                                    </padding>
+                                                <HBox fx:id="paginationControls">
+                                                    <Button fx:id="firstPage" onAction="#goToFirstPage">
+                                                        <graphic>
+                                                            <ImageView fx:id="firstPageImageView" fitHeight="12.0" fitWidth="12.0">
+                                                                <!-- Image not set here as this crashes the SceneBuilder -->
+                                                            </ImageView>
+                                                        </graphic>
+                                                        <HBox.margin>
+                                                            <Insets top="3.0" />
+                                                        </HBox.margin>
+                                                        <tooltip>
+                                                            <Tooltip text="%GoToFirstPage" />
+                                                        </tooltip>
+                                                    </Button>
+                                                    <Pagination fx:id="pagination" />
+                                                    <Button fx:id="lastPage" onAction="#goToLastPage">
+                                                        <graphic>
+                                                            <ImageView fx:id="lastPageImageView" fitHeight="12.0" fitWidth="12.0">
+                                                                <!-- Image not set here as this crashes the SceneBuilder -->
+                                                            </ImageView>
+                                                        </graphic>
+                                                        <HBox.margin>
+                                                            <Insets top="3.0" />
+                                                        </HBox.margin>
+                                                        <tooltip>
+                                                            <Tooltip text="%GoToLastPage" />
+                                                        </tooltip>
+                                                    </Button>
+                                                </HBox>
+                                                <padding>
+                                                    <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
+                                                </padding>
                                             </HBox>
 
                                         </VBox>
@@ -124,7 +154,7 @@
             </items>
         </SplitPane>
     </items>
-   <opaqueInsets>
-      <Insets />
-   </opaqueInsets>
+    <opaqueInsets>
+        <Insets />
+    </opaqueInsets>
 </SplitPane>
