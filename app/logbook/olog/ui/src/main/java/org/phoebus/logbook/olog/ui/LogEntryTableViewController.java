@@ -293,8 +293,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     public void search() {
         tableView.getSelectionModel().clearSelection();
-        // In case the page size text field is empty, set the text to the default value
-        if ("".equals(pageSizeTextField.getText())) {
+        // In case the page size text field is empty, or the value is zero, set the page size to the default
+        if ("".equals(pageSizeTextField.getText()) || Integer.parseInt(pageSizeTextField.getText()) == 0) {
             pageSizeTextField.setText(Integer.toString(LogbookUIPreferences.search_result_page_size));
         }
 
