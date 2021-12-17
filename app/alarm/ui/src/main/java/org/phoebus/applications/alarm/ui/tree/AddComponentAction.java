@@ -26,7 +26,7 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.RadioButton;
-import javafx.scene.control.TextField;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
@@ -41,7 +41,7 @@ class AddComponentAction extends MenuItem
 {
     private static class AddComponentDialog extends Dialog<String>
     {
-        private final TextField name = new TextField();
+        private final TextArea name = new TextArea();
         private final Label message = new Label();
         private final RadioButton type_node = new RadioButton("Node"),
                                   type_pv = new RadioButton("PV/s");
