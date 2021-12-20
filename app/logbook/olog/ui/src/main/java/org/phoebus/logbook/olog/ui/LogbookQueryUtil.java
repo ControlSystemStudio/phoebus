@@ -21,7 +21,7 @@ public class LogbookQueryUtil {
     public static enum Keys {
         SEARCH("desc"),
         LOGBOOKS("logbooks"),
-        TAGS("tag"),
+        TAGS("tags"),
         STARTTIME("start"),
         ENDTIME("end"),
         AUTHOR("owner"),
@@ -37,7 +37,7 @@ public class LogbookQueryUtil {
         static {
             lookupTable.put("desc", Keys.SEARCH);
             lookupTable.put("logbooks", Keys.LOGBOOKS);
-            lookupTable.put("tag", Keys.TAGS);
+            lookupTable.put("tags", Keys.TAGS);
             lookupTable.put("start", Keys.STARTTIME);
             lookupTable.put("end", Keys.ENDTIME);
             lookupTable.put("owner", Keys.AUTHOR);
