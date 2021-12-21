@@ -20,7 +20,7 @@
 package org.phoebus.applications.saveandrestore;
 
 import javafx.fxml.FXMLLoader;
-import org.phoebus.applications.saveandrestore.ui.BaseSaveAndRestoreController;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.spi.AppDescriptor;
@@ -35,7 +35,7 @@ import java.util.logging.Logger;
 public class SaveAndRestoreApplication implements AppDescriptor, AppInstance {
 	
 	public static final String NAME = "Save And Restore";
-	private BaseSaveAndRestoreController controller;
+	private SaveAndRestoreController controller;
 
 	@Override
 	public String getName() {

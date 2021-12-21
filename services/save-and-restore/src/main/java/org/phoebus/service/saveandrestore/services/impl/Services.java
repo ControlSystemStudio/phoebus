@@ -63,6 +63,7 @@ public class Services implements IServices {
 	}
 
 	@Override
+	@Transactional
 	public Node createNode(String parentsUniqueId, Node node) {
 
 		Node parentFolder = nodeDAO.getNode(parentsUniqueId);
@@ -100,11 +101,13 @@ public class Services implements IServices {
 	}
 
 	@Override
+	@Transactional
 	public Node updateNode(Node nodeToUpdate) {
 		return updateNode(nodeToUpdate, false);
 	}
 
 	@Override
+	@Transactional
 	public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration) {
 		logger.log(Level.INFO,"Updating node unique id=" + nodeToUpdate.getUniqueId());
 		return nodeDAO.updateNode(nodeToUpdate, customTimeForMigration);
@@ -140,6 +143,7 @@ public class Services implements IServices {
 	}
 
 	@Override
+	@Transactional
 	public Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName,
 			String userName, String comment) {
 

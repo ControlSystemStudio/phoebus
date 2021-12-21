@@ -53,7 +53,7 @@ import org.phoebus.applications.saveandrestore.data.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.BaseSaveAndRestoreController;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
@@ -149,7 +149,7 @@ public class SaveSetController implements NodeChangedListener {
 		commentLabel.getStyleClass().add("stand-out-mandatory");
 		commentTextArea.textProperty().bindBidirectional(saveSetCommentProperty);
 		commentTextArea.textProperty().addListener((observableValue, oldvalue, newValue) -> {
-		    if (newValue.isEmpty()) {
+		    if (newValue == null || newValue.isEmpty()) {
 				commentLabel.getStyleClass().add("stand-out-mandatory");
 			} else {
 				commentLabel.getStyleClass().remove("stand-out-mandatory");
@@ -186,7 +186,7 @@ public class SaveSetController implements NodeChangedListener {
 		ContextMenu pvNameContextMenu = new ContextMenu();
 
 		MenuItem deleteMenuItem = new MenuItem(Messages.menuItemDeleteSelectedPVs,
-				new ImageView(ImageCache.getImage(BaseSaveAndRestoreController.class, "/icons/delete.png")));
+				new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/delete.png")));
 		deleteMenuItem.setOnAction(ae -> {
 			ObservableList<ConfigPv> selectedPvs = pvTable.getSelectionModel().getSelectedItems();
 			if(selectedPvs == null || selectedPvs.isEmpty()){

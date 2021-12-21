@@ -151,11 +151,8 @@ public class JMasarJerseyClient implements JMasarClient {
 
     @Override
     public Node createNewNode(String parentsUniqueId, Node node) {
-
         node.setUserName(getCurrentUsersName());
-
         WebResource webResource = client.resource(jmasarServiceUrl + "/node/" + parentsUniqueId);
-
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(node, CONTENT_TYPE_JSON)
                 .put(ClientResponse.class);
