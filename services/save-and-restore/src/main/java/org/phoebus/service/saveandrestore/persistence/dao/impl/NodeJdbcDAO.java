@@ -31,6 +31,8 @@ import org.phoebus.service.saveandrestore.services.exception.NodeNotFoundExcepti
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +42,7 @@ import java.time.Instant;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +63,9 @@ public class NodeJdbcDAO implements NodeDAO {
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
+
+	@Autowired
+	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
 	@Autowired
 	private SimpleJdbcInsert nodeInsert;
@@ -168,25 +174,9 @@ public class NodeJdbcDAO implements NodeDAO {
 
 	@Transactional
 	@Override
-	public void deleteNode(String uniqueNodeId) {
+	public void deleteNode(Node nodeToDelete) {
 
-		if(uniqueNodeId == null || uniqueNodeId.isEmpty()) {
-			throw new IllegalArgumentException(String.format("Cannot delete node, invalid unique node id specified:%s", uniqueNodeId));
-		}
-
-		Node nodeToDelete = getNode(uniqueNodeId);
-		if(nodeToDelete == null) {
-			throw new NodeNotFoundException(String.format("Node with id=%s not found", uniqueNodeId));
-		}
-		if (nodeToDelete.getId() == Node.ROOT_NODE_ID) {
-			throw new IllegalArgumentException("Root node cannot be deleted");
-		}
-
-		Node parent = getParentNode(nodeToDelete.getId());
-
-		if(parent == null) {
-			throw new IllegalArgumentException(String.format("Parent node of node id=%d cannot be found. Should not happen!", nodeToDelete.getId()));
-		}
+		Node parentNode = getParentNode(nodeToDelete.getUniqueId());
 
 		if (nodeToDelete.getNodeType().equals(NodeType.CONFIGURATION)) {
 			List<Integer> configPvIds = jdbcTemplate.queryForList(
@@ -194,22 +184,20 @@ public class NodeJdbcDAO implements NodeDAO {
 					Integer.class);
 			deleteOrphanedPVs(configPvIds);
 			for (Node node : getChildNodes(nodeToDelete.getUniqueId())) {
-				deleteNode(node.getUniqueId());
+				deleteNode(node);
 			}
 		} else if (nodeToDelete.getNodeType().equals(NodeType.FOLDER)) {
 			for (Node node : getChildNodes(nodeToDelete.getUniqueId())) {
-				deleteNode(node.getUniqueId());
+				deleteNode(node);
 			}
 		} else if(nodeToDelete.getNodeType().equals(NodeType.SNAPSHOT)) {
 			jdbcTemplate.update("delete from snapshot_node_pv where snapshot_node_id=?", nodeToDelete.getId());
 		}
 
-		jdbcTemplate.update("delete from node where unique_id=?", uniqueNodeId);
-
-
+		jdbcTemplate.update("delete from node where unique_id=?", nodeToDelete.getUniqueId());
 
 		// Update last modified date of the parent node
-		jdbcTemplate.update("update node set last_modified=? where id=?", Timestamp.from(Instant.now()), parent.getId());
+		jdbcTemplate.update("update node set last_modified=? where id=?", Timestamp.from(Instant.now()), parentNode.getId());
 	}
 
 	/**
@@ -220,39 +208,13 @@ public class NodeJdbcDAO implements NodeDAO {
 	 * <li>If the node's type is {@link NodeType#SNAPSHOT} and the parent node is not of type {@link NodeType#CONFIGURATION}.</li>
 	 * <li>If the parent node already contains a child node of the same type and name.</li>
 	 * </ul>
+	 *
+	 * Note that this method is synchronized to avoid creation of {@link Node}s with same name and type in
+	 * a folder {@link Node}.
 	 */
 	@Transactional
 	@Override
-	public Node createNode(String parentsUniqueId, final Node node) {
-		if(parentsUniqueId == null) {
-			throw new IllegalArgumentException("Cannot create node, parent unique id not specified.");
-		}
-
-		Node parentNode = getNode(parentsUniqueId);
-
-		if (parentNode == null) {
-			throw new IllegalArgumentException(
-					String.format("Cannot create new node as parent unique_id=%s does not exist.", parentsUniqueId));
-		}
-
-		// Folder and Config can only be created in a Folder
-		if ((node.getNodeType().equals(NodeType.FOLDER) || node.getNodeType().equals(NodeType.CONFIGURATION))
-				&& !parentNode.getNodeType().equals(NodeType.FOLDER)) {
-			throw new IllegalArgumentException(
-					"Parent node is not a folder, cannot create new node of type " + node.getNodeType());
-		}
-		// Snapshot can only be created in Config
-		if (node.getNodeType().equals(NodeType.SNAPSHOT) && !parentNode.getNodeType().equals(NodeType.CONFIGURATION)) {
-			throw new IllegalArgumentException("Parent node is not a configuration, cannot create snapshot");
-		}
-
-		// The node to be created cannot have same name and type as any of the parent's
-		// child nodes
-		List<Node> parentsChildNodes = getChildNodes(parentNode.getUniqueId());
-
-		if (!isNodeNameValid(node, parentsChildNodes)) {
-			throw new IllegalArgumentException("Node of same name and type already exists in parent node.");
-		}
+	public synchronized Node createNode(Node parentNode, final Node node) {
 
 		Timestamp now = Timestamp.from(Instant.now());
 		String uniqueId = node.getUniqueId() == null ? UUID.randomUUID().toString() : node.getUniqueId();
@@ -298,16 +260,6 @@ public class NodeJdbcDAO implements NodeDAO {
 				new Object[] { configUniqueNodeId }, new ConfigPvRowMapper());
 	}
 
-	private boolean isNodeNameValid(Node nodeToCheck, List<Node> parentsChildNodes) {
-		for (Node node : parentsChildNodes) {
-			if (node.getName().equals(nodeToCheck.getName()) &&
-					node.getNodeType().equals(nodeToCheck.getNodeType())) {
-				return false;
-			}
-		}
-		return true;
-	}
-
 	@Override
 	public Node getRootNode() {
 		return getNode(Node.ROOT_NODE_ID);
@@ -334,7 +286,7 @@ public class NodeJdbcDAO implements NodeDAO {
 		}
 
 
-		int configPvId = 0;
+		int configPvId;
 
 		if (!list.isEmpty()) {
 			configPvId = list.get(0);
@@ -386,15 +338,6 @@ public class NodeJdbcDAO implements NodeDAO {
 		return pvInsert.executeAndReturnKey(params).intValue();
 	}
 
-	private void updatePvName(String oldName, String newName){
-		int pvId = getPvId(oldName);
-		if(pvId == NO_ID){
-			throw new IllegalArgumentException(String.format("Cannot update PV name %s as no such PV exists", oldName));
-		}
-		jdbcTemplate.update("update pv set name=? where id=?", new Object[]{newName, pvId});
-	}
-
-
 	private void deleteOrphanedPVs(Collection<Integer> pvList) {
 		for (Integer pvId : pvList) {
 			int count = jdbcTemplate.queryForObject("select count(*) from config_pv_relation where config_pv_id=?",
@@ -406,34 +349,59 @@ public class NodeJdbcDAO implements NodeDAO {
 		}
 	}
 
-	@Override
-	@Transactional
-	public Node moveNode(String uniqueNodeId, String targetUniqueNodeId, String userName) {
+	/**
+	 * Moves a {@link Node} from one parent to another. A number of checks are done to make sure the operation
+	 * is possible and allowed:
+	 * <ul>
+	 *     <li>Snapshot {@link Node}s cannot be moved.</li>
+	 *     <li></li>
+	 * </ul>
+	 * @param sourceNode The source {@link Node} subject to the move operation.
+	 * @param targetNode The target {@link Node}, which must be a folder {@link Node}.
+	 * @param userName
+	 *            The (account) name of the user performing the operation.
+	 * @return The target {@link Node} the client should update in order to sync with the changes.
+	 * @throws NodeNotFoundException if the source {@link Node} does not exist.
+	 * @throws IllegalArgumentException if target {@link Node} does not exist, if target {@link Node} is not
+	 * a folder {@link Node}, or if the target {@link Node} already contains a {@link Node} of same name and type
+	 * as the source {@link Node}
+	 */
+	public synchronized Node moveNode(Node sourceNode, Node targetNode, String userName) {
 
-		Node sourceNode = getNode(uniqueNodeId);
+		List<Integer> descendants;
+		try {
+			descendants = jdbcTemplate.queryForList(
+					"select descendant from node_closure where ancestor=?", new Object[] {sourceNode.getId()},
+					Integer.class);
 
-		if (sourceNode == null) {
-			throw new NodeNotFoundException(String.format("Source node with unqiue id=%s not found", uniqueNodeId));
+		} catch (DataAccessException e) {
+			// Ignore
+			descendants = Collections.emptyList();
 		}
 
-		if(!sourceNode.getNodeType().equals(NodeType.FOLDER) && !sourceNode.getNodeType().equals(NodeType.CONFIGURATION)) {
-			throw new IllegalArgumentException(String.format("Moving node of type %s not supported", NodeType.SNAPSHOT.toString()));
+		List<Integer> ancestors;
+
+		try {
+			ancestors = jdbcTemplate.queryForList(
+					"select ancestor from node_closure where descendant=? and ancestor != descendant",
+					new Object[] {sourceNode.getId()},
+					Integer.class);
+
+		} catch (DataAccessException e) {
+			// Ignore
+			ancestors = Collections.emptyList();
 		}
 
-		Node targetNode = getNode(targetUniqueNodeId);
-		if(targetNode == null || !targetNode.getNodeType().equals(NodeType.FOLDER)) {
-			throw new IllegalArgumentException("Target node does not exist or is not a folder");
-		}
+		MapSqlParameterSource params =
+				new MapSqlParameterSource().addValue("descendants", descendants)
+						.addValue("ancestors", ancestors);
 
-		List<Node> parentsChildNodes = getChildNodes(targetNode.getId());
-		if (!isNodeNameValid(sourceNode, parentsChildNodes)) {
-			throw new IllegalArgumentException("Node of same name and type already exists in target node.");
-		}
-
-		jdbcTemplate.update("delete from node_closure where "
-						+ "descendant in (select descendant from node_closure where ancestor=?) "
-						+ "and ancestor in (select ancestor from node_closure where descendant=? and ancestor != descendant)",
-				sourceNode.getId(), sourceNode.getId());
+		// Sub-selects in the below will not work on Mysql as table being updated cannot
+		// be used in sub-select.
+		// So: list of descendants and ancestors must be retrieved as separate queries.
+		namedParameterJdbcTemplate.update("delete from node_closure where "
+				+ "descendant in (:descendants) "
+				+ "and ancestor in (:ancestors)", params);
 
 		jdbcTemplate.update("insert into node_closure (ancestor, descendant, depth) "
 				+ "select supertree.ancestor, subtree.descendant, supertree.depth + subtree.depth + 1 AS depth "
@@ -464,7 +432,7 @@ public class NodeJdbcDAO implements NodeDAO {
 		Collection<Integer> pvIdsToRemove = CollectionUtils.collect(pvsToRemove, ConfigPv::getId);
 
 		// Remove PVs from relation table
-		pvIdsToRemove.stream().forEach(id -> jdbcTemplate.update(
+		pvIdsToRemove.forEach(id -> jdbcTemplate.update(
 				"delete from config_pv_relation where config_id=? and config_pv_id=?",
 				configNode.getId(), id));
 
@@ -490,52 +458,26 @@ public class NodeJdbcDAO implements NodeDAO {
 	@Override
 	public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration) {
 
-		Node persistedNode = getNode(nodeToUpdate.getUniqueId());
-
-		if(persistedNode == null) {
-			throw new IllegalArgumentException(String.format("Node with unique id=%s not found", nodeToUpdate.getUniqueId()));
-		}
-
-		if (persistedNode.getId() == Node.ROOT_NODE_ID) {
-			throw new IllegalArgumentException("Cannot update root node");
-		}
-
-		if(!persistedNode.getNodeType().equals(nodeToUpdate.getNodeType())) {
-			throw new IllegalArgumentException("Changing node type is not supported");
-		}
-
-		Node parentNode = getParentNode(persistedNode.getId());
-
-		if(parentNode == null) {
-			throw new IllegalArgumentException(
-					String.format("Cannot update node id=%d as its parent node is not found. Should not happen!", persistedNode.getId()));
-		}
-
-		List<Node> parentsChildNodes = getChildNodes(parentNode.getId());
-
-		if(!nodeToUpdate.getName().equals(persistedNode.getName()) && !isNodeNameValid(nodeToUpdate, parentsChildNodes)) {
-			throw new IllegalArgumentException(String.format("A node with same type and name (%s) already exists in the same folder", nodeToUpdate.getName()));
-		}
-
 		if (customTimeForMigration) {
 			jdbcTemplate.update("update node set name=?, created=?, last_modified=?, username=? where id=?",
-					nodeToUpdate.getName(), nodeToUpdate.getCreated(), Timestamp.from(Instant.now()), nodeToUpdate.getUserName(), persistedNode.getId());
+					nodeToUpdate.getName(), nodeToUpdate.getCreated(), Timestamp.from(Instant.now()), nodeToUpdate.getUserName(), nodeToUpdate.getId());
 		} else {
 			jdbcTemplate.update("update node set name=?, last_modified=?, username=? where id=?",
-					nodeToUpdate.getName(), Timestamp.from(Instant.now()), nodeToUpdate.getUserName(), persistedNode.getId());
+					nodeToUpdate.getName(), Timestamp.from(Instant.now()), nodeToUpdate.getUserName(), nodeToUpdate.getId());
 		}
 
-		updateProperties(persistedNode.getId(), nodeToUpdate.getProperties());
-		updateTags(persistedNode.getUniqueId(), nodeToUpdate.getTags());
+		updateProperties(nodeToUpdate.getId(), nodeToUpdate.getProperties());
+		updateTags(nodeToUpdate.getUniqueId(), nodeToUpdate.getTags());
 
-		return getNode(persistedNode.getId());
+		return getNode(nodeToUpdate.getId());
 	}
 
 
 	@Transactional
 	@Override
 	public Node saveSnapshot(String parentsUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment, String userName) {
-		Node snapshotNode = createNode(parentsUniqueId, Node.builder()
+		Node parentNode = getNode(parentsUniqueId);
+		Node snapshotNode = createNode(parentNode, Node.builder()
 				.name(snapshotName)
 				.nodeType(NodeType.SNAPSHOT)
 				.build());

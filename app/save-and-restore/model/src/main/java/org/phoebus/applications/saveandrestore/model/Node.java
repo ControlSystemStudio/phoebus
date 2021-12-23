@@ -1,4 +1,4 @@
-/** 
+/**
  * Copyright (C) 2018 European Spallation Source ERIC.
  *
  * This program is free software; you can redistribute it and/or
@@ -18,6 +18,7 @@
 
 package org.phoebus.applications.saveandrestore.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -45,13 +46,13 @@ import lombok.ToString;
 /**
  * Class representing a node in a tree structure maintained by the save-and-restore service. Node types are
  * defined in enum {@link NodeType}.
- * 
+ *
  * The builder pattern supported by Lombok can be used to instantiate objects. The nodeType of a
  * Node object defaults to {@link NodeType#FOLDER}.
  * @author georgweiss
  *
  */
-public class Node implements Comparable<Node>{
+public class Node implements Comparable<Node>, Serializable {
 
 	private int id;
 	@Builder.Default
@@ -69,20 +70,20 @@ public class Node implements Comparable<Node>{
 	 * Do not change!!!
 	 */
 	public static final int ROOT_NODE_ID = 0;
-	
+
 	public void putProperty(String key, String value) {
 		if(properties == null) {
 			properties = new HashMap<>();
 		}
 		properties.put(key,  value);
 	}
-	
+
 	public void removeProperty(String key) {
 		if(properties != null) {
 			properties.remove(key);
 		}
 	}
-	
+
 	public String getProperty(String key) {
 		if(properties == null) {
 			return null;
@@ -91,8 +92,8 @@ public class Node implements Comparable<Node>{
 	}
 
 	public void addTag(Tag tag) {
-	    if (tags == null) {
-	    	tags = new ArrayList<>();
+		if (tags == null) {
+			tags = new ArrayList<>();
 		}
 
 		if (tags.stream().noneMatch(item -> item.getName().equals(tag.getName()))) {
@@ -126,7 +127,7 @@ public class Node implements Comparable<Node>{
 	public int hashCode() {
 		return Objects.hash(nodeType, uniqueId);
 	}
-	
+
 	/**
 	 * Implements strategy where folders are sorted before configurations (save sets), and
 	 * equal node types are sorted alphabetically.
@@ -136,7 +137,7 @@ public class Node implements Comparable<Node>{
 	 */
 	@Override
 	public int compareTo(Node other) {
-		
+
 		if(nodeType.equals(NodeType.FOLDER) && other.getNodeType().equals(NodeType.CONFIGURATION)){
 			return -1;
 		}
@@ -146,5 +147,19 @@ public class Node implements Comparable<Node>{
 		else{
 			return getName().compareTo(other.getName());
 		}
+	}
+
+	public static Node clone(Node nodeToClone){
+		Node clonedNode = new Node();
+		clonedNode.setNodeType(nodeToClone.getNodeType());
+		clonedNode.setUserName(nodeToClone.getUserName());
+		Date now = new Date();
+		clonedNode.setLastModified(now);
+		clonedNode.setCreated(now);
+		clonedNode.setName(nodeToClone.getName());
+		clonedNode.setProperties(nodeToClone.getProperties());
+		clonedNode.setTags(nodeToClone.getTags());
+
+		return clonedNode;
 	}
 }

@@ -22,6 +22,7 @@ import org.phoebus.applications.saveandrestore.data.DataProvider;
 import org.phoebus.applications.saveandrestore.data.NodeAddedListener;
 import org.phoebus.applications.saveandrestore.data.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.data.providers.jmasar.JMasarDataProvider;
+import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.model.VNoData;
 import org.slf4j.Logger;
@@ -246,5 +247,67 @@ public class SaveAndRestoreService {
 
     private void notifyNodeAddedListeners(Node parentNode, Node newNode){
         nodeAddedListeners.stream().forEach(listener -> listener.nodeAdded(parentNode, newNode));
+    }
+
+    /**
+     * Determines if a list of {@link Node}s may be moved or copied to a target {@link Node}. This is based on the restrictions
+     * that the target {@link Node} may not contain a child {@link Node} of same name and type as any of the source {@link Node}s,
+     * and that snapshot {@link Node}s may not be moved or copied.
+     * @param sourceNodes A list of {@link Node}s that should not contain any {@link Node} of type {@link NodeType#SNAPSHOT}.
+     * @param targetNode A {@link Node} that should be of type {@link NodeType#FOLDER}.
+     * @return <code>true</code> if all the {@link Node}s in the source node list may be copied to the
+     * target {@link Node}, otherwise <code>false</code>.
+     */
+    public boolean moveOrCopyAllowed(List<Node> sourceNodes, Node targetNode){
+        if(!targetNode.getNodeType().equals(NodeType.FOLDER)){
+            return false;
+        }
+        if(sourceNodes.stream().filter(n -> n.getNodeType().equals(NodeType.SNAPSHOT)).findFirst().isPresent()){
+            return false;
+        }
+
+        List<Node> childNodes = getChildNodes(targetNode);
+        if(childNodes.isEmpty()){
+            return true;
+        }
+
+        for(Node childNode : childNodes){
+            for(Node sourceNode : sourceNodes){
+                if(childNode.getNodeType().equals(sourceNode.getNodeType()) && childNode.getName().equals(sourceNode.getName())){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Moves the <code>sourceNode</code> to the <code>targetNode</code>. The target {@link Node} may not contain
+     * any {@link Node} of same name and type as the source {@link Node}.
+     *
+     * Once the move completes successfully in the remote service, this method will updated both the source node's parent
+     * as well as the target node. This is needed in order to keep the view updated with the changes performed.
+     * @param sourceNode A {@link Node} of type {@link NodeType#FOLDER} or {@link NodeType#CONFIGURATION}.
+     * @param targetNode A {@link Node} of type {@link NodeType#FOLDER}.
+     * @return The target {@link Node} containing the source {@link Node} along with any other {@link Node}s
+     * @throws Exception
+     */
+    public Node moveNode(Node sourceNode, Node targetNode) throws Exception{
+        // Create a reference to the source node's parent before the move
+        Node parentNode = getParentNode(sourceNode.getUniqueId());
+        Future<Node> future = executor.submit(() -> dataProvider.moveNode(sourceNode, targetNode));
+        Node updatedNode = future.get();
+        // Update the target node that now also contains the source node
+        notifyNodeAddedListeners(targetNode, sourceNode);
+        // Update the source node's original parent as it no longer contains the source node
+        notifyNodeChangeListeners(parentNode);
+        return updatedNode;
+    }
+
+    public Node copyNode(Node sourceNode, Node targetNode) throws Exception{
+        Node copy = Node.clone(sourceNode);
+        copy = createNode(targetNode.getUniqueId(), copy);
+        notifyNodeAddedListeners(targetNode, copy);
+        return copy;
     }
 }

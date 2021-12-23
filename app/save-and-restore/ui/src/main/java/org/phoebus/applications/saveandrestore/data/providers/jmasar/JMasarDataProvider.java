@@ -68,7 +68,7 @@ public class JMasarDataProvider implements DataProvider {
 	public Node createNode(String parentsUniqueId, Node node) {
 		return jmasarClient.createNewNode(parentsUniqueId, node);
 	}
-	
+
 	@Override
 	public String getServiceUrl() {
 		return jmasarClient.getServiceUrl();
@@ -79,24 +79,24 @@ public class JMasarDataProvider implements DataProvider {
 
 		try {
 			jmasarClient.deleteNode(uniqueNodeId);
-		} catch (DataProviderException e) {
+		} catch (Exception e) {
 			return false;
 		}
 		return true;
 	}
-	
+
 	@Override
 	public List<ConfigPv> getConfigPvs(String uniqueNodeId) {
-		
+
 		return jmasarClient.getConfigPvs(uniqueNodeId);
 	}
 
-    @Override
-    public Node getSaveSetForSnapshot(String uniqueNodeId) {
+	@Override
+	public Node getSaveSetForSnapshot(String uniqueNodeId) {
 
-        return jmasarClient.getParentNode(uniqueNodeId);
-    }
-	
+		return jmasarClient.getParentNode(uniqueNodeId);
+	}
+
 	@Override
 	public Node updateSaveSet(Node configToUpdate, List<ConfigPv> confgPvList) {
 		return jmasarClient.updateConfiguration(configToUpdate, confgPvList);
@@ -121,5 +121,10 @@ public class JMasarDataProvider implements DataProvider {
 	@Override
 	public List<Node> getAllSnapshots() {
 		return jmasarClient.getAllSnapshots();
+	}
+
+	@Override
+	public Node moveNode(Node sourceNode, Node targetNode){
+		return jmasarClient.moveNode(sourceNode, targetNode);
 	}
 }

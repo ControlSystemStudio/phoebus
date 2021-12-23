@@ -26,6 +26,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 
 import javax.sql.DataSource;
@@ -86,5 +87,10 @@ public class PersistenceConfiguration {
 	@Bean
 	public SimpleJdbcInsert pvInsert() {
 		return new SimpleJdbcInsert(dataSource()).withTableName("pv").usingGeneratedKeyColumns("id");
+	}
+
+	@Bean
+	public NamedParameterJdbcTemplate namedParameterJdbcTemplate(){
+		return new NamedParameterJdbcTemplate(dataSource());
 	}
 }

@@ -255,4 +255,16 @@ public class JMasarJerseyClient implements JMasarClient {
         return response.getEntity(new GenericType<List<Node>>() {
         });
     }
+
+    @Override
+    public Node moveNode(Node sourceNode, Node targetNode) {
+        WebResource webResource =
+                client.resource(jmasarServiceUrl + "/node/" + sourceNode.getUniqueId())
+                        .queryParam("to", targetNode.getUniqueId())
+                        .queryParam("username", getCurrentUsersName());
+
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+                .post(ClientResponse.class);
+        return response.getEntity(Node.class);
+    }
 }

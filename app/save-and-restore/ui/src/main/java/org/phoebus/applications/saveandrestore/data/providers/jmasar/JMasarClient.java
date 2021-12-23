@@ -13,33 +13,35 @@ import java.util.List;
  */
 public interface JMasarClient {
 
-    public String getServiceUrl();
+    String getServiceUrl();
 
-    public Node getRoot();
+    Node getRoot();
 
-    public Node getNode(String uniqueNodeId);
+    Node getNode(String uniqueNodeId);
 
-    public Node getParentNode(String unqiueNodeId);
+    Node getParentNode(String unqiueNodeId);
 
-    public List<Node> getChildNodes(Node node) throws DataProviderException ;
+    List<Node> getChildNodes(Node node) throws DataProviderException ;
 
-    public List<SnapshotItem> getSnapshotItems(String snapshotUniqueId);
+    List<SnapshotItem> getSnapshotItems(String snapshotUniqueId);
 
-    public Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment);
+    Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment);
 
-    public List<ConfigPv> getConfigPvs(String configUniqueId);
+    List<ConfigPv> getConfigPvs(String configUniqueId);
 
-    public Node createNewNode(String parentsUniqueId, Node node);
+    Node createNewNode(String parentsUniqueId, Node node);
 
-    public Node updateNode(Node nodeToUpdate);
+    Node updateNode(Node nodeToUpdate);
 
-    public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration);
+    Node updateNode(Node nodeToUpdate, boolean customTimeForMigration);
 
-    public void deleteNode(String uniqueNodeId);
+    void deleteNode(String uniqueNodeId);
 
-    public Node updateConfiguration(Node configToUpdate, List<ConfigPv> configPvList);
+    Node updateConfiguration(Node configToUpdate, List<ConfigPv> configPvList);
 
-    public List<Tag> getAllTags();
+    List<Tag> getAllTags();
 
-    public List<Node> getAllSnapshots();
+    List<Node> getAllSnapshots();
+
+    Node moveNode(Node sourceNode, Node targetNode);
 }

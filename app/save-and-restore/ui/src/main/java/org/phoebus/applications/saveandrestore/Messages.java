@@ -38,6 +38,9 @@ public class Messages {
     public static String contextMenuRemoveGoldenTag;
     public static String contextMenuTagAsGolden;
     public static String contextMenuTagsWithComment;
+    public static String copyOrMoveNotAllowedBody;
+    public static String copyOrMoveNotAllowedHeader;
+    public static String copyOrMoveToRootNotAllowedBody;
     public static String createNewTagDialogTitle;
     public static String deletionNotAllowed;
     public static String deletionNotAllowedHeader;
@@ -48,6 +51,9 @@ public class Messages {
     public static String errorGeneric;
     public static String exportSaveSetLabel;
     public static String exportSnapshotLabel;
+    public static String invalidSelectionForDragNDropHeader;
+    public static String invalidSelectionForDragNDropBodySingle;
+    public static String invalidSelectionForDragNDropBodyMultiple;
     public static String importSaveSetLabel;
     public static String importSnapshotLabel;
     public static String jmasarServiceUnavailable;

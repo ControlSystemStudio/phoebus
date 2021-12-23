@@ -21,6 +21,7 @@ package org.phoebus.applications.saveandrestore.ui;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -39,6 +40,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
@@ -135,6 +137,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     protected SimpleStringProperty jmasarServiceTitleProperty = new SimpleStringProperty();
     protected BooleanProperty treeViewEmpty = new SimpleBooleanProperty(false);
     protected SimpleObjectProperty<ImageView> toggleGoldenImageViewProperty = new SimpleObjectProperty<>();
+    private SimpleBooleanProperty multipleItemsSelected = new SimpleBooleanProperty(false);
+    private SimpleBooleanProperty rootMovableNodesSelected = new SimpleBooleanProperty(false);
+    private MultipleSelectionModel<TreeItem<Node>> browserSelectionModel;
 
     protected ImageView snapshotImageView = new ImageView(snapshotIcon);
     protected ImageView snapshotGoldenImageView = new ImageView(snapshotGoldenIcon);
@@ -155,9 +160,11 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
         saveAndRestoreService = SaveAndRestoreService.getInstance();
+        treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        browserSelectionModel = treeView.getSelectionModel();
 
         preferencesReader =
-                new PreferencesReader(SaveAndRestoreApplication.class, "save_and_restore_preferences.properties");
+                new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
         reconnectButton.setGraphic(ImageCache.getImageView(SaveAndRestoreApplication.class, "/icons/refresh.png"));
         reconnectButton.setTooltip(new Tooltip(Messages.buttonRefresh));
 
@@ -184,7 +191,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         treeView.setEditable(true);
 
         treeView.setOnMouseClicked(me -> {
-            TreeItem<Node> item = treeView.getSelectionModel().getSelectedItem();
+            TreeItem<Node> item = browserSelectionModel.getSelectedItem();
             if (item == null) {
                 return;
             }
@@ -193,25 +200,14 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 toggleGoldenImageViewProperty.set(Boolean.parseBoolean(item.getValue().getProperty("golden")) ? snapshotImageView : snapshotGoldenImageView);
             }
             if (me.getClickCount() == 2) {
-                nodeDoubleClicked(treeView.getSelectionModel().getSelectedItem());
+                nodeDoubleClicked(browserSelectionModel.getSelectedItems().get(0));
             }
         });
 
-        treeView.setShowRoot(false);
-        treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        treeView.setShowRoot(true);
 
         jmasarServiceTitle.textProperty().bind(jmasarServiceTitleProperty);
-
-        ContextMenu treeViewContextMenu = new ContextMenu();
-        MenuItem newTopLevelFolderMenuItem = new MenuItem(Messages.contextMenuNewTopLevelFolder, new ImageView(folderIcon));
-        newTopLevelFolderMenuItem.setOnAction(ae -> createNewFolder(treeView.getRoot()));
-
-        treeViewContextMenu.getItems().addAll(newTopLevelFolderMenuItem);
-
-        treeView.setContextMenu(treeViewContextMenu);
-
         emptyTreeInstruction.visibleProperty().bindBidirectional(treeViewEmpty);
-
         saveAndRestoreService.addNodeChangeListener(this);
         saveAndRestoreService.addNodeAddedListener(this);
 
@@ -332,7 +328,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * the tree view.
      */
     protected void comapreSnapshot() {
-        compareSnapshot(treeView.getSelectionModel().getSelectedItem().getValue());
+        compareSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue());
     }
 
     /**
@@ -355,7 +351,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * Toggles the "golden" property of a snapshot as selected from the tree view.
      */
     protected void toggleGoldenProperty() {
-        toggleGoldenProperty(treeView.getSelectionModel().getSelectedItem().getValue());
+        toggleGoldenProperty(browserSelectionModel.getSelectedItems().get(0).getValue());
     }
 
     /**
@@ -366,7 +362,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         try {
             Node updatedNode = saveAndRestoreService.tagSnapshotAsGolden(node,
                     !Boolean.parseBoolean(node.getProperty("golden")));
-            treeView.getSelectionModel().getSelectedItem().setValue(updatedNode);
+            browserSelectionModel.getSelectedItems().get(0).setValue(updatedNode);
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Failed to toggle golden property", e);
         }
@@ -376,14 +372,14 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * Deletes selected snapshots.
      */
     protected void deleteSnapshots(){
-        deleteNodes(treeView.getSelectionModel().getSelectedItems());
+        deleteNodes(browserSelectionModel.getSelectedItems());
     }
 
     /**
      * Deletes the tree items selected in the tree view.
      */
     protected void deleteNodes() {
-        deleteNodes(treeView.getSelectionModel().getSelectedItems());
+        deleteNodes(browserSelectionModel.getSelectedItems());
     }
 
     /**
@@ -442,7 +438,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                     }
                 }
                 tabPane.getTabs().removeAll(tabsToRemove);
-                treeView.getSelectionModel().clearSelection();
+                browserSelectionModel.clearSelection();
             }
 
             @Override
@@ -460,7 +456,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * Opens a new snapshot view tab associated with the selected save set.
      */
     protected void openSaveSetForSnapshot() {
-        TreeItem<Node> treeItem = treeView.getSelectionModel().getSelectedItem();
+        TreeItem<Node> treeItem = browserSelectionModel.getSelectedItems().get(0);
         SnapshotTab tab = new SnapshotTab(treeItem.getValue(), saveAndRestoreService);
         tab.loadSaveSet(treeItem.getValue());
 
@@ -472,7 +468,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * Creates a new folder {@link Node}.
      */
     protected void createNewFolder() {
-        createNewFolder(treeView.getSelectionModel().getSelectedItem());
+        createNewFolder(browserSelectionModel.getSelectedItems().get(0));
     }
 
     /**
@@ -528,7 +524,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * Handles double click on a tree node.
      */
     public void nodeDoubleClicked() {
-        nodeDoubleClicked(treeView.getSelectionModel().getSelectedItem());
+        nodeDoubleClicked(browserSelectionModel.getSelectedItems().get(0));
     }
 
     /**
@@ -551,8 +547,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 tab = new SaveSetTab(node.getValue(), saveAndRestoreService);
                 break;
             case SNAPSHOT:
-                tab = new SnapshotTab(treeView.getSelectionModel().getSelectedItem().getValue(), saveAndRestoreService);
-                ((SnapshotTab) tab).loadSnapshot(treeView.getSelectionModel().getSelectedItem().getValue());
+                tab = new SnapshotTab(browserSelectionModel.getSelectedItems().get(0).getValue(), saveAndRestoreService);
+                ((SnapshotTab) tab).loadSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue());
                 break;
             case FOLDER:
             default:
@@ -568,7 +564,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      */
     protected void createNewSaveSet() {
 
-        TreeItem<Node> parentTreeItem = treeView.getSelectionModel().getSelectedItem();
+        TreeItem<Node> parentTreeItem = browserSelectionModel.getSelectedItems().get(0);
         List<String> existingFolderNames =
                 parentTreeItem.getChildren().stream()
                         .filter(item -> item.getValue().getNodeType().equals(NodeType.CONFIGURATION))
@@ -598,7 +594,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 @Override
                 protected Node call() throws Exception {
                     return saveAndRestoreService
-                            .createNode(treeView.getSelectionModel().getSelectedItem().getValue().getUniqueId(), newSateSetNode);
+                            .createNode(browserSelectionModel.getSelectedItems().get(0).getValue().getUniqueId(), newSateSetNode);
                 }
 
                 @Override
@@ -611,8 +607,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                         return;
                     }
                     nodeDoubleClicked(newSaveSetNode);
-                    treeView.getSelectionModel().clearSelection();
-                    treeView.getSelectionModel().select(treeView.getRow(newSaveSetNode));
+                    browserSelectionModel.clearSelection();
+                    browserSelectionModel.select(treeView.getRow(newSaveSetNode));
                 }
 
                 @Override
@@ -634,7 +630,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * the user is shown a suitable error dialog and the name of the node is restored.
      */
     protected void renameNode() {
-        TreeItem<Node> node = treeView.getSelectionModel().getSelectedItem();
+        TreeItem<Node> node = browserSelectionModel.getSelectedItems().get(0);
         List<String> existingSiblingNodes =
                 node.getParent().getChildren().stream()
                         .filter(item -> item.getValue().getNodeType().equals(node.getValue().getNodeType()))
@@ -707,8 +703,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
         nodeSubjectToUpdate.setValue(node);
         nodeSubjectToUpdate.getParent().getChildren().sort(new TreeNodeComparator());
-        treeView.getSelectionModel().clearSelection();
-        treeView.getSelectionModel().select(nodeSubjectToUpdate);
+        browserSelectionModel.clearSelection();
+        browserSelectionModel.select(nodeSubjectToUpdate);
     }
 
     /**
@@ -776,9 +772,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             parentTreeItem = currentTreeItem;
         }
 
-        treeView.getSelectionModel().clearSelection();
-        treeView.getSelectionModel().select(parentTreeItem);
-        treeView.scrollTo(treeView.getSelectionModel().getSelectedIndex());
+        browserSelectionModel.clearSelection();
+        browserSelectionModel.select(parentTreeItem);
+        treeView.scrollTo(browserSelectionModel.getSelectedIndex());
     }
 
     /**
@@ -913,7 +909,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * Imports a save set to a folder {@link Node} from file.
      */
     protected void importSaveSet() {
-        Node node = treeView.getSelectionModel().getSelectedItem().getValue();
+        Node node = browserSelectionModel.getSelectedItems().get(0).getValue();
         try {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle(Messages.importSaveSetLabel);
@@ -931,12 +927,12 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * Exports a save set to file.
      */
     protected void exportSaveSet() {
-        Node node = treeView.getSelectionModel().getSelectedItem().getValue();
+        Node node = browserSelectionModel.getSelectedItems().get(0).getValue();
         try {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle(Messages.exportSaveSetLabel);
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV (BMS compatible)", "*.csv"));
-            fileChooser.setInitialFileName(treeView.getSelectionModel().getSelectedItem().getValue().getName());
+            fileChooser.setInitialFileName(browserSelectionModel.getSelectedItems().get(0).getValue().getName());
             File file = fileChooser.showSaveDialog(splitPane.getScene().getWindow());
             if (file != null) {
                 if (!file.getAbsolutePath().toLowerCase().endsWith("csv")) {
@@ -954,7 +950,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * Imports a snapshot from file to a save set. Contets must match the PV list of the selected save set.
      */
     protected void importSnapshot() {
-        Node node = treeView.getSelectionModel().getSelectedItem().getValue();
+        Node node = browserSelectionModel.getSelectedItems().get(0).getValue();
         try {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle(Messages.importSnapshotLabel);
@@ -972,7 +968,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * Exports a snapshot to file from selected snapshot node.
      */
     protected void exportSnapshot() {
-        exportSnapshot(treeView.getSelectionModel().getSelectedItem().getValue());
+        exportSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue());
     }
 
     /**
@@ -984,7 +980,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle(Messages.exportSnapshotLabel);
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV (SNP compatible)", "*.csv"));
-            fileChooser.setInitialFileName(treeView.getSelectionModel().getSelectedItem().getValue().getName());
+            fileChooser.setInitialFileName(browserSelectionModel.getSelectedItems().get(0).getValue().getName());
             File file = fileChooser.showSaveDialog(splitPane.getScene().getWindow());
             if (file != null) {
                 if (!file.getAbsolutePath().toLowerCase().endsWith("csv")) {
@@ -1001,7 +997,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * Adds a tag to the selected snapshot {@link Node}
      */
     protected void addTagToSnapshot() {
-        addTagToSnapshot(treeView.getSelectionModel().getSelectedItem().getValue());
+        addTagToSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue());
     }
 
     /**
@@ -1037,7 +1033,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @param tagList A list of existing tags, if any.
      */
     protected void tagWithComment(ObservableList<MenuItem> tagList) {
-        Node node = treeView.getSelectionModel().getSelectedItem().getValue();
+        Node node = browserSelectionModel.getSelectedItems().get(0).getValue();
         tagWithComment(node, tagList);
     }
 
@@ -1082,5 +1078,12 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 tagList.add(tagItem);
             });
         }
+    }
+
+    private boolean checkSelectionForRootMove(List<TreeItem<Node>> items) {
+        TreeItem<Node> root = treeView.getRoot();
+        Optional<TreeItem<Node>> i = items.stream().filter(item -> !item.getValue().getNodeType().equals(NodeType.FOLDER) ||
+                item.getParent() == null || item.getParent().equals(root)).findFirst();
+        return i.isPresent();
     }
 }

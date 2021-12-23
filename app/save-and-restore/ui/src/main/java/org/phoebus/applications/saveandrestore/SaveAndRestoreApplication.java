@@ -20,6 +20,7 @@
 package org.phoebus.applications.saveandrestore;
 
 import javafx.fxml.FXMLLoader;
+import javafx.scene.input.DataFormat;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.preferences.PreferencesReader;
@@ -36,6 +37,11 @@ public class SaveAndRestoreApplication implements AppDescriptor, AppInstance {
 	
 	public static final String NAME = "Save And Restore";
 	private SaveAndRestoreController controller;
+
+	/**
+	 * Custom MIME type definition for the purpose of drag-n-drop in the
+	 */
+	public static final DataFormat NODE_SELECTION_FORMAT = new DataFormat("application/node-selection");
 
 	@Override
 	public String getName() {
