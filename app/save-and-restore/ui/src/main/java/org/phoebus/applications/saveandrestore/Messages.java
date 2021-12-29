@@ -42,6 +42,7 @@ public class Messages {
     public static String copyOrMoveNotAllowedHeader;
     public static String copyOrMoveToRootNotAllowedBody;
     public static String createNewTagDialogTitle;
+    public static String createNodeFailed;
     public static String deletionNotAllowed;
     public static String deletionNotAllowedHeader;
     public static String errorActionFailed;
@@ -113,6 +114,8 @@ public class Messages {
     public static String toolTipSaveSetExistsOption;
     public static String toolTipMultiplierSpinner;
     public static String unnamedSnapshot;
+    public static String updateConfigurationFailed;
+    public static String updateNodeFailed;
     
 
     static

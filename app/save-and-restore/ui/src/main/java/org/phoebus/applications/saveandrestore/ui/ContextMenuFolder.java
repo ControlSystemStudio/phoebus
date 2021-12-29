@@ -18,20 +18,23 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
 
 public class ContextMenuFolder extends ContextMenuBase {
 
-    public ContextMenuFolder(SaveAndRestoreController saveAndRestoreController, boolean csvImportEnabled) {
-        super(saveAndRestoreController);
+    public ContextMenuFolder(SaveAndRestoreController saveAndRestoreController, boolean csvImportEnabled, SimpleBooleanProperty multipleItemsSelected) {
+        super(saveAndRestoreController, multipleItemsSelected);
         MenuItem newFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(folderIcon));
+        newFolderMenuItem.disableProperty().bind(multipleItemsSelected);
         newFolderMenuItem.setOnAction(ae -> {
             saveAndRestoreController.createNewFolder();
         });
 
         MenuItem newSaveSetMenuItem = new MenuItem(Messages.contextMenuNewSaveSet, new ImageView(saveSetIcon));
+        newSaveSetMenuItem.disableProperty().bind(multipleItemsSelected);
         newSaveSetMenuItem.setOnAction(ae -> {
             saveAndRestoreController.createNewSaveSet();
         });
@@ -45,6 +48,7 @@ public class ContextMenuFolder extends ContextMenuBase {
             importSaveSetIconImageView.setFitHeight(18);
 
             MenuItem importSaveSetMenuItem = new MenuItem(Messages.importSaveSetLabel, importSaveSetIconImageView);
+            importSaveSetMenuItem.disableProperty().bind(multipleItemsSelected);
             importSaveSetMenuItem.setOnAction(ae -> {
                 saveAndRestoreController.importSaveSet();
             });

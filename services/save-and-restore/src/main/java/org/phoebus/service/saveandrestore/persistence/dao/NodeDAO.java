@@ -47,35 +47,27 @@ public interface NodeDAO {
 	Node getNode(String uniqueNodeId);
 
 	/**
-	 * @param nodeIds A list of unique node ids.
-	 * @return
-	 */
-	default List<Node> getNodes(List<String> nodeIds){
-		throw new RuntimeException("Get nodes not implemented");
-	}
-
-	/**
 	 * Deletes a {@link Node}, folder or configuration. If the node is a folder, the
 	 * entire sub-tree of the folder is deleted, including the snapshots associated
 	 * with configurations in the sub-tree.
 	 *
-	 * @param node
-	 *            The {@link Node} node to delete.
+	 * @param nodeId
+	 *            The unique id of the node to delete.
 	 *
 	 */
-	void deleteNode(Node node);
+	void deleteNode(String nodeId);
 
 	/**
 	 * Creates a new node in the tree.
 	 *
-	 * @param parentNode
-	 *            The parent {@link Node}.
+	 * @param parentNodeId
+	 *            The unique id of the parent node in which to create the new {@link Node}.
 	 * @param node
 	 *            The new {@link Node} to create
 	 * @return The created node.
 	 *
 	 */
-	Node createNode(Node parentNode, Node node);
+	Node createNode(String parentNodeId, Node node);
 
 
 	Node getParentNode(String uniqueNodeId);
@@ -83,15 +75,13 @@ public interface NodeDAO {
 	/**
 	 * Moves a node (folder or config) to a new parent node.
 	 *
-	 * @param sourceNode
-	 *            The node to move
-	 * @param targetNode
-	 *            The new parent node
+	 * @param nodeIds List of unique node ids subject to move
+	 * @param targetId Unique id of new parent node
 	 * @param userName
 	 *            The (account) name of the user performing the operation.
 	 * @return The target {@link Node} object that is the new parent of the moved source {@link Node}
 	 */
-	Node moveNode(Node sourceNode, Node targetNode, String userName);
+	Node moveNodes(List<String> nodeIds, String targetId, String userName);
 
 	/**
 	 * Updates an existing configuration, e.g. changes its name or list of PVs.

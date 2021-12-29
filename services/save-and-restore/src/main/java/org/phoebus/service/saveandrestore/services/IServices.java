@@ -43,9 +43,7 @@ public interface IServices {
 
 	List<SnapshotItem> getSnapshotItems(String snapshotUniqueId);
 
-	Node moveNode(String uniqueNodeId, String targetUniqueId, String userName);
-
-	default Node moveNodes(List<String> nodes, String targetUniqueId, String userName){
+	default Node moveNodes(List<String> sourceNodeIds, String targetNodeId, String userName){
 		throw new RuntimeException("Move nodes operation not supported");
 	}
 
@@ -86,8 +84,8 @@ public interface IServices {
 	 * Copies the list of source {@link Node}s to the target identified by the (unique) <code>targetNodeId</code>.
 	 * This operation is potentially expensive as it performs a deep copy, i.e. all child nodes of folder
 	 * and save set {@link Node}s are considered. Client should consider asynchronous call.
-	 * @param sourceNodes
-	 * @param targetNodeId
+	 * @param sourceNodes List of source nodes to copy
+	 * @param targetNodeId Target node of the copy operation
 	 */
 	default void copy(List<Node> sourceNodes, String targetNodeId){
 		throw new RuntimeException("Copy operation not supported");

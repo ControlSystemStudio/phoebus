@@ -1,16 +1,16 @@
 /**
  * Copyright (C) 2019 European Spallation Source ERIC.
- *
+ * <p>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -22,17 +22,18 @@ import org.phoebus.applications.saveandrestore.data.DataProvider;
 import org.phoebus.applications.saveandrestore.data.NodeAddedListener;
 import org.phoebus.applications.saveandrestore.data.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.data.providers.jmasar.JMasarDataProvider;
+import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.model.VNoData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.applications.saveandrestore.model.Tag;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -54,13 +55,13 @@ public class SaveAndRestoreService {
 
     private static SaveAndRestoreService instance;
 
-    private SaveAndRestoreService(){
+    private SaveAndRestoreService() {
         dataProvider = new JMasarDataProvider();
         executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     }
 
-    public static SaveAndRestoreService getInstance(){
-        if(instance == null){
+    public static SaveAndRestoreService getInstance() {
+        if (instance == null) {
             instance = new SaveAndRestoreService();
         }
         return instance;
@@ -88,7 +89,6 @@ public class SaveAndRestoreService {
         } catch (Exception ie) {
             LOG.error("Unable to retrieve node " + uniqueNodeId + ", cause: " + ie.getMessage());
         }
-
         return null;
     }
 
@@ -100,9 +100,7 @@ public class SaveAndRestoreService {
         } catch (Exception ie) {
             LOG.error("Unable to retrieve child nodes of node " + node.getId() + ", cause: " + ie.getMessage());
         }
-
         return null;
-
     }
 
     public Node updateNode(Node nodeToUpdate) throws Exception {
@@ -121,7 +119,7 @@ public class SaveAndRestoreService {
 
     public Node createNode(String parentsUniqueId, Node newTreeNode) throws Exception {
         Future<Node> future = executor.submit(() -> dataProvider.createNode(parentsUniqueId, newTreeNode));
-        notifyNodeAddedListeners(getNode(parentsUniqueId), newTreeNode);
+        notifyNodeAddedListeners(getNode(parentsUniqueId), Arrays.asList(newTreeNode));
         return future.get();
     }
 
@@ -209,7 +207,7 @@ public class SaveAndRestoreService {
         Future<Node> future = executor.submit(() -> dataProvider.saveSnapshot(saveSetNode.getUniqueId(), beautifiedItems, snapshotName, comment));
 
         Node savedSnapshot = future.get();
-        notifyNodeAddedListeners(saveSetNode, savedSnapshot);
+        notifyNodeAddedListeners(saveSetNode, Arrays.asList(savedSnapshot));
         return savedSnapshot;
     }
 
@@ -225,60 +223,28 @@ public class SaveAndRestoreService {
         return future.get();
     }
 
-    public void addNodeChangeListener(NodeChangedListener nodeChangeListener){
+    public void addNodeChangeListener(NodeChangedListener nodeChangeListener) {
         nodeChangeListeners.add(nodeChangeListener);
     }
 
-    public void removeNodeChangeListener(NodeChangedListener nodeChangeListener){
+    public void removeNodeChangeListener(NodeChangedListener nodeChangeListener) {
         nodeChangeListeners.remove(nodeChangeListener);
     }
 
-    private void notifyNodeChangeListeners(Node changedNode){
+    private void notifyNodeChangeListeners(Node changedNode) {
         nodeChangeListeners.stream().forEach(listener -> listener.nodeChanged(changedNode));
     }
 
-    public void addNodeAddedListener(NodeAddedListener nodeAddedListener){
+    public void addNodeAddedListener(NodeAddedListener nodeAddedListener) {
         nodeAddedListeners.add(nodeAddedListener);
     }
 
-    public void removeNodeAddedListener(NodeAddedListener nodeAddedListener){
+    public void removeNodeAddedListener(NodeAddedListener nodeAddedListener) {
         nodeAddedListeners.remove(nodeAddedListener);
     }
 
-    private void notifyNodeAddedListeners(Node parentNode, Node newNode){
-        nodeAddedListeners.stream().forEach(listener -> listener.nodeAdded(parentNode, newNode));
-    }
-
-    /**
-     * Determines if a list of {@link Node}s may be moved or copied to a target {@link Node}. This is based on the restrictions
-     * that the target {@link Node} may not contain a child {@link Node} of same name and type as any of the source {@link Node}s,
-     * and that snapshot {@link Node}s may not be moved or copied.
-     * @param sourceNodes A list of {@link Node}s that should not contain any {@link Node} of type {@link NodeType#SNAPSHOT}.
-     * @param targetNode A {@link Node} that should be of type {@link NodeType#FOLDER}.
-     * @return <code>true</code> if all the {@link Node}s in the source node list may be copied to the
-     * target {@link Node}, otherwise <code>false</code>.
-     */
-    public boolean moveOrCopyAllowed(List<Node> sourceNodes, Node targetNode){
-        if(!targetNode.getNodeType().equals(NodeType.FOLDER)){
-            return false;
-        }
-        if(sourceNodes.stream().filter(n -> n.getNodeType().equals(NodeType.SNAPSHOT)).findFirst().isPresent()){
-            return false;
-        }
-
-        List<Node> childNodes = getChildNodes(targetNode);
-        if(childNodes.isEmpty()){
-            return true;
-        }
-
-        for(Node childNode : childNodes){
-            for(Node sourceNode : sourceNodes){
-                if(childNode.getNodeType().equals(sourceNode.getNodeType()) && childNode.getName().equals(sourceNode.getName())){
-                    return false;
-                }
-            }
-        }
-        return true;
+    private void notifyNodeAddedListeners(Node parentNode, List<Node> newNodes) {
+        nodeAddedListeners.stream().forEach(listener -> listener.nodesAdded(parentNode, newNodes));
     }
 
     /**
@@ -287,27 +253,29 @@ public class SaveAndRestoreService {
      *
      * Once the move completes successfully in the remote service, this method will updated both the source node's parent
      * as well as the target node. This is needed in order to keep the view updated with the changes performed.
-     * @param sourceNode A {@link Node} of type {@link NodeType#FOLDER} or {@link NodeType#CONFIGURATION}.
+     * @param sourceNodes A list of {@link Node}s of type {@link NodeType#FOLDER} or {@link NodeType#CONFIGURATION}.
      * @param targetNode A {@link Node} of type {@link NodeType#FOLDER}.
      * @return The target {@link Node} containing the source {@link Node} along with any other {@link Node}s
      * @throws Exception
      */
-    public Node moveNode(Node sourceNode, Node targetNode) throws Exception{
+    public Node moveNodes(List<Node> sourceNodes, Node targetNode) throws Exception {
         // Create a reference to the source node's parent before the move
-        Node parentNode = getParentNode(sourceNode.getUniqueId());
-        Future<Node> future = executor.submit(() -> dataProvider.moveNode(sourceNode, targetNode));
+        Node parentNode = getParentNode(sourceNodes.get(0).getUniqueId());
+        // Map list of nodes to list of unique ids
+        List<String> sourceNodeIds = sourceNodes.stream().map(Node::getUniqueId).collect(Collectors.toList());
+        Future<Node> future = executor.submit(() -> dataProvider.moveNodes(sourceNodeIds, targetNode.getUniqueId()));
         Node updatedNode = future.get();
-        // Update the target node that now also contains the source node
-        notifyNodeAddedListeners(targetNode, sourceNode);
+        // Update the target node that now also contains the source node(s)
+        notifyNodeAddedListeners(targetNode, sourceNodes);
         // Update the source node's original parent as it no longer contains the source node
         notifyNodeChangeListeners(parentNode);
         return updatedNode;
     }
 
-    public Node copyNode(Node sourceNode, Node targetNode) throws Exception{
+    public Node copyNode(Node sourceNode, Node targetNode) throws Exception {
         Node copy = Node.clone(sourceNode);
         copy = createNode(targetNode.getUniqueId(), copy);
-        notifyNodeAddedListeners(targetNode, copy);
+        notifyNodeAddedListeners(targetNode, Arrays.asList(copy));
         return copy;
     }
 }

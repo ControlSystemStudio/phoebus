@@ -18,6 +18,7 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.CustomMenuItem;
@@ -40,8 +41,9 @@ public class ContextMenuSnapshot extends ContextMenuBase {
     public ContextMenuSnapshot(SaveAndRestoreController saveAndRestoreController,
                                boolean csvEnabled,
                                SimpleStringProperty toggleGoldenMenuItemText,
-                               SimpleObjectProperty<ImageView> toggleGoldenImageViewProperty) {
-        super(saveAndRestoreController);
+                               SimpleObjectProperty<ImageView> toggleGoldenImageViewProperty,
+                               SimpleBooleanProperty multipleItemsSelected) {
+        super(saveAndRestoreController, multipleItemsSelected);
 
         MenuItem deleteSnapshotMenuItem = new MenuItem(Messages.contextMenuDelete, new ImageView(deleteIcon));
         deleteSnapshotMenuItem.setOnAction(ae -> {
@@ -49,6 +51,7 @@ public class ContextMenuSnapshot extends ContextMenuBase {
         });
 
         MenuItem renameSnapshotItem = new MenuItem(Messages.contextMenuRename, new ImageView(renameIcon));
+        renameSnapshotItem.disableProperty().bind(multipleItemsSelected);
         renameSnapshotItem.setOnAction(ae -> {
             saveAndRestoreController.renameNode();
         });
@@ -61,6 +64,7 @@ public class ContextMenuSnapshot extends ContextMenuBase {
         MenuItem tagAsGolden = new javafx.scene.control.MenuItem(Messages.contextMenuTagAsGolden, new ImageView(snapshotGoldenIcon));
         tagAsGolden.textProperty().bind(toggleGoldenMenuItemText);
         tagAsGolden.graphicProperty().bind(toggleGoldenImageViewProperty);
+        tagAsGolden.disableProperty().bind(multipleItemsSelected);
         tagAsGolden.setOnAction(ae -> {
             saveAndRestoreController.toggleGoldenProperty();
         });
@@ -69,11 +73,13 @@ public class ContextMenuSnapshot extends ContextMenuBase {
         snapshotTagsWithCommentIconImage.setFitHeight(22);
         snapshotTagsWithCommentIconImage.setFitWidth(22);
         Menu tagWithComment = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
+        tagWithComment.disableProperty().bind(multipleItemsSelected);
         tagWithComment.setOnShowing(event -> {
             saveAndRestoreController.tagWithComment(tagWithComment.getItems());
         });
 
         CustomMenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
+        addTagWithCommentMenuItem.disableProperty().bind(multipleItemsSelected);
         addTagWithCommentMenuItem.setOnAction(action -> {
             saveAndRestoreController.addTagToSnapshot();
         });
@@ -88,6 +94,7 @@ public class ContextMenuSnapshot extends ContextMenuBase {
             exportSnapshotIconImageView.setFitHeight(18);
 
             MenuItem exportSnapshotMenuItem = new MenuItem(Messages.exportSnapshotLabel, exportSnapshotIconImageView);
+            exportSnapshotMenuItem.disableProperty().bind(multipleItemsSelected);
             exportSnapshotMenuItem.setOnAction(ae -> {
                 saveAndRestoreController.exportSnapshot();
             });

@@ -93,4 +93,13 @@ public class PersistenceConfiguration {
 	public NamedParameterJdbcTemplate namedParameterJdbcTemplate(){
 		return new NamedParameterJdbcTemplate(dataSource());
 	}
+
+	@Bean
+	public NamedParameterJdbcTemplate nodeListParameterJdbcTemplate(){
+		return new NamedParameterJdbcTemplate(dataSource());
+	}
+
+	@Bean NamedParameterJdbcTemplate descendantCheckParameterJdbcTemplate(){
+		return new NamedParameterJdbcTemplate(dataSource());
+	}
 }

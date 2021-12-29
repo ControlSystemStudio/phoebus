@@ -98,21 +98,9 @@ public class ServicesTest {
 		configPvList = Arrays.asList(configPv);
 	}
 
-
-	@Test(expected = NodeNotFoundException.class)
-	public void testCreateConfigurationNoParent() {
-		services.createNode("x", configFromClient);
-	}
-
 	@Test
 	public void testCreateConfiguration() {
 		when(nodeDAO.getNode("a")).thenReturn(Node.builder().id(1).uniqueId("a").build());
-		services.createNode("a", configWithParent);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testCreateConfigurationParentNotFolder() {
-		when(nodeDAO.getNode("a")).thenReturn(Node.builder().id(1).nodeType(NodeType.CONFIGURATION).uniqueId("a").build());
 		services.createNode("a", configWithParent);
 	}
 
@@ -129,19 +117,6 @@ public class ServicesTest {
 
 		services.getSnapshots(anyString());
 		verify(nodeDAO, times(1)).getSnapshots(anyString());
-		reset(nodeDAO);
-	}
-
-	@Test
-	public void testGetSnapshotNotFound() {
-
-		when(nodeDAO.getSnapshot("s")).thenReturn(null);
-		try {
-			services.getSnapshot("s");
-			fail("Exception expected here");
-		} catch (Exception e) {
-
-		}
 		reset(nodeDAO);
 	}
 
@@ -176,38 +151,6 @@ public class ServicesTest {
 		reset(nodeDAO);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testCreateSnapshotInNonConfigParent() {
-
-		Node folderFromClient = Node.builder().name("snapshot").nodeType(NodeType.SNAPSHOT).build();
-		Node parent = new Node();
-		parent.setId(7);
-		parent.setNodeType(NodeType.FOLDER);
-		when(nodeDAO.getNode(parent.getUniqueId())).thenReturn(parent);
-		services.createNode(parent.getUniqueId(), folderFromClient);
-		reset(nodeDAO);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testCreateNodeNameAndTypeClash(){
-		Node node = new Node();
-		node.setNodeType(NodeType.CONFIGURATION);
-		node.setName("name");
-
-		Node parentNode = new Node();
-		parentNode.setNodeType(NodeType.FOLDER);
-
-		Node childNode = new Node();
-		childNode.setNodeType(NodeType.CONFIGURATION);
-		childNode.setName("name");
-
-		when(nodeDAO.getNode(parentNode.getUniqueId())).thenReturn(parentNode);
-		when(nodeDAO.getChildNodes(parentNode.getUniqueId())).thenReturn(Arrays.asList(childNode));
-
-		services.createNode(parentNode.getUniqueId(), node);
-		reset(nodeDAO);
-	}
-
 	@Test
 	public void testGetFolder() {
 
@@ -232,29 +175,7 @@ public class ServicesTest {
 		when(nodeDAO.getNode("a")).thenReturn(node);
 		services.deleteNode("a");
 
-		verify(nodeDAO, atLeast(1)).deleteNode(node);
-		reset(nodeDAO);
-	}
-
-	@Test(expected = NodeNotFoundException.class)
-	public void testDeleteNodeInvalidId() {
-		services.deleteNode("");
-	}
-
-	@Test(expected = NodeNotFoundException.class)
-	public void testDeleteNodeNotFound() {
-		when(nodeDAO.getNode("a")).thenReturn(null);
-		services.deleteNode("a");
-		verify(nodeDAO, atLeast(1)).getNode("a");
-		reset(nodeDAO);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testDeleteRootNode() {
-		Node node = new Node();
-		node.setId(0);
-		when(nodeDAO.getNode(node.getUniqueId())).thenReturn(node);
-		services.deleteNode(node.getUniqueId());
+		verify(nodeDAO, atLeast(1)).deleteNode("a");
 		reset(nodeDAO);
 	}
 
@@ -265,45 +186,6 @@ public class ServicesTest {
 		when(nodeDAO.getNode(node.getUniqueId())).thenReturn(node);
 		when(nodeDAO.getParentNode(node.getUniqueId())).thenReturn(parent);
 		when(nodeDAO.getChildNodes(parent.getUniqueId())).thenReturn(Collections.emptyList());
-		services.updateNode(node);
-		verify(nodeDAO, atLeast(1)).updateNode(node, false);
-		reset(nodeDAO);
-	}
-
-	@Test(expected = NodeNotFoundException.class)
-	public void testUpdateNonExistingNode() {
-		Node node = Node.builder().id(7).name("name").build();
-		services.updateNode(node);
-		reset(nodeDAO);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testUpdateNodeCannotUpdateRoot() {
-		Node node = Node.builder().id(0).name("name").build();
-		when(nodeDAO.getNode(node.getUniqueId())).thenReturn(node);
-		services.updateNode(node);
-		verify(nodeDAO, atLeast(1)).updateNode(node, false);
-		reset(nodeDAO);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testUpdateNodeChangeNodeType() {
-		Node node = Node.builder().id(7).name("name").nodeType(NodeType.FOLDER).build();
-		Node persisted = Node.builder().id(7).name("name").nodeType(NodeType.CONFIGURATION).build();
-		when(nodeDAO.getNode(node.getUniqueId())).thenReturn(persisted);
-		services.updateNode(node);
-		verify(nodeDAO, atLeast(1)).updateNode(node, false);
-		reset(nodeDAO);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testUpdateNodeNameAndTypeClash() {
-		Node node = Node.builder().id(7).name("name").nodeType(NodeType.FOLDER).build();
-		Node parent = new Node();
-		when(nodeDAO.getNode(node.getUniqueId())).thenReturn(node);
-		when(nodeDAO.getParentNode(node.getUniqueId())).thenReturn(parent);
-		Node childNode = Node.builder().id(77).name("name").nodeType(NodeType.FOLDER).build();
-		when(nodeDAO.getChildNodes(parent.getUniqueId())).thenReturn(Arrays.asList(childNode));
 		services.updateNode(node);
 		verify(nodeDAO, atLeast(1)).updateNode(node, false);
 		reset(nodeDAO);
@@ -411,60 +293,7 @@ public class ServicesTest {
 		when(nodeDAO.getNode(targetNode.getUniqueId())).thenReturn(targetNode);
 		when(nodeDAO.getChildNodes(targetNode.getUniqueId())).thenReturn(Collections.emptyList());
 
-		services.moveNode(nodeToMove.getUniqueId(), targetNode.getUniqueId(), "user");
-		reset(nodeDAO);
-	}
-
-	@Test(expected = NodeNotFoundException.class)
-	public void testMoveNodeSourceNodeNotFound(){
-		when(nodeDAO.getNode("a")).thenReturn(null);
-		services.moveNode("a", null, "user");
-		reset(nodeDAO);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testMoveSnapshotNode(){
-		Node nodeToMove = new Node();
-		nodeToMove.setId(7);
-		nodeToMove.setNodeType(NodeType.SNAPSHOT);
-
-		when(nodeDAO.getNode(nodeToMove.getUniqueId())).thenReturn(nodeToMove);
-
-		services.moveNode(nodeToMove.getUniqueId(), null, "user");
-		reset(nodeDAO);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testMoveNodeNullTarget(){
-		Node nodeToMove = new Node();
-		nodeToMove.setId(7);
-
-		Node targetNode = new Node();
-
-		when(nodeDAO.getNode(nodeToMove.getUniqueId())).thenReturn(nodeToMove);
-		when(nodeDAO.getNode(targetNode.getUniqueId())).thenReturn(null);
-
-		services.moveNode(nodeToMove.getUniqueId(), targetNode.getUniqueId(), "user");
-		reset(nodeDAO);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testMoveNodeTargetContainsDuplicateNameAndType(){
-		Node nodeToMove = new Node();
-		nodeToMove.setId(7);
-		nodeToMove.setName("name");
-
-		Node targetNode = new Node();
-
-		Node childNode = new Node();
-		childNode.setId(77);
-		childNode.setName("name");
-
-		when(nodeDAO.getNode(nodeToMove.getUniqueId())).thenReturn(nodeToMove);
-		when(nodeDAO.getNode(targetNode.getUniqueId())).thenReturn(targetNode);
-		when(nodeDAO.getChildNodes(targetNode.getUniqueId())).thenReturn(Arrays.asList(childNode));
-
-		services.moveNode(nodeToMove.getUniqueId(), targetNode.getUniqueId(), "user");
+		services.moveNodes(Arrays.asList(nodeToMove.getUniqueId()), targetNode.getUniqueId(), "user");
 		reset(nodeDAO);
 	}
 
@@ -486,24 +315,7 @@ public class ServicesTest {
 		when(nodeDAO.getNode(targetNode.getUniqueId())).thenReturn(targetNode);
 		when(nodeDAO.getChildNodes(targetNode.getUniqueId())).thenReturn(Arrays.asList(childNode));
 
-		services.moveNode(nodeToMove.getUniqueId(), targetNode.getUniqueId(), "user");
-		reset(nodeDAO);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testMoveNodesTargetIdEmpty(){
-		services.moveNodes(null, "", "userName");
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testMoveNodesUsernameEmpty(){
-		services.moveNodes(null, "target", "");
-	}
-
-	@Test(expected = NodeNotFoundException.class)
-	public void testMoveNodesTargetNotFound(){
-		when(nodeDAO.getNode("a")).thenReturn(null);
-		services.moveNodes(null, "a", "userName");
+		services.moveNodes(Arrays.asList(nodeToMove.getUniqueId()), targetNode.getUniqueId(), "user");
 		reset(nodeDAO);
 	}
 }

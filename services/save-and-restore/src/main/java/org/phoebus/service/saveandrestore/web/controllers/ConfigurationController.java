@@ -34,7 +34,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Date;
 import java.util.List;
+import java.util.logging.Logger;
 
 @RestController
 public class ConfigurationController extends BaseController {
@@ -44,7 +46,7 @@ public class ConfigurationController extends BaseController {
 
     /**
      * Create a new folder in the tree structure.
-     *
+     * <p>
      * A {@link HttpStatus#BAD_REQUEST} is returned if:
      * <ul>
      * <li>The parent node does not exist</li>
@@ -53,11 +55,11 @@ public class ConfigurationController extends BaseController {
      * </ul>
      *
      * @param parentsUniqueId The unique id of the parent node for the new node.
-     * @param node
-     *            A {@link Node} object. The {@link Node#getName()} field must be
-     *            non-null.
+     * @param node            A {@link Node} object. The {@link Node#getName()} field must be
+     *                        non-null.
      * @return The new folder in the tree.
      */
+    @SuppressWarnings("unused")
     @PutMapping("/node/{parentsUniqueId}")
     public Node createNode(@PathVariable String parentsUniqueId, @RequestBody final Node node) {
         if (node.getUserName() == null || node.getUserName().isEmpty()) {
@@ -71,8 +73,9 @@ public class ConfigurationController extends BaseController {
 
     /**
      * Gets a node.
-     *
+     * <p>
      * A {@link HttpStatus#NOT_FOUND} is returned if the specified node id does not exist.
+     *
      * @param uniqueNodeId The id of the folder
      * @return A {@link Node} object if a node with the specified id exists.
      */
@@ -86,11 +89,13 @@ public class ConfigurationController extends BaseController {
         return services.getRootNode();
     }
 
+    @SuppressWarnings("unused")
     @GetMapping("/node/{uniqueNodeId}/parent")
     public Node getParentNode(@PathVariable String uniqueNodeId) {
         return services.getParentNode(uniqueNodeId);
     }
 
+    @SuppressWarnings("unused")
     @GetMapping("/node/{uniqueNodeId}/children")
     public List<Node> getChildNodes(@PathVariable final String uniqueNodeId) {
         return services.getChildNodes(uniqueNodeId);
@@ -100,16 +105,17 @@ public class ConfigurationController extends BaseController {
      * Updates a configuration. For instance, user may change the name of the
      * configuration or modify the list of PVs. NOTE: in case PVs are removed from
      * the configuration, the corresponding snapshot values are also deleted.
-     *
+     * <p>
      * A {@link HttpStatus#NOT_FOUND} is returned if the specified node id does not exist.
-     *
+     * <p>
      * A {@link HttpStatus#BAD_REQUEST} is returned if the specified node id is a configuration node, or if a user name has not
      * been specified in the config data.
      *
-     * @param uniqueNodeId The unique id of the configuration.
+     * @param uniqueNodeId       The unique id of the configuration.
      * @param updateConfigHolder Wrapper of a {@link Node} object representing the config node and a list of {@link ConfigPv}s
      * @return The updated configuration {@link Node} object.
      */
+    @SuppressWarnings("unused")
     @PostMapping("/config/{uniqueNodeId}/update")
     public ResponseEntity<Node> updateConfiguration(@PathVariable String uniqueNodeId,
                                                     @RequestBody UpdateConfigHolder updateConfigHolder) {
@@ -136,23 +142,24 @@ public class ConfigurationController extends BaseController {
      * Recursively deletes a node and all its child nodes, if any. In particular, if the node id points to a configuration,
      * all snapshots associated with that configuration will also be deleted. A client may wish to alert the
      * user of this side-effect.
-     *
+     * <p>
      * A {@link HttpStatus#NOT_FOUND} is returned if the specified node id does not exist.
-     *
+     * <p>
      * A {@link HttpStatus#BAD_REQUEST} is returned if the specified node id is the tree root id (0).
      *
      * @param uniqueNodeId The non-zero id of the node to delete
      */
     @DeleteMapping("/node/{uniqueNodeId}")
     public void deleteNode(@PathVariable final String uniqueNodeId) {
+        Logger.getLogger(ConfigurationController.class.getName()).info(Thread.currentThread().getName() + " " + (new Date()) + " delete");
         services.deleteNode(uniqueNodeId);
     }
 
     /**
      * Returns a potentially empty list of {@link Node}s associated with the specified configuration node id.
-     *
+     * <p>
      * A {@link HttpStatus#NOT_FOUND} is returned if the specified configuration does not exist.
-     *
+     * <p>
      * A {@link HttpStatus#BAD_REQUEST} is returned if the specified node id is not a configuration.
      *
      * @param uniqueNodeId The id of the configuration
@@ -164,41 +171,41 @@ public class ConfigurationController extends BaseController {
     }
 
     /**
-     * Moves a node and its sub-tree to a another parent (target) folder.
+     * Moves a list of source nodes to a new target (parent) node.
      *
-     * A {@link HttpStatus#NOT_FOUND} is returned if the specified source node does not exist.
-     *
-     * A {@link HttpStatus#BAD_REQUEST} is returned if:
-     * <ol>
-     * <li>The specified target node does not exist</li>
-     * <li>The specified target node is not a folder node</li>
-     * <li>The specified target node already contains a child node with same name and type (i.e. configuration or folder)</li>
-     * </ol>
-     *
-     * @param uniqueNodeId The id of the source node
-     * @param to The new parent (target) node id
-     * @param userName The (account) name of the user performing the operation.
-     * @return A {@link Node} object representing the parent (target) folder.
+     * @param to       The unique id of the new parent, which must be a folder. If empty or if
+     *                 target node does not exist, {@link HttpStatus#BAD_REQUEST} is returned.
+     * @param userName Identity of the user performing the action on the client.
+     *                 If empty, {@link HttpStatus#BAD_REQUEST} is returned.
+     * @param nodes    List of source nodes to move. If empty, or if any of the listed source nodes does not exist,
+     *                 {@link HttpStatus#BAD_REQUEST} is returned.
+     * @return The (updated) target node.
      */
-    @PostMapping("/node/{uniqueNodeId}")
-    public Node moveNode(@PathVariable String uniqueNodeId,
-                         @RequestParam(value = "to", required = true) String to,
-                         @RequestParam(value = "username", required = true) String userName) {
-        return services.moveNode(uniqueNodeId, to, userName);
+    @SuppressWarnings("unused")
+    @PostMapping("/move")
+    public Node moveNodes(@RequestParam(value = "to", required = true) String to,
+                          @RequestParam(value = "username", required = true) String userName,
+                          @RequestBody List<String> nodes) {
+        if (to.isEmpty() || userName.isEmpty() || nodes.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username, target node and list of source nodes must all be non-empty.");
+        }
+        Logger.getLogger(ConfigurationController.class.getName()).info(Thread.currentThread().getName() + " " + (new Date()) + " move");
+        return services.moveNodes(nodes, to, userName);
     }
 
     /**
      * Renames a node.
-     *
+     * <p>
      * A {@link HttpStatus#BAD_REQUEST} is returned if a node of the same name and type already exists in the parent folder,
      * or if the node in question is the root node (0).
      *
-     * @param uniqueNodeId Node id of the node to rename. Must be non-zero.
+     * @param uniqueNodeId           Node id of the node to rename. Must be non-zero.
      * @param customTimeForMigration Self-explanatory
-     * @param nodeToUpdate {@link Node} object containing updated data. Only name and properties may be changed. The user name
-     * should be set by the client in an automated fashion and will be updated by the persistence layer.
+     * @param nodeToUpdate           {@link Node} object containing updated data. Only name and properties may be changed. The user name
+     *                               should be set by the client in an automated fashion and will be updated by the persistence layer.
      * @return A {@link Node} object representing the updated node.
      */
+    @SuppressWarnings("unused")
     @PostMapping("/node/{uniqueNodeId}/update")
     public Node updateNode(@PathVariable String uniqueNodeId,
                            @RequestParam(value = "customTimeForMigration", required = true) String customTimeForMigration,
@@ -206,6 +213,7 @@ public class ConfigurationController extends BaseController {
         return services.updateNode(nodeToUpdate, Boolean.valueOf(customTimeForMigration));
     }
 
+    @SuppressWarnings("unused")
     @GetMapping("/config/{uniqueNodeId}/items")
     public List<ConfigPv> getConfigPvs(@PathVariable String uniqueNodeId) {
         return services.getConfigPvs(uniqueNodeId);
@@ -216,12 +224,13 @@ public class ConfigurationController extends BaseController {
      * where nodeName is the name of the node uniquely identified by <code>unqiueNodeId</code>,
      * and any preceding path elements are the names of parent folders all the way up to the root.
      * The root folder corresponds to a single "/".
+     *
      * @param uniqueNodeId Non-null unique node id of the node for which the client wishes to get the
      *                     full path.
      * @return A string like /topLevelFolder/folder/nodeName if the node exists, otherwise HTTP 404
      * is returned.
-     *
      */
+    @SuppressWarnings("unused")
     @GetMapping("/path/{uniqueNodeId}")
     public String getFullPath(@PathVariable String uniqueNodeId) {
         String fullPath = services.getFullPath(uniqueNodeId);
@@ -235,10 +244,12 @@ public class ConfigurationController extends BaseController {
      * Retrieves the node(s) corresponding to the specified "full path". Since a folder node may
      * contain a folder node and a save set (configuration) node with the same name, this end point will - as long
      * as the specified path is valid - return a list with one or two node objects.
+     *
      * @param path Non-null path that must start with a forward slash and not end in a forward slash.
      * @return A {@link List} containing one or two {@link Node}s. If the specified path is invalid or
      * cannot be resolved to an existing node, HTTP 404 is returned.
      */
+    @SuppressWarnings("unused")
     @GetMapping("/path")
     public List<Node> getFromPath(@RequestParam(value = "path") String path) {
         List<Node> nodes = services.getFromPath(path);

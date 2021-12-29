@@ -60,7 +60,7 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
         treeView.setCellFactory(p -> new BrowserTreeCell(folderContextMenu,
                 saveSetContextMenu, null, rootFolderContextMenu));
 
-        treeView.getSelectionModel().selectedItemProperty().addListener((observableValue, nodeTreeItem, selectedTreeItem) -> {
+        browserSelectionModel.selectedItemProperty().addListener((observableValue, nodeTreeItem, selectedTreeItem) -> {
             listView.getItems().clear();
 
             if (selectedTreeItem == null) {
@@ -103,7 +103,7 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
     }
 
     @Override
-    protected void deleteSnapshots(){
+    protected void deleteSnapshots() {
         ObservableList<Node> selectedItems = listView.getSelectionModel().getSelectedItems();
         Alert alert = new Alert(AlertType.CONFIRMATION);
         alert.setTitle(Messages.promptDeleteSelectedTitle);
@@ -143,9 +143,9 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
             }
 
             @Override
-            public void failed(){
+            public void failed() {
                 Node node = saveAndRestoreService.getNode(listItem.getUniqueId());
-                if(node == null){
+                if (node == null) {
                     listView.getItems().remove(listItem);
                 }
                 ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
@@ -215,8 +215,15 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
             }
             nodeSubjectToUpdate.setValue(node);
             nodeSubjectToUpdate.getParent().getChildren().sort(new TreeNodeComparator());
-            treeView.getSelectionModel().clearSelection();
-            treeView.getSelectionModel().select(nodeSubjectToUpdate);
+            browserSelectionModel.clearSelection();
+            browserSelectionModel.select(nodeSubjectToUpdate);
+            // Folder node changes may include structure changes, so expand to force update.
+            if (nodeSubjectToUpdate.getValue().getNodeType().equals(NodeType.FOLDER)) {
+                if (nodeSubjectToUpdate.getParent() != null) { // null means root folder as it has no parent
+                    nodeSubjectToUpdate.getParent().getChildren().sort(treeNodeComparator);
+                }
+                expandTreeNode(nodeSubjectToUpdate);
+            }
         } else {
             listView.getItems().stream()
                     .filter(item -> item.getUniqueId().equals(node.getUniqueId()))
@@ -232,20 +239,22 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
     }
 
     @Override
-    public void nodeAdded(Node parentNode, Node newNode) {
-        if (newNode.getNodeType() != NodeType.SNAPSHOT) {
-            // Find the parent to which the new node is to be added
-            TreeItem<Node> parentTreeItem = recursiveSearch(parentNode.getUniqueId(), treeView.getRoot());
-            if (parentTreeItem == null) {
-                return;
-            }
-            parentTreeItem.getChildren().add(createTreeItem(newNode));
-            parentTreeItem.getChildren().sort(new TreeNodeComparator());
-            parentTreeItem.expandedProperty().setValue(true);
-        } else {
-            if (treeView.getSelectionModel().getSelectedItem().getValue().getUniqueId().equals(parentNode.getUniqueId())) {
-                listView.getItems().add(newNode);
-                listView.getItems().sort(new NodeComparator());
+    public void nodesAdded(Node parentNode, List<Node> newNodes) {
+        for (Node newNode : newNodes) {
+            if (newNode.getNodeType() != NodeType.SNAPSHOT) {
+                // Find the parent to which the new node is to be added
+                TreeItem<Node> parentTreeItem = recursiveSearch(parentNode.getUniqueId(), treeView.getRoot());
+                if (parentTreeItem == null) {
+                    return;
+                }
+                parentTreeItem.getChildren().add(createTreeItem(newNode));
+                parentTreeItem.getChildren().sort(new TreeNodeComparator());
+                parentTreeItem.expandedProperty().setValue(true);
+            } else {
+                if (treeView.getSelectionModel().getSelectedItem().getValue().getUniqueId().equals(parentNode.getUniqueId())) {
+                    listView.getItems().add(newNode);
+                    listView.getItems().sort(new NodeComparator());
+                }
             }
         }
     }
@@ -261,8 +270,8 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
             parentTreeItem = currentTreeItem;
         }
 
-        treeView.getSelectionModel().clearSelection();
-        treeView.getSelectionModel().select(parentTreeItem);
+        browserSelectionModel.clearSelection();
+        browserSelectionModel.select(parentTreeItem);
         treeView.scrollTo(treeView.getSelectionModel().getSelectedIndex());
 
         Node currentNode = nodeStack.pop();
@@ -289,7 +298,7 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
     }
 
     @Override
-    protected void addTagToSnapshot(){
+    protected void addTagToSnapshot() {
         addTagToSnapshot(listView.getSelectionModel().getSelectedItem());
     }
 
