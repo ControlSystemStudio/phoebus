@@ -198,7 +198,7 @@ public class ElasticClientHelper {
                 }
             }
             if(stateMessagedQueue.size() + configMessagedQueue.size() > 0){
-                System.out.println("batch execution of : " + stateMessagedQueue.size() + " state messages and " + configMessagedQueue.size() + " config messages");
+                logger.log(Level.INFO, "batch execution of : " + stateMessagedQueue.size() + " state messages and " + configMessagedQueue.size() + " config messages");
                 BulkRequest bulkRequest = new BulkRequest();
                 Collection<IndexRequest> stateIndexRequests = new ArrayList<>();
                 stateMessagedQueue.drainTo(stateIndexRequests);
@@ -209,6 +209,17 @@ public class ElasticClientHelper {
                 bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
                 try {
                     BulkResponse bulkResponse = client.bulk(bulkRequest, RequestOptions.DEFAULT);
+                    if(bulkResponse.hasFailures()) {
+                        logger.log(Level.SEVERE, "logging to index has failure: " + bulkResponse.buildFailureMessage());
+                        Arrays.stream(bulkResponse.getItems()).forEach(item -> {
+                                    if (item.isFailed()) {
+                                        logger.log(Level.SEVERE, "Failed while indexing to " + item.getIndex() + " type "
+                                                + item.getType() + item.getFailureMessage() + "]");
+                                    }
+                                }
+                        );
+                    }
+
                 } catch (IOException e) {
                     logger.log(Level.SEVERE, "failed to log messages to index ", e);
                 }
