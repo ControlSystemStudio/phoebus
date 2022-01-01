@@ -39,7 +39,10 @@ public interface DataProvider {
 
 	Node createNode(String parentsUniqueId, Node node);
 
+	@Deprecated
 	boolean deleteNode(String uniqueNodeId);
+
+	boolean deleteNodes(List<String> nodeIds);
 
 	List<ConfigPv> getConfigPvs(String uniqueNodeId);
 

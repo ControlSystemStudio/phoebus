@@ -35,7 +35,10 @@ public interface JMasarClient {
 
     Node updateNode(Node nodeToUpdate, boolean customTimeForMigration);
 
+    @Deprecated
     void deleteNode(String uniqueNodeId);
+
+    void deleteNodes(List<String> nodeIds);
 
     Node updateConfiguration(Node configToUpdate, List<ConfigPv> configPvList);
 

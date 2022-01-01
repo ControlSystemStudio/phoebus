@@ -123,8 +123,14 @@ public class SaveAndRestoreService {
         return future.get();
     }
 
+    @Deprecated
     public boolean deleteNode(String uniqueNodeId) throws Exception {
         Future<Boolean> future = executor.submit(() -> dataProvider.deleteNode(uniqueNodeId));
+        return future.get();
+    }
+
+    public boolean deleteNodes(List<String> nodeIds) throws Exception {
+        Future<Boolean> future = executor.submit(() -> dataProvider.deleteNodes(nodeIds));
         return future.get();
     }
 

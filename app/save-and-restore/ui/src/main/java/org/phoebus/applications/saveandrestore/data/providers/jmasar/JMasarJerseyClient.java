@@ -221,6 +221,7 @@ public class JMasarJerseyClient implements JMasarClient {
     }
 
     @Override
+    @Deprecated
     public void deleteNode(String uniqueNodeId) {
         WebResource webResource = client.resource(jmasarServiceUrl + "/node/" + uniqueNodeId);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).delete(ClientResponse.class);
@@ -228,6 +229,11 @@ public class JMasarJerseyClient implements JMasarClient {
             String message = response.getEntity(String.class);
             throw new DataProviderException("Failed : HTTP error code : " + response.getStatus() + ", error message: " + message);
         }
+    }
+
+    @Override
+    public void deleteNodes(List<String> nodeIds){
+
     }
 
     private String getCurrentUsersName() {

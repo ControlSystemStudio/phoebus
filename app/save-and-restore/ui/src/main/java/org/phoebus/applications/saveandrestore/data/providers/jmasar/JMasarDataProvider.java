@@ -75,10 +75,21 @@ public class JMasarDataProvider implements DataProvider {
 	}
 
 	@Override
+	@Deprecated
 	public boolean deleteNode(String uniqueNodeId) {
 
 		try {
 			jmasarClient.deleteNode(uniqueNodeId);
+		} catch (Exception e) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public boolean deleteNodes(List<String> nodeIds){
+		try {
+			jmasarClient.deleteNodes(nodeIds);
 		} catch (Exception e) {
 			return false;
 		}

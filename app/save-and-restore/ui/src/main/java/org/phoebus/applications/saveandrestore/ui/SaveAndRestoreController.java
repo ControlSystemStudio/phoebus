@@ -417,7 +417,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         });
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get().equals(ButtonType.OK)) {
-            selectedItems.forEach(this::deleteTreeItem);
+            //selectedItems.forEach(this::deleteTreeItem);
+            deleteTreeItems(selectedItems);
         }
     }
 
@@ -428,6 +429,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      *
      * @param treeItem The item to be deleted from the tree view
      */
+    @Deprecated
     private void deleteTreeItem(TreeItem<Node> treeItem) {
         TreeItem<Node> parent = treeItem.getParent();
         Task<Void> task = new Task<>() {
@@ -456,6 +458,45 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 expandTreeNode(treeItem.getParent());
                 ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
                         MessageFormat.format(Messages.errorDeleteNodeFailed, treeItem.getValue().getName()), null);
+            }
+        };
+
+        new Thread(task).start();
+    }
+
+    private void deleteTreeItems(ObservableList<TreeItem<Node>> items) {
+        TreeItem<Node> parent = items.get(0).getParent();
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                List<String> nodeIds =
+                        items.stream().map(item -> item.getValue().getUniqueId()).collect(Collectors.toList());
+                saveAndRestoreService.deleteNodes(nodeIds);
+                return null;
+            }
+
+            @Override
+            public void succeeded() {
+                parent.getChildren().removeAll(items);
+                List<Tab> tabsToRemove = new ArrayList<>();
+                List<Tab> visibleTabs = tabPane.getTabs();
+                for (Tab tab : visibleTabs) {
+                    for(TreeItem<Node> treeItem : items){
+                        if (tab.getId().equals(treeItem.getValue().getUniqueId())) {
+                            tabsToRemove.add(tab);
+                            tab.getOnCloseRequest().handle(null);
+                        }
+                    }
+                }
+                tabPane.getTabs().removeAll(tabsToRemove);
+                browserSelectionModel.clearSelection();
+            }
+
+            @Override
+            public void failed() {
+                expandTreeNode(items.get(0).getParent());
+                ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
+                        MessageFormat.format(Messages.errorDeleteNodeFailed, items.get(0).getValue().getName()), null);
             }
         };
 
