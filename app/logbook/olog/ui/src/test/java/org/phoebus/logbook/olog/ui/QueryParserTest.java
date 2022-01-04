@@ -14,19 +14,18 @@ import static org.phoebus.util.time.TimestampFormats.MILLI_FORMAT;
 
 /**
  * Test the parsing of the logbook query URI syntax
- * 
- * @author Kunal Shroff
  *
+ * @author Kunal Shroff
  */
 public class QueryParserTest {
 
     @Test
     public void basic() {
-        URI uri = URI.create("logbook://?desc=*Fault*Motor*&tag=operation");
+        URI uri = URI.create("logbook://?desc=*Fault*Motor*&tags=operation");
         Map<String, String> queryParameters = LogbookQueryUtil.parseQueryURI(uri);
         Map<String, String> expectedMap = new HashMap<String, String>();
         expectedMap.put("desc", "*Fault*Motor*");
-        expectedMap.put("tag", "operation");
+        expectedMap.put("tags", "operation");
         assertEquals(expectedMap, queryParameters);
 
         // Also test empty query
@@ -34,17 +33,38 @@ public class QueryParserTest {
         queryParameters = LogbookQueryUtil.parseQueryURI(uri);
         assertTrue(queryParameters.isEmpty());
 
+        String query = "desc=*Fault*Motor*&tags=operation&start=2 days&end=now";
+        queryParameters = LogbookQueryUtil.parseHumanReadableQueryString(query);
+        assertEquals("*Fault*Motor*", queryParameters.get("desc"));
+        assertEquals("operation", queryParameters.get("tags"));
+        assertEquals("2 days", queryParameters.get("start"));
+        assertEquals("now", queryParameters.get("end"));
+
+        queryParameters = LogbookQueryUtil.parseQueryString(query);
+        assertEquals("*Fault*Motor*", queryParameters.get("desc"));
+        assertEquals("operation", queryParameters.get("tags"));
+        assertEquals(23, queryParameters.get("start").length());
+        assertEquals(23, queryParameters.get("end").length());
+
+        uri = URI.create("logbook://?");
+        assertTrue(LogbookQueryUtil.parseQueryURI(uri).isEmpty());
+
+        assertTrue(LogbookQueryUtil.parseQueryString(null).isEmpty());
+        assertTrue(LogbookQueryUtil.parseQueryString("").isEmpty());
+
+        assertTrue(LogbookQueryUtil.parseHumanReadableQueryString(null).isEmpty());
+        assertTrue(LogbookQueryUtil.parseHumanReadableQueryString("").isEmpty());
     }
 
     @Test
     public void timeParsing() {
         long now = System.currentTimeMillis();
-        URI uri = URI.create("logbook://?desc=*Fault*Motor*&tag=operation&start=8hours&end=now");
+        URI uri = URI.create("logbook://?desc=*Fault*Motor*&tags=operation&start=8hours&end=now");
         Map<String, String> queryParameters = LogbookQueryUtil.parseQueryURI(uri);
         assertEquals("*Fault*Motor*", queryParameters.get(Keys.SEARCH.getName()));
         assertEquals("operation", queryParameters.get(Keys.TAGS.getName()));
         assertEquals(now, Instant.from(MILLI_FORMAT.parse(queryParameters.get(Keys.ENDTIME.getName()))).toEpochMilli(), 60000);
-        assertEquals((now-(8*60*60*1000)), Instant.from(MILLI_FORMAT.parse(queryParameters.get(Keys.STARTTIME.getName()))).toEpochMilli(), 60000);
+        assertEquals((now - (8 * 60 * 60 * 1000)), Instant.from(MILLI_FORMAT.parse(queryParameters.get(Keys.STARTTIME.getName()))).toEpochMilli(), 60000);
     }
 
     /**
@@ -52,52 +72,41 @@ public class QueryParserTest {
      */
     @Test
     public void emptyValueTest() {
-        URI uri = URI.create("logbook://?desc=*Fault*Motor*&tag=operation&logbook");
+        URI uri = URI.create("logbook://?desc=*Fault*Motor*&tags=operation&logbooks");
         Map<String, String> queryParameters = LogbookQueryUtil.parseQueryURI(uri);
         Map<String, String> expectedMap = new HashMap<String, String>();
         expectedMap.put("desc", "*Fault*Motor*");
-        expectedMap.put("tag", "operation");
-        expectedMap.put("logbook", "*");
+        expectedMap.put("tags", "operation");
+        expectedMap.put("logbooks", "*");
         assertEquals(expectedMap, queryParameters);
     }
 
-    /**
-     * Since the current logbook client api does not support multi value maps reusing the same query key word should throw an exception.
-     */
-    @Test(expected = Exception.class)
-    public void multiValueTest() {
-        URI uri = URI.create("logbook://?desc=*Fault*Motor*&tag=operation&tag=loto");
+    @Test
+    public void testDuplicateKeys() {
+        URI uri = URI.create("logbook://?desc=*Fault*Motor*&tags=operation&desc=foo");
         Map<String, String> queryParameters = LogbookQueryUtil.parseQueryURI(uri);
+        assertEquals(2, queryParameters.size());
+
+        String query = "desc=*Fault*Motor*&tags=operation&desc=foo";
+        queryParameters = LogbookQueryUtil.parseHumanReadableQueryString(query);
+        assertEquals(2, queryParameters.size());
+
+        queryParameters = LogbookQueryUtil.parseQueryString(query);
+        assertEquals(2, queryParameters.size());
     }
 
     @Test
-    public void testDetermineSortOrder(){
-        String query = "a=b&C=D";
-        String modifiedQuery = LogbookQueryUtil.addSortOrder(query, false);
-        assertEquals("a=b&C=D&sort=down", modifiedQuery);
+    public void testHiddenKeys() {
+        URI uri = URI.create("logbook://?desc=*Fault*Motor*&tags=operation&from=0&size=0&limit=0&sort=up");
+        Map<String, String> queryParameters = LogbookQueryUtil.parseQueryURI(uri);
+        assertEquals(2, queryParameters.size());
 
-        modifiedQuery = LogbookQueryUtil.addSortOrder(query, true);
-        assertEquals("a=b&C=D&sort=up", modifiedQuery);
+        String query = "desc=*Fault*Motor*&tags=operation&from=0&size=0&limit=0&sort=up";
+        queryParameters = LogbookQueryUtil.parseHumanReadableQueryString(query);
+        assertEquals(2, queryParameters.size());
 
-        query = "a=b&sort=up&C=D";
-        modifiedQuery = LogbookQueryUtil.addSortOrder(query, false);
-        assertEquals("a=b&C=D&sort=down", modifiedQuery);
-
-        query = "a=b&sort&C=D";
-        modifiedQuery = LogbookQueryUtil.addSortOrder(query, false);
-        assertEquals("a=b&C=D&sort=down", modifiedQuery);
-
-        query = "a=b&sort=down&C=D";
-        modifiedQuery = LogbookQueryUtil.addSortOrder(query, true);
-        assertEquals("a=b&C=D&sort=up", modifiedQuery);
-
-        // Also test empty query
-        query = "";
-        modifiedQuery = LogbookQueryUtil.addSortOrder(query, true);
-        assertEquals("sort=up", modifiedQuery);
-
-        query = null;
-        modifiedQuery = LogbookQueryUtil.addSortOrder(query, true);
-        assertEquals("sort=up", modifiedQuery);
+        queryParameters = LogbookQueryUtil.parseQueryString(query);
+        assertEquals(2, queryParameters.size());
     }
+
 }

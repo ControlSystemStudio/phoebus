@@ -5,9 +5,8 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
@@ -22,14 +21,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Pagination;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.util.Duration;
 import org.phoebus.framework.jobs.JobManager;
@@ -37,19 +35,21 @@ import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogbookException;
 import org.phoebus.logbook.Property;
+import org.phoebus.logbook.SearchResult;
 import org.phoebus.logbook.olog.ui.LogbookQueryUtil.Keys;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.ui.dialog.DialogHelper;
-import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -86,12 +86,23 @@ public class LogEntryTableViewController extends LogbookSearchController {
     private ImageView searchDescendingImageView;
     @FXML
     private ImageView searchAscendingImageView;
+    @FXML
+    private ImageView firstPageImageView;
+    @FXML
+    private ImageView lastPageImageView;
 
+    @FXML
+    private Pagination pagination;
+    @FXML
+    private Node searchResultView;
+
+    @FXML
+    private TextField pageSizeTextField;
     // Model
-    List<LogEntry> logEntries;
+    private SearchResult searchResult;
 
     // Search parameters
-    ObservableMap<Keys, String> searchParameters;
+    ObservableMap<Keys, String> searchParameters = FXCollections.observableHashMap();
 
     /**
      * List of selected log entries
@@ -111,29 +122,27 @@ public class LogEntryTableViewController extends LogbookSearchController {
     private SimpleBooleanProperty searchInProgress = new SimpleBooleanProperty(false);
     private SimpleBooleanProperty sortAscending = new SimpleBooleanProperty(false);
 
+    private SimpleIntegerProperty hitCountProperty = new SimpleIntegerProperty(0);
+    private SimpleIntegerProperty pageSizeProperty =
+            new SimpleIntegerProperty(LogbookUIPreferences.search_result_page_size);
+
+    @FXML
+    private Button firstPage;
+    @FXML
+    private Button lastPage;
+    @FXML
+    private Node paginationControls;
+
     @FXML
     public void initialize() {
 
-        searchParameters = FXCollections.observableHashMap();
-
         advancedSearchViewController.setSearchParameters(searchParameters);
-
-        query.setText(searchParameters.entrySet().stream()
-                .sorted(Entry.comparingByKey())
-                .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
-                .collect(Collectors.joining("&")));
 
         searchParameters.addListener((MapChangeListener<Keys, String>) change -> query.setText(searchParameters.entrySet().stream()
                 .sorted(Entry.comparingByKey())
                 .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
                 .collect(Collectors.joining("&"))));
 
-        // Bind ENTER key press to search
-        query.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            if (event.getCode() == KeyCode.ENTER) {
-                search();
-            }
-        });
 
         MenuItem groupSelectedEntries = new MenuItem(Messages.GroupSelectedEntries);
         groupSelectedEntries.setOnAction(e -> {
@@ -148,12 +157,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         // The display table.
         tableView.getColumns().clear();
         tableView.setEditable(false);
-        tableView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<>() {
-            @Override
-            public void changed(ObservableValue<? extends LogEntry> observable, LogEntry oldValue, LogEntry newValue) {
-                logEntryDisplayController.setLogEntry(newValue);
-            }
-        });
+        tableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> logEntryDisplayController.setLogEntry(newValue));
 
         tableView.getStylesheets().add(this.getClass().getResource("/search_result_view.css").toExternalForm());
 
@@ -197,12 +201,47 @@ public class LogEntryTableViewController extends LogbookSearchController {
         tableView.setPlaceholder(new Label(Messages.NoSearchResults));
 
         progressIndicator.visibleProperty().bind(searchInProgress);
-        searchInProgress.addListener((observable, oldValue, newValue) -> {
-            tableView.setDisable(newValue.booleanValue());
-        });
 
         searchDescendingImageView.setImage(ImageCache.getImage(LogEntryTableViewController.class, "/icons/arrow_down.png"));
         searchAscendingImageView.setImage(ImageCache.getImage(LogEntryTableViewController.class, "/icons/arrow_up.png"));
+        firstPageImageView.setImage(ImageCache.getImage(LogEntryTableViewController.class, "/icons/first_page.png"));
+        lastPageImageView.setImage(ImageCache.getImage(LogEntryTableViewController.class, "/icons/last_page.png"));
+
+        searchResultView.disableProperty().bind(searchInProgress);
+
+        pagination.currentPageIndexProperty().addListener((a, b, c) -> {
+            search();
+        });
+
+        pageSizeTextField.setText(Integer.toString(pageSizeProperty.get()));
+
+        Pattern DIGIT_PATTERN = Pattern.compile("\\d*");
+        // This is to accept numerical input only, and at most 3 digits (maximizing search to 999 hits).
+        pageSizeTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (DIGIT_PATTERN.matcher(newValue).matches()) {
+                if ("".equals(newValue)) {
+                    pageSizeProperty.set(LogbookUIPreferences.search_result_page_size);
+                } else if (newValue.length() > 3) {
+                    pageSizeTextField.setText(oldValue);
+                } else {
+                    pageSizeProperty.set(Integer.parseInt(newValue));
+                }
+            } else {
+                pageSizeTextField.setText(oldValue);
+            }
+        });
+
+        paginationControls.visibleProperty().bind(Bindings.createBooleanBinding(() -> pagination.pageCountProperty().get() > 1 && hitCountProperty.get() > 0,
+                pagination.pageCountProperty(), hitCountProperty));
+        firstPage.disableProperty().bind(Bindings.createBooleanBinding(() -> pagination.currentPageIndexProperty().get() == 0,
+                pagination.currentPageIndexProperty()));
+        lastPage.disableProperty().bind(Bindings.createBooleanBinding(() -> pagination.currentPageIndexProperty().get() == pagination.pageCountProperty().get() - 1,
+                pagination.currentPageIndexProperty(), pagination.pageCountProperty()));
+
+        // Hide the pagination widget if hit count == 0 or page count < 2
+        paginationControls.visibleProperty().bind(Bindings.createBooleanBinding(() -> hitCountProperty.get() > 0 && pagination.pageCountProperty().get() > 1,
+                hitCountProperty, pagination.pageCountProperty()));
+
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored
@@ -241,15 +280,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
     }
 
     @FXML
-    void updateQuery() {
-        String queryText = query.getText();
-        searchParameters.clear();
-        LogbookQueryUtil.parseHumanReadableQueryString(queryText).entrySet().stream().forEach(entry -> {
-            searchParameters.put(Keys.findKey(entry.getKey()), entry.getValue());
-        });
-    }
-
-    @FXML
     public void searchDescending() {
         sortAscending.set(false);
         search();
@@ -261,33 +291,44 @@ public class LogEntryTableViewController extends LogbookSearchController {
         search();
     }
 
-    private void search() {
-        // parse the various time representations to Instant
+    public void search() {
         tableView.getSelectionModel().clearSelection();
-        // Determine sort order
-        String searchStringWithSortOrder = null;
-        try {
-            searchStringWithSortOrder = LogbookQueryUtil.addSortOrder(query.getText(), sortAscending.get());
-        } catch (Exception ex) { // Parsing query may throw exception, e.g. search parameter specified multiple times.
-            logger.log(Level.INFO, "Unable to construct search query", ex);
-            ExceptionDetailsErrorDialog.openError("Unable to construct search query", ex.getMessage(), ex);
-            return;
+        // In case the page size text field is empty, or the value is zero, set the page size to the default
+        if ("".equals(pageSizeTextField.getText()) || Integer.parseInt(pageSizeTextField.getText()) == 0) {
+            pageSizeTextField.setText(Integer.toString(LogbookUIPreferences.search_result_page_size));
         }
-        query.textProperty().set(searchStringWithSortOrder);
+
+        // Construct the query parameters from the search field string. Note that some keys
+        // are treated as "hidden" and removed in the returned map.
+        Map<String, String> params = LogbookQueryUtil.parseHumanReadableQueryString(query.getText());
+        searchParameters.clear();
+        params.entrySet().forEach(e -> searchParameters.put(Keys.findKey(e.getKey()), e.getValue()));
+
+        params.put("sort", sortAscending.get() ? "up" : "down");
+        params.put("from", Integer.toString(pagination.getCurrentPageIndex() * pageSizeProperty.get()));
+        params.put("size", Integer.toString(pageSizeProperty.get()));
+
         searchInProgress.set(true);
-        super.search(LogbookQueryUtil.parseQueryString(searchStringWithSortOrder),
-                (inProgress) -> searchInProgress.set(inProgress));
+
+        super.search(params, (inProgress) -> searchInProgress.set(inProgress));
     }
 
     @Override
     public void setLogs(List<LogEntry> logs) {
-        this.logEntries = logs;
+        throw new RuntimeException(new UnsupportedOperationException());
+    }
+
+    @Override
+    public void setSearchResult(SearchResult searchResult) {
+        this.searchResult = searchResult;
+        hitCountProperty.set(searchResult.getHitCount());
         refresh();
     }
 
     public void setQuery(String parsedQuery) {
-        query.setText(parsedQuery);
-        updateQuery();
+        Map<String, String> params = LogbookQueryUtil.parseHumanReadableQueryString(parsedQuery);
+        searchParameters.clear();
+        params.forEach((key, value) -> searchParameters.put(Keys.findKey(key), value));
         search();
     }
 
@@ -296,10 +337,12 @@ public class LogEntryTableViewController extends LogbookSearchController {
     }
 
     private void refresh() {
-        if (logEntries != null) {
+        if (this.searchResult != null) {
             ObservableList<LogEntry> logsList = FXCollections.observableArrayList();
-            logsList.addAll(new ArrayList<>(logEntries));
+            logsList.addAll(new ArrayList<>(searchResult.getLogs()));
             tableView.setItems(logsList);
+            hitCountProperty.set(searchResult.getHitCount());
+            pagination.pageCountProperty().setValue(1 + (hitCountProperty.get() / pageSizeProperty.get()));
         }
     }
 
@@ -329,5 +372,15 @@ public class LogEntryTableViewController extends LogbookSearchController {
             DialogHelper.positionDialog(dialog, tableView /*treeView*/, 0, 0);
             dialog.showAndWait();
         }
+    }
+
+    @FXML
+    public void goToFirstPage() {
+        pagination.setCurrentPageIndex(0);
+    }
+
+    @FXML
+    public void goToLastPage() {
+        pagination.setCurrentPageIndex(pagination.pageCountProperty().get() - 1);
     }
 }

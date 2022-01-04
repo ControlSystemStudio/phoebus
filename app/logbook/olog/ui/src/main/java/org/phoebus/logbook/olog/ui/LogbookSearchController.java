@@ -1,10 +1,10 @@
 package org.phoebus.logbook.olog.ui;
 
 import javafx.application.Platform;
-import javafx.beans.property.SimpleBooleanProperty;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.SearchResult;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import java.util.List;
@@ -16,9 +16,8 @@ import java.util.function.Consumer;
  * controller takes care of performing the query off the ui thread using
  * {@link Job}s and then invokes the setLogs method on the UI thread after
  * the query has been completed.
- * 
- * @author Kunal Shroff
  *
+ * @author Kunal Shroff
  */
 public abstract class LogbookSearchController {
 
@@ -39,10 +38,13 @@ public abstract class LogbookSearchController {
         }
         logbookSearchJob = LogbookSearchJob.submit(this.client,
                 map,
-                logs -> Platform.runLater(() -> setLogs(logs)),
+                searchResult -> Platform.runLater(() -> setSearchResult(searchResult)),
                 (url, ex) -> ExceptionDetailsErrorDialog.openError("Logbook Search Error", ex.getMessage(), ex),
                 progressHandler);
     }
 
+    @Deprecated
     public abstract void setLogs(List<LogEntry> logs);
+
+    public abstract void setSearchResult(SearchResult searchResult);
 }
