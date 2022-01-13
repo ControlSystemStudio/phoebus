@@ -47,7 +47,10 @@ public interface IServices {
 		throw new RuntimeException("Move nodes operation not supported");
 	}
 
+	@Deprecated
 	void deleteNode(String uniqueNodeId);
+
+	void deleteNodes(List<String> nodeIds);
 
 	Node updateConfiguration(Node configToUpdate, List<ConfigPv> configPvList);
 
@@ -84,10 +87,11 @@ public interface IServices {
 	 * Copies the list of source {@link Node}s to the target identified by the (unique) <code>targetNodeId</code>.
 	 * This operation is potentially expensive as it performs a deep copy, i.e. all child nodes of folder
 	 * and save set {@link Node}s are considered. Client should consider asynchronous call.
-	 * @param sourceNodes List of source nodes to copy
+	 * @param sourceNodes List of source node ids to copy
 	 * @param targetNodeId Target node of the copy operation
+	 * @param userName Id of the user performing the operation
 	 */
-	default void copy(List<Node> sourceNodes, String targetNodeId){
+	default Node copy(List<String> sourceNodes, String targetNodeId, String userName){
 		throw new RuntimeException("Copy operation not supported");
 	}
 }

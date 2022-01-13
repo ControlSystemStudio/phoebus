@@ -149,7 +149,7 @@ public class DAOTest {
 		Node config = Node.builder().name("My config").nodeType(NodeType.CONFIGURATION).build();
 
 		config = nodeDAO.createNode(rootNode.getUniqueId(), config);
-		Node snapshot = nodeDAO.createNode(config.getUniqueId(), Node.builder().nodeType(NodeType.SNAPSHOT).build());
+		Node snapshot = nodeDAO.createNode(config.getUniqueId(), Node.builder().name("node").nodeType(NodeType.SNAPSHOT).build());
 
 		nodeDAO.deleteNode(config.getUniqueId());
 
@@ -159,17 +159,8 @@ public class DAOTest {
 
 	@Test
 	public void testDeleteNodeInvalidNodeId() {
-		try {
-			nodeDAO.deleteNode(null);
-			fail("IllegalArgumentException expected here");
-		} catch (Exception e) {
-		}
-
-		try {
-			nodeDAO.deleteNode("non existing");
-			fail("IllegalArgumentException expected here");
-		} catch (Exception e) {
-		}
+		nodeDAO.deleteNode(null);
+		nodeDAO.deleteNode("non existing");
 	}
 
 
@@ -216,10 +207,24 @@ public class DAOTest {
 		assertNull(nodeDAO.getNode(folder2.getUniqueId()));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	@FlywayTest(invokeCleanDB = true)
 	public void testDeleteRootFolder() {
 		nodeDAO.deleteNode(nodeDAO.getRootNode().getUniqueId());
+		assertNotNull(nodeDAO.getRootNode());
+	}
+
+	@Test
+	@FlywayTest(invokeCleanDB = true)
+	public void testDeleteNodes() {
+		Node rootNode = nodeDAO.getRootNode();
+		Node folderNode = new Node();
+		folderNode.setName("Folder");
+		folderNode.setNodeType(NodeType.FOLDER);
+		folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
+
+		nodeDAO.deleteNodes(Arrays.asList(folderNode.getUniqueId()));
+		assertNull(nodeDAO.getNode(folderNode.getUniqueId()));
 	}
 
 	@Test
@@ -747,15 +752,6 @@ public class DAOTest {
 		nodeDAO.getSnapshot("nonExisting");
 	}
 
-	@Test(expected = RuntimeException.class)
-	@FlywayTest(invokeCleanDB = true)
-	public void testUniqueKeyOnNode() {
-
-		Node root = nodeDAO.getRootNode();
-		nodeDAO.createNode(root.getUniqueId(), Node.builder().uniqueId("b").name("n1").userName("g").build());
-		nodeDAO.createNode(root.getUniqueId(), Node.builder().uniqueId("b").name("n2").userName("g").build());
-	}
-
 	@Test
 	@FlywayTest(invokeCleanDB = true)
 	public void testSetRootNodeProperty() {
@@ -787,11 +783,11 @@ public class DAOTest {
 
 	@Test
 	@FlywayTest(invokeCleanDB = true)
-	public void testCreateNodeWithNonNullUNiqueId() {
+	public void testCreateNodeWithNonNullUniqueId() {
 		Node rootNode = nodeDAO.getRootNode();
 		Node folder = Node.builder().name("Folder").nodeType(NodeType.FOLDER).uniqueId("uniqueid").build();
 		folder = nodeDAO.createNode(rootNode.getUniqueId(), folder);
-		assertEquals("uniqueid", folder.getUniqueId());
+		assertNotEquals("uniqueid", folder.getUniqueId());
 	}
 
 	@Test(expected = NodeNotFoundException.class)
@@ -988,7 +984,7 @@ public class DAOTest {
 	@FlywayTest(invokeCleanDB = true)
 	public void testIsMoveAllowedRootNode() {
 		Node rootNode = nodeDAO.getRootNode();
-		assertFalse(nodeDAO.isMoveAllowed(Arrays.asList(rootNode), rootNode));
+		assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(rootNode), rootNode));
 	}
 
 	@Test
@@ -1003,7 +999,7 @@ public class DAOTest {
 		Node node2 = new Node();
 		node2.setName("Configuration node");
 		node2.setNodeType(NodeType.CONFIGURATION);
-		assertFalse(nodeDAO.isMoveAllowed(Arrays.asList(node1, node2), rootNode));
+		assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(node1, node2), rootNode));
 	}
 
 	@Test
@@ -1025,7 +1021,7 @@ public class DAOTest {
 		targetNode.setName("Target node");
 		targetNode.setNodeType(NodeType.FOLDER);
 
-		assertFalse(nodeDAO.isMoveAllowed(Arrays.asList(node1, node2), targetNode));
+		assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(node1, node2), targetNode));
 	}
 
 	@Test
@@ -1052,7 +1048,7 @@ public class DAOTest {
 		targetNode.setName("Target node");
 		targetNode.setNodeType(NodeType.FOLDER);
 
-		assertFalse(nodeDAO.isMoveAllowed(Arrays.asList(node1, node2), targetNode));
+		assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(node1, node2), targetNode));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -1100,7 +1096,7 @@ public class DAOTest {
 		node4.setNodeType(NodeType.FOLDER);
 		node4 = nodeDAO.createNode(node2.getUniqueId(), node4);
 
-		assertFalse(nodeDAO.isMoveAllowed(Arrays.asList(node3, node4), rootNode));
+		assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(node3, node4), rootNode));
 	}
 
 	@Test
@@ -1128,7 +1124,7 @@ public class DAOTest {
 		secondLevelFolder2.setNodeType(NodeType.FOLDER);
 		secondLevelFolder2 = nodeDAO.createNode(firstLevelFolder1.getUniqueId(), secondLevelFolder2);
 
-		assertTrue(nodeDAO.isMoveAllowed(Arrays.asList(secondLevelFolder1, secondLevelFolder2), rootNode));
+		assertTrue(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(secondLevelFolder1, secondLevelFolder2), rootNode));
 
 	}
 
@@ -1157,7 +1153,7 @@ public class DAOTest {
 		secondLevelFolder2.setNodeType(NodeType.FOLDER);
 		secondLevelFolder2 = nodeDAO.createNode(firstLevelFolder1.getUniqueId(), secondLevelFolder2);
 
-		assertFalse(nodeDAO.isMoveAllowed(Arrays.asList(firstLevelFolder2, firstLevelFolder1), secondLevelFolder2));
+		assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(firstLevelFolder2, firstLevelFolder1), secondLevelFolder2));
 
 	}
 
@@ -1223,5 +1219,214 @@ public class DAOTest {
 		rootNode = nodeDAO.moveNodes(Arrays.asList(configNode.getUniqueId(), configNode2.getUniqueId()), rootNode.getUniqueId(), "user");
 
 		assertEquals(3, nodeDAO.getChildNodes(rootNode.getUniqueId()).size());
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	@FlywayTest(invokeCleanDB = true)
+	public void testCopyFolderToSameParent(){
+		Node rootNode = nodeDAO.getRootNode();
+
+		Node folderNode = new Node();
+		folderNode.setName("Folder");
+		folderNode.setNodeType(NodeType.FOLDER);
+		folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
+
+		nodeDAO.copyNodes(Arrays.asList(folderNode.getUniqueId()), rootNode.getUniqueId(), "username");
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	@FlywayTest(invokeCleanDB = true)
+	public void testCopyConfigToSameParent(){
+		Node rootNode = nodeDAO.getRootNode();
+
+		Node configNode = new Node();
+		configNode.setName("Config");
+		configNode.setNodeType(NodeType.CONFIGURATION);
+		configNode = nodeDAO.createNode(rootNode.getUniqueId(), configNode);
+
+		nodeDAO.copyNodes(Arrays.asList(configNode.getUniqueId()), rootNode.getUniqueId(), "username");
+	}
+
+	@Test
+	@FlywayTest(invokeCleanDB = true)
+	public void testCopyFolderToOtherParent(){
+		Node rootNode = nodeDAO.getRootNode();
+
+		Node folderNode = new Node();
+		folderNode.setName("Folder");
+		folderNode.setNodeType(NodeType.FOLDER);
+		folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
+
+		Date lastModified = folderNode.getLastModified();
+
+		Node childFolderNode = new Node();
+		childFolderNode.setName("Child Folder");
+		childFolderNode.setNodeType(NodeType.FOLDER);
+		childFolderNode = nodeDAO.createNode(folderNode.getUniqueId(), childFolderNode);
+
+		nodeDAO.copyNodes(Arrays.asList(childFolderNode.getUniqueId()), rootNode.getUniqueId(), "username");
+
+		List<Node> childNodes = nodeDAO.getChildNodes(rootNode.getUniqueId());
+		assertEquals(2, childNodes.size());
+	}
+
+	@Test
+	@FlywayTest(invokeCleanDB = true)
+	public void testCopyConfigToOtherParent(){
+		Node rootNode = nodeDAO.getRootNode();
+
+		Node folderNode = new Node();
+		folderNode.setName("Folder");
+		folderNode.setNodeType(NodeType.FOLDER);
+		folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
+
+		Node configNode = new Node();
+		configNode.setName("Config");
+		configNode.setNodeType(NodeType.CONFIGURATION);
+		configNode = nodeDAO.createNode(folderNode.getUniqueId(), configNode);
+
+		nodeDAO.copyNodes(Arrays.asList(configNode.getUniqueId()), rootNode.getUniqueId(), "username");
+
+		List<Node> childNodes = nodeDAO.getChildNodes(rootNode.getUniqueId());
+		assertEquals(2, childNodes.size());
+	}
+
+	@Test
+	@FlywayTest(invokeCleanDB = true)
+	public void testCopyMultipleFolders(){
+		Node rootNode = nodeDAO.getRootNode();
+
+		Node folderNode = new Node();
+		folderNode.setName("Folder");
+		folderNode.setNodeType(NodeType.FOLDER);
+		folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
+
+		Node childFolder1 = new Node();
+		childFolder1.setName("Child Folder 1");
+		childFolder1.setNodeType(NodeType.FOLDER);
+		childFolder1 = nodeDAO.createNode(folderNode.getUniqueId(), childFolder1);
+
+		Node childFolder2 = new Node();
+		childFolder2.setName("Child Folder 2");
+		childFolder2.setNodeType(NodeType.FOLDER);
+		childFolder2 = nodeDAO.createNode(folderNode.getUniqueId(), childFolder2);
+
+		nodeDAO.copyNodes(Arrays.asList(childFolder1.getUniqueId(), childFolder2.getUniqueId()), rootNode.getUniqueId(), "username");
+
+		List<Node> childNodes = nodeDAO.getChildNodes(rootNode.getUniqueId());
+		assertEquals(3, childNodes.size());
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	@FlywayTest(invokeCleanDB = true)
+	public void testCopyFolderAndConfig(){
+		Node rootNode = nodeDAO.getRootNode();
+
+		Node folderNode = new Node();
+		folderNode.setName("Folder");
+		folderNode.setNodeType(NodeType.FOLDER);
+		folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
+
+		Node childFolder1 = new Node();
+		childFolder1.setName("Child Folder 1");
+		childFolder1.setNodeType(NodeType.FOLDER);
+		childFolder1 = nodeDAO.createNode(folderNode.getUniqueId(), childFolder1);
+
+		Node configNode = new Node();
+		configNode.setName("Config");
+		configNode.setNodeType(NodeType.CONFIGURATION);
+		configNode = nodeDAO.createNode(folderNode.getUniqueId(), configNode);
+
+		nodeDAO.copyNodes(Arrays.asList(childFolder1.getUniqueId(), configNode.getUniqueId()), rootNode.getUniqueId(), "username");
+	}
+
+	@Test
+	@FlywayTest(invokeCleanDB = true)
+	public void testCopySubtree(){
+		Node rootNode = nodeDAO.getRootNode();
+
+		Node folderNode = new Node();
+		folderNode.setName("Folder");
+		folderNode.setNodeType(NodeType.FOLDER);
+		folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
+
+		Node childFolder1 = new Node();
+		childFolder1.setName("Child Folder 1");
+		childFolder1.setNodeType(NodeType.FOLDER);
+		childFolder1 = nodeDAO.createNode(folderNode.getUniqueId(), childFolder1);
+
+		Node targetNode = new Node();
+		targetNode.setName("Target Folder");
+		targetNode.setNodeType(NodeType.FOLDER);
+		targetNode = nodeDAO.createNode(rootNode.getUniqueId(), targetNode);
+
+		nodeDAO.copyNodes(Arrays.asList(folderNode.getUniqueId()), targetNode.getUniqueId(), "username");
+
+		assertEquals(2, nodeDAO.getChildNodes(rootNode.getUniqueId()).size());
+		assertEquals(1, nodeDAO.getChildNodes(targetNode.getUniqueId()).size());
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	@FlywayTest(invokeCleanDB = true)
+	public void testCopySnapshot(){
+		Node rootNode = nodeDAO.getRootNode();
+
+		Node config = Node.builder().name("My config 3").nodeType(NodeType.CONFIGURATION).build();
+		config = nodeDAO.createNode(rootNode.getUniqueId(), config);
+		nodeDAO.updateConfiguration(config, Arrays.asList(ConfigPv.builder().pvName("whatever").build()));
+
+		SnapshotItem item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
+				.value(VDouble.of(7.7, alarm, time, display)).readbackValue(VDouble.of(7.7, alarm, time, display))
+				.build();
+
+		Node snapshotNode = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshotName", "comment", "userName");
+
+		Node folderNode = new Node();
+		folderNode.setName("Folder");
+		folderNode.setNodeType(NodeType.FOLDER);
+		folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
+
+		nodeDAO.copyNodes(Arrays.asList(snapshotNode.getUniqueId()), folderNode.getUniqueId(), "username");
+	}
+
+	@Test
+	@FlywayTest(invokeCleanDB = true)
+	public void testCopyConfigWithSnapshots(){
+		Node rootNode = nodeDAO.getRootNode();
+
+		Node config = Node.builder().name("My config 3").nodeType(NodeType.CONFIGURATION).build();
+		config = nodeDAO.createNode(rootNode.getUniqueId(), config);
+		nodeDAO.updateConfiguration(config, Arrays.asList(ConfigPv.builder().pvName("whatever").build()));
+
+		SnapshotItem item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
+				.value(VDouble.of(7.7, alarm, time, display)).readbackValue(VDouble.of(7.7, alarm, time, display))
+				.build();
+
+		Node snapshotNode = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshotName", "comment", "userName");
+		Tag tag = new Tag();
+		tag.setUserName("username");
+		tag.setSnapshotId(snapshotNode.getUniqueId());
+		tag.setName("tagname");
+		tag.setCreated(new Date());
+		tag.setComment("tagcomment");
+		snapshotNode.addTag(tag);
+		snapshotNode = nodeDAO.updateNode(snapshotNode, false);
+
+		Node folderNode = new Node();
+		folderNode.setName("Folder");
+		folderNode.setNodeType(NodeType.FOLDER);
+		folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
+
+		nodeDAO.copyNodes(Arrays.asList(config.getUniqueId()), folderNode.getUniqueId(), "username");
+
+		Node copiedConfig = nodeDAO.getChildNodes(folderNode.getUniqueId()).get(0);
+		Node copiedSnapshot = nodeDAO.getChildNodes(copiedConfig.getUniqueId()).get(0);
+		assertEquals("snapshotName", copiedSnapshot.getName());
+		assertEquals("comment", copiedSnapshot.getProperties().get("comment"));
+		assertEquals("username", copiedSnapshot.getUserName());
+		List<Tag> tags = nodeDAO.getTags(copiedSnapshot.getUniqueId());
+		assertEquals("username", tags.get(0).getUserName());
+		assertEquals("tagname", tags.get(0).getName());
+		assertEquals("tagcomment", tags.get(0).getComment());
 	}
 }

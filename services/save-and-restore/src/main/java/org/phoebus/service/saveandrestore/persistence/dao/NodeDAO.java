@@ -55,7 +55,10 @@ public interface NodeDAO {
 	 *            The unique id of the node to delete.
 	 *
 	 */
+	@Deprecated
 	void deleteNode(String nodeId);
+
+	void deleteNodes(List<String> nodeIds);
 
 	/**
 	 * Creates a new node in the tree.
@@ -73,7 +76,7 @@ public interface NodeDAO {
 	Node getParentNode(String uniqueNodeId);
 
 	/**
-	 * Moves a node (folder or config) to a new parent node.
+	 * Moves {@link Node}s (folder or config) to a new parent node.
 	 *
 	 * @param nodeIds List of unique node ids subject to move
 	 * @param targetId Unique id of new parent node
@@ -82,6 +85,17 @@ public interface NodeDAO {
 	 * @return The target {@link Node} object that is the new parent of the moved source {@link Node}
 	 */
 	Node moveNodes(List<String> nodeIds, String targetId, String userName);
+
+	/**
+	 * Copies {@link Node}s (folder or config) to some parent node.
+	 *
+	 * @param nodeIds List of unique node ids subject to move
+	 * @param targetId Unique id of target node
+	 * @param userName
+	 *            The (account) name of the user performing the operation.
+	 * @return The target {@link Node} object that is the new parent of the moved source {@link Node}
+	 */
+	Node copyNodes(List<String> nodeIds, String targetId, String userName);
 
 	/**
 	 * Updates an existing configuration, e.g. changes its name or list of PVs.

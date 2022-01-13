@@ -138,4 +138,9 @@ public class JMasarDataProvider implements DataProvider {
 	public Node moveNodes(List<String> sourceNodeIds, String targetNodeId){
 		return jmasarClient.moveNodes(sourceNodeIds, targetNodeId);
 	}
+
+	@Override
+	public Node copyNodes(List<String> sourceNodeIds, String targetNodeId){
+		return jmasarClient.copyNodes(sourceNodeIds, targetNodeId);
+	}
 }

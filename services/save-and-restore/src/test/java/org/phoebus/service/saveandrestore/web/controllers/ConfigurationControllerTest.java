@@ -278,13 +278,14 @@ public class ConfigurationControllerTest {
 		MockHttpServletRequestBuilder request = delete("/node/a");
 
 		mockMvc.perform(request).andExpect(status().isOk());
+	}
 
-		doThrow(new IllegalArgumentException()).when(services).deleteNode("a");
-
-		request = delete("/node/a");
-
-		mockMvc.perform(request).andExpect(status().isBadRequest());
-
+	@Test
+	public void testDeleteNodes() throws Exception {
+		MockHttpServletRequestBuilder request = delete("/node")
+				.contentType(JSON)
+				.content(objectMapper.writeValueAsString(Arrays.asList("a")));
+		mockMvc.perform(request).andExpect(status().isOk());
 	}
 
 	@Test

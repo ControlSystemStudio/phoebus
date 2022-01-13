@@ -422,48 +422,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
-    /**
-     * Deletes the {@link Node} associated with the {@link TreeItem}, and
-     * removes the {@link TreeItem} from the tree view. If {@link Node} is associated
-     * with an open tab, that tab is cleaned up and closed.
-     *
-     * @param treeItem The item to be deleted from the tree view
-     */
-    @Deprecated
-    private void deleteTreeItem(TreeItem<Node> treeItem) {
-        TreeItem<Node> parent = treeItem.getParent();
-        Task<Void> task = new Task<>() {
-            @Override
-            protected Void call() throws Exception {
-                saveAndRestoreService.deleteNode(treeItem.getValue().getUniqueId());
-                return null;
-            }
-
-            @Override
-            public void succeeded() {
-                parent.getChildren().remove(treeItem);
-                List<Tab> tabsToRemove = new ArrayList<>();
-                for (Tab tab : tabPane.getTabs()) {
-                    if (tab.getId().equals(treeItem.getValue().getUniqueId())) {
-                        tabsToRemove.add(tab);
-                        tab.getOnCloseRequest().handle(null);
-                    }
-                }
-                tabPane.getTabs().removeAll(tabsToRemove);
-                browserSelectionModel.clearSelection();
-            }
-
-            @Override
-            public void failed() {
-                expandTreeNode(treeItem.getParent());
-                ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
-                        MessageFormat.format(Messages.errorDeleteNodeFailed, treeItem.getValue().getName()), null);
-            }
-        };
-
-        new Thread(task).start();
-    }
-
     private void deleteTreeItems(ObservableList<TreeItem<Node>> items) {
         TreeItem<Node> parent = items.get(0).getParent();
         Task<Void> task = new Task<>() {

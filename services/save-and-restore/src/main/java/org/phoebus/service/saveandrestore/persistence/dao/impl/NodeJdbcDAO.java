@@ -102,7 +102,7 @@ public class NodeJdbcDAO implements NodeDAO {
      * user is deleting, the moved nodes - while still existing the database - would then not be
      * reachable through any tree path. While the probability for this to happen should be low, recovery
      * after such a failed move would require manual update of the database.
-     *
+     * <p>
      * Consequently a synchronization object is used to synchronize deletion and move operations.
      */
     private final Object deleteNodeSyncObject = new Object();
@@ -204,36 +204,38 @@ public class NodeJdbcDAO implements NodeDAO {
 
     @Override
     public void deleteNode(String nodeId) {
-        synchronized (deleteNodeSyncObject){
-            Node nodeToDelete = getNode(nodeId);
-            if (nodeToDelete == null) {
-                throw new NodeNotFoundException(String.format("Node with id=%s not found", nodeId));
-            }
-            if (nodeToDelete.getId() == Node.ROOT_NODE_ID) {
-                throw new IllegalArgumentException("Root node cannot be deleted");
-            }
-            Node parentNode = getParentNode(nodeToDelete.getUniqueId());
+        Node nodeToDelete = getNode(nodeId);
+        if (nodeToDelete == null || nodeToDelete.getId() == Node.ROOT_NODE_ID){
+            return;
+        }
+        Node parentNode = getParentNode(nodeToDelete.getUniqueId());
 
-            if (nodeToDelete.getNodeType().equals(NodeType.CONFIGURATION)) {
-                List<Integer> configPvIds = jdbcTemplate.queryForList(
-                        "select config_pv_id from config_pv_relation where config_id=?", new Object[]{nodeToDelete.getId()},
-                        Integer.class);
-                deleteOrphanedPVs(configPvIds);
-                for (Node node : getChildNodes(nodeToDelete.getUniqueId())) {
-                    deleteNode(node.getUniqueId());
-                }
-            } else if (nodeToDelete.getNodeType().equals(NodeType.FOLDER)) {
-                for (Node node : getChildNodes(nodeToDelete.getUniqueId())) {
-                    deleteNode(node.getUniqueId());
-                }
-            } else if (nodeToDelete.getNodeType().equals(NodeType.SNAPSHOT)) {
-                jdbcTemplate.update("delete from snapshot_node_pv where snapshot_node_id=?", nodeToDelete.getId());
+        if (nodeToDelete.getNodeType().equals(NodeType.CONFIGURATION)) {
+            List<Integer> configPvIds = jdbcTemplate.queryForList(
+                    "select config_pv_id from config_pv_relation where config_id=?", new Object[]{nodeToDelete.getId()},
+                    Integer.class);
+            deleteOrphanedPVs(configPvIds);
+            for (Node node : getChildNodes(nodeToDelete.getUniqueId())) {
+                deleteNode(node.getUniqueId());
             }
+        } else if (nodeToDelete.getNodeType().equals(NodeType.FOLDER)) {
+            for (Node node : getChildNodes(nodeToDelete.getUniqueId())) {
+                deleteNode(node.getUniqueId());
+            }
+        } else if (nodeToDelete.getNodeType().equals(NodeType.SNAPSHOT)) {
+            jdbcTemplate.update("delete from snapshot_node_pv where snapshot_node_id=?", nodeToDelete.getId());
+        }
 
-            jdbcTemplate.update("delete from node where unique_id=?", nodeToDelete.getUniqueId());
+        jdbcTemplate.update("delete from node where unique_id=?", nodeToDelete.getUniqueId());
 
-            // Update last modified date of the parent node
-            jdbcTemplate.update("update node set last_modified=? where id=?", Timestamp.from(Instant.now()), parentNode.getId());
+        // Update last modified date of the parent node
+        jdbcTemplate.update("update node set last_modified=? where id=?", Timestamp.from(Instant.now()), parentNode.getId());
+    }
+
+    @Override
+    public void deleteNodes(List<String> nodeIds){
+        synchronized (deleteNodeSyncObject) {
+            nodeIds.forEach(nodeId -> deleteNode(nodeId));
         }
     }
 
@@ -250,8 +252,13 @@ public class NodeJdbcDAO implements NodeDAO {
      * a folder {@link Node}.
      */
     @Override
-    public synchronized Node createNode(String parentNodeId, final Node node) {
+    public Node createNode(String parentNodeId, final Node node) {
 
+        Timestamp now = Timestamp.from(Instant.now());
+        return createNodeInternal(parentNodeId, node, now, now);
+    }
+
+    private synchronized Node createNodeInternal(String parentNodeId, final Node node, Timestamp createdDate, Timestamp lastModified) {
         Node parentNode = getNode(parentNodeId);
 
         if (parentNode == null) {
@@ -278,18 +285,18 @@ public class NodeJdbcDAO implements NodeDAO {
             throw new IllegalArgumentException("Node of same name and type already exists in parent node.");
         }
 
-        Timestamp now = Timestamp.from(Instant.now());
-        String uniqueId = node.getUniqueId() == null ? UUID.randomUUID().toString() : node.getUniqueId();
+        String uniqueId = UUID.randomUUID().toString();
 
         Map<String, Object> params = new HashMap<>(2);
         params.put("type", node.getNodeType().toString());
-        params.put("created", now);
-        params.put("last_modified", now);
+        params.put("created", createdDate);
+        params.put("last_modified", lastModified);
         params.put("unique_id", uniqueId);
-        params.put("name",
-                node.getNodeType().equals(NodeType.SNAPSHOT)
-                        ? new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(now)
-                        : node.getName());
+        String name = node.getName();
+        if (node.getNodeType().equals(NodeType.SNAPSHOT) && name != null && name.isEmpty()) {
+            name = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(createdDate);
+        }
+        params.put("name", name);
         params.put("username", node.getUserName());
 
 
@@ -428,7 +435,7 @@ public class NodeJdbcDAO implements NodeDAO {
      */
     @Override
     public Node moveNodes(List<String> nodeIds, String targetId, String userName) {
-        synchronized (deleteNodeSyncObject){
+        synchronized (deleteNodeSyncObject) {
             Node targetNode = getNode(targetId);
             if (targetNode == null) {
                 throw new NodeNotFoundException(String.format("Target node with unique id=%s not found", targetId));
@@ -447,7 +454,7 @@ public class NodeJdbcDAO implements NodeDAO {
             }
 
             // Now check if any of the list of source nodes can be moved
-            if (!isMoveAllowed(sourceNodes, targetNode)) {
+            if (!isMoveOrCopyAllowed(sourceNodes, targetNode)) {
                 throw new IllegalArgumentException("Prerequisites for moving source node(s) not met.");
             }
 
@@ -514,7 +521,8 @@ public class NodeJdbcDAO implements NodeDAO {
         // Remove PVs from relation table
         pvIdsToRemove.forEach(id -> jdbcTemplate.update(
                 "delete from config_pv_relation where config_id=? and config_pv_id=?",
-                configNode.getId(), id));
+                configNode.getId(),
+                id));
 
         // Check if any of the PVs is orphaned
         deleteOrphanedPVs(pvIdsToRemove);
@@ -576,10 +584,17 @@ public class NodeJdbcDAO implements NodeDAO {
 
     @Override
     public Node saveSnapshot(String parentsUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment, String userName) {
-        Node snapshotNode = createNode(parentsUniqueId, Node.builder()
+        Timestamp now = Timestamp.from(Instant.now());
+        return saveSnapshotInternal(parentsUniqueId, snapshotItems, snapshotName, comment, userName, now, now);
+    }
+
+    private Node saveSnapshotInternal(String parentsUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment, String userName, Timestamp created, Timestamp lastModified) {
+        Node snapshotNode = createNodeInternal(parentsUniqueId, Node.builder()
                 .name(snapshotName)
                 .nodeType(NodeType.SNAPSHOT)
-                .build());
+                .build(),
+                created,
+                lastModified);
 
         List<Map<String, Object>> paramsForBatch = new ArrayList<>();
         for (SnapshotItem snapshotItem : snapshotItems) {
@@ -615,7 +630,7 @@ public class NodeJdbcDAO implements NodeDAO {
         }
         snapshotPvInsert.executeBatch(paramsForBatch.toArray(new Map[paramsForBatch.size()]));
 
-        jdbcTemplate.update("update node set name=?, username=?, last_modified=? where unique_id=?", snapshotName, userName, Timestamp.from(Instant.now()), snapshotNode.getUniqueId());
+        jdbcTemplate.update("update node set name=?, username=?, last_modified=? where unique_id=?", snapshotName, userName, lastModified, snapshotNode.getUniqueId());
         insertOrUpdateProperty(snapshotNode.getId(), new AbstractMap.SimpleEntry<String, String>("comment", comment));
 
         return getSnapshot(snapshotNode.getUniqueId());
@@ -874,14 +889,14 @@ public class NodeJdbcDAO implements NodeDAO {
      * @param targetNode The wanted target {@link Node}
      * @return <code>true</code> if move criteria are met, otherwise <code>false</code>
      */
-    protected boolean isMoveAllowed(List<Node> nodes, Node targetNode) {
+    protected boolean isMoveOrCopyAllowed(List<Node> nodes, Node targetNode) {
         Node rootNode = getRootNode();
         // Check for root node and snapshot
         Optional<Node> rootOrSnapshotNode = nodes.stream()
                 .filter(node -> node.getName().equals(rootNode.getName()) ||
                         node.getNodeType().equals(NodeType.SNAPSHOT)).findFirst();
         if (rootOrSnapshotNode.isPresent()) {
-            LOG.info("Move not allowed: source node(s) list contains snapshot or root node.");
+            LOG.info("Move/copy not allowed: source node(s) list contains snapshot or root node.");
             return false;
         }
         if (nodes.size() > 1) {
@@ -904,7 +919,7 @@ public class NodeJdbcDAO implements NodeDAO {
         List<Node> parentsChildNodes = getChildNodes(targetNode.getUniqueId());
         for (Node node : nodes) {
             if (!isNodeNameValid(node, parentsChildNodes)) {
-                LOG.info("Move not allowed: target node already contains child node with same name and type: " + node.getName());
+                LOG.info("Move/copy not allowed: target node already contains child node with same name and type: " + node.getName());
                 return false;
             }
         }
@@ -920,5 +935,71 @@ public class NodeJdbcDAO implements NodeDAO {
                 "select count(*) from node_closure where descendant=(:descendant) and ancestor in (:ancestors)",
                 params, Integer.class);
         return count == 0;
+    }
+
+    @Override
+    public Node copyNodes(List<String> nodeIds, String targetNodeId, String userName) {
+        // First get the target node
+        Node targetNode = getNode(targetNodeId);
+        if (targetNode == null) {
+            throw new NodeNotFoundException("Target node " + targetNodeId + " not found");
+        }
+        if (!targetNode.getNodeType().equals(NodeType.FOLDER)) {
+            throw new IllegalArgumentException("Target node " + targetNodeId + " is not a folder node");
+        }
+        MapSqlParameterSource params =
+                new MapSqlParameterSource().addValue("nodeIds", nodeIds);
+        List<Node> sourceNodes = nodeListParameterJdbcTemplate.query("select * from node where unique_id in (:nodeIds) ", params, new NodeRowMapper());
+        // Size of return nodes must match size of node ids.
+        if (sourceNodes.size() != nodeIds.size()) {
+            throw new IllegalArgumentException("At least one unique node id not found.");
+        }
+
+        // Check that all source nodes can be copied to the target node
+        if (!isMoveOrCopyAllowed(sourceNodes, targetNode)) {
+            throw new IllegalArgumentException("Prerequisites for copying source node(s) not met.");
+        }
+
+        sourceNodes.forEach(sourceNode -> copyNode(sourceNode, targetNode, userName));
+
+        return targetNode;
+    }
+
+    private void copyNode(Node sourceNode, Node targetNode, String userName) {
+
+        Timestamp created = new Timestamp(sourceNode.getCreated().getTime());
+        Timestamp lastModified = new Timestamp(sourceNode.getLastModified().getTime());
+        Node newSourceNode = createNodeInternal(targetNode.getUniqueId(), sourceNode, created, lastModified);
+        Map<String, String> properties = getProperties(sourceNode.getId());
+        properties.put("username", userName);
+        newSourceNode.setProperties(properties);
+        updateProperties(newSourceNode.getId(), properties);
+
+        if (sourceNode.getNodeType().equals(NodeType.CONFIGURATION)) {
+            List<Node> childNodes = getChildNodes(sourceNode.getUniqueId());
+            childNodes.forEach(childNode -> {
+                Map<String, String> snapshotProperties = getProperties(childNode.getId());
+                List<SnapshotItem> snapshotItems = getSnapshotItems(childNode.getUniqueId());
+                Timestamp snapshotCreated = Timestamp.from(childNode.getCreated().toInstant());
+                Timestamp snapshotLastModified = Timestamp.from(childNode.getLastModified().toInstant());
+                Node newSnapshotNode =
+                        saveSnapshotInternal(newSourceNode.getUniqueId(),
+                                snapshotItems,
+                                childNode.getName(),
+                                snapshotProperties.get("comment"),
+                                userName,
+                                snapshotCreated,
+                                snapshotLastModified);
+                newSnapshotNode.setProperties(snapshotProperties);
+                List<Tag> tags = childNode.getTags();
+                tags.forEach(tag -> tag.setSnapshotId(newSnapshotNode.getUniqueId()));
+                newSnapshotNode.setTags(tags);
+                updateProperties(newSnapshotNode.getId(), newSnapshotNode.getProperties());
+                updateTags(newSnapshotNode.getUniqueId(), newSnapshotNode.getTags());
+            });
+        } else if (sourceNode.getNodeType().equals(NodeType.FOLDER)) {
+            List<Node> childNodes = getChildNodes(sourceNode.getUniqueId());
+            childNodes.forEach(childNode -> copyNode(newSourceNode, childNode, userName));
+        }
     }
 }

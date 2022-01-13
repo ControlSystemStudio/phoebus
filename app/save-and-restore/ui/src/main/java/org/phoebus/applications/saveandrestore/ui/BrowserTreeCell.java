@@ -146,10 +146,11 @@ public class BrowserTreeCell extends TreeCell<Node> {
                 } else {
                     sourceNodes.stream().forEach(sourceNode -> {
                         try {
-                            saveAndRestoreService.copyNode(sourceNode, targetNode);
+                            saveAndRestoreService.copyNode(sourceNodes, targetNode);
                         } catch (Exception exception) {
                             Logger.getLogger(BrowserTreeCell.class.getName())
                                     .log(Level.SEVERE, "Failed to copy node " + sourceNode.getName() + " to target folder " + targetNode.getName());
+                            ExceptionDetailsErrorDialog.openError(getTreeView(), Messages.copyOrMoveNotAllowedHeader, Messages.copyOrMoveNotAllowedBody, exception);
                         }
                     });
                 }

@@ -70,9 +70,14 @@ public class Services implements IServices {
     }
 
     @Override
+    @Deprecated
     public void deleteNode(String nodeId) {
         logger.log(Level.INFO, "Deleting node id=" + nodeId);
         nodeDAO.deleteNode(nodeId);
+    }
+
+    public void deleteNodes(List<String> nodeIds){
+        nodeDAO.deleteNodes(nodeIds);
     }
 
     @Override
@@ -166,17 +171,7 @@ public class Services implements IServices {
     }
 
     @Override
-    public void copy(List<Node> sourceNodes, String targetNodeId) {
-        // First get the target node
-        Node targetNode = getNode(targetNodeId);
-        if (targetNode == null) {
-            throw new NodeNotFoundException("Target node " + targetNodeId + " not found");
-        }
-        if (!targetNode.getNodeType().equals(NodeType.FOLDER)) {
-            throw new IllegalArgumentException("Target node " + targetNodeId + " is not a folder node");
-        }
-        List<Node> targetsChildNodes = getChildNodes(targetNodeId);
-        // TODO: finish up!
+    public Node copy(List<String> sourceNodes, String targetNodeId, String userName) {
+        return nodeDAO.copyNodes(sourceNodes, targetNodeId, userName);
     }
-
 }

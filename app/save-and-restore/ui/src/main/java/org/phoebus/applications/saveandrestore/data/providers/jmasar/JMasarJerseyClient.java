@@ -233,7 +233,14 @@ public class JMasarJerseyClient implements JMasarClient {
 
     @Override
     public void deleteNodes(List<String> nodeIds){
-
+        WebResource webResource = client.resource(jmasarServiceUrl + "/node");
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+                .entity(nodeIds, CONTENT_TYPE_JSON)
+                .delete(ClientResponse.class);
+        if (response.getStatus() != 200) {
+            String message = response.getEntity(String.class);
+            throw new DataProviderException("Failed : HTTP error code : " + response.getStatus() + ", error message: " + message);
+        }
     }
 
     private String getCurrentUsersName() {
@@ -286,6 +293,29 @@ public class JMasarJerseyClient implements JMasarClient {
     public Node moveNodes(List<String> sourceNodeIds, String targetNodeId) {
         WebResource webResource =
                 client.resource(jmasarServiceUrl + "/move")
+                        .queryParam("to", targetNodeId)
+                        .queryParam("username", getCurrentUsersName());
+
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+                .entity(sourceNodeIds, CONTENT_TYPE_JSON)
+                .post(ClientResponse.class);
+
+        if (response.getStatus() != 200) {
+            String message = Messages.copyOrMoveNotAllowedBody;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                // Ignore
+            }
+            throw new DataProviderException(message);
+        }
+        return response.getEntity(Node.class);
+    }
+
+    @Override
+    public Node copyNodes(List<String> sourceNodeIds, String targetNodeId) {
+        WebResource webResource =
+                client.resource(jmasarServiceUrl + "/copy")
                         .queryParam("to", targetNodeId)
                         .queryParam("username", getCurrentUsersName());
 

@@ -278,10 +278,17 @@ public class SaveAndRestoreService {
         return updatedNode;
     }
 
-    public Node copyNode(Node sourceNode, Node targetNode) throws Exception {
-        Node copy = Node.clone(sourceNode);
-        copy = createNode(targetNode.getUniqueId(), copy);
-        notifyNodeAddedListeners(targetNode, Arrays.asList(copy));
-        return copy;
+    public Node copyNode(List<Node> sourceNodes, Node targetNode) throws Exception {
+        // Create a reference to the source node's parent before the move
+        Node parentNode = getParentNode(sourceNodes.get(0).getUniqueId());
+        // Map list of nodes to list of unique ids
+        List<String> sourceNodeIds = sourceNodes.stream().map(Node::getUniqueId).collect(Collectors.toList());
+        Future<Node> future = executor.submit(() -> dataProvider.copyNodes(sourceNodeIds, targetNode.getUniqueId()));
+        Node updatedNode = future.get();
+        // Update the target node that now also contains the source node(s)
+        notifyNodeAddedListeners(targetNode, sourceNodes);
+        // Update the source node's original parent as it no longer contains the source node
+        notifyNodeChangeListeners(parentNode);
+        return updatedNode;
     }
 }

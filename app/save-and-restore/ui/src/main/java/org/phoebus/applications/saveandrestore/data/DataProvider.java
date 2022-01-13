@@ -61,4 +61,6 @@ public interface DataProvider {
 	List<Node> getAllSnapshots();
 
 	Node moveNodes(List<String> sourceNodeIds, String targetNodeId);
+
+	Node copyNodes(List<String> sourceNodeIds, String targetNodeId);
 }

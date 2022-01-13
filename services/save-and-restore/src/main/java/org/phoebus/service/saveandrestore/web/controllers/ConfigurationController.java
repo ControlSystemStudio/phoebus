@@ -150,9 +150,16 @@ public class ConfigurationController extends BaseController {
      * @param uniqueNodeId The non-zero id of the node to delete
      */
     @DeleteMapping("/node/{uniqueNodeId}")
+    @Deprecated
     public void deleteNode(@PathVariable final String uniqueNodeId) {
         Logger.getLogger(ConfigurationController.class.getName()).info(Thread.currentThread().getName() + " " + (new Date()) + " delete");
         services.deleteNode(uniqueNodeId);
+    }
+
+    @DeleteMapping("/node")
+    public void deleteNodes(@RequestBody List<String> nodeIds){
+        Logger.getLogger(ConfigurationController.class.getName()).info("Deleting node(s)");
+        services.deleteNodes(nodeIds);
     }
 
     /**
@@ -191,6 +198,30 @@ public class ConfigurationController extends BaseController {
         }
         Logger.getLogger(ConfigurationController.class.getName()).info(Thread.currentThread().getName() + " " + (new Date()) + " move");
         return services.moveNodes(nodes, to, userName);
+    }
+
+    /**
+     * Copies a list of source nodes to a target (parent) node. Since the source nodes may contain sub-trees at
+     * any depth, the copy operation needs to do a deep copy, which may take some time to complete.
+     *
+     * @param to       The unique id of the target parent node, which must be a folder. If empty or if
+     *                 target node does not exist, {@link HttpStatus#BAD_REQUEST} is returned.
+     * @param userName Identity of the user performing the action on the client.
+     *                 If empty, {@link HttpStatus#BAD_REQUEST} is returned.
+     * @param nodes    List of source nodes to copy. If empty, or if any of the listed source nodes does not exist,
+     *                 {@link HttpStatus#BAD_REQUEST} is returned.
+     * @return The (updated) target node.
+     */
+    @SuppressWarnings("unused")
+    @PostMapping("/copy")
+    public Node copyNodes(@RequestParam(value = "to", required = true) String to,
+                          @RequestParam(value = "username", required = true) String userName,
+                          @RequestBody List<String> nodes) {
+        if (to.isEmpty() || userName.isEmpty() || nodes.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username, target node and list of source nodes must all be non-empty.");
+        }
+        Logger.getLogger(ConfigurationController.class.getName()).info(Thread.currentThread().getName() + " " + (new Date()) + " move");
+        return services.copy(nodes, to, userName);
     }
 
     /**
