@@ -72,6 +72,9 @@ public class LegendPart<XTYPE extends Comparable<XTYPE>> extends PlotPart
         int max_width = 1; // Start with 1 pixel to avoid later div-by-0
         for (Trace<XTYPE> trace : traces)
         {
+            if (!trace.isVisible()) {
+                continue;
+            }
             final int width = metrics.stringWidth(trace.getLabel());
             if (width > max_width)
                 max_width = width;
@@ -112,6 +115,9 @@ public class LegendPart<XTYPE extends Comparable<XTYPE>> extends PlotPart
         int x = bounds.x, y = bounds.y + base_offset;
         for (Trace<XTYPE> trace : traces)
         {
+            if (!trace.isVisible()) {
+                continue;
+            }
 			gc.setColor(GraphicsUtils.convert(trace.getColor()));
             gc.drawString(trace.getLabel(), x, y);
             x += grid_x;

@@ -89,7 +89,14 @@ public class AlarmLogConfigSearchJob extends JobRunnableWithCancel {
                                 JsonNode time = ((ObjectNode) root).remove("time");
                                 JsonNode message_time = ((ObjectNode) root).remove("message_time");
                                 JsonNode message = ((ObjectNode) root).get("config_msg");
-                                return message.asText().replace("AlarmConfigMessage", "").trim();
+
+                                String alarmSource = message.asText().trim();
+                                // Backwards compatibility for the old invalid json representation of alarm messages
+                                if (alarmSource.startsWith("AlarmConfigMessage")) {
+                                    return alarmSource.replace("AlarmConfigMessage","");
+                                }
+                                Object json = objectMapper.readValue(alarmSource, Object.class);
+                                return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
                             } catch (Exception e) {
                                 errorHandler.accept("Failed to search for alarm config ", e);
                                 return null;

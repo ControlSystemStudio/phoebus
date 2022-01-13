@@ -16,6 +16,9 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.phoebus.applications.alarm.model.EnabledState;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
+import static org.phoebus.applications.alarm.messages.AlarmMessageUtil.objectConfigMapper;
+import static org.phoebus.applications.alarm.messages.AlarmMessageUtil.objectStateMapper;
+
 /**
  * A message which describes both state and configuration events
  * 
@@ -334,25 +337,6 @@ public class AlarmMessage implements Serializable{
         this.delete = delete;
     }
 
-
-    // The methods and classes below this are examples for handling the combined alarm state and config message
-    @JsonIgnore
-    private static final ObjectMapper objectStateMapper = new ObjectMapper();
-    static {
-       // SimpleModule simple_module = new SimpleModule();
-        //simple_module.addSerializer(new EnabledSerializer());
-       // objectStateMapper.registerModule(simple_module);
-        objectStateMapper.addMixIn(AlarmMessage.class, AlarmStateJsonMessage.class);
-    }
-    @JsonIgnore
-    private static final ObjectMapper objectConfigMapper = new ObjectMapper();
-    static {
-        SimpleModule simple_module = new SimpleModule();
-        simple_module.addSerializer(new EnabledSerializer());
-        objectConfigMapper.registerModule(simple_module);
-        objectConfigMapper.addMixIn(AlarmMessage.class, AlarmConfigJsonMessage.class);
-    }
-
     /**
      * Returns the json string representation of this object
      * 
@@ -366,47 +350,6 @@ public class AlarmMessage implements Serializable{
         } else {
             return objectStateMapper.writeValueAsString("");
         }
-    }
-
-
-    private static class AlarmStateJsonMessage {
-        @JsonIgnore
-        private String severity;
-        @JsonIgnore
-        private String message;
-        @JsonIgnore
-        private String value;
-        @JsonIgnore
-        private String current_severity;
-        @JsonIgnore
-        private String current_message;
-        @JsonIgnore
-        private String mode;
-	    @JsonIgnore
-        private boolean notify;
-        @JsonIgnore
-        private boolean latch;
-    }
-
-    private static class AlarmConfigJsonMessage {
-        @JsonIgnore
-        private EnabledState enabled;
-        @JsonIgnore
-        private boolean annunciating;
-        @JsonIgnore
-        private int delay;
-        @JsonIgnore
-        private int count;
-        @JsonIgnore
-        private String filter;
-        @JsonIgnore
-        private List<AlarmDetail> guidance;
-        @JsonIgnore
-        private List<AlarmDetail> displays;
-        @JsonIgnore
-        private List<AlarmDetail> commands;
-        @JsonIgnore
-        private List<AlarmDetail> actions;
     }
 
     @Override

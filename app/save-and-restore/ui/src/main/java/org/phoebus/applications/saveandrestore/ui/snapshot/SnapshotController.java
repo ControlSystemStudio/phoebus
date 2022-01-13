@@ -226,7 +226,7 @@ public class SnapshotController implements NodeChangedListener {
         snapshotNameLabel.getStyleClass().add("stand-out-mandatory");
         snapshotName.textProperty().bindBidirectional(snapshotNameProperty);
         snapshotName.textProperty().addListener(((observableValue, oldValue, newValue) -> {
-            if (newValue.isEmpty()) {
+            if (newValue == null || newValue.isEmpty()) {
                 snapshotNameLabel.getStyleClass().add("stand-out-mandatory");
             } else {
                 snapshotNameLabel.getStyleClass().remove("stand-out-mandatory");
@@ -237,7 +237,7 @@ public class SnapshotController implements NodeChangedListener {
         snapshotCommentLabel.getStyleClass().add("stand-out-mandatory");
         snapshotComment.textProperty().bindBidirectional(snapshotCommentProperty);
         snapshotComment.textProperty().addListener(((observableValue, oldValue, newValue) -> {
-            if (newValue.isEmpty()) {
+            if (newValue == null || newValue.isEmpty()) {
                 snapshotCommentLabel.getStyleClass().add("stand-out-mandatory");
             } else {
                 snapshotCommentLabel.getStyleClass().remove("stand-out-mandatory");

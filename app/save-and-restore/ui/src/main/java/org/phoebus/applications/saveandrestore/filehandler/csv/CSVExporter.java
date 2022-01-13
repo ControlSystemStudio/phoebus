@@ -93,7 +93,12 @@ public class CSVExporter extends CSVCommon {
         printStream.println(Comment(nodeToExport.getName()));
 
         printStream.println(Comment(DESCRIPTION_TAG));
-        printStream.println(Comment(nodeToExport.getProperty("description").replaceAll("([\\r\\n])", "$1" + COMMENT_PREFIX + " ")).trim());
+        // Corner case: description is not set if user chooses to export before save set is saved to service
+        String description = nodeToExport.getProperty("description");
+        if (description == null){
+            description = "description";
+        }
+        printStream.println(Comment(description.replaceAll("([\\r\\n])", "$1" + COMMENT_PREFIX + " ")).trim());
 
         printStream.println(Comment(ENDING_TAG));
 

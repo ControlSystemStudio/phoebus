@@ -120,7 +120,6 @@ public class SaveAndRestoreService {
 
     public Node createNode(String parentsUniqueId, Node newTreeNode) throws Exception {
         Future<Node> future = executor.submit(() -> dataProvider.createNode(parentsUniqueId, newTreeNode));
-
         notifyNodeAddedListeners(getNode(parentsUniqueId), newTreeNode);
         return future.get();
     }
