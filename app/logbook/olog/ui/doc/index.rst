@@ -129,9 +129,10 @@ Pagination
 ^^^^^^^^^^
 
 Each search request will retrieve a limited number of matching log entries to render in the list view. This limit
-- aka "page size" - defaults to 30, but it can be changed by a property value override. In addition, user may override the
+- aka "page size" - defaults to 30, but may be changed by a property value override. In addition, user may override the
 default page size in the UI. Page size must be between 1 and 999. If the search results in a hit count larger
-than the page size, the UI will render page navigation buttons and indicate the total number of pages.
+than the page size, the UI will render page navigation buttons below the list of log entries. The current page and
+total number of pages is also shown, see screen shot.
 The navigation buttons are not rendered if the search results in less than two pages.
 
 .. image:: images/pagination.png
@@ -167,7 +168,7 @@ Preferences related to the electronic logbook are the following:
 - ``org.phoebus.logbook.ui/save_credentials``. Indicates if user credentials should be cached. If ``true``, the user will
   have to specify credentials only for the first new log entry after launch of CS Studio. The side effect of credentials caching is that all entries will be created with the same user (owner) identity.
 
-- ``search_result_page_size``. The maximum number of hits per page to fetch and render in a search. User may override in the UI. Value must be 1 - 999, and i defaults to 30.
+- ``search_result_page_size``. The maximum number of hits per page to fetch and render in a search. User may override in the UI. Value must be 1 - 999, default is 30.
 
 
 
