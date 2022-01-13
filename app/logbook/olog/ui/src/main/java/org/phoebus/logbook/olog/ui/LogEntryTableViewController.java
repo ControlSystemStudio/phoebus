@@ -23,12 +23,14 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.util.Duration;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.LogClient;
@@ -86,10 +88,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
     private ImageView searchDescendingImageView;
     @FXML
     private ImageView searchAscendingImageView;
-    @FXML
-    private ImageView firstPageImageView;
-    @FXML
-    private ImageView lastPageImageView;
 
     @FXML
     private Pagination pagination;
@@ -125,17 +123,11 @@ public class LogEntryTableViewController extends LogbookSearchController {
     private SimpleIntegerProperty hitCountProperty = new SimpleIntegerProperty(0);
     private SimpleIntegerProperty pageSizeProperty =
             new SimpleIntegerProperty(LogbookUIPreferences.search_result_page_size);
+    private SimpleIntegerProperty pageCountProperty = new SimpleIntegerProperty(0);
 
-    @FXML
-    private Button firstPage;
-    @FXML
-    private Button lastPage;
-    @FXML
-    private Node paginationControls;
 
     @FXML
     public void initialize() {
-
         advancedSearchViewController.setSearchParameters(searchParameters);
 
         searchParameters.addListener((MapChangeListener<Keys, String>) change -> query.setText(searchParameters.entrySet().stream()
@@ -204,9 +196,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
         searchDescendingImageView.setImage(ImageCache.getImage(LogEntryTableViewController.class, "/icons/arrow_down.png"));
         searchAscendingImageView.setImage(ImageCache.getImage(LogEntryTableViewController.class, "/icons/arrow_up.png"));
-        firstPageImageView.setImage(ImageCache.getImage(LogEntryTableViewController.class, "/icons/first_page.png"));
-        lastPageImageView.setImage(ImageCache.getImage(LogEntryTableViewController.class, "/icons/last_page.png"));
-
         searchResultView.disableProperty().bind(searchInProgress);
 
         pagination.currentPageIndexProperty().addListener((a, b, c) -> {
@@ -231,17 +220,11 @@ public class LogEntryTableViewController extends LogbookSearchController {
             }
         });
 
-        paginationControls.visibleProperty().bind(Bindings.createBooleanBinding(() -> pagination.pageCountProperty().get() > 1 && hitCountProperty.get() > 0,
-                pagination.pageCountProperty(), hitCountProperty));
-        firstPage.disableProperty().bind(Bindings.createBooleanBinding(() -> pagination.currentPageIndexProperty().get() == 0,
-                pagination.currentPageIndexProperty()));
-        lastPage.disableProperty().bind(Bindings.createBooleanBinding(() -> pagination.currentPageIndexProperty().get() == pagination.pageCountProperty().get() - 1,
-                pagination.currentPageIndexProperty(), pagination.pageCountProperty()));
-
         // Hide the pagination widget if hit count == 0 or page count < 2
-        paginationControls.visibleProperty().bind(Bindings.createBooleanBinding(() -> hitCountProperty.get() > 0 && pagination.pageCountProperty().get() > 1,
+        pagination.visibleProperty().bind(Bindings.createBooleanBinding(() -> hitCountProperty.get() > 0 && pagination.pageCountProperty().get() > 1,
                 hitCountProperty, pagination.pageCountProperty()));
-
+        pagination.pageCountProperty().bind(pageCountProperty);
+        pagination.maxPageIndicatorCountProperty().bind(pageCountProperty);
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored
@@ -342,7 +325,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
             logsList.addAll(new ArrayList<>(searchResult.getLogs()));
             tableView.setItems(logsList);
             hitCountProperty.set(searchResult.getHitCount());
-            pagination.pageCountProperty().setValue(1 + (hitCountProperty.get() / pageSizeProperty.get()));
+            pageCountProperty.set(1 + (hitCountProperty.get() / pageSizeProperty.get()));
         }
     }
 
