@@ -46,6 +46,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -203,24 +204,40 @@ public class NodeJdbcDAO implements NodeDAO {
     }
 
     @Override
+    @Deprecated
     public void deleteNode(String nodeId) {
         Node nodeToDelete = getNode(nodeId);
         if (nodeToDelete == null || nodeToDelete.getId() == Node.ROOT_NODE_ID){
-            return;
+            throw new IllegalArgumentException("Cannot delete non-existing node");
         }
-        Node parentNode = getParentNode(nodeToDelete.getUniqueId());
+        deleteNode(nodeToDelete);
+    }
 
+    @Override
+    public void deleteNodes(List<String> nodeIds){
+        synchronized (deleteNodeSyncObject) {
+            // Get all nodes
+            List<Node> nodes = nodeIds.stream().map(nodeId -> getNode(nodeId)).collect(Collectors.toList());
+            if(nodes.stream().anyMatch(Objects::isNull)){
+                throw new IllegalArgumentException("At least one element in list of nodes to delete is invalid");
+            }
+            nodes.forEach(node -> deleteNode(node));
+        }
+    }
+
+    private void deleteNode(Node nodeToDelete){
+        Node parentNode = getParentNode(nodeToDelete.getUniqueId());
         if (nodeToDelete.getNodeType().equals(NodeType.CONFIGURATION)) {
             List<Integer> configPvIds = jdbcTemplate.queryForList(
                     "select config_pv_id from config_pv_relation where config_id=?", new Object[]{nodeToDelete.getId()},
                     Integer.class);
             deleteOrphanedPVs(configPvIds);
             for (Node node : getChildNodes(nodeToDelete.getUniqueId())) {
-                deleteNode(node.getUniqueId());
+                deleteNode(node);
             }
         } else if (nodeToDelete.getNodeType().equals(NodeType.FOLDER)) {
             for (Node node : getChildNodes(nodeToDelete.getUniqueId())) {
-                deleteNode(node.getUniqueId());
+                deleteNode(node);
             }
         } else if (nodeToDelete.getNodeType().equals(NodeType.SNAPSHOT)) {
             jdbcTemplate.update("delete from snapshot_node_pv where snapshot_node_id=?", nodeToDelete.getId());
@@ -230,13 +247,6 @@ public class NodeJdbcDAO implements NodeDAO {
 
         // Update last modified date of the parent node
         jdbcTemplate.update("update node set last_modified=? where id=?", Timestamp.from(Instant.now()), parentNode.getId());
-    }
-
-    @Override
-    public void deleteNodes(List<String> nodeIds){
-        synchronized (deleteNodeSyncObject) {
-            nodeIds.forEach(nodeId -> deleteNode(nodeId));
-        }
     }
 
     /**

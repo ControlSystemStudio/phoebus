@@ -1,0 +1,219 @@
+#
+# A fatal error has been detected by the Java Runtime Environment:
+#
+#  SIGSEGV (0xb) at pc=0x000000013c91f78a, pid=31529, tid=775
+#
+# JRE version: OpenJDK Runtime Environment (11.0.5+10) (build 11.0.5+10)
+# Java VM: OpenJDK 64-Bit Server VM (11.0.5+10, mixed mode, tiered, compressed oops, g1 gc, bsd-amd64)
+# Problematic frame:
+# C  [libjfxwebkit.dylib+0xeb378a]  WebCore::FontCache::lastResortFallbackFont(WebCore::FontDescription const&)+0x6a
+#
+# No core dump will be written. Core dumps have been disabled. To enable core dumping, try "ulimit -c unlimited" before starting Java again
+#
+# If you would like to submit a bug report, please visit:
+#   https://github.com/AdoptOpenJDK/openjdk-build/issues
+# The crash happened outside the Java Virtual Machine in native code.
+# See problematic frame for where to report the bug.
+#
+
+---------------  S U M M A R Y ------------
+
+Command Line: -agentlib:jdwp=transport=dt_socket,address=127.0.0.1:58794,suspend=y,server=n -Dprism.lcdtext=false -Duser.country=US -Duser.language=en -Dlogback.configurationFile=/Users/georgweiss/logback.xml -Dcom.sun.webkit.useHTTP2Loader=false -javaagent:/Users/georgweiss/Library/Caches/JetBrains/IdeaIC2020.2/captureAgent/debugger-agent.jar -Dfile.encoding=UTF-8 org.phoebus.product.Launcher -settings /Users/georgweiss/phoebus.ini -nosplash
+
+Host: MacBookPro15,2 x86_64 2800 MHz, 8 cores, 16G, Darwin 19.6.0
+Time: Thu Jan 13 08:51:55 2022 CET elapsed time: 11 seconds (0d 0h 0m 11s)
+
+---------------  T H R E A D  ---------------
+
+Current thread (0x00007ff909c21800):  JavaThread "JavaFX Application Thread" [_thread_in_native, id=775, stack(0x00007ffeee5c9000,0x00007ffeeedc9000)]
+
+Stack: [0x00007ffeee5c9000,0x00007ffeeedc9000],  sp=0x00007ffeeedb5e10,  free space=8115k
+Native frames: (J=compiled Java code, A=aot compiled Java code, j=interpreted, Vv=VM code, C=native code)
+C  [libjfxwebkit.dylib+0xeb378a]  WebCore::FontCache::lastResortFallbackFont(WebCore::FontDescription const&)+0x6a
+C  [libjfxwebkit.dylib+0xe49b85]  WebCore::FontCascadeFonts::realizeFallbackRangesAt(WebCore::FontCascadeDescription const&, unsigned int)+0x395
+C  [libjfxwebkit.dylib+0xa5af0]  WebCore::FontCascadeFonts::primaryFont(WebCore::FontCascadeDescription const&)+0x30
+C  [libjfxwebkit.dylib+0x114da35]  WebCore::RenderStyle::fontMetrics() const+0x15
+C  [libjfxwebkit.dylib+0x776c78]  WebCore::CSSPrimitiveValue::computeNonCalcLengthDouble(WebCore::CSSToLengthConversionData const&, WebCore::CSSUnitType, double)+0x68
+C  [libjfxwebkit.dylib+0x7769a7]  WebCore::Length WebCore::CSSPrimitiveValue::computeLength<WebCore::Length>(WebCore::CSSToLengthConversionData const&) const+0x57
+C  [libjfxwebkit.dylib+0x804a8b]  WebCore::Style::BuilderConverter::convertLength(WebCore::Style::BuilderState const&, WebCore::CSSValue const&)+0x8b
+C  [libjfxwebkit.dylib+0x57ba64]  WebCore::Style::BuilderGenerated::applyProperty(WebCore::CSSPropertyID, WebCore::Style::BuilderState&, WebCore::CSSValue&, bool, bool, WebCore::CSSRegisteredCustomProperty const*)+0xcd94
+C  [libjfxwebkit.dylib+0x11c6a6f]  WebCore::Style::Builder::applyProperty(WebCore::CSSPropertyID, WebCore::CSSValue&, WebCore::SelectorChecker::LinkMatchMask)+0x4ff
+C  [libjfxwebkit.dylib+0x11c613f]  WebCore::Style::Builder::applyLowPriorityProperties()+0x18f
+C  [libjfxwebkit.dylib+0x11d35ed]  WebCore::Style::Resolver::applyMatchedProperties(WebCore::Style::Resolver::State&, WebCore::Style::MatchResult const&, WebCore::Style::Resolver::UseMatchedDeclarationsCache)+0x39d
+C  [libjfxwebkit.dylib+0x11d24c8]  WebCore::Style::Resolver::styleForElement(WebCore::Element const&, WebCore::RenderStyle const*, WebCore::RenderStyle const*, WebCore::RuleMatchingBehavior, WebCore::SelectorFilter const*)+0x2f8
+C  [libjfxwebkit.dylib+0x11e1b3a]  WebCore::Style::TreeResolver::styleForElement(WebCore::Element&, WebCore::RenderStyle const&)+0xda
+C  [libjfxwebkit.dylib+0x11e1f70]  WebCore::Style::TreeResolver::resolveElement(WebCore::Element&)+0x80
+C  [libjfxwebkit.dylib+0x11e31a3]  WebCore::Style::TreeResolver::resolveComposedTree()+0x533
+C  [libjfxwebkit.dylib+0x11e3e57]  WebCore::Style::TreeResolver::resolve()+0x2e7
+C  [libjfxwebkit.dylib+0x8892a2]  WebCore::Document::resolveStyle(WebCore::Document::ResolveStyleType)+0x372
+C  [libjfxwebkit.dylib+0x8897d2]  WebCore::Document::updateStyleIfNeeded()+0x112
+C  [libjfxwebkit.dylib+0x89c668]  WebCore::Document::finishedParsing()+0x138
+C  [libjfxwebkit.dylib+0xb6798e]  WebCore::HTMLDocumentParser::prepareToStopParsing()+0xbe
+C  [libjfxwebkit.dylib+0xb690a8]  WebCore::HTMLDocumentParser::finish()+0x108
+C  [libjfxwebkit.dylib+0xc5f15a]  WebCore::DocumentWriter::end()+0x3a
+C  [libjfxwebkit.dylib+0xc4ea8a]  WebCore::DocumentLoader::finishedLoading()+0x1ba
+C  [libjfxwebkit.dylib+0xcdaf1c]  WebCore::CachedResource::checkNotify()+0x5c
+C  [libjfxwebkit.dylib+0xcd964a]  WebCore::CachedRawResource::finishLoading(WebCore::SharedBuffer*)+0x30a
+C  [libjfxwebkit.dylib+0xcaacb4]  WebCore::SubresourceLoader::didFinishLoading(WebCore::NetworkLoadMetrics const&)+0x204
+C  [libjfxwebkit.dylib+0xca26a0]  WebCore::ResourceLoader::didFinishLoading(WebCore::ResourceHandle*)+0xe0
+j  com.sun.webkit.network.URLLoaderBase.twkDidFinishLoading(J)V+0
+j  com.sun.webkit.network.URLLoader.notifyDidFinishLoading()V+41
+j  com.sun.webkit.network.URLLoader.lambda$didFinishLoading$5()V+8
+j  com.sun.webkit.network.URLLoader$$Lambda$689.run()V+4
+j  com.sun.javafx.application.PlatformImpl.lambda$runLater$10(Ljava/lang/Runnable;)Ljava/lang/Void;+1
+j  com.sun.javafx.application.PlatformImpl$$Lambda$101.run()Ljava/lang/Object;+4
+v  ~StubRoutines::call_stub
+V  [libjvm.dylib+0x3b38a1]  JavaCalls::call_helper(JavaValue*, methodHandle const&, JavaCallArguments*, Thread*)+0x27d
+V  [libjvm.dylib+0x4313c2]  JVM_DoPrivileged+0x645
+j  java.security.AccessController.doPrivileged(Ljava/security/PrivilegedAction;Ljava/security/AccessControlContext;)Ljava/lang/Object;+0 java.base@11.0.5
+j  com.sun.javafx.application.PlatformImpl.lambda$runLater$11(Ljava/lang/Runnable;Ljava/security/AccessControlContext;)V+7
+j  com.sun.javafx.application.PlatformImpl$$Lambda$100.run()V+8
+j  com.sun.glass.ui.InvokeLaterDispatcher$Future.run$$$capture()V+4
+j  com.sun.glass.ui.InvokeLaterDispatcher$Future.run()V+8
+v  ~StubRoutines::call_stub
+V  [libjvm.dylib+0x3b38a1]  JavaCalls::call_helper(JavaValue*, methodHandle const&, JavaCallArguments*, Thread*)+0x27d
+V  [libjvm.dylib+0x3ee57a]  jni_invoke_nonstatic(JNIEnv_*, JavaValue*, _jobject*, JNICallType, _jmethodID*, JNI_ArgumentPusher*, Thread*)+0x273
+V  [libjvm.dylib+0x3f20f0]  jni_CallVoidMethod+0x189
+C  [libglass.dylib+0x8f48]  -[GlassRunnable run]+0x58
+C  [Foundation+0x9ab4d]  __NSThreadPerformPerform+0xcc
+C  [CoreFoundation+0x84682]  __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE0_PERFORM_FUNCTION__+0x11
+C  [CoreFoundation+0x84621]  __CFRunLoopDoSource0+0x67
+C  [CoreFoundation+0x8443b]  __CFRunLoopDoSources0+0xd1
+C  [CoreFoundation+0x8316a]  __CFRunLoopRun+0x39f
+C  [CoreFoundation+0x8276e]  CFRunLoopRunSpecific+0x1ce
+C  [HIToolbox+0x2faad]  RunCurrentEventLoopInMode+0x124
+C  [HIToolbox+0x2f7c5]  ReceiveNextEventCommon+0x248
+C  [HIToolbox+0x2f569]  _BlockUntilNextEventMatchingListInModeWithFilter+0x40
+C  [AppKit+0x41659]  _DPSNextEvent+0x373
+C  [AppKit+0x3fea0]  -[NSApplication(NSEvent) _nextEventMatchingEventMask:untilDate:inMode:dequeue:]+0x548
+C  [AppKit+0x31bae]  -[NSApplication run]+0x292
+C  [libglass.dylib+0xaf60]  -[GlassApplication runLoop:]+0x750
+C  [Foundation+0x9ab4d]  __NSThreadPerformPerform+0xcc
+C  [CoreFoundation+0x84682]  __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE0_PERFORM_FUNCTION__+0x11
+C  [CoreFoundation+0x84621]  __CFRunLoopDoSource0+0x67
+C  [CoreFoundation+0x8443b]  __CFRunLoopDoSources0+0xd1
+C  [CoreFoundation+0x8316a]  __CFRunLoopRun+0x39f
+C  [CoreFoundation+0x8276e]  CFRunLoopRunSpecific+0x1ce
+C  [libjli.dylib+0x6400]  CreateExecutionEnvironment+0x191
+C  [libjli.dylib+0x24ce]  JLI_Launch+0x5ea
+C  [java+0x130d]  main+0x19d
+C  [libdyld.dylib+0x1acc9]  start+0x1
+
+Java frames: (J=compiled Java code, j=interpreted, Vv=VM code)
+j  com.sun.webkit.network.URLLoaderBase.twkDidFinishLoading(J)V+0
+j  com.sun.webkit.network.URLLoader.notifyDidFinishLoading()V+41
+j  com.sun.webkit.network.URLLoader.lambda$didFinishLoading$5()V+8
+j  com.sun.webkit.network.URLLoader$$Lambda$689.run()V+4
+j  com.sun.javafx.application.PlatformImpl.lambda$runLater$10(Ljava/lang/Runnable;)Ljava/lang/Void;+1
+j  com.sun.javafx.application.PlatformImpl$$Lambda$101.run()Ljava/lang/Object;+4
+v  ~StubRoutines::call_stub
+j  java.security.AccessController.doPrivileged(Ljava/security/PrivilegedAction;Ljava/security/AccessControlContext;)Ljava/lang/Object;+0 java.base@11.0.5
+j  com.sun.javafx.application.PlatformImpl.lambda$runLater$11(Ljava/lang/Runnable;Ljava/security/AccessControlContext;)V+7
+j  com.sun.javafx.application.PlatformImpl$$Lambda$100.run()V+8
+j  com.sun.glass.ui.InvokeLaterDispatcher$Future.run$$$capture()V+4
+j  com.sun.glass.ui.InvokeLaterDispatcher$Future.run()V+8
+v  ~StubRoutines::call_stub
+
+siginfo: si_signo: 11 (SIGSEGV), si_code: 1 (SEGV_MAPERR), si_addr: 0x0000000000000000
+
+Register to memory mapping:
+
+RAX=0x0 is NULL
+RBX=0x00007ffeeedb5e70 is pointing into the stack for thread: 0x00007ff909c21800
+RCX=0x000000012e8adc34 points into unknown readable memory: 73 65 72 69
+RDX=0x000000012e8adc73 points into unknown readable memory: 00 00 00 00 00
+RSP=0x00007ffeeedb5e10 is pointing into the stack for thread: 0x00007ff909c21800
+RBP=0x00007ffeeedb5e60 is pointing into the stack for thread: 0x00007ff909c21800
+RSI=0x000000013c8a9d08: _ZN7WebCore9FontCache19alternateFamilyNameERKN3WTF10AtomStringE+0xa08 in /Users/georgweiss/.openjfx/cache/16/libjfxwebkit.dylib at 0x000000013ba6c000
+RDI=0x0 is NULL
+R8 =0x0000000000000001 is an unknown value
+R9 =0x0000000000000141 is an unknown value
+R10=0x0000000102b69da0: _ZN19TemplateInterpreter13_active_tableE+0x4800 in /Library/Java/JavaVirtualMachines/jdk-11.0.5+10/Contents/Home/lib/server/libjvm.dylib at 0x0000000102000000
+R11=0x000000010e1055e0 is at entry_point+32 in (nmethod*)0x000000010e105410
+R12=0x00007ffeeedb5e90 is pointing into the stack for thread: 0x00007ff909c21800
+R13=0x000000012e8eabf8 points into unknown readable memory: 08 ac 8e 2e 01 00 00 00
+R14=0x000000012e888260 points into unknown readable memory: 00 00 00 00 00 00 00 00
+R15=0x000000013fc4c5b0: _ZZN7WebCore9FontCache9singletonEvE15globalFontCache+0 in /Users/georgweiss/.openjfx/cache/16/libjfxwebkit.dylib at 0x000000013ba6c000
+
+
+Registers:
+RAX=0x0000000000000000, RBX=0x00007ffeeedb5e70, RCX=0x000000012e8adc34, RDX=0x000000012e8adc73
+RSP=0x00007ffeeedb5e10, RBP=0x00007ffeeedb5e60, RSI=0x000000013c8a9d08, RDI=0x0000000000000000
+R8 =0x0000000000000001, R9 =0x0000000000000141, R10=0x0000000102b69da0, R11=0x000000010e1055e0
+R12=0x00007ffeeedb5e90, R13=0x000000012e8eabf8, R14=0x000000012e888260, R15=0x000000013fc4c5b0
+RIP=0x000000013c91f78a, EFLAGS=0x0000000000010206, ERR=0x0000000000000006
+  TRAPNO=0x000000000000000e
+
+Top of Stack: (sp=0x00007ffeeedb5e10)
+0x00007ffeeedb5e10:   0000000100000000 00007ffeeedb5e70
+0x00007ffeeedb5e20:   00007ffeee005e00 000000002e8eab00
+0x00007ffeeedb5e30:   000000012e8eabf8 0000000000000000
+0x00007ffeeedb5e40:   00007ffeeedb5e70 00007ffeeedb5e70
+0x00007ffeeedb5e50:   000000012e8eac04 000000012e8eabf8
+0x00007ffeeedb5e60:   00007ffeeedb5ed0 000000013c8b5b85
+0x00007ffeeedb5e70:   00007ffeeedb5e80 0000000000000001
+0x00007ffeeedb5e80:   00007ffeeedb5eb0 000000013c476046
+0x00007ffeeedb5e90:   0000000000000000 000000012e888260
+0x00007ffeeedb5ea0:   000000012e888260 00007ffeeedb6000
+0x00007ffeeedb5eb0:   0000000000000004 000000012e88ea00
+0x00007ffeeedb5ec0:   000000012e888260 000000012e8eabe0
+0x00007ffeeedb5ed0:   00007ffeeedb5f00 000000013bb11af0
+0x00007ffeeedb5ee0:   0000000000000000 00007ffeeedb6000
+0x00007ffeeedb5ef0:   00007ffeeedb5f80 0000000000000001
+0x00007ffeeedb5f00:   00007ffeeedb5f10 000000013cbb9a35
+0x00007ffeeedb5f10:   00007ffeeedb5f50 000000013c1e2c78
+0x00007ffeeedb5f20:   00007ffeeedb5f50 4000000000000000
+0x00007ffeeedb5f30:   00007ffeeedb6000 0000000000000000
+0x00007ffeeedb5f40:   00007ffeeedb6000 000000012e887230
+0x00007ffeeedb5f50:   00007ffeeedb5f70 000000013c1e29a7
+0x00007ffeeedb5f60:   0000000000000001 00007ffeeedb9958
+0x00007ffeeedb5f70:   00007ffeeedb5fd0 000000013c270a8b
+0x00007ffeeedb5f80:   000000012e853000 000000012e88e9f8
+0x00007ffeeedb5f90:   000000012e908ef0 000000013f800000
+0x00007ffeeedb5fa0:   000000012e853018 00007ffeeedb6000
+0x00007ffeeedb5fb0:   00007ffeeedb5fd0 000000012e853000
+0x00007ffeeedb5fc0:   000000012e887230 00007ffeeedb9920
+0x00007ffeeedb5fd0:   00007ffeeedb6050 000000013bfe7a64
+0x00007ffeeedb5fe0:   000000012e8dd3a8 000000012e888258
+0x00007ffeeedb5ff0:   0000000000000000 000000012e8eabe0
+0x00007ffeeedb6000:   0001000000000000 000000013c8ad6d4 
+
+Instructions: (pc=0x000000013c91f78a)
+0x000000013c91f68a:   00 00 00 00 eb 26 48 89 df e8 b8 d7 00 00 48 89
+0x000000013c91f69a:   df e8 b0 cf 27 01 8b 03 ff c8 75 d9 48 89 df e8
+0x000000013c91f6aa:   a2 d7 00 00 48 89 df e8 9a cf 27 01 4c 89 f0 48
+0x000000013c91f6ba:   83 c4 38 5b 41 5c 41 5d 41 5e 41 5f 5d c3 48 8d
+0x000000013c91f6ca:   3d a1 d6 32 03 e8 5c 11 4b 01 85 c0 0f 84 f2 fd
+0x000000013c91f6da:   ff ff 48 89 df e8 7c 8d 02 00 4c 8b 03 48 8d 15
+0x000000013c91f6ea:   48 48 04 03 48 8d 0d 4b 48 04 03 48 89 df 48 89
+0x000000013c91f6fa:   c6 41 ff 90 08 01 00 00 48 89 05 5f d6 32 03 48
+0x000000013c91f70a:   8d 3d 60 d6 32 03 e8 21 11 4b 01 e9 b4 fd ff ff
+0x000000013c91f71a:   66 0f 1f 44 00 00 55 48 89 e5 41 57 41 56 41 54
+0x000000013c91f72a:   53 48 83 ec 30 49 89 d6 49 89 f7 49 89 fc 8a 05
+0x000000013c91f73a:   6a d4 32 03 84 c0 0f 84 81 00 00 00 c6 45 c0 00
+0x000000013c91f74a:   c6 45 c2 00 c6 45 c6 00 c6 45 c8 00 c6 45 cc 00
+0x000000013c91f75a:   c6 45 ce 00 c7 04 24 00 00 00 00 48 8d 0d 34 d4
+0x000000013c91f76a:   32 03 48 8d 7d d8 4c 8d 4d c0 4c 89 fe 4c 89 f2
+0x000000013c91f77a:   45 31 c0 e8 5e af f8 ff 48 8b 45 d8 49 89 04 24
+0x000000013c91f78a:   ff 00 48 8b 5d d8 48 c7 45 d8 00 00 00 00 48 85
+0x000000013c91f79a:   db 74 1a 8b 03 ff c8 74 04 89 03 eb 10 48 89 df
+0x000000013c91f7aa:   e8 b1 70 f8 ff 48 89 df e8 99 ce 27 01 4c 89 e0
+0x000000013c91f7ba:   48 83 c4 30 5b 41 5c 41 5e 41 5f 5d c3 48 8d 3d
+0x000000013c91f7ca:   da d3 32 03 e8 5d 10 4b 01 85 c0 0f 84 6b ff ff
+0x000000013c91f7da:   ff 48 8d 35 03 45 04 03 48 8d 7d d8 e8 b5 ca 2c
+0x000000013c91f7ea:   01 48 8b 45 d8 48 89 05 aa d3 32 03 48 8d 35 a3
+0x000000013c91f7fa:   d3 32 03 48 8d 3d 3c e4 1f ff 48 8d 15 f5 c7 14
+0x000000013c91f80a:   ff e8 0e 10 4b 01 48 8d 3d 91 d3 32 03 e8 1a 10
+0x000000013c91f81a:   4b 01 e9 25 ff ff ff 66 2e 0f 1f 84 00 00 00 00
+0x000000013c91f82a:   00 0f 1f 44 00 00 55 48 89 e5 48 89 f8 48 c7 47
+0x000000013c91f83a:   08 00 00 00 00 48 c7 07 00 00 00 00 5d c3 0f 1f
+0x000000013c91f84a:   84 00 00 00 00 00 55 48 89 e5 31 c0 5d c3 0f 1f
+0x000000013c91f85a:   84 00 00 00 00 00 55 48 89 e5 48 8d 05 ed c7 34
+0x000000013c91f86a:   03 5d c3 0f 1f 00 55 48 89 e5 48 89 f8 48 c7 47
+0x000000013c91f87a:   08 00 00 00 00 48 c7 07 00 00 00 00 5d c3 0f 1f 
+
+
+Stack slot to memory mapping:
+stack at sp + 0 slots: 0x0000000100000000 is an unknown value
+stack at sp + 1 slots: 0x00007ffeeedb5e70 is pointing into the stack for thread: 0x00007ff909c21800
+stack at sp + 2 slots: 

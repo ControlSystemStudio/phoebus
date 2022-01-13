@@ -157,10 +157,14 @@ public class DAOTest {
 		assertNull(nodeDAO.getNode(snapshot.getUniqueId()));
 	}
 
-	@Test
-	public void testDeleteNodeInvalidNodeId() {
+	@Test(expected = IllegalArgumentException.class)
+	public void testDeleteNodeNullNodeId() {
 		nodeDAO.deleteNode(null);
-		nodeDAO.deleteNode("non existing");
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testDeleteNodeInvalidNodeId() {
+		nodeDAO.deleteNode("nonexisting");
 	}
 
 
@@ -207,11 +211,10 @@ public class DAOTest {
 		assertNull(nodeDAO.getNode(folder2.getUniqueId()));
 	}
 
-	@Test
+	@Test(expected = IllegalArgumentException.class)
 	@FlywayTest(invokeCleanDB = true)
 	public void testDeleteRootFolder() {
 		nodeDAO.deleteNode(nodeDAO.getRootNode().getUniqueId());
-		assertNotNull(nodeDAO.getRootNode());
 	}
 
 	@Test
@@ -1428,5 +1431,70 @@ public class DAOTest {
 		assertEquals("username", tags.get(0).getUserName());
 		assertEquals("tagname", tags.get(0).getName());
 		assertEquals("tagcomment", tags.get(0).getComment());
+	}
+
+	@Test
+	@FlywayTest(invokeCleanDB = true)
+	public void testDeleteNode() {
+		Node rootNode = nodeDAO.getRootNode();
+
+		Node folderNode = new Node();
+		folderNode.setName("Folder");
+		folderNode.setNodeType(NodeType.FOLDER);
+		folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
+
+		nodeDAO.deleteNodes(Arrays.asList(folderNode.getUniqueId()));
+		assertTrue(nodeDAO.getChildNodes(rootNode.getUniqueId()).isEmpty());
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	@FlywayTest(invokeCleanDB = true)
+	public void testDeleteNodeInvalidList() {
+		Node rootNode = nodeDAO.getRootNode();
+
+		Node folderNode = new Node();
+		folderNode.setName("Folder");
+		folderNode.setNodeType(NodeType.FOLDER);
+		folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
+
+		nodeDAO.deleteNodes(Arrays.asList(folderNode.getUniqueId(), "invalid"));
+	}
+
+	@Test
+	@FlywayTest(invokeCleanDB = true)
+	public void testDeleteMultiple() {
+		Node rootNode = nodeDAO.getRootNode();
+
+		Node folderNode = new Node();
+		folderNode.setName("Folder");
+		folderNode.setNodeType(NodeType.FOLDER);
+		folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
+
+		Node folderNode2 = new Node();
+		folderNode2.setName("Folder2");
+		folderNode2.setNodeType(NodeType.FOLDER);
+		folderNode2 = nodeDAO.createNode(rootNode.getUniqueId(), folderNode2);
+
+		nodeDAO.deleteNodes(Arrays.asList(folderNode.getUniqueId(), folderNode2.getUniqueId()));
+		assertTrue(nodeDAO.getChildNodes(rootNode.getUniqueId()).isEmpty());
+	}
+
+	@Test
+	@FlywayTest(invokeCleanDB = true)
+	public void testDeleteTree() {
+		Node rootNode = nodeDAO.getRootNode();
+
+		Node folderNode = new Node();
+		folderNode.setName("Folder");
+		folderNode.setNodeType(NodeType.FOLDER);
+		folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
+
+		Node folderNode2 = new Node();
+		folderNode2.setName("Folder2");
+		folderNode2.setNodeType(NodeType.FOLDER);
+		folderNode2 = nodeDAO.createNode(folderNode.getUniqueId(), folderNode2);
+
+		nodeDAO.deleteNodes(Arrays.asList(folderNode.getUniqueId()));
+		assertTrue(nodeDAO.getChildNodes(rootNode.getUniqueId()).isEmpty());
 	}
 }
