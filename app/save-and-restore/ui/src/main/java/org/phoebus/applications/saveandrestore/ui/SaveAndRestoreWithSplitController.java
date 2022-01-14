@@ -61,6 +61,9 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
                 saveSetContextMenu, null, rootFolderContextMenu));
 
         browserSelectionModel.selectedItemProperty().addListener((observableValue, nodeTreeItem, selectedTreeItem) -> {
+            if(!checkMultipleSelection(selectedTreeItem)){
+                return;
+            }
             listView.getItems().clear();
 
             if (selectedTreeItem == null) {

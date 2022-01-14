@@ -40,20 +40,32 @@ A word of caution
 -----------------
 
 Objects (nodes) maintained in save-and-restore are persisted in a central service and consequently accessible by
-connected clients. Users should consider that changes (e.g. new or deleted nodes) are not pushed to clients.
+connected clients. Users should keep in mind that changes (e.g. new or deleted nodes) are not pushed to all clients.
 Caution is therefore advocated when working on the nodes in the tree, in particular when changing the structure by
 deleting or moving nodes.
+
+Selection of objects in the tree view
+-----------------------------------
+
+Multiple selection - using mouse and key combination - of objects in the tree view is supported only if selected objects
+are of same type and if they have the same parent. If an unsupported selection is detected, an error dialog is shown and the
+selection is cleared.
 
 Drag-n-drop
 -----------
 
-Nodes in the tree can be moved using drag-n-drop mouse gestures, with the following restrictions:
+Objects in the tree can be copied or moved using drag-n-drop. While move is performed with mouse only,
+copy is supported using mouse + modifier key. The following restrictions apply:
 
-* Only folder and save set nodes can be moved.
-* Target node (aka drop target) must be a folder node.
-* If multiple nodes are selected they must all be of same type (folder or save set), and they must all have the same parent node.
+* Only folder and save set objects can be moved.
+* Target object (aka drop target) must be a folder.
 
 Checks are performed on the service to enforce the above restrictions. If pre-conditions are not met when the selection
-is dropped, the application will present an error dialog.
+is dropped to the target, the application will present an error dialog.
 
-Once a selection of nodes have been moved successfully, the target node is refreshed to reflect the change.
+Once a selection of objects have been copied or moved successfully, the target folder is refreshed to reflect the change.
+
+**NOTE**: A copy operation will take some time to execute if the selected objects contain large sub-trees. Users are therefore
+encouraged to avoid copy operations of complex sub-trees, or
+folders containing a large number of save sets, each with a large number of snapshots. A move
+operation on the other hand is lightweight as there is no need to copy data.

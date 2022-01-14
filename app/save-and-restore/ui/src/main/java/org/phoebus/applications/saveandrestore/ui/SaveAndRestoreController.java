@@ -161,6 +161,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         saveAndRestoreService = SaveAndRestoreService.getInstance();
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         browserSelectionModel = treeView.getSelectionModel();
+        browserSelectionModel.selectedItemProperty().addListener((observableValue, nodeTreeItem, selectedTreeItem) -> {
+            checkMultipleSelection(selectedTreeItem);
+        });
 
         preferencesReader =
                 new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
@@ -1103,5 +1106,41 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 tagList.add(tagItem);
             });
         }
+    }
+
+    protected boolean checkMultipleSelection(TreeItem<Node> selectedTreeItem){
+        ObservableList<TreeItem<Node>> alreadySelectedItems = browserSelectionModel.getSelectedItems();
+        if(alreadySelectedItems.size() < 2){
+            return true;
+        }
+        boolean selectionValid = true;
+        TreeItem<Node> parent = alreadySelectedItems.get(0).getParent();
+        NodeType nodeType = selectedTreeItem.getValue().getNodeType();
+        if(parent == null){
+            selectionValid = false;
+        }
+        else{
+            for(TreeItem<Node> treeItem : alreadySelectedItems){
+                TreeItem<Node> p = treeItem.getParent();
+                if(p == null){
+                    selectionValid = false;
+                    break;
+                }
+                else if(!p.equals(parent)){
+                    selectionValid = false;
+                    break;
+                }
+                else if(!treeItem.getValue().getNodeType().equals(nodeType)){
+                    selectionValid = false;
+                    break;
+                }
+            }
+        }
+        if(!selectionValid){
+            ExceptionDetailsErrorDialog.openError(splitPane, Messages.mutipleSelectionUnsupportedTitle, Messages.mutipleSelectionUnsupportedBody, null);
+            browserSelectionModel.clearSelection();
+        }
+
+        return selectionValid;
     }
 }
