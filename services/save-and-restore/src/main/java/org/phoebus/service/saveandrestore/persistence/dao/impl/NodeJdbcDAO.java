@@ -889,6 +889,7 @@ public class NodeJdbcDAO implements NodeDAO {
      * <ul>
      *     <li>All elements are of same {@link NodeType}.</li>
      *     <li>All elements have same parent.</li>
+     *     <li>All elements are folder nodes if the target is the root node.</li>
      *     <li>None of the elements is a snapshot node, or the root node.</li>
      *     <li>The target node - which must be a folder - does not contain any direct child nodes
      *     with same name and node type as any of the source nodes.</li>
@@ -907,6 +908,14 @@ public class NodeJdbcDAO implements NodeDAO {
                         node.getNodeType().equals(NodeType.SNAPSHOT)).findFirst();
         if (rootOrSnapshotNode.isPresent()) {
             LOG.info("Move/copy not allowed: source node(s) list contains snapshot or root node.");
+            return false;
+        }
+        // Check if selection contains save set node.
+        Optional<Node> saveSetNode = nodes.stream()
+                .filter(node -> node.getNodeType().equals(NodeType.CONFIGURATION)).findFirst();
+        // Save set nodes may not be moved/copied to root node.
+        if(saveSetNode.isPresent() && targetNode.getUniqueId().equals(rootNode.getUniqueId())){
+            LOG.info("Move/copy of save set node(s) to root node not allowed.");
             return false;
         }
         if (nodes.size() > 1) {

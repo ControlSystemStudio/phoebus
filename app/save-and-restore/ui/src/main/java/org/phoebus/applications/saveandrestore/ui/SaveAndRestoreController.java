@@ -21,7 +21,6 @@ package org.phoebus.applications.saveandrestore.ui;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -40,6 +39,7 @@ import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.MultipleSelectionModel;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
@@ -52,6 +52,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.TransferMode;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -73,6 +74,7 @@ import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotNewTagDialog;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
@@ -85,6 +87,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -117,10 +120,10 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     private Button searchButton;
 
     @FXML
-    private Label emptyTreeInstruction;
+    protected SplitPane splitPane;
 
     @FXML
-    protected SplitPane splitPane;
+    private ProgressIndicator progressIndicator;
 
     protected SaveAndRestoreService saveAndRestoreService;
 
@@ -133,7 +136,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     protected SimpleStringProperty toggleGoldenMenuItemText = new SimpleStringProperty();
     protected SimpleStringProperty jmasarServiceTitleProperty = new SimpleStringProperty();
-    protected BooleanProperty treeViewEmpty = new SimpleBooleanProperty(false);
     protected SimpleObjectProperty<ImageView> toggleGoldenImageViewProperty = new SimpleObjectProperty<>();
     private SimpleBooleanProperty multipleItemsSelected = new SimpleBooleanProperty(false);
     private SimpleBooleanProperty rootMovableNodesSelected = new SimpleBooleanProperty(false);
@@ -154,6 +156,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     protected Stage searchWindow;
     protected TreeNodeComparator treeNodeComparator = new TreeNodeComparator();
+
+    protected SimpleBooleanProperty copyOrMoveInProgress = new SimpleBooleanProperty(false);
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -176,8 +180,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         searchButton.setGraphic(searchButtonImageView);
         searchButton.setTooltip(new Tooltip(Messages.buttonSearch));
-
-        emptyTreeInstruction.textProperty().setValue(Messages.labelCreateFolderEmptyTree);
 
         folderContextMenu = new ContextMenuFolder(this, preferencesReader.getBoolean("enableCSVIO"), multipleItemsSelected);
         folderContextMenu.setOnShowing(event -> {
@@ -215,12 +217,17 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         treeView.setShowRoot(true);
 
         jmasarServiceTitle.textProperty().bind(jmasarServiceTitleProperty);
-        emptyTreeInstruction.visibleProperty().bindBidirectional(treeViewEmpty);
         saveAndRestoreService.addNodeChangeListener(this);
         saveAndRestoreService.addNodeAddedListener(this);
 
         treeView.setCellFactory(p -> new BrowserTreeCell(folderContextMenu,
-                saveSetContextMenu, snapshotContextMenu, rootFolderContextMenu));
+                saveSetContextMenu, snapshotContextMenu, rootFolderContextMenu,
+                this));
+
+        progressIndicator.visibleProperty().bind(copyOrMoveInProgress);
+        copyOrMoveInProgress.addListener((observable, oldValue, newValue) -> {
+            treeView.setDisable(newValue.booleanValue());
+        });
 
         loadTreeData();
     }
@@ -256,7 +263,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 } else {
                     List<Node> childNodes = saveAndRestoreService.getChildNodes(rootItem.getValue());
                     List<TreeItem<Node>> childItems = childNodes.stream().map(n -> createTreeItem(n)).collect(Collectors.toList());
-                    treeViewEmpty.setValue(childItems.isEmpty());
                     childItems.sort(treeNodeComparator);
                     rootItem.getChildren().addAll(childItems);
                 }
@@ -306,13 +312,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     protected void expandTreeNode(TreeItem<Node> targetItem) {
         targetItem.getChildren().clear();
         List<Node> childNodes = saveAndRestoreService.getChildNodes(targetItem.getValue());
-        if (childNodes == null) { // Corner case: tree item might have been deleted, e.g. by other user.
-            expandTreeNode(targetItem.getParent());
-            return;
-        }
+        Collections.sort(childNodes);
         targetItem.getChildren().addAll(childNodes.stream().map(n -> createTreeItem(n)).collect(Collectors.toList()));
-        targetItem.getChildren().sort(treeNodeComparator);
-        targetItem.expandedProperty().set(true);
+        targetItem.getChildren().sort(new TreeNodeComparator());
     }
 
     /**
@@ -442,7 +444,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 List<Tab> tabsToRemove = new ArrayList<>();
                 List<Tab> visibleTabs = tabPane.getTabs();
                 for (Tab tab : visibleTabs) {
-                    for(TreeItem<Node> treeItem : items){
+                    for (TreeItem<Node> treeItem : items) {
                         if (tab.getId().equals(treeItem.getValue().getUniqueId())) {
                             tabsToRemove.add(tab);
                             tab.getOnCloseRequest().handle(null);
@@ -837,10 +839,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         // Must be added here, after nodes have been expanded. Adding the event handler
         // before expansion of nodes will break the expected behavior when restoring the tree state.
         treeView.getRoot().addEventHandler(TreeItem.<Node>branchExpandedEvent(), e -> expandTreeNode(e.getTreeItem()));
-
-        // This is needed in the rare event that all top level folders have been deleted.
-        treeView.getRoot().addEventHandler(TreeItem.treeNotificationEvent(),
-                e -> treeViewEmpty.set(treeView.getRoot().getChildren().isEmpty()));
     }
 
     private void setChildItems(HashMap<String, List<TreeItem<Node>>> allItems, TreeItem<Node> parentItem) {
@@ -1108,39 +1106,56 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
-    protected boolean checkMultipleSelection(TreeItem<Node> selectedTreeItem){
+    protected boolean checkMultipleSelection(TreeItem<Node> selectedTreeItem) {
         ObservableList<TreeItem<Node>> alreadySelectedItems = browserSelectionModel.getSelectedItems();
-        if(alreadySelectedItems.size() < 2){
+        if (alreadySelectedItems.size() < 2) {
             return true;
         }
         boolean selectionValid = true;
         TreeItem<Node> parent = alreadySelectedItems.get(0).getParent();
         NodeType nodeType = selectedTreeItem.getValue().getNodeType();
-        if(parent == null){
+        if (parent == null) {
             selectionValid = false;
-        }
-        else{
-            for(TreeItem<Node> treeItem : alreadySelectedItems){
+        } else {
+            for (TreeItem<Node> treeItem : alreadySelectedItems) {
                 TreeItem<Node> p = treeItem.getParent();
-                if(p == null){
+                if (p == null) {
                     selectionValid = false;
                     break;
-                }
-                else if(!p.equals(parent)){
+                } else if (!p.equals(parent)) {
                     selectionValid = false;
                     break;
-                }
-                else if(!treeItem.getValue().getNodeType().equals(nodeType)){
+                } else if (!treeItem.getValue().getNodeType().equals(nodeType)) {
                     selectionValid = false;
                     break;
                 }
             }
         }
-        if(!selectionValid){
+        if (!selectionValid) {
             ExceptionDetailsErrorDialog.openError(splitPane, Messages.mutipleSelectionUnsupportedTitle, Messages.mutipleSelectionUnsupportedBody, null);
             browserSelectionModel.clearSelection();
         }
 
         return selectionValid;
+    }
+
+    protected void performCopyOrMove(List<Node> sourceNodes, Node targetNode, TransferMode transferMode) {
+        copyOrMoveInProgress.set(true);
+        JobManager.schedule("Copy Or Move save&restore node(s)", monitor -> {
+            try {
+                if (transferMode.equals(TransferMode.MOVE)) {
+                    saveAndRestoreService.moveNodes(sourceNodes, targetNode);
+                } else if (transferMode.equals(TransferMode.COPY)) {
+                    saveAndRestoreService.copyNode(sourceNodes, targetNode);
+                }
+
+            } catch (Exception exception) {
+                Logger.getLogger(BrowserTreeCell.class.getName())
+                        .log(Level.SEVERE, "Failed to move or copy");
+                ExceptionDetailsErrorDialog.openError(splitPane, Messages.copyOrMoveNotAllowedHeader, Messages.copyOrMoveNotAllowedBody, exception);
+            } finally {
+                copyOrMoveInProgress.set(false);
+            }
+        });
     }
 }

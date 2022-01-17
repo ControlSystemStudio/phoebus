@@ -74,7 +74,7 @@ public class SaveSetSelectionController extends BaseSaveSetSelectionController i
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         treeView.setShowRoot(true);
-        treeView.setCellFactory(cell -> new BrowserTreeCell(null, null, null, null));
+        treeView.setCellFactory(cell -> new BrowserTreeCell(null, null, null, null, null));
 
         Node rootNode = saveAndRestoreService.getRootNode();
         TreeItem<Node> rootItem = createNode(rootNode);

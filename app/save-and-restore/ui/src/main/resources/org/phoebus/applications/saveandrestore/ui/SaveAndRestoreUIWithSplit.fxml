@@ -31,9 +31,10 @@
             <SplitPane dividerPositions="0.5" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0" BorderPane.alignment="CENTER">
               <items>
       				<StackPane>
-      					<TreeView fx:id="treeView" prefHeight="347.0" prefWidth="195.0" BorderPane.alignment="CENTER" VBox.vgrow="ALWAYS">
-					</TreeView>
-      					<Label fx:id="emptyTreeInstruction" visible="false" />
+						<VBox alignment="CENTER">
+							<ProgressIndicator fx:id="progressIndicator" />
+						</VBox>
+      					<TreeView fx:id="treeView" prefHeight="347.0" prefWidth="195.0" BorderPane.alignment="CENTER" VBox.vgrow="ALWAYS"/>
       				</StackPane>
                   <ListView fx:id="listView" prefHeight="200.0" prefWidth="200.0" />
               </items>

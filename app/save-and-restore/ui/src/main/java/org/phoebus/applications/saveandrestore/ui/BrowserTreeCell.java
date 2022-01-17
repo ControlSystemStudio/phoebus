@@ -18,7 +18,6 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.ContextMenu;
@@ -36,12 +35,9 @@ import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
-import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.service.SaveAndRestoreService;
-import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.PlatformInfo;
 
@@ -71,7 +67,8 @@ public class BrowserTreeCell extends TreeCell<Node> {
             new CornerRadii(5.0), BorderStroke.THIN));
 
     public BrowserTreeCell(ContextMenu folderContextMenu, ContextMenu saveSetContextMenu,
-                           ContextMenu snapshotContextMenu, ContextMenu rootFolderContextMenu) {
+                           ContextMenu snapshotContextMenu, ContextMenu rootFolderContextMenu,
+                           SaveAndRestoreController saveAndRestoreCotroller) {
 
         FXMLLoader loader = new FXMLLoader();
 
@@ -97,8 +94,8 @@ public class BrowserTreeCell extends TreeCell<Node> {
         setOnDragDetected(event -> {
 
             final ClipboardContent content = new ClipboardContent();
-            ObservableList<TreeItem<Node>> selectedItems = getTreeView().getSelectionModel().getSelectedItems();
             Node node = getItem();
+            // Drag-n-drop not supported for root node and snapshot nodes
             if (node != null && !node.getNodeType().equals(NodeType.SNAPSHOT) && !node.getName().equals("Root folder")) {
                 final List<Node> nodes = new ArrayList<>();
 
@@ -132,28 +129,9 @@ public class BrowserTreeCell extends TreeCell<Node> {
         {
             Node targetNode = getItem();
             if (targetNode != null) {
-                SaveAndRestoreService saveAndRestoreService = SaveAndRestoreService.getInstance();
                 List<Node> sourceNodes = (List<Node>) event.getDragboard().getContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT);
                 TransferMode transferMode = event.getTransferMode();
-                if (transferMode.equals(TransferMode.MOVE)) {
-                    try {
-                        saveAndRestoreService.moveNodes(sourceNodes, targetNode);
-                    } catch (Exception exception) {
-                        Logger.getLogger(BrowserTreeCell.class.getName())
-                                .log(Level.SEVERE, "Failed to move selected node(s) to target folder " + targetNode.getName());
-                        ExceptionDetailsErrorDialog.openError(getTreeView(), Messages.copyOrMoveNotAllowedHeader, Messages.copyOrMoveNotAllowedBody, exception);
-                    }
-                } else {
-                    sourceNodes.stream().forEach(sourceNode -> {
-                        try {
-                            saveAndRestoreService.copyNode(sourceNodes, targetNode);
-                        } catch (Exception exception) {
-                            Logger.getLogger(BrowserTreeCell.class.getName())
-                                    .log(Level.SEVERE, "Failed to copy node " + sourceNode.getName() + " to target folder " + targetNode.getName());
-                            ExceptionDetailsErrorDialog.openError(getTreeView(), Messages.copyOrMoveNotAllowedHeader, Messages.copyOrMoveNotAllowedBody, exception);
-                        }
-                    });
-                }
+                saveAndRestoreCotroller.performCopyOrMove(sourceNodes, targetNode, transferMode);
             }
             event.setDropCompleted(true);
             event.consume();

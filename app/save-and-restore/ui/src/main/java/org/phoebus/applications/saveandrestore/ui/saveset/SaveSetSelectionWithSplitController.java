@@ -83,7 +83,7 @@ public class SaveSetSelectionWithSplitController extends BaseSaveSetSelectionCon
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         treeView.setShowRoot(true);
-        treeView.setCellFactory(cell -> new BrowserTreeCell(null, null, null, null));
+        treeView.setCellFactory(cell -> new BrowserTreeCell(null, null, null, null, null));
         listView.setCellFactory(cell -> new SavesetListCell());
 
         Node rootNode = saveAndRestoreService.getRootNode();

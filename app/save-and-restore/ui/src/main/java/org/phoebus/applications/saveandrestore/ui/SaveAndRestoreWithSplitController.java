@@ -58,13 +58,13 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
         super.initialize(url, resourceBundle);
 
         treeView.setCellFactory(p -> new BrowserTreeCell(folderContextMenu,
-                saveSetContextMenu, null, rootFolderContextMenu));
+                saveSetContextMenu, null, rootFolderContextMenu,
+                this));
 
         browserSelectionModel.selectedItemProperty().addListener((observableValue, nodeTreeItem, selectedTreeItem) -> {
             if(!checkMultipleSelection(selectedTreeItem)){
                 return;
             }
-            listView.getItems().clear();
 
             if (selectedTreeItem == null) {
                 return;
@@ -74,6 +74,8 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
             if (selectedNode.getNodeType() != NodeType.CONFIGURATION) {
                 return;
             }
+
+            listView.getItems().clear();
 
             List<Node> snapshots = saveAndRestoreService.getChildNodes(selectedNode);
             if (!snapshots.isEmpty()) {
@@ -217,7 +219,12 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
                 return;
             }
             nodeSubjectToUpdate.setValue(node);
-            nodeSubjectToUpdate.getParent().getChildren().sort(new TreeNodeComparator());
+            TreeItem<Node> parent = nodeSubjectToUpdate.getParent();
+            // parent is null if nodeSubjectToUpdate is root
+            if(parent == null){
+                return;
+            }
+            parent.getChildren().sort(treeNodeComparator);
             browserSelectionModel.clearSelection();
             browserSelectionModel.select(nodeSubjectToUpdate);
             // Folder node changes may include structure changes, so expand to force update.
@@ -251,7 +258,7 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
                     return;
                 }
                 parentTreeItem.getChildren().add(createTreeItem(newNode));
-                parentTreeItem.getChildren().sort(new TreeNodeComparator());
+                parentTreeItem.getChildren().sort(treeNodeComparator);
                 parentTreeItem.expandedProperty().setValue(true);
             } else {
                 if (treeView.getSelectionModel().getSelectedItem().getValue().getUniqueId().equals(parentNode.getUniqueId())) {
