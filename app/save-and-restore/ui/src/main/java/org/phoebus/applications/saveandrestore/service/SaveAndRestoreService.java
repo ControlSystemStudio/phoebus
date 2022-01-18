@@ -272,9 +272,9 @@ public class SaveAndRestoreService {
         Future<Node> future = executor.submit(() -> dataProvider.moveNodes(sourceNodeIds, targetNode.getUniqueId()));
         Node updatedNode = future.get();
         // Update the target node that now also contains the source node(s)
-        notifyNodeAddedListeners(targetNode, sourceNodes);
+        //notifyNodeAddedListeners(targetNode, sourceNodes);
         // Update the source node's original parent as it no longer contains the source node
-        notifyNodeChangeListeners(parentNode);
+        //notifyNodeChangeListeners(parentNode);
         return updatedNode;
     }
 
@@ -286,9 +286,9 @@ public class SaveAndRestoreService {
         Future<Node> future = executor.submit(() -> dataProvider.copyNodes(sourceNodeIds, targetNode.getUniqueId()));
         Node updatedNode = future.get();
         // Update the target node that now also contains the source node(s)
-        notifyNodeAddedListeners(targetNode, sourceNodes);
+        //notifyNodeAddedListeners(targetNode, sourceNodes);
         // Update the source node's original parent as it no longer contains the source node
-        notifyNodeChangeListeners(parentNode);
+        //notifyNodeChangeListeners(parentNode);
         return updatedNode;
     }
 }

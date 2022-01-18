@@ -131,6 +131,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
             if (targetNode != null) {
                 List<Node> sourceNodes = (List<Node>) event.getDragboard().getContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT);
                 TransferMode transferMode = event.getTransferMode();
+                getTreeView().getSelectionModel().clearSelection(); // This is needed to help controller implement selection restrictions
                 saveAndRestoreCotroller.performCopyOrMove(sourceNodes, targetNode, transferMode);
             }
             event.setDropCompleted(true);

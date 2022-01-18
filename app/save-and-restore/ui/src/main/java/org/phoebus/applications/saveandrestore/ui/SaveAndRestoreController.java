@@ -21,9 +21,12 @@ package org.phoebus.applications.saveandrestore.ui;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -159,15 +162,24 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     protected SimpleBooleanProperty changesInProgress = new SimpleBooleanProperty(false);
 
+    private ChangeListener<TreeItem<Node>> changeListener;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
         saveAndRestoreService = SaveAndRestoreService.getInstance();
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         browserSelectionModel = treeView.getSelectionModel();
-        browserSelectionModel.selectedItemProperty().addListener((observableValue, nodeTreeItem, selectedTreeItem) -> {
-            checkMultipleSelection(selectedTreeItem);
-        });
+        changeListener = (observableValue, nodeTreeItem, selectedTreeItem) -> {
+            if(selectedTreeItem == null){
+                return;
+            }
+            if (!checkMultipleSelection(selectedTreeItem)) {
+                ExceptionDetailsErrorDialog.openError(splitPane, Messages.mutipleSelectionUnsupportedTitle, Messages.mutipleSelectionUnsupportedBody, null);
+                browserSelectionModel.clearSelection();
+            }
+        };
+        browserSelectionModel.selectedItemProperty().addListener(changeListener);
 
         preferencesReader =
                 new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
@@ -314,7 +326,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         List<Node> childNodes = saveAndRestoreService.getChildNodes(targetItem.getValue());
         Collections.sort(childNodes);
         targetItem.getChildren().addAll(childNodes.stream().map(n -> createTreeItem(n)).collect(Collectors.toList()));
-        targetItem.getChildren().sort(new TreeNodeComparator());
+        targetItem.getChildren().sort(treeNodeComparator);
+        targetItem.setExpanded(true);
     }
 
     /**
@@ -422,7 +435,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         });
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get().equals(ButtonType.OK)) {
-            //selectedItems.forEach(this::deleteTreeItem);
             deleteTreeItems(selectedItems);
         }
     }
@@ -441,7 +453,12 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
             @Override
             public void succeeded() {
+                // Need to temporarily disable the change listener as changes in the tree view
+                // trigger selection change events that may lead to incorrect analysis of
+                // multiple selection analysis.
+                browserSelectionModel.selectedItemProperty().removeListener(changeListener);
                 parent.getChildren().removeAll(items);
+                browserSelectionModel.selectedItemProperty().addListener(changeListener);
                 List<Tab> tabsToRemove = new ArrayList<>();
                 List<Tab> visibleTabs = tabPane.getTabs();
                 for (Tab tab : visibleTabs) {
@@ -452,9 +469,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                         }
                     }
                 }
-                tabPane.getTabs().removeAll(tabsToRemove);
-                browserSelectionModel.clearSelection();
                 changesInProgress.set(false);
+                tabPane.getTabs().removeAll(tabsToRemove);
+                //browserSelectionModel.clearSelection();
             }
 
             @Override
@@ -626,8 +643,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                         return;
                     }
                     nodeDoubleClicked(newSaveSetNode);
-                    browserSelectionModel.clearSelection();
-                    browserSelectionModel.select(treeView.getRow(newSaveSetNode));
+                    //browserSelectionModel.clearSelection();
                 }
 
                 @Override
@@ -723,8 +739,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             return;
         }
         nodeSubjectToUpdate.setValue(node);
-        browserSelectionModel.clearSelection();
-        browserSelectionModel.select(nodeSubjectToUpdate);
         // Folder node changes may include structure changes, so expand to force update.
         if (nodeSubjectToUpdate.getValue().getNodeType().equals(NodeType.FOLDER)) {
             if (nodeSubjectToUpdate.getParent() != null) { // null means root folder as it has no parent
@@ -878,7 +892,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             if (t1.getValue().getNodeType().equals(NodeType.SNAPSHOT) && t2.getValue().getNodeType().equals(NodeType.SNAPSHOT)) {
                 return (preferencesReader.getBoolean("sortSnapshotsTimeReversed") ? -1 : 1) * t1.getValue().getCreated().compareTo(t2.getValue().getCreated());
             }
-
             return t1.getValue().compareTo(t2.getValue());
         }
     }
@@ -1109,6 +1122,16 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
+    /**
+     * Performs check of multiple selection to determine if it fulfills the criteria:
+     * <ul>
+     *     <li>All selected nodes must be of same type.</li>
+     *     <li>All selected nodes must have same parent node.</li>
+     * </ul>
+     *
+     * @param selectedTreeItem The {@link TreeItem} that was last selected.
+     * @return <code>true</code> if criteria are met, otherwise <code>false</code>
+     */
     protected boolean checkMultipleSelection(TreeItem<Node> selectedTreeItem) {
         ObservableList<TreeItem<Node>> alreadySelectedItems = browserSelectionModel.getSelectedItems();
         if (alreadySelectedItems.size() < 2) {
@@ -1134,31 +1157,92 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 }
             }
         }
-        if (!selectionValid) {
-            ExceptionDetailsErrorDialog.openError(splitPane, Messages.mutipleSelectionUnsupportedTitle, Messages.mutipleSelectionUnsupportedBody, null);
-            browserSelectionModel.clearSelection();
-        }
-
         return selectionValid;
     }
 
+    /**
+     * Performs the copy or move operation. When successful, the tree view is updated to reflect the changes.
+     *
+     * @param sourceNodes  List of {@link Node}s to be copied or moved.
+     * @param targetNode   Target {@link Node}, which must be a folder.
+     * @param transferMode Must be {@link TransferMode#MOVE} or {@link TransferMode#COPY}.
+     */
     protected void performCopyOrMove(List<Node> sourceNodes, Node targetNode, TransferMode transferMode) {
         changesInProgress.set(true);
         JobManager.schedule("Copy Or Move save&restore node(s)", monitor -> {
+            TreeItem<Node> rootTreeItem = treeView.getRoot();
+            TreeItem<Node> targetTreeItem = recursiveSearch(targetNode.getUniqueId(), rootTreeItem);
             try {
+                TreeItem<Node> sourceTreeItem = recursiveSearch(sourceNodes.get(0).getUniqueId(), rootTreeItem);
+                TreeItem<Node> sourceParentTreeItem = sourceTreeItem.getParent();
                 if (transferMode.equals(TransferMode.MOVE)) {
                     saveAndRestoreService.moveNodes(sourceNodes, targetNode);
+                    Platform.runLater(() -> {
+                        removeMovedNodes(sourceParentTreeItem, sourceNodes);
+                        addMovedNodes(targetTreeItem, sourceNodes);
+                    });
                 } else if (transferMode.equals(TransferMode.COPY)) {
                     saveAndRestoreService.copyNode(sourceNodes, targetNode);
+                    List<Node> childNodes = saveAndRestoreService.getChildNodes(targetNode);
+                    Platform.runLater(() -> {
+                        List<TreeItem<Node>> existingChildItems = targetTreeItem.getChildren();
+                        List<Node> existingChildNodes = existingChildItems.stream().map(TreeItem::getValue).collect(Collectors.toList());
+                        childNodes.forEach(childNode -> {
+                            if (!existingChildNodes.contains(childNode)) {
+                                targetTreeItem.getChildren().add(createTreeItem(childNode));
+                            }
+                        });
+                        targetTreeItem.getChildren().sort(treeNodeComparator);
+                        targetTreeItem.setExpanded(true);
+                    });
                 }
-
             } catch (Exception exception) {
-                Logger.getLogger(BrowserTreeCell.class.getName())
+                Logger.getLogger(SaveAndRestoreController.class.getName())
                         .log(Level.SEVERE, "Failed to move or copy");
                 ExceptionDetailsErrorDialog.openError(splitPane, Messages.copyOrMoveNotAllowedHeader, Messages.copyOrMoveNotAllowedBody, exception);
             } finally {
                 changesInProgress.set(false);
             }
+
         });
+    }
+
+    /**
+     * Updates the tree view such that moved items are shown in the drop target.
+     *
+     * @param parentTreeItem The drop target
+     * @param nodes          List of {@link Node}s that were moved.
+     */
+    private void addMovedNodes(TreeItem<Node> parentTreeItem, List<Node> nodes) {
+        parentTreeItem.getChildren().addAll(nodes.stream().map(n -> createTreeItem(n)).collect(Collectors.toList()));
+        parentTreeItem.getChildren().sort(treeNodeComparator);
+        TreeItem<Node> nextItemToExpand = parentTreeItem;
+        while (nextItemToExpand != null) {
+            nextItemToExpand.setExpanded(true);
+            nextItemToExpand = nextItemToExpand.getParent();
+        }
+
+    }
+
+    /**
+     * Updates the tree view such that moved items are removed from source nodes' parent.
+     *
+     * @param parentTreeItem The parent of the {@link Node}s before the move.
+     * @param nodes          List of {@link Node}s that were moved.
+     */
+    private void removeMovedNodes(TreeItem<Node> parentTreeItem, List<Node> nodes) {
+        List<TreeItem<Node>> childItems = parentTreeItem.getChildren();
+        List<TreeItem<Node>> treeItemsToRemove = new ArrayList<>();
+        childItems.forEach(childItem -> {
+            if (nodes.contains(childItem.getValue())) {
+                treeItemsToRemove.add(childItem);
+            }
+        });
+        parentTreeItem.getChildren().removeAll(treeItemsToRemove);
+        TreeItem<Node> nextItemToExpand = parentTreeItem;
+        while (nextItemToExpand != null) {
+            nextItemToExpand.setExpanded(true);
+            nextItemToExpand = nextItemToExpand.getParent();
+        }
     }
 }

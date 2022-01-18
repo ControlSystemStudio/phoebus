@@ -1357,6 +1357,45 @@ public class DAOTest {
 
     @Test
     @FlywayTest(invokeCleanDB = true)
+    public void testCopyFolderWithConfigAndSnapshot() {
+        Node rootNode = nodeDAO.getRootNode();
+
+        Node folderNode = new Node();
+        folderNode.setName("Folder");
+        folderNode.setNodeType(NodeType.FOLDER);
+        folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
+
+        Node childFolder1 = new Node();
+        childFolder1.setName("Child Folder 1");
+        childFolder1.setNodeType(NodeType.FOLDER);
+        childFolder1 = nodeDAO.createNode(folderNode.getUniqueId(), childFolder1);
+
+        Node configNode = new Node();
+        configNode.setName("Config");
+        configNode.setNodeType(NodeType.CONFIGURATION);
+        configNode = nodeDAO.createNode(childFolder1.getUniqueId(), configNode);
+
+        nodeDAO.updateConfiguration(configNode, Arrays.asList(ConfigPv.builder().pvName("whatever").build()));
+
+        SnapshotItem item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(configNode.getUniqueId()).get(0))
+                .value(VDouble.of(7.7, alarm, time, display)).readbackValue(VDouble.of(7.7, alarm, time, display))
+                .build();
+
+        nodeDAO.saveSnapshot(configNode.getUniqueId(), Arrays.asList(item1), "snapshotName", "comment", "userName");
+
+        Node parent = nodeDAO.copyNodes(Arrays.asList(childFolder1.getUniqueId()), rootNode.getUniqueId(), "username");
+        List<Node> childNodes = nodeDAO.getChildNodes(parent.getUniqueId());
+        assertEquals(2, childNodes.size());
+
+        Node copiedFolder = childNodes.stream().filter(node -> node.getName().equals("Child Folder 1")).findFirst().get();
+        Node copiedSaveSet = nodeDAO.getChildNodes(copiedFolder.getUniqueId()).get(0);
+        Node copiedSnapshot = nodeDAO.getSnapshots(copiedSaveSet.getUniqueId()).get(0);
+        assertEquals("snapshotName", copiedSnapshot.getName());
+
+    }
+
+    @Test
+    @FlywayTest(invokeCleanDB = true)
     public void testCopySubtree() {
         Node rootNode = nodeDAO.getRootNode();
 

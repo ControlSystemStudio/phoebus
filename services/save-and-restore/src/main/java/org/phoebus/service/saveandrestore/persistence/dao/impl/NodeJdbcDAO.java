@@ -984,6 +984,12 @@ public class NodeJdbcDAO implements NodeDAO {
         return targetNode;
     }
 
+    /**
+     *
+     * @param sourceNode The (existing) source {@link Node} to be copied.
+     * @param targetNode The parent (target) {@link Node} for the copy.
+     * @param userName User's identity.
+     */
     private void copyNode(Node sourceNode, Node targetNode, String userName) {
 
         Timestamp created = new Timestamp(sourceNode.getCreated().getTime());
@@ -1018,7 +1024,7 @@ public class NodeJdbcDAO implements NodeDAO {
             });
         } else if (sourceNode.getNodeType().equals(NodeType.FOLDER)) {
             List<Node> childNodes = getChildNodes(sourceNode.getUniqueId());
-            childNodes.forEach(childNode -> copyNode(newSourceNode, childNode, userName));
+            childNodes.forEach(childNode -> copyNode(childNode, newSourceNode, userName));
         }
     }
 }
