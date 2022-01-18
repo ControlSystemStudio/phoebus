@@ -13,6 +13,7 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.control.ComboBox?>
 <SplitPane fx:id="topLevelNode" dividerPositions="0.3" maxHeight="1.7976931348623157E308"
            maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0"
            prefWidth="1200.0" style="-fx-border-color: #d8d8d8;" xmlns="http://javafx.com/javafx/11.0.1"
@@ -58,12 +59,12 @@
                                         <Insets right="3.0"/>
                                     </GridPane.margin>
                                 </Label>
-                                <TextField fx:id="query" onAction="#search" GridPane.columnIndex="2"
-                                           GridPane.hgrow="ALWAYS" GridPane.vgrow="NEVER">
+                                <ComboBox fx:id="query" onAction="#search" GridPane.columnIndex="2" editable="true"
+                                          GridPane.hgrow="ALWAYS" GridPane.vgrow="NEVER">
                                     <GridPane.margin>
                                         <Insets bottom="10.0" top="10.0"/>
                                     </GridPane.margin>
-                                </TextField>
+                                </ComboBox>
                                 <Label text="%SearchButtonText" GridPane.columnIndex="3">
                                     <GridPane.margin>
                                         <Insets left="5.0"/>

@@ -18,6 +18,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
@@ -45,9 +46,11 @@ import org.phoebus.ui.javafx.ImageCache;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -64,7 +67,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
     @FXML
     private Button resize;
     @FXML
-    private TextField query;
+    private ComboBox<OlogQuery> query;
 
     // elements associated with the various search
     @FXML
@@ -108,6 +111,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
     private ObservableList<LogEntry> selectedLogEntries = FXCollections.observableArrayList();
     private final Logger logger = Logger.getLogger(LogEntryTableViewController.class.getName());
 
+    protected OlogQueryManager queryManager = OlogQueryManager.getInstance();
+
     /**
      * Constructor.
      *
@@ -125,16 +130,31 @@ public class LogEntryTableViewController extends LogbookSearchController {
             new SimpleIntegerProperty(LogbookUIPreferences.search_result_page_size);
     private SimpleIntegerProperty pageCountProperty = new SimpleIntegerProperty(0);
 
+    private ObservableList<OlogQuery> ologQueries = FXCollections.observableArrayList();
+
 
     @FXML
     public void initialize() {
         advancedSearchViewController.setSearchParameters(searchParameters);
 
+        /*
         searchParameters.addListener((MapChangeListener<Keys, String>) change -> query.setText(searchParameters.entrySet().stream()
                 .sorted(Entry.comparingByKey())
                 .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
                 .collect(Collectors.joining("&"))));
 
+         */
+        searchParameters.addListener((MapChangeListener<Keys, String>) change -> {
+            String queryString = searchParameters.entrySet().stream()
+                    .sorted(Entry.comparingByKey())
+                    .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
+                    .collect(Collectors.joining("&"));
+            queryManager.getOrAddQuery(queryString);
+        });
+
+        //List<OlogQuery> ologQueries = queryManager.getQueries();
+        //query.getItems().addAll(ologQueries);
+        //query.setValue(ologQueries.get(0));
 
         MenuItem groupSelectedEntries = new MenuItem(Messages.GroupSelectedEntries);
         groupSelectedEntries.setOnAction(e -> {
@@ -257,7 +277,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
                     moving.set(false);
                 });
                 query.disableProperty().set(true);
-                advancedSearchViewController.updateSearchParamsFromQueryString(query.getText());
+                advancedSearchViewController.updateSearchParamsFromQueryString(query.getValue().getQuery());
             }
         }
     }
@@ -283,7 +303,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
         // Construct the query parameters from the search field string. Note that some keys
         // are treated as "hidden" and removed in the returned map.
-        Map<String, String> params = LogbookQueryUtil.parseHumanReadableQueryString(query.getText());
+        Map<String, String> params = LogbookQueryUtil.parseHumanReadableQueryString(query.getValue().getQuery());
         searchParameters.clear();
         params.entrySet().forEach(e -> searchParameters.put(Keys.findKey(e.getKey()), e.getValue()));
 
@@ -316,7 +336,20 @@ public class LogEntryTableViewController extends LogbookSearchController {
     }
 
     public String getQuery() {
-        return query.getText();
+        return query.getSelectionModel().getSelectedItem().getQuery();
+    }
+
+    public List<OlogQuery> getOlogQueries(){
+        return query.getItems();
+    }
+
+    public void setOlogQueries(List<OlogQuery> ologQueries){
+        ologQueries.sort(Comparator.comparing(OlogQuery::getLastUsed));
+        ologQueries.addAll(ologQueries);
+        Map<String, String> params = LogbookQueryUtil.parseHumanReadableQueryString(ologQueries.get(0).getQuery());
+        searchParameters.clear();
+        params.forEach((key, value) -> searchParameters.put(Keys.findKey(key), value));
+        search();
     }
 
     private void refresh() {
@@ -365,5 +398,16 @@ public class LogEntryTableViewController extends LogbookSearchController {
     @FXML
     public void goToLastPage() {
         pagination.setCurrentPageIndex(pagination.pageCountProperty().get() - 1);
+    }
+
+    private OlogQuery getOrAddQuery(String queryString){
+        Optional<OlogQuery> ologQuery =
+                ologQueries.stream().filter(q -> q.getQuery().equals(queryString)).findFirst();
+        if(ologQuery.isPresent()){
+            return ologQuery.get();
+        }
+
+
+        return null;
     }
 }

@@ -1,5 +1,9 @@
 package org.phoebus.logbook.olog.ui;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import org.phoebus.framework.nls.NLS;
@@ -14,6 +18,10 @@ import org.phoebus.ui.docking.DockPane;
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,13 +30,17 @@ public class LogEntryTable implements AppInstance {
     static Logger log = Logger.getLogger(LogEntryTable.class.getName());
     static String cachedQuery;
     private static final String LOG_TABLE_QUERY = "log_table_query";
+    private static final String LOG_TABLE_QUERIES = "log_table_queries";
     
     private final LogEntryTableApp app;
     private LogEntryTableViewController controller;
 
+    private ObjectMapper objectMapper;
+
     public LogEntryTable(final LogEntryTableApp app)
     {
         this.app = app;
+        objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         try {
             ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
             FXMLLoader loader = new FXMLLoader();
@@ -88,7 +100,7 @@ public class LogEntryTable implements AppInstance {
             });
             loader.load();
             controller = loader.getController();
-            controller.setQuery(cachedQuery == null || cachedQuery.isBlank() ? LogbookUIPreferences.default_logbook_query : cachedQuery);
+            //controller.setQuery(cachedQuery == null || cachedQuery.isBlank() ? LogbookUIPreferences.default_logbook_query : cachedQuery);
             DockItem tab = new DockItem(this, loader.getRoot());
             DockPane.getActiveDockPane().addTab(tab);
             tab.addClosedNotification(()->{cachedQuery = controller.getQuery();});
@@ -113,6 +125,7 @@ public class LogEntryTable implements AppInstance {
     @Override
     public void restore(final Memento memento)
     {
+        /*
         if (memento.getString(LOG_TABLE_QUERY).isPresent()) {
             controller.setQuery(memento.getString(LOG_TABLE_QUERY).get());
         }
@@ -120,6 +133,23 @@ public class LogEntryTable implements AppInstance {
         {
             controller.setQuery(LogbookUIPreferences.default_logbook_query);
         }
+
+         */
+        List<OlogQuery> queries = new ArrayList<>();
+        if (memento.getString(LOG_TABLE_QUERIES).isPresent()) {
+            try {
+                queries.addAll(objectMapper.readValue(memento.getString(LOG_TABLE_QUERIES).get(), new TypeReference<HashSet<OlogQuery>>() { }));
+            } catch (Exception exception) {
+                log.log(Level.INFO, "Failed to parse persisted list of Olog queries", exception);
+            }
+        }
+        else{
+            OlogQuery defaultQuery = new OlogQuery(LogbookUIPreferences.default_logbook_query);
+            defaultQuery.setDefaultQuery(true);
+            queries.add(defaultQuery);
+        }
+        //controller.setOlogQueries(queries);
+        OlogQueryManager.getInstance().setQueries(queries);
     }
 
     @Override
@@ -128,6 +158,13 @@ public class LogEntryTable implements AppInstance {
         if(!controller.getQuery().isBlank())
         {
             memento.setString(LOG_TABLE_QUERY, controller.getQuery().trim());
+        }
+        //List<OlogQuery> ologQueries = controller.getOlogQueries();
+        List<OlogQuery> ologQueries = OlogQueryManager.getInstance().getQueries();
+        try {
+            memento.setString(LOG_TABLE_QUERIES, objectMapper.writeValueAsString(ologQueries));
+        } catch (JsonProcessingException e) {
+            log.log(Level.INFO, "Failed to persist Olog queries list", e);
         }
     }
 }
