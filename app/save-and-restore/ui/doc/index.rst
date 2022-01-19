@@ -45,24 +45,20 @@ clients. Users should keep in mind that changes (e.g. new or deleted nodes) are 
 Caution is therefore advocated when working on the nodes in the tree, in particular when changing the structure by
 deleting or moving nodes.
 
-Selection of nodes in the tree view
------------------------------------
-
-Multiple selection - using mouse and key combination - of ndoes in the tree view is supported only if selected nodes
-are of same type and if they have the same parent. If an unsupported selection is detected, an error dialog is shown and the
-selection is cleared.
-
 Drag-n-drop
 -----------
 
-Nodes in the tree can be copied (mouse + modifier) or moved using drag-n-drop. The following restrictions apply:
-
-* Only folder and save set nodes can be moved.
-* Target node must be a folder.
-* Save set nodes cannot be moved/copied to the root folder node.
+Nodes in the tree can be copied (mouse + modifier key) or moved using drag-n-drop. The following restrictions apply:
+* Only folder and save set nodes can be copied or moved.
+* Save set nodes cannot be copied or moved to the root folder node.
+* Target node (aka drop target) must be a folder.
 
 Checks are performed on the service to enforce the above restrictions. If pre-conditions are not met when the selection
-is dropped to the target, the application will present an error dialog.
+is dropped, the application will present an error dialog.
+
+Drag-n-drop is disabled if multiple nodes are selected and if:
+* Selection contains a combination of folder and save set nodes. All selected nodes must be of same type.
+* Selection contains nodes with different parent nodes. All selected nodes must have the same parent node.
 
 Once a selection of nodes have been copied or moved successfully, the target folder is refreshed to reflect the change.
 
