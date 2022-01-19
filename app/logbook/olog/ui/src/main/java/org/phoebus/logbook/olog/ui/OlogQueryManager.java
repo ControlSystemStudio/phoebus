@@ -18,6 +18,13 @@
 
 package org.phoebus.logbook.olog.ui;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.phoebus.framework.workbench.Locations;
+
+import java.io.File;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -31,9 +38,25 @@ public class OlogQueryManager {
     private List<OlogQuery> ologQueries;
     private Comparator<OlogQuery> ologQueryComparator
             = Comparator.comparing(OlogQuery::getLastUsed).reversed();
+    private ObjectMapper objectMapper =
+            new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private OlogQueryManager() {
-        ologQueries = new ArrayList<>(QUERY_LIST_SIZE);
+        File file = new File(Locations.user(), "olog_queries");
+        if(file.exists()){
+            try {
+                ologQueries = objectMapper.readValue(file, new TypeReference<List<OlogQuery>>() { });
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        else{
+            ologQueries = new ArrayList<>();
+            OlogQuery defaultQuery = new OlogQuery(LogbookUIPreferences.default_logbook_query);
+            defaultQuery.setDefaultQuery(true);
+            ologQueries.add(defaultQuery);
+            save();
+        }
     }
 
     public static OlogQueryManager getInstance() {
@@ -77,5 +100,14 @@ public class OlogQueryManager {
         ologQueries.add(newQuery);
         ologQueries.sort(ologQueryComparator);
         return newQuery;
+    }
+
+    private void save(){
+        File file = new File(Locations.user(), "olog_queries");
+        try {
+            objectMapper.writeValue(file, ologQueries);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

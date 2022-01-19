@@ -21,6 +21,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.ProgressIndicator;
@@ -32,6 +34,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
+import javafx.util.Callback;
 import javafx.util.Duration;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.LogClient;
@@ -43,6 +47,7 @@ import org.phoebus.logbook.olog.ui.LogbookQueryUtil.Keys;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
+
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -132,6 +137,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     private ObservableList<OlogQuery> ologQueries = FXCollections.observableArrayList();
 
+    private OlogQueryManager ologQueryManager = OlogQueryManager.getInstance();
 
     @FXML
     public void initialize() {
@@ -245,6 +251,45 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 hitCountProperty, pagination.pageCountProperty()));
         pagination.pageCountProperty().bind(pageCountProperty);
         pagination.maxPageIndicatorCountProperty().bind(pageCountProperty);
+
+        /*
+        ologQueryManager.addOlogQueryListListener(queries -> {
+            ologQueries.clear();
+            queries.sort(Comparator.comparing(OlogQuery::getLastUsed));
+            ologQueries.setAll(queries);
+            Map<String, String> params = LogbookQueryUtil.parseHumanReadableQueryString(ologQueries.get(0).getQuery());
+            searchParameters.clear();
+            params.forEach((key, value) -> searchParameters.put(Keys.findKey(key), value));
+            search();
+        });
+
+         */
+        query.setCellFactory(
+                new Callback<ListView<OlogQuery>, ListCell<OlogQuery>>() {
+                    @Override public ListCell<OlogQuery> call(ListView<OlogQuery> param) {
+                        final ListCell<OlogQuery> cell = new ListCell<OlogQuery>() {
+                            {
+                                super.setPrefWidth(100);
+                            }
+                            @Override public void updateItem(OlogQuery item,
+                                                             boolean empty) {
+                                super.updateItem(item, empty);
+                                if (item != null) {
+                                    setText(item.getQuery());
+                                    if (item.isDefaultQuery()) {
+                                        setTextFill(Color.RED);
+                                    }
+                                }
+                                else {
+                                    setText(null);
+                                }
+                            }
+                        };
+                        return cell;
+                    }
+                });
+        List<OlogQuery> ologQueries = ologQueryManager.getQueries();
+        query.setValue(ologQueries.get(0));
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored
@@ -341,15 +386,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     public List<OlogQuery> getOlogQueries(){
         return query.getItems();
-    }
-
-    public void setOlogQueries(List<OlogQuery> ologQueries){
-        ologQueries.sort(Comparator.comparing(OlogQuery::getLastUsed));
-        ologQueries.addAll(ologQueries);
-        Map<String, String> params = LogbookQueryUtil.parseHumanReadableQueryString(ologQueries.get(0).getQuery());
-        searchParameters.clear();
-        params.forEach((key, value) -> searchParameters.put(Keys.findKey(key), value));
-        search();
     }
 
     private void refresh() {

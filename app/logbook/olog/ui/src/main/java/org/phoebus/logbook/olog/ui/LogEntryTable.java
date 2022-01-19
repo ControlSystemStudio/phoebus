@@ -8,6 +8,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.Memento;
+import org.phoebus.framework.persistence.MementoTree;
+import org.phoebus.framework.persistence.XMLMementoTree;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.logbook.LogClient;
@@ -16,6 +18,8 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.time.Instant;
@@ -120,51 +124,5 @@ public class LogEntryTable implements AppInstance {
     {
         String query = resource.getQuery();
         controller.setQuery(query);
-    }
-
-    @Override
-    public void restore(final Memento memento)
-    {
-        /*
-        if (memento.getString(LOG_TABLE_QUERY).isPresent()) {
-            controller.setQuery(memento.getString(LOG_TABLE_QUERY).get());
-        }
-        else
-        {
-            controller.setQuery(LogbookUIPreferences.default_logbook_query);
-        }
-
-         */
-        List<OlogQuery> queries = new ArrayList<>();
-        if (memento.getString(LOG_TABLE_QUERIES).isPresent()) {
-            try {
-                queries.addAll(objectMapper.readValue(memento.getString(LOG_TABLE_QUERIES).get(), new TypeReference<HashSet<OlogQuery>>() { }));
-            } catch (Exception exception) {
-                log.log(Level.INFO, "Failed to parse persisted list of Olog queries", exception);
-            }
-        }
-        else{
-            OlogQuery defaultQuery = new OlogQuery(LogbookUIPreferences.default_logbook_query);
-            defaultQuery.setDefaultQuery(true);
-            queries.add(defaultQuery);
-        }
-        //controller.setOlogQueries(queries);
-        OlogQueryManager.getInstance().setQueries(queries);
-    }
-
-    @Override
-    public void save(final Memento memento)
-    {
-        if(!controller.getQuery().isBlank())
-        {
-            memento.setString(LOG_TABLE_QUERY, controller.getQuery().trim());
-        }
-        //List<OlogQuery> ologQueries = controller.getOlogQueries();
-        List<OlogQuery> ologQueries = OlogQueryManager.getInstance().getQueries();
-        try {
-            memento.setString(LOG_TABLE_QUERIES, objectMapper.writeValueAsString(ologQueries));
-        } catch (JsonProcessingException e) {
-            log.log(Level.INFO, "Failed to persist Olog queries list", e);
-        }
     }
 }

@@ -35,6 +35,10 @@ public class OlogQuery{
      */
     private boolean defaultQuery;
 
+    public OlogQuery(){
+
+    }
+
     public OlogQuery(String query){
         this.query = query;
         this.lastUsed = Instant.now();
