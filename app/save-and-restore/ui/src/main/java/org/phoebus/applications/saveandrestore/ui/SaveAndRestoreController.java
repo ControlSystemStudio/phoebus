@@ -25,8 +25,6 @@ import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -162,7 +160,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     protected SimpleBooleanProperty changesInProgress = new SimpleBooleanProperty(false);
 
-    private ChangeListener<TreeItem<Node>> changeListener;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -170,16 +167,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         saveAndRestoreService = SaveAndRestoreService.getInstance();
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         browserSelectionModel = treeView.getSelectionModel();
-        changeListener = (observableValue, nodeTreeItem, selectedTreeItem) -> {
-            if(selectedTreeItem == null){
-                return;
-            }
-            if (!checkMultipleSelection(selectedTreeItem)) {
-                ExceptionDetailsErrorDialog.openError(splitPane, Messages.mutipleSelectionUnsupportedTitle, Messages.mutipleSelectionUnsupportedBody, null);
-                browserSelectionModel.clearSelection();
-            }
-        };
-        browserSelectionModel.selectedItemProperty().addListener(changeListener);
 
         preferencesReader =
                 new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
@@ -453,12 +440,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
             @Override
             public void succeeded() {
-                // Need to temporarily disable the change listener as changes in the tree view
-                // trigger selection change events that may lead to incorrect analysis of
-                // multiple selection analysis.
-                browserSelectionModel.selectedItemProperty().removeListener(changeListener);
                 parent.getChildren().removeAll(items);
-                browserSelectionModel.selectedItemProperty().addListener(changeListener);
                 List<Tab> tabsToRemove = new ArrayList<>();
                 List<Tab> visibleTabs = tabPane.getTabs();
                 for (Tab tab : visibleTabs) {
@@ -471,7 +453,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 }
                 changesInProgress.set(false);
                 tabPane.getTabs().removeAll(tabsToRemove);
-                //browserSelectionModel.clearSelection();
             }
 
             @Override
@@ -1129,35 +1110,19 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      *     <li>All selected nodes must have same parent node.</li>
      * </ul>
      *
-     * @param selectedTreeItem The {@link TreeItem} that was last selected.
      * @return <code>true</code> if criteria are met, otherwise <code>false</code>
      */
-    protected boolean checkMultipleSelection(TreeItem<Node> selectedTreeItem) {
-        ObservableList<TreeItem<Node>> alreadySelectedItems = browserSelectionModel.getSelectedItems();
-        if (alreadySelectedItems.size() < 2) {
+    protected boolean checkMultipleSelection() {
+        ObservableList<TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
+        if (selectedItems.size() < 2) {
             return true;
         }
-        boolean selectionValid = true;
-        TreeItem<Node> parent = alreadySelectedItems.get(0).getParent();
-        NodeType nodeType = selectedTreeItem.getValue().getNodeType();
-        if (parent == null) {
-            selectionValid = false;
-        } else {
-            for (TreeItem<Node> treeItem : alreadySelectedItems) {
-                TreeItem<Node> p = treeItem.getParent();
-                if (p == null) {
-                    selectionValid = false;
-                    break;
-                } else if (!p.equals(parent)) {
-                    selectionValid = false;
-                    break;
-                } else if (!treeItem.getValue().getNodeType().equals(nodeType)) {
-                    selectionValid = false;
-                    break;
-                }
-            }
+        TreeItem<Node> parent = selectedItems.get(0).getParent();
+        NodeType nodeType = selectedItems.get(0).getValue().getNodeType();
+        if (selectedItems.stream().filter(item -> !item.getParent().equals(parent) || !item.getValue().getNodeType().equals(nodeType)).findFirst().isPresent()) {
+            return false;
         }
-        return selectionValid;
+        return true;
     }
 
     /**

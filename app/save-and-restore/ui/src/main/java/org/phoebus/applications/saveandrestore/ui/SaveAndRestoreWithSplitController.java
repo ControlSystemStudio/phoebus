@@ -62,10 +62,6 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
                 this));
 
         browserSelectionModel.selectedItemProperty().addListener((observableValue, nodeTreeItem, selectedTreeItem) -> {
-            if(!checkMultipleSelection(selectedTreeItem)){
-                return;
-            }
-
             if (selectedTreeItem == null) {
                 return;
             }

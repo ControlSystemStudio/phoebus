@@ -92,7 +92,9 @@ public class BrowserTreeCell extends TreeCell<Node> {
         this.rootFolderContextMenu = rootFolderContextMenu;
 
         setOnDragDetected(event -> {
-
+            if(!saveAndRestoreCotroller.checkMultipleSelection()){
+                return;
+            }
             final ClipboardContent content = new ClipboardContent();
             Node node = getItem();
             // Drag-n-drop not supported for root node and snapshot nodes
@@ -130,6 +132,10 @@ public class BrowserTreeCell extends TreeCell<Node> {
             Node targetNode = getItem();
             if (targetNode != null) {
                 List<Node> sourceNodes = (List<Node>) event.getDragboard().getContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT);
+                // If the drop target is contained in the selection, return silently...
+                if(sourceNodes.contains(targetNode)){
+                    return;
+                }
                 TransferMode transferMode = event.getTransferMode();
                 getTreeView().getSelectionModel().clearSelection(); // This is needed to help controller implement selection restrictions
                 saveAndRestoreCotroller.performCopyOrMove(sourceNodes, targetNode, transferMode);
