@@ -16,11 +16,14 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.logbook.olog.ui;
+package org.phoebus.logbook.olog.ui.query;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.time.Instant;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,9 +32,28 @@ import static org.junit.Assert.assertTrue;
 
 public class OlogQueryManagerTest {
 
+    private static File file;
+    private static File nonEmptyFile;
+
+    @BeforeClass
+    public static void before() {
+        try {
+            file = File.createTempFile("test", "");
+            file.deleteOnExit();
+            nonEmptyFile = File.createTempFile("test", "");
+            nonEmptyFile.deleteOnExit();
+            FileOutputStream fileOutputStream = new FileOutputStream(nonEmptyFile);
+            fileOutputStream.write("[{\"lastUsed\":1642665327171,\"query\":\"start=12 weeks&end=now\",\"defaultQuery\":true}]".getBytes());
+            fileOutputStream.flush();
+            fileOutputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Test
     public void testGetOrAddQuery() {
-        OlogQueryManager ologQueryManager = OlogQueryManager.getInstance();
+        OlogQueryManager ologQueryManager = OlogQueryManager.getInstance(file);
         OlogQuery defaultQuery = new OlogQuery("default");
         defaultQuery.setDefaultQuery(true);
         List<OlogQuery> queryList = new ArrayList<>();
@@ -50,12 +72,12 @@ public class OlogQueryManagerTest {
                 e.printStackTrace();
             }
         }
-        assertEquals(20, ologQueryManager.getQueries().size());
+        assertEquals(15, ologQueryManager.getQueries().size());
 
         queryList = ologQueryManager.getQueries();
         OlogQuery oq1 = queryList.get(queryList.size() - 1);
         OlogQuery oq2 = queryList.get(queryList.size() - 2);
-        assertTrue(oq1.getLastUsed().isBefore(oq2.getLastUsed()));
+        assertTrue(oq1.getLastUsed() < oq2.getLastUsed());
 
         // Check that default query is present
         assertTrue(queryList.stream().filter(q -> q.isDefaultQuery()).findFirst().isPresent());
@@ -63,9 +85,9 @@ public class OlogQueryManagerTest {
 
     @Test
     public void testGetOrAddQueryExisting() {
-        OlogQueryManager ologQueryManager = OlogQueryManager.getInstance();
+        OlogQueryManager ologQueryManager = OlogQueryManager.getInstance(file);
         OlogQuery retrievedQuery = ologQueryManager.getOrAddQuery("query");
-        Instant lastUsed = retrievedQuery.getLastUsed();
+        long lastUsed = retrievedQuery.getLastUsed();
 
         try {
             Thread.sleep(2);
@@ -74,6 +96,13 @@ public class OlogQueryManagerTest {
         }
 
         OlogQuery retrievedQuery2 = ologQueryManager.getOrAddQuery("query");
-        assertTrue(retrievedQuery.getLastUsed().isAfter(lastUsed));
+        assertTrue(retrievedQuery.getLastUsed() > lastUsed);
+    }
+
+    @Test
+    public void testNonEmtpyFile() {
+        OlogQueryManager ologQueryManager = OlogQueryManager.getInstance(nonEmptyFile);
+        List<OlogQuery> queries = ologQueryManager.getQueries();
+        assertEquals(1, queries.size());
     }
 }

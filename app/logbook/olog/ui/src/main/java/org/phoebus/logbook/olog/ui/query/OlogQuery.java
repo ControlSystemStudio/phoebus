@@ -16,16 +16,14 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.logbook.olog.ui;
-
-import java.time.Instant;
+package org.phoebus.logbook.olog.ui.query;
 
 public class OlogQuery{
 
     /**
-     * Timestamp keeping track of when query was last used.
+     * Timestamp keeping track of when query was last used. In ms since epoch.
      */
-    private Instant lastUsed;
+    private long lastUsed;
     /**
      * The string representation of the query, e.g. "start=12 hours&end=now".
      */
@@ -41,14 +39,14 @@ public class OlogQuery{
 
     public OlogQuery(String query){
         this.query = query;
-        this.lastUsed = Instant.now();
+        this.lastUsed = System.currentTimeMillis();
     }
 
-    public Instant getLastUsed() {
+    public long getLastUsed() {
         return lastUsed;
     }
 
-    public void setLastUsed(Instant lastUsed) {
+    public void setLastUsed(long lastUsed) {
         this.lastUsed = lastUsed;
     }
 

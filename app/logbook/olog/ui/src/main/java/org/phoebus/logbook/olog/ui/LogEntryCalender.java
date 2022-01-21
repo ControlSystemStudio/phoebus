@@ -6,6 +6,7 @@ import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockItem;
@@ -24,7 +25,6 @@ public class LogEntryCalender implements AppInstance {
     private DockItem tab;
 
     private LogEntryCalenderViewController controller;
-
 
     LogEntryCalender(final LogEntryCalenderApp app) {
         this.app = app;
@@ -64,7 +64,7 @@ public class LogEntryCalender implements AppInstance {
             });
             loader.load();
             controller = loader.getController();
-            controller.setQuery(LogbookUIPreferences.default_logbook_query);
+            //controller.setQuery(LogbookUIPreferences.default_logbook_query);
             if (this.app.getClient() != null) {
                 controller.setClient(this.app.getClient());
             } else {
@@ -77,9 +77,6 @@ public class LogEntryCalender implements AppInstance {
         {
             Logger.getLogger(getClass().getName()).log(Level.WARNING, "Cannot load UI", e);
         }
-        tab.setOnClosed(event -> {
-            // dispose();
-        });
     }
 
     @Override
@@ -88,20 +85,8 @@ public class LogEntryCalender implements AppInstance {
     }
 
     @Override
-    public void restore(final Memento memento)
-    {
-        if (memento.getString(LOG_CALENDER_QUERY).isPresent()) {
-            controller.setQuery(memento.getString(LOG_CALENDER_QUERY).get());
-        } else {
-            controller.setQuery(LogbookUIPreferences.default_logbook_query);
-        }
-    }
-
-    @Override
     public void save(final Memento memento)
     {
-        if(!controller.getQuery().isBlank()) {
-            memento.setString(LOG_CALENDER_QUERY, controller.getQuery().trim());
-        }
+        OlogQueryManager.getInstance().save();
     }
 }

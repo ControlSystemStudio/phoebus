@@ -44,7 +44,7 @@
                                         <Insets right="3.0" />
                                     </GridPane.margin>
                                 </Label>
-                                <ComboBox fx:id="query" editable="true" maxWidth="1.7976931348623157E308" onAction="#search" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.vgrow="NEVER">
+                                <ComboBox fx:id="query" editable="true" maxWidth="1.7976931348623157E308"  GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.vgrow="NEVER">
                                     <GridPane.margin>
                                         <Insets bottom="10.0" top="10.0" />
                                     </GridPane.margin>

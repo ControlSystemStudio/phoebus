@@ -3,10 +3,12 @@ package org.phoebus.logbook.olog.ui;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
@@ -26,17 +28,18 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.util.Callback;
 import javafx.util.Duration;
+import javafx.util.StringConverter;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
@@ -44,18 +47,17 @@ import org.phoebus.logbook.LogbookException;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.SearchResult;
 import org.phoebus.logbook.olog.ui.LogbookQueryUtil.Keys;
+import org.phoebus.logbook.olog.ui.query.OlogQuery;
+import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
-
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -113,10 +115,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
     /**
      * List of selected log entries
      */
-    private ObservableList<LogEntry> selectedLogEntries = FXCollections.observableArrayList();
+    private final ObservableList<LogEntry> selectedLogEntries = FXCollections.observableArrayList();
     private final Logger logger = Logger.getLogger(LogEntryTableViewController.class.getName());
-
-    protected OlogQueryManager queryManager = OlogQueryManager.getInstance();
 
     /**
      * Constructor.
@@ -127,40 +127,33 @@ public class LogEntryTableViewController extends LogbookSearchController {
         setClient(logClient);
     }
 
-    private SimpleBooleanProperty searchInProgress = new SimpleBooleanProperty(false);
-    private SimpleBooleanProperty sortAscending = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty searchInProgress = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty sortAscending = new SimpleBooleanProperty(false);
 
-    private SimpleIntegerProperty hitCountProperty = new SimpleIntegerProperty(0);
-    private SimpleIntegerProperty pageSizeProperty =
+    private final SimpleIntegerProperty hitCountProperty = new SimpleIntegerProperty(0);
+    private final SimpleIntegerProperty pageSizeProperty =
             new SimpleIntegerProperty(LogbookUIPreferences.search_result_page_size);
-    private SimpleIntegerProperty pageCountProperty = new SimpleIntegerProperty(0);
+    private final SimpleIntegerProperty pageCountProperty = new SimpleIntegerProperty(0);
+    private final OlogQueryManager ologQueryManager = OlogQueryManager.getInstance();
+    private final ObservableList<OlogQuery> ologQueries = FXCollections.observableArrayList();
 
-    private ObservableList<OlogQuery> ologQueries = FXCollections.observableArrayList();
-
-    private OlogQueryManager ologQueryManager = OlogQueryManager.getInstance();
+    /**
+     * The listener called when user selects an item in the {@link ComboBox}
+     * drop-down, or when a value is set implicitly from code when updating the list of items in the drop-down.
+     */
+    private ChangeListener<OlogQuery> onActionListener;
 
     @FXML
     public void initialize() {
+        configureComboBox();
+        // Set the search parameters in the advanced search controller so that it operates on the same object.
         advancedSearchViewController.setSearchParameters(searchParameters);
+        ologQueries.setAll(ologQueryManager.getQueries());
 
-        /*
-        searchParameters.addListener((MapChangeListener<Keys, String>) change -> query.setText(searchParameters.entrySet().stream()
+        searchParameters.addListener((MapChangeListener<Keys, String>) change -> query.getEditor().setText(searchParameters.entrySet().stream()
                 .sorted(Entry.comparingByKey())
                 .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
                 .collect(Collectors.joining("&"))));
-
-         */
-        searchParameters.addListener((MapChangeListener<Keys, String>) change -> {
-            String queryString = searchParameters.entrySet().stream()
-                    .sorted(Entry.comparingByKey())
-                    .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
-                    .collect(Collectors.joining("&"));
-            queryManager.getOrAddQuery(queryString);
-        });
-
-        //List<OlogQuery> ologQueries = queryManager.getQueries();
-        //query.getItems().addAll(ologQueries);
-        //query.setValue(ologQueries.get(0));
 
         MenuItem groupSelectedEntries = new MenuItem(Messages.GroupSelectedEntries);
         groupSelectedEntries.setOnAction(e -> {
@@ -183,12 +176,11 @@ public class LogEntryTableViewController extends LogbookSearchController {
         descriptionCol.setMaxWidth(1f * Integer.MAX_VALUE * 100);
         descriptionCol.setCellValueFactory(col -> new SimpleObjectProperty(col.getValue()));
         descriptionCol.setCellFactory(col -> {
-
             return new TableCell<>() {
-                private Node graphic;
+                private final Node graphic;
                 private final PseudoClass childlessTopLevel =
                         PseudoClass.getPseudoClass("grouped");
-                private LogEntryCellController controller;
+                private final LogEntryCellController controller;
 
                 {
                     try {
@@ -252,54 +244,33 @@ public class LogEntryTableViewController extends LogbookSearchController {
         pagination.pageCountProperty().bind(pageCountProperty);
         pagination.maxPageIndicatorCountProperty().bind(pageCountProperty);
 
-        /*
-        ologQueryManager.addOlogQueryListListener(queries -> {
-            ologQueries.clear();
-            queries.sort(Comparator.comparing(OlogQuery::getLastUsed));
-            ologQueries.setAll(queries);
-            Map<String, String> params = LogbookQueryUtil.parseHumanReadableQueryString(ologQueries.get(0).getQuery());
-            searchParameters.clear();
-            params.forEach((key, value) -> searchParameters.put(Keys.findKey(key), value));
-            search();
-        });
+        query.itemsProperty().bind(new SimpleObjectProperty<>(ologQueries));
 
-         */
-        query.setCellFactory(
-                new Callback<ListView<OlogQuery>, ListCell<OlogQuery>>() {
-                    @Override public ListCell<OlogQuery> call(ListView<OlogQuery> param) {
-                        final ListCell<OlogQuery> cell = new ListCell<OlogQuery>() {
-                            {
-                                super.setPrefWidth(100);
-                            }
-                            @Override public void updateItem(OlogQuery item,
-                                                             boolean empty) {
-                                super.updateItem(item, empty);
-                                if (item != null) {
-                                    setText(item.getQuery());
-                                    if (item.isDefaultQuery()) {
-                                        setTextFill(Color.RED);
-                                    }
-                                }
-                                else {
-                                    setText(null);
-                                }
-                            }
-                        };
-                        return cell;
-                    }
-                });
-        List<OlogQuery> ologQueries = ologQueryManager.getQueries();
-        query.setValue(ologQueries.get(0));
+        // NOTE: the listener will ensure that whenever user chooses a query from the drop-down,
+        // or when the selected query is set in code, a new search is triggered.
+        onActionListener = (observable, oldValue, newValue) -> search();
+
+        query.getSelectionModel().selectedItemProperty().addListener(onActionListener);
+        query.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ENTER) {
+                // Query set -> search is triggered!
+                query.setValue(new OlogQuery(query.getEditor().getText()));
+            }
+        });
+        query.getEditor().setText(ologQueries.get(0).getQuery());
+        // Query set -> search is triggered!
+        query.getSelectionModel().select(ologQueries.get(0));
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored
     // until a give resize action is completed
-    private AtomicBoolean moving = new AtomicBoolean(false);
+    private final AtomicBoolean moving = new AtomicBoolean(false);
 
     @FXML
     public void resize() {
         if (!moving.compareAndExchangeAcquire(false, true)) {
             if (resize.getText().equals("<")) {
+                query.disableProperty().set(false);
                 Duration cycleDuration = Duration.millis(400);
                 KeyValue kv = new KeyValue(advancedSearchViewController.getPane().minWidthProperty(), 0);
                 KeyValue kv2 = new KeyValue(advancedSearchViewController.getPane().maxWidthProperty(), 0);
@@ -308,9 +279,11 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 timeline.setOnFinished(event -> {
                     resize.setText(">");
                     moving.set(false);
+                    advancedSearchViewController.updateSearchParametersFromInput();
+                    search();
                 });
-                query.disableProperty().set(false);
             } else {
+
                 Duration cycleDuration = Duration.millis(400);
                 double width = ViewSearchPane.getWidth() / 2.5;
                 KeyValue kv = new KeyValue(advancedSearchViewController.getPane().minWidthProperty(), width);
@@ -320,9 +293,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 timeline.setOnFinished(event -> {
                     resize.setText("<");
                     moving.set(false);
+                    query.disableProperty().set(true);
+                    advancedSearchViewController.updateSearchParamsFromQueryString(query.getEditor().getText());
                 });
-                query.disableProperty().set(true);
-                advancedSearchViewController.updateSearchParamsFromQueryString(query.getValue().getQuery());
             }
         }
     }
@@ -340,15 +313,21 @@ public class LogEntryTableViewController extends LogbookSearchController {
     }
 
     public void search() {
-        tableView.getSelectionModel().clearSelection();
         // In case the page size text field is empty, or the value is zero, set the page size to the default
         if ("".equals(pageSizeTextField.getText()) || Integer.parseInt(pageSizeTextField.getText()) == 0) {
             pageSizeTextField.setText(Integer.toString(LogbookUIPreferences.search_result_page_size));
         }
 
+        // Need to remove the listener as a new search would be invoked when combo box list is updated
+        // with the refreshed list of queries
+        query.getSelectionModel().selectedItemProperty().removeListener(onActionListener);
+        tableView.getSelectionModel().clearSelection();
+
+        OlogQuery ologQuery = ologQueryManager.getOrAddQuery(query.getEditor().getText());
+
         // Construct the query parameters from the search field string. Note that some keys
         // are treated as "hidden" and removed in the returned map.
-        Map<String, String> params = LogbookQueryUtil.parseHumanReadableQueryString(query.getValue().getQuery());
+        Map<String, String> params = LogbookQueryUtil.parseHumanReadableQueryString(ologQuery.getQuery());
         searchParameters.clear();
         params.entrySet().forEach(e -> searchParameters.put(Keys.findKey(e.getKey()), e.getValue()));
 
@@ -358,7 +337,17 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
         searchInProgress.set(true);
 
-        super.search(params, (inProgress) -> searchInProgress.set(inProgress));
+        super.search(params, (inProgress) -> {
+            searchInProgress.set(inProgress);
+            List<OlogQuery> queries = ologQueryManager.getQueries();
+            Platform.runLater(() -> {
+                ologQueries.setAll(queries);
+                // Top-most query is the one used in the search.
+                query.getSelectionModel().select(ologQueries.get(0));
+                // Add the listener
+                query.getSelectionModel().selectedItemProperty().addListener(onActionListener);
+            });
+        });
     }
 
     @Override
@@ -381,11 +370,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
     }
 
     public String getQuery() {
-        return query.getSelectionModel().getSelectedItem().getQuery();
-    }
-
-    public List<OlogQuery> getOlogQueries(){
-        return query.getItems();
+        return query.getValue().getQuery();
     }
 
     private void refresh() {
@@ -427,23 +412,63 @@ public class LogEntryTableViewController extends LogbookSearchController {
     }
 
     @FXML
+    @SuppressWarnings("unused")
     public void goToFirstPage() {
         pagination.setCurrentPageIndex(0);
     }
 
     @FXML
+    @SuppressWarnings("unused")
     public void goToLastPage() {
         pagination.setCurrentPageIndex(pagination.pageCountProperty().get() - 1);
     }
 
-    private OlogQuery getOrAddQuery(String queryString){
-        Optional<OlogQuery> ologQuery =
-                ologQueries.stream().filter(q -> q.getQuery().equals(queryString)).findFirst();
-        if(ologQuery.isPresent()){
-            return ologQuery.get();
-        }
+    private void configureComboBox(){
+        Font defaultQueryFont = Font.font("Liberation Sans", FontWeight.BOLD, 12);
+        Font defaultQueryFontRegular = Font.font("Liberation Sans", FontWeight.NORMAL, 12);
+        query.setVisibleRowCount(OlogQueryManager.getInstance().getQueryListSize());
+        // Needed to customize item rendering, e.g. default query rendered in bold.
+        query.setCellFactory(
+                new Callback<>() {
+                    @Override
+                    public ListCell<OlogQuery> call(ListView<OlogQuery> param) {
+                        final ListCell<OlogQuery> cell = new ListCell<>() {
+                            @Override
+                            public void updateItem(OlogQuery item,
+                                                   boolean empty) {
+                                super.updateItem(item, empty);
+                                if (item != null) {
+                                    setText(item.getQuery().isEmpty() ? "<empty>" : item.getQuery());
+                                    if (item.isDefaultQuery()) {
+                                        setFont(defaultQueryFont);
+                                    } else {
+                                        setFont(defaultQueryFontRegular);
+                                    }
+                                } else {
+                                    setText(null);
+                                }
+                            }
+                        };
+                        return cell;
+                    }
+                });
 
+        // This is needed for the "editor" part of the ComboBox
+        query.setConverter(
+                new StringConverter<>() {
+                    @Override
+                    public String toString(OlogQuery query) {
+                        if (query == null) {
+                            return "";
+                        } else {
+                            return query.getQuery();
+                        }
+                    }
+                    @Override
+                    public OlogQuery fromString(String s) {
+                        return new OlogQuery(s);
+                    }
+                });
 
-        return null;
     }
 }

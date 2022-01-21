@@ -1,31 +1,22 @@
 package org.phoebus.logbook.olog.ui;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.Memento;
-import org.phoebus.framework.persistence.MementoTree;
-import org.phoebus.framework.persistence.XMLMementoTree;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
 import org.phoebus.logbook.olog.ui.write.AttachmentsViewController;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -124,5 +115,11 @@ public class LogEntryTable implements AppInstance {
     {
         String query = resource.getQuery();
         controller.setQuery(query);
+    }
+
+    @Override
+    public void save(final Memento memento)
+    {
+        OlogQueryManager.getInstance().save();
     }
 }

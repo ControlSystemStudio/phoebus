@@ -125,6 +125,21 @@ the elements of a log entry as follows:
 
     - ``properties=property name 1|property name 2`` find log entries containing a property named "property name 1" **or** a property named "property name 2". The pipe character is used to separate search expressions.
 
+Query history
+^^^^^^^^^^^^^
+
+Search queries entered by the user are put onto a first-in-first-out query history list. A button next to the search
+field will expand a drop-down box to show previously used queries, see screen shot below. Queries are ordered by last-used-time
+where the most recent query is on top. When new queries are entered by user, older queries may be
+flushed out as the maximum size of the list is limited (15 by default, configurable between 5 and 30). The "default"
+search query - rendered in bold font in the list - as defined in the preferences is however never flushed.
+
+When user selects a query from the list, a search is performed immediately. There is no need to press a search button.
+Pressing ENTER when editing a query in the search field will also trigger a search, and the query is put in
+the history list.
+
+.. image:: images/QueryHistory.png
+
 Pagination
 ^^^^^^^^^^
 

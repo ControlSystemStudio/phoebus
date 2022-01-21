@@ -21,12 +21,14 @@ package org.phoebus.logbook.olog.ui;
 import com.google.common.base.Strings;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -257,30 +259,6 @@ public class AdvancedSearchViewController {
             }
         });
 
-        searchText.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue.isEmpty()) {
-                searchParameters.remove(Keys.SEARCH);
-            } else {
-                searchParameters.put(Keys.SEARCH, newValue);
-            }
-        });
-
-        searchAuthor.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue.isEmpty()) {
-                searchParameters.remove(Keys.AUTHOR);
-            } else {
-                searchParameters.put(Keys.AUTHOR, newValue);
-            }
-        });
-
-        searchTitle.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue.isEmpty()) {
-                searchParameters.remove(Keys.TITLE);
-            } else {
-                searchParameters.put(Keys.TITLE, newValue);
-            }
-        });
-
         List<String> levelList = logClient.listLevels().stream().collect(Collectors.toList());
         levelSelector.getItems().add("");
         levelSelector.getItems().addAll(levelList);
@@ -302,10 +280,35 @@ public class AdvancedSearchViewController {
             searchTags.setText(searchParameters.get(Keys.TAGS));
             String levelValue = searchParameters.get(Keys.LEVEL);
             levelSelector.getSelectionModel().select(levelValue == null ? "" : levelValue);
+            searchTitle.setText(searchParameters.get(Keys.TITLE));
+            searchText.setText(searchParameters.get(Keys.SEARCH));
+            searchAuthor.setText(searchParameters.get(Keys.AUTHOR));
         }));
 
         startTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.STARTTIME));
         endTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.ENDTIME));
+    }
+
+
+    public void updateSearchParametersFromInput(){
+        if(Strings.isNullOrEmpty(searchTitle.getText())){
+            searchParameters.remove(Keys.TITLE);
+        }
+        else{
+            searchParameters.put(Keys.TITLE, searchTitle.getText());
+        }
+        if(Strings.isNullOrEmpty(searchText.getText())){
+            searchParameters.remove(Keys.SEARCH);
+        }
+        else{
+            searchParameters.put(Keys.SEARCH, searchText.getText());
+        }
+        if(Strings.isNullOrEmpty(searchAuthor.getText())){
+            searchParameters.remove(Keys.AUTHOR);
+        }
+        else{
+            searchParameters.put(Keys.AUTHOR, searchAuthor.getText());
+        }
     }
 
     public AnchorPane getPane() {
