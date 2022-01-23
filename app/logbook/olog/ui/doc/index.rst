@@ -148,7 +148,7 @@ Each search request will retrieve a limited number of matching log entries to re
 default page size in the UI. Page size must be between 1 and 999. If the search results in a hit count larger
 than the page size, the UI will render page navigation buttons below the list of log entries. The current page and
 total number of pages is also shown, see screen shot.
-The navigation buttons are not rendered if the search results in less than two pages.
+The navigation buttons are not rendered if hit count less or equal to the page size.
 
 .. image:: images/pagination.png
 

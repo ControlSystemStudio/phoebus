@@ -5,10 +5,14 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
@@ -143,17 +147,28 @@ public class LogEntryTableViewController extends LogbookSearchController {
      */
     private ChangeListener<OlogQuery> onActionListener;
 
+    private SearchParameters searchParams = new SearchParameters();
+
+
     @FXML
     public void initialize() {
         configureComboBox();
         // Set the search parameters in the advanced search controller so that it operates on the same object.
         advancedSearchViewController.setSearchParameters(searchParameters);
+        advancedSearchViewController.setSearchParameters(searchParams);
         ologQueries.setAll(ologQueryManager.getQueries());
 
+        /*
         searchParameters.addListener((MapChangeListener<Keys, String>) change -> query.getEditor().setText(searchParameters.entrySet().stream()
                 .sorted(Entry.comparingByKey())
                 .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
                 .collect(Collectors.joining("&"))));
+
+         */
+
+        searchParams.addListener((observable, oldValue, newValue) -> {
+            System.out.println();
+        });
 
         MenuItem groupSelectedEntries = new MenuItem(Messages.GroupSelectedEntries);
         groupSelectedEntries.setOnAction(e -> {
@@ -260,6 +275,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         query.getEditor().setText(ologQueries.get(0).getQuery());
         // Query set -> search is triggered!
         query.getSelectionModel().select(ologQueries.get(0));
+        searchParams.setQuery(ologQueries.get(0).getQuery());
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored
@@ -283,7 +299,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
                     search();
                 });
             } else {
-
                 Duration cycleDuration = Duration.millis(400);
                 double width = ViewSearchPane.getWidth() / 2.5;
                 KeyValue kv = new KeyValue(advancedSearchViewController.getPane().minWidthProperty(), width);
@@ -294,6 +309,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
                     resize.setText("<");
                     moving.set(false);
                     query.disableProperty().set(true);
+                    searchParams.setQuery(query.getEditor().getText());
                     advancedSearchViewController.updateSearchParamsFromQueryString(query.getEditor().getText());
                 });
             }

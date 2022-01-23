@@ -21,14 +21,12 @@ package org.phoebus.logbook.olog.ui;
 import com.google.common.base.Strings;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -109,6 +107,8 @@ public class AdvancedSearchViewController {
     @FXML
     private AnchorPane advancedSearchPane;
 
+    private SearchParameters searchParams;
+
     public AdvancedSearchViewController(LogClient logClient) {
         this.logClient = logClient;
     }
@@ -141,14 +141,18 @@ public class AdvancedSearchViewController {
                 if (interval.isStartAbsolute()) {
                     searchParameters.put(Keys.STARTTIME,
                             TimestampFormats.MILLI_FORMAT.format(interval.getAbsoluteStart().get()));
+                    searchParams.setStartTime(TimestampFormats.MILLI_FORMAT.format(interval.getAbsoluteStart().get()));
                 } else {
                     searchParameters.put(Keys.STARTTIME, TimeParser.format(interval.getRelativeStart().get()));
+                    searchParams.setStartTime(TimeParser.format(interval.getRelativeStart().get()));
                 }
                 if (interval.isEndAbsolute()) {
                     searchParameters.put(Keys.ENDTIME,
                             TimestampFormats.MILLI_FORMAT.format(interval.getAbsoluteEnd().get()));
+                    searchParams.setEndTime(TimestampFormats.MILLI_FORMAT.format(interval.getAbsoluteEnd().get()));
                 } else {
                     searchParameters.put(Keys.ENDTIME, TimeParser.format(interval.getRelativeEnd().get()));
+                    searchParams.setEndTime(TimeParser.format(interval.getRelativeEnd().get()));
                 }
                 if (timeSearchPopover.isShowing())
                     timeSearchPopover.hide();
@@ -174,8 +178,6 @@ public class AdvancedSearchViewController {
                     }
                 });
 
-
-
         endTime.focusedProperty().addListener(
                 (ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) -> {
                     if (newPropertyValue) {
@@ -194,8 +196,10 @@ public class AdvancedSearchViewController {
                 Platform.runLater(() -> {
                     if (t.isEmpty()) {
                         searchParameters.remove(Keys.LOGBOOKS);
+                        searchParams.setLogbooks(null);
                     } else {
                         searchParameters.put(Keys.LOGBOOKS, t.stream().collect(Collectors.joining(",")));
+                        searchParams.setLogbooks(t.stream().collect(Collectors.joining(",")));
                     }
                     if (logbookSearchPopover.isShowing())
                         logbookSearchPopover.hide();
@@ -222,7 +226,10 @@ public class AdvancedSearchViewController {
                     if (t.isEmpty()) {
                         searchParameters.remove(Keys.TAGS);
                     } else {
-                        searchParameters.put(Keys.TAGS, t.stream().collect(Collectors.joining(",")));
+                        String tagsValue =
+                                t.stream().collect(Collectors.joining(","));
+                        searchParameters.put(Keys.TAGS, tagsValue);
+                        searchParams.setTags(tagsValue);
                     }
                     if (tagSearchPopover.isShowing())
                         tagSearchPopover.hide();
@@ -276,39 +283,42 @@ public class AdvancedSearchViewController {
     public void setSearchParameters(ObservableMap<Keys, String> params) {
         searchParameters = params;
         searchParameters.addListener((MapChangeListener<Keys, String>) change -> Platform.runLater(() -> {
-            searchLogbooks.setText(searchParameters.get(Keys.LOGBOOKS));
-            searchTags.setText(searchParameters.get(Keys.TAGS));
-            String levelValue = searchParameters.get(Keys.LEVEL);
-            levelSelector.getSelectionModel().select(levelValue == null ? "" : levelValue);
-            searchTitle.setText(searchParameters.get(Keys.TITLE));
-            searchText.setText(searchParameters.get(Keys.SEARCH));
-            searchAuthor.setText(searchParameters.get(Keys.AUTHOR));
+            //searchLogbooks.setText(searchParameters.get(Keys.LOGBOOKS));
+            //searchTags.setText(searchParameters.get(Keys.TAGS));
+            //String levelValue = searchParameters.get(Keys.LEVEL);
+            //levelSelector.getSelectionModel().select(levelValue == null ? "" : levelValue);
+            //searchTitle.setText(searchParameters.get(Keys.TITLE));
+            //searchText.setText(searchParameters.get(Keys.SEARCH));
+            //searchAuthor.setText(searchParameters.get(Keys.AUTHOR));
         }));
 
-        startTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.STARTTIME));
-        endTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.ENDTIME));
+        //startTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.STARTTIME));
+        //endTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.ENDTIME));
     }
 
 
-    public void updateSearchParametersFromInput(){
+    public void updateSearchParametersFromInput() {
+        /*
         if(Strings.isNullOrEmpty(searchTitle.getText())){
             searchParameters.remove(Keys.TITLE);
         }
         else{
             searchParameters.put(Keys.TITLE, searchTitle.getText());
         }
-        if(Strings.isNullOrEmpty(searchText.getText())){
+
+
+        if (Strings.isNullOrEmpty(searchText.getText())) {
             searchParameters.remove(Keys.SEARCH);
-        }
-        else{
+        } else {
             searchParameters.put(Keys.SEARCH, searchText.getText());
         }
-        if(Strings.isNullOrEmpty(searchAuthor.getText())){
+        if (Strings.isNullOrEmpty(searchAuthor.getText())) {
             searchParameters.remove(Keys.AUTHOR);
-        }
-        else{
+        } else {
             searchParameters.put(Keys.AUTHOR, searchAuthor.getText());
         }
+
+         */
     }
 
     public AnchorPane getPane() {
@@ -336,25 +346,34 @@ public class AdvancedSearchViewController {
                     List<String> levels = logClient.listLevels().stream().collect(Collectors.toList());
                     if (levels.contains(entry.getValue())) {
                         searchParameters.put(Keys.LEVEL, entry.getValue());
-                        levelSelector.getSelectionModel().select(entry.getValue());
+                        //levelSelector.getSelectionModel().select(entry.getValue());
+                        searchParams.setLevel(entry.getValue());
                     } else {
                         searchParameters.remove(Keys.LEVEL);
-                        levelSelector.getSelectionModel().select("");
+                        //levelSelector.getSelectionModel().select("");
+                        searchParams.setLevel(null);
                     }
                 } else if (keys.equals(Keys.LOGBOOKS)) {
                     List<String> validatedLogbookNames = getValidatedLogbooksSelection(entry.getValue());
                     if (validatedLogbookNames.isEmpty()) {
                         searchParameters.remove(Keys.LOGBOOKS);
+                        searchParams.setLogbooks(null);
                     } else {
-                        searchParameters.put(Keys.LOGBOOKS, validatedLogbookNames.stream().collect(Collectors.joining(",")));
+                        String selectedLogbooks =
+                                validatedLogbookNames.stream().collect(Collectors.joining(","));
+                        searchParameters.put(Keys.LOGBOOKS, selectedLogbooks);
+                        searchParams.setLogbooks(selectedLogbooks);
                     }
                     logbookController.setSelected(validatedLogbookNames);
                 } else if (keys.equals(Keys.TAGS)) {
                     List<String> validatedTagsNames = getValidatedTagsSelection(entry.getValue());
                     if (validatedTagsNames.isEmpty()) {
                         searchParameters.remove(Keys.TAGS);
+                        searchParams.setTags(null);
                     } else {
-                        searchParameters.put(Keys.TAGS, validatedTagsNames.stream().collect(Collectors.joining(",")));
+                        String selectedTags = validatedTagsNames.stream().collect(Collectors.joining(","));
+                        searchParameters.put(Keys.TAGS, selectedTags);
+                        searchParams.setTags(selectedTags);
                     }
                     tagController.setSelected(validatedTagsNames);
                 } else {
@@ -394,11 +413,23 @@ public class AdvancedSearchViewController {
         return validatedLogbookNames;
     }
 
-    protected void removedUnwantedSearchParameters(ObservableMap<Keys, String> searchParameters, Map<String, String> queryStringParameters){
+    protected void removedUnwantedSearchParameters(ObservableMap<Keys, String> searchParameters, Map<String, String> queryStringParameters) {
         Arrays.stream(Keys.values()).forEach(keys -> {
             if (!queryStringParameters.containsKey(keys.getName())) {
                 searchParameters.remove(keys);
             }
         });
+    }
+
+    public void setSearchParameters(SearchParameters searchParams) {
+        this.searchParams = searchParams;
+        searchTitle.textProperty().bindBidirectional(this.searchParams.titleProperty());
+        searchText.textProperty().bindBidirectional(this.searchParams.bodyProperty());
+        searchAuthor.textProperty().bindBidirectional(this.searchParams.authorProperty());
+        levelSelector.valueProperty().bindBidirectional(this.searchParams.levelProperty());
+        searchTags.textProperty().bindBidirectional(this.searchParams.tagsProperty());
+        searchLogbooks.textProperty().bindBidirectional(this.searchParams.logbooksProperty());
+        startTime.textProperty().bindBidirectional(this.searchParams.startTimeProperty());
+        endTime.textProperty().bindBidirectional(this.searchParams.endTimeProperty());
     }
 }
