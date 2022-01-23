@@ -139,7 +139,7 @@ public class Launcher
                         throw new Exception("Missing -main name");
                     final String main = iter.next();
                     iter.remove();
-                    
+
                     // Locate Main class and its main()
                     final Class<?> main_class = Class.forName(main);
                     final Method main_method = main_class.getDeclaredMethod("main", String[].class);
@@ -213,9 +213,9 @@ public class Launcher
         System.out.println();
         System.out.println("Examples:");
         System.out.println("-resource '/path/to/file'                                                    - Opens that file with the default application.");
-        System.out.println("-resource 'file:/path/to/file'                                               - Same, but makes the 'file' schema specific.");
+        System.out.println("-resource 'file:/absolute/path/to/file'                                      - Same, but makes the 'file' schema specific.");
         System.out.println("-resource 'http://my.site/path/to/file'                                      - Reads web link, opens with default application.");
-        System.out.println("-resource 'file:/path/to/file?app=display_runtime&MACRO1=value+1&MACRO2=abc' - Opens file with 'display_runtime' app, passing macros.");
+        System.out.println("-resource 'file:/abs/path/file?app=display_runtime&MACRO1=value+1&MACRO2=xy' - Opens file with 'display_runtime' app, passing macros.");
         System.out.println("-resource 'pv://?sim://sine&app=probe'                                       - Opens the 'sim://sine' PV with 'probe'.");
         System.out.println("-resource 'pv://?Fred&sim://sine&app=pv_table'                               - Opens two PVs PV with 'pv_table'.");
         System.out.println("-resource '...&target=window'                                                - Opens resource in separate window.");

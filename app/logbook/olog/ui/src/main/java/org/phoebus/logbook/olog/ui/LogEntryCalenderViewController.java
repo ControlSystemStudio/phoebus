@@ -30,6 +30,7 @@ import jfxtras.scene.control.agenda.Agenda.AppointmentImplLocal;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.SearchResult;
 import org.phoebus.ui.time.TimeRelativeIntervalPane;
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
@@ -350,5 +351,10 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
             logger.log(Level.INFO, "Unable to retireve logbook names", e);
             return null;
         }
+    }
+
+    @Override
+    public void setSearchResult(SearchResult searchResult) {
+        setLogs(searchResult.getLogs());
     }
 }

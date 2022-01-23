@@ -911,6 +911,9 @@ File ../../app/logbook/olog/ui/src/main/resources/log_olog_ui_preferences.proper
    
    # Log Entry Calendar display name. If non-empty it overrides default "Log Entry Calendar"
    log_entry_calendar_display_name=
+   
+   # Limit used in "paginated" search, i.e. the number of search results per page
+   search_result_page_size=30
 
 
 logbook.ui

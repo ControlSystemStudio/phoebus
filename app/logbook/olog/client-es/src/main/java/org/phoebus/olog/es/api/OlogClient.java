@@ -1,5 +1,38 @@
 package org.phoebus.olog.es.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientHandlerException;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.ClientResponse.Status;
+import com.sun.jersey.api.client.UniformInterfaceException;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.config.ClientConfig;
+import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
+import com.sun.jersey.multipart.FormDataBodyPart;
+import com.sun.jersey.multipart.FormDataMultiPart;
+import com.sun.jersey.multipart.file.FileDataBodyPart;
+import com.sun.jersey.multipart.impl.MultiPartWriter;
+import org.phoebus.logbook.Attachment;
+import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.LogbookException;
+import org.phoebus.logbook.Messages;
+import org.phoebus.logbook.Property;
+import org.phoebus.logbook.SearchResult;
+import org.phoebus.logbook.Tag;
+import org.phoebus.olog.es.api.model.OlogLog;
+import org.phoebus.olog.es.api.model.OlogObjectMappers;
+import org.phoebus.olog.es.api.model.OlogSearchResult;
+
+import javax.net.ssl.SSLContext;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -14,39 +47,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
-import javax.net.ssl.SSLContext;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriBuilder;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.sun.jersey.api.client.ClientResponse.Status;
-import org.phoebus.logbook.Attachment;
-import org.phoebus.logbook.LogClient;
-import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.Logbook;
-import org.phoebus.logbook.LogbookException;
-import org.phoebus.logbook.Messages;
-import org.phoebus.logbook.Property;
-import org.phoebus.logbook.Tag;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
-import com.sun.jersey.multipart.FormDataBodyPart;
-import com.sun.jersey.multipart.FormDataMultiPart;
-import com.sun.jersey.multipart.file.FileDataBodyPart;
-import com.sun.jersey.multipart.impl.MultiPartWriter;
-import org.phoebus.olog.es.api.model.OlogObjectMappers;
-import org.phoebus.olog.es.api.model.OlogLog;
 
 /**
  * A client to the Olog-es webservice
@@ -187,7 +187,8 @@ public class OlogClient implements LogClient {
 
     /**
      * Calls the back-end service to persist the log entry.
-     * @param log The log entry to save.
+     *
+     * @param log       The log entry to save.
      * @param inReplyTo If non-null, this save operation will treat the <code>log</code> parameter as a reply to
      *                  the log entry represented by <code>inReplyTo</code>.
      * @return The saved log entry.
@@ -199,7 +200,7 @@ public class OlogClient implements LogClient {
         try {
             MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
             queryParams.putSingle("markup", "commonmark");
-            if(inReplyTo != null){
+            if (inReplyTo != null) {
                 queryParams.putSingle("inReplyTo", Long.toString(inReplyTo.getId()));
             }
             clientResponse = service.path("logs")
@@ -209,13 +210,12 @@ public class OlogClient implements LogClient {
                     .accept(MediaType.APPLICATION_JSON)
                     .put(ClientResponse.class, OlogObjectMappers.logEntrySerializer.writeValueAsString(log));
 
-            if (clientResponse.getStatus() < 300)
-            {
+            if (clientResponse.getStatus() < 300) {
                 OlogLog createdLog = OlogObjectMappers.logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), OlogLog.class);
                 log.getAttachments().stream().forEach(attachment -> {
                     FormDataMultiPart form = new FormDataMultiPart();
                     // Add id only if it is set, otherwise Jersey will complain and cause the submission to fail.
-                    if(attachment.getId() != null && !attachment.getId().isEmpty()){
+                    if (attachment.getId() != null && !attachment.getId().isEmpty()) {
                         form.bodyPart(new FormDataBodyPart("id", attachment.getId()));
                     }
                     form.bodyPart(new FileDataBodyPart("file", attachment.getFile()));
@@ -225,12 +225,11 @@ public class OlogClient implements LogClient {
                     ClientResponse attachmentResponse = service.path("logs")
                             .path("attachments")
                             .path(String.valueOf(createdLog.getId()))
-                           .type(MediaType.MULTIPART_FORM_DATA)
-                           .accept(MediaType.APPLICATION_XML)
-                           .accept(MediaType.APPLICATION_JSON)
-                           .post(ClientResponse.class, form);
-                    if (attachmentResponse.getStatus() > 300)
-                    {
+                            .type(MediaType.MULTIPART_FORM_DATA)
+                            .accept(MediaType.APPLICATION_XML)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .post(ClientResponse.class, form);
+                    if (attachmentResponse.getStatus() > 300) {
                         // TODO failed to add attachments
                         logger.log(Level.SEVERE, "Failed to submit attachment(s), HTTP status: " + attachmentResponse.getStatus());
                     }
@@ -241,23 +240,21 @@ public class OlogClient implements LogClient {
                         .accept(MediaType.APPLICATION_JSON)
                         .get(ClientResponse.class);
                 return OlogObjectMappers.logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), OlogLog.class);
-            }
-            else if(clientResponse.getStatus() == 401){
+            } else if (clientResponse.getStatus() == 401) {
                 logger.log(Level.SEVERE, "Submission of log entry returned HTTP status, invalid credentials");
                 throw new LogbookException(Messages.SubmissionFailedInvalidCredentials);
-            }
-            else{
-                logger.log(Level.SEVERE, "Submission of log entry returned HTTP status" + clientResponse.getStatus() );
+            } else {
+                logger.log(Level.SEVERE, "Submission of log entry returned HTTP status" + clientResponse.getStatus());
                 throw new LogbookException(MessageFormat.format(Messages.SubmissionFailedWithHttpStatus, clientResponse.getStatus()));
             }
         } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
-            logger.log(Level.SEVERE,"Failed to submit log entry, got client exception", e);
+            logger.log(Level.SEVERE, "Failed to submit log entry, got client exception", e);
             throw new LogbookException(e);
         }
     }
 
     @Override
-    public LogEntry reply(LogEntry log, LogEntry inReplyTo) throws LogbookException{
+    public LogEntry reply(LogEntry log, LogEntry inReplyTo) throws LogbookException {
         return save(log, inReplyTo);
     }
 
@@ -268,7 +265,7 @@ public class OlogClient implements LogClient {
      * @return LogEntry object
      */
     @Override
-    public LogEntry getLog(Long logId){
+    public LogEntry getLog(Long logId) {
         return findLogById(logId);
     }
 
@@ -277,10 +274,10 @@ public class OlogClient implements LogClient {
     public LogEntry findLogById(Long logId) {
         try {
             OlogLog ologLog = OlogObjectMappers.logEntryDeserializer.readValue(
-                service
-                    .path("logs")
-                    .path(logId.toString())
-                    .accept(MediaType.APPLICATION_JSON).get(String.class), OlogLog.class);
+                    service
+                            .path("logs")
+                            .path(logId.toString())
+                            .accept(MediaType.APPLICATION_JSON).get(String.class), OlogLog.class);
             return ologLog;
         } catch (JsonProcessingException e) {
             return null;
@@ -288,49 +285,31 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public List<LogEntry> findLogs(Map<String, String> map) throws RuntimeException{
-        MultivaluedMap<String, String> mMap = new MultivaluedMapImpl();
-        map.forEach((k, v) -> {
-            mMap.putSingle(k, v);
-        });
-        return findLogs(mMap);
-    }
-
-    private List<LogEntry> findLogs(String queryParameter, String pattern) throws RuntimeException {
-        MultivaluedMap<String, String> mMap = new MultivaluedMapImpl();
-        mMap.putSingle(queryParameter, pattern);
-        return findLogs(mMap);
+    public List<LogEntry> findLogs(Map<String, String> map) throws RuntimeException {
+        throw new RuntimeException(new UnsupportedOperationException());
     }
 
     /**
      * Retrieves {@link LogEntry}s matching the search criteria. Note that even if the matching {@link LogEntry}s
      * may have a non-empty list of {@link Attachment}s, the {@link Attachment}s will NOT contains the actual
      * data/content. This is essentially a lazy loading strategy to avoid fetching attachment data at this point.
+     *
      * @param searchParams Map of search parameters/expressions
      * @return A list of matching {@link LogEntry}s
      * @throws RuntimeException
      */
-    private List<LogEntry> findLogs(MultivaluedMap<String, String> searchParams) throws RuntimeException {
-        List<LogEntry> logs = new ArrayList<>();
-        if (searchParams.containsKey("limit")) {
-            // Check if limit can be parsed as a number. If not, remove it.
-            try {
-                Integer.parseInt(searchParams.get("limit").get(0));
-            } catch (Exception e) {
-                logger.warning("Invalid request parameter value for 'limit'");
-                searchParams.remove("limit");
-            }
-        }
+    private SearchResult findLogs(MultivaluedMap<String, String> searchParams) throws RuntimeException {
         try {
             // Convert List<XmlLog> into List<LogEntry>
-            final List <OlogLog> xmls = OlogObjectMappers.logEntryDeserializer.readValue(
-                    service.path("logs").queryParams(searchParams)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .get(String.class),
-                    new TypeReference<List <OlogLog>>() {
-                    });
-            logs = xmls.stream().collect(Collectors.toList());
-            return Collections.unmodifiableList(logs);
+            final OlogSearchResult ologSearchResult = OlogObjectMappers.logEntryDeserializer.readValue(
+                    service.path("logs/search").queryParams(searchParams)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .get(String.class),
+                    OlogSearchResult.class);
+            SearchResult searchResult = new SearchResult();
+            searchResult.setHitCount(ologSearchResult.getHitCount());
+            searchResult.setLogs(ologSearchResult.getLogs().stream().collect(Collectors.toList()));
+            return searchResult;
         } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
             logger.log(Level.WARNING, "failed to retrieve log entries", e);
             throw new RuntimeException(e);
@@ -339,12 +318,12 @@ public class OlogClient implements LogClient {
 
     @Override
     public List<LogEntry> findLogsByLogbook(String logbookName) {
-        return findLogs("logbook", logbookName);
+        throw new RuntimeException(new UnsupportedOperationException());
     }
 
     @Override
     public List<LogEntry> findLogsByProperty(String propertyName) {
-        return findLogs("property", propertyName);
+        throw new RuntimeException(new UnsupportedOperationException());
     }
 
     @Override
@@ -356,12 +335,12 @@ public class OlogClient implements LogClient {
 
     @Override
     public List<LogEntry> findLogsBySearch(String pattern) {
-        return findLogs("search", pattern);
+        throw new RuntimeException(new UnsupportedOperationException());
     }
 
     @Override
     public List<LogEntry> findLogsByTag(String tagName) {
-        return findLogs("tag", tagName);
+        throw new RuntimeException(new UnsupportedOperationException());
     }
 
     @Override
@@ -407,7 +386,7 @@ public class OlogClient implements LogClient {
 
     @Override
     public Collection<String> listLevels() {
-        if(levels == null){
+        if (levels == null) {
             OlogProperties ologProperties = new OlogProperties();
             String[] levelList = ologProperties.getPreferenceValue("levels").split(",");
             levels = Arrays.asList(levelList);
@@ -421,7 +400,7 @@ public class OlogClient implements LogClient {
             List<Logbook> logbooks = OlogObjectMappers.logEntryDeserializer.readValue(
                     service.path("logbooks").accept(MediaType.APPLICATION_JSON).get(String.class),
                     new TypeReference<List<Logbook>>() {
-            });
+                    });
             return logbooks;
         } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
             logger.log(Level.WARNING, "Unable to get logbooks from service", e);
@@ -435,7 +414,7 @@ public class OlogClient implements LogClient {
             List<Property> properties = OlogObjectMappers.logEntryDeserializer.readValue(
                     service.path("properties").accept(MediaType.APPLICATION_JSON).get(String.class),
                     new TypeReference<List<Property>>() {
-            });
+                    });
             return properties;
         } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
             logger.log(Level.WARNING, "failed to list olog properties", e);
@@ -449,7 +428,7 @@ public class OlogClient implements LogClient {
             List<Tag> tags = OlogObjectMappers.logEntryDeserializer.readValue(
                     service.path("tags").accept(MediaType.APPLICATION_JSON).get(String.class),
                     new TypeReference<List<Tag>>() {
-            });
+                    });
             return tags;
         } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
             logger.log(Level.WARNING, "failed to retrieve olog tags", e);
@@ -458,8 +437,8 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public String getServiceUrl(){
-        if(serviceUrl == null){
+    public String getServiceUrl() {
+        if (serviceUrl == null) {
             OlogProperties ologProperties = new OlogProperties();
             serviceUrl = ologProperties.getPreferenceValue("olog_url");
         }
@@ -478,29 +457,37 @@ public class OlogClient implements LogClient {
                     .accept(MediaType.APPLICATION_JSON)
                     .post(ClientResponse.class, OlogObjectMappers.logEntrySerializer.writeValueAsString(logEntry));
             return OlogObjectMappers.logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), OlogLog.class);
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             logger.log(Level.SEVERE, "Unable to update log entry id=" + logEntry.getId(), e);
             return null;
         }
     }
 
+    @Override
+    public SearchResult search(Map<String, String> map) {
+        MultivaluedMap<String, String> mMap = new MultivaluedMapImpl();
+        map.forEach((k, v) -> {
+            mMap.putSingle(k, v);
+        });
+        return findLogs(mMap);
+    }
+
     /**
      * Logs in to the Olog service.
+     *
      * @param username User name, must not be <code>null</code>.
      * @param password Password, must not be <code>null</code>.
      * @throws Exception if the login fails, e.g. bad credentials or service off-line.
      */
-    public void authenticate(String username, String password) throws Exception{
+    public void authenticate(String username, String password) throws Exception {
         try {
             ClientResponse clientResponse = service.path("login")
                     .queryParam("username", username)
                     .queryParam("password", password)
                     .post(ClientResponse.class);
-            if(clientResponse.getStatus() == Status.UNAUTHORIZED.getStatusCode()){
+            if (clientResponse.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
                 throw new Exception("Failed to login: user unauthorized");
-            }
-            else if(clientResponse.getStatus() != Status.OK.getStatusCode()){
+            } else if (clientResponse.getStatus() != Status.OK.getStatusCode()) {
                 throw new Exception("Failed to login, got HTTP status " + clientResponse.getStatus());
             }
         } catch (Exception e) {
