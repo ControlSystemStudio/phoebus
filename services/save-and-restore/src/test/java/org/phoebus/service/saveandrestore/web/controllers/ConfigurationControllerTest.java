@@ -43,6 +43,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -277,13 +278,14 @@ public class ConfigurationControllerTest {
 		MockHttpServletRequestBuilder request = delete("/node/a");
 
 		mockMvc.perform(request).andExpect(status().isOk());
+	}
 
-		doThrow(new IllegalArgumentException()).when(services).deleteNode("a");
-
-		request = delete("/node/a");
-
-		mockMvc.perform(request).andExpect(status().isBadRequest());
-
+	@Test
+	public void testDeleteNodes() throws Exception {
+		MockHttpServletRequestBuilder request = delete("/node")
+				.contentType(JSON)
+				.content(objectMapper.writeValueAsString(Arrays.asList("a")));
+		mockMvc.perform(request).andExpect(status().isOk());
 	}
 
 	@Test
@@ -349,9 +351,13 @@ public class ConfigurationControllerTest {
 
 	@Test
 	public void testMoveNode() throws Exception {
-		when(services.moveNode("a", "b", "username")).thenReturn(Node.builder().id(2).uniqueId("a").build());
+		when(services.moveNodes(Arrays.asList("a"), "b", "username")).thenReturn(Node.builder().id(2).uniqueId("a").build());
 
-		MockHttpServletRequestBuilder request = post("/node/a").param("to", "b").param("username", "username");
+		MockHttpServletRequestBuilder request = post("/move")
+				.contentType(JSON)
+				.content(objectMapper.writeValueAsString(Arrays.asList("a")))
+				.param("to", "b")
+				.param("username", "username");
 
 		MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
 				.andReturn();
@@ -361,8 +367,41 @@ public class ConfigurationControllerTest {
 	}
 
 	@Test
+	public void testMoveNodeUsernameEmpty() throws Exception {
+		MockHttpServletRequestBuilder request = post("/move")
+				.contentType(JSON)
+				.content(objectMapper.writeValueAsString(Arrays.asList("a")))
+				.param("to", "b")
+				.param("username", "");
+
+		mockMvc.perform(request).andExpect(status().isBadRequest());
+	}
+
+	@Test
+	public void testMoveNodeTargetIdEmpty() throws Exception {
+		MockHttpServletRequestBuilder request = post("/move")
+				.contentType(JSON)
+				.content(objectMapper.writeValueAsString(Arrays.asList("a")))
+				.param("to", "")
+				.param("username", "user");
+
+		mockMvc.perform(request).andExpect(status().isBadRequest());
+	}
+
+	@Test
+	public void testMoveNodeSourceNodeListEmpty() throws Exception {
+		MockHttpServletRequestBuilder request = post("/move")
+				.contentType(JSON)
+				.content(objectMapper.writeValueAsString(Collections.emptyList()))
+				.param("to", "targetId")
+				.param("username", "user");
+
+		mockMvc.perform(request).andExpect(status().isBadRequest());
+	}
+
+	@Test
 	public void testMoveNodeNoUsername() throws Exception {
-		MockHttpServletRequestBuilder request = post("/node/a").param("to", "b");
+		MockHttpServletRequestBuilder request = post("/move").param("to", "b");
 
 		mockMvc.perform(request).andExpect(status().isBadRequest());
 	}

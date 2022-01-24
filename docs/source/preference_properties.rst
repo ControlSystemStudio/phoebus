@@ -1214,7 +1214,8 @@ File ../../app/save-and-restore/ui/src/main/resources/save_and_restore_preferenc
    httpClient.connectTimeout=1000
    
    # Extract snapshots from TreeView to ListView
-   splitSnapshot=false
+   splitSnapshot=true
+   
    
    # Sort snapshots in reverse order of created time. Last item comes first.
    sortSnapshotsTimeReversed=false

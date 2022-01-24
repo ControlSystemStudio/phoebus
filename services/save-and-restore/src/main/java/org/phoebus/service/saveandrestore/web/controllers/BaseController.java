@@ -37,11 +37,12 @@ import org.phoebus.service.saveandrestore.services.exception.SnapshotNotFoundExc
  * Created 23 Nov 2018
  */
 @RestController
+@SuppressWarnings("unused")
 public abstract class BaseController {
 	
 	protected static final String JSON = "application/json;charset = UTF-8";
 	
-	private Logger logger = LoggerFactory.getLogger(BaseController.class);
+	private final Logger logger = LoggerFactory.getLogger(BaseController.class);
 
 
 	/**

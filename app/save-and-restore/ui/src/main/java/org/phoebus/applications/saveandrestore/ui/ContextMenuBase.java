@@ -18,6 +18,7 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
@@ -36,13 +37,14 @@ public abstract class ContextMenuBase extends ContextMenu {
     protected MenuItem deleteNodesMenuItem;
     protected MenuItem renameNodeMenuItem;
 
-    public ContextMenuBase(SaveAndRestoreController saveAndRestoreController){
+    public ContextMenuBase(SaveAndRestoreController saveAndRestoreController, SimpleBooleanProperty multipleItemsSelected){
         deleteNodesMenuItem = new MenuItem(Messages.contextMenuDelete, new ImageView(deleteIcon));
         deleteNodesMenuItem.setOnAction(ae -> {
             saveAndRestoreController.deleteNodes();
         });
 
         renameNodeMenuItem = new MenuItem(Messages.contextMenuRename, new ImageView(renameIcon));
+        renameNodeMenuItem.disableProperty().bind(multipleItemsSelected);
         renameNodeMenuItem.setOnAction(ae -> {
             saveAndRestoreController.renameNode();
         });

@@ -38,7 +38,11 @@ public class Messages {
     public static String contextMenuRemoveGoldenTag;
     public static String contextMenuTagAsGolden;
     public static String contextMenuTagsWithComment;
+    public static String copyOrMoveNotAllowedBody;
+    public static String copyOrMoveNotAllowedHeader;
+    public static String copyOrMoveToRootNotAllowedBody;
     public static String createNewTagDialogTitle;
+    public static String createNodeFailed;
     public static String deletionNotAllowed;
     public static String deletionNotAllowedHeader;
     public static String errorActionFailed;
@@ -48,6 +52,9 @@ public class Messages {
     public static String errorGeneric;
     public static String exportSaveSetLabel;
     public static String exportSnapshotLabel;
+    public static String invalidSelectionForDragNDropHeader;
+    public static String invalidSelectionForDragNDropBodySingle;
+    public static String invalidSelectionForDragNDropBodyMultiple;
     public static String importSaveSetLabel;
     public static String importSnapshotLabel;
     public static String jmasarServiceUnavailable;
@@ -55,6 +62,8 @@ public class Messages {
     public static String labelMultiplier;
     public static String labelThreshold;
     public static String menuItemDeleteSelectedPVs;
+    public static String mutipleSelectionUnsupportedTitle;
+    public static String mutipleSelectionUnsupportedBody;
     public static String promptCloseSnapshotTabTitle;
     public static String promptCloseSnapshotTabContent;
     public static String promptDeletePVTitle;
@@ -107,6 +116,8 @@ public class Messages {
     public static String toolTipSaveSetExistsOption;
     public static String toolTipMultiplierSpinner;
     public static String unnamedSnapshot;
+    public static String updateConfigurationFailed;
+    public static String updateNodeFailed;
     
 
     static

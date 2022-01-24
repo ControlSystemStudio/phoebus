@@ -27,33 +27,40 @@ import org.phoebus.applications.saveandrestore.model.Tag;
 
 public interface DataProvider {
 
-	public Node getRootNode();
+	Node getRootNode();
 
-	public Node getNode(String uniqueNodeId);
-	
-	public List<Node> getChildNodes(Node node);
-	
-	public Node updateNode(Node nodeToUpdate);
+	Node getNode(String uniqueNodeId);
 
-	public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration);
+	List<Node> getChildNodes(Node node);
 
-	public Node createNode(String parentsUniqueId, Node node);
-	
-	public boolean deleteNode(String uniqueNodeId);
-	
-	public List<ConfigPv> getConfigPvs(String uniqueNodeId);
+	Node updateNode(Node nodeToUpdate);
 
-	public Node getSaveSetForSnapshot(String uniqueNodeId);
+	Node updateNode(Node nodeToUpdate, boolean customTimeForMigration);
 
-	public Node updateSaveSet(Node configToUpdate, List<ConfigPv> configPvList);
-	
-	public String getServiceUrl();
+	Node createNode(String parentsUniqueId, Node node);
 
-	public List<SnapshotItem> getSnapshotItems(String snapshotUniqueId);
+	@Deprecated
+	boolean deleteNode(String uniqueNodeId);
 
-	public Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment);
+	boolean deleteNodes(List<String> nodeIds);
 
-	public List<Tag> getAllTags();
+	List<ConfigPv> getConfigPvs(String uniqueNodeId);
 
-	public List<Node> getAllSnapshots();
+	Node getSaveSetForSnapshot(String uniqueNodeId);
+
+	Node updateSaveSet(Node configToUpdate, List<ConfigPv> configPvList);
+
+	String getServiceUrl();
+
+	List<SnapshotItem> getSnapshotItems(String snapshotUniqueId);
+
+	Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment);
+
+	List<Tag> getAllTags();
+
+	List<Node> getAllSnapshots();
+
+	Node moveNodes(List<String> sourceNodeIds, String targetNodeId);
+
+	Node copyNodes(List<String> sourceNodeIds, String targetNodeId);
 }

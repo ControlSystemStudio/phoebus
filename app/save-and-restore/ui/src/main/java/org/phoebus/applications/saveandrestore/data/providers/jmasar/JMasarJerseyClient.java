@@ -25,6 +25,7 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import org.epics.vtype.gson.GsonMessageBodyHandler;
+import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.data.DataProviderException;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
@@ -37,6 +38,7 @@ import org.phoebus.framework.preferences.PreferencesReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.List;
 
 public class JMasarJerseyClient implements JMasarClient {
@@ -157,7 +159,13 @@ public class JMasarJerseyClient implements JMasarClient {
                 .entity(node, CONTENT_TYPE_JSON)
                 .put(ClientResponse.class);
         if (response.getStatus() != 200) {
-            throw new DataProviderException(response.getEntity(String.class));
+            String message = Messages.createNodeFailed;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                // Ignore
+            }
+            throw new DataProviderException(message);
         }
 
         return response.getEntity(Node.class);
@@ -182,7 +190,13 @@ public class JMasarJerseyClient implements JMasarClient {
                 .post(ClientResponse.class);
 
         if (response.getStatus() != 200) {
-            throw new DataProviderException(response.getEntity(String.class));
+            String message = Messages.updateNodeFailed;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                // Ignore
+            }
+            throw new DataProviderException(message);
         }
 
         return response.getEntity(Node.class);
@@ -207,9 +221,22 @@ public class JMasarJerseyClient implements JMasarClient {
     }
 
     @Override
+    @Deprecated
     public void deleteNode(String uniqueNodeId) {
         WebResource webResource = client.resource(jmasarServiceUrl + "/node/" + uniqueNodeId);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).delete(ClientResponse.class);
+        if (response.getStatus() != 200) {
+            String message = response.getEntity(String.class);
+            throw new DataProviderException("Failed : HTTP error code : " + response.getStatus() + ", error message: " + message);
+        }
+    }
+
+    @Override
+    public void deleteNodes(List<String> nodeIds){
+        WebResource webResource = client.resource(jmasarServiceUrl + "/node");
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+                .entity(nodeIds, CONTENT_TYPE_JSON)
+                .delete(ClientResponse.class);
         if (response.getStatus() != 200) {
             String message = response.getEntity(String.class);
             throw new DataProviderException("Failed : HTTP error code : " + response.getStatus() + ", error message: " + message);
@@ -236,7 +263,13 @@ public class JMasarJerseyClient implements JMasarClient {
                 .entity(holder, CONTENT_TYPE_JSON)
                 .post(ClientResponse.class);
         if (response.getStatus() != 200) {
-            throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
+            String message = Messages.updateConfigurationFailed;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                // Ignore
+            }
+            throw new RuntimeException(message);
         }
 
         return response.getEntity(Node.class);
@@ -254,5 +287,51 @@ public class JMasarJerseyClient implements JMasarClient {
         ClientResponse response = getCall("/snapshots");
         return response.getEntity(new GenericType<List<Node>>() {
         });
+    }
+
+    @Override
+    public Node moveNodes(List<String> sourceNodeIds, String targetNodeId) {
+        WebResource webResource =
+                client.resource(jmasarServiceUrl + "/move")
+                        .queryParam("to", targetNodeId)
+                        .queryParam("username", getCurrentUsersName());
+
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+                .entity(sourceNodeIds, CONTENT_TYPE_JSON)
+                .post(ClientResponse.class);
+
+        if (response.getStatus() != 200) {
+            String message = Messages.copyOrMoveNotAllowedBody;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                // Ignore
+            }
+            throw new DataProviderException(message);
+        }
+        return response.getEntity(Node.class);
+    }
+
+    @Override
+    public Node copyNodes(List<String> sourceNodeIds, String targetNodeId) {
+        WebResource webResource =
+                client.resource(jmasarServiceUrl + "/copy")
+                        .queryParam("to", targetNodeId)
+                        .queryParam("username", getCurrentUsersName());
+
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+                .entity(sourceNodeIds, CONTENT_TYPE_JSON)
+                .post(ClientResponse.class);
+
+        if (response.getStatus() != 200) {
+            String message = Messages.copyOrMoveNotAllowedBody;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                // Ignore
+            }
+            throw new DataProviderException(message);
+        }
+        return response.getEntity(Node.class);
     }
 }

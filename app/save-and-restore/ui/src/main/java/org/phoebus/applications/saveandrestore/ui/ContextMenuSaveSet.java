@@ -18,6 +18,7 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -26,8 +27,8 @@ import org.phoebus.ui.javafx.ImageCache;
 
 public class ContextMenuSaveSet extends ContextMenuBase {
 
-    public ContextMenuSaveSet(SaveAndRestoreController saveAndRestoreController, boolean csvEnabled) {
-        super(saveAndRestoreController);
+    public ContextMenuSaveSet(SaveAndRestoreController saveAndRestoreController, boolean csvEnabled, SimpleBooleanProperty multipleItemsSelected) {
+        super(saveAndRestoreController, multipleItemsSelected);
 
         Image editSaveSetIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/edit_saveset.png");
         Image csvExportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_export.png");
@@ -38,6 +39,7 @@ public class ContextMenuSaveSet extends ContextMenuBase {
         });
 
         MenuItem editSaveSetMenuItem = new MenuItem(Messages.contextMenuEdit, new ImageView(editSaveSetIcon));
+        editSaveSetMenuItem.disableProperty().bind(multipleItemsSelected);
         editSaveSetMenuItem.setOnAction(ae -> {
             saveAndRestoreController.nodeDoubleClicked();
         });
@@ -50,6 +52,7 @@ public class ContextMenuSaveSet extends ContextMenuBase {
             exportSaveSetIconImageView.setFitHeight(18);
 
             MenuItem exportSaveSetMenuItem = new MenuItem(Messages.exportSaveSetLabel, exportSaveSetIconImageView);
+            exportSaveSetIconImageView.disableProperty().bind(multipleItemsSelected);
             exportSaveSetMenuItem.setOnAction(ae -> {
                 saveAndRestoreController.exportSaveSet();
             });
@@ -59,6 +62,7 @@ public class ContextMenuSaveSet extends ContextMenuBase {
             importSnapshotIconImageView.setFitHeight(18);
 
             MenuItem importSnapshotMenuItem = new MenuItem(Messages.importSnapshotLabel, importSnapshotIconImageView);
+            importSnapshotMenuItem.disableProperty().bind(multipleItemsSelected);
             importSnapshotMenuItem.setOnAction(ae -> {
                 saveAndRestoreController.importSnapshot();
             });

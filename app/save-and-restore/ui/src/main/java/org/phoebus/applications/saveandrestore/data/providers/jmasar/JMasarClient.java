@@ -13,33 +13,40 @@ import java.util.List;
  */
 public interface JMasarClient {
 
-    public String getServiceUrl();
+    String getServiceUrl();
 
-    public Node getRoot();
+    Node getRoot();
 
-    public Node getNode(String uniqueNodeId);
+    Node getNode(String uniqueNodeId);
 
-    public Node getParentNode(String unqiueNodeId);
+    Node getParentNode(String unqiueNodeId);
 
-    public List<Node> getChildNodes(Node node) throws DataProviderException ;
+    List<Node> getChildNodes(Node node) throws DataProviderException ;
 
-    public List<SnapshotItem> getSnapshotItems(String snapshotUniqueId);
+    List<SnapshotItem> getSnapshotItems(String snapshotUniqueId);
 
-    public Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment);
+    Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment);
 
-    public List<ConfigPv> getConfigPvs(String configUniqueId);
+    List<ConfigPv> getConfigPvs(String configUniqueId);
 
-    public Node createNewNode(String parentsUniqueId, Node node);
+    Node createNewNode(String parentsUniqueId, Node node);
 
-    public Node updateNode(Node nodeToUpdate);
+    Node updateNode(Node nodeToUpdate);
 
-    public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration);
+    Node updateNode(Node nodeToUpdate, boolean customTimeForMigration);
 
-    public void deleteNode(String uniqueNodeId);
+    @Deprecated
+    void deleteNode(String uniqueNodeId);
 
-    public Node updateConfiguration(Node configToUpdate, List<ConfigPv> configPvList);
+    void deleteNodes(List<String> nodeIds);
 
-    public List<Tag> getAllTags();
+    Node updateConfiguration(Node configToUpdate, List<ConfigPv> configPvList);
 
-    public List<Node> getAllSnapshots();
+    List<Tag> getAllTags();
+
+    List<Node> getAllSnapshots();
+
+    Node moveNodes(List<String> sourceNodeIds, String targetNodeId);
+
+    Node copyNodes(List<String> sourceNodeIds, String targetNodeId);
 }
