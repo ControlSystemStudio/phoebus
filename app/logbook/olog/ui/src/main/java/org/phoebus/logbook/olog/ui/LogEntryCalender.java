@@ -29,6 +29,9 @@ public class LogEntryCalender implements AppInstance {
     LogEntryCalender(final LogEntryCalenderApp app) {
         this.app = app;
         try {
+            OlogQueryManager ologQueryManager = OlogQueryManager.getInstance();
+            SearchParameters searchParameters = new SearchParameters();
+            searchParameters.setQuery(ologQueryManager.getQueries().get(0).getQuery());
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(this.getClass().getResource("LogEntryCalenderView.fxml"));
             loader.setControllerFactory(clazz -> {
@@ -36,12 +39,12 @@ public class LogEntryCalender implements AppInstance {
                     if(app.getClient() != null)
                     {
                         if(clazz.isAssignableFrom(LogEntryCalenderViewController.class)){
-                            return clazz.getConstructor(LogClient.class)
-                                    .newInstance(app.getClient());
+                            return clazz.getConstructor(LogClient.class, OlogQueryManager.class, SearchParameters.class)
+                                    .newInstance(app.getClient(), ologQueryManager, searchParameters);
                         }
                         else if(clazz.isAssignableFrom(AdvancedSearchViewController.class)){
-                            return clazz.getConstructor(LogClient.class)
-                                    .newInstance(app.getClient());
+                            return clazz.getConstructor(LogClient.class, SearchParameters.class)
+                                    .newInstance(app.getClient(), searchParameters);
                         }
                     }
                     else
@@ -64,13 +67,11 @@ public class LogEntryCalender implements AppInstance {
             });
             loader.load();
             controller = loader.getController();
-            //controller.setQuery(LogbookUIPreferences.default_logbook_query);
             if (this.app.getClient() != null) {
                 controller.setClient(this.app.getClient());
             } else {
                 log.log(Level.SEVERE, "Failed to acquire a valid logbook client");
             }
-
             tab = new DockItem(this, loader.getRoot());
             DockPane.getActiveDockPane().addTab(tab);
         } catch (IOException e)

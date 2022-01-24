@@ -5,18 +5,12 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -50,7 +44,6 @@ import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogbookException;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.SearchResult;
-import org.phoebus.logbook.olog.ui.LogbookQueryUtil.Keys;
 import org.phoebus.logbook.olog.ui.query.OlogQuery;
 import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
@@ -61,12 +54,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * A controller for a log entry table with a collapsible advance search section.
@@ -112,10 +103,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
     private TextField pageSizeTextField;
     // Model
     private SearchResult searchResult;
-
-    // Search parameters
-    ObservableMap<Keys, String> searchParameters = FXCollections.observableHashMap();
-
     /**
      * List of selected log entries
      */
@@ -127,8 +114,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
      *
      * @param logClient Log client implementation
      */
-    public LogEntryTableViewController(LogClient logClient) {
+    public LogEntryTableViewController(LogClient logClient, OlogQueryManager ologQueryManager, SearchParameters searchParameters) {
         setClient(logClient);
+        this.ologQueryManager = ologQueryManager;
+        this.searchParameters = searchParameters;
     }
 
     private final SimpleBooleanProperty searchInProgress = new SimpleBooleanProperty(false);
@@ -138,7 +127,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
     private final SimpleIntegerProperty pageSizeProperty =
             new SimpleIntegerProperty(LogbookUIPreferences.search_result_page_size);
     private final SimpleIntegerProperty pageCountProperty = new SimpleIntegerProperty(0);
-    private final OlogQueryManager ologQueryManager = OlogQueryManager.getInstance();
+    private final OlogQueryManager ologQueryManager;
     private final ObservableList<OlogQuery> ologQueries = FXCollections.observableArrayList();
 
     /**
@@ -147,27 +136,16 @@ public class LogEntryTableViewController extends LogbookSearchController {
      */
     private ChangeListener<OlogQuery> onActionListener;
 
-    private SearchParameters searchParams = new SearchParameters();
+    private SearchParameters searchParameters;
 
 
     @FXML
     public void initialize() {
         configureComboBox();
-        // Set the search parameters in the advanced search controller so that it operates on the same object.
-        advancedSearchViewController.setSearchParameters(searchParameters);
-        advancedSearchViewController.setSearchParameters(searchParams);
         ologQueries.setAll(ologQueryManager.getQueries());
 
-        /*
-        searchParameters.addListener((MapChangeListener<Keys, String>) change -> query.getEditor().setText(searchParameters.entrySet().stream()
-                .sorted(Entry.comparingByKey())
-                .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
-                .collect(Collectors.joining("&"))));
-
-         */
-
-        searchParams.addListener((observable, oldValue, newValue) -> {
-            System.out.println();
+        searchParameters.addListener((observable, oldValue, newValue) -> {
+            query.getEditor().setText(newValue);
         });
 
         MenuItem groupSelectedEntries = new MenuItem(Messages.GroupSelectedEntries);
@@ -275,7 +253,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         query.getEditor().setText(ologQueries.get(0).getQuery());
         // Query set -> search is triggered!
         query.getSelectionModel().select(ologQueries.get(0));
-        searchParams.setQuery(ologQueries.get(0).getQuery());
+        searchParameters.setQuery(ologQueries.get(0).getQuery());
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored
@@ -295,10 +273,11 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 timeline.setOnFinished(event -> {
                     resize.setText(">");
                     moving.set(false);
-                    advancedSearchViewController.updateSearchParametersFromInput();
+                    //advancedSearchViewController.updateSearchParametersFromInput();
                     search();
                 });
             } else {
+                searchParameters.setQuery(query.getEditor().getText());
                 Duration cycleDuration = Duration.millis(400);
                 double width = ViewSearchPane.getWidth() / 2.5;
                 KeyValue kv = new KeyValue(advancedSearchViewController.getPane().minWidthProperty(), width);
@@ -309,8 +288,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
                     resize.setText("<");
                     moving.set(false);
                     query.disableProperty().set(true);
-                    searchParams.setQuery(query.getEditor().getText());
-                    advancedSearchViewController.updateSearchParamsFromQueryString(query.getEditor().getText());
                 });
             }
         }
@@ -337,16 +314,12 @@ public class LogEntryTableViewController extends LogbookSearchController {
         // Need to remove the listener as a new search would be invoked when combo box list is updated
         // with the refreshed list of queries
         query.getSelectionModel().selectedItemProperty().removeListener(onActionListener);
-        tableView.getSelectionModel().clearSelection();
 
         OlogQuery ologQuery = ologQueryManager.getOrAddQuery(query.getEditor().getText());
 
         // Construct the query parameters from the search field string. Note that some keys
         // are treated as "hidden" and removed in the returned map.
         Map<String, String> params = LogbookQueryUtil.parseHumanReadableQueryString(ologQuery.getQuery());
-        searchParameters.clear();
-        params.entrySet().forEach(e -> searchParameters.put(Keys.findKey(e.getKey()), e.getValue()));
-
         params.put("sort", sortAscending.get() ? "up" : "down");
         params.put("from", Integer.toString(pagination.getCurrentPageIndex() * pageSizeProperty.get()));
         params.put("size", Integer.toString(pageSizeProperty.get()));
@@ -379,9 +352,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
     }
 
     public void setQuery(String parsedQuery) {
-        Map<String, String> params = LogbookQueryUtil.parseHumanReadableQueryString(parsedQuery);
-        searchParameters.clear();
-        params.forEach((key, value) -> searchParameters.put(Keys.findKey(key), value));
+        searchParameters.setQuery(parsedQuery);
         search();
     }
 
@@ -394,6 +365,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
             ObservableList<LogEntry> logsList = FXCollections.observableArrayList();
             logsList.addAll(new ArrayList<>(searchResult.getLogs()));
             tableView.setItems(logsList);
+            if(logsList.size() > 0){
+                tableView.getSelectionModel().select(logsList.get(0));
+            }
             hitCountProperty.set(searchResult.getHitCount());
             pageCountProperty.set(1 + (hitCountProperty.get() / pageSizeProperty.get()));
         }
@@ -439,7 +413,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         pagination.setCurrentPageIndex(pagination.pageCountProperty().get() - 1);
     }
 
-    private void configureComboBox(){
+    private void configureComboBox() {
         Font defaultQueryFont = Font.font("Liberation Sans", FontWeight.BOLD, 12);
         Font defaultQueryFontRegular = Font.font("Liberation Sans", FontWeight.NORMAL, 12);
         query.setVisibleRowCount(OlogQueryManager.getInstance().getQueryListSize());
@@ -480,6 +454,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
                             return query.getQuery();
                         }
                     }
+
                     @Override
                     public OlogQuery fromString(String s) {
                         return new OlogQuery(s);

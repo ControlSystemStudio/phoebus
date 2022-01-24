@@ -20,9 +20,7 @@ package org.phoebus.logbook.olog.ui;
 
 import com.google.common.base.Strings;
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -98,23 +96,33 @@ public class AdvancedSearchViewController {
     private ListSelectionController tagController;
     private ListSelectionController logbookController;
 
-    // Search parameters
-    ObservableMap<Keys, String> searchParameters;
-
     List<String> logbookNames;
     List<String> tagNames;
 
     @FXML
     private AnchorPane advancedSearchPane;
 
-    private SearchParameters searchParams;
+    private SearchParameters searchParameters;
 
-    public AdvancedSearchViewController(LogClient logClient) {
+    public AdvancedSearchViewController(LogClient logClient, SearchParameters searchParameters) {
         this.logClient = logClient;
+        this.searchParameters = searchParameters;
     }
 
     @FXML
     public void initialize() {
+
+        searchTitle.textProperty().bindBidirectional(this.searchParameters.titleProperty());
+        searchText.textProperty().bindBidirectional(this.searchParameters.textProperty());
+        searchAuthor.textProperty().bindBidirectional(this.searchParameters.authorProperty());
+        levelSelector.valueProperty().bindBidirectional(this.searchParameters.levelProperty());
+        searchTags.textProperty().bindBidirectional(this.searchParameters.tagsProperty());
+        searchLogbooks.textProperty().bindBidirectional(this.searchParameters.logbooksProperty());
+        startTime.textProperty().bindBidirectional(this.searchParameters.startTimeProperty());
+        endTime.textProperty().bindBidirectional(this.searchParameters.endTimeProperty());
+        searchParameters.addListener((observable, oldValue, newValue) -> {
+            updateControls(newValue);
+        });
 
         levelLabel.setText(LogbookUIPreferences.level_field_name);
 
@@ -139,20 +147,14 @@ public class AdvancedSearchViewController {
             Platform.runLater(() -> {
                 TimeRelativeInterval interval = timeSelectionPane.getInterval();
                 if (interval.isStartAbsolute()) {
-                    searchParameters.put(Keys.STARTTIME,
-                            TimestampFormats.MILLI_FORMAT.format(interval.getAbsoluteStart().get()));
-                    searchParams.setStartTime(TimestampFormats.MILLI_FORMAT.format(interval.getAbsoluteStart().get()));
+                    searchParameters.startTimeProperty().setValue(TimestampFormats.MILLI_FORMAT.format(interval.getAbsoluteStart().get()));
                 } else {
-                    searchParameters.put(Keys.STARTTIME, TimeParser.format(interval.getRelativeStart().get()));
-                    searchParams.setStartTime(TimeParser.format(interval.getRelativeStart().get()));
+                    searchParameters.startTimeProperty().setValue(TimeParser.format(interval.getRelativeStart().get()));
                 }
                 if (interval.isEndAbsolute()) {
-                    searchParameters.put(Keys.ENDTIME,
-                            TimestampFormats.MILLI_FORMAT.format(interval.getAbsoluteEnd().get()));
-                    searchParams.setEndTime(TimestampFormats.MILLI_FORMAT.format(interval.getAbsoluteEnd().get()));
+                    searchParameters.endTimeProperty().setValue(TimestampFormats.MILLI_FORMAT.format(interval.getAbsoluteEnd().get()));
                 } else {
-                    searchParameters.put(Keys.ENDTIME, TimeParser.format(interval.getRelativeEnd().get()));
-                    searchParams.setEndTime(TimeParser.format(interval.getRelativeEnd().get()));
+                    searchParameters.endTimeProperty().setValue(TimeParser.format(interval.getRelativeEnd().get()));
                 }
                 if (timeSearchPopover.isShowing())
                     timeSearchPopover.hide();
@@ -195,11 +197,9 @@ public class AdvancedSearchViewController {
             logbookController.setOnApply((List<String> t) -> {
                 Platform.runLater(() -> {
                     if (t.isEmpty()) {
-                        searchParameters.remove(Keys.LOGBOOKS);
-                        searchParams.setLogbooks(null);
+                        searchParameters.logbooksProperty().setValue(null);
                     } else {
-                        searchParameters.put(Keys.LOGBOOKS, t.stream().collect(Collectors.joining(",")));
-                        searchParams.setLogbooks(t.stream().collect(Collectors.joining(",")));
+                        searchParameters.logbooksProperty().setValue(t.stream().collect(Collectors.joining(",")));
                     }
                     if (logbookSearchPopover.isShowing())
                         logbookSearchPopover.hide();
@@ -224,12 +224,12 @@ public class AdvancedSearchViewController {
             tagController.setOnApply((List<String> t) -> {
                 Platform.runLater(() -> {
                     if (t.isEmpty()) {
-                        searchParameters.remove(Keys.TAGS);
+                        //searchParameters.remove(Keys.TAGS);
                     } else {
                         String tagsValue =
                                 t.stream().collect(Collectors.joining(","));
-                        searchParameters.put(Keys.TAGS, tagsValue);
-                        searchParams.setTags(tagsValue);
+                        //searchParameters.put(Keys.TAGS, tagsValue);
+                        searchParameters.tagsProperty().setValue(tagsValue);
                     }
                     if (tagSearchPopover.isShowing())
                         tagSearchPopover.hide();
@@ -271,73 +271,21 @@ public class AdvancedSearchViewController {
         levelSelector.getItems().addAll(levelList);
     }
 
-    @FXML
-    public void setLevel() {
-        if (levelSelector.getSelectionModel().getSelectedItem().isEmpty()) {
-            searchParameters.remove(Keys.LEVEL);
-        } else {
-            searchParameters.put(Keys.LEVEL, levelSelector.getSelectionModel().getSelectedItem());
-        }
-    }
 
     public void setSearchParameters(ObservableMap<Keys, String> params) {
-        searchParameters = params;
-        searchParameters.addListener((MapChangeListener<Keys, String>) change -> Platform.runLater(() -> {
-            //searchLogbooks.setText(searchParameters.get(Keys.LOGBOOKS));
-            //searchTags.setText(searchParameters.get(Keys.TAGS));
-            //String levelValue = searchParameters.get(Keys.LEVEL);
-            //levelSelector.getSelectionModel().select(levelValue == null ? "" : levelValue);
-            //searchTitle.setText(searchParameters.get(Keys.TITLE));
-            //searchText.setText(searchParameters.get(Keys.SEARCH));
-            //searchAuthor.setText(searchParameters.get(Keys.AUTHOR));
-        }));
-
-        //startTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.STARTTIME));
-        //endTime.textProperty().bind(Bindings.valueAt(searchParameters, Keys.ENDTIME));
     }
 
-
-    public void updateSearchParametersFromInput() {
-        /*
-        if(Strings.isNullOrEmpty(searchTitle.getText())){
-            searchParameters.remove(Keys.TITLE);
-        }
-        else{
-            searchParameters.put(Keys.TITLE, searchTitle.getText());
-        }
-
-
-        if (Strings.isNullOrEmpty(searchText.getText())) {
-            searchParameters.remove(Keys.SEARCH);
-        } else {
-            searchParameters.put(Keys.SEARCH, searchText.getText());
-        }
-        if (Strings.isNullOrEmpty(searchAuthor.getText())) {
-            searchParameters.remove(Keys.AUTHOR);
-        } else {
-            searchParameters.put(Keys.AUTHOR, searchAuthor.getText());
-        }
-
-         */
-    }
 
     public AnchorPane getPane() {
         return advancedSearchPane;
     }
 
     /**
-     * Updates the search parameters map based on the query string in the text input field. The purpose is to:
-     * to populate the UI elements of the advanced search view using the parameter values inf the query string.
-     * At the same time some validation is applied to the level, logbooks and tags parameters. For instance:
-     * any invalid logbook name specified by user in the query string will be removed from the list of "selected"
-     * logbooks.
-     * <p>
-     * NOTE: Since this method updates the model, and since the query string text input field is updated based
-     * on this model, as a side effect this method may change the text entered by user.
+     * Updates non-text field controls so that search parameter values are correctly rendered.
      *
      * @param queryString
      */
-    public void updateSearchParamsFromQueryString(String queryString) {
+    private void updateControls(String queryString) {
         Map<String, String> queryStringParameters = LogbookQueryUtil.parseHumanReadableQueryString(queryString);
         queryStringParameters.entrySet().stream().forEach(entry -> {
             Keys keys = Keys.findKey(entry.getKey());
@@ -345,46 +293,32 @@ public class AdvancedSearchViewController {
                 if (keys.equals(Keys.LEVEL)) {
                     List<String> levels = logClient.listLevels().stream().collect(Collectors.toList());
                     if (levels.contains(entry.getValue())) {
-                        searchParameters.put(Keys.LEVEL, entry.getValue());
-                        //levelSelector.getSelectionModel().select(entry.getValue());
-                        searchParams.setLevel(entry.getValue());
+                        searchParameters.levelProperty().setValue(entry.getValue());
                     } else {
-                        searchParameters.remove(Keys.LEVEL);
-                        //levelSelector.getSelectionModel().select("");
-                        searchParams.setLevel(null);
+                        searchParameters.levelProperty().setValue(null);
                     }
                 } else if (keys.equals(Keys.LOGBOOKS)) {
                     List<String> validatedLogbookNames = getValidatedLogbooksSelection(entry.getValue());
                     if (validatedLogbookNames.isEmpty()) {
-                        searchParameters.remove(Keys.LOGBOOKS);
-                        searchParams.setLogbooks(null);
+                        searchParameters.logbooksProperty().setValue(null);
                     } else {
                         String selectedLogbooks =
                                 validatedLogbookNames.stream().collect(Collectors.joining(","));
-                        searchParameters.put(Keys.LOGBOOKS, selectedLogbooks);
-                        searchParams.setLogbooks(selectedLogbooks);
+                        searchParameters.logbooksProperty().setValue(selectedLogbooks);
                     }
                     logbookController.setSelected(validatedLogbookNames);
                 } else if (keys.equals(Keys.TAGS)) {
                     List<String> validatedTagsNames = getValidatedTagsSelection(entry.getValue());
                     if (validatedTagsNames.isEmpty()) {
-                        searchParameters.remove(Keys.TAGS);
-                        searchParams.setTags(null);
+                        searchParameters.tagsProperty().setValue(null);
                     } else {
                         String selectedTags = validatedTagsNames.stream().collect(Collectors.joining(","));
-                        searchParameters.put(Keys.TAGS, selectedTags);
-                        searchParams.setTags(selectedTags);
+                        searchParameters.tagsProperty().setValue(selectedTags);
                     }
                     tagController.setSelected(validatedTagsNames);
-                } else {
-                    searchParameters.put(Keys.findKey(entry.getKey()), entry.getValue());
                 }
             }
         });
-
-        // Now remove any search parameters that are not found in the query string, e.g. user has deleted
-        // a search parameter when editing the search query text field.
-        removedUnwantedSearchParameters(searchParameters, queryStringParameters);
     }
 
     protected List<String> getValidatedLogbooksSelection(String logbooks) {
@@ -411,25 +345,5 @@ public class AdvancedSearchViewController {
         List<String> validatedLogbookNames =
                 logbooksFromQueryString.stream().filter(logbookName -> validTagsNames.contains(logbookName)).collect(Collectors.toList());
         return validatedLogbookNames;
-    }
-
-    protected void removedUnwantedSearchParameters(ObservableMap<Keys, String> searchParameters, Map<String, String> queryStringParameters) {
-        Arrays.stream(Keys.values()).forEach(keys -> {
-            if (!queryStringParameters.containsKey(keys.getName())) {
-                searchParameters.remove(keys);
-            }
-        });
-    }
-
-    public void setSearchParameters(SearchParameters searchParams) {
-        this.searchParams = searchParams;
-        searchTitle.textProperty().bindBidirectional(this.searchParams.titleProperty());
-        searchText.textProperty().bindBidirectional(this.searchParams.bodyProperty());
-        searchAuthor.textProperty().bindBidirectional(this.searchParams.authorProperty());
-        levelSelector.valueProperty().bindBidirectional(this.searchParams.levelProperty());
-        searchTags.textProperty().bindBidirectional(this.searchParams.tagsProperty());
-        searchLogbooks.textProperty().bindBidirectional(this.searchParams.logbooksProperty());
-        startTime.textProperty().bindBidirectional(this.searchParams.startTimeProperty());
-        endTime.textProperty().bindBidirectional(this.searchParams.endTimeProperty());
     }
 }

@@ -7,12 +7,9 @@ import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -21,8 +18,6 @@ import javafx.scene.control.ListView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
@@ -40,10 +35,6 @@ import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.SearchResult;
 import org.phoebus.logbook.olog.ui.query.OlogQuery;
 import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
-import org.phoebus.ui.time.TimeRelativeIntervalPane;
-import org.phoebus.util.time.TimeParser;
-import org.phoebus.util.time.TimeRelativeInterval;
-import org.phoebus.util.time.TimestampFormats;
 
 import java.net.URL;
 import java.time.LocalDateTime;
@@ -51,7 +42,6 @@ import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.ResourceBundle;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -59,9 +49,6 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
-import static org.phoebus.logbook.olog.ui.LogbookQueryUtil.Keys;
-import static org.phoebus.ui.time.TemporalAmountPane.Type.TEMPORAL_AMOUNTS_AND_NOW;
 
 /**
  * A controller for a log entry table with a collapsible advance search section.
@@ -86,9 +73,6 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
     // Model
     List<LogEntry> logEntries;
 
-    // Search parameters
-    ObservableMap<Keys, String> searchParameters = FXCollections.observableHashMap();
-
     @FXML
     private AnchorPane agendaPane;
     @FXML
@@ -101,27 +85,27 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
     @FXML
     private AdvancedSearchViewController advancedSearchViewController;
 
-    private final OlogQueryManager ologQueryManager = OlogQueryManager.getInstance();
+    private final OlogQueryManager ologQueryManager;
     private final ObservableList<OlogQuery> ologQueries = FXCollections.observableArrayList();
     private ChangeListener<OlogQuery> onActionListener;
 
-    public LogEntryCalenderViewController(LogClient logClient) {
+    private SearchParameters searchParameters;
+
+    public LogEntryCalenderViewController(LogClient logClient, OlogQueryManager ologQueryManager, SearchParameters searchParameters) {
         setClient(logClient);
+        this.ologQueryManager = ologQueryManager;
+        this.searchParameters = searchParameters;
     }
 
     @FXML
     public void initialize() {
         configureComboBox();
         // Set the search parameters in the advanced search controller so that it operates on the same object.
-        advancedSearchViewController.setSearchParameters(searchParameters);
         ologQueries.setAll(ologQueryManager.getQueries());
 
-        searchParameters.addListener((MapChangeListener<Keys, String>) change -> query.getEditor().setText(searchParameters.entrySet().stream()
-                .sorted(Entry.comparingByKey())
-                .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
-                .collect(Collectors.joining("&"))));
-
-        //resize.setText("<");
+        searchParameters.addListener((observable, oldValue, newValue) -> {
+            query.getEditor().setText(newValue);
+        });
 
         agenda = new Agenda();
         agenda.setEditAppointmentCallback(new Callback<Agenda.Appointment, Void>() {
@@ -195,47 +179,6 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
         AnchorPane.setRightAnchor(agenda, 6.0);
         agendaPane.getChildren().add(agenda);
 
-        LogbookQueryUtil.parseQueryString(LogbookUIPreferences.default_logbook_query).entrySet().stream().forEach(entry -> {
-            searchParameters.put(Keys.findKey(entry.getKey()), entry.getValue());
-        });
-
-        VBox timeBox = new VBox();
-
-        TimeRelativeIntervalPane timeSelectionPane = new TimeRelativeIntervalPane(TEMPORAL_AMOUNTS_AND_NOW);
-
-        // TODO needs to be initialized from the values in the search parameters
-        TimeRelativeInterval initial = TimeRelativeInterval.of(java.time.Duration.ofHours(8), java.time.Duration.ZERO);
-        timeSelectionPane.setInterval(initial);
-
-        HBox hbox = new HBox();
-        hbox.setSpacing(5);
-        hbox.setAlignment(Pos.CENTER_RIGHT);
-        Button apply = new Button();
-        apply.setText("Apply");
-        apply.setPrefWidth(80);
-        apply.setOnAction((event) -> {
-            Platform.runLater(() -> {
-                TimeRelativeInterval interval = timeSelectionPane.getInterval();
-                if (interval.isStartAbsolute()) {
-                    searchParameters.put(Keys.STARTTIME,
-                            TimestampFormats.MILLI_FORMAT.format(interval.getAbsoluteStart().get()));
-                } else {
-                    searchParameters.put(Keys.STARTTIME, TimeParser.format(interval.getRelativeStart().get()));
-                }
-                if (interval.isEndAbsolute()) {
-                    searchParameters.put(Keys.ENDTIME,
-                            TimestampFormats.MILLI_FORMAT.format(interval.getAbsoluteEnd().get()));
-                } else {
-                    searchParameters.put(Keys.ENDTIME, TimeParser.format(interval.getRelativeEnd().get()));
-                }
-            });
-        });
-        Button cancel = new Button();
-        cancel.setText("Cancel");
-        cancel.setPrefWidth(80);
-        hbox.getChildren().addAll(apply, cancel);
-        timeBox.getChildren().addAll(timeSelectionPane, hbox);
-
         query.itemsProperty().bind(new SimpleObjectProperty<>(ologQueries));
 
         // NOTE: the listener will ensure that whenever user chooses a query from the drop-down,
@@ -273,10 +216,11 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                     resize.setText(">");
                     moving.set(false);
                     query.disableProperty().set(false);
-                    advancedSearchViewController.updateSearchParametersFromInput();
+                    //advancedSearchViewController.updateSearchParametersFromInput();
                     search();
                 });
             } else {
+                searchParameters.setQuery(query.getEditor().getText());
                 Duration cycleDuration = Duration.millis(400);
                 double width = ViewSearchPane.getWidth() / 4;
                 KeyValue kv = new KeyValue(advancedSearchViewController.getPane().minWidthProperty(), width);
@@ -287,7 +231,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                     resize.setText("<");
                     moving.set(false);
                     query.disableProperty().set(true);
-                    advancedSearchViewController.updateSearchParamsFromQueryString(query.getEditor().getText());
+                    //advancedSearchViewController.updateSearchParamsFromQueryString(query.getEditor().getText());
                 });
             }
         }
@@ -373,7 +317,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
         setLogs(searchResult.getLogs());
     }
 
-    private void configureComboBox(){
+    private void configureComboBox() {
         Font defaultQueryFont = Font.font("Liberation Sans", FontWeight.BOLD, 12);
         Font defaultQueryFontRegular = Font.font("Liberation Sans", FontWeight.NORMAL, 12);
         query.setVisibleRowCount(OlogQueryManager.getInstance().getQueryListSize());
@@ -414,6 +358,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                             return query.getQuery();
                         }
                     }
+
                     @Override
                     public OlogQuery fromString(String s) {
                         return new OlogQuery(s);
