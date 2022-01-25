@@ -37,6 +37,8 @@ import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.security.tokens.SimpleAuthenticationToken;
+import org.phoebus.logbook.olog.ui.PreviewViewer;
+import org.phoebus.logbook.olog.ui.CommonmarkHelpViewer;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -107,6 +109,20 @@ public class LogEntryEditorController {
     public void cancel() {
         ((Stage) cancelButton.getScene().getWindow()).close();
     }
+
+    @FXML
+    public void showHelp() {
+        new CommonmarkHelpViewer().show();
+    }
+
+    /**
+     * Handler for HTML preview button
+     */
+    @FXML
+    public void showHtmlPreview() {
+        new PreviewViewer(fieldsViewController.getDescription(), attachmentsViewController.getAttachments()).show();
+    }
+
 
     @FXML
     public void submit() {

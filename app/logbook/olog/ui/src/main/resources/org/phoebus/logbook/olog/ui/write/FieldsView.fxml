@@ -92,18 +92,6 @@
                   <TextArea fx:id="textArea" prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS" wrapText="true"/>
                </children>
             </HBox>
-            <HBox>
-               <children>
-                  <Label maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
-                  <Button fx:id="markupHelp" onAction="#showHelp" text="%MarkupHelp">
-                     <tooltip>
-                        <Tooltip text="%MarkupHelpToolTip"/>
-                     </tooltip>
-                     <HBox.margin>
-                        <Insets right="5.0" />
-                     </HBox.margin></Button>
-               </children>
-            </HBox>
          </children>
       </VBox>
    </children>

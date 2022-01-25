@@ -51,7 +51,6 @@ import org.phoebus.logbook.LogService;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.logbook.Tag;
-import org.phoebus.logbook.olog.ui.CommonmarkHelpViewer;
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 import org.phoebus.logbook.olog.ui.Messages;
 import org.phoebus.olog.es.api.OlogProperties;
@@ -291,11 +290,6 @@ public class FieldsViewController implements Initializable {
 
     public String getSelectedLevel(){
         return selectedLevelProperty.get();
-    }
-
-    @FXML
-    public void showHelp() {
-        new CommonmarkHelpViewer().show();
     }
 
     public TextArea getTextArea() {

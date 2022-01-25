@@ -38,7 +38,9 @@ public class Messages
                          SelectFolder,
                          Tags,
                          TagsTitle,
-                         TagsTooltip;
+                         TagsTooltip,
+                         HtmlPreview,
+                         HtmlPreviewToolTip;
     static
     {
         // initialize resource bundle

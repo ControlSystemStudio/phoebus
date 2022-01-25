@@ -23,11 +23,11 @@ import org.commonmark.ext.gfm.tables.TablesExtension;
 import org.commonmark.ext.image.attributes.ImageAttributesExtension;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
-
+import org.phoebus.logbook.Attachment;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class HtmlAwareController {
+public class HtmlAwareController {
 
     private Parser parser;
     private HtmlRenderer htmlRenderer;
@@ -38,6 +38,21 @@ public abstract class HtmlAwareController {
         this.parser = Parser.builder().extensions(extensions).build();
         htmlRenderer = HtmlRenderer.builder()
                 .attributeProviderFactory(context -> new OlogAttributeProvider(serviceUrl))
+                .extensions(extensions).build();
+    }
+
+    /**
+     * To create HtmlAwareController object to generate html code for HTML preview feature in LogEntryEditor.
+     * @param serviceUrl Olog service url.
+     * @param preview Set true when preview button is clicked.
+     * @param attachments The current attachments list from AttachmentsViewController.
+     */
+    public HtmlAwareController(String serviceUrl, boolean preview, List<Attachment> attachments){
+        List<Extension> extensions =
+                Arrays.asList(TablesExtension.create(), ImageAttributesExtension.create());
+        this.parser = Parser.builder().extensions(extensions).build();
+        htmlRenderer = HtmlRenderer.builder()
+                .attributeProviderFactory(context -> new OlogAttributeProvider(serviceUrl, preview, attachments))
                 .extensions(extensions).build();
     }
 
