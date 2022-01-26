@@ -7,6 +7,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -92,7 +93,7 @@ public class PhoebusApplication extends Application {
 
     /** JavaFx {@link Application}
      *
-     *  <p>Set on {@link #start()},
+     *  <p>Set on {@link #start(Stage)},
      *  may be used to for example get HostServices
      */
     public static Application INSTANCE;
@@ -128,6 +129,8 @@ public class PhoebusApplication extends Application {
 
     /** Menu item to show/hide status bar */
     private CheckMenuItem show_statusbar;
+
+    private Menu selectTabMenu = new Menu(Messages.SelectTab);
 
     /** Menu item to save layout */
     private SaveLayoutMenuItem save_layout;
@@ -461,6 +464,7 @@ public class PhoebusApplication extends Application {
         show_tabs.setSelected(DockPane.isAlwaysShowingTabs());
         show_tabs.setOnAction(event ->  DockPane.alwaysShowTabs(show_tabs.isSelected()));
 
+
         show_toolbar = new CheckMenuItem(Messages.ShowToolbar);
         show_toolbar.setOnAction(event -> showToolbar(show_toolbar.isSelected()));
 
@@ -474,6 +478,7 @@ public class PhoebusApplication extends Application {
                 show_tabs,
                 show_toolbar,
                 show_statusbar,
+                selectTabMenu,
                 new SeparatorMenuItem(),
                 save_layout,
                 load_layout,
@@ -496,6 +501,27 @@ public class PhoebusApplication extends Application {
         final MenuItem content = createMenuItem(new OpenHelp());
         final MenuItem about = createMenuItem(new OpenAbout());
         menuBar.getMenus().add(new Menu(Messages.Help, null, about, content));
+
+        selectTabMenu.getParentMenu().setOnShowing(e -> {
+            JobManager.schedule("List open tabs", (monitor) ->
+            {
+                List<MenuItem> menuItems = new ArrayList<>();
+                for(Stage s : DockStage.getDockStages()){
+                    for(DockPane dockPane : DockStage.getDockPanes(s)){
+                        for(DockItem dockItem : dockPane.getDockItems()){
+                            MenuItem menuItem = new MenuItem(dockItem.getLabel());
+                            menuItem.setOnAction(ae -> dockItem.select());
+                            menuItems.add(menuItem);
+                        }
+                    }
+                }
+                menuItems.sort(Comparator.comparing(MenuItem::getText));
+                Platform.runLater(() -> {
+                    selectTabMenu.getItems().clear();
+                    selectTabMenu.getItems().addAll(menuItems);
+                });
+            });
+        });
 
         return menuBar;
     }
