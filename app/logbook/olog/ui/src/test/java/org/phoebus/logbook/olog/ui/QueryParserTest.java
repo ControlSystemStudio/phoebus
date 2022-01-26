@@ -61,7 +61,7 @@ public class QueryParserTest {
         long now = System.currentTimeMillis();
         URI uri = URI.create("logbook://?desc=*Fault*Motor*&tags=operation&start=8hours&end=now");
         Map<String, String> queryParameters = LogbookQueryUtil.parseQueryURI(uri);
-        assertEquals("*Fault*Motor*", queryParameters.get(Keys.SEARCH.getName()));
+        assertEquals("*Fault*Motor*", queryParameters.get(Keys.DESC.getName()));
         assertEquals("operation", queryParameters.get(Keys.TAGS.getName()));
         assertEquals(now, Instant.from(MILLI_FORMAT.parse(queryParameters.get(Keys.ENDTIME.getName()))).toEpochMilli(), 60000);
         assertEquals((now - (8 * 60 * 60 * 1000)), Instant.from(MILLI_FORMAT.parse(queryParameters.get(Keys.STARTTIME.getName()))).toEpochMilli(), 60000);

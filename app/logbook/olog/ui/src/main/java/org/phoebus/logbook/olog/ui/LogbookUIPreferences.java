@@ -34,6 +34,7 @@ public class LogbookUIPreferences
     @Preference public static String log_entry_table_display_name;
     @Preference public static String log_entry_calendar_display_name;
     @Preference public static int search_result_page_size;
+    @Preference public static int query_list_size;
 
     static
     {

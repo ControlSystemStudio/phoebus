@@ -1,48 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.SplitPane?>
-<?import javafx.scene.control.TextField?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<SplitPane dividerPositions="0.6020066889632107" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-           minHeight="-Infinity" minWidth="-Infinity" prefHeight="302.0" prefWidth="333.0"
-           xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1"
-           fx:controller="org.phoebus.logbook.olog.ui.LogEntryCalenderViewController">
+
+<SplitPane dividerPositions="0.6020066889632107" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="302.0" prefWidth="333.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryCalenderViewController">
     <items>
+        <fx:include fx:id="advancedSearchView" source="AdvancedSearchView.fxml" />
         <GridPane fx:id="ViewSearchPane">
             <columnConstraints>
-                <ColumnConstraints minWidth="10.0" prefWidth="60.0"/>
-                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0"/>
-                <ColumnConstraints minWidth="10.0" prefWidth="60"/>
-                <ColumnConstraints minWidth="10.0" prefWidth="60"/>
+                <ColumnConstraints minWidth="10.0" prefWidth="60.0" />
+                <ColumnConstraints  minWidth="10.0" />
+                <ColumnConstraints minWidth="10.0" prefWidth="60" hgrow="ALWAYS"/>
+                <ColumnConstraints minWidth="10.0" prefWidth="60" />
             </columnConstraints>
             <rowConstraints>
-                <RowConstraints minHeight="10.0" prefHeight="30.0"/>
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS"/>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
             </rowConstraints>
             <children>
-                <Label alignment="CENTER_RIGHT" contentDisplay="CENTER" text="Query: " GridPane.columnIndex="0"
-                       GridPane.halignment="RIGHT" GridPane.vgrow="NEVER"/>
-                <TextField fx:id="query" onAction="#updateQuery" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS"
-                           HBox.hgrow="ALWAYS"/>
-                <Button fx:id="search" mnemonicParsing="false" minHeight="-Infinity" minWidth="-Infinity"
-                        prefHeight="25.0"
-                        onAction="#search" text="search" GridPane.columnIndex="2">
+                <Button fx:id="resize" alignment="TOP_LEFT" contentDisplay="TOP" mnemonicParsing="false" onMouseClicked="#resize" prefHeight="25.0" prefWidth="25.0" text="&gt;" />
+                <Label alignment="CENTER_RIGHT" contentDisplay="CENTER" text="Query: " GridPane.columnIndex="1" />
+                <ComboBox fx:id="query" editable="true" maxWidth="1.7976931348623157E308" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.vgrow="NEVER">
                     <GridPane.margin>
-                        <Insets left="3.0"/>
+                        <Insets bottom="10.0" top="10.0" />
+                    </GridPane.margin>
+                </ComboBox>
+                <Button fx:id="search" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#search" prefHeight="25.0" text="search" GridPane.columnIndex="3">
+                    <GridPane.margin>
+                        <Insets left="3.0" />
                     </GridPane.margin>
                 </Button>
-                <Button fx:id="resize" alignment="TOP_LEFT"
-                        contentDisplay="TOP" mnemonicParsing="false" onMouseClicked="#resize"
-                        prefHeight="25.0" prefWidth="25.0" text="&gt;" GridPane.columnIndex="3"
-                        GridPane.halignment="RIGHT" GridPane.hgrow="NEVER"/>
-
-                <AnchorPane fx:id="agendaPane" HBox.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.columnSpan="4"/>
-
+                <AnchorPane fx:id="agendaPane" GridPane.columnSpan="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" HBox.hgrow="ALWAYS" />
             </children>
         </GridPane>
-        <fx:include source="AdvancedSearchView.fxml" fx:id="advancedSearchView"/>
     </items>
 </SplitPane>
