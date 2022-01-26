@@ -509,7 +509,8 @@ public class PhoebusApplication extends Application {
                 for(Stage s : DockStage.getDockStages()){
                     for(DockPane dockPane : DockStage.getDockPanes(s)){
                         for(DockItem dockItem : dockPane.getDockItems()){
-                            MenuItem menuItem = new MenuItem(dockItem.getLabel());
+                            CheckMenuItem menuItem = new CheckMenuItem(dockItem.getLabel());
+                            menuItem.setSelected(dockItem.isSelected());
                             menuItem.setOnAction(ae -> dockItem.select());
                             menuItems.add(menuItem);
                         }
