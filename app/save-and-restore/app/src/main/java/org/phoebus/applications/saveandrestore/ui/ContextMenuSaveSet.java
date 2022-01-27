@@ -44,7 +44,7 @@ public class ContextMenuSaveSet extends ContextMenuBase {
             saveAndRestoreController.nodeDoubleClicked();
         });
 
-        getItems().addAll(openSaveSetMenuItem, editSaveSetMenuItem, renameNodeMenuItem, deleteNodesMenuItem);
+        getItems().addAll(openSaveSetMenuItem, editSaveSetMenuItem, renameNodeMenuItem, deleteNodesMenuItem, copyUniqueIdToClipboardMenuItem);
 
         if (csvEnabled) {
             ImageView exportSaveSetIconImageView = new ImageView(csvExportIcon);

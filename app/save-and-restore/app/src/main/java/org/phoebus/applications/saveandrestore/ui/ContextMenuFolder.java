@@ -39,7 +39,7 @@ public class ContextMenuFolder extends ContextMenuBase {
             saveAndRestoreController.createNewSaveSet();
         });
 
-        getItems().addAll(newFolderMenuItem, renameNodeMenuItem, deleteNodesMenuItem, newSaveSetMenuItem);
+        getItems().addAll(newFolderMenuItem, renameNodeMenuItem, deleteNodesMenuItem, newSaveSetMenuItem, copyUniqueIdToClipboardMenuItem);
 
         if (csvImportEnabled) {
 

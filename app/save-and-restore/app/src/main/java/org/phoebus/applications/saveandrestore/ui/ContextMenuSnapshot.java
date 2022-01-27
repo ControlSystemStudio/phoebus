@@ -86,7 +86,7 @@ public class ContextMenuSnapshot extends ContextMenuBase {
 
         tagWithComment.getItems().addAll(addTagWithCommentMenuItem, new SeparatorMenuItem());
 
-        getItems().addAll(renameSnapshotItem, deleteSnapshotMenuItem, compareSaveSetMenuItem, tagAsGolden, tagWithComment);
+        getItems().addAll(renameSnapshotItem, deleteSnapshotMenuItem, compareSaveSetMenuItem, tagAsGolden, tagWithComment, copyUniqueIdToClipboardMenuItem);
 
         if (csvEnabled) {
             ImageView exportSnapshotIconImageView = new ImageView(csvExportIcon);

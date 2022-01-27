@@ -20,6 +20,7 @@ package org.phoebus.applications.saveandrestore.service;
 
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 
@@ -65,6 +66,14 @@ public interface SaveAndRestoreClient {
      * @throws SaveAndRestoreClientException
      */
     List<Node> getChildNodes(Node node) throws SaveAndRestoreClientException;
+
+    /**
+     *
+     * @param uniqueNodeId Id of an existing {@link Node}
+     * @return A list of child {@link Node}s. May be empty.
+     * @throws SaveAndRestoreClientException
+     */
+    List<Node> getChildNodes(String uniqueNodeId) throws SaveAndRestoreClientException;
 
     /**
      *

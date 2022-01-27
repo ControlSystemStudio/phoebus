@@ -51,6 +51,8 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.TransferMode;
@@ -636,7 +638,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
-
     /**
      * Renames a node through the service and its underlying data provider.
      * If there is a problem in the call to the remote JMasar service,
@@ -650,6 +651,13 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                         .map(item -> item.getValue().getName())
                         .collect(Collectors.toList());
         renameNode(node.getValue(), existingSiblingNodes);
+    }
+
+    protected void copyUniuqeNodeIdToClipboard(){
+        Node node = browserSelectionModel.getSelectedItem().getValue();
+        ClipboardContent content = new ClipboardContent();
+        content.putString(node.getUniqueId());
+        Clipboard.getSystemClipboard().setContent(content);
     }
 
     /**
