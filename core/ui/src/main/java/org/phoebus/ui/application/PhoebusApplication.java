@@ -540,6 +540,7 @@ public class PhoebusApplication extends Application {
             }
             menuItems.sort(Comparator.comparing(MenuItem::getText));
             selectTabMenu.getItems().clear();
+            selectTabMenu.getItems().addAll(menuItems);
         });
 
         return menuBar;
