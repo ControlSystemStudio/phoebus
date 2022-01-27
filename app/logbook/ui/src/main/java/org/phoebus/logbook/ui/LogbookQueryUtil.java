@@ -10,7 +10,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.phoebus.util.time.TimeParser;
-import static org.phoebus.util.time.TimestampFormats.MILLI_FORMAT;
 
 import com.google.common.base.Strings;
 

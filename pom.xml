@@ -36,6 +36,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <skipITTests>true</skipITTests>
+    <guava.version>31.0.1-jre</guava.version>
   </properties>
   <build>
     <plugins>
