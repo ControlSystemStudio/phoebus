@@ -88,7 +88,7 @@ public class AutocompleteMenu
         toggleMenu(event);
         if (event.isConsumed())
             return;
-        final TextField field = (TextField) event.getSource();
+        final TextInputControl field = (TextInputControl) event.getSource();
         final KeyCode code = event.getCode();
         if (code == KeyCode.ENTER)
         {
