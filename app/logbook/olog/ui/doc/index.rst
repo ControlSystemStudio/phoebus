@@ -134,7 +134,7 @@ where the most recent query is on top. When new queries are entered by user, old
 flushed out as the maximum size of the list is limited (15 by default, configurable between 5 and 30). The "default"
 search query - rendered in bold font in the list - as defined in the preferences is however never flushed.
 
-When user selects a query from the list, a search is performed immediately. There is no need to press a search button.
+When user has selected a query from the list, a search button (up or down arrow) must be clicked in order to dispatch the search request.
 Pressing ENTER when editing a query in the search field will also trigger a search, and the query is put in
 the history list.
 

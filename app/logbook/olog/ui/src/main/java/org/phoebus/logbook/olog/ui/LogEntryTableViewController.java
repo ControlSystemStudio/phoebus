@@ -239,21 +239,16 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
         query.itemsProperty().bind(new SimpleObjectProperty<>(ologQueries));
 
-        // NOTE: the listener will ensure that whenever user chooses a query from the drop-down,
-        // or when the selected query is set in code, a new search is triggered.
-        onActionListener = (observable, oldValue, newValue) -> search();
-
-        query.getSelectionModel().selectedItemProperty().addListener(onActionListener);
         query.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
-                // Query set -> search is triggered!
-                query.setValue(new OlogQuery(query.getEditor().getText()));
+                search();
             }
         });
         query.getEditor().setText(ologQueries.get(0).getQuery());
         // Query set -> search is triggered!
         query.getSelectionModel().select(ologQueries.get(0));
         searchParameters.setQuery(ologQueries.get(0).getQuery());
+       
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored
@@ -305,7 +300,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         search();
     }
 
-    public void search() {
+    public synchronized void search() {
         // In case the page size text field is empty, or the value is zero, set the page size to the default
         if ("".equals(pageSizeTextField.getText()) || Integer.parseInt(pageSizeTextField.getText()) == 0) {
             pageSizeTextField.setText(Integer.toString(LogbookUIPreferences.search_result_page_size));
@@ -313,7 +308,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
         // Need to remove the listener as a new search would be invoked when combo box list is updated
         // with the refreshed list of queries
-        query.getSelectionModel().selectedItemProperty().removeListener(onActionListener);
+        //query.getSelectionModel().selectedItemProperty().removeListener(onActionListener);
 
         OlogQuery ologQuery = ologQueryManager.getOrAddQuery(query.getEditor().getText());
 
@@ -331,10 +326,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
             List<OlogQuery> queries = ologQueryManager.getQueries();
             Platform.runLater(() -> {
                 ologQueries.setAll(queries);
-                // Top-most query is the one used in the search.
                 query.getSelectionModel().select(ologQueries.get(0));
-                // Add the listener
-                query.getSelectionModel().selectedItemProperty().addListener(onActionListener);
             });
         });
     }
@@ -365,7 +357,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
             ObservableList<LogEntry> logsList = FXCollections.observableArrayList();
             logsList.addAll(new ArrayList<>(searchResult.getLogs()));
             tableView.setItems(logsList);
-            if(logsList.size() > 0){
+            if (logsList.size() > 0) {
                 tableView.getSelectionModel().select(logsList.get(0));
             }
             hitCountProperty.set(searchResult.getHitCount());
