@@ -1296,11 +1296,16 @@ public class DAOTest {
         folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
 
         Node folderNode2 = new Node();
-        folderNode2.setName("Config");
+        folderNode2.setName("Folder2");
         folderNode2.setNodeType(NodeType.FOLDER);
-        folderNode2 = nodeDAO.createNode(folderNode.getUniqueId(), folderNode2);
+        folderNode2 = nodeDAO.createNode(rootNode.getUniqueId(), folderNode2);
 
-        nodeDAO.copyNodes(Arrays.asList(folderNode2.getUniqueId()), rootNode.getUniqueId(), "username");
+        Node config = new Node();
+        config.setName("Config");
+        config.setNodeType(NodeType.CONFIGURATION);
+        config = nodeDAO.createNode(folderNode.getUniqueId(), config);
+
+        nodeDAO.copyNodes(Arrays.asList(config.getUniqueId()), folderNode2.getUniqueId(), "username");
 
         List<Node> childNodes = nodeDAO.getChildNodes(rootNode.getUniqueId());
         assertEquals(2, childNodes.size());
@@ -1391,6 +1396,7 @@ public class DAOTest {
         Node copiedSaveSet = nodeDAO.getChildNodes(copiedFolder.getUniqueId()).get(0);
         Node copiedSnapshot = nodeDAO.getSnapshots(copiedSaveSet.getUniqueId()).get(0);
         assertEquals("snapshotName", copiedSnapshot.getName());
+        assertEquals(1, nodeDAO.getConfigPvs(copiedSaveSet.getUniqueId()).size());
 
     }
 

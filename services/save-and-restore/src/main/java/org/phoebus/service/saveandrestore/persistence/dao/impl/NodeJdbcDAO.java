@@ -1001,6 +1001,8 @@ public class NodeJdbcDAO implements NodeDAO {
         updateProperties(newSourceNode.getId(), properties);
 
         if (sourceNode.getNodeType().equals(NodeType.CONFIGURATION)) {
+            List<ConfigPv> configPvs = getConfigPvs(sourceNode.getUniqueId());
+            updateConfiguration(newSourceNode, configPvs);
             List<Node> childNodes = getChildNodes(sourceNode.getUniqueId());
             childNodes.forEach(childNode -> {
                 Map<String, String> snapshotProperties = getProperties(childNode.getId());

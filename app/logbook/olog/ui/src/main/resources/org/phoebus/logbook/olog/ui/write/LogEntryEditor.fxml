@@ -51,8 +51,8 @@
         <children>
             <GridPane>
                 <!-- Progress indicator and completion message are not supposed to be visible simultaneously -->
-                <ProgressIndicator fx:id="progressIndicator" prefHeight="30" prefWidth="30" visible="false" />
-                <Label fx:id="completionMessageLabel" prefHeight="30" text="" textFill="red" visible="false" />
+                <ProgressIndicator fx:id="progressIndicator" prefHeight="30" prefWidth="30"/>
+                <Label fx:id="completionMessageLabel" prefHeight="30" text="Error Text" textFill="red"/>
             <columnConstraints>
                <ColumnConstraints />
             </columnConstraints>
