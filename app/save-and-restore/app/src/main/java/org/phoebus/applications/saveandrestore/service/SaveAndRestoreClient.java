@@ -166,4 +166,8 @@ public interface SaveAndRestoreClient {
      * @return The target {@link Node}.
      */
     Node copyNodes(List<String> sourceNodeIds, String targetNodeId);
+
+    String getFullPath(String uniqueNodeId);
+
+    List<Node> getFromPath(String path);
 }

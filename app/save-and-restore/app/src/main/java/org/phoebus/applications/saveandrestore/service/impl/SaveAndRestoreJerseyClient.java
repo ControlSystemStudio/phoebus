@@ -38,6 +38,7 @@ import org.phoebus.applications.saveandrestore.service.SaveAndRestoreClientExcep
 import org.phoebus.framework.preferences.PreferencesReader;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -223,7 +224,12 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).get(ClientResponse.class);
         if (response.getStatus() != 200) {
-            String message = response.getEntity(String.class);
+            String message = null;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                message = "N/A";
+            }
             throw new SaveAndRestoreClientException("Failed : HTTP error code : " + response.getStatus() + ", error message: " + message);
         }
 
@@ -343,5 +349,22 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
             throw new SaveAndRestoreClientException(message);
         }
         return response.getEntity(Node.class);
+    }
+
+    @Override
+    public String getFullPath(String uniqueNodeId){
+        WebResource webResource =
+                client.resource(jmasarServiceUrl + "/path/" + uniqueNodeId);
+        ClientResponse response = webResource.get(ClientResponse.class);
+
+        if (response.getStatus() != 200) {
+            return null;
+        }
+        return response.getEntity(String.class);
+    }
+
+    @Override
+    public List<Node> getFromPath(String path){
+        return null;
     }
 }

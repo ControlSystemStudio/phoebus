@@ -175,7 +175,7 @@ public class NodeJdbcDAO implements NodeDAO {
             nodeId = jdbcTemplate.queryForObject("select id from node where unique_id=?", new Object[]{uniqueNodeId}, Integer.class);
             return getNode(nodeId);
         } catch (DataAccessException e) {
-            return null;
+            throw new NodeNotFoundException(String.format("Node id %s does not exist", uniqueNodeId));
         }
 
     }
@@ -834,9 +834,6 @@ public class NodeJdbcDAO implements NodeDAO {
     }
 
     public String getFullPath(String uniqueNodeId) {
-        if (uniqueNodeId == null || uniqueNodeId.isEmpty()) {
-            return null;
-        }
         Node node = getNode(uniqueNodeId);
         if (node == null) {
             return null;

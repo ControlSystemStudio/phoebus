@@ -64,3 +64,71 @@ Once a selection of nodes have been copied or moved successfully, the target fol
 
 **NOTE**: Copying a large number of nodes and/or nodes with deep sub-trees is discouraged as this is an expensive operation.
 Moving nodes on the other hand is lightweight as only references in the tree structure are updated.
+
+Script Support
+--------------
+
+Basic script support for Save-And-Restore is provided in the class SaveAndRestoreScriptUtil. The available methods
+require the unique id of a node in the Save-And-Restore tree structure, which can be copied to the clipboard
+from the context menu:
+
+.. image:: images/copy_uniuqe_id.png
+   :width: 35%
+
+API
+^^^
+
+**Get child nodes of a node:**
+
+.. code-block:: python
+
+    from org.phoebus.applications.saveandrestore.script import SaveAndRestoreScriptUtil
+    print SaveAndRestoreScriptUtil.getChildNodes("<unique id of a node>")
+
+An exception is thrown if the node id is invalid, or if the connection to the remote service fails.
+
+**Get list of snapshot values of a snapshot:**
+
+.. code-block:: python
+
+    from org.phoebus.applications.saveandrestore.script import SaveAndRestoreScriptUtil
+    print SaveAndRestoreScriptUtil.getSnapshotItems("<unique id of a snapshot node>")
+
+An exception is thrown if the snapshot node id is invalid, or if the connection to the remote service fails.
+
+**Restore a snapshot:**
+
+.. code-block:: python
+
+    from org.phoebus.applications.saveandrestore.script import SaveAndRestoreScriptUtil
+    report = SaveAndRestoreScriptUtil.restore("<unique id of a snapshot node>", 1000, 1000, False, False)
+
+The method signature is ``restore(snapshotNodeId, connectTimeout, writeTimeout, abortOnFail, rollback)`` where:
+
+* ``snapshotNodeId`` is the unique id of an existing snapshot.
+* ``connectTimeout`` is the timeout in ms waiting for all PVs in the snapshot to connect.
+* ``writeTimeout`` is the timeout in ms for a restore/write operation.
+* ``abortOnFail`` determines if the restore procedure should be aborted if restore/write of a PV fails.
+* ``rollback`` determines whether to rollback if a restore/write operation fails.
+
+This method will obtain saved PV values from the snapshot and restore them to the persisted values. The restore operation
+is synchronous with respect to each PV where each write operation will wait for at most ``writeTimeout`` ms to
+complete. PVs marked as read-only in the save set are not restored.
+
+Before the restore/write operations are invoked, this method will first connect to all PVs and wait at most ``connectTimeout``
+ms to complete. Once a PV is connected, its current value is read to be used if a rollback is requested.
+
+An exception is thrown if:
+
+* If the connection to the remote service fails.
+* If the snapshot node id is invalid.
+* If any of the PVs in the snapshot fails to connect within ``connectTimeout`` ms.
+
+Upon successful completion, a RestoreReport object is returned. It contains the following fields:
+
+* ``snapshotId``: The snapshot id.
+* ``snapshotPath``: The snapshot "path" as defined by the Save-And-Restore tree structure, e.g. ``/folder1/folder2/saveset1/snapshotId``.
+* ``restoreDate``: The date when the restore operation was requested.
+* ``restoredPVs``: A map of successfully restored PV names and the values to which they were restored.
+* ``nonRestoredPVs``: A list of PV names that could not be restored/written, if any.
+* ``rolledBackPVs``: A map of rolled-back PV names and the values to which they were rolled-back. Non-null only if any write operation failed and if rollback was requested.
