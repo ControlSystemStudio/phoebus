@@ -18,6 +18,7 @@ public class Messages
     public static String AppVersion;
     public static String AppRevision;
     public static String AppVersionHeader;
+    public static String CloseAllTabs;
     public static String DeleteLayouts;
     public static String DeleteLayoutsConfirmFmt;
     public static String DeleteLayoutsInfo;
