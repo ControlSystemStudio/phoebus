@@ -26,7 +26,7 @@ summary of the log entry and its metadata.
         <RowConstraints />
     </rowConstraints>
     <children>
-        <Label fx:id="owner" text="Owner" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS">
+        <Label fx:id="title" text="Title" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS">
             <font>
                 <Font size="20.0" />
             </font>
@@ -41,7 +41,7 @@ summary of the log entry and its metadata.
                 <ImageView fx:id="attachmentIcon" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" />
             </children>
         </HBox>
-        <Label fx:id="title" text="Title" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
+        <Label fx:id="owner" text="Owner" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
             <font>
                 <Font name="Arial Bold" size="14.0" />
             </font>
