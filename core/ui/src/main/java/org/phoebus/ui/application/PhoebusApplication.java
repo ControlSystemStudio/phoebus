@@ -219,6 +219,9 @@ public class PhoebusApplication extends Application {
 
     private static final WeakReference<DockItemWithInput> NO_ACTIVE_ITEM_WITH_INPUT = new WeakReference<>(null);
 
+    public static KeyCombination closeAllTabsKeyCombination;
+
+
     /**
      * Active {@link DockItemWithInput}
      *
@@ -338,7 +341,7 @@ public class PhoebusApplication extends Application {
         // If there's nothing to restore from a previous instance,
         // start with welcome
         monitor.updateTaskName(Messages.MonitorTaskTabs);
-        if (!restoreState(memento))
+        if (!application_parameters.contains("-clean") && !restoreState(memento))
             new Welcome().create();
         monitor.worked(1);
 
@@ -383,6 +386,16 @@ public class PhoebusApplication extends Application {
         if (Preferences.ui_monitor_period > 0)
             freezeup_check = new ResponsivenessMonitor(3 * Preferences.ui_monitor_period,
                     Preferences.ui_monitor_period, TimeUnit.MILLISECONDS);
+
+        if(PlatformInfo.is_mac_os_x){
+            closeAllTabsKeyCombination = new KeyCodeCombination(KeyCode.W, KeyCombination.SHIFT_DOWN, KeyCodeCombination.SHORTCUT_DOWN);
+        }
+        else{
+            closeAllTabsKeyCombination = new KeyCodeCombination(KeyCode.F4, KeyCombination.SHIFT_DOWN, KeyCombination.CONTROL_DOWN);
+        }
+
+        closeAllTabsMenuItem.acceleratorProperty().setValue(closeAllTabsKeyCombination);
+
     }
 
     /**
@@ -405,6 +418,9 @@ public class PhoebusApplication extends Application {
      * @throws Exception on error
      */
     private void handleParameters(final List<String> parameters) throws Exception {
+        if(parameters.contains("-clean")){
+            return;
+        }
         // List of applications to launch as specified via cmd line args
         final List<String> launchApps = new ArrayList<>();
 
@@ -557,7 +573,7 @@ public class PhoebusApplication extends Application {
             selectTabMenu.getItems().addAll(menuItems);
         });
 
-        closeAllTabsMenuItem.setOnAction(this::closeAllTabs);
+        closeAllTabsMenuItem.setOnAction(ae -> closeAllTabs());
         return menuBar;
     }
 
@@ -1233,7 +1249,11 @@ public class PhoebusApplication extends Application {
         System.exit(0);
     }
 
-    private void closeAllTabs(ActionEvent ae){
+    /**
+     * Closes all tabs in all windows. Side effect is that all detached windows are also
+     * closed. Main window is not closed.
+     */
+    public static void closeAllTabs(){
         final List<Stage> stages = DockStage.getDockStages();
         JobManager.schedule("Close All Tabs", monitor ->
         {
