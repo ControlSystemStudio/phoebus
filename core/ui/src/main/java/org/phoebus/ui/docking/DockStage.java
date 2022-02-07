@@ -20,9 +20,13 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 import javafx.scene.control.SplitPane;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.application.Messages;
+import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Styles;
 
@@ -137,7 +141,7 @@ public class DockStage
             }
         });
 
-        final Scene scene = new Scene(layout, 800, 600);
+        final Scene scene = new Scene(layout, 1600, 900);
         stage.setScene(scene);
         stage.setTitle(Messages.FixedTitle);
         Styles.setSceneStyle(scene);
@@ -173,6 +177,13 @@ public class DockStage
         });
 
         DockPane.setActiveDockPane(pane);
+
+        // This is to handle a keyboard shortcut that closes all tabs in all windows.
+        stage.getScene().setOnKeyReleased(ke -> {
+            if(PhoebusApplication.closeAllTabsKeyCombination.match(ke)){
+                PhoebusApplication.closeAllTabs();
+            }
+        });
 
         return pane;
     }
