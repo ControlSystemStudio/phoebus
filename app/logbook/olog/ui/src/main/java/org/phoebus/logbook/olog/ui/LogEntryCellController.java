@@ -1,11 +1,16 @@
 package org.phoebus.logbook.olog.ui;
 
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.RowConstraints;
+import javafx.scene.layout.VBox;
 import org.commonmark.Extension;
 import org.commonmark.ext.gfm.tables.TablesExtension;
 import org.commonmark.ext.image.attributes.ImageAttributesExtension;
@@ -37,7 +42,7 @@ public class LogEntryCellController {
     LogEntry logEntry;
 
     @FXML
-    GridPane root;
+    VBox root;
 
     @FXML
     Label time;
@@ -67,6 +72,11 @@ public class LogEntryCellController {
     @FXML
     ImageView conversationIcon;
 
+    @FXML
+    private Pane detailsPane;
+
+    private SimpleBooleanProperty expanded = new SimpleBooleanProperty(true);
+
     public LogEntryCellController() {
 
         List<Extension> extensions = Arrays.asList(TablesExtension.create(), ImageAttributesExtension.create());
@@ -80,6 +90,12 @@ public class LogEntryCellController {
         tagIcon.setImage(tag);
         attachmentIcon.setImage(null);
         conversationIcon.setImage(null);
+
+        detailsPane.managedProperty().bind(expanded);
+        detailsPane.visibleProperty().bind(expanded);
+
+
+
     }
 
     @FXML
