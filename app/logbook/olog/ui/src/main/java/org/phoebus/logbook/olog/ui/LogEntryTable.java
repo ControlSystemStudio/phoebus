@@ -98,7 +98,7 @@ public class LogEntryTable implements AppInstance {
     @Override
     public void restore(Memento memento){
         Optional<Boolean> hideDetails = memento.getBoolean(HIDE_DETAILS);
-        controller.setShowDetails(hideDetails.isEmpty() ? false : hideDetails.get());
+        controller.setShowDetails(hideDetails.isEmpty() ? true : hideDetails.get());
     }
 
     @Override
