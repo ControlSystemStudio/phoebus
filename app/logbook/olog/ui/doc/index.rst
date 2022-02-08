@@ -96,6 +96,14 @@ The menu item Applications -> Utility -> Log Entry Table will launch an applicat
 search and view log entries:
 
 .. image:: images/LogEntryTable.png
+
+User may choose to hide some details of each log entry in the list in order to fit more items in the view and to reduce the need
+for scrolling. This can be done using the keyboard shortcut ``CTRL+SHIFT+D``, or by selecting the
+``Show/Hide Details`` item from the context menu invoked through a right click in the table view. The choice
+to show or hide details is persisted between restarts of the application.
+
+.. image:: images/ContextMenuLogEntryTable.png
+
 In the search field the user may specify criteria when searching for log entries. These criteria are based on 
 the elements of a log entry as follows:
 
@@ -154,6 +162,7 @@ The navigation buttons are not rendered if hit count less or equal to the page s
 
 .. _preferences:
 
+
 Attachment Preview
 ------------------
 
@@ -167,6 +176,36 @@ If user double-clicks on a Data Browser attachment (.plt file), the application 
 
 Preview of non-image files is not offered in the application. However, external viewers may be configured for
 arbitrary file extensions, see preference_settings_ (framework.workbench) for more information.
+
+Log Entry Grouping
+------------------
+
+The preference setting ``log_entry_groups_support`` - if set to ``true`` - will enable the "log entry grouping"
+feature. With this users will be able to reply to individual log entries implicitly creating a group of log entries. To use this
+feature user can choose to:
+
+- Press the Reply button shown in the log entry view:
+
+.. image:: images/ReplyToLogEntry.png
+
+- Select "Group Selected Entries" from the context menu shown on right click in the search result table view. This menu item is enabled when at least two items are selected:
+
+.. image:: images/ContextMenuLogEntryTable.png
+
+Log entries that are contained in a log entry group are rendered with a grey background in the search result table view.
+In the log entry view, the "Show/Hide Group" button (see screen shot above) can be used to show all log entries of a group sequentially,
+ordered on created date with oldest log entry on top. In this merged view attachments and properties are not shown.
+Clicking on a header in the merged view will show that log entry in full.
+
+Limitations
+^^^^^^^^^^^
+
+Please consider the following limitations of the log entry group feature:
+
+- A log entry group should not be regarded as a discussion thread.
+- There is no support for "groups of groups", or "sub-groups".
+- There is no parent-child relation between log entries in a group, i.e. there is no internal structure of the log entries in a group.
+- A log entry may be included in only one log entry group. It is hence not possible to create a new group of log entries if these are already contained in different groups.
 
 Preferences
 -----------
@@ -185,7 +224,7 @@ Preferences related to the electronic logbook are the following:
 
 - ``search_result_page_size``. The maximum number of hits per page to fetch and render in a search. User may override in the UI. Value must be 1 - 999, default is 30.
 
-
+- ``log_entry_groups_support``. If true, user may reply to log entries and create a log entry group from a selection of existing log entries.
 
 
 

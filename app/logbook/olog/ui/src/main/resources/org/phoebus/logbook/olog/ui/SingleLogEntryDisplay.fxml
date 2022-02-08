@@ -25,9 +25,9 @@
                     </rowConstraints>
                     <children>
 
-                        <Label fx:id="logOwner" text="owner">
+                        <Label fx:id="logTitle" text="owner">
                             <font>
-                                <Font size="20.0" />
+                                <Font size="18.0" />
                             </font>
                             <padding>
                                 <Insets left="5.0" />
@@ -36,21 +36,15 @@
                                 <Insets />
                             </GridPane.margin>
                         </Label>
-                        <Label fx:id="logTitle" text="title" GridPane.rowIndex="1">
+                        <Label fx:id="logOwner" text="title" GridPane.rowIndex="1">
                             <padding>
                                 <Insets left="5.0" />
                             </padding>
-                            <font>
-                                <Font name="Arial Bold" size="14.0" />
-                            </font>
                         </Label>
                         <Label fx:id="logTime" contentDisplay="RIGHT" text="1970-01-01 00:00:00" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
                             <padding>
                                 <Insets right="5.0" />
                             </padding>
-                            <font>
-                                <Font name="Arial Bold" size="14.0" />
-                            </font>
                         </Label>
 
                         <GridPane GridPane.columnSpan="2" GridPane.rowIndex="2">

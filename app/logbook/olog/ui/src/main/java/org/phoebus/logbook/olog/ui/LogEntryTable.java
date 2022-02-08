@@ -15,12 +15,15 @@ import org.phoebus.ui.docking.DockPane;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class LogEntryTable implements AppInstance {
     static Logger log = Logger.getLogger(LogEntryTable.class.getName());
+
+    private static final String HIDE_DETAILS = "hide_details";
 
     private final LogEntryTableApp app;
     private LogEntryTableViewController controller;
@@ -93,7 +96,14 @@ public class LogEntryTable implements AppInstance {
     }
 
     @Override
+    public void restore(Memento memento){
+        Optional<Boolean> hideDetails = memento.getBoolean(HIDE_DETAILS);
+        controller.setShowDetails(hideDetails.isEmpty() ? false : hideDetails.get());
+    }
+
+    @Override
     public void save(final Memento memento) {
         OlogQueryManager.getInstance().save();
+        memento.setBoolean(HIDE_DETAILS, controller.getShowDetails());
     }
 }

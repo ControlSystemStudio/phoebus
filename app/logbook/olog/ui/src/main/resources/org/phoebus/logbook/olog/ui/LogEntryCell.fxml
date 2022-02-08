@@ -25,7 +25,7 @@ summary of the log entry and its metadata.
         <children>
             <Label fx:id="title" text="Title" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS">
                 <font>
-                    <Font size="20.0" />
+                    <Font size="18.0" />
                 </font>
                 <GridPane.margin>
                     <Insets />
@@ -38,11 +38,7 @@ summary of the log entry and its metadata.
                     <ImageView fx:id="attachmentIcon" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" />
                 </children>
             </HBox>
-            <Label fx:id="owner" text="Owner" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
-                <font>
-                    <Font name="Arial Bold" size="14.0" />
-                </font>
-            </Label>
+            <Label fx:id="owner" text="Owner" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1"/>
             <Label fx:id="time" text="Time" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
         </children>
         <padding>
@@ -76,11 +72,7 @@ summary of the log entry and its metadata.
             </ImageView>
             <Label fx:id="tags" text="Tags" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
             <Label fx:id="level" text="Shift Start" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
-            <Label fx:id="description" text="very long description placeholder" GridPane.columnSpan="3" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2">
-                <font>
-                    <Font name="Arial" size="13.0" />
-                </font>
-            </Label>
+            <Label fx:id="description" text="very long description placeholder" GridPane.columnSpan="3" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2"/>
         </children>
         <padding>
             <Insets bottom="5.0" left="5.0" right="5.0" />

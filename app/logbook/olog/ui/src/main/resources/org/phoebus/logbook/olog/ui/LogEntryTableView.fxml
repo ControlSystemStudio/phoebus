@@ -107,7 +107,7 @@
                                                     </HBox.margin>
                                                 </TextField>
 
-                                                <Pagination fx:id="pagination" style="-fx-page-information-alignment: right;" HBox.hgrow="ALWAYS">
+                                                <Pagination fx:id="pagination" HBox.hgrow="ALWAYS">
                                                     <padding>
                                                         <Insets bottom="2.0" />
                                                     </padding>
