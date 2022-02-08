@@ -1201,7 +1201,7 @@ File ../../app/pvtree/src/main/resources/pv_tree_preferences.properties::
 saveandrestore
 --------------
 
-File ../../app/save-and-restore/ui/src/main/resources/save_and_restore_preferences.properties::
+File ../../app/save-and-restore/app/src/main/resources/save_and_restore_preferences.properties::
 
    # -----------------------------------------------
    # Package org.phoebus.applications.saveandrestore

@@ -2,6 +2,7 @@ package org.phoebus.ui.application;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -18,6 +19,9 @@ import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
@@ -147,7 +151,15 @@ public class PhoebusApplication extends Application {
      */
     private CheckMenuItem show_statusbar;
 
+    /**
+     * Menu item to select a tab
+     */
     private Menu selectTabMenu = new Menu(Messages.SelectTab);
+
+    /**
+     * Menu item to close all tabs in all windows
+     */
+    private MenuItem closeAllTabsMenuItem = new MenuItem(Messages.CloseAllTabs);
 
     /**
      * Menu item to save layout
@@ -206,6 +218,9 @@ public class PhoebusApplication extends Application {
     private Stage main_stage;
 
     private static final WeakReference<DockItemWithInput> NO_ACTIVE_ITEM_WITH_INPUT = new WeakReference<>(null);
+
+    public static KeyCombination closeAllTabsKeyCombination;
+
 
     /**
      * Active {@link DockItemWithInput}
@@ -326,7 +341,7 @@ public class PhoebusApplication extends Application {
         // If there's nothing to restore from a previous instance,
         // start with welcome
         monitor.updateTaskName(Messages.MonitorTaskTabs);
-        if (!restoreState(memento))
+        if (!application_parameters.contains("-clean") && !restoreState(memento))
             new Welcome().create();
         monitor.worked(1);
 
@@ -371,6 +386,16 @@ public class PhoebusApplication extends Application {
         if (Preferences.ui_monitor_period > 0)
             freezeup_check = new ResponsivenessMonitor(3 * Preferences.ui_monitor_period,
                     Preferences.ui_monitor_period, TimeUnit.MILLISECONDS);
+
+        if(PlatformInfo.is_mac_os_x){
+            closeAllTabsKeyCombination = new KeyCodeCombination(KeyCode.W, KeyCombination.SHIFT_DOWN, KeyCodeCombination.SHORTCUT_DOWN);
+        }
+        else{
+            closeAllTabsKeyCombination = new KeyCodeCombination(KeyCode.F4, KeyCombination.SHIFT_DOWN, KeyCombination.CONTROL_DOWN);
+        }
+
+        closeAllTabsMenuItem.acceleratorProperty().setValue(closeAllTabsKeyCombination);
+
     }
 
     /**
@@ -393,6 +418,9 @@ public class PhoebusApplication extends Application {
      * @throws Exception on error
      */
     private void handleParameters(final List<String> parameters) throws Exception {
+        if(parameters.contains("-clean")){
+            return;
+        }
         // List of applications to launch as specified via cmd line args
         final List<String> launchApps = new ArrayList<>();
 
@@ -502,7 +530,9 @@ public class PhoebusApplication extends Application {
                 show_tabs,
                 show_toolbar,
                 show_statusbar,
+                new SeparatorMenuItem(),
                 selectTabMenu,
+                closeAllTabsMenuItem,
                 new SeparatorMenuItem(),
                 save_layout,
                 load_layout,
@@ -543,6 +573,7 @@ public class PhoebusApplication extends Application {
             selectTabMenu.getItems().addAll(menuItems);
         });
 
+        closeAllTabsMenuItem.setOnAction(ae -> closeAllTabs());
         return menuBar;
     }
 
@@ -1216,5 +1247,26 @@ public class PhoebusApplication extends Application {
         // might keep us from quitting the VM
         Platform.exit();
         System.exit(0);
+    }
+
+    /**
+     * Closes all tabs in all windows. Side effect is that all detached windows are also
+     * closed. Main window is not closed.
+     */
+    public static void closeAllTabs(){
+        final List<Stage> stages = DockStage.getDockStages();
+        JobManager.schedule("Close All Tabs", monitor ->
+        {
+            for (Stage stage : stages){
+                if (!DockStage.prepareToCloseItems(stage)){
+                    return;
+                }
+            }
+
+            Platform.runLater(() ->
+            {
+                stages.forEach(stage -> DockStage.closeItems(stage));
+            });
+        });
     }
 }
