@@ -6,6 +6,7 @@ import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockItem;
@@ -25,10 +26,12 @@ public class LogEntryCalender implements AppInstance {
 
     private LogEntryCalenderViewController controller;
 
-
     LogEntryCalender(final LogEntryCalenderApp app) {
         this.app = app;
         try {
+            OlogQueryManager ologQueryManager = OlogQueryManager.getInstance();
+            SearchParameters searchParameters = new SearchParameters();
+            searchParameters.setQuery(ologQueryManager.getQueries().get(0).getQuery());
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(this.getClass().getResource("LogEntryCalenderView.fxml"));
             loader.setControllerFactory(clazz -> {
@@ -36,12 +39,12 @@ public class LogEntryCalender implements AppInstance {
                     if(app.getClient() != null)
                     {
                         if(clazz.isAssignableFrom(LogEntryCalenderViewController.class)){
-                            return clazz.getConstructor(LogClient.class)
-                                    .newInstance(app.getClient());
+                            return clazz.getConstructor(LogClient.class, OlogQueryManager.class, SearchParameters.class)
+                                    .newInstance(app.getClient(), ologQueryManager, searchParameters);
                         }
                         else if(clazz.isAssignableFrom(AdvancedSearchViewController.class)){
-                            return clazz.getConstructor(LogClient.class)
-                                    .newInstance(app.getClient());
+                            return clazz.getConstructor(LogClient.class, SearchParameters.class)
+                                    .newInstance(app.getClient(), searchParameters);
                         }
                     }
                     else
@@ -64,22 +67,17 @@ public class LogEntryCalender implements AppInstance {
             });
             loader.load();
             controller = loader.getController();
-            controller.setQuery(LogbookUIPreferences.default_logbook_query);
             if (this.app.getClient() != null) {
                 controller.setClient(this.app.getClient());
             } else {
                 log.log(Level.SEVERE, "Failed to acquire a valid logbook client");
             }
-
             tab = new DockItem(this, loader.getRoot());
             DockPane.getActiveDockPane().addTab(tab);
         } catch (IOException e)
         {
             Logger.getLogger(getClass().getName()).log(Level.WARNING, "Cannot load UI", e);
         }
-        tab.setOnClosed(event -> {
-            // dispose();
-        });
     }
 
     @Override
@@ -88,20 +86,8 @@ public class LogEntryCalender implements AppInstance {
     }
 
     @Override
-    public void restore(final Memento memento)
-    {
-        if (memento.getString(LOG_CALENDER_QUERY).isPresent()) {
-            controller.setQuery(memento.getString(LOG_CALENDER_QUERY).get());
-        } else {
-            controller.setQuery(LogbookUIPreferences.default_logbook_query);
-        }
-    }
-
-    @Override
     public void save(final Memento memento)
     {
-        if(!controller.getQuery().isBlank()) {
-            memento.setString(LOG_CALENDER_QUERY, controller.getQuery().trim());
-        }
+        OlogQueryManager.getInstance().save();
     }
 }

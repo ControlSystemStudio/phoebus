@@ -9,7 +9,7 @@
 <SplitPane fx:id="topLevelNode" dividerPositions="0.3" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="1200.0" style="-fx-border-color: #d8d8d8;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryTableViewController">
     <items>
         <fx:include fx:id="advancedSearchView" source="AdvancedSearchView.fxml" />
-        <SplitPane dividerPositions="0.33" prefHeight="160.0" prefWidth="200.0">
+        <SplitPane fx:id="splitPane" dividerPositions="0.33" prefHeight="160.0" prefWidth="200.0">
             <items>
                 <AnchorPane minHeight="0.0" minWidth="250.0" prefWidth="600.0">
                     <children>
@@ -44,11 +44,11 @@
                                         <Insets right="3.0" />
                                     </GridPane.margin>
                                 </Label>
-                                <TextField fx:id="query" onAction="#search" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.vgrow="NEVER">
+                                <ComboBox fx:id="query" editable="true" maxWidth="1.7976931348623157E308"  GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.vgrow="NEVER">
                                     <GridPane.margin>
                                         <Insets bottom="10.0" top="10.0" />
                                     </GridPane.margin>
-                                </TextField>
+                                </ComboBox>
                                 <Label text="%SearchButtonText" GridPane.columnIndex="3">
                                     <GridPane.margin>
                                         <Insets left="5.0" />
@@ -94,48 +94,25 @@
                                                     <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                                                 </columnResizePolicy>
                                             </TableView>
-                                            <HBox>
+                                            <HBox maxWidth="1.7976931348623157E308">
                                                 <Label text="%HitsPerPage">
                                                     <HBox.margin>
-                                                        <Insets left="3.0" right="5.0" top="12.0" />
+                                                        <Insets left="3.0" right="5.0" top="7.0" />
                                                     </HBox.margin>
                                                 </Label>
 
                                                 <TextField fx:id="pageSizeTextField" onAction="#search" prefColumnCount="3" promptText="30">
                                                     <HBox.margin>
-                                                        <Insets top="8.0" />
+                                                        <Insets top="4.0" />
                                                     </HBox.margin>
                                                 </TextField>
-                                                <Label maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
-                                                <HBox fx:id="paginationControls">
-                                                    <Button fx:id="firstPage" onAction="#goToFirstPage">
-                                                        <graphic>
-                                                            <ImageView fx:id="firstPageImageView" fitHeight="12.0" fitWidth="12.0">
-                                                                <!-- Image not set here as this crashes the SceneBuilder -->
-                                                            </ImageView>
-                                                        </graphic>
-                                                        <HBox.margin>
-                                                            <Insets top="3.0" />
-                                                        </HBox.margin>
-                                                        <tooltip>
-                                                            <Tooltip text="%GoToFirstPage" />
-                                                        </tooltip>
-                                                    </Button>
-                                                    <Pagination fx:id="pagination" />
-                                                    <Button fx:id="lastPage" onAction="#goToLastPage">
-                                                        <graphic>
-                                                            <ImageView fx:id="lastPageImageView" fitHeight="12.0" fitWidth="12.0">
-                                                                <!-- Image not set here as this crashes the SceneBuilder -->
-                                                            </ImageView>
-                                                        </graphic>
-                                                        <HBox.margin>
-                                                            <Insets top="3.0" />
-                                                        </HBox.margin>
-                                                        <tooltip>
-                                                            <Tooltip text="%GoToLastPage" />
-                                                        </tooltip>
-                                                    </Button>
-                                                </HBox>
+
+                                                <Pagination fx:id="pagination" HBox.hgrow="ALWAYS">
+                                                    <padding>
+                                                        <Insets bottom="2.0" />
+                                                    </padding>
+                                                </Pagination>
+
                                                 <padding>
                                                     <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
                                                 </padding>

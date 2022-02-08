@@ -20,14 +20,19 @@ for the complete list::
      
      Command-line arguments:
      
-     -help                           -  This text
-     -settings settings.xml          -  Import settings from file, either exported XML or property file format
-     -export_settings settings.xml   -  Export settings to file
-     -list                           -  List available application features
-     -app probe                      -  Launch an application with input arguments
-     -resource  /tmp/example.plt     -  Open an application configuration file with the default application
-     -server port                    -  Create instance server on given TCP port
-     (..more options, check your actual copy..)
+        -help                                   -  This text
+        -splash                                 -  Show splash screen
+        -nosplash                               -  Suppress the splash screen
+        -settings settings.xml                  -  Import settings from file, either exported XML or property file format
+        -export_settings settings.xml           -  Export settings to file
+        -logging logging.properties             -  Load log settings
+        -list                                   -  List available application features
+        -server port                            -  Create instance server on given TCP port
+        -app probe                              -  Launch an application with input arguments
+        -resource  /tmp/example.plt             -  Open an application configuration file with the default application
+        -layout /path/to/Example.memento        -  Start with the specified saved layout instead of the default 'memento'
+        -clean                                  -  Start with a blank workspace. Overrides -app, -resource and -layout.
+        -main org.package.Main                  -  Run alternate application Main
 
 
 Command Line Parameters for Applications
@@ -80,6 +85,20 @@ Note that all these examples use the internal name of the application feature,
 for example "pv_table", and not the name that is displayed the user interface,
 like "PV Table".
 Use the ``-list`` option to see the names of all available application features.
+
+Start with a specific layout::
+
+    phoebus.sh -layout /path/to/mylayout.memento
+
+Restores the layout saved in a (non-default) memento file. User may create such a file from menu option
+*Window -> Save Layout As...*
+
+Start with clean workspace::
+
+    phoebus.sh -clean
+
+This will suppress restore of the layout saved in the default memento file in order to start the application with an
+empty workspace. If specified, ``-resource``, ``-app`` and ``-layout`` will be ignored.
 
 Server Mode
 -----------

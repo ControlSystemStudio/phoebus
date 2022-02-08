@@ -96,6 +96,14 @@ The menu item Applications -> Utility -> Log Entry Table will launch an applicat
 search and view log entries:
 
 .. image:: images/LogEntryTable.png
+
+User may choose to hide some details of each log entry in the list in order to fit more items in the view and to reduce the need
+for scrolling. This can be done using the keyboard shortcut ``CTRL+SHIFT+D``, or by selecting the
+``Show/Hide Details`` item from the context menu invoked through a right click in the table view. The choice
+to show or hide details is persisted between restarts of the application.
+
+.. image:: images/ContextMenuLogEntryTable.png
+
 In the search field the user may specify criteria when searching for log entries. These criteria are based on 
 the elements of a log entry as follows:
 
@@ -125,7 +133,35 @@ the elements of a log entry as follows:
 
     - ``properties=property name 1|property name 2`` find log entries containing a property named "property name 1" **or** a property named "property name 2". The pipe character is used to separate search expressions.
 
+Query history
+^^^^^^^^^^^^^
+
+Search queries entered by the user are put onto a first-in-first-out query history list. A button next to the search
+field will expand a drop-down box to show previously used queries, see screen shot below. Queries are ordered by last-used-time
+where the most recent query is on top. When new queries are entered by user, older queries may be
+flushed out as the maximum size of the list is limited (15 by default, configurable between 5 and 30). The "default"
+search query - rendered in bold font in the list - as defined in the preferences is however never flushed.
+
+When user has selected a query from the list, a search button (up or down arrow) must be clicked in order to dispatch the search request.
+Pressing ENTER when editing a query in the search field will also trigger a search, and the query is put in
+the history list.
+
+.. image:: images/QueryHistory.png
+
+Pagination
+^^^^^^^^^^
+
+Each search request will retrieve a limited number of matching log entries to render in the list view. This limit
+- aka "page size" - defaults to 30, but may be changed by a property value override. In addition, user may override the
+default page size in the UI. Page size must be between 1 and 999. If the search results in a hit count larger
+than the page size, the UI will render page navigation buttons below the list of log entries. The current page and
+total number of pages is also shown, see screen shot.
+The navigation buttons are not rendered if hit count less or equal to the page size.
+
+.. image:: images/pagination.png
+
 .. _preferences:
+
 
 Attachment Preview
 ------------------
@@ -140,6 +176,36 @@ If user double-clicks on a Data Browser attachment (.plt file), the application 
 
 Preview of non-image files is not offered in the application. However, external viewers may be configured for
 arbitrary file extensions, see preference_settings_ (framework.workbench) for more information.
+
+Log Entry Grouping
+------------------
+
+The preference setting ``log_entry_groups_support`` - if set to ``true`` - will enable the "log entry grouping"
+feature. With this users will be able to reply to individual log entries implicitly creating a group of log entries. To use this
+feature user can choose to:
+
+- Press the Reply button shown in the log entry view:
+
+.. image:: images/ReplyToLogEntry.png
+
+- Select "Group Selected Entries" from the context menu shown on right click in the search result table view. This menu item is enabled when at least two items are selected:
+
+.. image:: images/ContextMenuLogEntryTable.png
+
+Log entries that are contained in a log entry group are rendered with a grey background in the search result table view.
+In the log entry view, the "Show/Hide Group" button (see screen shot above) can be used to show all log entries of a group sequentially,
+ordered on created date with oldest log entry on top. In this merged view attachments and properties are not shown.
+Clicking on a header in the merged view will show that log entry in full.
+
+Limitations
+^^^^^^^^^^^
+
+Please consider the following limitations of the log entry group feature:
+
+- A log entry group should not be regarded as a discussion thread.
+- There is no support for "groups of groups", or "sub-groups".
+- There is no parent-child relation between log entries in a group, i.e. there is no internal structure of the log entries in a group.
+- A log entry may be included in only one log entry group. It is hence not possible to create a new group of log entries if these are already contained in different groups.
 
 Preferences
 -----------
@@ -156,9 +222,9 @@ Preferences related to the electronic logbook are the following:
 - ``org.phoebus.logbook.ui/save_credentials``. Indicates if user credentials should be cached. If ``true``, the user will
   have to specify credentials only for the first new log entry after launch of CS Studio. The side effect of credentials caching is that all entries will be created with the same user (owner) identity.
 
+- ``search_result_page_size``. The maximum number of hits per page to fetch and render in a search. User may override in the UI. Value must be 1 - 999, default is 30.
 
-
-
+- ``log_entry_groups_support``. If true, user may reply to log entries and create a log entry group from a selection of existing log entries.
 
 
 

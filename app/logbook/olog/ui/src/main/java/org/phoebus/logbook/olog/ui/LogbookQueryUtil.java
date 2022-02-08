@@ -8,7 +8,6 @@ import java.time.Instant;
 import java.time.temporal.TemporalAmount;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -19,12 +18,12 @@ public class LogbookQueryUtil {
 
     // Ordered search keys
     public static enum Keys {
-        SEARCH("desc"),
+        DESC("desc"), // The body of a log entry
         LOGBOOKS("logbooks"),
         TAGS("tags"),
         STARTTIME("start"),
         ENDTIME("end"),
-        AUTHOR("owner"),
+        OWNER("owner"), // The author of a log entry
         TITLE("title"),
         LEVEL("level"),
         PROPERTIES("properties");
@@ -35,12 +34,12 @@ public class LogbookQueryUtil {
         private static Map<String, Keys> lookupTable = new HashMap<String, Keys>();
 
         static {
-            lookupTable.put("desc", Keys.SEARCH);
+            lookupTable.put("desc", Keys.DESC);
             lookupTable.put("logbooks", Keys.LOGBOOKS);
             lookupTable.put("tags", Keys.TAGS);
             lookupTable.put("start", Keys.STARTTIME);
             lookupTable.put("end", Keys.ENDTIME);
-            lookupTable.put("owner", Keys.AUTHOR);
+            lookupTable.put("owner", Keys.OWNER);
             lookupTable.put("title", Keys.TITLE);
             lookupTable.put("level", Keys.LEVEL);
             lookupTable.put("properties", Keys.PROPERTIES);
@@ -57,13 +56,6 @@ public class LogbookQueryUtil {
         public static Keys findKey(String keyName) {
             return lookupTable.get(keyName);
         }
-
-        /**
-         * These keys are defined as "hidden", i.e. if specified by user in the search field, they
-         * will be removed from the query string as presented to user. They are however used
-         * "internally" to define behavior, i.e. for sort order and pagination.
-         */
-        public static List<String> HIDDEN_KEYS = Arrays.asList("from", "size", "sort", "limit");
 
     }
 

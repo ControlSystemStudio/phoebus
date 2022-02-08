@@ -8,7 +8,7 @@
 		<version>4.6.6-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>app-save-and-restore-model</artifactId>
+	<artifactId>save-and-restore-model</artifactId>
 
 	<dependencies>
 		<dependency>

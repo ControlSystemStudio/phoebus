@@ -85,7 +85,7 @@ The UI includes the following applications:
  * Alarm Tree: Primarily used to configure the alarm system,
    i.e. to add PVs and define their alarm details.
 
-   The alarm configuration is hierachical,
+   The alarm configuration is hierarchical,
    starting from for example a top-level `Accelerator`
    configuration to components like `Vacuum`, `RF`,
    with alarm trigger PVs listed below those components.
@@ -94,7 +94,7 @@ The UI includes the following applications:
    `/Accelerator/Vacuum` will see all the guidance and displays
    configured on `Vacuum`.
 
-   The alarm system does not enforce how the hierachical configuration
+   The alarm system does not enforce how the hierarchical configuration
    is used. The 'components' could be subsystems like `Vacuum`, `RF`,
    or they could refer to areas of the machine like `Front End`,
    `Ring`, `Beam Line`. There can be several levels of sub-components,
@@ -124,11 +124,11 @@ The UI includes the following applications:
    Optional component for voice annunciation of new alarms.
 
 Each of the above alarm apps can be launched from the menu.
-They can also be opened from the cmd line as follows::
+They can also be opened from the command line as follows::
 
-    -resource alarm://localhost/Accelerator?app=alarm_tree
-    -resource alarm://localhost/Accelerator?app=alarm_table
-    -resource alarm://localhost/Accelerator?app=alarm_area
+    -resource 'alarm://localhost/Accelerator?app=alarm_tree'
+    -resource 'alarm://localhost/Accelerator?app=alarm_table'
+    -resource 'alarm://localhost/Accelerator?app=alarm_area'
 
 
 Alarm Configuration Options
@@ -177,11 +177,11 @@ Behavior
    
  * Alarm Count:
    Used in combination with the alarm delay.
-   If the trigger PVs exhibits a not-OK alarm severity more more than 'count' times
+   If the trigger PVs exhibits a not-OK alarm severity more than 'count' times
    within the alarm delay, recognize the alarm.
 
    For example, an alarm delay of 10 with an alarm count of 5 means:
-   Recognise an alarm if the PV enters a not-OK severity for more than 10 seconds,
+   Recognize an alarm if the PV enters a not-OK severity for more than 10 seconds,
    or more often than 5 times within 10 seconds.
 
    When the count is zero, only the alarm delay is used.
@@ -198,7 +198,7 @@ When the alarm delay is larger than zero, it starts a timer to check the PV afte
 For example, assume an alarm delay of 10 seconds, and the PV enters a MINOR alarm.
 If the PV still carries a not-OK severity after 10 seconds,
 the alarm state becomes MINOR or whatever the highest alarm severity of the PV was
-in the 10 seconds since first entering a not-OK severty.
+in the 10 seconds since first entering a not-OK severity.
 On the other hand, if the PV recovers to OK, there will be no alarm after the 10 second delay.
 
 As a second example, consider a PV that assumes MINOR severity, then recovers to OK and re-enters MINOR severity a couple of times.
@@ -224,7 +224,7 @@ and is not immediately obvious from the received alarm severity.
 For example, an analog record might enter a MINOR alarm state when its value exceeds the 'HIGH' value.
 Why a certain HIGH threshold was chosen, what the user should do about it, and how the threshold could
 be changed, however, cannot be automatically determined.
-When adding an alarm trigger PV to the alarm system, it is thererfore important to also configure
+When adding an alarm trigger PV to the alarm system, it is therefore important to also configure
 guidance and display links which allow the user to figure out:
 
  * What does this alarm mean? What should I do about it?

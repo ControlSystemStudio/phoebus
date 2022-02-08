@@ -1,20 +1,20 @@
 package org.phoebus.logbook.olog.ui;
 
-import javafx.css.PseudoClass;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import org.commonmark.Extension;
 import org.commonmark.ext.gfm.tables.TablesExtension;
 import org.commonmark.ext.image.attributes.ImageAttributesExtension;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.text.TextContentRenderer;
-import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
-import org.phoebus.olog.es.api.model.LogGroupProperty;
+import org.phoebus.logbook.olog.ui.LogEntryTableViewController.TableViewListItem;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.util.Arrays;
@@ -34,10 +34,10 @@ public class LogEntryCellController {
     private Parser parser;
 
     // Model
-    LogEntry logEntry;
+    TableViewListItem logEntry;
 
     @FXML
-    GridPane root;
+    VBox root;
 
     @FXML
     Label time;
@@ -67,6 +67,11 @@ public class LogEntryCellController {
     @FXML
     ImageView conversationIcon;
 
+    @FXML
+    private Pane detailsPane;
+
+    private SimpleBooleanProperty expanded = new SimpleBooleanProperty(true);
+
     public LogEntryCellController() {
 
         List<Extension> extensions = Arrays.asList(TablesExtension.create(), ImageAttributesExtension.create());
@@ -86,41 +91,43 @@ public class LogEntryCellController {
     public void refresh() {
         if (logEntry != null) {
 
-            time.setText(SECONDS_FORMAT.format(logEntry.getCreatedDate()));
-            owner.setText(logEntry.getOwner());
-            title.setText(logEntry.getTitle());
+            time.setText(SECONDS_FORMAT.format(logEntry.getLogEntry().getCreatedDate()));
+            owner.setText(logEntry.getLogEntry().getOwner());
+            title.setText(logEntry.getLogEntry().getTitle());
             title.getStyleClass().add("title");
 
-            if (!logEntry.getLogbooks().isEmpty()) {
+            if (!logEntry.getLogEntry().getLogbooks().isEmpty()) {
                 logbooks.setWrapText(false);
-                logbooks.setText(logEntry.getLogbooks().stream().map(Logbook::getName).collect(Collectors.joining(",")));
+                logbooks.setText(logEntry.getLogEntry().getLogbooks().stream().map(Logbook::getName).collect(Collectors.joining(",")));
             }
-            if (!logEntry.getTags().isEmpty()) {
-                tags.setText(logEntry.getTags().stream().map(Tag::getName).collect(Collectors.joining(",")));
+            if (!logEntry.getLogEntry().getTags().isEmpty()) {
+                tags.setText(logEntry.getLogEntry().getTags().stream().map(Tag::getName).collect(Collectors.joining(",")));
             } else {
                 tags.setText(null);
             }
-            if (!logEntry.getAttachments().isEmpty()) {
+            if (!logEntry.getLogEntry().getAttachments().isEmpty()) {
                 attachmentIcon.setImage(attachment);
             } else {
                 attachmentIcon.setImage(null);
             }
             description.setWrapText(false);
-            if (logEntry.getSource() != null) {
-                description.setText(toText(logEntry.getSource()));
-            } else if (logEntry.getDescription() != null) {
-                description.setText(toText(logEntry.getDescription()));
+            if (logEntry.getLogEntry().getSource() != null) {
+                description.setText(toText(logEntry.getLogEntry().getSource()));
+            } else if (logEntry.getLogEntry().getDescription() != null) {
+                description.setText(toText(logEntry.getLogEntry().getDescription()));
             } else {
                 description.setText(null);
             }
 
-            logEntryId.setText(logEntry.getId() != null ? logEntry.getId().toString() : "");
-            level.setText(logEntry.getLevel());
+            logEntryId.setText(logEntry.getLogEntry().getId() != null ? logEntry.getLogEntry().getId().toString() : "");
+            level.setText(logEntry.getLogEntry().getLevel());
         }
     }
 
-    public void setLogEntry(LogEntry logEntry) {
+    public void setLogEntry(TableViewListItem logEntry) {
         this.logEntry = logEntry;
+        detailsPane.managedProperty().bind(logEntry.isShowDetails());
+        detailsPane.visibleProperty().bind(logEntry.isShowDetails());
         refresh();
     }
 
