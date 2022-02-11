@@ -492,7 +492,7 @@ public class AlarmLogTableController {
     @FXML
     public void createContextMenu() {
         final ContextMenu contextMenu = new ContextMenu();
-        MenuItem configurationInfo = new MenuItem("Configuration Info");
+        MenuItem configurationInfo = new MenuItem(Messages.ConfigurationInfo);
         configurationInfo.setOnAction( actionEvent -> {
             List<String> configs = tableView.getSelectionModel().getSelectedItems()
                     .stream().map(e -> {
@@ -510,10 +510,11 @@ public class AlarmLogTableController {
                     configs.get(0),
                     result -> Platform.runLater(() -> {
                         Alert alarmInfo = new Alert(Alert.AlertType.INFORMATION);
-                        alarmInfo.setTitle("Alarm information");
+                        alarmInfo.setTitle(Messages.AlarmInformation);
                         alarmInfo.setHeaderText(null);
                         alarmInfo.setResizable(true);
-                        alarmInfo.setContentText(result.get(0));
+                        // Corner case: search query may return zero results (or null), so dialog message should show that.
+                        alarmInfo.setContentText((result == null || result.isEmpty()) ? Messages.ConfigurationInfoNotFound : result.get(0));
                         alarmInfo.show();
                     }),
                     (url, ex) -> ExceptionDetailsErrorDialog.openError("Alarm Log Info Error", ex.getMessage(), ex)
