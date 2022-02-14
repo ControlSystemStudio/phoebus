@@ -36,6 +36,7 @@ public class Messages
                          SearchAvailableItems,
                          SelectFile,
                          SelectFolder,
+                         ShowHideDetails,
                          Tags,
                          TagsTitle,
                          TagsTooltip;

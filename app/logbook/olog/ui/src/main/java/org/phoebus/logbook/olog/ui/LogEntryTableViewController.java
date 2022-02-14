@@ -26,12 +26,15 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -51,13 +54,13 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * A controller for a log entry table with a collapsible advance search section.
@@ -77,9 +80,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     // elements related to the table view of the log entries
     @FXML
-    private TableView<LogEntry> tableView;
+    private TableView<TableViewListItem> tableView;
     @FXML
-    private TableColumn<LogEntry, LogEntry> descriptionCol;
+    private TableColumn<TableViewListItem, TableViewListItem> descriptionCol;
     @FXML
     @SuppressWarnings({"UnusedDeclaration"})
     private LogEntryDisplayController logEntryDisplayController;
@@ -108,6 +111,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
      */
     private final ObservableList<LogEntry> selectedLogEntries = FXCollections.observableArrayList();
     private final Logger logger = Logger.getLogger(LogEntryTableViewController.class.getName());
+
+    private SimpleBooleanProperty showDetails = new SimpleBooleanProperty();
 
     /**
      * Constructor.
@@ -148,22 +153,43 @@ public class LogEntryTableViewController extends LogbookSearchController {
             query.getEditor().setText(newValue);
         });
 
+        tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
         MenuItem groupSelectedEntries = new MenuItem(Messages.GroupSelectedEntries);
         groupSelectedEntries.setOnAction(e -> {
             createLogEntryGroup();
         });
+
         groupSelectedEntries.disableProperty()
                 .bind(Bindings.createBooleanBinding(() ->
                         selectedLogEntries.size() < 2, selectedLogEntries));
         ContextMenu contextMenu = new ContextMenu();
-        contextMenu.getItems().add(groupSelectedEntries);
+
+        MenuItem menuItemShowHideAll = new MenuItem(Messages.ShowHideDetails);
+        menuItemShowHideAll.acceleratorProperty().setValue(new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
+        menuItemShowHideAll.setOnAction(ae -> {
+            showDetails.set(!showDetails.get());
+            tableView.getItems().forEach(item -> item.setShowDetails(!item.isShowDetails().get()));
+        });
+
+        contextMenu.getItems().addAll(groupSelectedEntries, menuItemShowHideAll);
+
+        tableView.setContextMenu(contextMenu);
 
         // The display table.
         tableView.getColumns().clear();
         tableView.setEditable(false);
-        tableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> logEntryDisplayController.setLogEntry(newValue));
+        tableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if(newValue != null && tableView.getSelectionModel().getSelectedItems().size() == 1){
+                logEntryDisplayController.setLogEntry(newValue.getLogEntry());
+            }
+            List<LogEntry> logEntries = tableView.getSelectionModel().getSelectedItems()
+                    .stream().map(TableViewListItem::getLogEntry).collect(Collectors.toList());
+            selectedLogEntries.setAll(logEntries);
+        });
 
         tableView.getStylesheets().add(this.getClass().getResource("/search_result_view.css").toExternalForm());
+        pagination.getStylesheets().add(this.getClass().getResource("/pagination.css").toExternalForm());
 
         descriptionCol = new TableColumn<>();
         descriptionCol.setMaxWidth(1f * Integer.MAX_VALUE * 100);
@@ -186,14 +212,15 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 }
 
                 @Override
-                public void updateItem(LogEntry logEntry, boolean empty) {
+                public void updateItem(TableViewListItem logEntry, boolean empty) {
                     super.updateItem(logEntry, empty);
                     if (empty) {
                         setGraphic(null);
+                        pseudoClassStateChanged(childlessTopLevel, false);
                     } else {
                         controller.setLogEntry(logEntry);
                         setGraphic(graphic);
-                        boolean b = LogGroupProperty.getLogGroupProperty(logEntry).isPresent();
+                        boolean b = LogGroupProperty.getLogGroupProperty(logEntry.getLogEntry()).isPresent();
                         pseudoClassStateChanged(childlessTopLevel, b);
                     }
                 }
@@ -248,7 +275,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
         // Query set -> search is triggered!
         query.getSelectionModel().select(ologQueries.get(0));
         searchParameters.setQuery(ologQueries.get(0).getQuery());
-       
+
+        search();
+
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored
@@ -354,8 +383,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     private void refresh() {
         if (this.searchResult != null) {
-            ObservableList<LogEntry> logsList = FXCollections.observableArrayList();
-            logsList.addAll(new ArrayList<>(searchResult.getLogs()));
+            ObservableList<TableViewListItem> logsList = FXCollections.observableArrayList();
+            logsList.addAll(searchResult.getLogs().stream().map(le -> new TableViewListItem(le, showDetails.get())).collect(Collectors.toList()));
             tableView.setItems(logsList);
             if (logsList.size() > 0) {
                 tableView.getSelectionModel().select(logsList.get(0));
@@ -453,5 +482,39 @@ public class LogEntryTableViewController extends LogbookSearchController {
                     }
                 });
 
+    }
+
+    /**
+     * Wrapper class for a {@link LogEntry} and a flag indicating whether details of the
+     * log entry meta data should be rendered in the list view.
+     */
+    public static class TableViewListItem {
+        private SimpleBooleanProperty showDetails = new SimpleBooleanProperty(true);
+        private LogEntry logEntry;
+
+        public TableViewListItem(LogEntry logEntry, boolean showDetails) {
+            this.logEntry = logEntry;
+            this.showDetails.set(showDetails);
+        }
+
+        public SimpleBooleanProperty isShowDetails() {
+            return showDetails;
+        }
+
+        public LogEntry getLogEntry() {
+            return logEntry;
+        }
+
+        public void setShowDetails(boolean show) {
+            this.showDetails.set(show);
+        }
+    }
+
+    public void setShowDetails(boolean show){
+        showDetails.set(show);
+    }
+
+    public boolean getShowDetails(){
+        return showDetails.get();
     }
 }

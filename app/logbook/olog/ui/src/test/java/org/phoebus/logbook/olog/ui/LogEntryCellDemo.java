@@ -11,6 +11,7 @@ import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookImpl;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.TagImpl;
+import org.phoebus.logbook.olog.ui.LogEntryTableViewController.TableViewListItem;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
 import java.io.File;
@@ -61,7 +62,7 @@ public class LogEntryCellDemo extends ApplicationWrapper {
                     .owner("nsls2-user")
                     .build();
             runLater(() -> {
-                controller.setLogEntry(log);
+                controller.setLogEntry(new TableViewListItem(log, true));
             });
         }, 2, TimeUnit.SECONDS);
 
@@ -84,7 +85,7 @@ public class LogEntryCellDemo extends ApplicationWrapper {
                     .build();
 
             runLater(() -> {
-                controller.setLogEntry(log);
+                controller.setLogEntry(new TableViewListItem(log, true));
             });
         }, 2, TimeUnit.SECONDS);
 
@@ -125,7 +126,7 @@ public class LogEntryCellDemo extends ApplicationWrapper {
                         e.printStackTrace();
                     }
                 });
-                controller.setLogEntry(lb.build());
+                controller.setLogEntry(new TableViewListItem(lb.build(), true));
             });
 
         }, 2, TimeUnit.SECONDS);

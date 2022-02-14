@@ -55,8 +55,11 @@ import java.util.stream.Collectors;
  */
 public class OlogClient implements LogClient {
     private static final Logger logger = Logger.getLogger(OlogClient.class.getName());
-
     private final WebResource service;
+
+    private static final String OLOG_CLIENT_INFO_HEADER = "X-Olog-Client-Info";
+    private static final String CLIENT_INFO =
+            "CS Studio " + org.phoebus.ui.application.Messages.AppVersion + " on " + System.getProperty("os.name");
 
     /**
      * Builder Class to help create a olog client.
@@ -206,6 +209,7 @@ public class OlogClient implements LogClient {
             clientResponse = service.path("logs")
                     .queryParams(queryParams)
                     .type(MediaType.APPLICATION_JSON)
+                    .header(OLOG_CLIENT_INFO_HEADER, CLIENT_INFO)
                     .accept(MediaType.APPLICATION_XML)
                     .accept(MediaType.APPLICATION_JSON)
                     .put(ClientResponse.class, OlogObjectMappers.logEntrySerializer.writeValueAsString(log));
@@ -303,6 +307,7 @@ public class OlogClient implements LogClient {
             // Convert List<XmlLog> into List<LogEntry>
             final OlogSearchResult ologSearchResult = OlogObjectMappers.logEntryDeserializer.readValue(
                     service.path("logs/search").queryParams(searchParams)
+                            .header(OLOG_CLIENT_INFO_HEADER, CLIENT_INFO)
                             .accept(MediaType.APPLICATION_JSON)
                             .get(String.class),
                     OlogSearchResult.class);

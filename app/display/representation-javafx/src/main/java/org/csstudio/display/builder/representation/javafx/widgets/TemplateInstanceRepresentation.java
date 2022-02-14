@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2021-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -332,6 +332,11 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
             // which would cause the toolkit to create a new 'phasor' and result
             // in timeouts of the editor awaiting complete representation
             new_model.setUserData(DisplayModel.USER_DATA_EMBEDDING_WIDGET, model_widget);
+
+            // Pass display file info down to embedded model for resource lookup
+            final DisplayModel parent_model = model_widget.getDisplayModel();
+            final String input_file = parent_model.getUserData(DisplayModel.USER_DATA_INPUT_FILE);
+            new_model.setUserData(DisplayModel.USER_DATA_INPUT_FILE, input_file);
 
             if (template.getChildren().size() > 0)
             {

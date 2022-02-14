@@ -18,6 +18,7 @@
 
 package org.phoebus.logbook.olog.ui;
 
+import com.sun.jersey.core.util.MultivaluedMapImpl;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Worker;
@@ -27,8 +28,10 @@ import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.SearchResult;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -148,7 +151,8 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
         try {
             Map<String, String> mMap = new HashMap<>();
             mMap.put("properties", LogGroupProperty.NAME + ".id." + id);
-            logEntries.setAll(logClient.findLogs(mMap));
+            SearchResult searchResult = logClient.search(mMap);
+            logEntries.setAll(searchResult.getLogs());
             logEntries.sort(Comparator.comparing(LogEntry::getCreatedDate));
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Unable to locate log entry items using log entry group id " + id, e);
