@@ -19,13 +19,11 @@
 package org.phoebus.applications.saveandrestore.script;
 
 import org.epics.vtype.VType;
-import org.phoebus.applications.saveandrestore.Utilities;
+import org.phoebus.applications.saveandrestore.common.Utilities;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.applications.saveandrestore.service.RestoreReport;
-import org.phoebus.applications.saveandrestore.service.SaveAndRestoreClient;
-import org.phoebus.applications.saveandrestore.service.SaveAndRestoreClientException;
-import org.phoebus.applications.saveandrestore.service.impl.SaveAndRestoreJerseyClient;
+import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
+import org.phoebus.applications.saveandrestore.impl.SaveAndRestoreJerseyClient;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 
@@ -50,7 +48,7 @@ public class SaveAndRestoreScriptUtil {
     /**
      * Useful in case a mock client is needed.
      *
-     * @param client
+     * @param client The client used to interact with the remote service
      */
     public static void setSaveAndRestoreClient(SaveAndRestoreClient client) {
         saveAndRestoreClient = client;
@@ -86,7 +84,7 @@ public class SaveAndRestoreScriptUtil {
      * operation on the next PV is invoked.
      * </p>
      *
-     * @param snapshotId     The unique id of a snapshot, which can be copied to the clipboard in the save&restore UI.
+     * @param snapshotId     The unique id of a snapshot, which can be copied to the clipboard in the save-and-restore UI.
      * @param connectTimeout The timeout in ms when connecting to the PVs. If not all PVs are connected after
      *                       <code>connectTimeout</code> ms, an exception is thrown.
      * @param writeTimeout   The timeout i ms to wait for a single write operation to complete.
@@ -96,7 +94,7 @@ public class SaveAndRestoreScriptUtil {
      * @return A {@link RestoreReport} holding data that can be used to analyze the outcome of the process.
      * @throws Exception In either of these following cases:
      *                   <ul>
-     *                       <li>The remote save&restore service is unavailable.</li>
+     *                       <li>The remote save-and-restore service is unavailable.</li>
      *                       <li>No snapshot identified by the snapshot id exists.</li>
      *                       <li>The snapshot is not associated with any persisted PV values. This is a corner case...</li>
      *                       <li>If any of the PVs fails to connect.</li>

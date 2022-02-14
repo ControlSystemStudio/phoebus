@@ -56,7 +56,7 @@ public class JsonSerializationTest {
 
 		Alarm alarm = Alarm.of(AlarmSeverity.NONE, AlarmStatus.NONE, "name");
 		Time time = Time.of(Instant.ofEpochSecond(1000L, 7000L));
-		vDouble = VDouble.of(new Double(7.7), alarm, time, Display.none());
+		vDouble = VDouble.of(Double.valueOf(7.7), alarm, time, Display.none());
 
 		vDoubleArray = VDoubleArray.of(CollectionNumbers.toListDouble(1.1, 7.7), alarm, time, Display.none());
 

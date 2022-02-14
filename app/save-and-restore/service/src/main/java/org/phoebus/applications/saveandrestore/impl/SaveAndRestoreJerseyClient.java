@@ -16,7 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.applications.saveandrestore.service.impl;
+package org.phoebus.applications.saveandrestore.impl;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
@@ -25,20 +25,18 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import org.epics.vtype.gson.GsonMessageBodyHandler;
-import org.phoebus.applications.saveandrestore.Messages;
-import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
+import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
+import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.UpdateConfigHolder;
-import org.phoebus.applications.saveandrestore.service.SaveAndRestoreClient;
-import org.phoebus.applications.saveandrestore.service.SaveAndRestoreClientException;
+import org.phoebus.applications.saveandrestore.service.Messages;
 import org.phoebus.framework.preferences.PreferencesReader;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -58,7 +56,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
     public SaveAndRestoreJerseyClient() {
 
-        PreferencesReader preferencesReader = new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
+        PreferencesReader preferencesReader = new PreferencesReader(SaveAndRestoreClient.class, "/client_preferences.properties");
         this.jmasarServiceUrl = preferencesReader.get("jmasar.service.url");
 
         httpClientReadTimeout = DEFAULT_READ_TIMEOUT;
@@ -85,7 +83,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
         defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, httpClientConnectTimeout);
         defaultClientConfig.getClasses().add(GsonMessageBodyHandler.class);
         client = Client.create(defaultClientConfig);
-        this.jmasarServiceUrl =     jmasarServiceUrl;
+        this.jmasarServiceUrl = jmasarServiceUrl;
     }
 
     public void setServiceUrl(String serviceUrl) {
@@ -352,7 +350,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    public String getFullPath(String uniqueNodeId){
+    public String getFullPath(String uniqueNodeId) {
         WebResource webResource =
                 client.resource(jmasarServiceUrl + "/path/" + uniqueNodeId);
         ClientResponse response = webResource.get(ClientResponse.class);
@@ -364,7 +362,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    public List<Node> getFromPath(String path){
+    public List<Node> getFromPath(String path) {
         return null;
     }
 }

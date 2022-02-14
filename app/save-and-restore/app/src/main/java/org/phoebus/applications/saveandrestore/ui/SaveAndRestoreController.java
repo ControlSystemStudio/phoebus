@@ -68,7 +68,6 @@ import org.phoebus.applications.saveandrestore.filehandler.csv.CSVImporter;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.service.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotNewTagDialog;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
@@ -232,7 +231,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     /**
      * Loads the data for the tree root as provided (persisted) by the current
-     * {@link SaveAndRestoreClient}.
+     * {@link org.phoebus.applications.saveandrestore.SaveAndRestoreClient}.
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
     @FXML
@@ -653,7 +652,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         renameNode(node.getValue(), existingSiblingNodes);
     }
 
-    protected void copyUniuqeNodeIdToClipboard(){
+    protected void copyUniuqeNodeIdToClipboard() {
         Node node = browserSelectionModel.getSelectedItem().getValue();
         ClipboardContent content = new ClipboardContent();
         content.putString(node.getUniqueId());

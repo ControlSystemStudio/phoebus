@@ -26,11 +26,10 @@ import org.epics.vtype.VInt;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.applications.saveandrestore.service.RestoreReport;
-import org.phoebus.applications.saveandrestore.service.SaveAndRestoreClient;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 
@@ -74,7 +73,7 @@ public class SaveAndRestoreScriptUtilTest {
         Mockito.reset(saveAndRestoreClient);
         when(saveAndRestoreClient.getNode(UNIQUE_ID)).thenReturn(new Node());
         when(saveAndRestoreClient.getSnapshotItems(UNIQUE_ID)).thenThrow(RuntimeException.class);
-        SaveAndRestoreScriptUtil.restore(UNIQUE_ID, 1000, 1000,false, false);
+        SaveAndRestoreScriptUtil.restore(UNIQUE_ID, 1000, 1000, false, false);
     }
 
     @Test(expected = Exception.class)
@@ -104,7 +103,7 @@ public class SaveAndRestoreScriptUtilTest {
         snapshotItem.setConfigPv(configPv);
         snapshotItem.setValue(VInt.of(7, Alarm.none(), Time.now(), Display.none()));
         when(saveAndRestoreClient.getSnapshotItems(UNIQUE_ID)).thenReturn(Arrays.asList(snapshotItem));
-        SaveAndRestoreScriptUtil.restore(UNIQUE_ID, 1000,  1000,false, false);
+        SaveAndRestoreScriptUtil.restore(UNIQUE_ID, 1000, 1000, false, false);
     }
 
     @Test

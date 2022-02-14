@@ -31,7 +31,7 @@ import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeTableView;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.ui.SingleListenerBooleanProperty;
-import org.phoebus.applications.saveandrestore.ui.model.VTypePair;
+import org.phoebus.applications.saveandrestore.common.VTypePair;
 
 import java.time.Instant;
 import java.util.HashMap;

@@ -10,5 +10,7 @@
   <modules>
     <module>model</module>
     <module>app</module>
+    <module>service</module>
+    <module>common</module>
   </modules>
 </project>
