@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,6 +14,7 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.framework.jobs.CommandExecutor;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.application.ApplicationLauncherService;
@@ -40,12 +41,23 @@ class OpenDisplayAction extends MenuItem
         super(display.title, ImageCache.getImageView(AlarmSystem.class, "/icons/related_display.png"));
         setOnAction(event ->
         {
+            // Expand macros
+            final String expanded;
+            try
+            {
+                expanded = MacroHandler.replace(AlarmSystem.macros, display.detail);
+            }
+            catch (Exception ex)
+            {
+                ExceptionDetailsErrorDialog.openError(node, "Display Error", "Cannot expand macros in display '" + display.detail + "'", ex);
+                return;
+            }
             // Open display as resource,
             // which includes http://server.site/path/to/display.bob
             // where the file type is handled by an application
             try
             {
-                final URI resource = ResourceParser.createResourceURI(display.detail);
+                final URI resource = ResourceParser.createResourceURI(expanded);
                 final AppResourceDescriptor app = ApplicationLauncherService.findApplication(resource, false, null);
                 if (app != null)
                 {
@@ -55,22 +67,22 @@ class OpenDisplayAction extends MenuItem
             }
             catch (Exception ex)
             {
-                ExceptionDetailsErrorDialog.openError(node, "Display Error", "Cannot open " + display.detail, ex);
+                ExceptionDetailsErrorDialog.openError(node, "Display Error", "Cannot open " + expanded, ex);
                 return;
             }
 
             // For web pages, fall back to web browser
-            if (display.detail.startsWith("http:") ||
-                display.detail.startsWith("https:"))
+            if (expanded.startsWith("http:") ||
+                expanded.startsWith("https:"))
             {
-                Platform.runLater(() -> PhoebusApplication.INSTANCE.getHostServices().showDocument(display.detail));
+                Platform.runLater(() -> PhoebusApplication.INSTANCE.getHostServices().showDocument(expanded));
                 return;
             }
 
             // Execute external command
             JobManager.schedule(display.title, monitor ->
             {
-                final CommandExecutor executor = new CommandExecutor(display.detail, AlarmSystem.command_directory);
+                final CommandExecutor executor = new CommandExecutor(expanded, AlarmSystem.command_directory);
                 executor.call();
             });
         });
