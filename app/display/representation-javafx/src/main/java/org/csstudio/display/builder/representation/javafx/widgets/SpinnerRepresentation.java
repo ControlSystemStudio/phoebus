@@ -65,6 +65,7 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
     protected final Spinner<String> createJFXNode() throws Exception
     {
         final Spinner<String> spinner = new Spinner<>();
+
         spinner.setValueFactory(createSVF());
         spinner.focusedProperty().addListener((property, oldval, newval)->
         {
@@ -72,6 +73,7 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
                 restore();
             active = false;
         });
+
         spinner.getEditor().setOnKeyPressed((final KeyEvent event) ->
         {
             switch (event.getCode())
@@ -280,6 +282,11 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
                 return "vtypeValue";
             }
 
+            @Override
+            public String toString(){
+                return get().toString();
+            }
+
         };
         public final void setVTypeValue(VType value)
         {
@@ -298,15 +305,21 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         @Override
         public void decrement(int steps)
         {
-            if (!toolkit.isEditMode() && model_widget.propEnabled().getValue())
+            if (!toolkit.isEditMode() && model_widget.propEnabled().getValue()){
+                active = false;
                 writeResultingValue(-steps*getStepIncrement());
+            }
+
         }
 
         @Override
         public void increment(int steps)
         {
-            if (!toolkit.isEditMode() && model_widget.propEnabled().getValue())
+            if (!toolkit.isEditMode() && model_widget.propEnabled().getValue()){
+                active = false;
                 writeResultingValue(steps*getStepIncrement());
+            }
+
         }
 
         private void writeResultingValue(double change)
