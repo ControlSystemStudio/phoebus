@@ -14,6 +14,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.phoebus.applications.alarm.client.IdentificationHelper;
+import org.phoebus.framework.macros.MacroOrSystemProvider;
+import org.phoebus.framework.macros.MacroValueProvider;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.preferences.AnnotatedPreferences;
 import org.phoebus.framework.preferences.Preference;
@@ -135,7 +137,7 @@ public class AlarmSystem
     @Preference public static String[] shelving_options;
 
     /** Macros used in UI display/command/web links */
-    public static Macros macros;
+    public static MacroValueProvider macros;
 
     static
     {
@@ -173,12 +175,12 @@ public class AlarmSystem
 
         try
         {
-            macros = Macros.fromSimpleSpec(prefs.get("macros"));
+            macros = new MacroOrSystemProvider(Macros.fromSimpleSpec(prefs.get("macros")));
         }
         catch (Exception ex)
         {
             logger.log(Level.WARNING, "Invalid macros '" + prefs.get("macros") + "'", ex);
-            macros = new Macros();
+            macros = new MacroOrSystemProvider(new Macros());
         }
 
         IdentificationHelper.initialize();
