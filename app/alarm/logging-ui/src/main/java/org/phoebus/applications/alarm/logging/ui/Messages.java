@@ -22,6 +22,10 @@ import org.phoebus.framework.nls.NLS;
 
 public class Messages {
 
+    public static String AlarmInformation;
+    public static String ConfigurationInfo;
+    public static String ConfigurationInfoNotFound;
+
     static
     {
         // initialize resource bundle
