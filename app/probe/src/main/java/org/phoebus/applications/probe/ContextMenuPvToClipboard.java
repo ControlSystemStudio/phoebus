@@ -53,7 +53,7 @@ public class ContextMenuPvToClipboard implements ContextMenuEntry
 
     protected String createText(final List<ProcessVariable> pvs)
     {
-        return pvs.stream().map(ProcessVariable::getName).collect(Collectors.joining(" "));
+        return pvs.stream().map(ProcessVariable::getName).collect(Collectors.joining(System.lineSeparator()));
     }
 
     @Override
