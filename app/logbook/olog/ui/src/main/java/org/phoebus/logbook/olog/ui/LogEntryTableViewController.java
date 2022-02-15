@@ -52,6 +52,7 @@ import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.PlatformInfo;
 
 import java.io.IOException;
 import java.util.List;
@@ -395,31 +396,22 @@ public class LogEntryTableViewController extends LogbookSearchController {
     }
 
     private void createLogEntryGroup() {
-        try {
-            Property logEntryGroupProperty = LogGroupProperty.getLogEntryGroupProperty(selectedLogEntries);
-            // Update all log entries asynchronously
-            JobManager.schedule("Update log entries", monitor -> {
-                selectedLogEntries.forEach(l -> {
-                    // Update only if log entry does not contains the log group property
-                    if (LogGroupProperty.getLogGroupProperty(l).isEmpty()) {
-                        l.getProperties().add(logEntryGroupProperty);
-                        try {
-                            getClient().updateLogEntry(l);
-                        } catch (LogbookException e) {
-                            logger.log(Level.SEVERE, "Failed to update log entry " + l.getId(), e);
-                        }
-                    }
-                });
-                // When all log entries are updated, run the search to trigger an update of the UI
+        List<Long> logEntryIds =
+                selectedLogEntries.stream().map(LogEntry::getId).collect(Collectors.toList());
+        JobManager.schedule("Group log entries", monitor -> {
+            try {
+                getClient().groupLogEntries(logEntryIds);
                 search();
-            });
-        } catch (LogbookException e) {
-            logger.log(Level.INFO, "Unable to create log entry group from selection");
-            final Alert dialog = new Alert(AlertType.INFORMATION);
-            dialog.setHeaderText("Cannot create log entry group. Selected list of log entries references more than one existing group.");
-            DialogHelper.positionDialog(dialog, tableView /*treeView*/, 0, 0);
-            dialog.showAndWait();
-        }
+            } catch (LogbookException e) {
+                logger.log(Level.INFO, "Unable to create log entry group from selection");
+                Platform.runLater(() -> {
+                    final Alert dialog = new Alert(AlertType.ERROR);
+                    dialog.setHeaderText(Messages.GroupingFailed);
+                    DialogHelper.positionDialog(dialog, tableView, 0, 0);
+                    dialog.showAndWait();
+                });
+            }
+        });
     }
 
     @FXML

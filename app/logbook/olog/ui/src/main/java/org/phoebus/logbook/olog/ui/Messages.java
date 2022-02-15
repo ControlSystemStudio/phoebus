@@ -20,6 +20,7 @@ public class Messages
                          File,
                          FileSave,
                          FileSaveFailed,
+                         GroupingFailed,
                          GroupSelectedEntries,
                          Level,
                          Logbooks,

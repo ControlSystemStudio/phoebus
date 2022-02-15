@@ -477,6 +477,25 @@ public class OlogClient implements LogClient {
         return findLogs(mMap);
     }
 
+    @Override
+    public void groupLogEntries(List<Long> logEntryIds) throws LogbookException{
+        try {
+            ClientResponse clientResponse = service.path("logs/group")
+                    .type(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_XML)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .post(ClientResponse.class, OlogObjectMappers.logEntrySerializer.writeValueAsString(logEntryIds));
+            if (clientResponse.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new LogbookException("Failed to group log entries: user unauthorized");
+            } else if (clientResponse.getStatus() != Status.OK.getStatusCode()) {
+                throw new LogbookException("Failed to group log entries: " + clientResponse.getStatus());
+            }
+        } catch (JsonProcessingException e) {
+            logger.log(Level.SEVERE, "Failed to group log entries", e);
+            throw new LogbookException(e);
+        }
+    }
+
     /**
      * Logs in to the Olog service.
      *
