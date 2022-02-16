@@ -30,14 +30,14 @@ public class InMemoryLogClient implements LogClient{
                                                        TagImpl.of("Example"));
     private final List<String> levels = Arrays.asList("Urgent", "Suggestion", "Info", "Request", "Problem");
 
-    private static final Map<String, String> tracAttributes = new HashMap<>();
-    private static final Property track = PropertyImpl.of("Track",tracAttributes);
-    private static final Map<String, String> experimentAttributes = new HashMap<>();
-    private static final Property experimentProperty = PropertyImpl.of("Experiment", experimentAttributes);
-    private static final Map<String, String> resourceAttributes = new HashMap<>();
-    private static final Property resourceProperty = PropertyImpl.of("Resource", resourceAttributes);
-    static
-    {
+    private static List<Property> inMemoryProperties() {
+        Map<String, String> tracAttributes = new HashMap<>();
+        Property track = PropertyImpl.of("Track",tracAttributes);
+        Map<String, String> experimentAttributes = new HashMap<>();
+        Property experimentProperty = PropertyImpl.of("Experiment", experimentAttributes);
+        Map<String, String> resourceAttributes = new HashMap<>();
+        Property resourceProperty = PropertyImpl.of("Resource", resourceAttributes);
+
         tracAttributes.put("id", "");
         tracAttributes.put("URL", "");
 
@@ -47,8 +47,8 @@ public class InMemoryLogClient implements LogClient{
 
         resourceAttributes.put("name", "");
         resourceAttributes.put("file", "");
+        return Arrays.asList(track, experimentProperty, resourceProperty);
     }
-    private static final List<Property> properties = Arrays.asList(track, experimentProperty, resourceProperty);
 
     public InMemoryLogClient() {
         logEntries = new HashMap<Long, LogEntry>();
@@ -72,7 +72,7 @@ public class InMemoryLogClient implements LogClient{
 
     @Override
     public Collection<Property> listProperties() {
-        return properties;
+        return inMemoryProperties();
     }
 
     @Override
