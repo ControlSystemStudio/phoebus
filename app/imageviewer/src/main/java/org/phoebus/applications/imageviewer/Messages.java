@@ -24,6 +24,8 @@ public class Messages {
 
     public static String ErrorDialogTitle;
     public static String ErrorDialogText;
+    public static String OneHundredPercent;
+    public static String ScaleToFit;
 
     static
     {
