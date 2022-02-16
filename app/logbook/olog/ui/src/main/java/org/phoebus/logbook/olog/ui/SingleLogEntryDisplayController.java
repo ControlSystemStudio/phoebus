@@ -193,10 +193,17 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
                         }
                         return fileAttachment;
                     }).collect(Collectors.toList());
-            // Update the log entry attachments object
-            ((OlogLog)logEntry).setAttachments(attachments);
+//            // TODO: to allow the UI to be used by non Olog log services commenting out the cast to OlogLog,
+//            // the model will not be updated.
+//            // Update the log entry attachments object
+//            ((OlogLog)logEntry).setAttachments(attachments);
+//            // Update UI
+//            Platform.runLater(() -> attachmentsPreviewController
+//                    .setAttachments(FXCollections.observableArrayList(logEntry.getAttachments())));
+
             // Update UI
-            Platform.runLater(() -> attachmentsPreviewController.setAttachments(FXCollections.observableArrayList(logEntry.getAttachments())));
+            Platform.runLater(() -> attachmentsPreviewController
+                    .setAttachments(FXCollections.observableArrayList(attachments)));
         });
     }
 
