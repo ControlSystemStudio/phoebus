@@ -54,6 +54,27 @@ singular tabs.
 
     Window with just one tab, hiding the actual tab to offer more screen space.
 
+Select Tab From Menu
+--------------------
+
+With a large number of open tabs - potentially scattered over multiple application windows -
+it might be difficult to locate a particular display. In the *Window* menu, the
+*Select Tab* option will list all tabs identified by title. The list is
+ordered alphabetically, and the currently selected tab is checked. If tabs have been put in
+detached windows, multiple tabs will be marked as selected.
+
+Selecting an item in the list will bring that tab to the foreground.
+
+.. figure:: select_tab.png
+
+Close All Tabs
+--------------
+
+To close all tabs across all windows (main and detached windows), use the *Close All Tabs* menu option
+from the *Window* menu.
+
+.. figure:: close_all_tabs.png
+
 
 Saving & Restoring the Window Layout
 ------------------------------------

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,6 +14,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.phoebus.applications.alarm.client.IdentificationHelper;
+import org.phoebus.framework.macros.MacroOrSystemProvider;
+import org.phoebus.framework.macros.MacroValueProvider;
+import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.preferences.AnnotatedPreferences;
 import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.preferences.PreferencesReader;
@@ -133,6 +136,9 @@ public class AlarmSystem
     /** "Disable until.." shortcuts */
     @Preference public static String[] shelving_options;
 
+    /** Macros used in UI display/command/web links */
+    public static MacroValueProvider macros;
+
     static
     {
     	final PreferencesReader prefs = AnnotatedPreferences.initialize(AlarmSystem.class, "/alarm_preferences.properties");
@@ -165,6 +171,16 @@ public class AlarmSystem
             {
                 logger.log(Level.WARNING, "Error in 'shelving_options'", ex);
             }
+        }
+
+        try
+        {
+            macros = new MacroOrSystemProvider(Macros.fromSimpleSpec(prefs.get("macros")));
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Invalid macros '" + prefs.get("macros") + "'", ex);
+            macros = new MacroOrSystemProvider(new Macros());
         }
 
         IdentificationHelper.initialize();

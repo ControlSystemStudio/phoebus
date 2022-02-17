@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,7 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.framework.jobs.CommandExecutor;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.control.MenuItem;
@@ -32,7 +33,8 @@ class ExecuteCommandAction extends MenuItem
         {
             JobManager.schedule(command.title, monitor ->
             {
-                final CommandExecutor executor = new CommandExecutor(command.detail, AlarmSystem.command_directory);
+                final String expanded = MacroHandler.replace(AlarmSystem.macros, command.detail);
+                final CommandExecutor executor = new CommandExecutor(expanded, AlarmSystem.command_directory);
                 executor.call();
             });
         });

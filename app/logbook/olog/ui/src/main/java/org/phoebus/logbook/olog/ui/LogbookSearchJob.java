@@ -6,6 +6,9 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobRunnableWithCancel;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.SearchResult;
+import org.phoebus.olog.es.api.OlogClient;
+import org.phoebus.olog.es.api.model.OlogSearchResult;
 
 import java.util.List;
 import java.util.Map;
@@ -22,7 +25,7 @@ import java.util.logging.Logger;
 public class LogbookSearchJob extends JobRunnableWithCancel {
     private final LogClient client;
     private final Map<String, String> searchMap;
-    private final Consumer<List<LogEntry>> logEntryHandler;
+    private final Consumer<SearchResult> logEntryHandler;
     private final BiConsumer<String, Exception> errorHandler;
     private final Consumer<Boolean> progressHandler;
 
@@ -30,18 +33,18 @@ public class LogbookSearchJob extends JobRunnableWithCancel {
      * Submit a logbook search query
      * @param client the logbook client
      * @param searchMap the search parameters
-     * @param logEntryHandler consumer for the list of {@link LogEntry}s from the search
+     * @param logEntryHandler consumer for the {@link SearchResult} from the search
      * @param errorHandler error handler
      * @return a logbook search job
      */
     public static Job submit(LogClient client, final Map<String, String> searchMap,
-            final Consumer<List<LogEntry>> logEntryHandler, final BiConsumer<String, Exception> errorHandler,
+                             final Consumer<SearchResult> logEntryHandler, final BiConsumer<String, Exception> errorHandler,
                              Consumer<Boolean> progressHandler) {
         return JobManager.schedule("searching logbook for : " + searchMap,
                 new LogbookSearchJob(client, searchMap, logEntryHandler, errorHandler, progressHandler));
     }
 
-    private LogbookSearchJob(LogClient client, Map<String, String> searchMap, Consumer<List<LogEntry>> logEntryHandler,
+    private LogbookSearchJob(LogClient client, Map<String, String> searchMap, Consumer<SearchResult> logEntryHandler,
             BiConsumer<String, Exception> errorHandler, Consumer<Boolean> progressHandler) {
         super();
         this.client = client;
@@ -60,11 +63,11 @@ public class LogbookSearchJob extends JobRunnableWithCancel {
     public Runnable getRunnable() {
         return () -> {
             try {
-                List<LogEntry> logEntries = client.findLogs(searchMap);
+                SearchResult searchResult = client.search(searchMap);
                 if(progressHandler != null){
                     progressHandler.accept(false);
                 }
-                logEntryHandler.accept(logEntries);
+                logEntryHandler.accept(searchResult);
             } catch (Exception exception) {
                 Logger.getLogger(LogbookSearchJob.class.getName())
                         .log(Level.SEVERE, "Failed to obtain logs", exception);

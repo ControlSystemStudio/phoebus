@@ -29,81 +29,94 @@ import java.util.List;
  * @author georgweiss Created 11 Mar 2019
  */
 public interface NodeDAO {
-	
+
 	/**
 	 * Retrieves all child nodes of the specified node.
 	 * @param uniqueNodeId The unique id of the node
 	 * @return A potentially empty list of child {@link Node}s.
 	 */
-	public List<Node> getChildNodes(String uniqueNodeId);
+	List<Node> getChildNodes(String uniqueNodeId);
 
 	/**
 	 * Retrieve the node identified by the unique node id
-	 * 
+	 *
 	 * @param uniqueNodeId
 	 *            The unique node id
 	 * @return A {@link Node} object
 	 */
-	public Node getNode(String uniqueNodeId);
+	Node getNode(String uniqueNodeId);
 
 	/**
 	 * Deletes a {@link Node}, folder or configuration. If the node is a folder, the
 	 * entire sub-tree of the folder is deleted, including the snapshots associated
 	 * with configurations in the sub-tree.
-	 * 
-	 * @param uniqueNodeId
-	 *            The node id node to delete.
+	 *
+	 * @param nodeId
+	 *            The unique id of the node to delete.
+	 *
 	 */
-	public void deleteNode(String uniqueNodeId);
+	@Deprecated
+	void deleteNode(String nodeId);
+
+	void deleteNodes(List<String> nodeIds);
 
 	/**
 	 * Creates a new node in the tree.
-	 * 
-	 * @param parentsUniqueId
-	 *            The unique id of the parent node.
+	 *
+	 * @param parentNodeId
+	 *            The unique id of the parent node in which to create the new {@link Node}.
 	 * @param node
-	 *            The new node to create
+	 *            The new {@link Node} to create
 	 * @return The created node.
-	 * 
+	 *
 	 */
-	public Node createNode(String parentsUniqueId, Node node);
+	Node createNode(String parentNodeId, Node node);
 
 
-	public Node getParentNode(String uniqueNodeId);
+	Node getParentNode(String uniqueNodeId);
 
 	/**
-	 * Moves a node (folder or config) to a new parent node.
-	 * 
-	 * @param sourceNodeId
-	 *            The node to move
-	 * @param targetNodeId
-	 *            The new parent node
+	 * Moves {@link Node}s (folder or config) to a new parent node.
+	 *
+	 * @param nodeIds List of unique node ids subject to move
+	 * @param targetId Unique id of new parent node
 	 * @param userName
 	 *            The (account) name of the user performing the operation.
 	 * @return The target {@link Node} object that is the new parent of the moved source {@link Node}
 	 */
-	public Node moveNode(String sourceNodeId, String targetNodeId, String userName);
+	Node moveNodes(List<String> nodeIds, String targetId, String userName);
+
+	/**
+	 * Copies {@link Node}s (folder or config) to some parent node.
+	 *
+	 * @param nodeIds List of unique node ids subject to move
+	 * @param targetId Unique id of target node
+	 * @param userName
+	 *            The (account) name of the user performing the operation.
+	 * @return The target {@link Node} object that is the new parent of the moved source {@link Node}
+	 */
+	Node copyNodes(List<String> nodeIds, String targetId, String userName);
 
 	/**
 	 * Updates an existing configuration, e.g. changes its name or list of PVs.
-	 * 
+	 *
 	 * @param configToUpdate The configuration to update.
 	 * @param configPvList The updated list of {@link ConfigPv}s
 	 * @return The updated configuration object
 	 */
-	public Node updateConfiguration(Node configToUpdate, List<ConfigPv> configPvList);
+	Node updateConfiguration(Node configToUpdate, List<ConfigPv> configPvList);
 
 
 	/**
 	 * Convenience method
-	 * 
+	 *
 	 * @return The root {@link Node} of the tree structure.
 	 */
-	public Node getRootNode();
+	Node getRootNode();
 
 	/**
 	 * Get snapshots for the specified configuration id.
-	 * 
+	 *
 	 * @param uniqueNodeId
 	 *            The database unique id of the configuration (i.e. the snapshots'
 	 *            parent node) see {@link Node#getUniqueId()}
@@ -115,7 +128,7 @@ public interface NodeDAO {
 
 	/**
 	 * Get a snapshot.
-	 * 
+	 *
 	 * @param uniqueNodeId
 	 *            The database unique id of the snapshot, see
 	 *            {@link Node#getUniqueId()}.
@@ -124,14 +137,14 @@ public interface NodeDAO {
 	 *         <code>committedOnly=true</code> and for a snapshot with matching id
 	 *         that has not been committed.
 	 */
-	public Node getSnapshot(String uniqueNodeId);
-	
-	public Node saveSnapshot(String parentsUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment, String userName);
-	
-	public List<ConfigPv> getConfigPvs(String configUniqueId);
-	
-	public List<SnapshotItem> getSnapshotItems(String snapshotUniqueId);
-	
+	Node getSnapshot(String uniqueNodeId);
+
+	Node saveSnapshot(String parentsUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment, String userName);
+
+	List<ConfigPv> getConfigPvs(String configUniqueId);
+
+	List<SnapshotItem> getSnapshotItems(String snapshotUniqueId);
+
 	/**
 	 * Updates a {@link Node} with respect to name or properties, or both. Node type cannot
 	 * be changed, of course.
@@ -139,13 +152,13 @@ public interface NodeDAO {
 	 * @param customTimeForMigration A boolean for setting created time manually for migration.
 	 * @return The {@link Node} object as read from the persistence implementation.
 	 */
-	public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration);
+	Node updateNode(Node nodeToUpdate, boolean customTimeForMigration);
 
-	public List<Tag> getAllTags();
+	List<Tag> getAllTags();
 
-	public List<Tag> getTags(String uniqueSnapshotId);
+	List<Tag> getTags(String uniqueSnapshotId);
 
-	public List<Node> getAllSnapshots();
+	List<Node> getAllSnapshots();
 
 	/**
 	 * Given a file path like /node1/node2/nodeX, find matching node(s). Since a folder node may
@@ -157,7 +170,7 @@ public interface NodeDAO {
 	 *             tree root, i.e. the top level folder named "Save &amp; Restore Root".
 	 * @return A {@link List	} one or two elements, or <code>null</code>.
 	 */
-	public List<Node> getFromPath(String path);
+	List<Node> getFromPath(String path);
 
 	/**
 	 * Given an unique node id, find the full path of the node matching the node id. The
@@ -167,5 +180,5 @@ public interface NodeDAO {
 	 * @param uniqueNodeId Unique id of a {@link Node}.
 	 * @return Full path of the {@link Node} if found, otherwise <code>null</code>.
 	 */
-	public String getFullPath(String uniqueNodeId);
+	String getFullPath(String uniqueNodeId);
 }

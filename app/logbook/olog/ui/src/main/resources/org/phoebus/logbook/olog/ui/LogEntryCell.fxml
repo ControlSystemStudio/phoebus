@@ -1,73 +1,81 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<!--
+This is the cell UI for log entry items as presented in the search result list/tree, i.e. this is a
+summary of the log entry and its metadata.
+-->
+
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<!--
-This is the cell UI for log entry items as presented in the search result list/tree, i.e. this is a
-summary of the log entry and its metadata.
--->
+<VBox fx:id="root" prefWidth="400.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryCellController">
+    <GridPane>
+        <columnConstraints>
+            <ColumnConstraints />
+            <ColumnConstraints />
+            <ColumnConstraints />
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints />
+            <RowConstraints />
+        </rowConstraints>
+        <children>
+            <Label fx:id="title" text="Title" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS">
+                <font>
+                    <Font size="18.0" />
+                </font>
+                <GridPane.margin>
+                    <Insets />
+                </GridPane.margin>
+            </Label>
+            <HBox GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.hgrow="ALWAYS">
+                <children>
+                    <Pane HBox.hgrow="ALWAYS" />
+                    <ImageView fx:id="conversationIcon" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" />
+                    <ImageView fx:id="attachmentIcon" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" />
+                </children>
+            </HBox>
+            <Label fx:id="owner" text="Owner" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1"/>
+            <Label fx:id="time" text="Time" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
+        </children>
+        <padding>
+            <Insets bottom="2.0" left="5.0" right="5.0" />
+        </padding>
+    </GridPane>
 
-<GridPane fx:id="root" maxHeight="-Infinity" prefWidth="400.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryCellController">
-    <columnConstraints>
-        <ColumnConstraints />
-        <ColumnConstraints />
-        <ColumnConstraints />
-    </columnConstraints>
-    <rowConstraints>
-        <RowConstraints />
-        <RowConstraints />
-        <RowConstraints />
-        <RowConstraints />
-        <RowConstraints />
-        <RowConstraints />
-    </rowConstraints>
-    <children>
-        <Label fx:id="owner" text="Owner" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS">
-            <font>
-                <Font size="20.0" />
-            </font>
-            <GridPane.margin>
-                <Insets />
-            </GridPane.margin>
-        </Label>
-        <HBox GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.hgrow="NEVER">
-            <children>
-                <Pane HBox.hgrow="ALWAYS"/>
-                <ImageView fx:id="conversationIcon" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" />
-                <ImageView fx:id="attachmentIcon" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" />
-            </children>
-        </HBox>
-        <Label fx:id="title" text="Title" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
-            <font>
-                <Font name="Arial Bold" size="14.0" />
-            </font>
-        </Label>
-        <Label fx:id="time" text="Time" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
-        <ImageView fx:id="logbookIcon" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" GridPane.rowIndex="2">
-            <GridPane.margin>
-                <Insets bottom="3.0" left="3.0" top="5.0" />
-            </GridPane.margin>
-        </ImageView>
-        <Label fx:id="logbooks" text="Logbooks" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" />
-        <Label fx:id="logEntryId" text="999" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
-        <ImageView fx:id="tagIcon" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" GridPane.rowIndex="3">
-            <GridPane.margin>
-                <Insets bottom="3.0" left="3.0" />
-            </GridPane.margin>
-        </ImageView>
-        <Label fx:id="tags" text="Tags" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" />
-        <Label fx:id="level" text="Shift Start" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="3" />
-        <Label fx:id="description" text="very long description placeholder" GridPane.columnSpan="3" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4">
-            <font>
-                <Font name="Arial" size="13.0" />
-            </font>
-        </Label>
-    </children>
-   <padding>
-      <Insets bottom="5.0" left="5.0" right="5.0" />
-   </padding>
-</GridPane>
+    <GridPane fx:id="detailsPane">
+        <columnConstraints>
+            <ColumnConstraints />
+            <ColumnConstraints />
+            <ColumnConstraints />
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+        </rowConstraints>
+        <children>
+            <ImageView fx:id="logbookIcon" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
+                <GridPane.margin>
+                    <Insets bottom="3.0" left="3.0" top="5.0" />
+                </GridPane.margin>
+            </ImageView>
+            <Label fx:id="logbooks" text="Logbooks" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" />
+            <Label fx:id="logEntryId" text="999" GridPane.columnIndex="2" GridPane.halignment="RIGHT" />
+            <ImageView fx:id="tagIcon" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" GridPane.rowIndex="1">
+                <GridPane.margin>
+                    <Insets bottom="3.0" left="3.0" />
+                </GridPane.margin>
+            </ImageView>
+            <Label fx:id="tags" text="Tags" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+            <Label fx:id="level" text="Shift Start" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
+            <Label fx:id="description" text="very long description placeholder" GridPane.columnSpan="3" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2"/>
+        </children>
+        <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" />
+        </padding>
+    </GridPane>
+</VBox>

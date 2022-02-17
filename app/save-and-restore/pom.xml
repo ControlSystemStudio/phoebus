@@ -9,6 +9,6 @@
   </parent>
   <modules>
     <module>model</module>
-    <module>ui</module>
+    <module>app</module>
   </modules>
 </project>

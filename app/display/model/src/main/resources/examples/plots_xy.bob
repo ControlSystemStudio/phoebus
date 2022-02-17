@@ -9,7 +9,7 @@
     <width>181</width>
     <height>31</height>
     <font>
-      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      <font name="Header 1" family="Source Sans Pro" style="BOLD_ITALIC" size="36.0">
       </font>
     </font>
   </widget>
@@ -26,6 +26,7 @@ one for the "X" and one for the "Y" axis.</text>
     <y>91</y>
     <width>511</width>
     <height>340</height>
+    <show_toolbar>true</show_toolbar>
     <rules>
       <rule name="Interactive" prop_id="marker[0].interactive" out_exp="false">
         <exp bool_exp="pv0&lt;1">
@@ -94,7 +95,7 @@ one for the "X" and one for the "Y" axis.</text>
     <y>441</y>
     <width>221</width>
     <font>
-      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      <font name="Header 2" family="Source Sans Pro" style="BOLD_ITALIC" size="21.0">
       </font>
     </font>
   </widget>
@@ -292,7 +293,7 @@ Double-click zooms back out.</text>
     <y>471</y>
     <width>221</width>
     <font>
-      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      <font name="Header 3" family="Source Sans Pro" style="BOLD_ITALIC" size="18.0">
       </font>
     </font>
   </widget>
@@ -334,11 +335,11 @@ pvs[1].write(err)
       <maximum>10.0</maximum>
       <show_grid>false</show_grid>
       <title_font>
-        <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+        <font name="Default Bold" family="Source Sans Pro" style="BOLD" size="16.0">
         </font>
       </title_font>
       <scale_font>
-        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        <font name="Default" family="Source Sans Pro" style="REGULAR" size="16.0">
         </font>
       </scale_font>
       <visible>true</visible>
@@ -352,11 +353,11 @@ pvs[1].write(err)
         <maximum>120.0</maximum>
         <show_grid>false</show_grid>
         <title_font>
-          <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+          <font name="Default Bold" family="Source Sans Pro" style="BOLD" size="16.0">
           </font>
         </title_font>
         <scale_font>
-          <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+          <font name="Default" family="Source Sans Pro" style="REGULAR" size="16.0">
           </font>
         </scale_font>
         <visible>true</visible>
@@ -406,7 +407,7 @@ pvs[1].write(err)
     <y>441</y>
     <width>221</width>
     <font>
-      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      <font name="Header 2" family="Source Sans Pro" style="BOLD_ITALIC" size="21.0">
       </font>
     </font>
   </widget>
@@ -445,7 +446,7 @@ That local PV is then used as the error bar waveform.</text>
     <width>429</width>
     <height>69</height>
     <font>
-      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      <font name="Comment" family="Source Sans Pro" style="ITALIC" size="16.0">
       </font>
     </font>
   </widget>
@@ -497,11 +498,11 @@ plot.setPropertyValue("y_axes[0].autoscale", True)
       <maximum>22.0</maximum>
       <show_grid>false</show_grid>
       <title_font>
-        <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+        <font name="Default Bold" family="Source Sans Pro" style="BOLD" size="16.0">
         </font>
       </title_font>
       <scale_font>
-        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        <font name="Default" family="Source Sans Pro" style="REGULAR" size="16.0">
         </font>
       </scale_font>
       <visible>true</visible>
@@ -515,11 +516,11 @@ plot.setPropertyValue("y_axes[0].autoscale", True)
         <maximum>10.0</maximum>
         <show_grid>false</show_grid>
         <title_font>
-          <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+          <font name="Default Bold" family="Source Sans Pro" style="BOLD" size="16.0">
           </font>
         </title_font>
         <scale_font>
-          <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+          <font name="Default" family="Source Sans Pro" style="REGULAR" size="16.0">
           </font>
         </scale_font>
         <visible>true</visible>
@@ -581,7 +582,7 @@ For a "Line Width" of zero, the bar graph turns into a histogram-type display wi
     <y>900</y>
     <width>221</width>
     <font>
-      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      <font name="Header 2" family="Source Sans Pro" style="BOLD_ITALIC" size="21.0">
       </font>
     </font>
   </widget>
@@ -605,16 +606,10 @@ For a "Line Width" of zero, the bar graph turns into a histogram-type display wi
     <y>500</y>
     <width>140</width>
     <height>60</height>
-    <font use_class="true">
-      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+    <font>
+      <font name="Comment" family="Source Sans Pro" style="ITALIC" size="16.0">
       </font>
     </font>
-    <foreground_color use_class="true">
-      <color name="Text" red="0" green="0" blue="0">
-      </color>
-    </foreground_color>
-    <transparent use_class="true">true</transparent>
-    <wrap_words use_class="true">true</wrap_words>
   </widget>
   <widget type="checkbox" version="2.0.0">
     <name>Check Box</name>

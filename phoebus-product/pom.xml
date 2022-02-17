@@ -196,7 +196,7 @@
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>app-save-and-restore-ui</artifactId>
+      <artifactId>save-and-restore</artifactId>
       <version>4.6.6-SNAPSHOT</version>
     </dependency>
     <dependency>

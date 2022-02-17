@@ -19,6 +19,7 @@
 package org.phoebus.applications.imageviewer;
 
 import javafx.fxml.FXMLLoader;
+import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
@@ -31,6 +32,9 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ImageViewerInstance implements AppInstance {
 
@@ -50,13 +54,9 @@ public class ImageViewerInstance implements AppInstance {
 
         if(viewMode == ViewMode.TAB){
             final DockItemWithInput existing = DockStage.getDockItemWithInput(NAME, uri);
-            final ImageViewerInstance instance;
-            if (existing != null) {   // Found one, raise it
-                instance = existing.getApplication();
-                //instance.raise();
-            }
-
             FXMLLoader fxmlLoader = new FXMLLoader();
+            ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
+            fxmlLoader.setResources(resourceBundle);
             fxmlLoader.setLocation(this.getClass().getResource("/ImageViewer.fxml"));
             try {
                 fxmlLoader.load();
@@ -65,7 +65,8 @@ public class ImageViewerInstance implements AppInstance {
                 dockItem = new DockItemWithInput(this, imageViewerController.getRoot(), uri, null, null);
                 DockPane.getActiveDockPane().addTab(dockItem);
             } catch (Exception e) {
-                e.printStackTrace();
+                Logger.getLogger(ImageViewerInstance.class.getName())
+                    .log(Level.WARNING, "Unable to load fxml", e);
             }
         }
     }
