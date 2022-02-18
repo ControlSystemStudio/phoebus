@@ -187,7 +187,7 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
 
     @Override
     protected void renameNode() {
-        Node node = listView.getSelectionModel().getSelectedItem();
+        Node node = treeView.getSelectionModel().getSelectedItem().getValue();
         List<String> existingSiblingNodes =
                 listView.getItems().stream()
                         .map(Node::getName)
