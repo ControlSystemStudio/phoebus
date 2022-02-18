@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -30,6 +30,7 @@ import org.phoebus.framework.jobs.SubJobMonitor;
 import org.phoebus.framework.preferences.AnnotatedPreferences;
 import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.framework.workbench.FileHelper;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.javafx.PlatformInfo;
@@ -88,6 +89,8 @@ public class Update
      */
     public static Instant getVersion(final JobMonitor monitor, final URL distribution_url) throws Exception
     {
+        if (distribution_url.getProtocol().equals("https"))
+            ResourceParser.trustAnybody();
         return Instant.ofEpochMilli(
                 distribution_url.openConnection().getLastModified());
     }

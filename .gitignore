@@ -115,3 +115,6 @@ buildNumber.properties
 
 # End of https://www.gitignore.io/api/maven,eclipse
 /.gitignore
+
+# hs_err* files
+**/hs_err*

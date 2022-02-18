@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
 <!--
@@ -21,14 +23,19 @@
   ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
   -->
 
-<?import javafx.scene.image.ImageView?>
 <BorderPane fx:id="root" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.imageviewer.ImageViewerController">
+   <top>
+      <Button fx:id="scaleToFitButton" prefWidth="130.0" text="%ScaleToFit">
+         <BorderPane.margin>
+            <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+         </BorderPane.margin></Button>
+   </top>
    <center>
       <ScrollPane fx:id="scrollPane">
          <!-- this pane is needed to enable centering behavior -->
          <StackPane fx:id="stackPane">
             <children>
-               <ImageView fx:id="imageView"/>
+               <ImageView fx:id="imageView" />
             </children>
          </StackPane>
       </ScrollPane>

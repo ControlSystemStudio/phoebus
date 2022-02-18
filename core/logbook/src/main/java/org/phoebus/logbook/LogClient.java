@@ -493,4 +493,12 @@ public interface LogClient {
     default LogEntry updateLogEntry(LogEntry logEntry) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
+
+    default SearchResult search(Map<String, String> map) throws LogbookException{
+        throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    default void groupLogEntries(List<Long> logEntryIds) throws LogbookException{
+        throw new LogbookException(new UnsupportedOperationException());
+    }
 }

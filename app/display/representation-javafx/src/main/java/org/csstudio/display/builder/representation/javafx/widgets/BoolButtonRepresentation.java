@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,7 +12,6 @@ import static org.csstudio.display.builder.representation.ToolkitRepresentation.
 import java.util.List;
 import java.util.logging.Level;
 
-import javafx.scene.layout.Pane;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
@@ -32,6 +31,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
@@ -268,6 +268,8 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
             loadImage(model_widget.propOffImage().getValue()),
             loadImage(model_widget.propOnImage().getValue())
         };
+        // The 'value_image' needs to be updated
+        stateChanged();
     }
 
     private ImageView loadImage(final String path)
