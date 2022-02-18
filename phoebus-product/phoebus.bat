@@ -3,11 +3,12 @@
 @REM otherwise assumes JDK is on the PATH
 
 @cd %~P0
+setlocal ENABLEDELAYEDEXPANSION
 
 @IF EXIST "%~P0%..\jdk" (
     set JAVA_HOME=%~P0%..\jdk
-    @path %JAVA_HOME%\bin
-    @ECHO Found JDK %JAVA_HOME%
+    @path !JAVA_HOME!\bin
+    @ECHO Found JDK !JAVA_HOME!
 )
 
 @if EXIST "update" (
