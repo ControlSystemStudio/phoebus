@@ -29,7 +29,7 @@
     </padding>
 
 
-    <VBox fx:id="fields" alignment="CENTER" VBox.vgrow="ALWAYS">
+    <VBox fx:id="fields" alignment="CENTER" spacing="10.0" VBox.vgrow="ALWAYS">
         <fx:include fx:id="fieldsView" source="FieldsView.fxml" VBox.vgrow="ALWAYS" />
         <HBox>
            <children>

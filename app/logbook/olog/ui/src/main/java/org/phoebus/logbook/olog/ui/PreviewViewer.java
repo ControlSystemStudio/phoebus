@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2020 European Spallation Source ERIC.
+ *  Copyright (c) 2022 UChicago Argonne LLC, as operator of
+ *  Argonne National Laboratory.
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
