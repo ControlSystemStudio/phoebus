@@ -48,10 +48,11 @@ import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
@@ -160,21 +161,19 @@ class ContextMenuSupport {
 
         items.add(new SeparatorMenuItem());
 
-        // Add PV-based contributions
-        String pv_name = "";
         // Does widget have a PV name?
         final Optional<WidgetProperty<String>> name_prop = widget.checkProperty(CommonWidgetProperties.propPVName);
-        if (name_prop.isPresent())
-            pv_name = name_prop.get().getValue();
-        else {   // See if there are runtime PVs, pick the first one
-            for (RuntimePV pv : runtime.getPVs()) {
-                pv_name = pv.getName();
-                break;
-            }
+        List<ProcessVariable> processVariables;
+        if (name_prop.isPresent()) {
+            processVariables = List.of(new ProcessVariable(name_prop.get().getValue()));
+        } else {   // Add all PVs referenced by the widget.
+            Collection<RuntimePV> runtimePvs = runtime.getPVs();
+            processVariables =
+                    runtimePvs.stream().map(runtimePV -> new ProcessVariable(runtimePV.getName())).collect(Collectors.toList());
         }
-        if (!pv_name.isEmpty()) {
+        if (!processVariables.isEmpty()) {
             // Set the 'selection' to the PV of this widget
-            SelectionService.getInstance().setSelection(DisplayRuntimeApplication.NAME, List.of(new ProcessVariable(pv_name)));
+            SelectionService.getInstance().setSelection(DisplayRuntimeApplication.NAME, processVariables);
             // Add PV-based menu entries
             ContextMenuHelper.addSupportedEntries(node, menu);
             items.add(new SeparatorMenuItem());
@@ -206,15 +205,8 @@ class ContextMenuSupport {
 
         items.add(new SaveSnapshotAction(model_parent));
 
-        String display_info;
         try {
             final DisplayModel model = widget.getDisplayModel();
-            final String name = model.getDisplayName();
-            final String input = model.getUserData(DisplayModel.USER_DATA_INPUT_FILE);
-            if (Objects.equals(name, input))
-                display_info = "Display '" + name + "'";
-            else
-                display_info = "Display '" + name + "' (" + input + ")";
 
             // Add context menu actions based on the selection (i.e. email, logbook, etc...)
             final Selection originalSelection = SelectionService.getInstance().getSelection();
@@ -235,7 +227,7 @@ class ContextMenuSupport {
             });
             SelectionService.getInstance().setSelection(DisplayRuntimeApplication.NAME, originalSelection);
         } catch (Exception ex) {
-            display_info = "See attached display";
+            logger.log(Level.WARNING, "Failed to construct context menu actions", ex);
         }
 
         items.add(new SeparatorMenuItem());

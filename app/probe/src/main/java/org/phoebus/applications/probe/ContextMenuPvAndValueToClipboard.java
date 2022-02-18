@@ -86,7 +86,7 @@ public class ContextMenuPvAndValueToClipboard extends ContextMenuPvToClipboard
                 logger.log(Level.WARNING, "Cannot show value for " + pv);
             }
 
-            buf.append("\n");
+            buf.append(System.lineSeparator());
         }
         return buf.toString();
     }
