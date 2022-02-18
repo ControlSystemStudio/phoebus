@@ -55,26 +55,26 @@ import java.util.logging.Level;
 
 import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
-/** Context menu for a widget or the display
- *  @author Kay Kasemir
+/**
+ * Context menu for a widget or the display
+ *
+ * @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-class ContextMenuSupport
-{
+class ContextMenuSupport {
     private final DisplayRuntimeInstance instance;
     private final ContextMenu menu = new ContextMenu();
 
-    /** Connect context menu to toolkit's `handleContextMenu` */
-    ContextMenuSupport(final DisplayRuntimeInstance instance)
-    {
+    /**
+     * Connect context menu to toolkit's `handleContextMenu`
+     */
+    ContextMenuSupport(final DisplayRuntimeInstance instance) {
         this.instance = instance;
         menu.setAutoHide(true);
 
-        final ToolkitListener tkl = new ToolkitListener()
-        {
+        final ToolkitListener tkl = new ToolkitListener() {
             @Override
-            public void handleContextMenu(final Widget widget, final int screen_x, final int screen_y)
-            {
+            public void handleContextMenu(final Widget widget, final int screen_x, final int screen_y) {
                 final Node node = JFXBaseRepresentation.getJFXNode(widget);
                 fillMenu(node, widget);
                 // Use window, not node, to show menu for two reasons:
@@ -90,29 +90,39 @@ class ContextMenuSupport
         instance.getRepresentation().addListener(tkl);
     }
 
-    /** Fill context menu with items for widget
-     *  @param node
-     *  @param widget
+    /**
+     * Fill context menu with items for widget
+     *
+     * @param node
+     * @param widget
      */
-    private void fillMenu(final Node node, final Widget widget)
-    {
+    private void fillMenu(final Node node, final Widget widget) {
         final ObservableList<MenuItem> items = menu.getItems();
         items.setAll(new WidgetInfoAction(widget));
 
+        // Add menu item to get info for the "top level" widget, but only if widget is not the
+        // top level widget. In this manner user may right click on any portion of the OPI to
+        // launch the info dialog for the entire OPI.
+        try {
+            Widget topWidget = widget.getTopDisplayModel();
+            if (!topWidget.equals(widget)) {
+                items.add(new SeparatorMenuItem());
+                items.add(new WidgetInfoAction(widget.getTopDisplayModel()));
+            }
+        } catch (Exception exception) {
+            logger.log(Level.WARNING, "Unable to get top display model", exception);
+        }
+
+
         // Widget actions
-        for (ActionInfo info : widget.propActions().getValue().getActions())
-        {
-            if (info.getType() == ActionType.OPEN_DISPLAY)
-            {
+        for (ActionInfo info : widget.propActions().getValue().getActions()) {
+            if (info.getType() == ActionType.OPEN_DISPLAY) {
                 final OpenDisplayActionInfo open_info = (OpenDisplayActionInfo) info;
                 // Expand macros in action description
                 String desc;
-                try
-                {
+                try {
                     desc = MacroHandler.replace(widget.getEffectiveMacros(), open_info.getDescription());
-                }
-                catch (Exception ex)
-                {
+                } catch (Exception ex) {
                     logger.log(Level.WARNING, "Cannot expand macros in action description '" + open_info.getDescription() + "'", ex);
                     desc = open_info.getDescription();
                 }
@@ -120,21 +130,19 @@ class ContextMenuSupport
                 // Add the requested target as default
                 final Target requestedTarget = open_info.getTarget();
                 items.add(createMenuItem(widget,
-                               new OpenDisplayActionInfo(desc, open_info.getFile(),
-                                                         open_info.getMacros(), requestedTarget)));
+                        new OpenDisplayActionInfo(desc, open_info.getFile(),
+                                open_info.getMacros(), requestedTarget)));
 
                 // Add variant for all the available Target types: Replace, new Tab, ...
-                for (Target target : Target.values())
-                {
+                for (Target target : Target.values()) {
                     if (target == Target.STANDALONE || target == requestedTarget)
                         continue;
                     // Mention non-default targets in the description
                     items.add(createMenuItem(widget,
-                                   new OpenDisplayActionInfo(desc + " (" + target + ")", open_info.getFile(),
-                                                             open_info.getMacros(), target)));
+                            new OpenDisplayActionInfo(desc + " (" + target + ")", open_info.getFile(),
+                                    open_info.getMacros(), target)));
                 }
-            }
-            else
+            } else
                 items.add(createMenuItem(widget, info));
         }
 
@@ -142,8 +150,7 @@ class ContextMenuSupport
         final WidgetRuntime<Widget> runtime = RuntimeUtil.getRuntime(widget);
         if (runtime == null)
             throw new NullPointerException("Missing runtime for " + widget);
-        for (RuntimeAction info : runtime.getRuntimeActions())
-        {
+        for (RuntimeAction info : runtime.getRuntimeActions()) {
             // Load image for action from that action's class loader
             final ImageView icon = ImageCache.getImageView(info.getClass(), info.getIconPath());
             final MenuItem item = new MenuItem(info.getDescription(), icon);
@@ -159,16 +166,13 @@ class ContextMenuSupport
         final Optional<WidgetProperty<String>> name_prop = widget.checkProperty(CommonWidgetProperties.propPVName);
         if (name_prop.isPresent())
             pv_name = name_prop.get().getValue();
-        else
-        {   // See if there are runtime PVs, pick the first one
-            for (RuntimePV pv : runtime.getPVs())
-            {
+        else {   // See if there are runtime PVs, pick the first one
+            for (RuntimePV pv : runtime.getPVs()) {
                 pv_name = pv.getName();
                 break;
             }
         }
-        if (!pv_name.isEmpty())
-        {
+        if (!pv_name.isEmpty()) {
             // Set the 'selection' to the PV of this widget
             SelectionService.getInstance().setSelection(DisplayRuntimeApplication.NAME, List.of(new ProcessVariable(pv_name)));
             // Add PV-based menu entries
@@ -177,19 +181,16 @@ class ContextMenuSupport
         }
 
         // If toolbar is hidden, offer forward/backward navigation
-        if (!instance.isToolbarVisible())
-        {
+        if (!instance.isToolbarVisible()) {
             boolean navigate = false;
             final DisplayNavigation navigation = instance.getNavigation();
-            if (navigation.getBackwardDisplays().size() > 0)
-            {
+            if (navigation.getBackwardDisplays().size() > 0) {
                 final MenuItem item = new MenuItem(Messages.NavigateBack_TT, new ImageView(NavigationAction.backward));
                 item.setOnAction(event -> instance.loadDisplayFile(navigation.goBackward(1)));
                 items.add(item);
                 navigate = true;
             }
-            if (navigation.getForwardDisplays().size() > 0)
-            {
+            if (navigation.getForwardDisplays().size() > 0) {
                 final MenuItem item = new MenuItem(Messages.NavigateForward_TT, new ImageView(NavigationAction.forward));
                 item.setOnAction(event -> instance.loadDisplayFile(navigation.goForward(1)));
                 items.add(item);
@@ -206,11 +207,10 @@ class ContextMenuSupport
         items.add(new SaveSnapshotAction(model_parent));
 
         String display_info;
-        try
-        {
+        try {
             final DisplayModel model = widget.getDisplayModel();
             final String name = model.getDisplayName();
-            final String input =  model.getUserData(DisplayModel.USER_DATA_INPUT_FILE);
+            final String input = model.getUserData(DisplayModel.USER_DATA_INPUT_FILE);
             if (Objects.equals(name, input))
                 display_info = "Display '" + name + "'";
             else
@@ -234,9 +234,7 @@ class ContextMenuSupport
                 items.add(menuItem);
             });
             SelectionService.getInstance().setSelection(DisplayRuntimeApplication.NAME, originalSelection);
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             display_info = "See attached display";
         }
 
@@ -254,16 +252,12 @@ class ContextMenuSupport
         items.add(new ReloadDisplayAction(instance));
     }
 
-    private static MenuItem createMenuItem(final Widget widget, final ActionInfo info)
-    {
+    private static MenuItem createMenuItem(final Widget widget, final ActionInfo info) {
         // Expand macros in action description
         String desc;
-        try
-        {
+        try {
             desc = MacroHandler.replace(widget.getEffectiveMacros(), info.getDescription());
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             logger.log(Level.WARNING, "Cannot expand macros in action description '" + info.getDescription() + "'", ex);
             desc = info.getDescription();
         }
@@ -272,17 +266,14 @@ class ContextMenuSupport
         final MenuItem item = new MenuItem(desc, icon);
 
         final Optional<WidgetProperty<Boolean>> enabled_prop = widget.checkProperty(CommonWidgetProperties.propEnabled);
-        if (enabled_prop.isPresent() && ! enabled_prop.get().getValue())
-        {
+        if (enabled_prop.isPresent() && !enabled_prop.get().getValue()) {
             item.setDisable(true);
             return item;
         }
 
-        if (widget instanceof ActionButtonWidget)
-        {
-            ActionButtonRepresentation button = (ActionButtonRepresentation)widget.getUserData(Widget.USER_DATA_REPRESENTATION);
-            if (button != null)
-            {
+        if (widget instanceof ActionButtonWidget) {
+            ActionButtonRepresentation button = (ActionButtonRepresentation) widget.getUserData(Widget.USER_DATA_REPRESENTATION);
+            if (button != null) {
                 item.setOnAction(event -> button.handleContextMenuAction(info));
                 return item;
             }
