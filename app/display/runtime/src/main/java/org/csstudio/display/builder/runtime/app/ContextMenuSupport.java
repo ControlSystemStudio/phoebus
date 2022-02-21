@@ -47,27 +47,28 @@ import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
-/** Context menu for a widget or the display
- *  @author Kay Kasemir
+/**
+ * Context menu for a widget or the display
+ *
+ * @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-class ContextMenuSupport
-{
+class ContextMenuSupport {
     private final DisplayRuntimeInstance instance;
     private final ContextMenu menu = new ContextMenu();
 
-    /** Connect context menu to toolkit's `handleContextMenu` */
+    /**
+     * Connect context menu to toolkit's `handleContextMenu`
+     */
     ContextMenuSupport(final DisplayRuntimeInstance instance)
     {
         this.instance = instance;
@@ -76,8 +77,7 @@ class ContextMenuSupport
         final ToolkitListener tkl = new ToolkitListener()
         {
             @Override
-            public void handleContextMenu(final Widget widget, final int screen_x, final int screen_y)
-            {
+            public void handleContextMenu(final Widget widget, final int screen_x, final int screen_y) {
                 final Node node = JFXBaseRepresentation.getJFXNode(widget);
                 fillMenu(node, widget);
                 // Use window, not node, to show menu for two reasons:
@@ -94,13 +94,28 @@ class ContextMenuSupport
     }
 
     /** Fill context menu with items for widget
-     *  @param node
-     *  @param widget
+     *
+     * @param node
+     * @param widget
      */
     private void fillMenu(final Node node, final Widget widget)
     {
         final ObservableList<MenuItem> items = menu.getItems();
         items.setAll(new WidgetInfoAction(widget));
+
+        // Add menu item to get info for the "top level" widget, but only if widget is not the
+        // top level widget. In this manner user may right click on any portion of the OPI to
+        // launch the info dialog for the entire OPI.
+        try {
+            Widget topWidget = widget.getTopDisplayModel();
+            if (!topWidget.equals(widget)) {
+                items.add(new SeparatorMenuItem());
+                items.add(new WidgetInfoAction(widget.getTopDisplayModel()));
+            }
+        } catch (Exception exception) {
+            logger.log(Level.WARNING, "Unable to get top display model", exception);
+        }
+
 
         // Widget actions
         for (ActionInfo info : widget.propActions().getValue().getActions())
@@ -123,8 +138,8 @@ class ContextMenuSupport
                 // Add the requested target as default
                 final Target requestedTarget = open_info.getTarget();
                 items.add(createMenuItem(widget,
-                               new OpenDisplayActionInfo(desc, open_info.getFile(),
-                                                         open_info.getMacros(), requestedTarget)));
+                        new OpenDisplayActionInfo(desc, open_info.getFile(),
+                                open_info.getMacros(), requestedTarget)));
 
                 // Add variant for all the available Target types: Replace, new Tab, ...
                 for (Target target : Target.values())
@@ -133,8 +148,8 @@ class ContextMenuSupport
                         continue;
                     // Mention non-default targets in the description
                     items.add(createMenuItem(widget,
-                                   new OpenDisplayActionInfo(desc + " (" + target + ")", open_info.getFile(),
-                                                             open_info.getMacros(), target)));
+                            new OpenDisplayActionInfo(desc + " (" + target + ")", open_info.getFile(),
+                                    open_info.getMacros(), target)));
                 }
             }
             else
@@ -159,7 +174,8 @@ class ContextMenuSupport
         // Does widget have a PV name?
         final Optional<WidgetProperty<String>> name_prop = widget.checkProperty(CommonWidgetProperties.propPVName);
         List<ProcessVariable> processVariables;
-        if (name_prop.isPresent()){
+        if (name_prop.isPresent())
+        {
             processVariables = List.of(new ProcessVariable(name_prop.get().getValue()));
         }
         else
@@ -182,15 +198,13 @@ class ContextMenuSupport
         {
             boolean navigate = false;
             final DisplayNavigation navigation = instance.getNavigation();
-            if (navigation.getBackwardDisplays().size() > 0)
-            {
+            if (navigation.getBackwardDisplays().size() > 0) {
                 final MenuItem item = new MenuItem(Messages.NavigateBack_TT, new ImageView(NavigationAction.backward));
                 item.setOnAction(event -> instance.loadDisplayFile(navigation.goBackward(1)));
                 items.add(item);
                 navigate = true;
             }
-            if (navigation.getForwardDisplays().size() > 0)
-            {
+            if (navigation.getForwardDisplays().size() > 0) {
                 final MenuItem item = new MenuItem(Messages.NavigateForward_TT, new ImageView(NavigationAction.forward));
                 item.setOnAction(event -> instance.loadDisplayFile(navigation.goForward(1)));
                 items.add(item);
@@ -206,8 +220,7 @@ class ContextMenuSupport
 
         items.add(new SaveSnapshotAction(model_parent));
 
-        try
-        {
+        try {
             final DisplayModel model = widget.getDisplayModel();
 
             // Add context menu actions based on the selection (i.e. email, logbook, etc...)
@@ -248,8 +261,7 @@ class ContextMenuSupport
         items.add(new ReloadDisplayAction(instance));
     }
 
-    private static MenuItem createMenuItem(final Widget widget, final ActionInfo info)
-    {
+    private static MenuItem createMenuItem(final Widget widget, final ActionInfo info) {
         // Expand macros in action description
         String desc;
         try
@@ -266,7 +278,7 @@ class ContextMenuSupport
         final MenuItem item = new MenuItem(desc, icon);
 
         final Optional<WidgetProperty<Boolean>> enabled_prop = widget.checkProperty(CommonWidgetProperties.propEnabled);
-        if (enabled_prop.isPresent() && ! enabled_prop.get().getValue())
+        if (enabled_prop.isPresent() && !enabled_prop.get().getValue())
         {
             item.setDisable(true);
             return item;
@@ -274,9 +286,8 @@ class ContextMenuSupport
 
         if (widget instanceof ActionButtonWidget)
         {
-            ActionButtonRepresentation button = (ActionButtonRepresentation)widget.getUserData(Widget.USER_DATA_REPRESENTATION);
-            if (button != null)
-            {
+            ActionButtonRepresentation button = (ActionButtonRepresentation) widget.getUserData(Widget.USER_DATA_REPRESENTATION);
+            if (button != null) {
                 item.setOnAction(event -> button.handleContextMenuAction(info));
                 return item;
             }
