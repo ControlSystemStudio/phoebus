@@ -19,7 +19,6 @@
 package org.phoebus.logbook.olog.ui;
 
 import javafx.scene.Scene;
-import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -33,24 +32,17 @@ import org.phoebus.logbook.LogbookPreferences;
  */
 public class CommonmarkHelpViewer extends Stage {
 
-    private String helpContentUrl;
-    private WebEngine webEngine;
-
     public CommonmarkHelpViewer() {
         initModality(Modality.WINDOW_MODAL);
         String url = LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory).getLogClient().getServiceUrl();
         if (url.endsWith("/")) {
             url = url.substring(0, url.length() - 1);
         }
-        // Need to get rid of Olog path element under which all REST endpoints are published.
-        // The help file however is published directly on the context root.
-        int idx = url.indexOf("/Olog");
-        this.helpContentUrl = url.substring(0, idx) + "/" + LogbookUIPreferences.markup_help;
+        String helpContentUrl = url + "/" + LogbookUIPreferences.markup_help;
 
         WebView webView = new WebView();
-        this.webEngine = webView.getEngine();
-
-        setOnShown(windowEvent -> webEngine.load(helpContentUrl));
+        
+        setOnShown(windowEvent -> webView.getEngine().load(helpContentUrl));
         setTitle("Olog Markup Quick Reference");
         setWidth(1000);
         setHeight(1000);
