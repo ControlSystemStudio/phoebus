@@ -1,32 +1,16 @@
 package org.phoebus.applications.logbook;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.phoebus.logbook.Attachment;
-import org.phoebus.logbook.AttachmentImpl;
-import org.phoebus.logbook.LogClient;
-import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.LogEntryImpl;
+import org.phoebus.logbook.*;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
-import org.phoebus.logbook.Logbook;
-import org.phoebus.logbook.LogbookImpl;
-import org.phoebus.logbook.Property;
-import org.phoebus.logbook.PropertyImpl;
-import org.phoebus.logbook.Tag;
-import org.phoebus.logbook.TagImpl;
 
 import com.google.common.io.Files;
 
@@ -46,20 +30,25 @@ public class InMemoryLogClient implements LogClient{
                                                        TagImpl.of("Example"));
     private final List<String> levels = Arrays.asList("Urgent", "Suggestion", "Info", "Request", "Problem");
 
-    private static final Map<String, String> tracAttributes = new HashMap<>();
-    private static final Property track = PropertyImpl.of("Track",tracAttributes);
-    private static final Map<String, String> experimentAttributes = new HashMap<>();
-    private static final Property experimentProperty = PropertyImpl.of("Experiment", experimentAttributes);
-    static
-    {
+    private static List<Property> inMemoryProperties() {
+        Map<String, String> tracAttributes = new HashMap<>();
+        Property track = PropertyImpl.of("Track",tracAttributes);
+        Map<String, String> experimentAttributes = new HashMap<>();
+        Property experimentProperty = PropertyImpl.of("Experiment", experimentAttributes);
+        Map<String, String> resourceAttributes = new HashMap<>();
+        Property resourceProperty = PropertyImpl.of("Resource", resourceAttributes);
+
         tracAttributes.put("id", "");
         tracAttributes.put("URL", "");
 
         experimentAttributes.put("id", "");
         experimentAttributes.put("type", "");
         experimentAttributes.put("scan-id", "");
+
+        resourceAttributes.put("name", "");
+        resourceAttributes.put("file", "");
+        return Arrays.asList(track, experimentProperty, resourceProperty);
     }
-    private static final List<Property> properties = Arrays.asList(track, experimentProperty);
 
     public InMemoryLogClient() {
         logEntries = new HashMap<Long, LogEntry>();
@@ -83,7 +72,7 @@ public class InMemoryLogClient implements LogClient{
 
     @Override
     public Collection<Property> listProperties() {
-        return properties;
+        return inMemoryProperties();
     }
 
     @Override
@@ -161,4 +150,35 @@ public class InMemoryLogClient implements LogClient{
         return logEntries.get(logId).getAttachments();
     }
 
+    @Override
+    public InputStream getAttachment(Long logId, Attachment attachment) throws LogbookException {
+        Optional<Attachment> foundAttachment = logEntries.get(logId).getAttachments()
+                .stream().filter(a -> {
+                    return a.equals(attachment);
+                }).findFirst();
+        if (foundAttachment.isPresent()) {
+            try {
+                return new FileInputStream(foundAttachment.get().getFile());
+            } catch (FileNotFoundException e) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public InputStream getAttachment(Long logId, String attachmentName) throws LogbookException {
+        Optional<Attachment> foundAttachment = logEntries.get(logId).getAttachments()
+                .stream().filter(a -> {
+                    return a.getName().equalsIgnoreCase(attachmentName);
+                }).findFirst();
+        if (foundAttachment.isPresent()) {
+            try {
+                return new FileInputStream(foundAttachment.get().getFile());
+            } catch (FileNotFoundException e) {
+                return null;
+            }
+        }
+        return null;
+    }
 }

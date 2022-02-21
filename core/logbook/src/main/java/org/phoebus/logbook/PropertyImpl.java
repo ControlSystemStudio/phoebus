@@ -16,7 +16,7 @@ public class PropertyImpl implements Property {
     private PropertyImpl(String name, Map<String, String> attributes) {
         super();
         this.name = name;
-        this.attributes = Collections.unmodifiableMap(attributes);
+        this.attributes = attributes;
     }
 
     @Override

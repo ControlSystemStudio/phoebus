@@ -9,6 +9,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import org.phoebus.framework.nls.NLS;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.PropertyImpl;
 import org.phoebus.ui.javafx.ApplicationWrapper;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 public class LogPropertiesDemo extends ApplicationWrapper {
 
@@ -38,7 +40,14 @@ public class LogPropertiesDemo extends ApplicationWrapper {
         experimentAttributes.put("scan-id", "6789");
         Property experimentProperty = PropertyImpl.of("Experiment", experimentAttributes);
 
+        Map<String, String> databrowser = new HashMap<>();
+        databrowser.put("name", "vaccum db");
+        databrowser.put("file", "sss");
+        Property resourceProperty = PropertyImpl.of("Resource", databrowser);
+
+        ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
         FXMLLoader loader = new FXMLLoader();
+        loader.setResources(resourceBundle);
 
         loader.setLocation(this.getClass().getResource("LogProperties.fxml"));
         loader.load();
@@ -49,7 +58,7 @@ public class LogPropertiesDemo extends ApplicationWrapper {
         BooleanProperty editable = new SimpleBooleanProperty();
         checkBox.selectedProperty().bindBidirectional(editable);
 
-        controller.setProperties(Arrays.asList(track, experimentProperty));
+        controller.setProperties(Arrays.asList(track, experimentProperty, resourceProperty));
         editable.addListener((observable, oldValue, newValue) -> {
             controller.setEditable(newValue);
         });
