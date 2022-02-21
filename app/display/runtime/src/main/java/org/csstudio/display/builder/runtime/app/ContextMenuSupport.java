@@ -69,11 +69,13 @@ class ContextMenuSupport {
     /**
      * Connect context menu to toolkit's `handleContextMenu`
      */
-    ContextMenuSupport(final DisplayRuntimeInstance instance) {
+    ContextMenuSupport(final DisplayRuntimeInstance instance)
+    {
         this.instance = instance;
         menu.setAutoHide(true);
 
-        final ToolkitListener tkl = new ToolkitListener() {
+        final ToolkitListener tkl = new ToolkitListener()
+        {
             @Override
             public void handleContextMenu(final Widget widget, final int screen_x, final int screen_y) {
                 final Node node = JFXBaseRepresentation.getJFXNode(widget);
@@ -91,13 +93,13 @@ class ContextMenuSupport {
         instance.getRepresentation().addListener(tkl);
     }
 
-    /**
-     * Fill context menu with items for widget
+    /** Fill context menu with items for widget
      *
      * @param node
      * @param widget
      */
-    private void fillMenu(final Node node, final Widget widget) {
+    private void fillMenu(final Node node, final Widget widget)
+    {
         final ObservableList<MenuItem> items = menu.getItems();
         items.setAll(new WidgetInfoAction(widget));
 
@@ -116,14 +118,19 @@ class ContextMenuSupport {
 
 
         // Widget actions
-        for (ActionInfo info : widget.propActions().getValue().getActions()) {
-            if (info.getType() == ActionType.OPEN_DISPLAY) {
+        for (ActionInfo info : widget.propActions().getValue().getActions())
+        {
+            if (info.getType() == ActionType.OPEN_DISPLAY)
+            {
                 final OpenDisplayActionInfo open_info = (OpenDisplayActionInfo) info;
                 // Expand macros in action description
                 String desc;
-                try {
+                try
+                {
                     desc = MacroHandler.replace(widget.getEffectiveMacros(), open_info.getDescription());
-                } catch (Exception ex) {
+                }
+                catch (Exception ex)
+                {
                     logger.log(Level.WARNING, "Cannot expand macros in action description '" + open_info.getDescription() + "'", ex);
                     desc = open_info.getDescription();
                 }
@@ -135,7 +142,8 @@ class ContextMenuSupport {
                                 open_info.getMacros(), requestedTarget)));
 
                 // Add variant for all the available Target types: Replace, new Tab, ...
-                for (Target target : Target.values()) {
+                for (Target target : Target.values())
+                {
                     if (target == Target.STANDALONE || target == requestedTarget)
                         continue;
                     // Mention non-default targets in the description
@@ -143,7 +151,8 @@ class ContextMenuSupport {
                             new OpenDisplayActionInfo(desc + " (" + target + ")", open_info.getFile(),
                                     open_info.getMacros(), target)));
                 }
-            } else
+            }
+            else
                 items.add(createMenuItem(widget, info));
         }
 
@@ -151,7 +160,8 @@ class ContextMenuSupport {
         final WidgetRuntime<Widget> runtime = RuntimeUtil.getRuntime(widget);
         if (runtime == null)
             throw new NullPointerException("Missing runtime for " + widget);
-        for (RuntimeAction info : runtime.getRuntimeActions()) {
+        for (RuntimeAction info : runtime.getRuntimeActions())
+        {
             // Load image for action from that action's class loader
             final ImageView icon = ImageCache.getImageView(info.getClass(), info.getIconPath());
             final MenuItem item = new MenuItem(info.getDescription(), icon);
@@ -164,14 +174,18 @@ class ContextMenuSupport {
         // Does widget have a PV name?
         final Optional<WidgetProperty<String>> name_prop = widget.checkProperty(CommonWidgetProperties.propPVName);
         List<ProcessVariable> processVariables;
-        if (name_prop.isPresent()) {
+        if (name_prop.isPresent())
+        {
             processVariables = List.of(new ProcessVariable(name_prop.get().getValue()));
-        } else {   // Add all PVs referenced by the widget.
+        }
+        else
+        {   // Add all PVs referenced by the widget.
             Collection<RuntimePV> runtimePvs = runtime.getPVs();
             processVariables =
                     runtimePvs.stream().map(runtimePV -> new ProcessVariable(runtimePV.getName())).collect(Collectors.toList());
         }
-        if (!processVariables.isEmpty()) {
+        if (!processVariables.isEmpty())
+        {
             // Set the 'selection' to the PV of this widget
             SelectionService.getInstance().setSelection(DisplayRuntimeApplication.NAME, processVariables);
             // Add PV-based menu entries
@@ -180,7 +194,8 @@ class ContextMenuSupport {
         }
 
         // If toolbar is hidden, offer forward/backward navigation
-        if (!instance.isToolbarVisible()) {
+        if (!instance.isToolbarVisible())
+        {
             boolean navigate = false;
             final DisplayNavigation navigation = instance.getNavigation();
             if (navigation.getBackwardDisplays().size() > 0) {
@@ -226,7 +241,9 @@ class ContextMenuSupport {
                 items.add(menuItem);
             });
             SelectionService.getInstance().setSelection(DisplayRuntimeApplication.NAME, originalSelection);
-        } catch (Exception ex) {
+        }
+        catch (Exception ex)
+        {
             logger.log(Level.WARNING, "Failed to construct context menu actions", ex);
         }
 
@@ -247,9 +264,12 @@ class ContextMenuSupport {
     private static MenuItem createMenuItem(final Widget widget, final ActionInfo info) {
         // Expand macros in action description
         String desc;
-        try {
+        try
+        {
             desc = MacroHandler.replace(widget.getEffectiveMacros(), info.getDescription());
-        } catch (Exception ex) {
+        }
+        catch (Exception ex)
+        {
             logger.log(Level.WARNING, "Cannot expand macros in action description '" + info.getDescription() + "'", ex);
             desc = info.getDescription();
         }
@@ -258,12 +278,14 @@ class ContextMenuSupport {
         final MenuItem item = new MenuItem(desc, icon);
 
         final Optional<WidgetProperty<Boolean>> enabled_prop = widget.checkProperty(CommonWidgetProperties.propEnabled);
-        if (enabled_prop.isPresent() && !enabled_prop.get().getValue()) {
+        if (enabled_prop.isPresent() && !enabled_prop.get().getValue())
+        {
             item.setDisable(true);
             return item;
         }
 
-        if (widget instanceof ActionButtonWidget) {
+        if (widget instanceof ActionButtonWidget)
+        {
             ActionButtonRepresentation button = (ActionButtonRepresentation) widget.getUserData(Widget.USER_DATA_REPRESENTATION);
             if (button != null) {
                 item.setOnAction(event -> button.handleContextMenuAction(info));
