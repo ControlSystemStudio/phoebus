@@ -6,6 +6,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import org.phoebus.framework.nls.NLS;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
@@ -18,11 +19,7 @@ import org.phoebus.olog.es.api.OlogClient;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,6 +28,7 @@ public class LogPropertiesEditorDemo extends ApplicationWrapper {
     public static void main(String[] args) {
         launch(LogPropertiesEditorDemo.class, args);
     }
+    public static Messages msg;
 
     @Override
     public void start(Stage primaryStage) throws IOException {
@@ -40,8 +38,9 @@ public class LogPropertiesEditorDemo extends ApplicationWrapper {
         tracAttributes.put("URL", "https://trac.epics.org/tickets/1234");
         Property track = PropertyImpl.of("Track",tracAttributes);
 
+        ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
         FXMLLoader loader = new FXMLLoader();
-
+        loader.setResources(resourceBundle);
         loader.setLocation(this.getClass().getResource("write/LogPropertiesEditor.fxml"));
         loader.setControllerFactory(clazz -> {
             try{
