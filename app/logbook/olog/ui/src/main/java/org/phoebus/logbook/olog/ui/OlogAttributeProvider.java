@@ -22,6 +22,11 @@ import org.commonmark.ext.gfm.tables.TableBlock;
 import org.commonmark.renderer.html.AttributeProvider;
 
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.phoebus.logbook.Attachment;
+import java.util.List;
+import org.apache.commons.io.FilenameUtils;
 
 /**
  * An {@link AttributeProvider} used to style elements of a log entry. Other types of
@@ -30,9 +35,24 @@ import java.util.Map;
 public class OlogAttributeProvider implements AttributeProvider {
 
     private String serviceUrl;
+    private boolean preview = false;
+    private List<Attachment> attachments;
 
     public OlogAttributeProvider(String serviceUrl){
         this.serviceUrl = serviceUrl;
+    }
+
+    /**
+     * This is constructor for HTML preview feature
+     * @param serviceUrl Olog service url.
+     * @param preview A boolean flag set true for HTML preview feature parsing.
+     * @param attachments A list of current attachments which can be parsed to
+     * find attachment file path from attachment id.
+     */
+    public OlogAttributeProvider(String serviceUrl, boolean preview, List<Attachment> attachments){
+        this.serviceUrl = serviceUrl;
+        this.preview = preview;
+        this.attachments = attachments;
     }
 
     /**
@@ -52,11 +72,21 @@ public class OlogAttributeProvider implements AttributeProvider {
         // Relative paths must be prepended with service root URL, while absolute URLs must not be changed.
         if (node instanceof org.commonmark.node.Image) {
             String src = map.get("src");
-            if (!src.toLowerCase().startsWith("http")) {
+            if (!src.toLowerCase().startsWith("http") && !this.preview) {
                 if (serviceUrl.endsWith("/")) {
                     serviceUrl = serviceUrl.substring(0, serviceUrl.length() - 1);
                 }
                 src = serviceUrl + "/" + src;
+            }
+            // If preview flag is true, the image url 'attachment/attachment_id'
+            // has to be converted to 'file://attachment_path'
+            if (src.startsWith("attachment") && this.preview) {
+                String attachmentId = src.substring(11, src.length());
+                for (Attachment attachment: attachments) {
+                    if (attachment.getId().equals(attachmentId)) {
+                        src = "file://" + FilenameUtils.separatorsToUnix(attachment.getFile().getAbsolutePath());
+                    }
+                }
             }
             map.put("src", src);
         }

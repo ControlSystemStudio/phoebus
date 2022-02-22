@@ -40,7 +40,9 @@ public class Messages
                          ShowHideDetails,
                          Tags,
                          TagsTitle,
-                         TagsTooltip;
+                         TagsTooltip,
+                         HtmlPreview,
+                         HtmlPreviewToolTip;
     static
     {
         // initialize resource bundle
