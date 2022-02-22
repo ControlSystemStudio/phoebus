@@ -215,7 +215,11 @@ public class LogPropertiesController {
                     }
                     private String getString()
                     {
-                        return getItem() == null ? "" : ((PropertyTreeNode)getItem()).getValue().toString();
+                        if (getItem() != null && ((PropertyTreeNode) getItem()).getValue() != null) {
+                            return ((PropertyTreeNode) getItem()).getValue();
+                        } else {
+                            return "";
+                        }
                     }
                 };
             }
@@ -283,7 +287,9 @@ public class LogPropertiesController {
         treeTableView.getRoot().getChildren().stream().forEach(node -> {
             Map<String, String> att = node.getChildren().stream()
                     .map(TreeItem::getValue)
-                    .collect(Collectors.toMap(PropertyTreeNode::getName, PropertyTreeNode::getValue));
+                    .collect(Collectors.toMap(
+                            PropertyTreeNode::getName,
+                            (PropertyTreeNode prop)-> prop.getValue() == null ? "" : prop.getValue()));
             Property property = PropertyImpl.of(node.getValue().getName(), att);
             treeProperties.add(property);
         });
