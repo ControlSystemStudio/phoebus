@@ -45,6 +45,11 @@ public class LogPropertiesDemo extends ApplicationWrapper {
         databrowser.put("file", "sss");
         Property resourceProperty = PropertyImpl.of("Resource", databrowser);
 
+        Map<String, String> empty = new HashMap<>();
+        empty.put("name", null);
+        empty.put("file", "");
+        Property emptyProperty = PropertyImpl.of("empty", empty);
+
         ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
         FXMLLoader loader = new FXMLLoader();
         loader.setResources(resourceBundle);
@@ -58,7 +63,7 @@ public class LogPropertiesDemo extends ApplicationWrapper {
         BooleanProperty editable = new SimpleBooleanProperty();
         checkBox.selectedProperty().bindBidirectional(editable);
 
-        controller.setProperties(Arrays.asList(track, experimentProperty, resourceProperty));
+        controller.setProperties(Arrays.asList(track, experimentProperty, resourceProperty, emptyProperty));
         editable.addListener((observable, oldValue, newValue) -> {
             controller.setEditable(newValue);
         });

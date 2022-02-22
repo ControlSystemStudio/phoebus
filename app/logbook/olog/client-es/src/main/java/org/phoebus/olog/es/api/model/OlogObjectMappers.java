@@ -52,12 +52,16 @@ public class OlogObjectMappers {
         public OlogProperty deserialize(JsonParser jp, DeserializationContext ctxt)
           throws IOException, JsonProcessingException {
             JsonNode node = jp.getCodec().readTree(jp);
+            // TODO throw error if either the property or attribute names are null
             String name = node.get("name").asText();
-            String owner = node.get("owner").asText();
-            String state = node.get("state").asText();
+            String owner = node.get("owner").isNull()? "" : node.get("owner").asText();
+            String state = node.get("state").isNull()? "" : node.get("state").asText();
             Map<String, String> attributes = new HashMap<String, String>();
             node.get("attributes").iterator().forEachRemaining(n -> {
-                attributes.put(n.get("name").asText(), n.get("value").asText());
+                attributes.put(
+                        n.get("name").asText(),
+                        n.get("value").isNull()? "" : n.get("value").asText()
+                );
             });
             return new OlogProperty(name, attributes);
         }
@@ -80,7 +84,7 @@ public class OlogObjectMappers {
                         try {
                             gen.writeStartObject();
                             gen.writeStringField("name", entry.getKey());
-                            gen.writeStringField("value", entry.getValue());
+                            gen.writeStringField("value", entry.getValue() == null ? "" : entry.getValue());
                             gen.writeEndObject();
                         } catch (IOException e) {
                             e.printStackTrace();
