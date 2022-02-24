@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -49,9 +49,13 @@ public class PVAFloatArray extends PVAData implements PVAArray
     {
         if (new_value instanceof PVAFloatArray)
         {
-            final float[] other = ((PVAFloatArray) new_value).value;
+            final float[] other = ((PVAFloatArray) new_value).get();
             value = Arrays.copyOf(other, other.length);
         }
+        else if (new_value instanceof PVADoubleArray)
+            set(Convert.toFloat(((PVADoubleArray) new_value).get()));
+        else if (new_value instanceof double[])
+            set(Convert.toFloat((double[]) new_value));
         else if (new_value instanceof float[])
             set(((float[]) new_value));
         else if (new_value instanceof List)

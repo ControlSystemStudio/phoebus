@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -61,6 +61,10 @@ public class PVAByteArray extends PVAData implements PVAArray
             final byte[] other = ((PVAByteArray) new_value).value;
             value = Arrays.copyOf(other, other.length);
         }
+        else if (new_value instanceof PVADoubleArray)
+            set(Convert.toByte(((PVADoubleArray) new_value).get()));
+        else if (new_value instanceof double[])
+            set(Convert.toByte((double[]) new_value));
         else if (new_value instanceof byte[])
             set(((byte[]) new_value));
         else if (new_value instanceof List)
