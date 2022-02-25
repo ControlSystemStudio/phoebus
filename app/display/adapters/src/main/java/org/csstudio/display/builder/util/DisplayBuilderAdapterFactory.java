@@ -3,16 +3,12 @@ package org.csstudio.display.builder.util;
 import org.csstudio.display.builder.runtime.app.SelectionInfo;
 import org.phoebus.applications.email.EmailEntry;
 import org.phoebus.framework.adapter.AdapterFactory;
-import org.phoebus.logbook.AttachmentImpl;
-import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.*;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
-import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.ui.javafx.Screenshot;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Logger;
 
 import static org.phoebus.logbook.LogEntryImpl.LogEntryBuilder.log;
@@ -59,9 +55,14 @@ public class DisplayBuilderAdapterFactory implements AdapterFactory {
         }
         else if (adapterType.isAssignableFrom(LogEntry.class))
         {
-            LogEntryBuilder log = log().title(LogbookPreferences.auto_title ?
+            LogEntryBuilder log = log()
+                    .title(LogbookPreferences.auto_title ?
                     "Display Screenshot for : " + selectionInfo.getName() : "")
-                                       .appendDescription(getBody(selectionInfo));
+                    .appendDescription(getBody(selectionInfo));
+            Map<String, String> attributes = new HashMap<>();
+            attributes.put("name",selectionInfo.getName());
+            attributes.put("file",selectionInfo.toURI().toString());
+            log.appendProperty(PropertyImpl.of("resource", attributes));
             try
             {
                 final File image_file = selectionInfo.getImage() == null ? null : new Screenshot(selectionInfo.getImage()).writeToTempfile("image");
