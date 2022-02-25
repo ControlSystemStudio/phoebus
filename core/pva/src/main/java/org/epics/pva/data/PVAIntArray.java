@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -61,6 +61,10 @@ public class PVAIntArray extends PVAData implements PVAArray
             final int[] other = ((PVAIntArray) new_value).value;
             value = Arrays.copyOf(other, other.length);
         }
+        else if (new_value instanceof PVADoubleArray)
+            set(Convert.toInt(((PVADoubleArray) new_value).get()));
+        else if (new_value instanceof double[])
+            set(Convert.toInt((double[]) new_value));
         else if (new_value instanceof int[])
             set(((int[]) new_value));
         else if (new_value instanceof List)
