@@ -29,12 +29,7 @@ import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.SplitPane;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -42,16 +37,19 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.olog.ui.write.AttachmentsViewController;
 import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -115,17 +113,23 @@ public class AttachmentsPreviewController {
             if (me.getClickCount() == 2) {
                 Attachment attachment = attachmentListView.getSelectionModel()
                         .getSelectedItem();
-                if(!attachment.getContentType().startsWith("image")){
-                    // If there is no external app configured for the file type, show an error message and return.
+                if(!attachment.getContentType().startsWith("image")) {
+                    // First try to open the file with an internal Phoebus app
+                    AppResourceDescriptor defaultApp = ApplicationLauncherService.findApplication(attachment.getFile().toURI(),true, null);
+                    if(defaultApp != null) {
+                        defaultApp.create(attachment.getFile().toURI());
+                        return;
+                    }
+                    // If not internal apps are found look for external apps
                     String fileName = attachment.getFile().getName();
                     String[] parts = fileName.split("\\.");
                     if(parts.length == 1 || !ApplicationService.getExtensionsHandledByExternalApp().contains(parts[parts.length - 1])){
+                        // If there is no app configured for the file type, show an error message and return.
                         ExceptionDetailsErrorDialog.openError(Messages.PreviewOpenErrorTitle, Messages.PreviewOpenErrorBody, null);
                         return;
                     }
                 }
-                ApplicationLauncherService.openFile(attachment.getFile(),
-                        false, null);
+                ApplicationLauncherService.openFile(attachment.getFile(), false, null);
             }
         });
 
@@ -141,12 +145,28 @@ public class AttachmentsPreviewController {
             }
         });
 
-        ContextMenu contextMenu = new ContextMenu();
-        MenuItem menuItem = new MenuItem(Messages.DownloadSelected);
-        menuItem.setOnAction(actionEvent -> downloadSelectedAttachments());
-        menuItem.disableProperty().bind(Bindings.createBooleanBinding(() -> selectedAttachments.isEmpty(), selectedAttachments));
-        contextMenu.getItems().add(menuItem);
-        attachmentListView.setContextMenu(contextMenu);
+
+        attachmentListView.setOnContextMenuRequested((e) -> {
+            ContextMenu contextMenu = new ContextMenu();
+            MenuItem menuItem = new MenuItem(Messages.DownloadSelected);
+            menuItem.setOnAction(actionEvent -> downloadSelectedAttachments());
+            menuItem.disableProperty().bind(Bindings.createBooleanBinding(() -> selectedAttachments.isEmpty(), selectedAttachments));
+
+            contextMenu.getItems().add(menuItem);
+            URI selectedResource = !selectedAttachments.isEmpty() ? selectedAttachments.get(0).getFile().toURI() : null;
+
+            if (selectedResource != null) {
+                contextMenu.getItems().add(new SeparatorMenuItem());
+                final List<AppResourceDescriptor> applications = ApplicationService.getApplications(selectedResource);
+                applications.forEach( app -> {
+                    MenuItem appMenuItem = new MenuItem(app.getDisplayName());
+                    appMenuItem.setGraphic(ImageCache.getImageView(app.getIconURL()));
+                    appMenuItem.setOnAction(actionEvent -> app.create(selectedResource));
+                    contextMenu.getItems().add(appMenuItem);
+                });
+            }
+            attachmentListView.setContextMenu(contextMenu);
+        });
 
         imagePreview.fitWidthProperty().bind(previewPane.widthProperty());
         imagePreview.fitHeightProperty().bind(previewPane.heightProperty());
