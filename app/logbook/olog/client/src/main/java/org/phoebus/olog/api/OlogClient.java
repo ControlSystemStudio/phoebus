@@ -12,14 +12,7 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 import com.sun.jersey.multipart.FormDataMultiPart;
 import com.sun.jersey.multipart.file.FileDataBodyPart;
 import com.sun.jersey.multipart.impl.MultiPartWriter;
-import org.phoebus.logbook.Attachment;
-import org.phoebus.logbook.LogClient;
-import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.Logbook;
-import org.phoebus.logbook.LogbookException;
-import org.phoebus.logbook.Messages;
-import org.phoebus.logbook.Property;
-import org.phoebus.logbook.Tag;
+import org.phoebus.logbook.*;
 import org.phoebus.security.managers.DummyX509TrustManager;
 
 import javax.net.ssl.HostnameVerifier;
@@ -586,6 +579,12 @@ public class OlogClient implements LogClient {
         return wrappedSubmit(new FindLogs("property", propertyName));
     }
 
+    @Override
+    public SearchResult search(Map<String, String> map) {
+        List<LogEntry> logs = findLogs(map);
+        return SearchResult.of(logs, logs.size());
+    }
+    
     @Override
     public List<LogEntry> findLogs(Map<String, String> map) {
         return wrappedSubmit(new FindLogs(map));
