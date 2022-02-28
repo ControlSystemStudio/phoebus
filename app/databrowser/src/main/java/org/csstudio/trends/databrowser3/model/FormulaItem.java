@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -75,7 +75,7 @@ public class FormulaItem extends ModelItem
     /** Samples of the formula, computed from inputs.
      *  Access must lock samples
      */
-    private final PlotSampleArray samples = new PlotSampleArray();
+    private final FormulaSamples samples = new FormulaSamples();
 
     /** Initialize formula
      *  @param name Name of the Formula item
@@ -285,6 +285,7 @@ public class FormulaItem extends ModelItem
         {
             logger.log(Level.WARNING, "Error computing " + this, ex);
         }
+
         // Update PlotSamples
         samples.set(result);
     }
