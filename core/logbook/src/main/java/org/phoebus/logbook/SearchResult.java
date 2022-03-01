@@ -25,6 +25,15 @@ public class SearchResult {
     private int hitCount;
     private List<LogEntry> logs;
 
+    private SearchResult(List<LogEntry> logs, int hitCount) {
+        this.logs = logs;
+        this.hitCount = hitCount;
+    }
+
+    public static SearchResult of(List<LogEntry> logs, int hits) {
+        return new SearchResult(logs, hits);
+    }
+
     public int getHitCount() {
         return hitCount;
     }

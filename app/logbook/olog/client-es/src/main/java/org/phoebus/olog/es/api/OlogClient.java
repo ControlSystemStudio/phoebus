@@ -311,10 +311,8 @@ public class OlogClient implements LogClient {
                             .accept(MediaType.APPLICATION_JSON)
                             .get(String.class),
                     OlogSearchResult.class);
-            SearchResult searchResult = new SearchResult();
-            searchResult.setHitCount(ologSearchResult.getHitCount());
-            searchResult.setLogs(ologSearchResult.getLogs().stream().collect(Collectors.toList()));
-            return searchResult;
+            return SearchResult.of(ologSearchResult.getLogs().stream().collect(Collectors.toList()),
+                                   ologSearchResult.getHitCount());
         } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
             logger.log(Level.WARNING, "failed to retrieve log entries", e);
             throw new RuntimeException(e);

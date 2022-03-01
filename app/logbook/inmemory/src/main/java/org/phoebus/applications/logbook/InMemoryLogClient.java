@@ -1,6 +1,7 @@
 package org.phoebus.applications.logbook;
 
 import java.io.*;
+import java.net.URLConnection;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -106,7 +107,8 @@ public class InMemoryLogClient implements LogClient{
                 File tempFile = File.createTempFile(prefix, ext);
                 Files.copy(file, tempFile);
                 tempFile.deleteOnExit();
-                return AttachmentImpl.of(tempFile);
+                String mimeType = URLConnection.guessContentTypeFromName(tempFile.getName());
+                return AttachmentImpl.of(tempFile, mimeType != null ? mimeType : ext, false);
             } catch (IOException e) {
                 logger.log(Level.WARNING, "failed to get in memory attachment", e);
                 return null;
@@ -119,6 +121,12 @@ public class InMemoryLogClient implements LogClient{
         logEntries.put(id, logEntry);
 
         return logEntry;
+    }
+
+    @Override
+    public SearchResult search(Map<String, String> map) {
+        List<LogEntry> logs = findLogs(map);
+        return SearchResult.of(logs, logs.size());
     }
 
     @Override
