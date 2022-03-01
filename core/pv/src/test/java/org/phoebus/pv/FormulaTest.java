@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2020-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -222,5 +222,45 @@ public class FormulaTest
         // With formula, typically get initial DISCONNECTED then first value update.
         // With plain but real PV, often get the initial value right away.
         assertEquals(2, updates.get());
+    }
+
+    @Test
+    public void testUpdatingVsConstant() throws Exception
+    {
+        // Formula with input that changes
+        {
+            final PV pv = PVPool.getPV("=`sim://sine`");
+            final CountDownLatch updates = new CountDownLatch(1);
+            final Disposable sub = pv.onValueEvent().subscribe(value ->
+            {
+                System.out.println(pv.getName() + " = " + value);
+                if (! PV.isDisconnected(value))
+                    updates.countDown();
+            });
+
+            final boolean got_value = updates.await(5, TimeUnit.SECONDS);
+            sub.dispose();
+            PVPool.releasePV(pv);
+
+            assertTrue(got_value);
+        }
+
+        // Try again with local PV that does not change
+        {
+            final PV pv = PVPool.getPV("=`loc://constant(42)`");
+            final CountDownLatch updates = new CountDownLatch(1);
+            final Disposable sub = pv.onValueEvent().subscribe(value ->
+            {
+                System.out.println(pv.getName() + " = " + value);
+                if (! PV.isDisconnected(value))
+                    updates.countDown();
+            });
+
+            final boolean got_value = updates.await(5, TimeUnit.SECONDS);
+            sub.dispose();
+            PVPool.releasePV(pv);
+
+            assertTrue(got_value);
+        }
     }
 }
