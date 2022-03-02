@@ -18,6 +18,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
+import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Stop;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
@@ -41,10 +45,6 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Stop;
 
 /** Creates JavaFX item for model widget
  *
@@ -60,15 +60,15 @@ import javafx.scene.paint.Stop;
 @SuppressWarnings("nls")
 public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pane, TemplateInstanceWidget>
 {
-    private static final Background EDIT_TRANSPARENT_BACKGROUND = new Background(new BackgroundFill(
+    public static final Background EDIT_TRANSPARENT_BACKGROUND = new Background(new BackgroundFill(
             new LinearGradient(
-                0, 0, 10, 10, false, CycleMethod.REPEAT,
-                new Stop(0.0, new Color(0.53, 0.52, 0.51, 0.15)),
-                new Stop(0.5, new Color(0.53, 0.52, 0.51, 0.15)),
-                new Stop(0.5, Color.TRANSPARENT),
-                new Stop(1.0, Color.TRANSPARENT)
+                    0, 0, 10, 10, false, CycleMethod.REPEAT,
+                    new Stop(0.0, new Color(0.53, 0.52, 0.51, 0.15)),
+                    new Stop(0.5, new Color(0.53, 0.52, 0.51, 0.15)),
+                    new Stop(0.5, Color.TRANSPARENT),
+                    new Stop(1.0, Color.TRANSPARENT)
             ), CornerRadii.EMPTY, Insets.EMPTY
-        ));
+    ));
 
     private final DirtyFlag dirty_sizes = new DirtyFlag();
     private final DirtyFlag get_size_again = new DirtyFlag(false);
@@ -76,6 +76,7 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
     private final WidgetPropertyListener<List<InstanceProperty>> instancesChangedListener = this::instancesChanged;
     private final WidgetPropertyListener<String> fileChangedListener = this::fileChanged;
     private final WidgetPropertyListener<Macros> macrosChangedListener = this::macrosChanged;
+    private final WidgetPropertyListener<Boolean> transparencyChangeListener = this::transparencyChanged;
 
     /** Has this representation been disposed? */
     private AtomicBoolean disposed = new AtomicBoolean();
@@ -119,7 +120,7 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
         model_widget.propGap().addUntypedPropertyListener(sizesChangedListener);
         model_widget.propHorizontal().addUntypedPropertyListener(sizesChangedListener);
         model_widget.propWrapCount().addUntypedPropertyListener(sizesChangedListener);
-
+        model_widget.propTransparent().addPropertyListener(transparencyChangeListener);
         model_widget.propInstances().addPropertyListener(instancesChangedListener);
 
         model_widget.propFile().addPropertyListener(fileChangedListener);
@@ -354,6 +355,7 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
                     wrapper.propY().setValue(y);
                     wrapper.propWidth().setValue(w);
                     wrapper.propHeight().setValue(h);
+                    wrapper.propTransparent().setValue(model_widget.propTransparent().getValue());
 
                     for (Widget widget : inst.getChildren())
                         wrapper.runtimeChildren().addChild(widget);
@@ -485,5 +487,16 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
             toolkit.disposeRepresentation(em);
 
         super.dispose();
+    }
+
+    /**
+     * Updates transparency property of the instance widgets
+     * @param property Observable property
+     * @param oldValue Previous value
+     * @param newValue New value
+     */
+    private void transparencyChanged(final WidgetProperty<Boolean> property, boolean oldValue, boolean newValue){
+        model_widget.propTransparent().setValue(newValue);
+        scheduleInstanceUpdate();
     }
 }
