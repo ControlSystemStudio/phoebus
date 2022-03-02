@@ -10,6 +10,7 @@ package org.csstudio.display.builder.model.widgets;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFile;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontal;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMacros;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propTransparent;
 
 import java.util.Arrays;
 import java.util.List;
@@ -122,7 +123,7 @@ public class TemplateInstanceWidget extends VisibleWidget
     private volatile WidgetProperty<Integer> gap;
     private volatile WidgetProperty<Integer> wrap_count;
     private volatile WidgetProperty<DisplayModel> embedded_model;
-
+    private volatile WidgetProperty<Boolean> transparent;
 
     public TemplateInstanceWidget()
     {
@@ -139,6 +140,7 @@ public class TemplateInstanceWidget extends VisibleWidget
         properties.add(gap = propGap.createProperty(this, 10));
         properties.add(wrap_count = propWrapCount.createProperty(this, 0));
         properties.add(embedded_model = runtimeModel.createProperty(this, null));
+        properties.add(transparent = propTransparent.createProperty(this, false));
     }
 
     /** @return 'file' property */
@@ -175,5 +177,12 @@ public class TemplateInstanceWidget extends VisibleWidget
     public WidgetProperty<DisplayModel> runtimePropEmbeddedModel()
     {
         return embedded_model;
+    }
+
+    /**
+     * @return The transparent property of the widget instances.
+     */
+    public WidgetProperty<Boolean> propTransparent(){
+        return transparent;
     }
 }
