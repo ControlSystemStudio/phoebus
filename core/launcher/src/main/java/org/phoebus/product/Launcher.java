@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -27,12 +28,26 @@ import javafx.application.Application;
 @SuppressWarnings("nls")
 public class Launcher
 {
-    public static final Logger logger = Logger.getLogger(Launcher.class.getName());
-
     public static void main(final String[] original_args) throws Exception
     {
         LogManager.getLogManager().readConfiguration(Launcher.class.getResourceAsStream("/logging.properties"));
+        final Logger logger = Logger.getLogger(Launcher.class.getName());
 
+        // Can't change default charset, but warn if it's not UTF-8.
+        // Config files for displays, data browser etc. explicitly use XMLUtil.ENCODING = "UTF-8".
+        // EPICS database files, strings in Channel Access or PVAccess are expected to use UTF-8.
+        // New Java API like java.nio.file.Files defaults to UTF-8,
+        // but library code including JCA simply calls new String(byte[]).
+        // The underlying Charset.defaultCharset() checks "file.encoding",
+        // but this happens at an early stage of VM startup.
+        // Calling System.setPropertu("file.encoding", "UTF-8") in main() is already too late,
+        // must add -D"file.encoding=UTF-8" to java start up or JAVA_TOOL_OPTIONS.
+        final Charset cs = Charset.defaultCharset();
+        if (! "UTF-8".equalsIgnoreCase(cs.displayName()))
+        {
+            logger.severe("Default charset is " + cs.displayName() + " instead of UTF-8.");
+            logger.severe("Add    -D\"file.encoding=UTF-8\"    to java command line or JAVA_TOOL_OPTIONS");
+        }
         Locations.initialize();
         // Check for site-specific settings.ini bundled into distribution
         // before potentially adding command-line settings.
