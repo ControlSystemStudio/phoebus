@@ -68,6 +68,8 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
      */
     final private List<TraceImpl<XTYPE>> traces = new CopyOnWriteArrayList<>();
 
+    private Rectangle region;
+
     /** Construct a new Y axis.
      *  <p>
      *  Note that end users will typically <b>not</b> create new Y axes,
@@ -186,7 +188,25 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
         if (! isVisible())
             return 0;
 
+        this.region = region;
         gc.setFont(label_font);
+
+        FontMetrics metrics = gc.getFontMetrics();
+
+        final int x_sep = metrics.getHeight();
+
+        int lines = computeLabelLayout(gc);
+
+        gc.setFont(scale_font);
+        metrics = gc.getFontMetrics();
+        final int scale_size = metrics.getHeight();
+
+        // Width of labels, width of (rotated) axis text, tick markers.
+        return lines * x_sep + scale_size + TICK_LENGTH;
+    }
+
+    private int computeLabelLayout(Graphics2D gc){
+
         FontMetrics metrics = gc.getFontMetrics();
         final int x_sep = metrics.getHeight();
         // Start layout of labels at x=0, 'left',
@@ -194,8 +214,6 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
         // Later update these relative x positions based on 'left' or 'right' axis.
         int x = 0;
         int lines = 0;
-
-        // Compute layout of labels
         label_provider.start();
         label_x.clear();
         label_y.clear();
@@ -205,7 +223,6 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
             label_y_separation = metrics.stringWidth(label_provider.getSeparator());
             label_length.add(metrics.stringWidth(label_provider.getLabel()));
         }
-        while (label_provider.hasNext());
 
         // Compute location of each label
         int next = 0;
@@ -248,13 +265,7 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
         final int x_correction = is_right ? region.x + region.width - lines*x_sep : region.x;
         for (int i=label_x.size()-1; i>=0; --i)
             label_x.set(i, label_x.get(i) + x_correction);
-
-        gc.setFont(scale_font);
-        metrics = gc.getFontMetrics();
-        final int scale_size = metrics.getHeight();
-
-        // Width of labels, width of (rotated) axis text, tick markers.
-        return lines * x_sep + scale_size + TICK_LENGTH;
+        return lines;
     }
 
     /** {@inheritDoc} */
@@ -352,6 +363,9 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
     {
         if (label_y == null)
             return;
+
+        // Need to compute layout since labels may have changed in case unit string was added when PV connects.
+        computeLabelLayout(gc);
         final Color old_fg = gc.getColor();
         label_provider.start();
         int i = 0;

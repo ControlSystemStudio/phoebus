@@ -67,8 +67,20 @@ public class LegendPart<XTYPE extends Comparable<XTYPE>> extends PlotPart
         gc.setFont(font);
         final FontMetrics metrics = gc.getFontMetrics();
         base_offset = metrics.getLeading() + metrics.getAscent();
-        final int max_height = metrics.getHeight();
 
+        computeGrid(gc, traces);
+
+        gc.setFont(orig_font);
+
+        final int items = traces.size();
+        final int items_per_row = Math.max(1, bounds_width / grid_x); // Round down, counting full items
+        final int rows = (items + items_per_row-1) / items_per_row;   // Round up
+        return rows * grid_y;
+    }
+
+    private void computeGrid(final Graphics2D gc, final List<Trace<XTYPE>> traces){
+        final FontMetrics metrics = gc.getFontMetrics();
+        final int max_height = metrics.getHeight();
         int max_width = 1; // Start with 1 pixel to avoid later div-by-0
         for (Trace<XTYPE> trace : traces)
         {
@@ -82,13 +94,6 @@ public class LegendPart<XTYPE extends Comparable<XTYPE>> extends PlotPart
         // Arrange in grid with some extra space
         grid_x = max_width + max_height / 2;
         grid_y = max_height;
-
-        gc.setFont(orig_font);
-
-        final int items = traces.size();
-        final int items_per_row = Math.max(1, bounds_width / grid_x); // Round down, counting full items
-        final int rows = (items + items_per_row-1) / items_per_row;   // Round up
-        return rows * grid_y;
     }
 
     /** Paint the legend
@@ -106,6 +111,9 @@ public class LegendPart<XTYPE extends Comparable<XTYPE>> extends PlotPart
         // Anything to draw?
         if (bounds.height <= 0)
         	return;
+
+        // Need to compute grid since labels may have changed in case unit string was added when PV connects.
+        computeGrid(gc, traces);
 
         final Color orig_color = gc.getColor();
         final Font orig_font = gc.getFont();
