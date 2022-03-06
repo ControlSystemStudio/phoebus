@@ -112,12 +112,13 @@ public class LegendPart<XTYPE extends Comparable<XTYPE>> extends PlotPart
         if (bounds.height <= 0)
         	return;
 
-        // Need to compute grid since labels may have changed in case unit string was added when PV connects.
-        computeGrid(gc, traces);
-
         final Color orig_color = gc.getColor();
         final Font orig_font = gc.getFont();
         gc.setFont(font);
+
+        // Need to compute grid since labels may have changed in case unit string was added when PV connects.
+        computeGrid(gc, traces);
+        
         super.paint(gc);
 
         int x = bounds.x, y = bounds.y + base_offset;
