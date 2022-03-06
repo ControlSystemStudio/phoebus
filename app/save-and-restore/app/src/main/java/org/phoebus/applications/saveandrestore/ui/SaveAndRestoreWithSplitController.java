@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Stack;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class SaveAndRestoreWithSplitController extends SaveAndRestoreController {
@@ -312,5 +313,29 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
     protected void tagWithComment(ObservableList<MenuItem> tagList) {
         Node node = listView.getSelectionModel().getSelectedItem();
         tagWithComment(node, tagList);
+    }
+
+    /**
+     * Toggles the "golden" property of a snapshot as selected from the tree view.
+     */
+    @Override
+    protected void toggleGoldenProperty() {
+        toggleGoldenProperty(listView.getSelectionModel().getSelectedItem());
+    }
+
+    /**
+     * Toggles the "golden" property of the specified snapshot {@link Node}
+     *
+     * @param node The snapshot {@link Node} on which to toggle the "golden" property.
+     */
+    @Override
+    protected void toggleGoldenProperty(Node node) {
+        try {
+            Node updatedNode = saveAndRestoreService.tagSnapshotAsGolden(node,
+                    !Boolean.parseBoolean(node.getProperty("golden")));
+            nodeChanged(updatedNode);
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Failed to toggle golden property", e);
+        }
     }
 }

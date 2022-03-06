@@ -369,7 +369,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      *
      * @param node The snapshot {@link Node} on which to toggle the "golden" property.
      */
-    private void toggleGoldenProperty(Node node) {
+    protected void toggleGoldenProperty(Node node) {
         try {
             Node updatedNode = saveAndRestoreService.tagSnapshotAsGolden(node,
                     !Boolean.parseBoolean(node.getProperty("golden")));
