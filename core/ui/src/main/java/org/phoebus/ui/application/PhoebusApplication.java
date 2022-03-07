@@ -341,7 +341,7 @@ public class PhoebusApplication extends Application {
         // If there's nothing to restore from a previous instance,
         // start with welcome
         monitor.updateTaskName(Messages.MonitorTaskTabs);
-        if (!application_parameters.contains("-clean") && !restoreState(memento))
+        if (!application_parameters.remove("-layout") && !application_parameters.contains("-clean") && !restoreState(memento))
             new Welcome().create();
         monitor.worked(1);
 
@@ -1062,9 +1062,8 @@ public class PhoebusApplication extends Application {
                     if (i >= parameters.size() - 1)
                         throw new Exception("Missing /path/to/Example.memento for -layout option");
                     memfile = new File(parameters.get(i + 1));
-                    // Remove -layout and path because they have been handled
+                    // Remove path because it has been been handled, keep -layout to decide on welcome
                     parameters.remove(i + 1);
-                    parameters.remove(i);
                     break;
                 }
             if (memfile.canRead()) {
