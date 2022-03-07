@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2021-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,6 +26,10 @@ import org.junit.Test;
 @SuppressWarnings("nls")
 public class NetworkTest
 {
+    // If running on a host that does not support IPv6,
+    // ignore the checks that require a local "::1" IPv6 address
+    private static boolean ignore_local_ipv6 = Boolean.parseBoolean(System.getProperty("ignore_local_ipv6"));
+
     @Test
     public void testBroadcastAddresses() throws Exception
     {
@@ -112,7 +116,8 @@ public class NetworkTest
                                           .map(iface -> iface.getHostAddress())
                                           .collect(Collectors.joining(", "));
             System.out.println("Interface addresses: " + iface_addr);
-            assertTrue(iface_addr.contains("0:0:0:0:0:0:0:1"));
+            if (! ignore_local_ipv6)
+                assertTrue(iface_addr.contains("0:0:0:0:0:0:0:1"));
             assertFalse(addr.isBroadcast());
         }
     }
@@ -125,17 +130,22 @@ public class NetworkTest
         final List<AddressInfo> infos = Network.parseAddresses(spec, PVASettings.EPICS_PVA_BROADCAST_PORT);
         for (AddressInfo info : infos)
             System.out.println(info);
-        assertEquals(4, infos.size());
+        if (! ignore_local_ipv6)
+            assertEquals(4, infos.size());
 
         assertTrue(infos.get(0).getAddress().getAddress() instanceof Inet4Address);
         assertTrue(infos.get(1).getAddress().getAddress() instanceof Inet6Address);
         assertTrue(infos.get(2).getAddress().getAddress() instanceof Inet4Address);
-        assertTrue(infos.get(3).getAddress().getAddress() instanceof Inet6Address);
 
         assertTrue(((Inet4Address)infos.get(2).getAddress().getAddress()).isMulticastAddress());
-        assertTrue(((Inet6Address)infos.get(3).getAddress().getAddress()).isMulticastAddress());
 
         assertTrue(infos.get(2).getInterface() != null);
-        assertTrue(infos.get(3).getInterface() != null);
+
+        if (! ignore_local_ipv6)
+        {
+             assertTrue(infos.get(3).getAddress().getAddress() instanceof Inet6Address);
+             assertTrue(((Inet6Address)infos.get(3).getAddress().getAddress()).isMulticastAddress());
+             assertTrue(infos.get(3).getInterface() != null);
+        }
     }
 }
