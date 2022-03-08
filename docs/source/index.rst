@@ -36,6 +36,7 @@ Developer Documentation:
    localization
    preference_properties
    changelog
+   eclipse_debugging
 
 Appendix
 ========
