@@ -341,7 +341,7 @@ public class PhoebusApplication extends Application {
         // If there's nothing to restore from a previous instance,
         // start with welcome
         monitor.updateTaskName(Messages.MonitorTaskTabs);
-        if (!application_parameters.remove("-layout") && !application_parameters.contains("-clean") && !restoreState(memento))
+        if (!application_parameters.contains("-clean") && !restoreState(memento) && !application_parameters.remove("-layout"))
             new Welcome().create();
         monitor.worked(1);
 
