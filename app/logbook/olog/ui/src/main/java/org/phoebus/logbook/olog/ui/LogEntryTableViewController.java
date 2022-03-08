@@ -45,14 +45,13 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogbookException;
-import org.phoebus.logbook.Property;
 import org.phoebus.logbook.SearchResult;
 import org.phoebus.logbook.olog.ui.query.OlogQuery;
 import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
-import org.phoebus.ui.javafx.PlatformInfo;
 
 import java.io.IOException;
 import java.util.List;
@@ -72,6 +71,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     @FXML
     private Button resize;
+    @FXML
+    private Button searchDescendingButton;
+    @FXML
+    private Button searchAscendingButton;
     @FXML
     private ComboBox<OlogQuery> query;
 
@@ -126,7 +129,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
         this.searchParameters = searchParameters;
     }
 
-    private final SimpleBooleanProperty searchInProgress = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty sortAscending = new SimpleBooleanProperty(false);
 
     private final SimpleIntegerProperty hitCountProperty = new SimpleIntegerProperty(0);
@@ -144,6 +146,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     private SearchParameters searchParameters;
 
+    private LogEntry selectedLogEntry;
 
     @FXML
     public void initialize() {
@@ -182,6 +185,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         tableView.setEditable(false);
         tableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if(newValue != null && tableView.getSelectionModel().getSelectedItems().size() == 1){
+                selectedLogEntry = newValue.getLogEntry();
                 logEntryDisplayController.setLogEntry(newValue.getLogEntry());
             }
             List<LogEntry> logEntries = tableView.getSelectionModel().getSelectedItems()
@@ -273,12 +277,13 @@ public class LogEntryTableViewController extends LogbookSearchController {
             }
         });
         query.getEditor().setText(ologQueries.get(0).getQuery());
-        // Query set -> search is triggered!
         query.getSelectionModel().select(ologQueries.get(0));
         searchParameters.setQuery(ologQueries.get(0).getQuery());
 
-        search();
+        searchAscendingButton.disableProperty().bind(searchInProgress);
+        searchDescendingButton.disableProperty().bind(searchInProgress);
 
+        search();
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored
@@ -330,35 +335,47 @@ public class LogEntryTableViewController extends LogbookSearchController {
         search();
     }
 
-    public synchronized void search() {
+    /**
+     * Performs a single search based on the current query. If the search completes successfully,
+     * the UI is updated and a periodic search is launched using the same query. If on the other hand
+     * the search fails (service off-line or invalid query), a periodic search is NOT launched.
+     */
+    public void search() {
         // In case the page size text field is empty, or the value is zero, set the page size to the default
         if ("".equals(pageSizeTextField.getText()) || Integer.parseInt(pageSizeTextField.getText()) == 0) {
             pageSizeTextField.setText(Integer.toString(LogbookUIPreferences.search_result_page_size));
         }
 
-        // Need to remove the listener as a new search would be invoked when combo box list is updated
-        // with the refreshed list of queries
-        //query.getSelectionModel().selectedItemProperty().removeListener(onActionListener);
+        searchInProgress.set(true);
 
-        OlogQuery ologQuery = ologQueryManager.getOrAddQuery(query.getEditor().getText());
-
+        String queryString = query.getEditor().getText();
         // Construct the query parameters from the search field string. Note that some keys
         // are treated as "hidden" and removed in the returned map.
-        Map<String, String> params = LogbookQueryUtil.parseHumanReadableQueryString(ologQuery.getQuery());
+
+        Map<String, String> params =
+                LogbookQueryUtil.parseHumanReadableQueryString(ologQueryManager.getOrAddQuery(queryString).getQuery());
         params.put("sort", sortAscending.get() ? "up" : "down");
         params.put("from", Integer.toString(pagination.getCurrentPageIndex() * pageSizeProperty.get()));
         params.put("size", Integer.toString(pageSizeProperty.get()));
 
         searchInProgress.set(true);
-
-        super.search(params, (inProgress) -> {
-            searchInProgress.set(inProgress);
-            List<OlogQuery> queries = ologQueryManager.getQueries();
-            Platform.runLater(() -> {
-                ologQueries.setAll(queries);
-                query.getSelectionModel().select(ologQueries.get(0));
-            });
-        });
+        logger.log(Level.INFO, "Single search: " + queryString);
+        search(params,
+                searchResult1 -> {
+                    searchInProgress.set(false);
+                    setSearchResult(searchResult1);
+                    logger.log(Level.INFO, "Starting periodic search: " + queryString);
+                    periodicSearch(params, searchResult -> setSearchResult(searchResult));
+                    List<OlogQuery> queries = ologQueryManager.getQueries();
+                    Platform.runLater(() -> {
+                        ologQueries.setAll(queries);
+                        query.getSelectionModel().select(ologQueries.get(0));
+                    });
+                },
+                (msg, ex) -> {
+                    searchInProgress.set(false);
+                    ExceptionDetailsErrorDialog.openError("Logbook Search Error", ex.getMessage(), ex);
+                });
     }
 
     @Override
@@ -366,10 +383,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
         throw new RuntimeException(new UnsupportedOperationException());
     }
 
-    @Override
-    public void setSearchResult(SearchResult searchResult) {
+    private void setSearchResult(SearchResult searchResult) {
         this.searchResult = searchResult;
         hitCountProperty.set(searchResult.getHitCount());
+        pageCountProperty.set(1 + (hitCountProperty.get() / pageSizeProperty.get()));
         refresh();
     }
 
@@ -387,11 +404,16 @@ public class LogEntryTableViewController extends LogbookSearchController {
             ObservableList<TableViewListItem> logsList = FXCollections.observableArrayList();
             logsList.addAll(searchResult.getLogs().stream().map(le -> new TableViewListItem(le, showDetails.get())).collect(Collectors.toList()));
             tableView.setItems(logsList);
-            if (logsList.size() > 0) {
-                tableView.getSelectionModel().select(logsList.get(0));
+            // This will ensure that if an entry was selected, it stays selected after the list has been
+            // updated from the search result, even if it is empty.
+            if(selectedLogEntry != null){
+                for(TableViewListItem item : tableView.getItems()){
+                    if(item.getLogEntry().getId().equals(selectedLogEntry.getId())){
+                        Platform.runLater(() -> tableView.getSelectionModel().select(item));
+                        break;
+                    }
+                }
             }
-            hitCountProperty.set(searchResult.getHitCount());
-            pageCountProperty.set(1 + (hitCountProperty.get() / pageSizeProperty.get()));
         }
     }
 
@@ -400,7 +422,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 selectedLogEntries.stream().map(LogEntry::getId).collect(Collectors.toList());
         JobManager.schedule("Group log entries", monitor -> {
             try {
-                getClient().groupLogEntries(logEntryIds);
+                client.groupLogEntries(logEntryIds);
                 search();
             } catch (LogbookException e) {
                 logger.log(Level.INFO, "Unable to create log entry group from selection");

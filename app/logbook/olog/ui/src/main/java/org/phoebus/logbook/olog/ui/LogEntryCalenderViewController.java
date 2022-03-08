@@ -35,6 +35,7 @@ import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.SearchResult;
 import org.phoebus.logbook.olog.ui.query.OlogQuery;
 import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import java.net.URL;
 import java.time.LocalDateTime;
@@ -87,8 +88,6 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
 
     private final OlogQueryManager ologQueryManager;
     private final ObservableList<OlogQuery> ologQueries = FXCollections.observableArrayList();
-    private ChangeListener<OlogQuery> onActionListener;
-
     private SearchParameters searchParameters;
 
     public LogEntryCalenderViewController(LogClient logClient, OlogQueryManager ologQueryManager, SearchParameters searchParameters) {
@@ -129,11 +128,11 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                     loader.setControllerFactory(clazz -> {
                         try {
                             if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {
-                                return clazz.getConstructor(LogClient.class).newInstance(getClient());
+                                return clazz.getConstructor(LogClient.class).newInstance(client);
                             } else if (clazz.isAssignableFrom(AttachmentsPreviewController.class)) {
                                 return clazz.getConstructor().newInstance();
                             } else if (clazz.isAssignableFrom(LogEntryDisplayController.class)) {
-                                return clazz.getConstructor(LogClient.class).newInstance(getClient());
+                                return clazz.getConstructor(LogClient.class).newInstance(client);
                             } else if (clazz.isAssignableFrom(LogPropertiesController.class)) {
                                 return clazz.getConstructor().newInstance();
                             }
@@ -181,11 +180,6 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
 
         query.itemsProperty().bind(new SimpleObjectProperty<>(ologQueries));
 
-        // NOTE: the listener will ensure that whenever user chooses a query from the drop-down,
-        // or when the selected query is set in code, a new search is triggered.
-        onActionListener = (observable, oldValue, newValue) -> search();
-
-        query.getSelectionModel().selectedItemProperty().addListener(onActionListener);
         query.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
                 // Query set -> search is triggered!
@@ -197,6 +191,10 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
         query.getSelectionModel().select(ologQueries.get(0));
 
         resize.setText(">");
+
+        search.disableProperty().bind(searchInProgress);
+
+        search();
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored
@@ -231,7 +229,6 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                     resize.setText("<");
                     moving.set(false);
                     query.disableProperty().set(true);
-                    //advancedSearchViewController.updateSearchParamsFromQueryString(query.getEditor().getText());
                 });
             }
         }
@@ -239,22 +236,27 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
 
     @FXML
     public void search() {
-        // Need to remove the listener as a new search would be invoked when combo box list is updated
-        // with the refreshed list of queries
-        query.getSelectionModel().selectedItemProperty().removeListener(onActionListener);
-        OlogQuery ologQuery = ologQueryManager.getOrAddQuery(query.getEditor().getText());
-        Map<String, String> params = LogbookQueryUtil.parseHumanReadableQueryString(ologQuery.getQuery());
-        // parse the various time representations to Instant
-        super.search(params, inProgress -> {
-            List<OlogQuery> queries = ologQueryManager.getQueries();
-            Platform.runLater(() -> {
-                ologQueries.setAll(queries);
-                // Top-most query is the one used in the search.
-                query.getSelectionModel().select(ologQueries.get(0));
-                // Add the listener
-                query.getSelectionModel().selectedItemProperty().addListener(onActionListener);
-            });
-        });
+        String queryString = query.getEditor().getText();
+        Map<String, String> params =
+                LogbookQueryUtil.parseHumanReadableQueryString(ologQueryManager.getOrAddQuery(queryString).getQuery());
+
+        logger.log(Level.INFO, "Single search: " + queryString);
+        search(params,
+                searchResult1 -> {
+                    searchInProgress.set(false);
+                    setSearchResult(searchResult1);
+                    logger.log(Level.INFO, "Starting periodic search: " + queryString);
+                    periodicSearch(params, searchResult -> setSearchResult(searchResult));
+                    List<OlogQuery> queries = ologQueryManager.getQueries();
+                    Platform.runLater(() -> {
+                        ologQueries.setAll(queries);
+                        query.getSelectionModel().select(ologQueries.get(0));
+                    });
+                },
+                (msg, ex) -> {
+                    searchInProgress.set(false);
+                    ExceptionDetailsErrorDialog.openError("Logbook Search Error", ex.getMessage(), ex);
+                });
     }
 
     public String getQuery() {
@@ -299,22 +301,29 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
             }
 
         }));
-        agenda.appointments().clear();
-        agenda.appointments().setAll(map.keySet());
+        Platform.runLater(() -> {
+            agenda.appointments().clear();
+            agenda.appointments().setAll(map.keySet());
+        });
     }
 
     private List<String> getLogbookNames() {
         try {
-            return getClient().listLogbooks().stream().map(l -> l.getName()).collect(Collectors.toList());
+            return client.listLogbooks().stream().map(l -> l.getName()).collect(Collectors.toList());
         } catch (Exception e) {
             logger.log(Level.INFO, "Unable to retireve logbook names", e);
             return null;
         }
     }
 
-    @Override
-    public void setSearchResult(SearchResult searchResult) {
-        setLogs(searchResult.getLogs());
+    private void setSearchResult(SearchResult searchResult) {
+        setLogs(searchResult.getLogs());List<OlogQuery> queries = ologQueryManager.getQueries();
+        Platform.runLater(() -> {
+            ologQueries.setAll(queries);
+            // Top-most query is the one used in the search.
+            query.getSelectionModel().select(ologQueries.get(0));
+            // Add the listener
+        });
     }
 
     private void configureComboBox() {

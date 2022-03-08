@@ -73,6 +73,9 @@ public class LogEntryCalender implements AppInstance {
                 log.log(Level.SEVERE, "Failed to acquire a valid logbook client");
             }
             tab = new DockItem(this, loader.getRoot());
+            tab.setOnClosed(event -> {
+                controller.shutdown();
+            });
             DockPane.getActiveDockPane().addTab(tab);
         } catch (IOException e)
         {
