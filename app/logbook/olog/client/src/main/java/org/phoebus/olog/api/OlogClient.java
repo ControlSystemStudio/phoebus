@@ -14,6 +14,7 @@ import com.sun.jersey.multipart.file.FileDataBodyPart;
 import com.sun.jersey.multipart.impl.MultiPartWriter;
 import org.phoebus.logbook.*;
 import org.phoebus.security.managers.DummyX509TrustManager;
+import org.phoebus.util.time.TimeParser;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -30,6 +31,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
+import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -46,6 +49,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import static org.phoebus.util.time.TimestampFormats.MILLI_FORMAT;
 
 /**
  * A logbook client to tne Olog logbook service
@@ -617,6 +622,22 @@ public class OlogClient implements LogClient {
         @Override
         public List<LogEntry> call() throws Exception {
             List<LogEntry> logs = new ArrayList<LogEntry>();
+            // Map Phoebus logbook search parameters to Olog ones
+            // desc, title -> search
+            // size -> limit
+            if(map.containsKey("desc")) {
+                map.put("search", map.get("desc"));
+            }
+            if(map.containsKey("size")) {
+                map.put("limit", map.get("size"));
+            }
+            if(map.containsKey("start")) {
+                map.putSingle("start", parseTemporalValue(map.getFirst("start")));
+            }
+            if(map.containsKey("end")) {
+                map.putSingle("end", parseTemporalValue(map.getFirst("end")));
+            }
+
             XmlLogs xmlLogs = service
                     .path("logs")
                     .queryParams(map)
@@ -646,6 +667,16 @@ public class OlogClient implements LogClient {
             }
             return Collections.unmodifiableList(logs);
         }
+    }
+
+    private static String parseTemporalValue(String value) {
+        Object time = TimeParser.parseInstantOrTemporalAmount(value);
+        if (time instanceof Instant) {
+            return MILLI_FORMAT.format((Instant) time);
+        } else if (time instanceof TemporalAmount) {
+            return MILLI_FORMAT.format(Instant.now().minus((TemporalAmount) time));
+        }
+        return "";
     }
 
     private <T> T wrappedSubmit(Callable<T> callable) {
