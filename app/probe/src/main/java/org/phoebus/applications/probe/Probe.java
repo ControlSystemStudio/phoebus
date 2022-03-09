@@ -1,6 +1,7 @@
 package org.phoebus.applications.probe;
 
 import java.net.URI;
+import java.net.URL;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,6 +35,12 @@ public class Probe implements AppResourceDescriptor {
     @Override
     public String getDisplayName() {
         return DISPLAYNAME;
+    }
+
+    @Override
+    public URL getIconURL()
+    {
+        return getClass().getResource("/icons/probe.png");
     }
 
     @Override
