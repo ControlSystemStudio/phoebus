@@ -27,7 +27,6 @@ public class LogbookSearchJob extends JobRunnableWithCancel {
     private final Map<String, String> searchMap;
     private final Consumer<SearchResult> logEntryHandler;
     private final BiConsumer<String, Exception> errorHandler;
-    private final Consumer<Boolean> progressHandler;
 
     /**
      * Submit a logbook search query
@@ -38,20 +37,18 @@ public class LogbookSearchJob extends JobRunnableWithCancel {
      * @return a logbook search job
      */
     public static Job submit(LogClient client, final Map<String, String> searchMap,
-                             final Consumer<SearchResult> logEntryHandler, final BiConsumer<String, Exception> errorHandler,
-                             Consumer<Boolean> progressHandler) {
+                             final Consumer<SearchResult> logEntryHandler, final BiConsumer<String, Exception> errorHandler) {
         return JobManager.schedule("searching logbook for : " + searchMap,
-                new LogbookSearchJob(client, searchMap, logEntryHandler, errorHandler, progressHandler));
+                new LogbookSearchJob(client, searchMap, logEntryHandler, errorHandler));
     }
 
     private LogbookSearchJob(LogClient client, Map<String, String> searchMap, Consumer<SearchResult> logEntryHandler,
-            BiConsumer<String, Exception> errorHandler, Consumer<Boolean> progressHandler) {
+            BiConsumer<String, Exception> errorHandler) {
         super();
         this.client = client;
         this.searchMap = searchMap;
         this.logEntryHandler = logEntryHandler;
         this.errorHandler = errorHandler;
-        this.progressHandler = progressHandler;
     }
 
     @Override
@@ -64,16 +61,10 @@ public class LogbookSearchJob extends JobRunnableWithCancel {
         return () -> {
             try {
                 SearchResult searchResult = client.search(searchMap);
-                if(progressHandler != null){
-                    progressHandler.accept(false);
-                }
                 logEntryHandler.accept(searchResult);
             } catch (Exception exception) {
                 Logger.getLogger(LogbookSearchJob.class.getName())
                         .log(Level.SEVERE, "Failed to obtain logs", exception);
-                if(progressHandler != null){
-                    progressHandler.accept(false);
-                }
                 errorHandler.accept(null, exception);
             }
         };

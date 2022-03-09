@@ -162,6 +162,17 @@ The navigation buttons are not rendered if hit count less or equal to the page s
 
 .. _preferences:
 
+Periodic Search
+^^^^^^^^^^^^^^^
+
+When a user-initiated search request has completed, a background task is launched to repeatedly (once every 30 seconds) perform a new search
+using the same search query. If the user edits the query to launch a new search request, the current periodic search is
+aborted and re-launched when the search request completes.
+
+The periodic search feature will consequently keep the list of matching queries updated when new log entries matching the current query are added.
+
+Any failure in a search request - whether manually triggered by the user or by the background task - will abort the
+periodic search. User will need to trigger another search request to restart the process.
 
 Attachment Preview
 ------------------

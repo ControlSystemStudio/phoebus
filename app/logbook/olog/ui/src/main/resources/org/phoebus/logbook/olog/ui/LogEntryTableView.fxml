@@ -54,7 +54,7 @@
                                         <Insets left="5.0" />
                                     </GridPane.margin>
                                 </Label>
-                                <Button fx:id="search" mnemonicParsing="false" onAction="#searchDescending" GridPane.columnIndex="4">
+                                <Button fx:id="searchDescendingButton" mnemonicParsing="false" onAction="#searchDescending" GridPane.columnIndex="4">
                                     <GridPane.margin>
                                         <Insets left="3.0" right="3.0" />
                                     </GridPane.margin>
@@ -67,7 +67,7 @@
                                         <Tooltip text="%SortDescending" />
                                     </tooltip>
                                 </Button>
-                                <Button mnemonicParsing="false" onAction="#searchAscending" GridPane.columnIndex="5">
+                                <Button fx:id="searchAscendingButton" mnemonicParsing="false" onAction="#searchAscending" GridPane.columnIndex="5">
                                     <graphic>
                                         <ImageView fx:id="searchAscendingImageView" fitHeight="18.0" fitWidth="18.0">
                                             <!-- Image not set here as this crashes the SceneBuilder -->
