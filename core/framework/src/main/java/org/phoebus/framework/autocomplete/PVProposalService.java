@@ -11,7 +11,7 @@ import java.util.ServiceLoader;
 
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.spi.PVProposalProvider;
-import org.phoebus.framework.workbench.WorkbenchPreferences;
+import org.phoebus.framework.autocomplete.AutocompletePreferences;
 
 /** Autocompletion Service for PVs
  *  @author Kay Kasemir
@@ -24,7 +24,7 @@ public class PVProposalService extends ProposalService
     private PVProposalService()
     {
         // Enable built-in proposal providers
-        final PreferencesReader prefs = new PreferencesReader(WorkbenchPreferences.class, "/autocomplete_preferences.properties");
+        final PreferencesReader prefs = new PreferencesReader(AutocompletePreferences.class, "/autocomplete_preferences.properties");
         if (prefs.getBoolean("enable_loc_pv_proposals"))
             providers.add(LocProposalProvider.INSTANCE);
         if (prefs.getBoolean("enable_sim_pv_proposals"))
