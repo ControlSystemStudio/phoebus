@@ -153,7 +153,6 @@ public class ModelReader
      */
     public DisplayModel readModel() throws Exception
     {
-        long startedAt = System.nanoTime();
         final DisplayModel model = new DisplayModel();
 
         model.setUserData(DisplayModel.USER_DATA_INPUT_VERSION, version);
@@ -171,8 +170,6 @@ public class ModelReader
         if (widget_errors_during_parse > 0)
             logger.log(Level.SEVERE, "There were " + widget_errors_during_parse + " error(s) during loading display from " + (xml_file != null ? xml_file : "stream"));
         model.setReaderResult(this);
-        long endedAt = System.nanoTime();
-        System.out.println(endedAt + " Model " + model.getName() + " loaded in " + (endedAt - startedAt) / 1000000. + " ms");
         return model;
     }
 
