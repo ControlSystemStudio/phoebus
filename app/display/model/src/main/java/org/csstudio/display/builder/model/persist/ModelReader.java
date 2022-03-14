@@ -114,6 +114,19 @@ public class ModelReader
         this.xml_file = xml_file;
     }
 
+    /** Create reader.
+     *  @param elementRoot XML DOM element root to read from
+     *  @param xml_file Name of input file. Can be null if not applicable
+     *  @throws Exception on error
+     */
+    public ModelReader(final Element elementRoot, final String xml_file) throws Exception
+    {
+        root = elementRoot;
+        version = readVersion(root);
+        widget_errors_during_parse = 0;
+        this.xml_file = xml_file;
+    }
+
     /** @return XML root element for custom access */
     public Element getRoot()
     {
