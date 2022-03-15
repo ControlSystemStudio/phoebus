@@ -28,6 +28,10 @@ import org.phoebus.framework.rdb.RDBInfo;
  *  are created, and only new data is added after checking
  *  the most recent sample that's already in the destination database.
  *
+ *  Run from within IDE, or start product as
+ *
+ *  phoebus.sh -main org.csstudio.archive.ts.util.CopyRDBToTimestampDB /path/to/copy_rdb_to_ts.ini
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
