@@ -20,6 +20,7 @@
     <module>logbook</module>
     <module>rtplot</module>
     <module>databrowser</module>
+    <module>databrowser-timescale</module>
     <module>display</module>
     <module>alarm</module>
     <module>scan</module>
