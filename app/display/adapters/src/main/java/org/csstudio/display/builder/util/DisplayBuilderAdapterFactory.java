@@ -58,7 +58,7 @@ public class DisplayBuilderAdapterFactory implements AdapterFactory {
         {
             LogEntryBuilder log = log()
                     .title(LogbookPreferences.auto_title ? "Display Screenshot for : " + selectionInfo.getName() : "")
-                    .appendDescription(LogbookPreferences.auto_body ? getBody(selectionInfo) : "");
+                    .appendDescription(getBody(selectionInfo));
             if(LogbookPreferences.auto_property) {
                 Map<String, String> attributes = new HashMap<>();
                 attributes.put("name",selectionInfo.getName());
