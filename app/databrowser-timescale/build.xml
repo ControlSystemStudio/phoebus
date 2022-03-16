@@ -1,0 +1,20 @@
+<project default="app-databrowser-timescale">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="app-databrowser-timescale">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}" debug="${debug}">
+      <src path="${src}"/>
+      <classpath>
+        <path refid="app-classpath"/>
+        <pathelement path="../databrowser/${build}/app-databrowser-${version}.jar"/>
+      </classpath>
+    </javac>
+  	
+    <jar destfile="${build}/app-databrowser-timescale-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+	
+</project>

@@ -93,6 +93,11 @@
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
+      <artifactId>app-databrowser-timescale</artifactId>
+      <version>4.6.6-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
       <artifactId>app-display-representation-javafx</artifactId>
       <version>4.6.6-SNAPSHOT</version>
     </dependency>
