@@ -71,7 +71,7 @@ public class DatabrowserAdapterFactory implements AdapterFactory {
         else if (adapterType.isAssignableFrom(LogEntry.class))
         {
             LogEntryBuilder log = log().title(LogbookPreferences.auto_title ? "Databrowser Plot" : "")
-                                       .appendDescription(getBody(databrowserSelection));
+                                       .appendDescription(LogbookPreferences.auto_body ? getBody(databrowserSelection) : "");
             try
             {
                 final File image_file = databrowserSelection.getPlot() == null ? null : new Screenshot(databrowserSelection.getPlot()).writeToTempfile("image");

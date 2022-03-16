@@ -15,6 +15,10 @@ public class LogbookPreferences {
 
     @Preference
     public static boolean auto_title;
+    @Preference
+    public static boolean auto_body;
+    @Preference
+    public static boolean auto_property;
 
     /** Is there support for a logbook?
      *  Is the 'logbook_factory' configured and available?

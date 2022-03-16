@@ -9,6 +9,7 @@ import org.phoebus.ui.javafx.Screenshot;
 
 import java.io.File;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.phoebus.logbook.LogEntryImpl.LogEntryBuilder.log;
@@ -56,20 +57,21 @@ public class DisplayBuilderAdapterFactory implements AdapterFactory {
         else if (adapterType.isAssignableFrom(LogEntry.class))
         {
             LogEntryBuilder log = log()
-                    .title(LogbookPreferences.auto_title ?
-                    "Display Screenshot for : " + selectionInfo.getName() : "")
-                    .appendDescription(getBody(selectionInfo));
-            Map<String, String> attributes = new HashMap<>();
-            attributes.put("name",selectionInfo.getName());
-            attributes.put("file",selectionInfo.toURI().toString());
-            log.appendProperty(PropertyImpl.of("resource", attributes));
-            try
-            {
-                final File image_file = selectionInfo.getImage() == null ? null : new Screenshot(selectionInfo.getImage()).writeToTempfile("image");
-                log.attach(AttachmentImpl.of(image_file));
-            } catch (Exception e)
-            {
-                e.printStackTrace();
+                    .title(LogbookPreferences.auto_title ? "Display Screenshot for : " + selectionInfo.getName() : "")
+                    .appendDescription(LogbookPreferences.auto_body ? getBody(selectionInfo) : "");
+            if(LogbookPreferences.auto_property) {
+                Map<String, String> attributes = new HashMap<>();
+                attributes.put("name",selectionInfo.getName());
+                attributes.put("file",selectionInfo.toURI().toString());
+                log.appendProperty(PropertyImpl.of("resource", attributes));
+                try
+                {
+                    final File image_file = selectionInfo.getImage() == null ? null : new Screenshot(selectionInfo.getImage()).writeToTempfile("image");
+                    log.attach(AttachmentImpl.of(image_file));
+                } catch (Exception e)
+                {
+                    logger.log(Level.WARNING, "Failed to build a log entry from this Display Builder selection ", e);
+                }
             }
             return Optional.of(adapterType.cast(log.build()));
         }
