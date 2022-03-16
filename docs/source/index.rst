@@ -36,6 +36,8 @@ Developer Documentation:
    localization
    preference_properties
    changelog
+   docker
+   eclipse_debugging
 
 Appendix
 ========

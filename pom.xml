@@ -141,6 +141,25 @@
         </plugins>
       </build>
     </profile>
+        <!-- The docker-tests profile sets the ignore_local_ipv6
+        environment variable to true since IPV6 is not supported in Github Actions at the moment. See ticket #2161 -->
+    <profile>
+      <id>docker-tests</id>
+      <build>
+        <plugins>
+          <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.20</version>
+            <configuration>
+              <systemPropertyVariables>
+                <ignore_local_ipv6>true</ignore_local_ipv6>
+               </systemPropertyVariables>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   <!-- a profile for generating javadocs and sources -->
   <profile>
     <id>docs</id>
