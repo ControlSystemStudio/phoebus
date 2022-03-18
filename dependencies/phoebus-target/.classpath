@@ -86,7 +86,6 @@
     <classpathentry exported="true" kind="lib" path="target/lib/kafka-clients-2.0.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/kafka-streams-2.0.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/lang-mustache-client-6.8.4.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/log4j-api-2.11.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/lucene-analyzers-common-7.7.2.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/lucene-backward-codecs-7.7.2.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/lucene-core-7.7.2.jar"/>
@@ -122,7 +121,6 @@
     <classpathentry exported="true" kind="lib" path="target/lib/spring-boot-autoconfigure-2.1.5.RELEASE.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/spring-boot-starter-2.1.5.RELEASE.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/spring-boot-starter-json-2.1.5.RELEASE.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/spring-boot-starter-logging-2.1.5.RELEASE.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/spring-boot-starter-test-2.1.5.RELEASE.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/spring-boot-starter-tomcat-2.1.5.RELEASE.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/spring-boot-starter-web-2.1.5.RELEASE.jar"/>
@@ -145,52 +143,52 @@
     <classpathentry exported="true" kind="lib" path="target/lib/commonmark-ext-image-attributes-0.15.2.jar"/>
 
     <!-- On Windows, need to add this:
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-16.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-16-win.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-16.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-16-win.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-16.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-16-win.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-16.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-16-win.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-16.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-16-win.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-16.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-16-win.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-16.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-16-win.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-18.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-18-win.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-18.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-18-win.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-18.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-18-win.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-18.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-18-win.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-18.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-18-win.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-18.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-18-win.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-18.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-18-win.jar"/>
     -->
     <!-- On Linux, need to add this:
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-16.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-16-linux.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-16.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-16-linux.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-16.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-16-linux.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-16.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-16-linux.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-16.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-16-linux.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-16.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-16-linux.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-16.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-16-linux.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-18.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-18-linux.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-18.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-18-linux.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-18.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-18-linux.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-18.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-18-linux.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-18.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-18-linux.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-18.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-18-linux.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-18.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-18-linux.jar"/>
     -->
     <!-- On Mac, need to add this:
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-16-mac.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-16.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-16-mac.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-16.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-16-mac.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-16.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-16-mac.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-16.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-16-mac.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-16.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-16-mac.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-16.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-16-mac.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-16.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-18-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-18.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-18-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-18.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-18-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-18.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-18-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-18.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-18-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-18.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-18-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-18.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-18-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-18.jar"/>
     -->
 
     <classpathentry kind="output" path="target/classes"/>
