@@ -11,11 +11,15 @@ import static org.csstudio.display.builder.representation.ToolkitRepresentation.
 
 import java.util.logging.Level;
 
+import javafx.application.Platform;
 import javafx.scene.Cursor;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.persist.NamedWidgetColors;
+import org.csstudio.display.builder.model.persist.WidgetColorService;
+import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.SpinnerWidget;
 import org.csstudio.display.builder.representation.javafx.Cursors;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
@@ -34,10 +38,6 @@ import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.paint.Color;
 import javafx.util.StringConverter;
 
 /** Creates JavaFX item for model widget
@@ -61,47 +61,57 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
     private volatile double value_max  = 100.0;
     private volatile double value_min  = 0.0;
 
+    private static WidgetColor active_color = WidgetColorService.getColor(NamedWidgetColors.ACTIVE_TEXT);
+
+
     @Override
     protected final Spinner<String> createJFXNode() throws Exception
     {
         final Spinner<String> spinner = new Spinner<>();
 
         spinner.setValueFactory(createSVF());
-        spinner.focusedProperty().addListener((property, oldval, newval)->
+
+        spinner.getEditor().focusedProperty().addListener((property, oldval, focused)->
         {
-            if (!spinner.isFocused())
+            if (active && !focused)
+            {
                 restore();
-            active = false;
+                setActive(false);
+            }
+            else if(focused){
+                // Need to call selectAll() in this fashion, even if already on JavaFX application thread.
+                Platform.runLater(() -> spinner.getEditor().selectAll());
+            }
         });
 
-        spinner.getEditor().setOnKeyPressed((final KeyEvent event) ->
-        {
-            switch (event.getCode())
-            {
-            case ESCAPE: //TODO: fix: escape key event not sensed
-                // Revert original value, leave active state
-                restore();
-                active = false;
-                break;
-            case ENTER:
-                // Submit value, leave active state
-                submit();
-                active = false;
-                break;
-            //incrementing by keyboard
-            case UP:
-            case PAGE_UP:
-                if (!active)
-                    spinner.getValueFactory().increment(1);
-                break;
-            case DOWN:
-            case PAGE_DOWN:
-                if (!active)
-                    spinner.getValueFactory().decrement(1);
-                break;
-            default:
-                // Any other key results in active state
-                active = true;
+        spinner.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            switch(event.getCode()){
+                case ESCAPE:
+                    if (active)
+                    {   // Revert original value, leave active state
+                        restore();
+                        setActive(false);
+                    }
+                    break;
+                case ENTER:
+                    // Submit value, leave active state
+                    submit();
+                    setActive(false);
+                    break;
+                //incrementing by keyboard
+                case UP:
+                case PAGE_UP:
+                    if (!active)
+                        spinner.getValueFactory().increment(1);
+                    break;
+                case DOWN:
+                case PAGE_DOWN:
+                    if (!active)
+                        spinner.getValueFactory().decrement(1);
+                    break;
+                default:
+                    // Any other key results in active state
+                    setActive(true);
             }
         });
 
@@ -127,6 +137,17 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
 
         spinner.getEditor().setPadding(new Insets(0, 0, 0, 0));
 
+        spinner.getEditor().setOnMouseClicked(event -> {
+            // Secondary mouse button should bring up context menu
+            // but not enable editing.
+            if(event.getButton().equals(MouseButton.PRIMARY)){
+                setActive(true);
+            }
+            else{
+                spinner.getEditor().setEditable(false);
+            }
+        });
+
         return spinner;
     }
 
@@ -136,7 +157,7 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
     private void restore()
     {
         //The old value is restored.
-        jfx_node.getEditor().setText(jfx_node.getValueFactory().getValue());
+        jfx_node.getEditor().setText(value_text);
     }
 
     /** Submit value entered by user */
@@ -460,10 +481,16 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         super.updateChanges();
         if (dirty_style.checkAndClear())
         {
-            final String color = JFXUtil.webRGB(model_widget.propForegroundColor().getValue());
-            jfx_node.editorProperty().getValue().setStyle("-fx-text-fill:" + color);
-            final Color background = JFXUtil.convert(model_widget.propBackgroundColor().getValue());
-            jfx_node.editorProperty().getValue().setBackground(new Background(new BackgroundFill(background, CornerRadii.EMPTY, Insets.EMPTY)));
+            final StringBuilder style = new StringBuilder(100);
+            style.append("-fx-text-fill:");
+            JFXUtil.appendWebRGB(style, model_widget.propForegroundColor().getValue()).append(";");
+
+            // http://stackoverflow.com/questions/27700006/how-do-you-change-the-background-color-of-a-textfield-without-changing-the-border
+            final WidgetColor back_color = active ? active_color : model_widget.propBackgroundColor().getValue();
+            style.append("-fx-control-inner-background: ");
+            JFXUtil.appendWebRGB(style, back_color).append(";");
+
+            jfx_node.editorProperty().getValue().setStyle(style.toString());
             jfx_node.resize(model_widget.propWidth().getValue(), model_widget.propHeight().getValue());
 
             // Enable if enabled by user and there's write access
@@ -542,5 +569,25 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         TooltipSupport.attach(jfx_node, model_widget.propTooltip(), () -> value_text);
         // Show the tooltip for the editor part too
         TooltipSupport.attach(jfx_node.getEditor(), model_widget.propTooltip(), () -> value_text);
+    }
+
+    private void setActive(final boolean active)
+    {
+        if (this.active == active)
+            return;
+
+        // When activated, start by selecting all in a plain text.
+        // For multi-line, leave it to the user to click or cursor around,
+        // because when all is selected, there's a larger risk of accidentally
+        // replacing some long, carefully crafted text.
+        if (active)
+            jfx_node.getEditor().selectAll();
+
+        // Don't enable when widget is disabled
+        if (active  &&  !model_widget.propEnabled().getValue())
+            return;
+        this.active = active;
+        dirty_style.mark();
+        updateChanges();
     }
 }
