@@ -1,32 +1,25 @@
 package org.phoebus.ui.application;
 
-import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.event.ActionEvent;
-import javafx.scene.Node;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckMenuItem;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuButton;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.ToolBar;
-import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
-import javafx.stage.Window;
+import java.io.File;
+import java.io.FileInputStream;
+import java.lang.ref.WeakReference;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.SubJobMonitor;
@@ -59,25 +52,32 @@ import org.phoebus.ui.spi.MenuEntry;
 import org.phoebus.ui.statusbar.StatusBar;
 import org.phoebus.ui.welcome.Welcome;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.lang.ref.WeakReference;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
 /**
  * Primary UI for a phoebus application
@@ -205,6 +205,12 @@ public class PhoebusApplication extends Application {
      * (the _directory_ is actually used by the file-open dialog)
      */
     private File last_opened_file = null;
+
+    /** Show the 'Welcome' tab?
+     *  Suppressed on -clean, specific -layout,
+     *  or when restored state has content.
+     */
+    private boolean show_welcome = true;
 
     /**
      * Application last picked when prompted for app to use
@@ -341,7 +347,9 @@ public class PhoebusApplication extends Application {
         // If there's nothing to restore from a previous instance,
         // start with welcome
         monitor.updateTaskName(Messages.MonitorTaskTabs);
-        if (!application_parameters.contains("-clean") && !restoreState(memento))
+        if (restoreState(memento))
+            show_welcome = false;
+        if (show_welcome)
             new Welcome().create();
         monitor.worked(1);
 
@@ -418,7 +426,9 @@ public class PhoebusApplication extends Application {
      * @throws Exception on error
      */
     private void handleParameters(final List<String> parameters) throws Exception {
-        if(parameters.contains("-clean")){
+        if (parameters.contains("-clean"))
+        {   // Clean removes everything, including 'Welcome'
+            show_welcome = false;
             return;
         }
         // List of applications to launch as specified via cmd line args
@@ -1061,6 +1071,8 @@ public class PhoebusApplication extends Application {
                 if ("-layout".equals(parameters.get(i))) {
                     if (i >= parameters.size() - 1)
                         throw new Exception("Missing /path/to/Example.memento for -layout option");
+                    // Restoring a specific layout, even if empty, disables the 'Welcome' tab
+                    show_welcome = false;
                     memfile = new File(parameters.get(i + 1));
                     // Remove -layout and path because they have been handled
                     parameters.remove(i + 1);
