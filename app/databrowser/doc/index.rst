@@ -116,8 +116,8 @@ and miscellaneous settings. Changes performed in this panel will be persisted wh
 Runtime Properties Dialog
 -------------------------
 
-Another way to change plot properties is to use the runtime properties dialog. This launched by clicking on the
-plot area and press letter "o" on the keyboard:
+If enabled through the preference setting ``org.csstudio.trends.databrowser3/config_dialog_supported``, plot settings may
+also be changed using the runtime properties dialog. To launch the dialog, click on the plot area and then press letter "o":
 
 .. image:: images/runtime_properties_dialog.png
    :width: 400

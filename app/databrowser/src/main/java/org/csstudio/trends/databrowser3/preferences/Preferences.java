@@ -70,6 +70,7 @@ public class Preferences
     @Preference public static boolean prompt_for_raw_data_request;
     @Preference public static boolean prompt_for_visibility;
     public static final List<TimePreset> time_presets = new ArrayList<>();
+    @Preference public static boolean config_dialog_supported;
 
     static
     {
