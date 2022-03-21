@@ -63,6 +63,12 @@ public class  RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
     private boolean handle_keys = false;
 	private TextField axisLimitsField; //Field for adjusting the limits of the axes
 	private final Pane center = new Pane();
+    /**
+     * Flag indicating whether the plot should launch the configuration dialog or not on
+     * key press (o). For the Data Browser app this may not be wanted as the
+     * various tabs provide the same functionality.
+     */
+	private boolean configDialogSupported = true;
 
     /** Constructor
      *  @param active Active mode where plot reacts to mouse/keyboard?
@@ -230,7 +236,7 @@ public class  RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
             plot.getUndoableActionManager().undoLast();
         else if (event.getCode() == KeyCode.Y)
             plot.getUndoableActionManager().redoLast();
-        else if (event.getCode() == KeyCode.O)
+        else if (event.getCode() == KeyCode.O && configDialogSupported)
             showConfigurationDialog();
         else if (event.getCode() == KeyCode.T)
             showToolbar(! isToolbarVisible());
@@ -592,5 +598,14 @@ public class  RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
     */
     public void resetAxisRanges(){
         plot.resetAxisRanges();
+    }
+
+    /**
+     * Sets the {@link #configDialogSupported} flag.
+     * @param configDialogSupported <code>true</code> if the dialog should be launched on
+     *                                   key press (o), otherwise <code>false</code>.
+     */
+    public void setConfigDialogSupported(boolean configDialogSupported){
+        this.configDialogSupported = configDialogSupported;
     }
 }

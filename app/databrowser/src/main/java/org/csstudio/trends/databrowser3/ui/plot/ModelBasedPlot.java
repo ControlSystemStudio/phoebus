@@ -7,20 +7,8 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui.plot;
 
-import static org.csstudio.trends.databrowser3.Activator.logger;
-
-import java.text.MessageFormat;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.logging.Level;
-
+import javafx.application.Platform;
+import javafx.scene.control.Button;
 import org.csstudio.javafx.rtplot.Annotation;
 import org.csstudio.javafx.rtplot.Axis;
 import org.csstudio.javafx.rtplot.AxisRange;
@@ -37,8 +25,19 @@ import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
 
-import javafx.application.Platform;
-import javafx.scene.control.Button;
+import java.text.MessageFormat;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
+
+import static org.csstudio.trends.databrowser3.Activator.logger;
 
 /** Data Browser 'Plot' that displays the samples in a {@link Model}.
  *  <p>
@@ -73,9 +72,9 @@ public class ModelBasedPlot
      */
     private final ReentrantReadWriteLock trace_lock = new InstrumentedReadWriteLock();
 
-    /** Initialize plot
-     *  @param parent Parent widget
-     *  @throws Exception
+    /**
+     * Initialize plot
+     *  @param active
      */
     public ModelBasedPlot(final boolean active)
     {
@@ -459,5 +458,14 @@ public class ModelBasedPlot
     public void dispose()
     {
         plot.dispose();
+    }
+
+    /**
+     * Sets the <code>configDialogSupported</code> flag of the {@link org.csstudio.javafx.rtplot.RTPlot}.
+     * @param configDialogSupported <code>true</code> if the plot configuration dialog should be launched on
+     *                                   key press (o), otherwise <code>false</code>.
+     */
+    public void setConfigDialogSupported(boolean configDialogSupported){
+        plot.setConfigDialogSupported(configDialogSupported);
     }
 }

@@ -130,6 +130,8 @@ public class Perspective extends SplitPane
         // As pane is resized, assert that the minimzed left or bottom region stays minimized
         widthProperty().addListener(prop -> Platform.runLater(() -> autoMinimizeLeft()));
         heightProperty().addListener(prop -> Platform.runLater(() -> autoMinimizeBottom()));
+
+        plot.setConfigDialogSupported(org.csstudio.trends.databrowser3.preferences.Preferences.config_dialog_supported);
     }
 
     /** @return {@link Model} */
