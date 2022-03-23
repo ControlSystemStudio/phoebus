@@ -71,12 +71,12 @@ import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
+import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.datamigration.git.FileUtilities;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetFromSelectionController;
 
 import java.io.File;
@@ -314,9 +314,9 @@ public class CSVImporter extends CSVCommon {
      * Copied from {@link FileUtilities} class.
      *
      * @param timestamp the timestamp of the entry, given in sec.nano format
-     * @param status the alarm status
-     * @param severity the alarm severity
-     * @param value the raw value
+     * @param status    the alarm status
+     * @param severity  the alarm severity
+     * @param value     the raw value
      * @param valueType the value type
      * @return {@link VType} that contains all parameters and matches the type provided by {@param valueType}
      */

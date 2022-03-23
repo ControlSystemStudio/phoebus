@@ -62,6 +62,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @EnableConfigurationProperties
@@ -152,18 +153,16 @@ public class DAOTest {
 
         nodeDAO.deleteNode(config.getUniqueId());
 
-        assertNull(nodeDAO.getNode(config.getUniqueId()));
-        assertNull(nodeDAO.getNode(snapshot.getUniqueId()));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testDeleteNodeNullNodeId() {
-        nodeDAO.deleteNode(null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testDeleteNodeInvalidNodeId() {
-        nodeDAO.deleteNode("nonexisting");
+        try {
+            nodeDAO.getNode(config.getUniqueId());
+            fail("NodeNotFeoundException expected");
+        } catch (Exception exception) {
+        }
+        try {
+            nodeDAO.getNode(snapshot.getUniqueId());
+            fail("NodeNotFeoundExcewption expected");
+        } catch (Exception exception) {
+        }
     }
 
 
@@ -206,8 +205,16 @@ public class DAOTest {
         nodeDAO.deleteNode(folder1.getUniqueId());
         root = nodeDAO.getNode(rootNode.getUniqueId());
         assertTrue(root.getLastModified().getTime() > rootLastModified.getTime());
-        assertNull(nodeDAO.getNode(config.getUniqueId()));
-        assertNull(nodeDAO.getNode(folder2.getUniqueId()));
+        try {
+            nodeDAO.getNode(config.getUniqueId());
+            fail("NodeNotFeoundExcewption expected");
+        } catch (NodeNotFoundException exception) {
+        }
+        try {
+            nodeDAO.getNode(folder2.getUniqueId());
+            fail("NodeNotFeoundExcewption expected");
+        } catch (Exception exception) {
+        }
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -216,7 +223,7 @@ public class DAOTest {
         nodeDAO.deleteNode(nodeDAO.getRootNode().getUniqueId());
     }
 
-    @Test
+    @Test(expected = NodeNotFoundException.class)
     @FlywayTest(invokeCleanDB = true)
     public void testDeleteNodes() {
         Node rootNode = nodeDAO.getRootNode();
@@ -226,7 +233,8 @@ public class DAOTest {
         folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
 
         nodeDAO.deleteNodes(Arrays.asList(folderNode.getUniqueId()));
-        assertNull(nodeDAO.getNode(folderNode.getUniqueId()));
+        // This will throw NodeNotFoundException
+        nodeDAO.getNode(folderNode.getUniqueId());
     }
 
     @Test
@@ -422,63 +430,6 @@ public class DAOTest {
         nodeDAO.getChildNodes("non-existing");
     }
 
-	/*
-	@Test
-	@FlywayTest(invokeCleanDB = true)
-	public void testMoveNode() throws Exception {
-
-		Node rootNode = nodeDAO.getRootNode();
-
-		Node folder1 = Node.builder().name("SomeFolder").build();
-
-		// Create folder1 in the root folder
-		folder1 = nodeDAO.createNode(rootNode.getUniqueId(), folder1);
-
-		// Root node has one child node
-		assertEquals(1, nodeDAO.getChildNodes(rootNode.getUniqueId()).size());
-
-		Node folder2 = Node.builder().name("SomeFolder2").userName("dummy").build();
-
-		// Create folder2 in the folder1 folder
-		folder2 = nodeDAO.createNode(folder1, folder2);
-
-		// folder1 has one child node
-		assertEquals(1, nodeDAO.getChildNodes(folder1.getUniqueId()).size());
-
-		// Create a configuration node in folder2
-		nodeDAO.createNode(folder2,
-				Node.builder().nodeType(NodeType.CONFIGURATION).name("Config").build());
-
-		Date lastModifiedOfSource = folder1.getLastModified();
-		Date lastModifiedOfTarget = rootNode.getLastModified();
-
-		Thread.sleep(100);
-
-		// Move folder2 from folder1 to root folder
-		rootNode = nodeDAO.moveNodes(folder2, rootNode, "username");
-
-		folder2 = nodeDAO.getNode(folder2.getUniqueId());
-
-		// After move the target's last_modified should have been updated
-		assertTrue(rootNode.getLastModified().getTime() > lastModifiedOfTarget.getTime());
-
-		// After move the source's last_modified should have been updated
-		assertTrue(folder2.getLastModified().getTime() > lastModifiedOfSource.getTime());
-
-		// After the move, the target's (root folder) username should have been updated
-		assertEquals("username", rootNode.getUserName());
-
-		// After move root node has two child nodes
-		assertEquals(2, nodeDAO.getChildNodes(rootNode.getUniqueId()).size());
-
-		folder1 = nodeDAO.getNode(folder1.getUniqueId());
-		// After move folder1 has no child nodes
-		assertTrue(nodeDAO.getChildNodes(folder1.getUniqueId()).isEmpty());
-	}
-
-	 */
-
-
     @Test
     @FlywayTest(invokeCleanDB = true)
     public void testUpdateConfig() throws Exception {
@@ -542,13 +493,13 @@ public class DAOTest {
 
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NodeNotFoundException.class)
     public void testUpdateNonExistinConfiguration() {
 
         nodeDAO.updateConfiguration(Node.builder().id(-1).build(), null);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NodeNotFoundException.class)
     public void testUpdateNodethatIsNotConfiguration() {
         nodeDAO.updateConfiguration(Node.builder().id(Node.ROOT_NODE_ID).build(), null);
     }
@@ -634,11 +585,6 @@ public class DAOTest {
 
         assertNull("b", childNode2.getProperty("a"));
 
-    }
-
-    @Test
-    public void testNonExistingFolder() {
-        assertNull(nodeDAO.getNode("a"));
     }
 
     @Test
@@ -748,7 +694,7 @@ public class DAOTest {
         nodeDAO.getSnapshot(node.getUniqueId());
     }
 
-    @Test(expected = SnapshotNotFoundException.class)
+    @Test(expected = NodeNotFoundException.class)
     @FlywayTest(invokeCleanDB = true)
     public void testGetNonExistingSnapshot() {
         nodeDAO.getSnapshot("nonExisting");
@@ -942,22 +888,25 @@ public class DAOTest {
         assertNull(nodes);
     }
 
-    @Test
-    public void testGetFullPathInvalidNodeId() {
-        assertNull(nodeDAO.getFullPath(null));
-        assertNull(nodeDAO.getFullPath(""));
-        assertNull(nodeDAO.getFullPath("invalid"));
+    @Test(expected = NodeNotFoundException.class)
+    public void testGetFullPathNullNodeId() {
+        nodeDAO.getFullPath(null);
     }
 
-    @Test
+    @Test(expected = NodeNotFoundException.class)
+    public void testGetFullPathInvalidNodeId() {
+        nodeDAO.getFullPath("invalid");
+    }
+
+    @Test(expected = NodeNotFoundException.class)
     @FlywayTest(invokeCleanDB = true)
     public void testGetFullPathNonExistingNode() {
         Node rootNode = nodeDAO.getRootNode();
         Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
         Node b = nodeDAO.createNode(a.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("b").build());
         nodeDAO.createNode(b.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("c").build());
-
-        assertNull(nodeDAO.getFullPath("nonExisting"));
+        // This will throw NodeNotFoundException
+        nodeDAO.getFullPath("nonExisting");
     }
 
     @Test
@@ -1504,7 +1453,7 @@ public class DAOTest {
         assertTrue(nodeDAO.getChildNodes(rootNode.getUniqueId()).isEmpty());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NodeNotFoundException.class)
     @FlywayTest(invokeCleanDB = true)
     public void testDeleteNodeInvalidList() {
         Node rootNode = nodeDAO.getRootNode();

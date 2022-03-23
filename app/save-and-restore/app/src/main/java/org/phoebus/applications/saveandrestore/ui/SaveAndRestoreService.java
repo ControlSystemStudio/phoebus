@@ -18,15 +18,15 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
+import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
+import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
+import org.phoebus.applications.saveandrestore.common.VNoData;
+import org.phoebus.applications.saveandrestore.impl.SaveAndRestoreJerseyClient;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.service.SaveAndRestoreClient;
-import org.phoebus.applications.saveandrestore.service.impl.SaveAndRestoreJerseyClient;
-import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
-import org.phoebus.applications.saveandrestore.ui.model.VNoData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

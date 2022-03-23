@@ -41,6 +41,7 @@ public class Messages {
     public static String copyOrMoveNotAllowedBody;
     public static String copyOrMoveNotAllowedHeader;
     public static String copyOrMoveToRootNotAllowedBody;
+    public static String copyUniqueIdToClipboard;
     public static String createNewTagDialogTitle;
     public static String createNodeFailed;
     public static String deletionNotAllowed;

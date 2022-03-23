@@ -19,12 +19,51 @@
  */
 package org.phoebus.applications.saveandrestore.datamigration.git;
 
-import org.epics.util.array.*;
+import org.epics.util.array.ArrayBoolean;
+import org.epics.util.array.ArrayByte;
+import org.epics.util.array.ArrayDouble;
+import org.epics.util.array.ArrayFloat;
+import org.epics.util.array.ArrayInteger;
+import org.epics.util.array.ArrayLong;
+import org.epics.util.array.ArrayShort;
+import org.epics.util.array.CollectionNumbers;
+import org.epics.util.array.ListBoolean;
+import org.epics.util.array.ListByte;
+import org.epics.util.array.ListDouble;
+import org.epics.util.array.ListFloat;
+import org.epics.util.array.ListInteger;
+import org.epics.util.array.ListLong;
+import org.epics.util.array.ListShort;
 import org.epics.util.stats.Range;
-import org.epics.vtype.*;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Display;
+import org.epics.vtype.EnumDisplay;
+import org.epics.vtype.Time;
+import org.epics.vtype.VBoolean;
+import org.epics.vtype.VBooleanArray;
+import org.epics.vtype.VByte;
+import org.epics.vtype.VByteArray;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VDoubleArray;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VEnumArray;
+import org.epics.vtype.VFloat;
+import org.epics.vtype.VFloatArray;
+import org.epics.vtype.VInt;
+import org.epics.vtype.VIntArray;
+import org.epics.vtype.VLong;
+import org.epics.vtype.VLongArray;
+import org.epics.vtype.VShort;
+import org.epics.vtype.VShortArray;
+import org.epics.vtype.VString;
+import org.epics.vtype.VStringArray;
+import org.epics.vtype.VType;
+import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.ui.model.SnapshotEntry;
-import org.phoebus.applications.saveandrestore.ui.model.VDisconnectedData;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,14 +83,11 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 
-
 /**
- *
  * <code>FileUtilities</code> provides utility methods for reading and writing snapshot and save set files. All methods
  * in this class are thread safe.
  *
  * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
- *
  */
 public final class FileUtilities {
 
@@ -73,8 +109,8 @@ public final class FileUtilities {
     public static final String H_READ_ONLY = "READ_ONLY";
     // the complete snapshot file header
     public static final String SNAPSHOT_FILE_HEADER = H_PV_NAME + "," + H_SELECTED + "," + H_TIMESTAMP + "," + H_STATUS
-        + "," + H_SEVERITY + "," + H_VALUE_TYPE + "," + H_VALUE + "," + H_READBACK + "," + H_READBACK_VALUE + ","
-        + H_DELTA + "," + H_READ_ONLY;
+            + "," + H_SEVERITY + "," + H_VALUE_TYPE + "," + H_VALUE + "," + H_READBACK + "," + H_READBACK_VALUE + ","
+            + H_DELTA + "," + H_READ_ONLY;
     public static final String SAVE_SET_HEADER = H_PV_NAME + "," + H_READBACK + "," + H_DELTA + "," + H_READ_ONLY;
     // delimiter of array values
     private static final String ARRAY_SPLITTER = "\\;";
@@ -86,7 +122,7 @@ public final class FileUtilities {
     private static final int BSD_ENTRY_LENGTH = 250;
     // the format used to store the timestamp of when the snapshot was taken
     private static final ThreadLocal<DateFormat> TIMESTAMP_FORMATTER = ThreadLocal
-        .withInitial(() -> new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS"));
+            .withInitial(() -> new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS"));
     private static final Pattern LINE_BREAK_PATTERN = Pattern.compile("\\n");
 
     /**
@@ -100,7 +136,7 @@ public final class FileUtilities {
      *
      * @param stream the source of data
      * @return the data, where the description contains the timestamp of the snapshot, names contain the pv names, and
-     *         data are the pv values
+     * data are the pv values
      * @throws IOException if reading the file failed
      */
     public static SnapshotContent readFromSnapshot(InputStream stream) throws IOException, ParseException {
@@ -206,20 +242,20 @@ public final class FileUtilities {
      * Converts a single entry to the VType.
      *
      * @param timestamp the timestamp of the entry, given in sec.nano format
-     * @param status the alarm status
-     * @param severity the alarm severity
-     * @param value the raw value
+     * @param status    the alarm status
+     * @param severity  the alarm severity
+     * @param value     the raw value
      * @param valueType the value type
      * @return VType that contains all parameters and matches the type provided by <code>valueType</code>
      */
     private static VType piecesToVType(String timestamp, String status, String severity, String value,
-        String valueType) {
+                                       String valueType) {
         if (value == null || value.isEmpty() || "null".equalsIgnoreCase(value)
-            || VDisconnectedData.INSTANCE.toString().equals(value)) {
+                || VDisconnectedData.INSTANCE.toString().equals(value)) {
             return VDisconnectedData.INSTANCE;
         }
         String[] t = timestamp != null && timestamp.indexOf('.') > 0 ? timestamp.split("\\.")
-            : new String[] { "0", "0" };
+                : new String[]{"0", "0"};
         Time time = Time.of(Instant.ofEpochSecond(Long.parseLong(t[0]), Integer.parseInt(t[1])));
         AlarmStatus alarmStatus = null;
         try {
@@ -472,7 +508,7 @@ public final class FileUtilities {
         content = content.trim();
         int idx = content.indexOf(',');
         if (idx < 0) {
-            return new String[] { content };
+            return new String[]{content};
         } else if (content.indexOf('"') < 0) {
             return content.split("\\,", -1);
         } else {

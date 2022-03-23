@@ -95,7 +95,7 @@ public class SnapshotDataConverterTest {
 		assertEquals(7000, snapshotPv.getTimens());
 		assertEquals(SnapshotPvDataType.DOUBLE, snapshotPv.getDataType());
 
-		VByte vByte = VByte.of(new Byte((byte) 1), alarm, time, display);
+		VByte vByte = VByte.of(Byte.valueOf((byte) 1), alarm, time, display);
 
 		snapshotPv = SnapshotDataConverter.fromVType(vByte);
 
@@ -107,7 +107,7 @@ public class SnapshotDataConverterTest {
 		assertEquals(7000, snapshotPv.getTimens());
 		assertEquals(SnapshotPvDataType.BYTE, snapshotPv.getDataType());
 
-		VShort vShort = VShort.of(new Short((short) 1), alarm, time, display);
+		VShort vShort = VShort.of(Short.valueOf((short) 1), alarm, time, display);
 
 		snapshotPv = SnapshotDataConverter.fromVType(vShort);
 
@@ -139,34 +139,34 @@ public class SnapshotDataConverterTest {
 	@Test
 	public void testGetDataType() {
 
-		VByte vByte = VByte.of(new Byte((byte) 1), alarm, time, display);
+		VByte vByte = VByte.of(Byte.valueOf((byte) 1), alarm, time, display);
 		assertEquals(SnapshotPvDataType.BYTE, SnapshotDataConverter.getDataType(vByte));
 
 		VUByte vUByte = VUByte.of(new UByte((byte) 1), alarm, time, display);
 		assertEquals(SnapshotPvDataType.UBYTE, SnapshotDataConverter.getDataType(vUByte));
 
-		VShort vShort = VShort.of(new Short((short) 1), alarm, time, display);
+		VShort vShort = VShort.of(Short.valueOf((short) 1), alarm, time, display);
 		assertEquals(SnapshotPvDataType.SHORT, SnapshotDataConverter.getDataType(vShort));
 
 		VUShort vUShort = VUShort.of(new UShort((short) 1), alarm, time, display);
 		assertEquals(SnapshotPvDataType.USHORT, SnapshotDataConverter.getDataType(vUShort));
 
-		VInt vInt = VInt.of(new Integer(1), alarm, time, display);
+		VInt vInt = VInt.of(Integer.valueOf(1), alarm, time, display);
 		assertEquals(SnapshotPvDataType.INTEGER, SnapshotDataConverter.getDataType(vInt));
 
 		VUInt vUInt = VUInt.of(new UInteger(1), alarm, time, display);
 		assertEquals(SnapshotPvDataType.UINTEGER, SnapshotDataConverter.getDataType(vUInt));
 
-		VLong vLong = VLong.of(new Long(1), alarm, time, display);
+		VLong vLong = VLong.of(Long.valueOf(1), alarm, time, display);
 		assertEquals(SnapshotPvDataType.LONG, SnapshotDataConverter.getDataType(vLong));
 
 		VULong vULong = VULong.of(new ULong(1), alarm, time, display);
 		assertEquals(SnapshotPvDataType.ULONG, SnapshotDataConverter.getDataType(vULong));
 
-		VFloat vFloat = VFloat.of(new Float(1.1), alarm, time, display);
+		VFloat vFloat = VFloat.of(Float.valueOf(1.1f), alarm, time, display);
 		assertEquals(SnapshotPvDataType.FLOAT, SnapshotDataConverter.getDataType(vFloat));
 
-		VDouble vDouble = VDouble.of(new Double(1), alarm, time, display);
+		VDouble vDouble = VDouble.of(Double.valueOf(1), alarm, time, display);
 		assertEquals(SnapshotPvDataType.DOUBLE, SnapshotDataConverter.getDataType(vDouble));
 
 		VString vString = VString.of("string", alarm, time);

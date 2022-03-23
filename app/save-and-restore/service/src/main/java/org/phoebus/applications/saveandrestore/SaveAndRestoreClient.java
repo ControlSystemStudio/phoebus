@@ -16,7 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.applications.saveandrestore.service;
+package org.phoebus.applications.saveandrestore;
 
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -62,9 +62,17 @@ public interface SaveAndRestoreClient {
      *
      * @param node An existing {@link Node}
      * @return A list of child {@link Node}s. May be empty.
-     * @throws SaveAndRestoreClientException
+     * @throws SaveAndRestoreClientException If error occurs when retrieving data
      */
     List<Node> getChildNodes(Node node) throws SaveAndRestoreClientException;
+
+    /**
+     *
+     * @param uniqueNodeId Id of an existing {@link Node}
+     * @return A list of child {@link Node}s. May be empty.
+     * @throws SaveAndRestoreClientException If error occurs when retrieving data
+     */
+    List<Node> getChildNodes(String uniqueNodeId) throws SaveAndRestoreClientException;
 
     /**
      *
@@ -157,4 +165,8 @@ public interface SaveAndRestoreClient {
      * @return The target {@link Node}.
      */
     Node copyNodes(List<String> sourceNodeIds, String targetNodeId);
+
+    String getFullPath(String uniqueNodeId);
+
+    List<Node> getFromPath(String path);
 }

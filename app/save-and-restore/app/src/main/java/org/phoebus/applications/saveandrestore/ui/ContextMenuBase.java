@@ -36,6 +36,7 @@ public abstract class ContextMenuBase extends ContextMenu {
 
     protected MenuItem deleteNodesMenuItem;
     protected MenuItem renameNodeMenuItem;
+    protected MenuItem copyUniqueIdToClipboardMenuItem;
 
     public ContextMenuBase(SaveAndRestoreController saveAndRestoreController, SimpleBooleanProperty multipleItemsSelected){
         deleteNodesMenuItem = new MenuItem(Messages.contextMenuDelete, new ImageView(deleteIcon));
@@ -47,6 +48,12 @@ public abstract class ContextMenuBase extends ContextMenu {
         renameNodeMenuItem.disableProperty().bind(multipleItemsSelected);
         renameNodeMenuItem.setOnAction(ae -> {
             saveAndRestoreController.renameNode();
+        });
+
+        copyUniqueIdToClipboardMenuItem = new MenuItem(Messages.copyUniqueIdToClipboard, ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
+        copyUniqueIdToClipboardMenuItem.disableProperty().bind(multipleItemsSelected);
+        copyUniqueIdToClipboardMenuItem.setOnAction(ae -> {
+            saveAndRestoreController.copyUniuqeNodeIdToClipboard();
         });
     }
 
