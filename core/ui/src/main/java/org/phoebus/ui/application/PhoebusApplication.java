@@ -347,7 +347,7 @@ public class PhoebusApplication extends Application {
         // If there's nothing to restore from a previous instance,
         // start with welcome
         monitor.updateTaskName(Messages.MonitorTaskTabs);
-        if (restoreState(memento))
+        if (application_parameters.contains("-clean") || restoreState(memento))
             show_welcome = false;
         if (show_welcome)
             new Welcome().create();
@@ -428,7 +428,6 @@ public class PhoebusApplication extends Application {
     private void handleParameters(final List<String> parameters) throws Exception {
         if (parameters.contains("-clean"))
         {   // Clean removes everything, including 'Welcome'
-            show_welcome = false;
             return;
         }
         // List of applications to launch as specified via cmd line args
