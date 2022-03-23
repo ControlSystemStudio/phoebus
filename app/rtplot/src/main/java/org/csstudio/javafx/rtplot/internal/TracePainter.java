@@ -14,6 +14,9 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Stroke;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -29,7 +32,7 @@ import org.csstudio.javafx.rtplot.internal.util.IntList;
 import org.csstudio.javafx.rtplot.internal.util.ScreenTransform;
 
 /** Helper for painting a {@link Trace}
- *  @param <XTYPE> Data type of horizontal {@link Axis}
+ *  @param <XTYPE> Data type of horizontal {@link org.csstudio.javafx.rtplot.Axis}
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -254,7 +257,7 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
             final PlotDataItem<XTYPE> item = data.get(i);
             final int x = clipX(Math.round(x_transform.transform(item.getPosition())));
             final double value = item.getValue();
-            if (poly_x.size() > 0  && x != last_x)
+            if (poly_x.size() > 0  && x != last_x && !Double.isNaN(value))
             {   // Staircase from last 'y'..
                 poly_x.add(x);
                 poly_y.add(last_y);
@@ -301,8 +304,9 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
             final PlotDataItem<XTYPE> item = data.get(i);
             final int x = clipX(Math.round(x_transform.transform(item.getPosition())));
             final double value = item.getValue();
-            if (Double.isNaN(value))
+            if (Double.isNaN(value)) {
                 flushPolyLine(gc, value_poly_x, value_poly_y, line_width);
+            }
             else
             {
                 final int y = clipY(y_axis.getScreenCoord(value));
@@ -318,7 +322,7 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
     }
 
     /** Draw min/max outline
-     *  @param graphics2D GC
+     *  @param gc GC
      *  @param x_transform Horizontal axis
      *  @param y_axis Value axis
      *  @param data Data
@@ -433,7 +437,7 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
     }
 
     /** @param gc GC
-     *  @param poly Points of poly line, will be cleared
+     *  @param poly_x Points of poly line, will be cleared
      *  @param line_width
      */
     final private void flushPolyLine(final Graphics2D gc, final IntList poly_x, final IntList poly_y, final int line_width)
