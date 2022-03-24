@@ -118,7 +118,6 @@ Can now start product/src/main/java/org.phoebus.product/Launcher.java.
 
 To import the project:
 
-* Start IntelliJ. Make sure to install the Lombok plugin.
 * Import Project
 * Select the Phoebus directory
 * Import project from external model: Maven

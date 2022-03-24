@@ -34,8 +34,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * Class representing a node in a tree structure maintained by the save-and-restore service. Node types are
  * defined in enum {@link NodeType}.
  *
- * The builder pattern supported by Lombok can be used to instantiate objects. The nodeType of a
- * Node object defaults to {@link NodeType#FOLDER}.
  * @author georgweiss
  *
  */
