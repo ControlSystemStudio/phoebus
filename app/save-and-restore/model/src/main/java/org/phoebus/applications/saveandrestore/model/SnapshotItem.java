@@ -23,12 +23,6 @@ import org.epics.vtype.VType;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.phoebus.applications.saveandrestore.model.json.VTypeDeserializer;
 import org.phoebus.applications.saveandrestore.model.json.VTypeSerializer;
 
@@ -38,11 +32,6 @@ import org.phoebus.applications.saveandrestore.model.json.VTypeSerializer;
  * @author georgweiss
  * Created 28 Nov 2018
  */
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class SnapshotItem {
 	private int snapshotId;
 
@@ -65,7 +54,39 @@ public class SnapshotItem {
 	@JsonSerialize(using = VTypeSerializer.class)
 	@JsonDeserialize(using = VTypeDeserializer.class)
 	private VType readbackValue;
-	
+
+	public int getSnapshotId() {
+		return snapshotId;
+	}
+
+	public void setSnapshotId(int snapshotId) {
+		this.snapshotId = snapshotId;
+	}
+
+	public ConfigPv getConfigPv() {
+		return configPv;
+	}
+
+	public void setConfigPv(ConfigPv configPv) {
+		this.configPv = configPv;
+	}
+
+	public VType getValue() {
+		return value;
+	}
+
+	public void setValue(VType value) {
+		this.value = value;
+	}
+
+	public VType getReadbackValue() {
+		return readbackValue;
+	}
+
+	public void setReadbackValue(VType readbackValue) {
+		this.readbackValue = readbackValue;
+	}
+
 	@Override
 	public String toString() {
 		return new StringBuffer()
@@ -74,5 +95,42 @@ public class SnapshotItem {
 				.append(", config pv=").append(configPv.toString())
 				.append(readbackValue != null ? (", readback pv=" + readbackValue.toString()) : (", readback pv=READ_FAILED"))
 				.toString();
+	}
+
+	public static Builder builder(){
+		return new Builder();
+	}
+
+	public static class Builder{
+
+		private SnapshotItem snapshotItem;
+
+		private Builder(){
+			snapshotItem = new SnapshotItem();
+		}
+
+		public Builder snapshotId(int snapshotId){
+			snapshotItem.setSnapshotId(snapshotId);
+			return this;
+		}
+
+		public Builder configPv(ConfigPv configPv){
+			snapshotItem.setConfigPv(configPv);
+			return this;
+		}
+
+		public Builder value(VType value){
+			snapshotItem.setValue(value);
+			return this;
+		}
+
+		public Builder readbackValue(VType readbackValue){
+			snapshotItem.setReadbackValue(readbackValue);
+			return this;
+		}
+
+		public SnapshotItem build(){
+			return snapshotItem;
+		}
 	}
 }

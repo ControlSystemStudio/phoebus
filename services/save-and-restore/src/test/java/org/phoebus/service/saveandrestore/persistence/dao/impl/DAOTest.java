@@ -72,6 +72,7 @@ import static org.junit.Assert.fail;
 public class DAOTest {
 
     @Autowired
+    @SuppressWarnings("unused")
     private NodeJdbcDAO nodeDAO;
 
     private Alarm alarm;
@@ -86,7 +87,7 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testNewNode() {
 
         Node root = nodeDAO.getRootNode();
@@ -112,7 +113,7 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testNewFolderNoDuplicateName() {
 
         Node rootNode = nodeDAO.getRootNode();
@@ -130,7 +131,7 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testNewConfigNoConfigPvs() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -142,7 +143,7 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testDeleteConfiguration() {
 
         Node rootNode = nodeDAO.getRootNode();
@@ -157,17 +158,19 @@ public class DAOTest {
             nodeDAO.getNode(config.getUniqueId());
             fail("NodeNotFeoundException expected");
         } catch (Exception exception) {
+            exception.printStackTrace();
         }
         try {
             nodeDAO.getNode(snapshot.getUniqueId());
             fail("NodeNotFeoundExcewption expected");
         } catch (Exception exception) {
+            exception.printStackTrace();
         }
     }
 
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testDeleteConfigurationAndPvs() {
 
         Node rootNode = nodeDAO.getRootNode();
@@ -179,7 +182,7 @@ public class DAOTest {
         config.setName("My config");
 
         config = nodeDAO.createNode(rootNode.getUniqueId(), config);
-        config = nodeDAO.updateConfiguration(config, Arrays.asList(configPv));
+        config = nodeDAO.updateConfiguration(config, List.of(configPv));
 
         nodeDAO.deleteNode(config.getUniqueId());
 
@@ -190,7 +193,7 @@ public class DAOTest {
 
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testDeleteFolder() {
         Node rootNode = nodeDAO.getRootNode();
         Node root = nodeDAO.getNode(rootNode.getUniqueId());
@@ -207,24 +210,26 @@ public class DAOTest {
         assertTrue(root.getLastModified().getTime() > rootLastModified.getTime());
         try {
             nodeDAO.getNode(config.getUniqueId());
-            fail("NodeNotFeoundExcewption expected");
+            fail("NodeNotFeoundException expected");
         } catch (NodeNotFoundException exception) {
+            exception.printStackTrace();
         }
         try {
             nodeDAO.getNode(folder2.getUniqueId());
-            fail("NodeNotFeoundExcewption expected");
+            fail("NodeNotFeoundException expected");
         } catch (Exception exception) {
+            exception.printStackTrace();
         }
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testDeleteRootFolder() {
         nodeDAO.deleteNode(nodeDAO.getRootNode().getUniqueId());
     }
 
     @Test(expected = NodeNotFoundException.class)
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testDeleteNodes() {
         Node rootNode = nodeDAO.getRootNode();
         Node folderNode = new Node();
@@ -232,13 +237,13 @@ public class DAOTest {
         folderNode.setNodeType(NodeType.FOLDER);
         folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
 
-        nodeDAO.deleteNodes(Arrays.asList(folderNode.getUniqueId()));
+        nodeDAO.deleteNodes(List.of(folderNode.getUniqueId()));
         // This will throw NodeNotFoundException
         nodeDAO.getNode(folderNode.getUniqueId());
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testDeleteConfigurationLeaveReferencedPVs() {
 
         Node rootNode = nodeDAO.getRootNode();
@@ -250,7 +255,7 @@ public class DAOTest {
         nodeDAO.updateConfiguration(config1, Arrays.asList(configPv1, configPv2));
         Node config2 = Node.builder().name("My config 2").nodeType(NodeType.CONFIGURATION).build();
         config2 = nodeDAO.createNode(rootNode.getUniqueId(), config2);
-        nodeDAO.updateConfiguration(config2, Arrays.asList(configPv2));
+        nodeDAO.updateConfiguration(config2, List.of(configPv2));
         nodeDAO.deleteNode(config1.getUniqueId());
 
         assertEquals(1, nodeDAO.getConfigPvs(config2.getUniqueId()).size());
@@ -268,20 +273,20 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testGetConfigForSnapshot() {
         Node rootNode = nodeDAO.getRootNode();
 
         Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("My config 3").build();
 
         config = nodeDAO.createNode(rootNode.getUniqueId(), config);
-        nodeDAO.updateConfiguration(config, Arrays.asList(ConfigPv.builder().pvName("whatever").build()));
+        nodeDAO.updateConfiguration(config, List.of(ConfigPv.builder().pvName("whatever").build()));
 
         List<ConfigPv> configPvs = nodeDAO.getConfigPvs(config.getUniqueId());
         SnapshotItem item1 = SnapshotItem.builder().configPv(configPvs.get(0))
                 .value(VDouble.of(7.7, alarm, time, display)).build();
 
-        Node newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshot name", "user", "comment");
+        Node newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), List.of(item1), "snapshot name", "user", "comment");
 
         config = nodeDAO.getParentNode(newSnapshot.getUniqueId());
 
@@ -289,26 +294,26 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testGetParentNodeDataAccessException() {
         assertNull(nodeDAO.getParentNode("nonexisting"));
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testTakeSnapshot() {
         Node rootNode = nodeDAO.getRootNode();
 
         Node config = Node.builder().name("My config 3").nodeType(NodeType.CONFIGURATION).build();
 
         config = nodeDAO.createNode(rootNode.getUniqueId(), config);
-        nodeDAO.updateConfiguration(config, Arrays.asList(ConfigPv.builder().pvName("whatever").readbackPvName("readback_whatever").build()));
+        nodeDAO.updateConfiguration(config, List.of(ConfigPv.builder().pvName("whatever").readbackPvName("readback_whatever").build()));
 
         SnapshotItem item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
                 .value(VDouble.of(7.7, alarm, time, display)).readbackValue(VDouble.of(8.8, alarm, time, display))
                 .build();
 
-        Node newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshot name", "user", "comment");
+        Node newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), List.of(item1), "snapshot name", "user", "comment");
         List<SnapshotItem> snapshotItems = nodeDAO.getSnapshotItems(newSnapshot.getUniqueId());
         assertEquals(1, snapshotItems.size());
         assertEquals(7.7, ((VDouble) snapshotItems.get(0).getValue()).getValue().doubleValue(), 0.01);
@@ -329,39 +334,39 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testGetSnapshotsNoSnapshots() {
 
         assertTrue(nodeDAO.getSnapshots("a").isEmpty());
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testGetSnapshotItemsWithNullPvValues() {
         Node rootNode = nodeDAO.getRootNode();
 
         Node config = Node.builder().name("My config 3").nodeType(NodeType.CONFIGURATION).build();
 
         config = nodeDAO.createNode(rootNode.getUniqueId(), config);
-        nodeDAO.updateConfiguration(config, Arrays.asList(ConfigPv.builder().pvName("whatever").build()));
+        nodeDAO.updateConfiguration(config, List.of(ConfigPv.builder().pvName("whatever").build()));
 
         SnapshotItem item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
                 .value(VDouble.of(7.7, alarm, time, display))
                 .build();
-        Node newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "name", "comment", "user");
+        Node newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), List.of(item1), "name", "comment", "user");
         List<SnapshotItem> snapshotItems = nodeDAO.getSnapshotItems(newSnapshot.getUniqueId());
         assertEquals(7.7, ((VDouble) snapshotItems.get(0).getValue()).getValue().doubleValue(), 0.01);
         assertNull(snapshotItems.get(0).getReadbackValue());
 
         item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
                 .build();
-        newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "name2", "comment", "user");
+        newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), List.of(item1), "name2", "comment", "user");
         snapshotItems = nodeDAO.getSnapshotItems(newSnapshot.getUniqueId());
         assertTrue(snapshotItems.isEmpty());
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testSnapshotTag() {
         Node rootNode = nodeDAO.getRootNode();
         Node folderNode = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().name("testFolder").nodeType(NodeType.FOLDER).build());
@@ -396,7 +401,7 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testGetRootsParent() {
         Node rootNode = nodeDAO.getRootNode();
         Node parent = nodeDAO.getParentNode(rootNode.getUniqueId());
@@ -406,8 +411,8 @@ public class DAOTest {
 
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
-    public void testGetChildNodes() throws Exception {
+    @FlywayTest
+    public void testGetChildNodes() {
         Node rootNode = nodeDAO.getRootNode();
 
         Map<String, String> props = new HashMap<>();
@@ -425,13 +430,13 @@ public class DAOTest {
     }
 
     @Test(expected = NodeNotFoundException.class)
-    @FlywayTest(invokeCleanDB = true)
-    public void testGetChildNodesOfNonExistingNode() throws Exception {
+    @FlywayTest
+    public void testGetChildNodesOfNonExistingNode() {
         nodeDAO.getChildNodes("non-existing");
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testUpdateConfig() throws Exception {
 
         Node rootNode = nodeDAO.getRootNode();
@@ -446,7 +451,7 @@ public class DAOTest {
         config = nodeDAO.createNode(rootNode.getUniqueId(), config);
         nodeDAO.updateConfiguration(config, Arrays.asList(configPv1, configPv2));
 
-        Date lastModified = config.getLastModified();
+        Date lastModified;
 
         SnapshotItem item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
                 .value(VDouble.of(7.7, alarm, time, display)).build();
@@ -486,7 +491,7 @@ public class DAOTest {
 
         ConfigPv configPv3 = ConfigPv.builder().pvName("configPv3").build();
 
-        updatedConfig = nodeDAO.updateConfiguration(config, Arrays.asList(configPv1, configPv2, configPv3));
+        nodeDAO.updateConfiguration(config, Arrays.asList(configPv1, configPv2, configPv3));
 
         // Verify the list of PVs
         assertEquals(3, nodeDAO.getConfigPvs(config.getUniqueId()).size());
@@ -505,19 +510,19 @@ public class DAOTest {
     }
 
     @Test(expected = NodeNotFoundException.class)
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testUpdateNonExistingNode() {
         nodeDAO.updateNode(new Node(), false);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testUpdateRootNode() {
         nodeDAO.updateNode(nodeDAO.getRootNode(), false);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testUpdateNodeType() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -532,7 +537,7 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testUpdateNodeBadProperties() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -588,7 +593,7 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testGetFolderThatIsNotAFolder() {
 
         Node rootNode = nodeDAO.getRootNode();
@@ -600,38 +605,38 @@ public class DAOTest {
         Node config = Node.builder().name("My config").nodeType(NodeType.CONFIGURATION).build();
 
         config = nodeDAO.createNode(folder1.getUniqueId(), config);
-        nodeDAO.updateConfiguration(config, Arrays.asList(configPv1));
+        nodeDAO.updateConfiguration(config, List.of(configPv1));
 
         assertNotEquals(NodeType.FOLDER, nodeDAO.getNode(config.getUniqueId()).getNodeType());
 
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testNoNameClash1() {
 
         Node rootNode = nodeDAO.getRootNode();
 
         Node n1 = Node.builder().id(1).name("n1").build();
-        n1 = nodeDAO.createNode(rootNode.getUniqueId(), n1);
+        nodeDAO.createNode(rootNode.getUniqueId(), n1);
         Node n2 = Node.builder().nodeType(NodeType.CONFIGURATION).id(2).name("n1").build();
-        n2 = nodeDAO.createNode(rootNode.getUniqueId(), n2);
+        nodeDAO.createNode(rootNode.getUniqueId(), n2);
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testNoNameClash() {
 
         Node rootNode = nodeDAO.getRootNode();
 
         Node n1 = Node.builder().id(1).name("n1").build();
-        n1 = nodeDAO.createNode(rootNode.getUniqueId(), n1);
+        nodeDAO.createNode(rootNode.getUniqueId(), n1);
         Node n2 = Node.builder().id(2).name("n2").build();
-        n2 = nodeDAO.createNode(rootNode.getUniqueId(), n2);
+        nodeDAO.createNode(rootNode.getUniqueId(), n2);
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testUpdateNode() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -642,8 +647,7 @@ public class DAOTest {
                 Node.builder().name("b").userName("u1").properties(props).build());
 
         childNode2.setName("c");
-        Map<String, String> props2 = new HashMap<>();
-        props2.putAll(props);
+        Map<String, String> props2 = new HashMap<>(props);
         props2.put("aa", "bb");
 
         childNode2.setProperties(props2);
@@ -668,7 +672,7 @@ public class DAOTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testUpdateNodeNewNameInvalid() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -678,7 +682,7 @@ public class DAOTest {
 
         Node node2 = new Node();
         node2.setName("node2");
-        node2 = nodeDAO.createNode(rootNode.getUniqueId(), node2);
+        nodeDAO.createNode(rootNode.getUniqueId(), node2);
 
         node1.setName("node2");
 
@@ -687,7 +691,7 @@ public class DAOTest {
 
 
     @Test(expected = SnapshotNotFoundException.class)
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testGetSnapshotThatIsNotSnapshot() {
         Node root = nodeDAO.getRootNode();
         Node node = nodeDAO.createNode(root.getUniqueId(), Node.builder().name("dsa").build());
@@ -695,13 +699,13 @@ public class DAOTest {
     }
 
     @Test(expected = NodeNotFoundException.class)
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testGetNonExistingSnapshot() {
         nodeDAO.getSnapshot("nonExisting");
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testSetRootNodeProperty() {
 
         Node rootNode = nodeDAO.getRootNode();
@@ -712,25 +716,25 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testSaveSnapshot() {
         Node rootNode = nodeDAO.getRootNode();
         Node config = Node.builder().name("My config 3").nodeType(NodeType.CONFIGURATION).build();
         config = nodeDAO.createNode(rootNode.getUniqueId(), config);
-        nodeDAO.updateConfiguration(config, Arrays.asList(ConfigPv.builder().pvName("whatever").build()));
+        nodeDAO.updateConfiguration(config, List.of(ConfigPv.builder().pvName("whatever").build()));
 
         SnapshotItem item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
                 .value(VDouble.of(7.7, alarm, time, display)).readbackValue(VDouble.of(7.7, alarm, time, display))
                 .build();
 
-        Node snapshotNode = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshotName", "comment", "userName");
+        Node snapshotNode = nodeDAO.saveSnapshot(config.getUniqueId(), List.of(item1), "snapshotName", "comment", "userName");
         List<SnapshotItem> snapshotItems = nodeDAO.getSnapshotItems(snapshotNode.getUniqueId());
-        assertTrue(snapshotItems.size() == 1);
+        assertEquals(1, snapshotItems.size());
 
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testCreateNodeWithNonNullUniqueId() {
         Node rootNode = nodeDAO.getRootNode();
         Node folder = Node.builder().name("Folder").nodeType(NodeType.FOLDER).uniqueId("uniqueid").build();
@@ -739,13 +743,13 @@ public class DAOTest {
     }
 
     @Test(expected = NodeNotFoundException.class)
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testCreateNodeWithNonNullParentNode() {
         nodeDAO.createNode("invalid unique node id", new Node());
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testCreateFolderInConfigNode() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -761,7 +765,7 @@ public class DAOTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testCreateConfigInConfigNode() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -777,7 +781,7 @@ public class DAOTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testCreateSnapshotInFolderNode() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -788,7 +792,7 @@ public class DAOTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testCreateNameClash() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -816,12 +820,12 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testFindParentFromPathElements() {
         Node rootNode = nodeDAO.getRootNode();
         Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
         Node b = nodeDAO.createNode(a.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("b").build());
-        Node c = nodeDAO.createNode(b.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("c").build());
+        nodeDAO.createNode(b.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("c").build());
 
         Node found = nodeDAO.findParentFromPathElements(rootNode, "/a/b/c".split("/"), 1);
         assertEquals(found.getUniqueId(), b.getUniqueId());
@@ -840,20 +844,20 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testGetFromPathTwoNodes() {
         Node rootNode = nodeDAO.getRootNode();
         Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
         Node b = nodeDAO.createNode(a.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("b").build());
-        Node c = nodeDAO.createNode(b.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("c").build());
-        Node cc = nodeDAO.createNode(b.getUniqueId(), Node.builder().nodeType(NodeType.CONFIGURATION).name("c").build());
+        nodeDAO.createNode(b.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("c").build());
+        nodeDAO.createNode(b.getUniqueId(), Node.builder().nodeType(NodeType.CONFIGURATION).name("c").build());
 
         List<Node> nodes = nodeDAO.getFromPath("/a/b/c");
         assertEquals(2, nodes.size());
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testGetFromPathOneNode() {
         Node rootNode = nodeDAO.getRootNode();
         Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
@@ -874,7 +878,7 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testGetFromPathZeroNodes() {
         Node rootNode = nodeDAO.getRootNode();
         Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
@@ -899,7 +903,7 @@ public class DAOTest {
     }
 
     @Test(expected = NodeNotFoundException.class)
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testGetFullPathNonExistingNode() {
         Node rootNode = nodeDAO.getRootNode();
         Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
@@ -910,7 +914,7 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testGetFullPathRootNode() {
         Node rootNode = nodeDAO.getRootNode();
         Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
@@ -921,7 +925,7 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testGetFullPath() {
         Node rootNode = nodeDAO.getRootNode();
         Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
@@ -932,14 +936,14 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testIsMoveAllowedRootNode() {
         Node rootNode = nodeDAO.getRootNode();
-        assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(rootNode), rootNode));
+        assertFalse(nodeDAO.isMoveOrCopyAllowed(List.of(rootNode), rootNode));
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testIsMoveAllowedSnapshotNode() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -954,7 +958,7 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testIsMoveAllowedSameType() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -976,7 +980,7 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testIsMoveAllowedSameParentFolder() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1003,7 +1007,7 @@ public class DAOTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testMoveNodesInvalidId() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1023,14 +1027,14 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testMoveNodesNameAndTypeClash() {
         Node rootNode = nodeDAO.getRootNode();
 
         Node node1 = new Node();
         node1.setName("Node1");
         node1.setNodeType(NodeType.FOLDER);
-        node1 = nodeDAO.createNode(rootNode.getUniqueId(), node1);
+        nodeDAO.createNode(rootNode.getUniqueId(), node1);
 
         Node node2 = new Node();
         node2.setName("Node2");
@@ -1051,7 +1055,7 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testIsMoveAllowedTargetNotInSelectionTree() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1080,7 +1084,7 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testIsMoveAllowedTargetInSelectionTree() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1109,7 +1113,7 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testIsMoveAllowedMoveSaveSetToRoot() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1117,18 +1121,18 @@ public class DAOTest {
         saveSetNode.setNodeType(NodeType.CONFIGURATION);
         saveSetNode.setName("Save Set");
 
-        assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(saveSetNode), rootNode));
+        assertFalse(nodeDAO.isMoveOrCopyAllowed(List.of(saveSetNode), rootNode));
 
     }
 
     @Test(expected = NodeNotFoundException.class)
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testMoveNodesToNonExistingTarget() {
         nodeDAO.moveNodes(Collections.emptyList(), "non existing", "user");
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testMoveNodesToNonFolder() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1137,11 +1141,11 @@ public class DAOTest {
         configNode.setNodeType(NodeType.CONFIGURATION);
         configNode = nodeDAO.createNode(rootNode.getUniqueId(), configNode);
 
-        nodeDAO.moveNodes(Arrays.asList("someId"), configNode.getUniqueId(), "user");
+        nodeDAO.moveNodes(List.of("someId"), configNode.getUniqueId(), "user");
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testMoveSnasphot() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1155,11 +1159,11 @@ public class DAOTest {
         snapshotNode.setNodeType(NodeType.SNAPSHOT);
         snapshotNode = nodeDAO.createNode(configNode.getUniqueId(), snapshotNode);
 
-        nodeDAO.moveNodes(Arrays.asList(snapshotNode.getUniqueId()), rootNode.getUniqueId(), "user");
+        nodeDAO.moveNodes(List.of(snapshotNode.getUniqueId()), rootNode.getUniqueId(), "user");
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testMoveNodes() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1186,7 +1190,7 @@ public class DAOTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testCopyFolderToSameParent() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1195,11 +1199,11 @@ public class DAOTest {
         folderNode.setNodeType(NodeType.FOLDER);
         folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
 
-        nodeDAO.copyNodes(Arrays.asList(folderNode.getUniqueId()), rootNode.getUniqueId(), "username");
+        nodeDAO.copyNodes(List.of(folderNode.getUniqueId()), rootNode.getUniqueId(), "username");
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testCopyConfigToSameParent() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1208,11 +1212,11 @@ public class DAOTest {
         configNode.setNodeType(NodeType.CONFIGURATION);
         configNode = nodeDAO.createNode(rootNode.getUniqueId(), configNode);
 
-        nodeDAO.copyNodes(Arrays.asList(configNode.getUniqueId()), rootNode.getUniqueId(), "username");
+        nodeDAO.copyNodes(List.of(configNode.getUniqueId()), rootNode.getUniqueId(), "username");
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testCopyFolderToOtherParent() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1221,21 +1225,19 @@ public class DAOTest {
         folderNode.setNodeType(NodeType.FOLDER);
         folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
 
-        Date lastModified = folderNode.getLastModified();
-
         Node childFolderNode = new Node();
         childFolderNode.setName("Child Folder");
         childFolderNode.setNodeType(NodeType.FOLDER);
         childFolderNode = nodeDAO.createNode(folderNode.getUniqueId(), childFolderNode);
 
-        nodeDAO.copyNodes(Arrays.asList(childFolderNode.getUniqueId()), rootNode.getUniqueId(), "username");
+        nodeDAO.copyNodes(List.of(childFolderNode.getUniqueId()), rootNode.getUniqueId(), "username");
 
         List<Node> childNodes = nodeDAO.getChildNodes(rootNode.getUniqueId());
         assertEquals(2, childNodes.size());
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testCopyConfigToOtherParent() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1254,14 +1256,14 @@ public class DAOTest {
         config.setNodeType(NodeType.CONFIGURATION);
         config = nodeDAO.createNode(folderNode.getUniqueId(), config);
 
-        nodeDAO.copyNodes(Arrays.asList(config.getUniqueId()), folderNode2.getUniqueId(), "username");
+        nodeDAO.copyNodes(List.of(config.getUniqueId()), folderNode2.getUniqueId(), "username");
 
         List<Node> childNodes = nodeDAO.getChildNodes(rootNode.getUniqueId());
         assertEquals(2, childNodes.size());
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testCopyMultipleFolders() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1287,7 +1289,7 @@ public class DAOTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testCopyFolderAndConfig() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1310,7 +1312,7 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testCopyFolderWithConfigAndSnapshot() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1329,15 +1331,15 @@ public class DAOTest {
         configNode.setNodeType(NodeType.CONFIGURATION);
         configNode = nodeDAO.createNode(childFolder1.getUniqueId(), configNode);
 
-        nodeDAO.updateConfiguration(configNode, Arrays.asList(ConfigPv.builder().pvName("whatever").build()));
+        nodeDAO.updateConfiguration(configNode, List.of(ConfigPv.builder().pvName("whatever").build()));
 
         SnapshotItem item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(configNode.getUniqueId()).get(0))
                 .value(VDouble.of(7.7, alarm, time, display)).readbackValue(VDouble.of(7.7, alarm, time, display))
                 .build();
 
-        nodeDAO.saveSnapshot(configNode.getUniqueId(), Arrays.asList(item1), "snapshotName", "comment", "userName");
+        nodeDAO.saveSnapshot(configNode.getUniqueId(), List.of(item1), "snapshotName", "comment", "userName");
 
-        Node parent = nodeDAO.copyNodes(Arrays.asList(childFolder1.getUniqueId()), rootNode.getUniqueId(), "username");
+        Node parent = nodeDAO.copyNodes(List.of(childFolder1.getUniqueId()), rootNode.getUniqueId(), "username");
         List<Node> childNodes = nodeDAO.getChildNodes(parent.getUniqueId());
         assertEquals(2, childNodes.size());
 
@@ -1350,7 +1352,7 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testCopySubtree() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1362,56 +1364,56 @@ public class DAOTest {
         Node childFolder1 = new Node();
         childFolder1.setName("Child Folder 1");
         childFolder1.setNodeType(NodeType.FOLDER);
-        childFolder1 = nodeDAO.createNode(folderNode.getUniqueId(), childFolder1);
+        nodeDAO.createNode(folderNode.getUniqueId(), childFolder1);
 
         Node targetNode = new Node();
         targetNode.setName("Target Folder");
         targetNode.setNodeType(NodeType.FOLDER);
         targetNode = nodeDAO.createNode(rootNode.getUniqueId(), targetNode);
 
-        nodeDAO.copyNodes(Arrays.asList(folderNode.getUniqueId()), targetNode.getUniqueId(), "username");
+        nodeDAO.copyNodes(List.of(folderNode.getUniqueId()), targetNode.getUniqueId(), "username");
 
         assertEquals(2, nodeDAO.getChildNodes(rootNode.getUniqueId()).size());
         assertEquals(1, nodeDAO.getChildNodes(targetNode.getUniqueId()).size());
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testCopySnapshot() {
         Node rootNode = nodeDAO.getRootNode();
 
         Node config = Node.builder().name("My config 3").nodeType(NodeType.CONFIGURATION).build();
         config = nodeDAO.createNode(rootNode.getUniqueId(), config);
-        nodeDAO.updateConfiguration(config, Arrays.asList(ConfigPv.builder().pvName("whatever").build()));
+        nodeDAO.updateConfiguration(config, List.of(ConfigPv.builder().pvName("whatever").build()));
 
         SnapshotItem item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
                 .value(VDouble.of(7.7, alarm, time, display)).readbackValue(VDouble.of(7.7, alarm, time, display))
                 .build();
 
-        Node snapshotNode = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshotName", "comment", "userName");
+        Node snapshotNode = nodeDAO.saveSnapshot(config.getUniqueId(), List.of(item1), "snapshotName", "comment", "userName");
 
         Node folderNode = new Node();
         folderNode.setName("Folder");
         folderNode.setNodeType(NodeType.FOLDER);
         folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
 
-        nodeDAO.copyNodes(Arrays.asList(snapshotNode.getUniqueId()), folderNode.getUniqueId(), "username");
+        nodeDAO.copyNodes(List.of(snapshotNode.getUniqueId()), folderNode.getUniqueId(), "username");
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testCopyConfigWithSnapshots() {
         Node rootNode = nodeDAO.getRootNode();
 
         Node config = Node.builder().name("My config 3").nodeType(NodeType.CONFIGURATION).build();
         config = nodeDAO.createNode(rootNode.getUniqueId(), config);
-        nodeDAO.updateConfiguration(config, Arrays.asList(ConfigPv.builder().pvName("whatever").build()));
+        nodeDAO.updateConfiguration(config, List.of(ConfigPv.builder().pvName("whatever").build()));
 
         SnapshotItem item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
                 .value(VDouble.of(7.7, alarm, time, display)).readbackValue(VDouble.of(7.7, alarm, time, display))
                 .build();
 
-        Node snapshotNode = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1), "snapshotName", "comment", "userName");
+        Node snapshotNode = nodeDAO.saveSnapshot(config.getUniqueId(), List.of(item1), "snapshotName", "comment", "userName");
         Tag tag = new Tag();
         tag.setUserName("username");
         tag.setSnapshotId(snapshotNode.getUniqueId());
@@ -1419,14 +1421,14 @@ public class DAOTest {
         tag.setCreated(new Date());
         tag.setComment("tagcomment");
         snapshotNode.addTag(tag);
-        snapshotNode = nodeDAO.updateNode(snapshotNode, false);
+        nodeDAO.updateNode(snapshotNode, false);
 
         Node folderNode = new Node();
         folderNode.setName("Folder");
         folderNode.setNodeType(NodeType.FOLDER);
         folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
 
-        nodeDAO.copyNodes(Arrays.asList(config.getUniqueId()), folderNode.getUniqueId(), "username");
+        nodeDAO.copyNodes(List.of(config.getUniqueId()), folderNode.getUniqueId(), "username");
 
         Node copiedConfig = nodeDAO.getChildNodes(folderNode.getUniqueId()).get(0);
         Node copiedSnapshot = nodeDAO.getChildNodes(copiedConfig.getUniqueId()).get(0);
@@ -1440,7 +1442,7 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testDeleteNode() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1449,12 +1451,12 @@ public class DAOTest {
         folderNode.setNodeType(NodeType.FOLDER);
         folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
 
-        nodeDAO.deleteNodes(Arrays.asList(folderNode.getUniqueId()));
+        nodeDAO.deleteNodes(List.of(folderNode.getUniqueId()));
         assertTrue(nodeDAO.getChildNodes(rootNode.getUniqueId()).isEmpty());
     }
 
     @Test(expected = NodeNotFoundException.class)
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testDeleteNodeInvalidList() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1467,7 +1469,7 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testDeleteMultiple() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1486,7 +1488,7 @@ public class DAOTest {
     }
 
     @Test
-    @FlywayTest(invokeCleanDB = true)
+    @FlywayTest
     public void testDeleteTree() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1498,9 +1500,9 @@ public class DAOTest {
         Node folderNode2 = new Node();
         folderNode2.setName("Folder2");
         folderNode2.setNodeType(NodeType.FOLDER);
-        folderNode2 = nodeDAO.createNode(folderNode.getUniqueId(), folderNode2);
+        nodeDAO.createNode(folderNode.getUniqueId(), folderNode2);
 
-        nodeDAO.deleteNodes(Arrays.asList(folderNode.getUniqueId()));
+        nodeDAO.deleteNodes(List.of(folderNode.getUniqueId()));
         assertTrue(nodeDAO.getChildNodes(rootNode.getUniqueId()).isEmpty());
     }
 }

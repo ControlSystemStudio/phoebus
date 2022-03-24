@@ -49,8 +49,8 @@ public class ConfigPvTest {
 	
 		
 		ConfigPv configPV1 = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).build();
-		assertFalse(configPV1.equals(new Object()));
-		assertFalse(configPV1.equals(null));
+		assertNotEquals(configPV1, new Object());
+		assertNotEquals(null, configPV1);
 		ConfigPv configPV2 = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).build();
 		ConfigPv configPV3 = ConfigPv.builder().pvName("a").readbackPvName("c").readOnly(true).build();
 		
@@ -108,10 +108,9 @@ public class ConfigPvTest {
 		ConfigPv configPV1 = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).build();
 		ConfigPv configPV2 = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).build();
 		ConfigPv configPV3 = ConfigPv.builder().pvName("b").readbackPvName("b").readOnly(true).build();
-		
-		assertTrue(configPV1.compareTo(configPV2) == 0);
+
+		assertEquals(0, configPV1.compareTo(configPV2));
 		assertTrue(configPV1.compareTo(configPV3) < 0);
 		assertTrue(configPV3.compareTo(configPV1) > 0);
 	}
-	
 }

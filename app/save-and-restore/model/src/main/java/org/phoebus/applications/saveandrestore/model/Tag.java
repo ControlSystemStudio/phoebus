@@ -26,21 +26,9 @@ package org.phoebus.applications.saveandrestore.model;
  */
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
 import java.util.Date;
 
-@Builder
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Tag implements Comparable<Tag> {
     private String snapshotId;
@@ -49,8 +37,90 @@ public class Tag implements Comparable<Tag> {
     private Date created;
     private String userName;
 
+    public String getSnapshotId() {
+        return snapshotId;
+    }
+
+    public void setSnapshotId(String snapshotId) {
+        this.snapshotId = snapshotId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public Date getCreated() {
+        return created;
+    }
+
+    public void setCreated(Date created) {
+        this.created = created;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
     @Override
     public int compareTo(Tag otherTag) {
         return name.equals(otherTag.getName()) ? 1 : 0;
+    }
+
+    public static Builder builder(){
+        return new Builder();
+    }
+
+    public static class Builder{
+        private Tag tag;
+
+        private Builder(){
+            tag = new Tag();
+        }
+
+        public Builder snapshotId(String snapshotId){
+            tag.setSnapshotId(snapshotId);
+            return this;
+        }
+
+        public Builder name(String name){
+            tag.setName(name);
+            return this;
+        }
+
+        public Builder comment(String comment){
+            tag.setComment(comment);
+            return this;
+        }
+
+        public Builder created(Date created){
+            tag.setCreated(created);
+            return this;
+        }
+
+        public Builder userName(String userName){
+            tag.setUserName(userName);
+            return this;
+        }
+
+        public Tag build(){
+            return tag;
+        }
+
     }
 }
