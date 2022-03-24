@@ -29,38 +29,21 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-
-@Builder
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Class representing a node in a tree structure maintained by the save-and-restore service. Node types are
  * defined in enum {@link NodeType}.
  *
- * The builder pattern supported by Lombok can be used to instantiate objects. The nodeType of a
- * Node object defaults to {@link NodeType#FOLDER}.
  * @author georgweiss
  *
  */
 public class Node implements Comparable<Node>, Serializable {
 
 	private int id;
-	@Builder.Default
-	private final String uniqueId = UUID.randomUUID().toString();
+	private String uniqueId = UUID.randomUUID().toString();
 	private String name;
 	private Date created;
 	private Date lastModified;
-	@Builder.Default
 	private NodeType nodeType = NodeType.FOLDER;
 	private String userName;
 	private Map<String, String> properties;
@@ -70,6 +53,78 @@ public class Node implements Comparable<Node>, Serializable {
 	 * Do not change!!!
 	 */
 	public static final int ROOT_NODE_ID = 0;
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public void setUniqueId(String uniqueId) {
+		this.uniqueId = uniqueId;
+	}
+
+	public String getUniqueId() {
+		return uniqueId;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public Date getCreated() {
+		return created;
+	}
+
+	public void setCreated(Date created) {
+		this.created = created;
+	}
+
+	public Date getLastModified() {
+		return lastModified;
+	}
+
+	public void setLastModified(Date lastModified) {
+		this.lastModified = lastModified;
+	}
+
+	public NodeType getNodeType() {
+		return nodeType;
+	}
+
+	public void setNodeType(NodeType nodeType) {
+		this.nodeType = nodeType;
+	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	public Map<String, String> getProperties() {
+		return properties;
+	}
+
+	public void setProperties(Map<String, String> properties) {
+		this.properties = properties;
+	}
+
+	public List<Tag> getTags() {
+		return tags;
+	}
+
+	public void setTags(List<Tag> tags) {
+		this.tags = tags;
+	}
 
 	public void putProperty(String key, String value) {
 		if(properties == null) {
@@ -161,5 +216,67 @@ public class Node implements Comparable<Node>, Serializable {
 		clonedNode.setTags(nodeToClone.getTags());
 
 		return clonedNode;
+	}
+
+	public static Builder builder(){
+		return new Builder();
+	}
+
+	public static class Builder{
+
+		private Node node;
+
+		private Builder(){
+			node = new Node();
+		}
+
+		public Builder id(int id){
+			node.setId(id);
+			return this;
+		}
+
+		public Builder uniqueId(String uniqueId){
+			node.setUniqueId(uniqueId);
+			return this;
+		}
+
+		public Builder name(String name){
+			node.setName(name);
+			return this;
+		}
+
+		public Builder userName(String userName){
+			node.setUserName(userName);
+			return this;
+		}
+
+		public Builder created(Date created){
+			node.setCreated(created);
+			return this;
+		}
+
+		public Builder lastModified(Date lastModified){
+			node.setLastModified(lastModified);
+			return this;
+		}
+
+		public Builder nodeType(NodeType nodeType){
+			node.setNodeType(nodeType);
+			return this;
+		}
+
+		public Builder properties(Map<String, String> properties){
+			node.setProperties(properties);
+			return this;
+		}
+
+		public Builder tags(List<Tag> tags){
+			node.setTags(tags);
+			return this;
+		}
+
+		public Node build(){
+			return node;
+		}
 	}
 }

@@ -20,19 +20,11 @@ package org.phoebus.applications.saveandrestore.model;
 
 import java.util.List;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 /**
  * @author georgweiss
  * Created 20 Mar 2019
  */
-@Builder
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+
 /**
  * A wrapper class used in some calls to the JMasar REST end points.
  * @author georgweiss
@@ -42,4 +34,47 @@ public class UpdateConfigHolder {
 
 	private Node config;
 	private List<ConfigPv> configPvList;
+
+	public Node getConfig() {
+		return config;
+	}
+
+	public void setConfig(Node config) {
+		this.config = config;
+	}
+
+	public List<ConfigPv> getConfigPvList() {
+		return configPvList;
+	}
+
+	public void setConfigPvList(List<ConfigPv> configPvList) {
+		this.configPvList = configPvList;
+	}
+
+	public static Builder builder(){
+		return new Builder();
+	}
+
+	public static class Builder{
+
+		private UpdateConfigHolder updateConfigHolder;
+
+		private Builder(){
+			updateConfigHolder = new UpdateConfigHolder();
+		}
+
+		public Builder config(Node config){
+			updateConfigHolder.setConfig(config);
+			return this;
+		}
+
+		public Builder configPvList(List<ConfigPv> configPvList){
+			updateConfigHolder.setConfigPvList(configPvList);
+			return this;
+		}
+
+		public UpdateConfigHolder build(){
+			return updateConfigHolder;
+		}
+	}
 }
