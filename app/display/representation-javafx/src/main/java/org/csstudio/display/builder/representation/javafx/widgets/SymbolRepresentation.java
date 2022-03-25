@@ -30,8 +30,6 @@ import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.macros.MacroHandler;
-import org.csstudio.display.builder.model.persist.NamedWidgetColors;
-import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
@@ -88,7 +86,6 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
     private boolean                              defaultSymbolVisible   = false;
     private volatile boolean                     autoSize               = false;
     private Symbol                               symbol;
-    private final Symbol                         defaultSymbol;
     private final DefaultSymbolNode              defaultSymbolNode      = new DefaultSymbolNode();
     private final DirtyFlag                      dirtyContent           = new DirtyFlag();
     private final DirtyFlag                      dirtyGeometry          = new DirtyFlag();
@@ -110,9 +107,11 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
     private final WidgetPropertyListener<String> symbolPropertyListener = this::symbolChanged;
     private final AtomicReference<List<Symbol>>  symbols                = new AtomicReference<>(Collections.emptyList());
     private final AtomicBoolean                  updatingValue          = new AtomicBoolean(false);
+    private Symbol fallbackSymbol;
+
 
     // ---- imageIndex property
-    private IntegerProperty imageIndex = new SimpleIntegerProperty(-1);
+    private final IntegerProperty imageIndex = new SimpleIntegerProperty(-1);
 
     private int getImageIndex ( ) {
         return imageIndex.get();
@@ -133,7 +132,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
         Double[] max_size = new Double[] { 0.0, 0.0 };
 
-        widget.propSymbols().getValue().stream().forEach(s -> {
+        widget.propSymbols().getValue().forEach(s -> {
 
             final String imageFile = s.getValue();
 
@@ -196,13 +195,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
     }
 
     public SymbolRepresentation ( ) {
-
         super();
-
-        //  This initialization must be performed here, to allow defaultSymbolNode
-        //  to be initialized first.
-        defaultSymbol = new Symbol();
-
     }
 
     @Override
@@ -225,10 +218,14 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
     private Symbol getSymbol (final int idx, final List<Symbol> symbolsList) {
         if ( idx < 0 || symbolsList.isEmpty() ) {
-            return getDefaultSymbol();
+            return new Symbol();
         }
 
-        return symbolsList.get(Math.min(idx, symbolsList.size() - 1));
+        else if(idx > symbolsList.size() - 1){
+            return fallbackSymbol;
+        }
+
+        return symbolsList.get(idx);
     }
 
     @Override
@@ -412,7 +409,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
     protected StackPane createJFXNode ( ) throws Exception {
 
         autoSize = model_widget.propAutoSize().getValue();
-        symbol = getDefaultSymbol();
+        symbol = new Symbol(); //getDefaultSymbol();
 
         StackPane symbolPane = new StackPane();
 
@@ -425,9 +422,9 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         indexLabel.setVisible(model_widget.propShowIndex().getValue());
         indexLabel.textProperty().bind(Bindings.convert(imageIndexProperty()));
 
-        WidgetColor rect_color = WidgetColorService.getColor(NamedWidgetColors.ALARM_INVALID);
-        WidgetColor arect_color = new WidgetColor(rect_color.getRed(), rect_color.getGreen(), rect_color.getBlue(), 128);
-        disconnectedRectangle.setFill(JFXUtil.convert(arect_color));
+        WidgetColor rect_color = model_widget.propDiconnectOverlayColor().getValue();
+        //WidgetColor arect_color = new WidgetColor(rect_color.getRed(), rect_color.getGreen(), rect_color.getBlue(), 128);
+        disconnectedRectangle.setFill(JFXUtil.convert(rect_color));
         if (toolkit.isEditMode())
             disconnectedRectangle.setVisible(false);
 
@@ -468,7 +465,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         model_widget.propPVName().addUntypedPropertyListener(contentListener);
 
         model_widget.propSymbols().addPropertyListener(symbolsListener);
-        model_widget.propSymbols().getValue().stream().forEach(p -> p.addPropertyListener(symbolPropertyListener));
+        model_widget.propSymbols().getValue().forEach(p -> p.addPropertyListener(symbolPropertyListener));
 
         model_widget.propInitialIndex().addPropertyListener(indexListener);
 
@@ -497,7 +494,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         model_widget.propPVName().removePropertyListener(contentListener);
 
         model_widget.propSymbols().removePropertyListener(symbolsListener);
-        model_widget.propSymbols().getValue().stream().forEach(p -> p.removePropertyListener(symbolPropertyListener));
+        model_widget.propSymbols().getValue().forEach(p -> p.removePropertyListener(symbolPropertyListener));
 
         model_widget.propInitialIndex().removePropertyListener(indexListener);
 
@@ -610,10 +607,6 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         toolkit.scheduleUpdate(this);
     }
 
-    private Symbol getDefaultSymbol ( ) {
-        return defaultSymbol;
-    }
-
     private DefaultSymbolNode getDefaultSymbolNode ( ) {
         return defaultSymbolNode;
     }
@@ -680,11 +673,11 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         ModelThreadPool.getExecutor().execute( ( ) -> {
 
             if ( oldValue != null ) {
-                oldValue.stream().forEach(p -> p.removePropertyListener(symbolPropertyListener));
+                oldValue.forEach(p -> p.removePropertyListener(symbolPropertyListener));
             }
 
             if ( newValue != null ) {
-                newValue.stream().forEach(p -> p.addPropertyListener(symbolPropertyListener));
+                newValue.forEach(p -> p.addPropertyListener(symbolPropertyListener));
             }
 
             updateSymbols();
@@ -705,7 +698,13 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
                 fixImportedSymbolNames();
             }
 
-            fileNames.stream().forEach(f -> {
+            fallbackSymbol =
+                    new Symbol(model_widget.propFallbackSymbol().getValue().isEmpty() ?
+                            SymbolWidget.DEFAULT_SYMBOL :
+                            model_widget.propFallbackSymbol().getValue(),
+                            model_widget.propWidth().getValue(), model_widget.propHeight().getValue());
+
+            fileNames.forEach(f -> {
 
                 String fileName = f.getValue();
                 Symbol s = symbolsMap.get(fileName);
@@ -877,9 +876,9 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
         /**
          * Resizes the image. If the underlying resource is a SVG, it is reloaded.
-         * @param width
-         * @param height
-         * @param preserveRatio T
+         * @param width Wanted width
+         * @param height Wnated height
+         * @param preserveRatio Whether to maintain aspect ratio
          */
         void resize(double width, double height, boolean preserveRatio){
             if(fileName.toLowerCase().endsWith("svg")) {
@@ -895,8 +894,8 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
          * Loads a SVG resource. The image cache is used, but the key to the SVG resource depends
          * on the width and height of the image. Reason is that when resizing a image the underlying
          * SVG must be transcoded again with the new size.
-         * @param width
-         * @param height
+         * @param width Wanted width
+         * @param height Wanted height
          * @return An {@link Image} or <code>null</code>.
          */
         Image loadSVG(final String imageFileName, double width, double height){

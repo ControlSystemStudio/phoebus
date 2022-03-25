@@ -188,6 +188,7 @@ public class Messages
     public static String WidgetProperties_DateColor;
     public static String WidgetProperties_DateVisible;
     public static String WidgetProperties_Direction;
+    public static String WidgetProperties_DisconnectOverlayColor;
     public static String WidgetProperties_DiscreteHours;
     public static String WidgetProperties_DiscreteMinutes;
     public static String WidgetProperties_DiscreteSeconds;
@@ -196,6 +197,7 @@ public class Messages
     public static String WidgetProperties_EmptyColor;
     public static String WidgetProperties_Enabled;
     public static String WidgetProperties_ExtremaVisible;
+    public static String WidgetProperties_FallbackSymbol;
     public static String WidgetProperties_File;
     public static String WidgetProperties_Filecomponent;
     public static String WidgetProperties_FillColor;
