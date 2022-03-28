@@ -385,9 +385,11 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     private void setSearchResult(SearchResult searchResult) {
         this.searchResult = searchResult;
-        hitCountProperty.set(searchResult.getHitCount());
-        pageCountProperty.set(1 + (hitCountProperty.get() / pageSizeProperty.get()));
-        refresh();
+        Platform.runLater(() -> {
+            hitCountProperty.set(searchResult.getHitCount());
+            pageCountProperty.set(1 + (hitCountProperty.get() / pageSizeProperty.get()));
+            refresh();
+        });
     }
 
     public void setQuery(String parsedQuery) {
