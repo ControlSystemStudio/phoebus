@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLimitsFromPV;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMaximum;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMinimum;
+import static org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.propLogscale;
 
 import java.util.Arrays;
 import java.util.List;
@@ -127,6 +128,7 @@ public class ProgressBarWidget extends PVWidget
     private volatile WidgetProperty<Boolean> limits_from_pv;
     private volatile WidgetProperty<Double> minimum;
     private volatile WidgetProperty<Double> maximum;
+    private volatile WidgetProperty<Boolean> log_scale;
     private volatile WidgetProperty<WidgetColor> fill_color;
     private volatile WidgetProperty<WidgetColor> background_color;
     private volatile WidgetProperty<Boolean> horizontal;
@@ -145,6 +147,7 @@ public class ProgressBarWidget extends PVWidget
         properties.add(limits_from_pv = propLimitsFromPV.createProperty(this, true));
         properties.add(minimum = propMinimum.createProperty(this, 0.0));
         properties.add(maximum = propMaximum.createProperty(this, 100.0));
+        properties.add(log_scale = propLogscale.createProperty(this, false));
         properties.add(horizontal = propHorizontal.createProperty(this, true));
     }
 
@@ -176,6 +179,12 @@ public class ProgressBarWidget extends PVWidget
     public WidgetProperty<Double> propMaximum()
     {
         return maximum;
+    }
+
+    /** @return 'log_scale' property */
+    public WidgetProperty<Boolean> propLogScale()
+    {
+        return log_scale;
     }
 
     /** @return 'horizontal' property */

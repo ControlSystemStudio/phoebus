@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,6 +14,7 @@ import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.ProgressBarWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.csstudio.javafx.rtplot.internal.util.Log10;
 import org.epics.vtype.Display;
 import org.epics.vtype.VType;
 import org.phoebus.ui.javafx.Styles;
@@ -53,6 +54,7 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
         model_widget.propLimitsFromPV().addUntypedPropertyListener(valueChangedListener);
         model_widget.propMinimum().addUntypedPropertyListener(valueChangedListener);
         model_widget.propMaximum().addUntypedPropertyListener(valueChangedListener);
+        model_widget.propLogScale().addUntypedPropertyListener(valueChangedListener);
         model_widget.runtimePropValue().addUntypedPropertyListener(valueChangedListener);
         model_widget.propHorizontal().addPropertyListener(orientationChangedListener);
         valueChanged(null, null, null);
@@ -67,6 +69,7 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
         model_widget.propLimitsFromPV().removePropertyListener(valueChangedListener);
         model_widget.propMinimum().removePropertyListener(valueChangedListener);
         model_widget.propMaximum().removePropertyListener(valueChangedListener);
+        model_widget.propLogScale().removePropertyListener(valueChangedListener);
         model_widget.runtimePropValue().removePropertyListener(valueChangedListener);
         model_widget.propHorizontal().removePropertyListener(orientationChangedListener);
         super.unregisterListeners();
@@ -121,7 +124,19 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
 
         // Determine percentage of value within the min..max range
         final double value = VTypeUtil.getValueNumber(vtype).doubleValue();
-        final double percentage = (value - min_val) / (max_val - min_val);
+        final double percentage;
+
+        if (model_widget.propLogScale().getValue())
+        {
+            final double d = Log10.log10(max_val) - Log10.log10(min_val);
+            if (d == 0)
+                percentage = Double.NaN;
+            else
+                percentage = (Log10.log10(value) - Log10.log10(min_val)) / d;
+        }
+        else
+            percentage = (value - min_val) / (max_val - min_val);
+
         // Limit to 0.0 .. 1.0
         if (percentage < 0.0  ||  !Double.isFinite(percentage))
             this.percentage = 0.0;
