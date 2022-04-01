@@ -18,7 +18,6 @@
 
 package org.phoebus.logbook.olog.ui;
 
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Worker;
@@ -28,14 +27,14 @@ import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.Property;
 import org.phoebus.logbook.SearchResult;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 
-import javax.ws.rs.core.MultivaluedMap;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -66,11 +65,8 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
 
     private WebEngine webEngine;
 
-    /** for communication to the Javascript engine. */
-    private JSObject javascriptConnector;
-
     /** for communication from the Javascript engine. */
-    private JavaConnector javaConnector = new JavaConnector();
+    private final JavaConnector javaConnector = new JavaConnector();
 
     private Function<LogEntry, Void> logSelectionHandler;
 
@@ -82,7 +78,7 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
     @FXML
     public void initialize() {
         // Content is defined by the source (default) or description field. If both are null
-        // or empty, do no load any content to the WebView.
+        // or empty, do not load any content to the WebView.
         webEngine = logDescription.getEngine();
         webEngine.setUserStyleSheetLocation(getClass()
                 .getResource("/detail_log_webview.css").toExternalForm());
@@ -128,25 +124,32 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
      * Creates the log entry separator item inserted as a header for each log entry
      * when showing the log group view.
      *
-     * @param logEntry
-     * @return
+     * @param logEntry The {@link LogEntry} for which to create a separator item
+     * @return HTML of separator item
      */
     private String createSeparator(LogEntry logEntry) {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("<div class='separator' onClick='window.javaConnector.toLowerCase(" + logEntry.getId() + ")'>");
+        stringBuilder.append("<div class='separator' onClick='window.javaConnector.toLowerCase(").append(logEntry.getId()).append(")'>");
         stringBuilder.append(SECONDS_FORMAT.format(logEntry.getCreatedDate())).append(", ");
         stringBuilder.append(logEntry.getOwner()).append(", ");
         stringBuilder.append(logEntry.getTitle());
-        stringBuilder.append("<div style='float: right;'>").append(logEntry.getId()).append("</div>");
+        stringBuilder.append("<div class='entry-id'>").append(logEntry.getId()).append("</div>");
+        if(logEntry.getAttachments().size() > 0){
+            stringBuilder.append("<div class='attachment-icon'>&nbsp;</div>");
+        }
         stringBuilder.append("</div>");
         return stringBuilder.toString();
     }
 
     private void getLogEntries(LogEntry logEntry) {
 
-        String id =
+        Optional<Property> property =
                 logEntry.getProperties().stream()
-                        .filter(p -> p.getName().equals(LogGroupProperty.NAME)).findFirst().get().getAttributes().get(LogGroupProperty.ATTRIBUTE_ID);
+                        .filter(p -> p.getName().equals(LogGroupProperty.NAME)).findFirst();
+        if(property.isEmpty()){
+            return;
+        }
+        String id = property.get().getAttributes().get(LogGroupProperty.ATTRIBUTE_ID);
         logger.log(Level.INFO, "Fetching log entries for group " + id);
         try {
             Map<String, String> mMap = new HashMap<>();
@@ -163,14 +166,19 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
 
     public class JavaConnector {
         /**
-         * called when the JS side wants a String to be converted.
+         * Called when the JS side wants a String to be converted, e.g. user clicks on separator item
+         * to see full log entry.
          *
          * @param value
          *         the String to convert
          */
+        @SuppressWarnings("unused")
         public void toLowerCase(String value) {
-            LogEntry logEntry = logEntries.stream().filter(l -> Long.toString(l.getId()).equals(value)).findFirst().get();
-            logSelectionHandler.apply(logEntry);
+            Optional<LogEntry> logEntry = logEntries.stream().filter(l -> Long.toString(l.getId()).equals(value)).findFirst();
+            if(logEntry.isEmpty()){
+                return;
+            }
+            logSelectionHandler.apply(logEntry.get());
         }
     }
 }
