@@ -286,6 +286,7 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
                     label.setTextFill(text_color);
             }
         }
+        jfx_node.layout();
     }
 
     // Brightness weightings from BOY
