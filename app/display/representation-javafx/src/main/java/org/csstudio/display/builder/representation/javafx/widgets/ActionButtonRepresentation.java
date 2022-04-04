@@ -154,8 +154,6 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         }
     }
 
-//    private int calls = 0;
-
     /** Create <code>base</code>, either single-action button
      *  or menu for selecting one out of N actions
      */
@@ -185,24 +183,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
             is_writePV = ! has_non_writePVAction;
 
             final MenuButton button = new MenuButton();
-            // Experimenting with ways to force update of popup location,
-            // #226
-            button.showingProperty().addListener((prop, old, showing) ->
-            {
-                if (showing)
-                {
-                    // System.out.println("Showing " + model_widget + " menu: " + showing);
-//                    if (++calls > 2)
-//                    {
-//                        System.out.println("Hack!");
-//                        if (button.getPopupSide() == Side.BOTTOM)
-//                            button.setPopupSide(Side.LEFT);
-//                        else
-//                            button.setPopupSide(Side.BOTTOM);
-//                        // button.layout();
-//                    }
-                }
-            });
+
             for (final ActionInfo action : actions.getActions())
             {
                 final MenuItem item = new MenuItem(makeActionText(action),
@@ -234,6 +215,9 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
 
         // Need to attach TT to the specific button, not the common jfx_node Pane
         TooltipSupport.attach(result, model_widget.propTooltip());
+
+        // Apply enabled/disabled style
+        Styles.update(result, Styles.NOT_ENABLED, !enabled);
 
         return result;
     }
@@ -402,14 +386,6 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         super.unregisterListeners();
     }
 
-    @Override
-    protected void attachTooltip()
-    {
-        // Cannot attach tool tip to the jfx_node (Pane).
-        // Needs to be attached to actual button, which
-        // is done in makeBaseButton()
-    }
-
     /** Complete button needs to be updated */
     private void buttonChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
@@ -518,7 +494,9 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
             // Just apply a style that matches the disabled look.
             Styles.update(base, Styles.NOT_ENABLED, !enabled);
             // Apply the cursor to the pane and not to the button
-            jfx_node.setCursor(enabled ? Cursor.HAND : Cursors.NO_WRITE);
+            if(!toolkit.isEditMode()){
+                jfx_node.setCursor(enabled ? Cursor.HAND : Cursors.NO_WRITE);
+            }
         }
     }
 }
