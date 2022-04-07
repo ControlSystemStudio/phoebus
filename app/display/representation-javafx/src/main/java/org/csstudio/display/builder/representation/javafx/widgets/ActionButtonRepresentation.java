@@ -386,6 +386,14 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         super.unregisterListeners();
     }
 
+    @Override
+    protected void attachTooltip()
+    {
+        // Cannot attach tool tip to the jfx_node (Pane).
+        // Needs to be attached to actual button, which
+        // is done in makeBaseButton()
+    }
+
     /** Complete button needs to be updated */
     private void buttonChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
