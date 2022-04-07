@@ -16,7 +16,7 @@ While not available on all widgets the following properties are associated with 
  - "foreground_color"
  - "font" the font associated with the text of the widget
 
- - "pv-name" the name of a datasource channel which is to be monitored and the values from the channel are used to update the state of the widget
+ - "pv_name" the name of a datasource channel which is to be monitored and the values from the channel are used to update the state of the widget
 
 Tool Tip Property
 -----------------
