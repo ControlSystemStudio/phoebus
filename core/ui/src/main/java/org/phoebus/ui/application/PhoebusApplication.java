@@ -549,15 +549,7 @@ public class PhoebusApplication extends Application {
                 new SeparatorMenuItem(),
                 /* Full Screen placeholder */
                 new FullScreenAction(stage));
-        // Update Full screen action when shown to get correct enter/exit FS mode
-        menu.setOnShowing(event ->
-        {   // Last menu item
-            final int full_screen_index = menu.getItems().size() - 1;
-            final FullScreenAction full_screen = new FullScreenAction(stage);
-            if (!AuthorizationService.hasAuthorization("full_screen"))
-                full_screen.setDisable(true);
-            menu.getItems().set(full_screen_index, full_screen);
-        });
+
         menuBar.getMenus().add(menu);
 
         // Help
@@ -580,6 +572,13 @@ public class PhoebusApplication extends Application {
             menuItems.sort(Comparator.comparing(MenuItem::getText));
             selectTabMenu.getItems().clear();
             selectTabMenu.getItems().addAll(menuItems);
+
+            // Update Full screen action when shown to get correct enter/exit FS mode
+            final int full_screen_index = menu.getItems().size() - 1;
+            final FullScreenAction full_screen = new FullScreenAction(stage);
+            if (!AuthorizationService.hasAuthorization("full_screen"))
+                full_screen.setDisable(true);
+            menu.getItems().set(full_screen_index, full_screen);
         });
 
         closeAllTabsMenuItem.setOnAction(ae -> closeAllTabs());
