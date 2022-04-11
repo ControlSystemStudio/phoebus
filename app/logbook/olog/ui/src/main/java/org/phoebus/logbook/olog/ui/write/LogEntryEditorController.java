@@ -42,11 +42,9 @@ import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.security.tokens.SimpleAuthenticationToken;
 import org.phoebus.logbook.olog.ui.PreviewViewer;
-import org.phoebus.logbook.olog.ui.CommonmarkHelpViewer;
+import org.phoebus.logbook.olog.ui.HelpViewer;
 
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -126,7 +124,7 @@ public class LogEntryEditorController {
 
     @FXML
     public void showHelp() {
-        new CommonmarkHelpViewer().show();
+        new HelpViewer(LogbookUIPreferences.markup_help).show();
     }
 
     /**

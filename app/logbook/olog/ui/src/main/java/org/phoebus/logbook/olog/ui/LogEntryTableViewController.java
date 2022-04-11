@@ -72,10 +72,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
     @FXML
     private Button resize;
     @FXML
-    private Button searchDescendingButton;
-    @FXML
-    private Button searchAscendingButton;
-    @FXML
     private ComboBox<OlogQuery> query;
 
     // elements associated with the various search
@@ -95,11 +91,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
     @FXML
     @SuppressWarnings({"UnusedDeclaration"})
     private AdvancedSearchViewController advancedSearchViewController;
-
-    @FXML
-    private ImageView searchDescendingImageView;
-    @FXML
-    private ImageView searchAscendingImageView;
 
     @FXML
     private Pagination pagination;
@@ -129,7 +120,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         this.searchParameters = searchParameters;
     }
 
-    private final SimpleBooleanProperty sortAscending = new SimpleBooleanProperty(false);
+
 
     private final SimpleIntegerProperty hitCountProperty = new SimpleIntegerProperty(0);
     private final SimpleIntegerProperty pageSizeProperty =
@@ -237,8 +228,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
         progressIndicator.visibleProperty().bind(searchInProgress);
 
-        searchDescendingImageView.setImage(ImageCache.getImage(LogEntryTableViewController.class, "/icons/arrow_down.png"));
-        searchAscendingImageView.setImage(ImageCache.getImage(LogEntryTableViewController.class, "/icons/arrow_up.png"));
         searchResultView.disableProperty().bind(searchInProgress);
 
         pagination.currentPageIndexProperty().addListener((a, b, c) -> {
@@ -280,9 +269,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
         query.getSelectionModel().select(ologQueries.get(0));
         searchParameters.setQuery(ologQueries.get(0).getQuery());
 
-        searchAscendingButton.disableProperty().bind(searchInProgress);
-        searchDescendingButton.disableProperty().bind(searchInProgress);
-
         search();
     }
 
@@ -323,18 +309,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
         }
     }
 
-    @FXML
-    public void searchDescending() {
-        sortAscending.set(false);
-        search();
-    }
-
-    @FXML
-    public void searchAscending() {
-        sortAscending.set(true);
-        search();
-    }
-
     /**
      * Performs a single search based on the current query. If the search completes successfully,
      * the UI is updated and a periodic search is launched using the same query. If on the other hand
@@ -354,7 +328,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
         Map<String, String> params =
                 LogbookQueryUtil.parseHumanReadableQueryString(ologQueryManager.getOrAddQuery(queryString).getQuery());
-        params.put("sort", sortAscending.get() ? "up" : "down");
+        params.put("sort", advancedSearchViewController.getSortAscending().get() ? "up" : "down");
         params.put("from", Integer.toString(pagination.getCurrentPageIndex() * pageSizeProperty.get()));
         params.put("size", Integer.toString(pageSizeProperty.get()));
 
@@ -532,5 +506,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     public boolean getShowDetails(){
         return showDetails.get();
+    }
+
+    public void showHelp(){
+        new HelpViewer(LogbookUIPreferences.search_help).show();
     }
 }

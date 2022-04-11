@@ -20,6 +20,7 @@ package org.phoebus.logbook.olog.ui;
 
 import com.google.common.base.Strings;
 import javafx.beans.InvalidationListener;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -47,6 +48,8 @@ public class SearchParameters implements ObservableValue<String> {
     private SimpleStringProperty logbooks = new SimpleStringProperty();
     private SimpleStringProperty startTime = new SimpleStringProperty();
     private SimpleStringProperty endTime = new SimpleStringProperty();
+    private SimpleBooleanProperty searchDescending = new SimpleBooleanProperty(true);
+
 
     /**
      * For internal purposes: when any of the string properties changes, the listeners (UI controllers)

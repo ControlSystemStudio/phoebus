@@ -2,11 +2,10 @@
 
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<SplitPane fx:id="topLevelNode" dividerPositions="0.3" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" style="-fx-border-color: #d8d8d8;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryTableViewController">
+<SplitPane fx:id="topLevelNode" dividerPositions="0.3" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" style="-fx-border-color: #d8d8d8;" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryTableViewController">
     <items>
         <fx:include fx:id="advancedSearchView" source="AdvancedSearchView.fxml" />
         <SplitPane fx:id="splitPane" dividerPositions="0.33" prefHeight="160.0" prefWidth="200.0">
@@ -36,48 +35,20 @@
                                         <Font name="Arial Bold" size="14.0" />
                                     </font>
                                 </Button>
-                                <Label alignment="CENTER_RIGHT" contentDisplay="CENTER" text="%Query" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.hgrow="NEVER" GridPane.vgrow="NEVER">
-                                    <padding>
-                                        <Insets left="5.0" />
-                                    </padding>
-                                    <GridPane.margin>
-                                        <Insets right="3.0" />
-                                    </GridPane.margin>
-                                </Label>
-                                <ComboBox fx:id="query" editable="true" maxWidth="1.7976931348623157E308"  GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.vgrow="NEVER">
+                                <ComboBox fx:id="query" editable="true" maxWidth="1.7976931348623157E308" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.vgrow="NEVER">
+                                    <tooltip>
+                                        <Tooltip text="%SearchToolTip"/>
+                                    </tooltip>
                                     <GridPane.margin>
                                         <Insets bottom="10.0" top="10.0" />
                                     </GridPane.margin>
                                 </ComboBox>
-                                <Label text="%SearchButtonText" GridPane.columnIndex="3">
-                                    <GridPane.margin>
-                                        <Insets left="5.0" />
-                                    </GridPane.margin>
-                                </Label>
-                                <Button fx:id="searchDescendingButton" mnemonicParsing="false" onAction="#searchDescending" GridPane.columnIndex="4">
-                                    <GridPane.margin>
-                                        <Insets left="3.0" right="3.0" />
-                                    </GridPane.margin>
-                                    <graphic>
-                                        <ImageView fx:id="searchDescendingImageView" fitHeight="18.0" fitWidth="18.0">
-                                            <!-- Image not set here as this crashes the SceneBuilder -->
-                                        </ImageView>
-                                    </graphic>
+                                <Button fx:id="helpButton" mnemonicParsing="false" onAction="#showHelp" text="%Help" GridPane.columnIndex="5">
                                     <tooltip>
-                                        <Tooltip text="%SortDescending" />
-                                    </tooltip>
-                                </Button>
-                                <Button fx:id="searchAscendingButton" mnemonicParsing="false" onAction="#searchAscending" GridPane.columnIndex="5">
-                                    <graphic>
-                                        <ImageView fx:id="searchAscendingImageView" fitHeight="18.0" fitWidth="18.0">
-                                            <!-- Image not set here as this crashes the SceneBuilder -->
-                                        </ImageView>
-                                    </graphic>
-                                    <tooltip>
-                                        <Tooltip text="%SortAscending" />
+                                        <Tooltip text="%ShowHelp" />
                                     </tooltip>
                                     <GridPane.margin>
-                                        <Insets right="5.0" />
+                                        <Insets left="5.0" right="5.0" />
                                     </GridPane.margin>
                                 </Button>
                                 <StackPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnSpan="6" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS">
