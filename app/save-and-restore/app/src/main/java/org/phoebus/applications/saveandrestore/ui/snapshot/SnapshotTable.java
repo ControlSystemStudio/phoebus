@@ -54,6 +54,7 @@ import org.phoebus.applications.saveandrestore.ui.MultitypeTableCell;
 import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
 import org.phoebus.applications.saveandrestore.common.VTypePair;
 import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.core.types.TimeStampedProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 
@@ -538,8 +539,14 @@ class SnapshotTable extends TableView<TableEntry> {
                     setOnContextMenuRequested(null);
                 } else {
                     setOnContextMenuRequested(event -> {
-                        List<ProcessVariable> selectedPVList = getSelectionModel().getSelectedItems().stream()
-                                .map(tableEntry -> new ProcessVariable(tableEntry.pvNameProperty().get()))
+                        List<TimeStampedProcessVariable> selectedPVList = getSelectionModel().getSelectedItems().stream()
+                                .map(tableEntry -> {
+                                    Instant time = Instant.now();
+                                    if(tableEntry.timestampProperty().getValue() != null) {
+                                        time = tableEntry.timestampProperty().getValue();
+                                    }
+                                    return new TimeStampedProcessVariable(tableEntry.pvNameProperty().get(), time);
+                                })
                                 .collect(Collectors.toList());
 
                         contextMenu.hide();
