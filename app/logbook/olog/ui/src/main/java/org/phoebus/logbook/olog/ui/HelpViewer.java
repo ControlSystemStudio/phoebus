@@ -35,8 +35,7 @@ public class HelpViewer extends Stage {
 
     /**
      * Shows help (HTML) content in stand-alone window.
-     * @param helpContent The help content relative the logbook service URL as returned by
-     *                    {@link LogClient#getServiceUrl()}.
+     * @param helpContent The help content. Note that this only partially identifies the actual resource as service will
      */
     public HelpViewer(String helpContent) {
         initModality(Modality.WINDOW_MODAL);
@@ -44,7 +43,7 @@ public class HelpViewer extends Stage {
         if (url.endsWith("/")) {
             url = url.substring(0, url.length() - 1);
         }
-        String helpContentUrl = url + "/" + helpContent;
+        String helpContentUrl = url + "/help/" + helpContent;
 
         WebView webView = new WebView();
         
