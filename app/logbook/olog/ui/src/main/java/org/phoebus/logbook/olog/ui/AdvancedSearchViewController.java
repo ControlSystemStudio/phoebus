@@ -28,6 +28,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
@@ -111,9 +112,13 @@ public class AdvancedSearchViewController {
     @FXML
     private RadioButton sortAscRadioButton;
 
+    @FXML
+    private TextField attachmentTypes;
+
     private SearchParameters searchParameters;
 
     private final SimpleBooleanProperty sortAscending = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty requireAttachments = new SimpleBooleanProperty(false);
 
     public AdvancedSearchViewController(LogClient logClient, SearchParameters searchParameters) {
         this.logClient = logClient;
@@ -134,6 +139,7 @@ public class AdvancedSearchViewController {
         searchParameters.addListener((observable, oldValue, newValue) -> {
             updateControls(newValue);
         });
+        attachmentTypes.textProperty().bindBidirectional(this.searchParameters.attachmentsProperty());
 
         levelLabel.setText(LogbookUIPreferences.level_field_name);
 

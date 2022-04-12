@@ -48,7 +48,7 @@ public class SearchParameters implements ObservableValue<String> {
     private SimpleStringProperty logbooks = new SimpleStringProperty();
     private SimpleStringProperty startTime = new SimpleStringProperty();
     private SimpleStringProperty endTime = new SimpleStringProperty();
-    private SimpleBooleanProperty searchDescending = new SimpleBooleanProperty(true);
+    private SimpleStringProperty attachments = new SimpleStringProperty();
 
 
     /**
@@ -92,6 +92,10 @@ public class SearchParameters implements ObservableValue<String> {
         });
         endTime.addListener((observable, oldValue, newValue) -> {
             updateMap(Keys.ENDTIME, newValue);
+            notifyListeners();
+        });
+        attachments.addListener((observable, oldValue, newValue) -> {
+            updateMap(Keys.ATTACHMENTS, newValue);
             notifyListeners();
         });
     }
@@ -163,6 +167,10 @@ public class SearchParameters implements ObservableValue<String> {
 
     public SimpleStringProperty endTimeProperty() {
         return endTime;
+    }
+
+    public SimpleStringProperty attachmentsProperty() {
+        return attachments;
     }
 
     /**

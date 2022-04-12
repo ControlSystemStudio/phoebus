@@ -46,6 +46,9 @@
                     <RowConstraints />
                     <RowConstraints />
                     <RowConstraints />
+                    <RowConstraints />
+                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
             <RowConstraints />
                 </rowConstraints>
                 <children>
@@ -93,13 +96,21 @@
                         </children>
                     </GridPane>
                     <RadioButton fx:id="sortDescRadioButton" selected="true" text="%SortDescending" textAlignment="RIGHT" GridPane.columnSpan="2" GridPane.rowIndex="14">
-               <padding>
-                  <Insets bottom="5.0" right="5.0" top="10.0" />
-               </padding></RadioButton>
+                        <padding>
+                            <Insets bottom="5.0" right="5.0" top="10.0" />
+                        </padding>
+                    </RadioButton>
                     <RadioButton fx:id="sortAscRadioButton" text="%SortAscending" textAlignment="RIGHT" GridPane.columnSpan="2" GridPane.rowIndex="15">
                         <padding>
                             <Insets bottom="5.0" right="5.0" top="5.0" />
-                        </padding></RadioButton>
+                        </padding>
+                    </RadioButton>
+                    <Label text="%AttachmentsSearchProperty" GridPane.columnSpan="2" GridPane.rowIndex="16">
+                        <GridPane.margin>
+                            <Insets />
+                        </GridPane.margin>
+                    </Label>
+                    <TextField fx:id="attachmentTypes" GridPane.columnSpan="2" GridPane.rowIndex="17" />
                 </children>
             </GridPane>
         </children>
