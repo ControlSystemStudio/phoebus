@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,6 +14,7 @@ import org.csstudio.display.builder.model.widgets.PolygonWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 
 import javafx.collections.ObservableList;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
@@ -44,6 +45,7 @@ public class PolygonRepresentation extends PolyBaseRepresentation<Polygon, Polyg
         model_widget.propX().addUntypedPropertyListener(displayChangedListener);
         model_widget.propY().addUntypedPropertyListener(displayChangedListener);
         model_widget.propBackgroundColor().addUntypedPropertyListener(displayChangedListener);
+        model_widget.propTransparent().addUntypedPropertyListener(displayChangedListener);
         model_widget.propLineColor().addUntypedPropertyListener(displayChangedListener);
         model_widget.propLineWidth().addUntypedPropertyListener(displayChangedListener);
         model_widget.propLineStyle().addUntypedPropertyListener(displayChangedListener);
@@ -59,6 +61,7 @@ public class PolygonRepresentation extends PolyBaseRepresentation<Polygon, Polyg
         model_widget.propX().removePropertyListener(displayChangedListener);
         model_widget.propY().removePropertyListener(displayChangedListener);
         model_widget.propBackgroundColor().removePropertyListener(displayChangedListener);
+        model_widget.propTransparent().removePropertyListener(displayChangedListener);
         model_widget.propLineColor().removePropertyListener(displayChangedListener);
         model_widget.propLineWidth().removePropertyListener(displayChangedListener);
         model_widget.propLineStyle().removePropertyListener(displayChangedListener);
@@ -82,7 +85,12 @@ public class PolygonRepresentation extends PolyBaseRepresentation<Polygon, Polyg
             {
                 jfx_node.setVisible(true);
                 jfx_node.getPoints().setAll(scalePoints());
-                jfx_node.setFill(JFXUtil.convert(model_widget.propBackgroundColor().getValue()));
+
+                if (model_widget.propTransparent().getValue())
+                    jfx_node.setFill(Color.TRANSPARENT);
+                else
+                    jfx_node.setFill(JFXUtil.convert(model_widget.propBackgroundColor().getValue()));
+
                 jfx_node.setStroke(JFXUtil.convert(model_widget.propLineColor().getValue()));
                 jfx_node.setStrokeWidth(model_widget.propLineWidth().getValue());
                 final int line_width = Math.max(1, model_widget.propLineWidth().getValue());

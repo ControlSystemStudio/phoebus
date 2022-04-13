@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineStyle;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineWidth;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propTransparent;
 
 import java.util.Arrays;
 import java.util.List;
@@ -105,6 +106,7 @@ public class PolygonWidget extends PolyBaseWidget
     };
 
     private volatile WidgetProperty<WidgetColor> background_color;
+    private volatile WidgetProperty<Boolean> transparent;
     private volatile WidgetProperty<WidgetColor> line_color;
     private volatile WidgetProperty<Integer> line_width;
     private volatile WidgetProperty<LineStyle> line_style;
@@ -122,6 +124,7 @@ public class PolygonWidget extends PolyBaseWidget
         properties.add(line_color = propLineColor.createProperty(this, new WidgetColor(0, 0, 255)));
         properties.add(line_style = propLineStyle.createProperty(this, LineStyle.SOLID));
         properties.add(background_color = propBackgroundColor.createProperty(this, new WidgetColor(50, 50, 255)));
+        properties.add(transparent = propTransparent.createProperty(this, false));
     }
 
     @Override
@@ -144,6 +147,12 @@ public class PolygonWidget extends PolyBaseWidget
     public WidgetProperty<WidgetColor> propBackgroundColor()
     {
         return background_color;
+    }
+
+    /** @return 'transparent' property */
+    public WidgetProperty<Boolean> propTransparent()
+    {
+        return transparent;
     }
 
     /** @return 'line_color' property */
