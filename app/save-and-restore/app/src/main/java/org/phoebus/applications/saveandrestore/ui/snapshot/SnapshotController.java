@@ -51,7 +51,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.BorderPane;
 import javafx.util.converter.DoubleStringConverter;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
@@ -113,7 +113,7 @@ public class SnapshotController implements NodeChangedListener {
     private TextField createdDate;
 
     @FXML
-    private VBox vBox;
+    private BorderPane borderPane;
 
     @FXML
     private Label snapshotNameLabel;
@@ -248,18 +248,19 @@ public class SnapshotController implements NodeChangedListener {
         createdDate.textProperty().bind(createdDateTextProperty);
 
         snapshotTable = new SnapshotTable(this);
-        vBox.getChildren().add(snapshotTable);
+
+        borderPane.setCenter(snapshotTable);
 
         if (isTreeTableViewEnabled) {
             snapshotTreeTable = new SnapshotTreeTable(this);
 
             showTreeTable.addListener((observableValue, aBoolean, on) -> {
                 if (on) {
-                    vBox.getChildren().remove(snapshotTable);
-                    vBox.getChildren().add(snapshotTreeTable);
+                    borderPane.getChildren().remove(snapshotTable);
+                    borderPane.setCenter(snapshotTreeTable);
                 } else {
-                    vBox.getChildren().remove(snapshotTreeTable);
-                    vBox.getChildren().add(snapshotTable);
+                    borderPane.getChildren().remove(snapshotTreeTable);
+                    borderPane.setCenter(snapshotTable);
                 }
             });
         }
@@ -274,7 +275,7 @@ public class SnapshotController implements NodeChangedListener {
         showLiveReadbackProperty.bind(showLiveReadbackButton.selectedProperty());
         showLiveReadbackButton.selectedProperty().addListener((a, o, n) -> {
             UI_EXECUTOR.execute(() -> {
-                ArrayList arrayList = new ArrayList(tableEntryItems.values());
+                ArrayList<TableEntry> arrayList = new ArrayList<>(tableEntryItems.values());
                 snapshotTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbacks, showDeltaPercentage);
                 if (isTreeTableViewEnabled) {
                     snapshotTreeTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbacks, showDeltaPercentage);
@@ -286,7 +287,7 @@ public class SnapshotController implements NodeChangedListener {
         showStoredReadbackButton.setTooltip(new Tooltip(Messages.toolTipShowStoredReadback));
         showStoredReadbackButton.selectedProperty().addListener((a, o, n) -> {
             UI_EXECUTOR.execute(() -> {
-                ArrayList arrayList = new ArrayList(tableEntryItems.values());
+                ArrayList<TableEntry> arrayList = new ArrayList<>(tableEntryItems.values());
                 snapshotTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbacks, showDeltaPercentage);
                 if (isTreeTableViewEnabled) {
                     snapshotTreeTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbacks, showDeltaPercentage);
@@ -324,7 +325,7 @@ public class SnapshotController implements NodeChangedListener {
                     multiplierSpinner.setTooltip(null);
                     snapshotRestorableProperty.set(true);
 
-                    Double parsedNumber = null;
+                    Double parsedNumber;
                     try {
                         parsedNumber = Double.parseDouble(n.trim());
                         updateSnapshot(parsedNumber);
@@ -346,7 +347,7 @@ public class SnapshotController implements NodeChangedListener {
                     showDeltaPercentage = n;
 
                     UI_EXECUTOR.execute(() -> {
-                        ArrayList arrayList = new ArrayList(tableEntryItems.values());
+                        ArrayList<TableEntry> arrayList = new ArrayList<>(tableEntryItems.values());
                         snapshotTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbacks, showDeltaPercentage);
                         if (isTreeTableViewEnabled) {
                             snapshotTreeTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbacks, showDeltaPercentage);
@@ -360,7 +361,7 @@ public class SnapshotController implements NodeChangedListener {
                 .addListener((a, o, n) -> {
                     hideEqualItems = n;
 
-                    ArrayList arrayList = new ArrayList(tableEntryItems.values());
+                    ArrayList<TableEntry> arrayList = new ArrayList<>(tableEntryItems.values());
                     UI_EXECUTOR.execute(() -> snapshotTable.updateTable(arrayList));
                     if (isTreeTableViewEnabled) {
                         UI_EXECUTOR.execute(() -> snapshotTreeTable.updateTable(arrayList));
@@ -386,7 +387,7 @@ public class SnapshotController implements NodeChangedListener {
                         .collect(Collectors.toList()).isEmpty();
 
                 if (allSelected) {
-                    tableEntryItems.values().stream()
+                    tableEntryItems.values()
                             .forEach(item -> item.selectedProperty().set(false));
                 }
             }
@@ -423,9 +424,9 @@ public class SnapshotController implements NodeChangedListener {
             regexPatterns = filters.stream()
                     .map(item -> {
                         if (item.startsWith("/")) {
-                            return Arrays.asList(Pattern.compile(item.substring(1, item.length() - 1).trim()));
+                            return List.of(Pattern.compile(item.substring(1, item.length() - 1).trim()));
                         } else {
-                            return Arrays.asList(item.split("&")).stream()
+                            return Arrays.stream(item.split("&"))
                                     .map(andItem -> andItem.replaceAll("\\*", ".*"))
                                     .map(andItem -> Pattern.compile(andItem.trim()))
                                     .collect(Collectors.toList());
@@ -461,20 +462,17 @@ public class SnapshotController implements NodeChangedListener {
             });
         });
 
-        dirtySnapshotEntries.addListener(new SetChangeListener<Integer>() {
-            @Override
-            public void onChanged(Change<? extends Integer> change) {
-                if (dirtySnapshotEntries.size() == 0) {
-                    snapshotSaveableProperty.set(false);
+        dirtySnapshotEntries.addListener((SetChangeListener<Integer>) change -> {
+            if (dirtySnapshotEntries.size() == 0) {
+                snapshotSaveableProperty.set(false);
 
-                    snapshotNameProperty.set(persistentSnapshotName);
-                    snapshotTab.updateTabTitile(persistentSnapshotName, persistentGoldenState);
-                } else {
-                    snapshotSaveableProperty.set(true);
+                snapshotNameProperty.set(persistentSnapshotName);
+                snapshotTab.updateTabTitile(persistentSnapshotName, persistentGoldenState);
+            } else {
+                snapshotSaveableProperty.set(true);
 
-                    snapshotNameProperty.set(persistentSnapshotName + " " + Messages.snapshotModifiedText);
-                    snapshotTab.updateTabTitile(persistentSnapshotName + " " + Messages.snapshotModifiedText, false);
-                }
+                snapshotNameProperty.set(persistentSnapshotName + " " + Messages.snapshotModifiedText);
+                snapshotTab.updateTabTitile(persistentSnapshotName + " " + Messages.snapshotModifiedText, false);
             }
         });
     }
@@ -568,7 +566,7 @@ public class SnapshotController implements NodeChangedListener {
                 snapshotRestorableProperty.set(true);
 
                 dirtySnapshotEntries.clear();
-                vSnapshot.getEntries().stream().forEach(item -> {
+                vSnapshot.getEntries().forEach(item -> {
                     item.getValueProperty().addListener((observableValue, vType, newVType) -> {
                         if (!Utilities.areVTypesIdentical(newVType, item.getStoredValue(), false)) {
                             dirtySnapshotEntries.add(item.getConfigPv().getId());
@@ -588,7 +586,7 @@ public class SnapshotController implements NodeChangedListener {
         new Thread(() -> {
             VSnapshot s = snapshots.get(0);
             CountDownLatch countDownLatch = new CountDownLatch(s.getEntries().size());
-            s.getEntries().stream().forEach(e -> pvs.get(getPVKey(e.getPVName(), e.isReadOnly())).setCountDownLatch(countDownLatch));
+            s.getEntries().forEach(e -> pvs.get(getPVKey(e.getPVName(), e.isReadOnly())).setCountDownLatch(countDownLatch));
             try {
                 List<String> restoreFailed = new ArrayList<>();
                 List<SnapshotEntry> entries = s.getEntries();
@@ -900,7 +898,7 @@ public class SnapshotController implements NodeChangedListener {
     }
 
     private void updateThreshold(double threshold) {
-        snapshots.stream().forEach(snapshot -> {
+        snapshots.forEach(snapshot -> {
             snapshot.getEntries().forEach(item -> {
                 VType vtype = item.getValue();
                 VType diffVType = null;
@@ -922,19 +920,14 @@ public class SnapshotController implements NodeChangedListener {
                     boolean isNegative = vNumber.getValue().doubleValue() < 0;
 
                     tableEntry.setThreshold(Optional.of(new Threshold<>(isNegative ? SafeMultiply.multiply(vNumber.getValue(), -1.0) : vNumber.getValue())));
-                } else if (vtype instanceof VNumberArray) {
-                    // TODO: Probably ignore waveform value? or compare each component? Leave it for now.
-                    diffVType = SafeMultiply.multiply((VNumberArray) vtype, ratio);
-                    VNumberArray vNumberArray = (VNumberArray) diffVType;
-//                  tableEntry.setThreshold(Optional.of(new Threshold<>(vNumberArray.getData())));
                 }
             });
         });
     }
 
     private void updateSnapshot(double multiplier) {
-        snapshots.stream().forEach(snapshot -> {
-            snapshot.getEntries().stream()
+        snapshots.forEach(snapshot -> {
+            snapshot.getEntries()
                     .forEach(item -> {
                         TableEntry tableEntry = tableEntryItems.get(getPVKey(item.getPVName(), item.isReadOnly()));
 
@@ -943,7 +936,7 @@ public class SnapshotController implements NodeChangedListener {
                         }
 
                         VType vtype = item.getStoredValue();
-                        VType newVType = null;
+                        VType newVType;
 
                         if (vtype instanceof VNumber) {
                             newVType = SafeMultiply.multiply((VNumber) vtype, multiplier);
@@ -995,7 +988,7 @@ public class SnapshotController implements NodeChangedListener {
         thresholdSpinner.getEditor().getStyleClass().remove("input-error");
         thresholdSpinner.setTooltip(null);
 
-        Double parsedNumber = null;
+        Double parsedNumber;
         try {
             parsedNumber = Double.parseDouble(value.trim());
             updateThreshold(parsedNumber);

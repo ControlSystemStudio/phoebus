@@ -25,8 +25,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.ui.javafx.ImageCache;
@@ -61,9 +61,9 @@ public class SnapshotTab extends Tab {
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(SnapshotTab.class.getResource("SnapshotEditor.fxml"));
 
-        VBox borderPane = null;
+        BorderPane borderPane;
         try {
-            borderPane = (VBox)loader.load();
+            borderPane = loader.load();
         } catch (IOException e) {
             Logger.getLogger(SnapshotTab.class.getName())
                     .log(Level.SEVERE, "Failed to load fxml", e);
