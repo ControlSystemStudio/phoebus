@@ -22,23 +22,28 @@ import javafx.scene.Scene;
 import javafx.scene.web.WebView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogService;
 import org.phoebus.logbook.LogbookPreferences;
 
 /**
- * Stand-alone, non-modal window used to display the Commonmark cheatsheet. Using this instead of
+ * Stand-alone, non-modal window used to display help content. Using this instead of
  * relying on the default browser solves the problem of untrusted SSL certificates as Phoebus will
  * accept them, while the browser might not.
  */
-public class CommonmarkHelpViewer extends Stage {
+public class HelpViewer extends Stage {
 
-    public CommonmarkHelpViewer() {
+    /**
+     * Shows help (HTML) content in stand-alone window.
+     * @param helpContent The help content. Note that this only partially identifies the actual resource as service will
+     */
+    public HelpViewer(String helpContent) {
         initModality(Modality.WINDOW_MODAL);
         String url = LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory).getLogClient().getServiceUrl();
         if (url.endsWith("/")) {
             url = url.substring(0, url.length() - 1);
         }
-        String helpContentUrl = url + "/" + LogbookUIPreferences.markup_help;
+        String helpContentUrl = url + "/help/" + helpContent;
 
         WebView webView = new WebView();
         
