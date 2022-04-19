@@ -36,6 +36,7 @@ public class LogbookUIPreferences
     @Preference public static String log_attribute_desc;
     @Preference public static int search_result_page_size;
     @Preference public static int query_list_size;
+    @Preference public static String search_help;
 
     static
     {

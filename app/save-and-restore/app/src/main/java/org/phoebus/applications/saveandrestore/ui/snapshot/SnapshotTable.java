@@ -31,8 +31,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
@@ -54,6 +52,7 @@ import org.phoebus.applications.saveandrestore.ui.MultitypeTableCell;
 import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
 import org.phoebus.applications.saveandrestore.common.VTypePair;
 import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.core.types.TimeStampedProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 
@@ -68,8 +67,6 @@ import java.util.stream.Collectors;
 
 
 class SnapshotTable extends TableView<TableEntry> {
-
-    private TableColumn<TableEntry, ConfigPv> pvNameColumn;
 
     private static boolean resizePolicyNotInitialized = true;
     private static PrivilegedAction<Object> resizePolicyAction = () -> {
@@ -474,8 +471,6 @@ class SnapshotTable extends TableView<TableEntry> {
         setEditable(true);
         getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         setMaxWidth(Double.MAX_VALUE);
-        setMaxHeight(Double.MAX_VALUE);
-        VBox.setVgrow(this, Priority.ALWAYS);
         setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         getStylesheets().add(SnapshotTable.class.getResource("/style.css").toExternalForm());
 
@@ -538,8 +533,14 @@ class SnapshotTable extends TableView<TableEntry> {
                     setOnContextMenuRequested(null);
                 } else {
                     setOnContextMenuRequested(event -> {
-                        List<ProcessVariable> selectedPVList = getSelectionModel().getSelectedItems().stream()
-                                .map(tableEntry -> new ProcessVariable(tableEntry.pvNameProperty().get()))
+                        List<TimeStampedProcessVariable> selectedPVList = getSelectionModel().getSelectedItems().stream()
+                                .map(tableEntry -> {
+                                    Instant time = Instant.now();
+                                    if(tableEntry.timestampProperty().getValue() != null) {
+                                        time = tableEntry.timestampProperty().getValue();
+                                    }
+                                    return new TimeStampedProcessVariable(tableEntry.pvNameProperty().get(), time);
+                                })
                                 .collect(Collectors.toList());
 
                         contextMenu.hide();
@@ -603,7 +604,7 @@ class SnapshotTable extends TableView<TableEntry> {
         });
         snapshotTableEntries.add(idColumn);
 
-        pvNameColumn = new TooltipTableColumn<>("PV Name",
+        TableColumn<TableEntry, ConfigPv> pvNameColumn = new TooltipTableColumn<>("PV Name",
                 Messages.toolTipTableColumnPVName, 100);
 
         pvNameColumn.setCellValueFactory(new PropertyValueFactory<>("pvName"));
@@ -736,7 +737,7 @@ class SnapshotTable extends TableView<TableEntry> {
         storedValueColumn.getStyleClass().add("toplevel");
 
         String snapshotName = snapshots.get(0).getSnapshot().get().getName() + " (" +
-                String.valueOf(snapshots.get(0)) + ")";
+                snapshots.get(0) + ")";
 
 
         TableColumn<TableEntry, ?> baseCol = new TooltipTableColumn<>(
@@ -801,7 +802,7 @@ class SnapshotTable extends TableView<TableEntry> {
             final int snapshotIndex = i;
 
             snapshotName = snapshots.get(snapshotIndex).getSnapshot().get().getName() + " (" +
-                    String.valueOf(snapshots.get(snapshotIndex)) + ")";
+                    snapshots.get(snapshotIndex) + ")";
 
 
             TooltipTableColumn<VTypePair> baseSnapshotCol = new TooltipTableColumn<>(snapshotName,

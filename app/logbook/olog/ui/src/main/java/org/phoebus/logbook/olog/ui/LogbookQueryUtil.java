@@ -1,6 +1,7 @@
 package org.phoebus.logbook.olog.ui;
 
 import com.google.common.base.Strings;
+import org.checkerframework.checker.units.qual.K;
 import org.phoebus.util.time.TimeParser;
 
 import java.net.URI;
@@ -26,7 +27,8 @@ public class LogbookQueryUtil {
         OWNER("owner"), // The author of a log entry
         TITLE("title"),
         LEVEL("level"),
-        PROPERTIES("properties");
+        PROPERTIES("properties"),
+        ATTACHMENTS("attachments");
 
         // The human readable name of the query key
         private final String name;
@@ -43,6 +45,7 @@ public class LogbookQueryUtil {
             lookupTable.put("title", Keys.TITLE);
             lookupTable.put("level", Keys.LEVEL);
             lookupTable.put("properties", Keys.PROPERTIES);
+            lookupTable.put("attachments", Keys.ATTACHMENTS);
         }
 
         Keys(String name) {

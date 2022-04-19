@@ -20,6 +20,7 @@ package org.phoebus.logbook.olog.ui;
 
 import com.google.common.base.Strings;
 import javafx.beans.InvalidationListener;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -47,6 +48,8 @@ public class SearchParameters implements ObservableValue<String> {
     private SimpleStringProperty logbooks = new SimpleStringProperty();
     private SimpleStringProperty startTime = new SimpleStringProperty();
     private SimpleStringProperty endTime = new SimpleStringProperty();
+    private SimpleStringProperty attachments = new SimpleStringProperty();
+
 
     /**
      * For internal purposes: when any of the string properties changes, the listeners (UI controllers)
@@ -89,6 +92,10 @@ public class SearchParameters implements ObservableValue<String> {
         });
         endTime.addListener((observable, oldValue, newValue) -> {
             updateMap(Keys.ENDTIME, newValue);
+            notifyListeners();
+        });
+        attachments.addListener((observable, oldValue, newValue) -> {
+            updateMap(Keys.ATTACHMENTS, newValue);
             notifyListeners();
         });
     }
@@ -160,6 +167,10 @@ public class SearchParameters implements ObservableValue<String> {
 
     public SimpleStringProperty endTimeProperty() {
         return endTime;
+    }
+
+    public SimpleStringProperty attachmentsProperty() {
+        return attachments;
     }
 
     /**

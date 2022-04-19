@@ -5,23 +5,13 @@ This is the contents of the top portion of a snapshot tab. Since tabs are added 
 save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
 -->
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.CheckBox?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Spinner?>
-<?import javafx.scene.control.TextArea?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.ToggleButton?>
-<?import javafx.scene.control.ToolBar?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Pane?>
-<?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-<VBox fx:id="vBox" maxHeight="1.7976931348623157E308" prefHeight="182.0" prefWidth="1188.0" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotController">
+<BorderPane fx:id="borderPane" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotController">
+<top>
+<VBox fx:id="vBox" maxHeight="1.7976931348623157E308" prefWidth="1188.0">
 
     <ToolBar prefHeight="40.0">
         <items>
@@ -33,7 +23,7 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
             <ToggleButton fx:id="hideShowEqualItemsButton" mnemonicParsing="false" />
         </items>
     </ToolBar>
-    <GridPane maxWidth="1.7976931348623157E308" prefHeight="102.0">
+    <GridPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
       <columnConstraints>
         <ColumnConstraints hgrow="NEVER" maxWidth="151.0" minWidth="10.0" prefWidth="130.0" />
         <ColumnConstraints hgrow="ALWAYS" maxWidth="311.0" minWidth="10.0" prefWidth="265.0" />
@@ -130,7 +120,7 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
 
        </children>
     </GridPane>
-   <ToolBar maxWidth="1.7976931348623157E308" nodeOrientation="LEFT_TO_RIGHT" prefHeight="40.0">
+   <ToolBar maxWidth="1.7976931348623157E308" nodeOrientation="LEFT_TO_RIGHT" prefHeight="40.0" prefWidth="1188.0">
       <items>
          <CheckBox fx:id="preserveSelectionCheckBox" mnemonicParsing="false" text="Preserve selection after" />
          <Label text="Filter:" />
@@ -142,3 +132,5 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
       </items>
    </ToolBar>
 </VBox>
+</top>
+</BorderPane>

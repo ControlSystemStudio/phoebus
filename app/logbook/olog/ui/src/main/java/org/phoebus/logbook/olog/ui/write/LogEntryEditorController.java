@@ -62,7 +62,6 @@ import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.security.tokens.SimpleAuthenticationToken;
 import org.phoebus.logbook.olog.ui.PreviewViewer;
-import org.phoebus.logbook.olog.ui.CommonmarkHelpViewer;
 import org.phoebus.ui.dialog.ListSelectionDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
@@ -72,6 +71,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import org.phoebus.logbook.olog.ui.HelpViewer;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -345,7 +346,7 @@ public class LogEntryEditorController {
 
     @FXML
     public void showHelp() {
-        new CommonmarkHelpViewer().show();
+        new HelpViewer(LogbookUIPreferences.markup_help).show();
     }
 
     /**

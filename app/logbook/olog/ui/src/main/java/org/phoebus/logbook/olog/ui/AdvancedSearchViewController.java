@@ -20,14 +20,18 @@ package org.phoebus.logbook.olog.ui;
 
 import com.google.common.base.Strings;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
@@ -102,7 +106,19 @@ public class AdvancedSearchViewController {
     @FXML
     private AnchorPane advancedSearchPane;
 
+    @FXML
+    private RadioButton sortDescRadioButton;
+
+    @FXML
+    private RadioButton sortAscRadioButton;
+
+    @FXML
+    private TextField attachmentTypes;
+
     private SearchParameters searchParameters;
+
+    private final SimpleBooleanProperty sortAscending = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty requireAttachments = new SimpleBooleanProperty(false);
 
     public AdvancedSearchViewController(LogClient logClient, SearchParameters searchParameters) {
         this.logClient = logClient;
@@ -123,6 +139,7 @@ public class AdvancedSearchViewController {
         searchParameters.addListener((observable, oldValue, newValue) -> {
             updateControls(newValue);
         });
+        attachmentTypes.textProperty().bindBidirectional(this.searchParameters.attachmentsProperty());
 
         levelLabel.setText(LogbookUIPreferences.level_field_name);
 
@@ -269,12 +286,16 @@ public class AdvancedSearchViewController {
         List<String> levelList = logClient.listLevels().stream().collect(Collectors.toList());
         levelSelector.getItems().add("");
         levelSelector.getItems().addAll(levelList);
+
+        sortAscending.addListener((observable, oldValue, newValue) -> {
+            sortDescRadioButton.selectedProperty().set(!newValue);
+            sortAscRadioButton.selectedProperty().set(newValue);
+        });
+
+        sortDescRadioButton.setOnAction(ae -> sortAscending.set(false));
+
+        sortAscRadioButton.setOnAction(ae -> sortAscending.set(true));
     }
-
-
-    public void setSearchParameters(ObservableMap<Keys, String> params) {
-    }
-
 
     public AnchorPane getPane() {
         return advancedSearchPane;
@@ -345,5 +366,9 @@ public class AdvancedSearchViewController {
         List<String> validatedLogbookNames =
                 logbooksFromQueryString.stream().filter(logbookName -> validTagsNames.contains(logbookName)).collect(Collectors.toList());
         return validatedLogbookNames;
+    }
+
+    public SimpleBooleanProperty getSortAscending(){
+        return sortAscending;
     }
 }
