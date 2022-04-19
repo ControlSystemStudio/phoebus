@@ -5,7 +5,6 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -132,7 +131,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                             } else if (clazz.isAssignableFrom(AttachmentsPreviewController.class)) {
                                 return clazz.getConstructor().newInstance();
                             } else if (clazz.isAssignableFrom(LogEntryDisplayController.class)) {
-                                return clazz.getConstructor(LogClient.class).newInstance(client);
+                                return clazz.getConstructor().newInstance();
                             } else if (clazz.isAssignableFrom(LogPropertiesController.class)) {
                                 return clazz.getConstructor().newInstance();
                             }

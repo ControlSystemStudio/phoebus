@@ -3,6 +3,7 @@ package org.phoebus.logbook.olog.ui;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.phoebus.logbook.AttachmentImpl;
 import org.phoebus.logbook.LogEntry;
@@ -40,12 +41,10 @@ public class LogEntryCellDemo extends ApplicationWrapper {
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("LogEntry Cell Demo");
 
-        //VBox root = new VBox();
-        GridPane root;
+        VBox root;
 
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(this.getClass().getResource("LogEntryCell.fxml"));
-//        loader.setController(new LogEntryCellDemo());
         loader.load();
         LogEntryCellController controller = loader.getController();
         root = loader.getRoot();

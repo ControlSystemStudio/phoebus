@@ -29,23 +29,19 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToolBar;
 import javafx.scene.layout.BorderPane;
-import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.LogbookException;
-import org.phoebus.logbook.Property;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.olog.es.api.model.OlogLog;
-import org.phoebus.ui.docking.DockPane;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class LogEntryDisplayController {
 
     @FXML
+    @SuppressWarnings("unused")
     private SingleLogEntryDisplayController singleLogEntryDisplayController;
     @FXML
+    @SuppressWarnings("unused")
     private MergedLogEntryDisplayController mergedLogEntryDisplayController;
     @FXML
     private ToggleButton showHideLogEntryGroupButton;
@@ -60,23 +56,16 @@ public class LogEntryDisplayController {
     @FXML
     private Node mergedLogEntryDisplay;
 
-    private LogClient logClient;
-
-    private SimpleObjectProperty<LogEntry> logEntryProperty =
+    private final SimpleObjectProperty<LogEntry> logEntryProperty =
             new SimpleObjectProperty<>();
 
-    private Logger logger = Logger.getLogger(LogEntryDisplayController.class.getName());
 
-    private SimpleBooleanProperty hasLinkedEntriesProperty = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty hasLinkedEntriesProperty = new SimpleBooleanProperty(false);
 
     private static final int EMPTY = 0;
     private static final int SINGLE = 1;
     private static final int MERGED = 2;
-    private SimpleIntegerProperty currentViewProperty = new SimpleIntegerProperty(EMPTY);
-
-    public LogEntryDisplayController(LogClient logClient) {
-        this.logClient = logClient;
-    }
+    private final SimpleIntegerProperty currentViewProperty = new SimpleIntegerProperty(EMPTY);
 
     @FXML
     public void initialize() {
@@ -112,17 +101,9 @@ public class LogEntryDisplayController {
 
     @FXML
     public void reply() {
-        LogEntry logEntry = logEntryProperty.get();
-        OlogLog ologLog = new OlogLog();
-        ologLog.setTitle(logEntry.getTitle());
-        ologLog.setTags(logEntry.getTags());
-        ologLog.setLogbooks(logEntry.getLogbooks());
-        ologLog.setProperties(logEntry.getProperties());
-        ologLog.setLevel(logEntry.getLevel());
-
         // Show a new editor dialog. When user selects to save the reply entry, update the original log entry
         // to ensure that it contains the log group property.
-        new LogEntryEditorStage(DockPane.getActiveDockPane(), ologLog, logEntry, null).show();
+        new LogEntryEditorStage(new OlogLog(),  logEntryProperty.get(), null).show();
     }
 
     public void setLogEntry(LogEntry logEntry) {

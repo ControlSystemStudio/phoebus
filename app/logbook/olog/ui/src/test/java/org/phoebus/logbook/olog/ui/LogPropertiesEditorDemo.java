@@ -15,7 +15,6 @@ import org.phoebus.logbook.Property;
 import org.phoebus.logbook.PropertyImpl;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
 import org.phoebus.logbook.olog.ui.write.LogPropertiesEditorController;
-import org.phoebus.olog.es.api.OlogClient;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
 import java.io.IOException;

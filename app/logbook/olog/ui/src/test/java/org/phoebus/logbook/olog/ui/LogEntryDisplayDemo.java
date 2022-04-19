@@ -72,7 +72,7 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
                 } else if (clazz.isAssignableFrom(LogEntryCellController.class)) {
                     return clazz.getConstructor().newInstance();
                 } else if (clazz.isAssignableFrom(LogEntryDisplayController.class)) {
-                    return clazz.getConstructor(LogClient.class).newInstance(getLogClient());
+                    return clazz.getConstructor().newInstance();
                 } else if (clazz.isAssignableFrom(MergedLogEntryDisplayController.class)) {
                     return clazz.getConstructor(LogClient.class).newInstance(getLogClient());
                 } else if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {

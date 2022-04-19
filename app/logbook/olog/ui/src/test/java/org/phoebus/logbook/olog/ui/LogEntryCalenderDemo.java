@@ -14,6 +14,8 @@ import org.phoebus.logbook.LogbookException;
 import org.phoebus.logbook.LogbookImpl;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.TagImpl;
+import org.phoebus.logbook.olog.ui.query.OlogQuery;
+import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
@@ -38,18 +40,22 @@ public class LogEntryCalenderDemo extends ApplicationWrapper {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-
+        File tmp = File.createTempFile("demo", "suffix");
+        tmp.deleteOnExit();
+        OlogQueryManager ologQueryManager = OlogQueryManager.getInstance(tmp);
+        ologQueryManager.getOrAddQuery(new OlogQuery("start=1 week&end=now"));
+        SearchParameters searchParameters = new SearchParameters();
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(this.getClass().getResource("LogEntryCalenderView.fxml"));
         loader.setControllerFactory(clazz -> {
             try {
                 if(clazz.isAssignableFrom(LogEntryCalenderViewController.class)){
-                    return clazz.getConstructor(LogClient.class)
-                            .newInstance(getLogClient());
+                    return clazz.getConstructor(LogClient.class, OlogQueryManager.class, SearchParameters.class)
+                            .newInstance(getLogClient(), ologQueryManager, searchParameters);
                 }
                 else if(clazz.isAssignableFrom(AdvancedSearchViewController.class)){
-                    return clazz.getConstructor(LogClient.class)
-                            .newInstance(getLogClient());
+                    return clazz.getConstructor(LogClient.class, SearchParameters.class)
+                            .newInstance(getLogClient(), searchParameters);
                 }
             } catch (Exception e) {
                 Logger.getLogger(LogEntryEditorStage.class.getName()).log(Level.SEVERE, "Failed to construct controller for log calendar view", e);
