@@ -20,13 +20,19 @@
 package org.phoebus.logbook.olog.ui.write;
 
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.olog.ui.AttachmentsPreviewController;
 import org.phoebus.logbook.olog.ui.Messages;
+import org.phoebus.ui.dialog.DialogHelper;
 
 import java.util.Collection;
 import java.util.ResourceBundle;
@@ -35,6 +41,7 @@ import java.util.logging.Logger;
 
 public class LogEntryEditorStage extends Stage
 {
+    private LogEntryEditorController logEntryEditorController;
     /**
      * A stand-alone window containing components needed to create a logbook entry.
      * @param logEntry Pre-populated data for the log entry, e.g. date and (optionally) screen shot.
@@ -51,6 +58,7 @@ public class LogEntryEditorStage extends Stage
      */
     public LogEntryEditorStage(LogEntry logEntry, LogEntry replyTo, LogEntryCompletionHandler completionHandler)
     {
+
         initModality(Modality.WINDOW_MODAL);
         ResourceBundle resourceBundle =  NLS.getMessages(Messages.class);
         FXMLLoader fxmlLoader =
@@ -58,8 +66,9 @@ public class LogEntryEditorStage extends Stage
         fxmlLoader.setControllerFactory(clazz -> {
             try {
                 if(clazz.isAssignableFrom(LogEntryEditorController.class)){
-                    return clazz.getConstructor(LogEntry.class, LogEntry.class, LogEntryCompletionHandler.class)
+                    logEntryEditorController = (LogEntryEditorController)clazz.getConstructor(LogEntry.class, LogEntry.class, LogEntryCompletionHandler.class)
                             .newInstance(logEntry, replyTo, completionHandler);
+                    return logEntryEditorController;
                 }
                 else if(clazz.isAssignableFrom(AttachmentsViewController.class)){
                     return clazz.getConstructor(LogEntry.class)
@@ -86,5 +95,33 @@ public class LogEntryEditorStage extends Stage
 
         Scene scene = new Scene(fxmlLoader.getRoot());
         setScene(scene);
+        scene.getWindow().setOnCloseRequest(we -> {
+            we.consume();
+            handleCloseEditor(logEntryEditorController.isDirty(), fxmlLoader.getRoot());
+        });
+    }
+
+    /**
+     * Helper method to show a confirmation dialog if user closes/cancels log entry editor with "dirty" data.
+     * @param entryIsDirty Indicates if the log entry content (title or body, or both) have been changed.
+     * @param parent The {@link Node} used to determine the position of the dialog.
+     */
+    public void handleCloseEditor(boolean entryIsDirty, Node parent){
+        if(entryIsDirty){
+            ButtonType discardChanges = new ButtonType(Messages.CloseRequestButtonDiscard, ButtonBar.ButtonData.OK_DONE);
+            ButtonType continueEditing = new ButtonType(Messages.CloseRequestButtonContinue, ButtonBar.ButtonData.CANCEL_CLOSE);
+            Alert alert = new Alert(AlertType.CONFIRMATION,
+                    null,
+                    discardChanges,
+                    continueEditing);
+            alert.setHeaderText(Messages.CloseRequestHeader);
+            DialogHelper.positionDialog(alert, parent, -200, -300);
+            if(alert.showAndWait().get().getButtonData().equals(ButtonBar.ButtonData.OK_DONE)){
+                close();
+            }
+        }
+        else{
+            close();
+        }
     }
 }
