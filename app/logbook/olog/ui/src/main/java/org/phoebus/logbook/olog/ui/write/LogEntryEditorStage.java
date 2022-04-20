@@ -20,18 +20,15 @@
 package org.phoebus.logbook.olog.ui.write;
 
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.phoebus.framework.nls.NLS;
-import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.olog.ui.AttachmentsPreviewController;
 import org.phoebus.logbook.olog.ui.Messages;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,23 +37,19 @@ public class LogEntryEditorStage extends Stage
 {
     /**
      * A stand-alone window containing components needed to create a logbook entry.
-     * @param parent The {@link Node} from which the user - through context menu or application menu - requests a new
-     *               logbook entry.
      * @param logEntry Pre-populated data for the log entry, e.g. date and (optionally) screen shot.
      */
-    public LogEntryEditorStage(Node parent, LogEntry logEntry)
+    public LogEntryEditorStage(LogEntry logEntry)
     {
-        this(parent, logEntry, null, null);
+        this(logEntry, null, null);
     }
 
     /**
      * A stand-alone window containing components needed to create a logbook entry.
-     * @param parent The {@link Node} from which the user - through context menu or application menu - requests a new
-     *               logbook entry.
      * @param logEntry Pre-populated data for the log entry, e.g. date and (optionally) screen shot.
      * @param completionHandler A completion handler called when service call completes.
      */
-    public LogEntryEditorStage(Node parent, LogEntry logEntry, LogEntry replyTo, LogEntryCompletionHandler completionHandler)
+    public LogEntryEditorStage(LogEntry logEntry, LogEntry replyTo, LogEntryCompletionHandler completionHandler)
     {
         initModality(Modality.WINDOW_MODAL);
         ResourceBundle resourceBundle =  NLS.getMessages(Messages.class);
@@ -65,12 +58,8 @@ public class LogEntryEditorStage extends Stage
         fxmlLoader.setControllerFactory(clazz -> {
             try {
                 if(clazz.isAssignableFrom(LogEntryEditorController.class)){
-                    return clazz.getConstructor(Node.class, LogEntry.class, LogEntryCompletionHandler.class)
-                            .newInstance(parent, replyTo, completionHandler);
-                }
-                else if(clazz.isAssignableFrom(FieldsViewController.class)){
-                    return clazz.getConstructor(LogEntry.class)
-                            .newInstance(logEntry);
+                    return clazz.getConstructor(LogEntry.class, LogEntry.class, LogEntryCompletionHandler.class)
+                            .newInstance(logEntry, replyTo, completionHandler);
                 }
                 else if(clazz.isAssignableFrom(AttachmentsViewController.class)){
                     return clazz.getConstructor(LogEntry.class)

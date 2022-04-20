@@ -29,6 +29,6 @@ public class LogEntryEditorStageDemo extends ApplicationWrapper {
         StackPane root = new StackPane();
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
-        new LogEntryEditorStage(root, new OlogLog()).show();
+        new LogEntryEditorStage(new OlogLog()).show();
     }
 }

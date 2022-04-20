@@ -13,8 +13,11 @@ import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookException;
 import org.phoebus.logbook.LogbookImpl;
+import org.phoebus.logbook.SearchResult;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.TagImpl;
+import org.phoebus.logbook.olog.ui.query.OlogQuery;
+import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
@@ -41,6 +44,11 @@ public class LogEntrySearchDemo extends ApplicationWrapper {
     @Override
     public void start(Stage primaryStage) throws Exception {
 
+        File tmp = File.createTempFile("demo", "suffix");
+        tmp.deleteOnExit();
+        OlogQueryManager ologQueryManager = OlogQueryManager.getInstance(tmp);
+        ologQueryManager.getOrAddQuery(new OlogQuery("start=1 week&end=now"));
+        SearchParameters searchParameters = new SearchParameters();
         ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
         FXMLLoader loader = new FXMLLoader();
         loader.setResources(resourceBundle);
@@ -48,11 +56,11 @@ public class LogEntrySearchDemo extends ApplicationWrapper {
         loader.setControllerFactory(clazz -> {
             try {
                 if (clazz.isAssignableFrom(LogEntryTableViewController.class)) {
-                    return clazz.getConstructor(LogClient.class)
-                            .newInstance(getLogClient());
+                    return clazz.getConstructor(LogClient.class, OlogQueryManager.class, SearchParameters.class)
+                            .newInstance(getLogClient(), ologQueryManager, searchParameters);
                 } else if (clazz.isAssignableFrom(AdvancedSearchViewController.class)) {
-                    return clazz.getConstructor(LogClient.class)
-                            .newInstance(getLogClient());
+                    return clazz.getConstructor(LogClient.class, SearchParameters.class)
+                            .newInstance(getLogClient(), searchParameters);
                 } else if (clazz.isAssignableFrom(LogPropertiesController.class)) {
                     return clazz.getConstructor().newInstance();
                 } else if (clazz.isAssignableFrom(AttachmentsPreviewController.class)) {
@@ -60,11 +68,11 @@ public class LogEntrySearchDemo extends ApplicationWrapper {
                 } else if (clazz.isAssignableFrom(LogEntryCellController.class)) {
                     return clazz.getConstructor().newInstance();
                 } else if (clazz.isAssignableFrom(LogEntryDisplayController.class)) {
-                    return clazz.getConstructor(LogClient.class).newInstance(getLogClient());
+                    return clazz.getConstructor().newInstance();
                 } else if (clazz.isAssignableFrom(MergedLogEntryDisplayController.class)) {
                     return clazz.getConstructor(LogClient.class).newInstance(getLogClient());
                 } else if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {
-                    return clazz.getConstructor(String.class).newInstance(getLogClient().getServiceUrl());
+                    return clazz.getConstructor(LogClient.class).newInstance(getLogClient());
                 } else {
                     throw new RuntimeException("No controller for class " + clazz.getName());
                 }
@@ -74,19 +82,18 @@ public class LogEntrySearchDemo extends ApplicationWrapper {
             return null;
         });
         loader.load();
-        LogEntryTableViewController controller = loader.getController();
         Parent root = loader.getRoot();
 
         primaryStage.setScene(new Scene(root, 400, 400));
         primaryStage.show();
 
-        List<LogEntry> logs = new ArrayList<LogEntry>();
+        List<LogEntry> logs = new ArrayList<>();
 
-        Set<Tag> tags = new HashSet<Tag>();
+        Set<Tag> tags = new HashSet<>();
         tags.add(TagImpl.of("tag1", "active"));
         tags.add(TagImpl.of("tag2", "active"));
 
-        Set<Logbook> logbooks = new HashSet<Logbook>();
+        Set<Logbook> logbooks = new HashSet<>();
         logbooks.add(LogbookImpl.of("logbook1", "active"));
         logbooks.add(LogbookImpl.of("logbook2", "active"));
 
@@ -118,8 +125,6 @@ public class LogEntrySearchDemo extends ApplicationWrapper {
             });
             logs.add(lb.build());
         }
-
-        controller.setLogs(logs);
     }
 
     private LogClient getLogClient() {
@@ -147,6 +152,14 @@ public class LogEntrySearchDemo extends ApplicationWrapper {
             @Override
             public Collection<LogEntry> listLogs() {
                 return null;
+            }
+
+            @Override
+            public SearchResult search(Map<String, String> map){
+                LogEntry logEntry = LogEntryBuilder.log()
+                        .createdDate(Instant.now())
+                        .description("desc").build();
+                return SearchResult.of(Arrays.asList(logEntry), 1);
             }
         };
     }

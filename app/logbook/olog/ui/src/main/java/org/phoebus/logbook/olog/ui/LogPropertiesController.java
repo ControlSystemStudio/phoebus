@@ -1,6 +1,5 @@
 package org.phoebus.logbook.olog.ui;
 
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -9,7 +8,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
@@ -17,26 +15,18 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
-import org.phoebus.framework.preferences.Preference;
-import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.framework.spi.AppResourceDescriptor;
-import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.PropertyImpl;
-import org.phoebus.ui.Preferences;
-import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.javafx.ImageCache;
-import org.phoebus.ui.spi.ContextMenuEntry;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -45,7 +35,7 @@ public class LogPropertiesController {
     private static final Logger logger = Logger.getLogger(LogPropertiesController.class.getName());
     static final ImageView copy = ImageCache.getImageView(LogPropertiesController.class, "/icons/copy_edit.png");
 
-    private Map<String, String> attributeTypes = new HashMap<>();
+    private final Map<String, String> attributeTypes = new HashMap<>();
 
     @FXML
     TreeTableView<PropertyTreeNode> treeTableView;

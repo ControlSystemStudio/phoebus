@@ -13,7 +13,6 @@ import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.logbook.olog.ui.LogbookAvailabilityChecker;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
 import org.phoebus.olog.es.api.model.OlogLog;
-import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ImageCache;
 
 /**
@@ -41,7 +40,7 @@ public class SendToLogBookApp implements AppDescriptor {
         if (!LogbookAvailabilityChecker.isLogbookAvailable()) {
             return null;
         }
-        new LogEntryEditorStage(DockPane.getActiveDockPane(), new OlogLog()).show();
+        new LogEntryEditorStage(new OlogLog()).show();
         return null;
     }
 
