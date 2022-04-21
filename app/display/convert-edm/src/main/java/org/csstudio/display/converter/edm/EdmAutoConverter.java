@@ -141,6 +141,7 @@ public class EdmAutoConverter implements DisplayAutoConverter
 
         // Convert EDM input
         logger.log(Level.INFO, "Converting " + input + " into " + output);
+        locator.setPrefix(new File(display_file).getParent());
         new EdmConverter(input, locator).write(output);
 
         // Return DisplayModel of the converted file

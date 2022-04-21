@@ -26,6 +26,14 @@ import org.phoebus.framework.util.IOUtils;
 @SuppressWarnings("nls")
 public class AssetLocator
 {
+    private String prefix = "";
+
+    /** @param prefix Name prefix (parent folder) */
+    public void setPrefix(final String prefix)
+    {
+        this.prefix = prefix;
+    }
+
     /** @param name Display name.
      *  @return Display name with '.edl' added when missing or when there is a different ending
      */
@@ -52,6 +60,17 @@ public class AssetLocator
      *  @throws Exception on error
      */
     public File locate(final String name) throws Exception
+    {
+        // Check relative to parent
+        final String prefixed = prefix + (prefix.endsWith("/") ? name : "/" + name);
+        File result = doLocate(prefixed);
+        if (result != null)
+            return result;
+        // Fall back to plain name
+        return doLocate(name);
+    }
+
+    private File doLocate(final String name) throws Exception
     {
         for (String path : ConverterPreferences.paths)
         {
