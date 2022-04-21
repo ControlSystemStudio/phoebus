@@ -44,7 +44,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.stage.Stage;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
@@ -171,22 +170,33 @@ public class LogEntryEditorController {
 
     private final LogEntry replyTo;
 
+    /**
+     * Indicates if user has started editing. Only title and body are used to define dirty state.
+     */
+    private boolean isDirty = false;
 
-    public LogEntryEditorController(LogEntry logEntry, LogEntry replyTo, LogEntryCompletionHandler logEntryCompletionHandler) {
-        this.replyTo = replyTo;
+    /**
+     * Used to determine if a log entry is dirty. For a new log entry, comparison is made to empty string, for
+     * the reply case the original title is copied to this field.
+     */
+    private String originalTitle = "";
+
+    public LogEntryEditorController(LogEntry logEntry, LogEntry inReplyTo, LogEntryCompletionHandler logEntryCompletionHandler) {
+        this.replyTo = inReplyTo;
         this.completionHandler = logEntryCompletionHandler;
         this.logFactory = LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory);
         updateCredentialsProperty = updateCredentials;
 
         // This is the reply case:
-        if(replyTo != null){
+        if(inReplyTo != null){
             OlogLog ologLog = new OlogLog();
-            ologLog.setTitle(replyTo.getTitle());
-            ologLog.setTags(replyTo.getTags());
-            ologLog.setLogbooks(replyTo.getLogbooks());
-            ologLog.setProperties(replyTo.getProperties());
-            ologLog.setLevel(replyTo.getLevel());
+            ologLog.setTitle(inReplyTo.getTitle());
+            ologLog.setTags(inReplyTo.getTags());
+            ologLog.setLogbooks(inReplyTo.getLogbooks());
+            ologLog.setProperties(inReplyTo.getProperties());
+            ologLog.setLevel(inReplyTo.getLevel());
             this.logEntry = ologLog;
+            this.originalTitle = inReplyTo.getTitle();
         }
         else{
             this.logEntry = logEntry;
@@ -267,15 +277,21 @@ public class LogEntryEditorController {
         titleField.textProperty().bindBidirectional(titleProperty);
         titleProperty.addListener((changeListener, oldVal, newVal) ->
         {
-            if (newVal.trim().isEmpty())
+            if (newVal.trim().isEmpty()){
                 titleLabel.setTextFill(Color.RED);
-            else
+            }
+            else{
                 titleLabel.setTextFill(Color.BLACK);
+            }
+            if(!newVal.equals(originalTitle)){
+                isDirty = true;
+            }
         });
         titleProperty.set(logEntry.getTitle());
 
         textArea.textProperty().bindBidirectional(descriptionProperty);
         descriptionProperty.set(logEntry.getDescription() != null ? logEntry.getDescription() : "");
+        descriptionProperty.addListener((observable, oldValue, newValue) -> isDirty = true);
 
         Image tagIcon = ImageCache.getImage(LogEntryEditorController.class, "/icons/add_tag.png");
         Image logbookIcon = ImageCache.getImage(LogEntryEditorController.class, "/icons/logbook-16.png");
@@ -341,7 +357,7 @@ public class LogEntryEditorController {
      */
     @FXML
     public void cancel() {
-        ((Stage) cancelButton.getScene().getWindow()).close();
+        ((LogEntryEditorStage) cancelButton.getScene().getWindow()).handleCloseEditor(isDirty, root);
     }
 
     @FXML
@@ -640,5 +656,9 @@ public class LogEntryEditorController {
                 break;
             }
         }
+    }
+
+    public boolean isDirty(){
+        return isDirty;
     }
 }
