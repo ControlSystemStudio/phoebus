@@ -73,8 +73,6 @@ public class AssetLocator
                 {
                     if (ConverterPreferences.auto_converter_dir == null)
                         throw new Exception("Cannot download " + check + ", no auto_converter_dir");
-                    if (! ConverterPreferences.auto_converter_dir.isDirectory())
-                        throw new Exception("Cannot download " + check + ", missing auto_converter_dir " + ConverterPreferences.auto_converter_dir);
                     final File input = new File(ConverterPreferences.auto_converter_dir, name);
                     final File output_folder = input.getParentFile();
                     if (! output_folder.exists())
