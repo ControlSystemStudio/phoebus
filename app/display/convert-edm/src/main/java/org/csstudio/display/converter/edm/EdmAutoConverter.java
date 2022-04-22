@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -85,7 +85,14 @@ public class EdmAutoConverter implements DisplayAutoConverter
                 }
             }
             logger.log(Level.INFO, "For parent display " + parent_display + ", can " + display_file + " be auto-created from EDM file?");
-            return doConvert(parent_display, display_file);
+            if (parent_display != null)
+            {   // Since June 2021, EDM supports relative paths.
+                final String relative = new File(new File(parent_display).getParentFile(), display_file).getAbsolutePath();
+                final DisplayModel converted = doConvert(relative);
+                if (converted != null)
+                    return converted;
+            }
+            return doConvert(display_file);
         }
         finally
         {
@@ -93,10 +100,23 @@ public class EdmAutoConverter implements DisplayAutoConverter
         }
     }
 
-    private DisplayModel doConvert(final String parent_display, final String display_file) throws Exception
+    private DisplayModel doConvert(final String display_path) throws Exception
     {
-        // Assert that the target directory exists
-        ConverterPreferences.auto_converter_dir.mkdirs();
+        String display_file = display_path;
+        // Strip either complete path or specific prefix
+        if (ConverterPreferences.auto_converter_strip.isBlank())
+        {
+            int sep = display_file.lastIndexOf('/');
+            if (sep < 0)
+                sep = display_file.lastIndexOf('\\');
+            if (sep >= 0)
+                display_file = display_file.substring(sep + 1);
+        }
+        else
+        {
+            if (display_file.startsWith(ConverterPreferences.auto_converter_strip))
+                display_file = display_file.substring(ConverterPreferences.auto_converter_strip.length());
+        }
 
         // Check if we already have an auto-converted *.bob file, so use that instead of re-creating it
         final File already_converted = new File(ConverterPreferences.auto_converter_dir, display_file);
@@ -113,13 +133,15 @@ public class EdmAutoConverter implements DisplayAutoConverter
             return null;
 
         // Determine output file name in auto_converter_dir
-        final File output = new File(ConverterPreferences.auto_converter_dir, new File(display_file).getName());
+        final File output = new File(ConverterPreferences.auto_converter_dir, display_file);
 
         // Load colors
         EdmModel.reloadEdmColorFile(ConverterPreferences.colors_list,
                                     ModelResourceUtil.openResourceStream(ConverterPreferences.colors_list));
 
         // Convert EDM input
+        logger.log(Level.INFO, "Converting " + input + " into " + output);
+        locator.setPrefix(new File(display_file).getParent());
         new EdmConverter(input, locator).write(output);
 
         // Return DisplayModel of the converted file

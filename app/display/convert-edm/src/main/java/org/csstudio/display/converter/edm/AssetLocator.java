@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,6 +26,14 @@ import org.phoebus.framework.util.IOUtils;
 @SuppressWarnings("nls")
 public class AssetLocator
 {
+    private String prefix = "";
+
+    /** @param prefix Name prefix (parent folder) */
+    public void setPrefix(final String prefix)
+    {
+        this.prefix = prefix;
+    }
+
     /** @param name Display name.
      *  @return Display name with '.edl' added when missing or when there is a different ending
      */
@@ -53,27 +61,52 @@ public class AssetLocator
      */
     public File locate(final String name) throws Exception
     {
+        // Check relative to parent
+        final String prefixed = prefix + (prefix.endsWith("/") ? name : "/" + name);
+        File result = doLocate(prefixed);
+        if (result != null)
+            return result;
+        // Fall back to plain name
+        return doLocate(name);
+    }
+
+    private File doLocate(final String name) throws Exception
+    {
         for (String path : ConverterPreferences.paths)
         {
             final String check = path + (path.endsWith("/") ? name : "/" + name);
             logger.log(Level.FINE, "Check " + check);
             if (check.startsWith("http"))
             {
+                final InputStream stream;
                 try
                 {
-                    final InputStream stream = ModelResourceUtil.openURL(check);
+                    stream = ModelResourceUtil.openURL(check);
+                }
+                catch (Exception ex)
+                {
+                    // Check next search path entry
+                    continue;
+                }
+                try
+                {
                     if (ConverterPreferences.auto_converter_dir == null)
                         throw new Exception("Cannot download " + check + ", no auto_converter_dir");
-                    if (! ConverterPreferences.auto_converter_dir.isDirectory())
-                        throw new Exception("Cannot download " + check + ", missing auto_converter_dir " + ConverterPreferences.auto_converter_dir);
                     final File input = new File(ConverterPreferences.auto_converter_dir, name);
+                    final File output_folder = input.getParentFile();
+                    if (! output_folder.exists())
+                    {
+                        logger.log(Level.INFO, "Creating folder " + output_folder);
+                        if (! output_folder.mkdirs())
+                            throw new Exception("Cannot create folder " + output_folder + " to download " + check);
+                    }
                     logger.log(Level.INFO, "Downloading " + check + " into " + input);
                     IOUtils.copy(stream, new FileOutputStream(input));
                     return input;
                 }
                 catch (Exception ex)
                 {
-                    // Check next search path entry
+                    logger.log(Level.INFO, "Cannot download " + check, ex);
                 }
             }
             else
