@@ -20,15 +20,12 @@ package org.phoebus.logbook.olog.ui;
 
 import com.google.common.base.Strings;
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
@@ -40,6 +37,7 @@ import javafx.scene.layout.VBox;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
+import org.phoebus.ui.dialog.ListSelectionController;
 import org.phoebus.ui.dialog.PopOver;
 import org.phoebus.ui.time.TimeRelativeIntervalPane;
 import org.phoebus.util.time.TimeParser;
@@ -207,7 +205,7 @@ public class AdvancedSearchViewController {
                 });
 
         FXMLLoader logbookSelectionLoader = new FXMLLoader();
-        logbookSelectionLoader.setLocation(this.getClass().getResource("ListSelection.fxml"));
+        logbookSelectionLoader.setLocation(this.getClass().getResource("/org/phoebus/ui/dialog/ListSelection.fxml"));
         try {
             logbookSelectionLoader.load();
             logbookController = logbookSelectionLoader.getController();
@@ -234,7 +232,7 @@ public class AdvancedSearchViewController {
         }
 
         FXMLLoader tagSelectionLoader = new FXMLLoader();
-        tagSelectionLoader.setLocation(this.getClass().getResource("ListSelection.fxml"));
+        tagSelectionLoader.setLocation(this.getClass().getResource("/org/phoebus/ui/dialog/ListSelection.fxml"));
         try {
             tagSelectionLoader.load();
             tagController = tagSelectionLoader.getController();

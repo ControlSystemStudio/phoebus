@@ -21,7 +21,7 @@ public class ListSelectionDemo extends ApplicationWrapper {
     public void start(Stage primaryStage) throws IOException {
         FXMLLoader loader = new FXMLLoader();
 
-        loader.setLocation(this.getClass().getResource("ListSelection.fxml"));
+        loader.setLocation(this.getClass().getResource("/org/phoebus/ui/dialog/ListSelection.fxml"));
         loader.load();
         ListSelectionController controller = loader.getController();
         controller.setAvailable(Arrays.asList("a", "b", "c"));

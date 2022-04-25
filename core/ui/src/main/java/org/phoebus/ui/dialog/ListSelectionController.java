@@ -1,4 +1,4 @@
-package org.phoebus.logbook.olog.ui;
+package org.phoebus.ui.dialog;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -10,6 +10,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import org.phoebus.ui.Messages;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 
 public class ListSelectionController {
+
     /* Non NLS Strings */
     private static final String ADD_ICON = "/icons/add.png";
     private static final String CLEAR_ICON = "/icons/remove_multiple.png";

@@ -178,7 +178,7 @@ public class AdvancedSearchViewController {
 
 
         FXMLLoader logbookSelectionLoader = new FXMLLoader();
-        logbookSelectionLoader.setLocation(this.getClass().getResource("ListSelection.fxml"));
+        logbookSelectionLoader.setLocation(this.getClass().getResource("/org/phoebus/ui/dialog/ListSelection.fxml"));
         try {
             logbookSelectionLoader.load();
             logbookController = logbookSelectionLoader.getController();
@@ -201,7 +201,7 @@ public class AdvancedSearchViewController {
         }
 
         FXMLLoader tagSelectionLoader = new FXMLLoader();
-        tagSelectionLoader.setLocation(this.getClass().getResource("ListSelection.fxml"));
+        tagSelectionLoader.setLocation(this.getClass().getResource("/org/phoebus/ui/dialog/ListSelection.fxml"));
         try {
             tagSelectionLoader.load();
             tagController = tagSelectionLoader.getController();
