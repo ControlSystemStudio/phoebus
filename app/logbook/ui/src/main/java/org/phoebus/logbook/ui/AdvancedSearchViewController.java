@@ -38,6 +38,7 @@ import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.ui.LogbookQueryUtil.Keys;
+import org.phoebus.ui.dialog.ListSelectionController;
 import org.phoebus.ui.dialog.PopOver;
 import org.phoebus.ui.time.TimeRelativeIntervalPane;
 import org.phoebus.util.time.TimeParser;

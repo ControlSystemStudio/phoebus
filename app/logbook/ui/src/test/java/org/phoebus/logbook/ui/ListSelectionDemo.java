@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import org.phoebus.ui.dialog.ListSelectionController;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
 import javafx.fxml.FXMLLoader;
