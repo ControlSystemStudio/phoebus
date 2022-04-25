@@ -35,7 +35,7 @@ public class SaveAndRestoreMenuEntry implements MenuEntry {
 
 	@Override
 	public String getName() {
-		return SaveAndRestoreApplication.NAME;
+		return SaveAndRestoreApplication.DISPLAY_NAME;
 	}
 
 	@Override

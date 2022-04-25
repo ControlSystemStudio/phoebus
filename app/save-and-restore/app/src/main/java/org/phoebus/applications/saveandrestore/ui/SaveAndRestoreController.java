@@ -83,6 +83,7 @@ import org.phoebus.ui.javafx.ImageCache;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -98,7 +99,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
- * Main controller for the save & restore UI. In particular it handles the tree view and operations on it, e.g.
+ * Main controller for the save & restore UI. In particular, it handles the tree view and operations on it, e.g.
  * creating folders, save sets and launching the snapshot view.
  */
 public class SaveAndRestoreController implements Initializable, NodeChangedListener, NodeAddedListener, ISaveAndRestoreController {
@@ -137,7 +138,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     protected SimpleStringProperty jmasarServiceTitleProperty = new SimpleStringProperty();
     protected SimpleObjectProperty<ImageView> toggleGoldenImageViewProperty = new SimpleObjectProperty<>();
     private final SimpleBooleanProperty multipleItemsSelected = new SimpleBooleanProperty(false);
-    private final SimpleBooleanProperty rootMovableNodesSelected = new SimpleBooleanProperty(false);
     protected MultipleSelectionModel<TreeItem<Node>> browserSelectionModel;
 
     protected ImageView snapshotImageView = new ImageView(snapshotIcon);
@@ -179,13 +179,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         searchButton.setTooltip(new Tooltip(Messages.buttonSearch));
 
         folderContextMenu = new ContextMenuFolder(this, preferencesReader.getBoolean("enableCSVIO"), multipleItemsSelected);
-        folderContextMenu.setOnShowing(event -> {
-            multipleItemsSelected.set(browserSelectionModel.getSelectedItems().size() > 1);
-        });
+        folderContextMenu.setOnShowing(event -> multipleItemsSelected.set(browserSelectionModel.getSelectedItems().size() > 1));
         saveSetContextMenu = new ContextMenuSaveSet(this, preferencesReader.getBoolean("enableCSVIO"), multipleItemsSelected);
-        saveSetContextMenu.setOnShowing(event -> {
-            multipleItemsSelected.set(browserSelectionModel.getSelectedItems().size() > 1);
-        });
+        saveSetContextMenu.setOnShowing(event -> multipleItemsSelected.set(browserSelectionModel.getSelectedItems().size() > 1));
 
         rootFolderContextMenu = new ContextMenu();
         MenuItem newRootFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(folderIcon));
@@ -222,9 +218,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 this));
 
         progressIndicator.visibleProperty().bind(changesInProgress);
-        changesInProgress.addListener((observable, oldValue, newValue) -> {
-            treeView.setDisable(newValue.booleanValue());
-        });
+        changesInProgress.addListener((observable, oldValue, newValue) -> treeView.setDisable(newValue));
 
         loadTreeData();
     }
@@ -251,16 +245,14 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                     savedTreeViewStructure.forEach(s -> {
                         List<Node> childNodes = saveAndRestoreService.getChildNodes(Node.builder().uniqueId(s).build());
                         if (childNodes != null) { // This may be the case if the tree structure was modified outside of the UI
-                            List<TreeItem<Node>> childItems = childNodes.stream().map(n -> createTreeItem(n)).collect(Collectors.toList());
-                            childItems.sort(treeNodeComparator);
+                            List<TreeItem<Node>> childItems = childNodes.stream().map(n -> createTreeItem(n)).sorted(treeNodeComparator).collect(Collectors.toList());
                             childNodesMap.put(s, childItems);
                         }
                     });
                     setChildItems(childNodesMap, rootItem);
                 } else {
                     List<Node> childNodes = saveAndRestoreService.getChildNodes(rootItem.getValue());
-                    List<TreeItem<Node>> childItems = childNodes.stream().map(n -> createTreeItem(n)).collect(Collectors.toList());
-                    childItems.sort(treeNodeComparator);
+                    List<TreeItem<Node>> childItems = childNodes.stream().map(n -> createTreeItem(n)).sorted(treeNodeComparator).collect(Collectors.toList());
                     rootItem.getChildren().addAll(childItems);
                 }
 
@@ -310,7 +302,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         targetItem.getChildren().clear();
         List<Node> childNodes = saveAndRestoreService.getChildNodes(targetItem.getValue());
         Collections.sort(childNodes);
-        targetItem.getChildren().addAll(childNodes.stream().map(n -> createTreeItem(n)).collect(Collectors.toList()));
+        targetItem.getChildren().addAll(childNodes.stream().map(this::createTreeItem).collect(Collectors.toList()));
         targetItem.getChildren().sort(treeNodeComparator);
         targetItem.setExpanded(true);
     }
@@ -848,7 +840,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             List<TreeItem<Node>> childItems = allItems.get(parentItem.getValue().getUniqueId());
             parentItem.getChildren().setAll(childItems);
             parentItem.getChildren().sort(treeNodeComparator);
-            childItems.stream().forEach(ci -> setChildItems(allItems, ci));
+            childItems.forEach(ci -> setChildItems(allItems, ci));
         }
     }
 
@@ -1080,7 +1072,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             tagList.add(noTags);
         } else {
             node.getTags().sort(new TagComparator());
-            node.getTags().stream().forEach(tag -> {
+            node.getTags().forEach(tag -> {
                 CustomMenuItem tagItem = TagWidget.TagWithCommentMenuItem(tag);
 
                 tagItem.setOnAction(actionEvent -> {
@@ -1180,7 +1172,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @param nodes          List of {@link Node}s that were moved.
      */
     private void addMovedNodes(TreeItem<Node> parentTreeItem, List<Node> nodes) {
-        parentTreeItem.getChildren().addAll(nodes.stream().map(n -> createTreeItem(n)).collect(Collectors.toList()));
+        parentTreeItem.getChildren().addAll(nodes.stream().map(this::createTreeItem).collect(Collectors.toList()));
         parentTreeItem.getChildren().sort(treeNodeComparator);
         TreeItem<Node> nextItemToExpand = parentTreeItem;
         while (nextItemToExpand != null) {
@@ -1210,5 +1202,20 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             nextItemToExpand.setExpanded(true);
             nextItemToExpand = nextItemToExpand.getParent();
         }
+    }
+
+    public void openResource(URI uri){
+        if(uri == null){
+            return;
+        }
+        Node node = saveAndRestoreService.getNode(uri.getPath());
+        if(node == null){
+            // Show error dialog.
+        }
+        // TODO: find the parent node, expand it (if not already expanded) and select the resource.
+        // In case the resource is a folder, just expand to show child nodes.
+        // In case the resource is a save set, open it to prepare for taking snapshot.
+        // In case the resource is a snapshot, load it in the snapshot view to prepare for restore.
+
     }
 }

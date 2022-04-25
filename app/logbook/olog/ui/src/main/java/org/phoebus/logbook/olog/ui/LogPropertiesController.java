@@ -16,6 +16,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
 import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.PropertyImpl;
@@ -151,7 +152,7 @@ public class LogPropertiesController {
                                         setGraphic(urlLink);
                                         break;
                                     case "resource":
-                                        final String resourceURL = propertyItem.getValue();
+                                        final String resourceURL = "file:/99f3dcfd-8dcf-4b7a-a44b-365e9333e895?app=saveandrestore"; //propertyItem.getValue();
                                         final URI resource = URI.create(resourceURL);
                                         final Hyperlink resourceLink = new Hyperlink(resourceURL);
                                         setGraphic(resourceLink);
@@ -160,6 +161,13 @@ public class LogPropertiesController {
                                             final List<AppResourceDescriptor> applications = ApplicationService.getApplications(resource);
                                             if (!applications.isEmpty()) {
                                                 applications.get(0).create(resource);
+                                            }
+                                            else{
+                                                AppResourceDescriptor appResourceDescriptor =
+                                                        ApplicationService.findApplication(ResourceParser.getAppName(resource));
+                                                if(appResourceDescriptor != null){
+                                                    appResourceDescriptor.create(resource);
+                                                }
                                             }
                                         });
                                         resourceLink.setOnContextMenuRequested((e) -> {
