@@ -38,6 +38,7 @@ import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.ui.LogbookQueryUtil.Keys;
+import org.phoebus.ui.dialog.ListSelectionController;
 import org.phoebus.ui.dialog.PopOver;
 import org.phoebus.ui.time.TimeRelativeIntervalPane;
 import org.phoebus.util.time.TimeParser;
@@ -178,7 +179,7 @@ public class AdvancedSearchViewController {
 
 
         FXMLLoader logbookSelectionLoader = new FXMLLoader();
-        logbookSelectionLoader.setLocation(this.getClass().getResource("ListSelection.fxml"));
+        logbookSelectionLoader.setLocation(this.getClass().getResource("/org/phoebus/ui/dialog/ListSelection.fxml"));
         try {
             logbookSelectionLoader.load();
             logbookController = logbookSelectionLoader.getController();
@@ -201,7 +202,7 @@ public class AdvancedSearchViewController {
         }
 
         FXMLLoader tagSelectionLoader = new FXMLLoader();
-        tagSelectionLoader.setLocation(this.getClass().getResource("ListSelection.fxml"));
+        tagSelectionLoader.setLocation(this.getClass().getResource("/org/phoebus/ui/dialog/ListSelection.fxml"));
         try {
             tagSelectionLoader.load();
             tagController = tagSelectionLoader.getController();
