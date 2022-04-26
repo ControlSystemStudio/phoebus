@@ -238,16 +238,15 @@ public class AdvancedSearchViewController {
             tagController = tagSelectionLoader.getController();
             tagController.setOnApply((List<String> t) -> {
                 Platform.runLater(() -> {
-                    if (t.isEmpty()) {
-                        //searchParameters.remove(Keys.TAGS);
-                    } else {
-                        String tagsValue =
-                                t.stream().collect(Collectors.joining(","));
-                        //searchParameters.put(Keys.TAGS, tagsValue);
-                        searchParameters.tagsProperty().setValue(tagsValue);
-                    }
-                    if (tagSearchPopover.isShowing())
+
+                    String tagsValue =
+                            t.stream().collect(Collectors.joining(","));
+                    //searchParameters.put(Keys.TAGS, tagsValue);
+                    searchParameters.tagsProperty().setValue(tagsValue);
+
+                    if (tagSearchPopover.isShowing()) {
                         tagSearchPopover.hide();
+                    }
                 });
                 return true;
             });
