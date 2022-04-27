@@ -33,5 +33,5 @@ public class PrintWidgetAction extends RuntimeAction
     {
         final Node node = JFXBaseRepresentation.getJFXNode(widget);
         PrintAction.print(node);
-   }
+    }
 }

@@ -33,5 +33,5 @@ public class SaveWidgetSnapshotAction extends RuntimeAction
     {
         final Node node = JFXBaseRepresentation.getJFXNode(widget);
         SaveSnapshotAction.save(node);
-   }
+    }
 }
