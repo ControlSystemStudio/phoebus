@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -60,6 +60,8 @@ public class DataBrowserWidgetRuntime  extends WidgetRuntime<DataBrowserWidget>
         runtime_actions.add(new ConfigureAction("Configure Plot", widget.runtimePropConfigure()));
         runtime_actions.add(new ToggleToolbarAction(widget));
         runtime_actions.add(new OpenDataBrowserAction());
+        runtime_actions.add(new PrintWidgetAction(widget, Messages.PrintPlot));
+        runtime_actions.add(new SaveWidgetSnapshotAction(widget, Messages.SavePlotSnapshot));
     }
 
     @Override
