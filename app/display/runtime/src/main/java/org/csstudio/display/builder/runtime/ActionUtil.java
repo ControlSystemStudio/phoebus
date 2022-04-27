@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,6 +28,7 @@ import org.csstudio.display.builder.representation.ToolkitRepresentation;
 import org.csstudio.display.builder.runtime.script.ScriptUtil;
 import org.phoebus.framework.jobs.CommandExecutor;
 import org.phoebus.framework.macros.MacroHandler;
+import org.phoebus.framework.macros.MacroOrSystemProvider;
 import org.phoebus.framework.macros.MacroValueProvider;
 import org.phoebus.framework.macros.Macros;
 
@@ -87,7 +88,7 @@ public class ActionUtil
             final Macros expanded = new Macros(action.getMacros());
             expanded.expandValues(source_widget.getEffectiveMacros());
             final Macros macros = Macros.merge(source_widget.getEffectiveMacros(), expanded);
-            expanded_path = MacroHandler.replace(macros, action.getFile());
+            expanded_path = MacroHandler.replace(new MacroOrSystemProvider(macros), action.getFile());
             logger.log(Level.FINER, "{0}, effective macros {1} ({2})", new Object[] { action, macros, expanded_path });
 
             // Resolve new display file relative to the source widget model (not 'top'!)

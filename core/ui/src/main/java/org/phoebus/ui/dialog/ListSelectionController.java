@@ -1,24 +1,28 @@
-package org.phoebus.logbook.olog.ui;
+package org.phoebus.ui.dialog;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import org.phoebus.ui.Messages;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 public class ListSelectionController {
+
     /* Non NLS Strings */
     private static final String ADD_ICON = "/icons/add.png";
     private static final String CLEAR_ICON = "/icons/remove_multiple.png";
@@ -46,6 +50,8 @@ public class ListSelectionController {
 
     // List of available items
     private ObservableList<String> available = FXCollections.observableArrayList();
+    private FilteredList<String> filteredAvailable = new FilteredList<>(available);
+
     // List of selected items
     private ObservableList<String> selected = FXCollections.observableArrayList();
 
@@ -55,7 +61,7 @@ public class ListSelectionController {
     public synchronized void setAvailable(List<String> available) {
         // Remove already selected items.
         available.removeAll(selected);
-        this.available = FXCollections.observableArrayList(available);
+        this.available.setAll(available);// = FXCollections.observableArrayList(available);
         refresh();
     }
 
@@ -78,9 +84,11 @@ public class ListSelectionController {
 
     @FXML
     public void initialize() {
+
         searchField.setTooltip(new Tooltip(Messages.SearchAvailableItems));
-        searchField.textProperty().addListener((changeListener, oldVal, newVal) -> {
-            searchAvailableItemsForSubstring(newVal);
+        searchField.textProperty().addListener((obs, oldVal, newVal) -> {
+            String filter = searchField.getText();
+            filteredAvailable.setPredicate(buildSearchFilterPredicate(filter));
         });
         add.setTooltip(new Tooltip(Messages.Add_Tooltip));
         add.setGraphic(ImageCache.getImageView(ImageCache.class, ADD_ICON));
@@ -115,34 +123,16 @@ public class ListSelectionController {
     }
 
     void refresh() {
-        availableItems.setItems(available);
+        availableItems.setItems(filteredAvailable);
         selectedItems.setItems(selected);
-    }
-
-    private void searchAvailableItemsForSubstring(final String substring) {
-        if (substring.trim().isEmpty())
-            availableItems.getSelectionModel().clearSelection();
-        else {
-            // Case insensitive, support unicode...
-            Pattern pattern = Pattern.compile(Pattern.quote(substring),
-                    Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-            int size = availableItems.getItems().size();
-            for (int i = 0; i < size; i++) {
-                final String item = availableItems.getItems().get(i);
-                if (pattern.matcher(item).find())
-                    availableItems.getSelectionModel().select(i);
-                else
-                    availableItems.getSelectionModel().clearSelection(i);
-            }
-        }
     }
 
     @FXML
     public void addSelected() {
         List<String> selectedItemsForAddition = Arrays.asList((availableItems.getSelectionModel().getSelectedItems()
                 .toArray(new String[availableItems.getSelectionModel().getSelectedItems().size()])));
-        selectedItems.getItems().addAll(selectedItemsForAddition);
-        availableItems.getItems().removeAll(selectedItemsForAddition);
+        selected.addAll(selectedItemsForAddition);
+        available.removeAll(selectedItemsForAddition);
         clearSelections();
     }
 
@@ -150,15 +140,17 @@ public class ListSelectionController {
     public void removeSelected() {
         List<String> selectedItemsForRemoval = Arrays.asList((selectedItems.getSelectionModel().getSelectedItems()
                 .toArray(new String[selectedItems.getSelectionModel().getSelectedItems().size()])));
-        selectedItems.getItems().removeAll(selectedItemsForRemoval);
-        availableItems.getItems().addAll(selectedItemsForRemoval);
+        selected.removeAll(selectedItemsForRemoval);
+        available.addAll(selectedItemsForRemoval);
         clearSelections();
     }
 
     @FXML
     public void clearSelected() {
-        availableItems.getItems().addAll(selectedItems.getItems());
-        selectedItems.getItems().clear();
+        List<String> selectedItemsForRemoval = Arrays.asList((selectedItems.getItems()
+                .toArray(new String[selectedItems.getItems().size()])));
+        selected.removeAll(selectedItemsForRemoval);
+        available.addAll(selectedItemsForRemoval);
         clearSelections();
     }
 
@@ -174,6 +166,14 @@ public class ListSelectionController {
         onApply.forEach((function) -> {
             function.apply(getSelectedItems());
         });
+    }
+
+    private Predicate<String> buildSearchFilterPredicate(String filter) {
+        if(filter == null || filter.isBlank()) {
+            return null;
+        }
+        Pattern pattern = Pattern.compile(Pattern.quote(filter), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+        return item -> pattern.matcher(item).find();
     }
 
     private void clearSelections() {

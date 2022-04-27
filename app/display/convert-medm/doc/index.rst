@@ -74,7 +74,7 @@ To use the EDM converter, add the following to your settings::
 For details, see full description of :ref:`preference_settings`.
 
 Each time you now try to open an ``*.edl`` file,
-the converter will create a ``*.bob`` file and then open it.
+the converter will create a ``*.bob`` file in the same location and then open it.
 
 For bulk conversions, you can use this command line invocation,
 which can convert a list of files, including complete directories::
@@ -113,22 +113,53 @@ the auto-converter will search for a file ``a.edl`` and auto-convert it.
 The next time around, the ``a.bob`` file exists and opens a little faster.
 This way, files are auto-converted on first access, on-demand.
 
-To enable the auto-converter, define a folder where the converted files will be stored via this setting::
+To enable the auto-converter, define a folder where the converted files will be stored
+as well as related settings::
 
     org.csstudio.display.converter.edm/auto_converter_dir=/path/to/AUTOCONVERTED_FILES
-    
-    # Additional EDM converter settings that you likely need:
-    org.csstudio.display.converter.edm/colors_list=/path/to/edm/colors.list
+    org.csstudio.display.converter.edm/auto_converter_strip=/some/prefix/to/strip    
     org.csstudio.display.converter.edm/edm_paths_config=/path/to/my_edm_search_paths.txt
-    
 
 With the auto-converter folder defined, each time the display builder
-needs to open a file ``*.bob`` that does not exist, it will try to
-auto-convert it by locating an ``*.edl`` file of the same base name
-along the ``edm_paths_config``. If an EDM file is found, it is converted.
+needs to open a file ``*.bob`` that does not exist,
+it will remove the ``auto_converter_strip`` prefix,
+and try to locate an ``*.edl`` file of that name along the ``edm_paths_config``.
+If an EDM file is found, it is converted and written to the ``auto_converter_dir``.
 In case the EDM file is found via an http link, it is first downloaded.
 On success, the resulting ``*.bob`` file is opened.
 When that display then refers to other EDM files,
 the same process is repeated.
 Converted files are stored in the ``auto_converter_dir``,
 they are thus only fetched and converted once.
+
+As an example, assume EDM files are located on a web server under
+``https://my.site.org/opi/edm`` and you want to start by opening
+``https://my.site.org/opi/edm/general/start.edl``.
+
+Use these example settings::
+
+    org.csstudio.display.converter.edm/auto_converter_dir=$(user.home)/AUTOCONVERTED_FILES
+    org.csstudio.display.converter.edm/auto_converter_strip=$(user.home)/AUTOCONVERTED_FILES
+    org.csstudio.display.converter.edm/edm_paths_config=https://my.site.org/opi/edm/paths.txt
+    
+where the file ``paths.txt`` on the server should include just one line::
+
+    https://my.site.org/opi/edm/
+
+To bootstrap access to the EDM displays from your display builder screens,
+use an action button labeled "EDM Displays"
+with an action to open ``$(user.home)/AUTOCONVERTED_FILES/general/start.bob``.
+When you first click that button, 
+``$(user.home)/AUTOCONVERTED_FILES/general/start.bob`` does not exist,
+and we attempt to auto-convert it from an EDM display:
+
+ * The ``auto_converter_strip`` prefix is removed, leaving
+   ``general/start.bob``
+ * Using the search path listed in the file provided by ``edm_paths_config``,
+   the corresponding EDM file is found as
+   ``https://my.site.org/opi/edm/general/start.edl``
+ * It is downloaded as ``$(user.home)/AUTOCONVERTED_FILES/general/start.edl``
+   and converted into ``$(user.home)/AUTOCONVERTED_FILES/general/start.bob``
+
+From now on, ``$(user.home)/AUTOCONVERTED_FILES/general/start.bob`` exists
+and simply opens right away.

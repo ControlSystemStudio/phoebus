@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -37,6 +37,7 @@ public class ConverterPreferences
     public static final List<String> paths = new ArrayList<>();
 
     public static volatile File auto_converter_dir;
+    @Preference public static String auto_converter_strip;
 
     private static class FontMapping
     {
@@ -85,7 +86,7 @@ public class ConverterPreferences
             else
             {
                 auto_converter_dir = null;
-                logger.log(Level.WARNING, "EDM auto_converter_dir " + dir + " does not exist");
+                logger.log(Level.WARNING, "EDM auto_converter_dir " + dir + " does not exist and is thus ignored");
             }
         }
     }
@@ -100,8 +101,13 @@ public class ConverterPreferences
         {
             String line;
             while ((line = reader.readLine()) != null)
-                if (! line.startsWith("#"))
-                    paths.add(line);
+            {   // Skip empty lines and comments
+                line = line.strip();
+                if (line.isEmpty() ||
+                    line.startsWith("#"))
+                    continue;
+                paths.add(line);
+            }
         }
     }
 

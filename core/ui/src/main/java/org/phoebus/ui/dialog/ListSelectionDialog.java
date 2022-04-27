@@ -9,20 +9,13 @@ package org.phoebus.ui.dialog;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -36,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
@@ -62,7 +56,9 @@ public class ListSelectionDialog extends Dialog<Boolean>
     
     private final Function<String, Boolean> addSelected, removeSelected;
 
+    private final ObservableList<String> available;
     private final ListView<String> availableItems, selectedItems;
+    private final FilteredList<String> filteredAvailableItems;
 
     public ListSelectionDialog(final Node root,
                                final String title,
@@ -71,18 +67,15 @@ public class ListSelectionDialog extends Dialog<Boolean>
                                final Function<String, Boolean> addSelected,
                                final Function<String, Boolean> removeSelected)
     {
+        this.available = available.get();
         this.addSelected    = addSelected;
         this.removeSelected = removeSelected;
 
         selectedItems  = new ListView<>(selected.get());
         // We want to remove items from the available list as they're selected, and add them back as they are unselected.
         // Due to this we need a copy as available.get() returns an immutable list.
-        availableItems = new ListView<>(
-                FXCollections.observableArrayList(new ArrayList<>(available.get())));
-
-        // Remove what's already selected from the available items
-        for (String item : selectedItems.getItems())
-            availableItems.getItems().remove(item);
+        filteredAvailableItems = new FilteredList<>(available.get());
+        availableItems = new ListView<>(filteredAvailableItems);
 
         setTitle(title);
         
@@ -98,10 +91,12 @@ public class ListSelectionDialog extends Dialog<Boolean>
                 500, 600);
 
         setResultConverter(button ->  button == apply);
+
     }
 
     private VBox formatContent()
     {
+
         selectedItems.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         availableItems.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         selectedItems.setStyle(LISTVIEW_STYLE);
@@ -170,7 +165,7 @@ public class ListSelectionDialog extends Dialog<Boolean>
         VBox.setVgrow(availableItems, Priority.ALWAYS);
         final VBox availableBox = new VBox(spacing, availableLabel, availableItems);
 
-        availableItems.getSelectionModel().getSelectedItems().addListener((ListChangeListener<? super String>) c -> 
+        availableItems.getSelectionModel().getSelectedItems().addListener((ListChangeListener<? super String>) c ->
         {
             int selectedNum = availableItems.getSelectionModel().getSelectedItems().size();
             if (selectedNum > 0)
@@ -206,9 +201,11 @@ public class ListSelectionDialog extends Dialog<Boolean>
         final ClearingTextField searchField = new ClearingTextField();
         searchField.setId(SEARCH_ID);
         searchField.setTooltip(new Tooltip(Messages.SearchAvailableItems));
-        searchField.textProperty().addListener((changeListener, oldVal, newVal) -> 
+
+        searchField.textProperty().addListener((obs, oldVal, newVal) ->
         {
-            searchAvailableItemsForSubstring(newVal);
+            String filter = searchField.getText();
+            filteredAvailableItems.setPredicate(buildSearchFilterPredicate(filter));
         });
         
         final Label searchLabel = new Label(Messages.Search);
@@ -224,24 +221,12 @@ public class ListSelectionDialog extends Dialog<Boolean>
         return content;
     }
 
-    private void searchAvailableItemsForSubstring(final String substring)
-    {
-        if (substring.trim().isEmpty())
-            availableItems.getSelectionModel().clearSelection();
-        else
-        {                
-            // Case insensitive, support unicode...
-            Pattern pattern = Pattern.compile(Pattern.quote(substring), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-            int size = availableItems.getItems().size();
-            for (int i = 0; i < size; i++)
-            {
-                final String item = availableItems.getItems().get(i);
-                if (pattern.matcher(item).find())
-                    availableItems.getSelectionModel().select(i);
-                else
-                    availableItems.getSelectionModel().clearSelection(i);
-            }
+    private Predicate<String> buildSearchFilterPredicate(String filter) {
+        if(filter == null || filter.isBlank()) {
+            return null;
         }
+        Pattern pattern = Pattern.compile(Pattern.quote(filter), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+        return item -> pattern.matcher(item).find();
     }
     
     private void addSelectedItems()
@@ -250,7 +235,7 @@ public class ListSelectionDialog extends Dialog<Boolean>
         for (String item : new ArrayList<>(availableItems.getSelectionModel().getSelectedItems()))
         {
             addSelected.apply(item);
-            availableItems.getItems().remove(item);
+            available.remove(item);
         }
         clearSelections();
     }
@@ -260,10 +245,10 @@ public class ListSelectionDialog extends Dialog<Boolean>
         for (String item : new ArrayList<>(items))
         {
             removeSelected.apply(item);
-            availableItems.getItems().add(item);
+            available.add(item);
         }
         clearSelections();
-        Collections.sort(availableItems.getItems());
+        Collections.sort(available);
     }
 
     private void clearSelections()
