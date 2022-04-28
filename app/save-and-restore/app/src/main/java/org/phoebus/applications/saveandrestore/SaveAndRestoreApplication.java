@@ -21,7 +21,6 @@ package org.phoebus.applications.saveandrestore;
 
 import javafx.scene.input.DataFormat;
 import javafx.stage.Stage;
-import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.ui.docking.DockItem;
@@ -37,7 +36,6 @@ public class SaveAndRestoreApplication implements AppResourceDescriptor {
 
     public static final String NAME = "saveandrestore";
     public static final String DISPLAY_NAME = "Save And Restore";
-    private SaveAndRestoreController controller;
 
     /**
      * Custom MIME type definition for the purpose of drag-n-drop in the
@@ -69,7 +67,7 @@ public class SaveAndRestoreApplication implements AppResourceDescriptor {
 			for (DockPane pane : DockStage.getDockPanes(stage)) {
 				for (DockItem tab : pane.getDockItems()) {
 					if (tab.getApplication().getAppDescriptor().getName().equals(NAME)) {
-						tab.select();
+                        tab.select();
                         if(uri != null){
                             ((SaveAndRestoreInstance)tab.getApplication()).openResource(uri);
                         }

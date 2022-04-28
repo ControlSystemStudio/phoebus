@@ -65,6 +65,8 @@ public class Messages {
     public static String menuItemDeleteSelectedPVs;
     public static String mutipleSelectionUnsupportedTitle;
     public static String mutipleSelectionUnsupportedBody;
+    public static String openResourceFailedTitle;
+    public static String openResourceFailedHeader;
     public static String promptCloseSnapshotTabTitle;
     public static String promptCloseSnapshotTabContent;
     public static String promptDeletePVTitle;

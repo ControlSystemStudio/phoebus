@@ -29,6 +29,8 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TreeItem;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import org.phoebus.applications.saveandrestore.Messages;
@@ -38,6 +40,7 @@ import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
+import java.net.URI;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -53,6 +56,10 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
 
     @FXML
     private ListView<Node> listView;
+
+    public SaveAndRestoreWithSplitController(URI uri){
+        super(uri);
+    }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -97,7 +104,7 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
             }
 
             if (action.getClickCount() == 2) {
-                nodeDoubleClicked(new TreeItem<>(node));
+                nodeDoubleClicked(node);
             }
         });
 
@@ -126,7 +133,7 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                saveAndRestoreService.deleteNode(listItem.getUniqueId());
+                saveAndRestoreService.deleteNodes(List.of(listItem.getUniqueId()));
                 return null;
             }
 
@@ -158,24 +165,24 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
         new Thread(task).start();
     }
 
-    private void nodeDoubleClicked(TreeItem<Node> node) {
+    private void nodeDoubleClicked(Node node) {
 
         // Disallow opening a tab multiple times for the same save set.
         for (Tab tab : tabPane.getTabs()) {
-            if (tab.getId() != null && tab.getId().equals(node.getValue().getUniqueId())) {
+            if (tab.getId() != null && tab.getId().equals(node.getUniqueId())) {
                 return;
             }
         }
 
         Tab tab;
 
-        switch (node.getValue().getNodeType()) {
+        switch (node.getNodeType()) {
             case CONFIGURATION:
-                tab = new SaveSetTab(node.getValue(), saveAndRestoreService);
+                tab = new SaveSetTab(node, saveAndRestoreService);
                 break;
             case SNAPSHOT:
-                tab = new SnapshotTab(node.getValue(), saveAndRestoreService);
-                ((SnapshotTab) tab).loadSnapshot(node.getValue());
+                tab = new SnapshotTab(node, saveAndRestoreService);
+                ((SnapshotTab) tab).loadSnapshot(node);
                 break;
             case FOLDER:
             default:
@@ -277,14 +284,26 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
             parentTreeItem = currentTreeItem;
         }
 
-        browserSelectionModel.clearSelection();
-        browserSelectionModel.select(parentTreeItem);
-        treeView.scrollTo(treeView.getSelectionModel().getSelectedIndex());
-
         Node currentNode = nodeStack.pop();
-        listView.getSelectionModel().clearSelection();
-        listView.getSelectionModel().select(currentNode);
-        listView.scrollTo(listView.getSelectionModel().getSelectedIndex());
+        if(currentNode.getNodeType().equals(NodeType.SNAPSHOT)){
+
+            browserSelectionModel.clearSelection();
+            browserSelectionModel.select(parentTreeItem);
+            treeView.scrollTo(treeView.getSelectionModel().getSelectedIndex());
+
+            listView.getSelectionModel().clearSelection();
+            listView.getSelectionModel().select(currentNode);
+            listView.scrollTo(listView.getSelectionModel().getSelectedIndex());
+        }
+        else{
+            TreeItem<Node> currentTreeItem = recursiveSearch(currentNode.getUniqueId(), parentTreeItem);
+            currentTreeItem.setExpanded(true);
+            parentTreeItem = currentTreeItem;
+
+            browserSelectionModel.clearSelection();
+            browserSelectionModel.select(parentTreeItem);
+            treeView.scrollTo(treeView.getSelectionModel().getSelectedIndex());
+        }
     }
 
     private class NodeComparator implements Comparator<Node> {
@@ -337,5 +356,13 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Failed to toggle golden property", e);
         }
+    }
+
+    @Override
+    protected void copyUniqueNodeIdToClipboard() {
+        Node node = listView.getSelectionModel().getSelectedItem();
+        ClipboardContent content = new ClipboardContent();
+        content.putString(node.getUniqueId());
+        Clipboard.getSystemClipboard().setContent(content);
     }
 }

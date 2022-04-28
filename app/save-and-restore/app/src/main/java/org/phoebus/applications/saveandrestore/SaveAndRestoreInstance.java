@@ -20,6 +20,7 @@ package org.phoebus.applications.saveandrestore;
 
 import javafx.fxml.FXMLLoader;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreWithSplitController;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.spi.AppDescriptor;
@@ -51,16 +52,25 @@ public class SaveAndRestoreInstance implements AppInstance {
             } else {
                 loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/SaveAndRestoreUI.fxml"));
             }
+            loader.setControllerFactory(clazz -> {
+                        try {
+                            if (clazz.isAssignableFrom(SaveAndRestoreController.class)) {
+                                return clazz.getConstructor(URI.class).newInstance(uri);
+                            }
+                            else if(clazz.isAssignableFrom(SaveAndRestoreWithSplitController.class)){
+                                return clazz.getConstructor(URI.class).newInstance(uri);
+                            }
+                        } catch (Exception e) {
+                            Logger.getLogger(SaveAndRestoreInstance.class.getName()).log(Level.WARNING, "Failed to load Save & Restore UI", e);
+                        }
+                        return null;
+                    });
             tab = new DockItem(this, loader.load());
         } catch (Exception e) {
             Logger.getLogger(SaveAndRestoreApplication.class.getName()).log(Level.SEVERE, "Failed loading fxml", e);
         }
 
         controller = loader.getController();
-
-        if(uri != null){
-            controller.openResource(uri);
-        }
 
         tab.setOnCloseRequest(event -> controller.closeTagSearchWindow());
 

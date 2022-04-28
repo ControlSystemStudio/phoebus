@@ -152,16 +152,17 @@ public class LogPropertiesController {
                                         setGraphic(urlLink);
                                         break;
                                     case "resource":
-                                        final String resourceURL = "file:/99f3dcfd-8dcf-4b7a-a44b-365e9333e895?app=saveandrestore"; //propertyItem.getValue();
+                                        final String resourceURL = propertyItem.getValue();
                                         final URI resource = URI.create(resourceURL);
                                         final Hyperlink resourceLink = new Hyperlink(resourceURL);
                                         setGraphic(resourceLink);
-                                        // Open resource using the default application
                                         resourceLink.setOnAction((e) -> {
                                             final List<AppResourceDescriptor> applications = ApplicationService.getApplications(resource);
+                                            // If resource URI contains valid app name, use it
                                             if (!applications.isEmpty()) {
                                                 applications.get(0).create(resource);
                                             }
+                                            // Otherwise use default app
                                             else{
                                                 AppResourceDescriptor appResourceDescriptor =
                                                         ApplicationService.findApplication(ResourceParser.getAppName(resource));

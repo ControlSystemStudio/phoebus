@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.framework.workbench;
+    package org.phoebus.framework.workbench;
 
 import static org.phoebus.framework.workbench.WorkbenchPreferences.logger;
 

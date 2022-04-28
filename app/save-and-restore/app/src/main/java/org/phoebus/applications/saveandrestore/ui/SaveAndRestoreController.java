@@ -78,6 +78,7 @@ import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -158,6 +159,15 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     protected SimpleBooleanProperty changesInProgress = new SimpleBooleanProperty(false);
 
+    private final URI uri;
+
+    /**
+     *
+     * @param uri If non-null, this is used to load a save set or snapshot into the view.
+     */
+    public SaveAndRestoreController(URI uri){
+        this.uri = uri;
+    }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -203,7 +213,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 toggleGoldenImageViewProperty.set(Boolean.parseBoolean(item.getValue().getProperty("golden")) ? snapshotImageView : snapshotGoldenImageView);
             }
             if (me.getClickCount() == 2) {
-                nodeDoubleClicked(browserSelectionModel.getSelectedItems().get(0));
+                nodeDoubleClicked(browserSelectionModel.getSelectedItems().get(0).getValue());
             }
         });
 
@@ -263,9 +273,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             public void succeeded() {
                 TreeItem<Node> rootItem = getValue();
                 jmasarServiceTitleProperty.set(saveAndRestoreService.getServiceIdentifier());
-
                 treeView.setRoot(rootItem);
                 restoreTreeState();
+                openResource(uri);
             }
 
             @Override
@@ -526,11 +536,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
-    /**
-     * Handles double click on a tree node.
-     */
-    public void nodeDoubleClicked() {
-        nodeDoubleClicked(browserSelectionModel.getSelectedItems().get(0));
+    public void nodeDoubleClicked(){
+        nodeDoubleClicked(treeView.getSelectionModel().getSelectedItem().getValue());
     }
 
     /**
@@ -538,24 +545,24 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      *
      * @param node The double click source
      */
-    private void nodeDoubleClicked(TreeItem<Node> node) {
+    private void nodeDoubleClicked(Node node) {
 
         // Disallow opening a tab multiple times for the same save set.
         for (Tab tab : tabPane.getTabs()) {
-            if (tab.getId() != null && tab.getId().equals(node.getValue().getUniqueId())) {
+            if (tab.getId() != null && tab.getId().equals(node.getUniqueId())) {
                 return;
             }
         }
 
         Tab tab;
 
-        switch (node.getValue().getNodeType()) {
+        switch (node.getNodeType()) {
             case CONFIGURATION:
-                tab = new SaveSetTab(node.getValue(), saveAndRestoreService);
+                tab = new SaveSetTab(node, saveAndRestoreService);
                 break;
             case SNAPSHOT:
-                tab = new SnapshotTab(browserSelectionModel.getSelectedItems().get(0).getValue(), saveAndRestoreService);
-                ((SnapshotTab) tab).loadSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue());
+                tab = new SnapshotTab(node, saveAndRestoreService);
+                ((SnapshotTab) tab).loadSnapshot(node);
                 break;
             case FOLDER:
             default:
@@ -613,7 +620,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                         LOG.log(Level.WARNING, "Encountered error when creating save set", e);
                         return;
                     }
-                    nodeDoubleClicked(newSaveSetNode);
+                    nodeDoubleClicked(newSaveSetNode.getValue());
                     //browserSelectionModel.clearSelection();
                 }
 
@@ -644,7 +651,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         renameNode(node.getValue(), existingSiblingNodes);
     }
 
-    protected void copyUniuqeNodeIdToClipboard() {
+    protected void copyUniqueNodeIdToClipboard() {
         Node node = browserSelectionModel.getSelectedItem().getValue();
         ClipboardContent content = new ClipboardContent();
         content.putString(node.getUniqueId());
@@ -785,6 +792,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     public void locateNode(Stack<Node> nodeStack) {
         TreeItem<Node> parentTreeItem = treeView.getRoot();
 
+        // If this method is called in response to launching save&restore with a "resource", the
+        // tree view has not yet been initialized -> root node does not exist
+
         while (nodeStack.size() > 0) {
             Node currentNode = nodeStack.pop();
             TreeItem<Node> currentTreeItem = recursiveSearch(currentNode.getUniqueId(), parentTreeItem);
@@ -816,6 +826,11 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
+    /**
+     * Locates expanded nodes recursively and adds them to <code>expandedNodes</code>
+     * @param expandedNodes The {@link List} holding expanded nodes.
+     * @param treeItem The {@link TreeItem} in which to look for expanded {@link TreeItem}s (nodes).
+     */
     private void findExpandedNodes(List<String> expandedNodes, TreeItem<Node> treeItem) {
         if (treeItem.expandedProperty().get() && !treeItem.getChildren().isEmpty()) {
             expandedNodes.add(treeItem.getValue().getUniqueId());
@@ -1211,11 +1226,16 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         Node node = saveAndRestoreService.getNode(uri.getPath());
         if(node == null){
             // Show error dialog.
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle(Messages.openResourceFailedTitle);
+            alert.setHeaderText(MessageFormat.format(Messages.openResourceFailedHeader, uri.getPath()));
+            DialogHelper.positionDialog(alert, treeView, -200, -200);
+            alert.show();
+            return;
         }
-        // TODO: find the parent node, expand it (if not already expanded) and select the resource.
-        // In case the resource is a folder, just expand to show child nodes.
-        // In case the resource is a save set, open it to prepare for taking snapshot.
-        // In case the resource is a snapshot, load it in the snapshot view to prepare for restore.
-
+        Stack<Node> copiedStack = new Stack<>();
+        DirectoryUtilities.CreateLocationStringAndNodeStack(node, false).getValue().stream().forEach(copiedStack::push);
+        locateNode(copiedStack);
+        nodeDoubleClicked(node);
     }
 }
