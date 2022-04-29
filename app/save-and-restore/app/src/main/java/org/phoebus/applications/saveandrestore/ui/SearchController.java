@@ -255,7 +255,12 @@ public class SearchController implements Initializable {
 
         public ImageView getEntryImageView() {
             if (type.equals(EntryType.SNAPSHOT)) {
-                return new ImageView(ImageCache.getImage(SearchController.class, "/icons/save-and-restore/snapshot.png"));
+                if (snapshot.getProperty("golden") != null && Boolean.valueOf(snapshot.getProperty("golden"))) {
+                    return new ImageView(ImageCache.getImage(SearchController.class, "/icons/save-and-restore/snapshot-golden.png"));
+                }
+                else {
+                    return new ImageView(ImageCache.getImage(SearchController.class, "/icons/save-and-restore/snapshot.png"));
+                }
             } else {
                 ImageView imageView = new ImageView(ImageCache.getImage(SearchController.class, "/icons/save-and-restore/snapshot-tag.png"));
                 imageView.setPreserveRatio(true);
