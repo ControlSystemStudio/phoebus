@@ -49,7 +49,7 @@ public class ProposalService
     protected final List<ProposalProvider> providers;
     private final List<Future<?>> submitted = new ArrayList<>();
 
-    protected ProposalService(final ProposalProvider... providers)
+    public ProposalService(final ProposalProvider... providers)
     {
         this.providers = new ArrayList<>(providers.length + 1);
         this.providers.add(history);
