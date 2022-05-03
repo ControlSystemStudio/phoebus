@@ -23,6 +23,60 @@
         </jar>
     </target>
 
+    <target name="testlib">
+        <!-- Builds the library with all 'test' sources included.
+           -
+           - Expects dependencies in ${dependencies}/phoebus-target/target/lib
+           -
+           - Execute PVA demo server:
+           -   # IPv4
+           -   java -cp target/core-pva-test.jar org.epics.pva.server.IPv6ServerDemo
+           -   # IPv6
+           -   java -cp target/core-pva-test.jar org.epics.pva.server.IPv6ServerDemo  "[fe80::1],1@lo0"
+           -
+           - Like the normal core-pva, it can be used as a command-line client to those PVs:
+           -
+           -   # IPv4
+           -   java -jar target/core-pva-test.jar monitor demo
+           -   # IPv6
+           -   export EPICS_PVA_AUTO_ADDR_LIST=NO
+           -   export EPICS_PVA_ADDR_LIST="[fe80::1],1@lo0"
+           -    java -jar target/core-pva-test.jar monitor demo
+          -->
+        <mkdir dir="${classes}"/>
+        <path id="junit-classpath">
+            <fileset dir="${dependencies}/phoebus-target/target/lib">
+                <include name="junit*.jar"/>
+                <include name="hamcrest-core*.jar"/>
+            </fileset>
+        </path>
+        <javac destdir="${classes}" debug="${debug}" classpathref="junit-classpath">
+            <src path="${src}"/>
+            <src path="${test}"/>
+        </javac>
+        <jar destfile="${build}/core-pva-test.jar">
+            <fileset dir="${classes}"/>
+            <fileset dir="${resources}"/>
+            <fileset dir="src/test/resources"/>
+            <manifest>
+                <attribute name="Main-Class"
+                           value="org.epics.pva.client.PVAClientMain"/>
+            </manifest>
+        </jar>
+        <junit>
+            <classpath>
+                <path refid="junit-classpath"/>
+                <pathelement path="${build}/core-pva-test.jar"/>
+            </classpath>
+            <batchtest>
+                <fileset dir="${test}">
+                    <include name="**/*Test*.java"/>
+                </fileset>
+                <formatter type="plain" usefile="false"/>
+            </batchtest>
+        </junit>
+    </target>
+
     <target name="spamdemo" depends="core-pva,pipeline">
         <javac destdir="${classes}" debug="${debug}">
             <src path="${test}/"/>
