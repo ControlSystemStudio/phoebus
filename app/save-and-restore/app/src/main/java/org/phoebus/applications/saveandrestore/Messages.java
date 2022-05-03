@@ -56,6 +56,8 @@ public class Messages {
     public static String labelMultiplier;
     public static String labelThreshold;
     public static String menuItemDeleteSelectedPVs;
+    public static String openResourceFailedTitle;
+    public static String openResourceFailedHeader;
     public static String promptCloseSnapshotTabTitle;
     public static String promptCloseSnapshotTabContent;
     public static String promptDeletePVTitle;

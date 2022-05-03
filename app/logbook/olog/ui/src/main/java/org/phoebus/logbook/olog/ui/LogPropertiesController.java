@@ -16,6 +16,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
 import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.PropertyImpl;
@@ -155,11 +156,19 @@ public class LogPropertiesController {
                                         final URI resource = URI.create(resourceURL);
                                         final Hyperlink resourceLink = new Hyperlink(resourceURL);
                                         setGraphic(resourceLink);
-                                        // Open resource using the default application
                                         resourceLink.setOnAction((e) -> {
                                             final List<AppResourceDescriptor> applications = ApplicationService.getApplications(resource);
+                                            // If resource URI contains valid app name, use it
                                             if (!applications.isEmpty()) {
                                                 applications.get(0).create(resource);
+                                            }
+                                            // Otherwise use default app
+                                            else{
+                                                AppResourceDescriptor appResourceDescriptor =
+                                                        ApplicationService.findApplication(ResourceParser.getAppName(resource));
+                                                if(appResourceDescriptor != null){
+                                                    appResourceDescriptor.create(resource);
+                                                }
                                             }
                                         });
                                         resourceLink.setOnContextMenuRequested((e) -> {

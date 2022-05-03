@@ -53,7 +53,7 @@ public abstract class ContextMenuBase extends ContextMenu {
         copyUniqueIdToClipboardMenuItem = new MenuItem(Messages.copyUniqueIdToClipboard, ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
         copyUniqueIdToClipboardMenuItem.disableProperty().bind(multipleItemsSelected);
         copyUniqueIdToClipboardMenuItem.setOnAction(ae -> {
-            saveAndRestoreController.copyUniuqeNodeIdToClipboard();
+            saveAndRestoreController.copyUniqueNodeIdToClipboard();
         });
     }
 
