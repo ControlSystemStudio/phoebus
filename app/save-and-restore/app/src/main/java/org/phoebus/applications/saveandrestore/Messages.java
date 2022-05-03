@@ -31,7 +31,6 @@ public class Messages {
     public static String contextMenuDelete;
     public static String contextMenuEdit;
     public static String contextMenuNewFolder;
-    public static String contextMenuNewTopLevelFolder;
     public static String contextMenuNewSaveSet;
     public static String contextMenuNoTagWithComment;
     public static String contextMenuRename;
@@ -40,10 +39,8 @@ public class Messages {
     public static String contextMenuTagsWithComment;
     public static String copyOrMoveNotAllowedBody;
     public static String copyOrMoveNotAllowedHeader;
-    public static String copyOrMoveToRootNotAllowedBody;
     public static String copyUniqueIdToClipboard;
     public static String createNewTagDialogTitle;
-    public static String createNodeFailed;
     public static String deletionNotAllowed;
     public static String deletionNotAllowedHeader;
     public static String errorActionFailed;
@@ -53,18 +50,12 @@ public class Messages {
     public static String errorGeneric;
     public static String exportSaveSetLabel;
     public static String exportSnapshotLabel;
-    public static String invalidSelectionForDragNDropHeader;
-    public static String invalidSelectionForDragNDropBodySingle;
-    public static String invalidSelectionForDragNDropBodyMultiple;
     public static String importSaveSetLabel;
     public static String importSnapshotLabel;
     public static String jmasarServiceUnavailable;
-    public static String labelCreateFolderEmptyTree;
     public static String labelMultiplier;
     public static String labelThreshold;
     public static String menuItemDeleteSelectedPVs;
-    public static String mutipleSelectionUnsupportedTitle;
-    public static String mutipleSelectionUnsupportedBody;
     public static String openResourceFailedTitle;
     public static String openResourceFailedHeader;
     public static String promptCloseSnapshotTabTitle;
@@ -119,9 +110,6 @@ public class Messages {
     public static String toolTipSaveSetExistsOption;
     public static String toolTipMultiplierSpinner;
     public static String unnamedSnapshot;
-    public static String updateConfigurationFailed;
-    public static String updateNodeFailed;
-    
 
     static
     {

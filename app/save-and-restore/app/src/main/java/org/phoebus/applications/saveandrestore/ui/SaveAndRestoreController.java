@@ -73,11 +73,14 @@ import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotNewTagDialog;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
+import org.phoebus.framework.autocomplete.ProposalService;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.preferences.PreferencesReader;
+
+import org.phoebus.ui.autocomplete.AutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
@@ -1043,6 +1046,10 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         String locationString = DirectoryUtilities.CreateLocationString(node, true);
         snapshotNewTagDialog.getDialogPane().setHeader(TagUtil.CreateAddHeader(locationString, node.getName()));
 
+        ProposalService proposalService = new ProposalService(new TagProposalProvider(saveAndRestoreService));
+        AutocompleteMenu autocompleteMenu = new AutocompleteMenu(proposalService);
+        snapshotNewTagDialog.configureAutocompleteMenu(autocompleteMenu);
+
         Optional<Pair<String, String>> result = snapshotNewTagDialog.showAndWait();
         result.ifPresent(items -> {
             Tag aNewTag = Tag.builder()
@@ -1058,6 +1065,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 LOG.log(Level.WARNING, "Failed to add tag to snapshot");
             }
         });
+
+
     }
 
     /**
@@ -1219,6 +1228,12 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
+    /**
+     * Launches the save & restore app and highlights/loads the "resource" (save set or snapshot) identified
+     * by the {@link URI}. If the save set/snapshot in question cannot be found, an error dialog is shown.
+     * @param uri An {@link URI} on the form file:/unique-id?app=saveandrestore, where unique-id is the
+     *            unique id of a save set or snapshot.
+     */
     public void openResource(URI uri){
         if(uri == null){
             return;

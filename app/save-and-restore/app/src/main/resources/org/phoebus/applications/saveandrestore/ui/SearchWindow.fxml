@@ -1,17 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.CheckBox?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-<GridPane alignment="CENTER" hgap="5.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1100.0" vgap="5.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.SearchController">
+<GridPane alignment="CENTER" hgap="5.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1100.0" vgap="5.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.SearchController">
   <columnConstraints>
     <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
     <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" />
@@ -52,8 +45,19 @@
                <HBox.margin>
                   <Insets right="5.0" />
                </HBox.margin></CheckBox>
-            <CheckBox fx:id="searchOptionTagComment" alignment="CENTER_RIGHT" mnemonicParsing="false" selected="true" text="%searchOptionTagComment" />
+            <CheckBox fx:id="searchOptionTagComment" alignment="CENTER_RIGHT" mnemonicParsing="false" selected="true" text="%searchOptionTagComment">
+               <HBox.margin>
+                  <Insets right="5.0" />
+               </HBox.margin></CheckBox>
+             <Label maxWidth="1.7976931348623157E308" text="" HBox.hgrow="ALWAYS" />
+             <CheckBox fx:id="searchOptionGoldenOnly" alignment="CENTER_RIGHT" mnemonicParsing="false" selected="false" text="%searchOptionGoldenOnly">
+               <HBox.margin>
+                  <Insets right="3.0" />
+               </HBox.margin></CheckBox>
          </children>
+         <GridPane.margin>
+            <Insets top="5.0" />
+         </GridPane.margin>
       </HBox>
    </children>
    <padding>

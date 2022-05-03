@@ -56,8 +56,6 @@ import java.util.stream.Collectors;
 public class SearchController implements Initializable {
 
     private SaveAndRestoreController callerController;
-    private List<Node> snapshotList;
-    private List<Tag> tagList;
     private List<SearchEntry> tableEntries = new ArrayList<>();
 
     @FXML
@@ -74,6 +72,9 @@ public class SearchController implements Initializable {
 
     @FXML
     private CheckBox searchOptionTagComment;
+
+    @FXML
+    private CheckBox searchOptionGoldenOnly;
 
     @FXML
     private TableView<SearchEntry> resultTableView;
@@ -99,23 +100,26 @@ public class SearchController implements Initializable {
 
     private void refreshList() {
         tableEntries.clear();
-
+        List<Node> snapshotList;
         if (searchOptionSnapshotName.isSelected() || searchOptionSnapshotComment.isSelected()) {
             try {
                 snapshotList = saveAndRestoreService.getAllSnapshots();
                 snapshotList.stream().map(SearchEntry::create).forEach(tableEntries::add);
+                if(searchOptionGoldenOnly.isSelected()){
+                    tableEntries = tableEntries.stream().filter(se -> isSnapshotGolden(se.snapshot)).collect(Collectors.toList());
+                }
+
             } catch (Exception e) {
-                snapshotList = new ArrayList<>();
                 LOG.warning("Unable to retrieve snapshot list from server. Please check if the latest version of service is running.");
             }
         }
 
+        List<Tag> tagList;
         if (searchOptionTagName.isSelected() || searchOptionTagComment.isSelected()) {
             try {
                 tagList = saveAndRestoreService.getAllTags();
                 tagList.stream().map(SearchEntry::create).forEach(tableEntries::add);
             } catch (Exception e) {
-                tagList = new ArrayList<>();
                 LOG.warning("Unable to retrieve tag list from server. Please check if the latest version of service is running.");
             }
         }
@@ -135,6 +139,7 @@ public class SearchController implements Initializable {
         searchOptionSnapshotComment.selectedProperty().addListener((observableValue, aBoolean, selected) -> filterList(keywordTextField.getText()));
         searchOptionTagName.selectedProperty().addListener((observableValue, aBoolean, selected) -> filterList(keywordTextField.getText()));
         searchOptionTagComment.selectedProperty().addListener((observableValue, aBoolean, selected) -> filterList(keywordTextField.getText()));
+        searchOptionGoldenOnly.selectedProperty().addListener((observableValue, aBoolean, selected) -> filterList(keywordTextField.getText()));
 
         resultTableView.setRowFactory(tableView -> new TableRow<>() {
             @Override
@@ -153,7 +158,7 @@ public class SearchController implements Initializable {
                             if (searchEntry.getSnapshot() == null) {
                                 searchEntry.setSnapshot(saveAndRestoreService.getNode(searchEntry.getTag().getSnapshotId()));
                             }
-                            DirectoryUtilities.CreateLocationStringAndNodeStack(searchEntry.getSnapshot(), false).getValue().stream().forEach(copiedStack::push);
+                            DirectoryUtilities.CreateLocationStringAndNodeStack(searchEntry.getSnapshot(), false).getValue().forEach(copiedStack::push);
                             callerController.locateNode(copiedStack);
                         }
                     });
@@ -193,6 +198,7 @@ public class SearchController implements Initializable {
                     if (entry.getType().equals(EntryType.SNAPSHOT)) {
                         flag |= searchOptionSnapshotName.isSelected() & entry.getName().toLowerCase().contains(keyword.toLowerCase());
                         flag |= searchOptionSnapshotComment.isSelected() & entry.getComment().toLowerCase().contains(keyword.toLowerCase());
+                        flag &= !searchOptionGoldenOnly.isSelected() | isSnapshotGolden(entry.snapshot);
                     } else {
                         flag |= searchOptionTagName.isSelected() & entry.getName().toLowerCase().contains(keyword.toLowerCase());
                         flag |= searchOptionTagComment.isSelected() & entry.getComment().toLowerCase().contains(keyword.toLowerCase());
@@ -208,8 +214,12 @@ public class SearchController implements Initializable {
     public void setCallerController(SaveAndRestoreController callerController) {
         this.callerController = callerController;
     }
+    
+    private static boolean isSnapshotGolden(Node node){
+        return node.getProperty("golden") != null && Boolean.valueOf(node.getProperty("golden"));
+    }
 
-    private enum EntryType {SNAPSHOT, TAG;}
+    private enum EntryType {SNAPSHOT, TAG}
 
     private static class SearchEntry {
         private final EntryType type;
@@ -255,7 +265,12 @@ public class SearchController implements Initializable {
 
         public ImageView getEntryImageView() {
             if (type.equals(EntryType.SNAPSHOT)) {
-                return new ImageView(ImageCache.getImage(SearchController.class, "/icons/save-and-restore/snapshot.png"));
+                if (isSnapshotGolden(snapshot)) {
+                    return new ImageView(ImageCache.getImage(SearchController.class, "/icons/save-and-restore/snapshot-golden.png"));
+                }
+                else {
+                    return new ImageView(ImageCache.getImage(SearchController.class, "/icons/save-and-restore/snapshot.png"));
+                }
             } else {
                 ImageView imageView = new ImageView(ImageCache.getImage(SearchController.class, "/icons/save-and-restore/snapshot-tag.png"));
                 imageView.setPreserveRatio(true);

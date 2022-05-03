@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -30,11 +30,12 @@ public class Preferences
     @Preference public static boolean status_show_user;
     @Preference public static String default_save_path;
     @Preference public static String layout_dir;
+    @Preference public static boolean print_landscape;
 
     static
     {
     	AnnotatedPreferences.initialize(Preferences.class, "/phoebus_ui_preferences.properties");
- 
+
         // In case PVA library is included, sync its array formatting
         // (PVASettings cannot use Preferences.max_array_formatting
         //  since the PVA library may be used standalone)

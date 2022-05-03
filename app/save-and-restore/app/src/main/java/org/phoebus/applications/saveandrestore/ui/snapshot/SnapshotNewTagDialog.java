@@ -29,10 +29,12 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputControl;
 import javafx.scene.layout.GridPane;
 import javafx.util.Pair;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.ui.autocomplete.AutocompleteMenu;
 
 import java.util.List;
 
@@ -44,6 +46,9 @@ import java.util.List;
  */
 
 public class SnapshotNewTagDialog extends Dialog<Pair<String, String>> {
+
+    private TextInputControl tagNameTextField;
+
     public SnapshotNewTagDialog(List<Tag> tagList) {
         super();
 
@@ -63,7 +68,7 @@ public class SnapshotNewTagDialog extends Dialog<Pair<String, String>> {
         GridPane.setHalignment(tagNameLabel, HPos.RIGHT);
         GridPane.setHalignment(tagCommentLabel, HPos.RIGHT);
 
-        TextField tagNameTextField = new TextField();
+        tagNameTextField = new TextField();
         TextField tagCommentTextField = new TextField();
 
         tagNameTextField.setMinWidth(400);
@@ -95,10 +100,19 @@ public class SnapshotNewTagDialog extends Dialog<Pair<String, String>> {
 
         setResultConverter(dialogButton -> {
             if (dialogButton == saveTagButton) {
+
                 return new Pair<>(tagNameTextField.getText(), tagCommentTextField.getText());
             }
 
             return null;
         });
+    }
+
+    /**
+     * Adds {@link AutocompleteMenu} to the tag name field such that user may choose among existing tag names.
+     * @param autocompleteMenu The {@link AutocompleteMenu} that will be attached to the tag name input field.
+     */
+    public void configureAutocompleteMenu(AutocompleteMenu autocompleteMenu){
+        autocompleteMenu.attachField(tagNameTextField);
     }
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -39,7 +39,8 @@ public class SaveSnapshotAction extends MenuItem
         setOnAction(event -> save(node));
     }
 
-    private void save(final Node node)
+    /** @param node Node of which to save a snapshot */
+    public static void save(final Node node)
     {
         final Window window = node.getScene().getWindow();
         final ExtensionFilter[] file_extensions = new ExtensionFilter[]

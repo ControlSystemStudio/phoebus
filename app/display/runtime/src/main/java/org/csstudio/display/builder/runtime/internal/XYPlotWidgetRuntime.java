@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -21,6 +21,7 @@ import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.TraceWidgetProperty;
 import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget;
 import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget.MarkerProperty;
+import org.csstudio.display.builder.runtime.Messages;
 import org.csstudio.display.builder.runtime.PVNameToValueBinding;
 import org.csstudio.display.builder.runtime.RuntimeAction;
 import org.csstudio.display.builder.runtime.WidgetRuntime;
@@ -57,6 +58,8 @@ public class XYPlotWidgetRuntime  extends WidgetRuntime<XYPlotWidget>
         super.initialize(widget);
         runtime_actions.add(new ConfigureAction("Configure Plot", widget.runtimePropConfigure()));
         runtime_actions.add(new ToggleToolbarAction(widget));
+        runtime_actions.add(new PrintWidgetAction(widget, Messages.PrintPlot));
+        runtime_actions.add(new SaveWidgetSnapshotAction(widget, Messages.SavePlotSnapshot));
     }
 
     @Override

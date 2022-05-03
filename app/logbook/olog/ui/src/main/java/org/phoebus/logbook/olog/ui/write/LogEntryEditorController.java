@@ -399,6 +399,8 @@ public class LogEntryEditorController {
                 else {
                     result = logClient.reply(ologLog, replyTo);
                 }
+                // Not dirty any more...
+                isDirty = false;
                 if (result != null) {
                     if (completionHandler != null) {
                         completionHandler.handleResult(result);
