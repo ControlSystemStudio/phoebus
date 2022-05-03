@@ -9,6 +9,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -26,6 +27,7 @@ import org.phoebus.applications.alarm.logging.ui.AlarmLogTableQueryUtil.Keys;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.framework.jobs.Job;
+import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.util.time.TimeParser;
@@ -524,6 +526,9 @@ public class AlarmLogTableController {
         contextMenu.getItems().add(configurationInfo);
 
         contextMenu.getItems().add(new SeparatorMenuItem());
+
+       // search for other context menu actions registered for AlarmLogTableType
+        SelectionService.getInstance().setSelection("AlarmLogTable", tableView.getSelectionModel().getSelectedItems());
         ContextMenuHelper.addSupportedEntries(tableView, contextMenu);
 
         tableView.setContextMenu(contextMenu);
