@@ -12,6 +12,7 @@ import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.vtype.FormatOption;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -69,11 +70,17 @@ public class ProbeInstance implements AppInstance {
 
     @Override
     public void restore(final Memento memento) {
+        ProbeController controller = (ProbeController) loader.getController();
         memento.getString("pv").ifPresent(name -> setPV(name));
+        memento.getString("format").ifPresent(name -> controller.setFormat(FormatOption.valueOf(name)));
+        memento.getNumber("precision").ifPresent(value -> controller.setPrecision(value.intValue()));
     }
 
     @Override
     public void save(final Memento memento) {
+        ProbeController controller = (ProbeController) loader.getController();
         memento.setString("pv", getPV());
+        memento.setString("format", controller.getFormat().name());
+        memento.setNumber("precision", controller.getPrecision());
     }
 }

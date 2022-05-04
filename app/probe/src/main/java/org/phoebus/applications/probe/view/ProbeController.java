@@ -74,6 +74,22 @@ public class ProbeController {
         search();
     }
 
+    public FormatOption getFormat() {
+        return format.getValue();
+    }
+
+    public void setFormat(final FormatOption option) {
+        format.setValue(option);
+    }
+
+    public int getPrecision() {
+        return precision.getValue();
+    }
+
+    public void setPrecision(final int digits) {
+        precision.getValueFactory().setValue(digits);
+    }
+
     private void setEditing(final boolean editing)
     {
         if (editing == this.editing)
