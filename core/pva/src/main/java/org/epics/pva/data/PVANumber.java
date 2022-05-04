@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -31,6 +31,21 @@ abstract public class PVANumber extends PVAData
         try
         {
             return Long.valueOf(Long.parseLong(text));
+        }
+        catch (NumberFormatException ex)
+        {
+            // Ignore, try hex next
+        }
+
+        // Allow hex numbers 0x.. or 0X...
+        // Using Long.decode() handles both plain decimals and 0x.. hex,
+        // but it would treat "010" as octal 8.
+        // That is a regression from Channel Access, which treats "010" as decimal 10,
+        // so specifically check for 0x..
+        try
+        {
+            if (text.startsWith("0x") ||  text.startsWith("0X"))
+                return Long.valueOf(Long.decode(text));
         }
         catch (NumberFormatException ex)
         {
