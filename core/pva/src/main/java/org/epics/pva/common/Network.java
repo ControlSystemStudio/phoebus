@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -244,10 +244,28 @@ public class Network
         final DatagramChannel udp = DatagramChannel.open(family);
         udp.configureBlocking(true);
         udp.socket().setReuseAddress(true);
+
+        final InetSocketAddress addr;
+        // If an address is provided, use it
         if (address != null)
-            udp.bind(new InetSocketAddress(address, port));
+            addr = new InetSocketAddress(address, port);
+        // Otherwise, `new InetSocketAddress(port)` will unpredictably
+        // use either a cached "0.0.0.0" or "::0".
+        // Trying to then bind an INET udp channel to "::0" will fail,
+        // so create "0..." address for the specific family
+        else if (family == StandardProtocolFamily.INET)
+            addr = new InetSocketAddress(InetAddress.getByName("0.0.0.0"), port);
         else
-            udp.bind(new InetSocketAddress(port));
+            addr = new InetSocketAddress(InetAddress.getByName("::0"), port);
+        try
+        {
+            udp.bind(addr);
+        }
+        catch (Exception ex)
+        {
+            // Add family and effective addr to stack trace
+            throw new Exception("Cannot create UDP channel for " + family + " bound to " + addr, ex);
+        }
         return udp;
     }
 
