@@ -125,7 +125,7 @@ public class ExportView extends VBox
             start.setText(range[0]);
             end.setText(range[1]);
         };
-        final TimeRangePopover popover = new TimeRangePopover(model, closeCallback, applyCallback);
+        final TimeRangePopover popover = TimeRangePopover.withDefaultTimePane(model, closeCallback, applyCallback);
         sel_times.setOnAction(event ->
         {
             popover.show((Region) event.getSource());

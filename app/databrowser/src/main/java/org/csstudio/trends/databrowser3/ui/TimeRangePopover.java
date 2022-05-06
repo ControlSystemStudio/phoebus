@@ -17,10 +17,11 @@ public class TimeRangePopover extends PopOver {
 
     private static final Logger log = Logger.getLogger(TimeRangePopover.class.getName());
 
-    private static final TimeRelativeIntervalPane timePane = new TimeRelativeIntervalPane(TemporalAmountPane.Type.ONLY_NOW);
+    public static TimeRangePopover withDefaultTimePane(final Model model, BiConsumer<TimeRelativeIntervalPane, PopOver> cancelCallback, BiConsumer<TimeRelativeIntervalPane, PopOver> applyCallback) {
+        return new TimeRangePopover(new TimeRelativeIntervalPane(TemporalAmountPane.Type.ONLY_NOW), model, cancelCallback, applyCallback);
+    }
 
-    public TimeRangePopover(final Model model, BiConsumer<TimeRelativeIntervalPane, PopOver> cancelCallback, BiConsumer<TimeRelativeIntervalPane, PopOver> applyCallback) {
-
+    public TimeRangePopover(final TimeRelativeIntervalPane timePane, final Model model, BiConsumer<TimeRelativeIntervalPane, PopOver> cancelCallback, BiConsumer<TimeRelativeIntervalPane, PopOver> applyCallback) {
         // Initialize the PopOver with the timepane as the content
         super(timePane);
 

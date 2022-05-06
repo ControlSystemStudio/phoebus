@@ -47,7 +47,7 @@ public class ChangeTimerangeAction
                 new ChangeTimerangeCommand(model, undo, range);
         };
 
-        final TimeRangePopover popover = new TimeRangePopover(model, closeCallback, applyCallback);
+        final TimeRangePopover popover = TimeRangePopover.withDefaultTimePane(model, closeCallback, applyCallback);
 
         popover.show((Region) node);
     }
