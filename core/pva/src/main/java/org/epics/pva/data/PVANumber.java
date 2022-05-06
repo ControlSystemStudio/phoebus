@@ -30,7 +30,7 @@ abstract public class PVANumber extends PVAData
         // but fails when number contains '.' or 'e'
         try
         {
-            return Long.valueOf(Long.parseLong(text));
+            return Long.parseLong(text);
         }
         catch (NumberFormatException ex)
         {
@@ -41,11 +41,12 @@ abstract public class PVANumber extends PVAData
         // Using Long.decode() handles both plain decimals and 0x.. hex,
         // but it would treat "010" as octal 8.
         // That is a regression from Channel Access, which treats "010" as decimal 10,
-        // so specifically check for 0x..
+        // so specifically check for 0x..,
+        // and then parse such that up to 64 bit 0x8.... will be handled
         try
         {
             if (text.startsWith("0x") ||  text.startsWith("0X"))
-                return Long.valueOf(Long.decode(text));
+                return Long.parseUnsignedLong(text.substring(2), 16);
         }
         catch (NumberFormatException ex)
         {
@@ -54,7 +55,7 @@ abstract public class PVANumber extends PVAData
 
         try
         {
-            return Double.valueOf(Double.parseDouble(text));
+            return Double.parseDouble(text);
         }
         catch (NumberFormatException ex)
         {
