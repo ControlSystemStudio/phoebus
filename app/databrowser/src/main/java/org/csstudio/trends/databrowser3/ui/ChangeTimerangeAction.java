@@ -7,14 +7,17 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui;
 
+import javafx.scene.Node;
+import javafx.scene.layout.Region;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.ui.properties.ChangeTimerangeCommand;
-import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.PopOver;
+import org.phoebus.ui.time.TimeRelativeIntervalPane;
 import org.phoebus.ui.undo.UndoableActionManager;
 import org.phoebus.util.time.TimeInterval;
 import org.phoebus.util.time.TimeRelativeInterval;
 
-import javafx.scene.Node;
+import java.util.function.BiConsumer;
 
 /** Helper for handling start/end time changes
  *  @author Kay Kasemir
@@ -28,11 +31,13 @@ public class ChangeTimerangeAction
      */
     public static void run(final Model model, final Node node, final UndoableActionManager undo)
     {
-        final TimeRangeDialog dlg = new TimeRangeDialog(model.getTimerange());
-        DialogHelper.positionDialog(dlg, node, -300, -200);
-        dlg.showAndWait().ifPresent(range  ->
-        {
-            // If anything is absolute, make both ends absolute
+
+        BiConsumer<TimeRelativeIntervalPane, PopOver> closeCallback = (timePane, popOver) -> {
+            popOver.hide();
+        };
+
+        BiConsumer<TimeRelativeIntervalPane, PopOver> applyCallback = (timePane, popOver) -> {
+            TimeRelativeInterval range = timePane.getInterval();
             if (range.isStartAbsolute()  ||  range.isEndAbsolute())
             {
                 final TimeInterval abs = range.toAbsoluteInterval();
@@ -40,6 +45,10 @@ public class ChangeTimerangeAction
             }
             else
                 new ChangeTimerangeCommand(model, undo, range);
-        });
+        };
+
+        final TimeRangePopover popover = new TimeRangePopover(model, closeCallback, applyCallback);
+
+        popover.show((Region) node);
     }
 }
