@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -410,10 +410,15 @@ public class FormatOptionHandler
                 final int sep = text.lastIndexOf(' ');
                 if (sep > 0)
                     text = text.substring(0, sep).trim();
-                text = text.toUpperCase();
-                if (text.startsWith("0X"))
-                    text = text.substring(2);
-                return Long.parseLong(text, 16);
+                // Hex numbers are almost exclusively used to check the binary
+                // representation of data.
+                // A 64bit number 0x8000000000000000 is used to check if the highest
+                // bit is set, so needs to be parsed 'unsigned' because otherwise
+                // 0x7... would be the largest positive value that can be handled.
+                if (text.startsWith("0x")  ||  text.startsWith("0X"))
+                    return Long.parseUnsignedLong(text.substring(2), 16);
+                else
+                    return Long.parseUnsignedLong(text, 16);
             }
             case BINARY:
             {   // Remove trailing text (units or part of units)
