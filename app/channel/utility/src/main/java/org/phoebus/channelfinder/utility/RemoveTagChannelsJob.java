@@ -1,13 +1,13 @@
 package org.phoebus.channelfinder.utility;
 
+import java.util.Collection;
+import java.util.function.BiConsumer;
+
 import org.phoebus.channelfinder.ChannelFinderClient;
 import org.phoebus.channelfinder.Tag;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobRunnableWithCancel;
-
-import java.util.Collection;
-import java.util.function.BiConsumer;
 
 /**
  * A job to remove tag from a list of channels
@@ -51,14 +51,23 @@ public class RemoveTagChannelsJob extends JobRunnableWithCancel {
     @Override
     public String getName()
     {
-        return "Removing tag : " + tag.getName() + " to " + channelNames.size() + " channels";
+        return "Removing tag : " + tag.getName() + " from " + channelNames.size() + " channels";
     }
 
     @Override
     public Runnable getRunnable()
     {
         return () -> {
-            client.delete(Tag.Builder.tag(tag), channelNames);
+            try
+            {
+                client.delete(Tag.Builder.tag(tag), channelNames);
+            }
+            catch (Throwable thrown)
+            {
+                ChannelErrorHandler.displayError(
+                    "Failed to remove tag '" + tag.getName() + "'",
+                    thrown);
+            }
         };
     }
 

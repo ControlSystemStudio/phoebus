@@ -1,13 +1,13 @@
 package org.phoebus.channelfinder.utility;
 
+import java.util.Collection;
+import java.util.function.BiConsumer;
+
 import org.phoebus.channelfinder.ChannelFinderClient;
 import org.phoebus.channelfinder.Tag;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobRunnableWithCancel;
-
-import java.util.Collection;
-import java.util.function.BiConsumer;
 
 /**
  *
@@ -57,7 +57,16 @@ public class AddTag2ChannelsJob extends JobRunnableWithCancel {
     public Runnable getRunnable()
     {
         return () -> {
-            client.update(Tag.Builder.tag(tag), channelNames);
+            try
+            {
+                client.update(Tag.Builder.tag(tag), channelNames);
+            }
+            catch (Throwable thrown)
+            {
+                ChannelErrorHandler.displayError(
+                    "Failed to add property '" + tag.getName() + "'",
+                    thrown);
+            }
         };
     }
 

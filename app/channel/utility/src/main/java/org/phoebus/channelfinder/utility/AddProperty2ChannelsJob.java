@@ -64,7 +64,16 @@ public class AddProperty2ChannelsJob extends JobRunnableWithCancel {
     public Runnable getRunnable()
     {
         return () -> {
-            client.update(Property.Builder.property(property), channelNames);
+            try
+            {
+                client.update(Property.Builder.property(property), channelNames);
+            }
+            catch (Throwable thrown)
+            {
+                ChannelErrorHandler.displayError(
+                    "Failed to add property '" + property.getName() + "' = '" + property.getValue() + "'",
+                    thrown);
+            }
         };
     }
 

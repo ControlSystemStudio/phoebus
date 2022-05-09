@@ -3,14 +3,14 @@
  */
 package org.phoebus.channelfinder.utility;
 
+import java.util.Collection;
+import java.util.function.BiConsumer;
+
 import org.phoebus.channelfinder.ChannelFinderClient;
 import org.phoebus.channelfinder.Property;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobRunnableWithCancel;
-
-import java.util.Collection;
-import java.util.function.BiConsumer;
 
 
 /**
@@ -24,7 +24,6 @@ public class RemovePropertyChannelsJob extends JobRunnableWithCancel {
     private final Property property;
     private final Collection<String> channelNames;
     private final BiConsumer<String, Exception> errorHandler;
-    
 
     /**
      * submit a job to remove a Property from a channel or a group of channels
@@ -59,14 +58,23 @@ public class RemovePropertyChannelsJob extends JobRunnableWithCancel {
     @Override
     public String getName()
     {
-        return "Removing property : " + property.getName() + " to " + channelNames.size() + " channels";
+        return "Removing property : " + property.getName() + " from " + channelNames.size() + " channels";
     }
 
     @Override
     public Runnable getRunnable()
     {
         return () -> {
-            client.delete(Property.Builder.property(property), channelNames);
+            try
+            {
+                client.delete(Property.Builder.property(property), channelNames);
+            }
+            catch (Throwable thrown)
+            {
+                ChannelErrorHandler.displayError(
+                    "Failed to remove property '" + property.getName() + "'",
+                    thrown);
+            }
         };
     }
 
