@@ -2,6 +2,9 @@ package org.phoebus.channelfinder.utility;
 
 import org.phoebus.channelfinder.ChannelFinderException;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.docking.DockStage;
+
+import javafx.scene.Node;
 
 /** Helper for handling channel finder errors */
 public class ChannelErrorHandler
@@ -35,6 +38,11 @@ public class ChannelErrorHandler
         final Exception ex = findChannelFinderError(thrown);
         if (ex instanceof ChannelFinderException)
             info += "\nWeb service status: " + ((ChannelFinderException)ex).getStatus();
-        ExceptionDetailsErrorDialog.openError("Channel Finder Error", info, ex);
+
+        // Can't easily position the dialog on top of the channel table, channel tree etc.
+        // because the JFX node was not passed into the *ChannelsJob.
+        // Next best approach is to position it on top of the main window.
+        final Node parent = DockStage.getDockStages().get(0).getScene().getRoot();
+        ExceptionDetailsErrorDialog.openError(parent, "Channel Finder Error", info, ex);
     }
 }
