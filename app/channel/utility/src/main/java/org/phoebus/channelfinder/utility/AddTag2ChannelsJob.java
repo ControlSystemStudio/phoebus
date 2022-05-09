@@ -63,7 +63,7 @@ public class AddTag2ChannelsJob extends JobRunnableWithCancel {
             catch (Throwable thrown)
             {
                 ChannelErrorHandler.displayError(
-                    "Failed to add property '" + tag.getName() + "'",
+                    "Failed to add tag '" + tag.getName() + "'",
                     thrown);
                 return;
             }
