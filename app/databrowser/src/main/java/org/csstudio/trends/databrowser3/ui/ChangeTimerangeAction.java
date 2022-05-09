@@ -43,8 +43,10 @@ public class ChangeTimerangeAction
                 final TimeInterval abs = range.toAbsoluteInterval();
                 new ChangeTimerangeCommand(model, undo, TimeRelativeInterval.of(abs.getStart(), abs.getEnd()));
             }
-            else
+            else {
                 new ChangeTimerangeCommand(model, undo, range);
+            }
+            popOver.hide();
         };
 
         final TimeRangePopover popover = TimeRangePopover.withDefaultTimePane(model, closeCallback, applyCallback);

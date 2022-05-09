@@ -95,7 +95,7 @@ public class TimeAxisTab extends Tab
 
         final Button times = new Button(Messages.StartEndDialogBtn, Activator.getIcon("time_range"));
         times.setTooltip(times_tt);
-        times.setOnAction(event ->  ChangeTimerangeAction.run(model, layout, undo));
+        times.setOnAction(event ->  ChangeTimerangeAction.run(model, times, undo));
         layout.add(times, 4, 0);
 
         layout.add(new Label(Messages.GridLbl), 0, 1);
