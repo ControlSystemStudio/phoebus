@@ -5,6 +5,15 @@
   <version>4.6.6-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>phoebus (parent)</name>
+  <description>A framework and set of tools to monitor and operate large scale control systems, such as the ones in the accelerator community.</description>
+  <url>http://www.phoebus.org/</url>
+
+  <licenses>
+    <license>
+      <name>Eclipse Public License 1.0</name>
+      <url>https://www.eclipse.org/legal/epl-v10.html</url>
+    </license>
+  </licenses>
 
   <scm>
     <developerConnection>scm:git:https://github.com/ControlSystemStudio/phoebus</developerConnection>
@@ -12,10 +21,16 @@
   </scm>
 
   <distributionManagement>
+    <!-- To be able to deploy, set login/passwd in your m2 settings.xml, <servers> section
+(id values there should match ids below) -->
+    <snapshotRepository>
+      <id>phoebus-sonatype-nexus-snapshots</id>
+      <name>phoebus-sonatype-nexus-snapshots</name>
+      <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
     <repository>
-      <id>github</id>
-      <name>GitHub Packages</name>
-      <url>https://maven.pkg.github.com/ControlSystemStudio/phoebus</url>
+      <id>phoebus-releases</id>
+      <url>https://s01.oss.sonatype.org/content/repositories/releases</url>
     </repository>
   </distributionManagement>
 
@@ -269,42 +284,35 @@
         </plugins>
       </reporting>
     </profile>
-    <!-- A profile for preparing and releasing phoebus.
-     Please refer to http://maven.apache.org/maven-release/maven-release-plugin/index.html
-      for the detailed description of the steps involved. -->
+    <!-- Release profile -->
     <profile>
-      <id>release</id>
+      <id>releases</id>
       <build>
         <plugins>
           <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-release-plugin</artifactId>
-            <version>2.5.3</version>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>1.6.8</version>
+            <extensions>true</extensions>
             <configuration>
-              <preparationGoals>exec:exec</preparationGoals>
-              <checkModificationExcludes>
-                <checkModificationExclude>**/.project</checkModificationExclude>
-                <checkModificationExclude>**/.classpath</checkModificationExclude>
-                <checkModificationExclude>pom.xml</checkModificationExclude>
-                <checkModificationExclude>**/phoebus-target/pom.xml</checkModificationExclude>
-              </checkModificationExcludes>
+              <serverId>phoebus-releases</serverId>
+              <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>false</autoReleaseAfterClose>
             </configuration>
           </plugin>
-
           <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <version>1.6.0</version>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>3.0.1</version>
             <executions>
               <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
                 <goals>
-                  <goal>exec</goal>
+                  <goal>sign</goal>
                 </goals>
               </execution>
             </executions>
-            <configuration>
-              <executable>hostname</executable>
-            </configuration>
           </plugin>
         </plugins>
       </build>
