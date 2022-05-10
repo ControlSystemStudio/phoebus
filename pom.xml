@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.phoebus</groupId>
   <artifactId>parent</artifactId>
-  <version>4.6.6</version>
+  <version>4.6.7-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>phoebus (parent)</name>
   <description>A framework and set of tools to monitor and operate large scale control systems, such as the ones in the accelerator community.</description>
@@ -17,7 +17,7 @@
 
   <scm>
     <developerConnection>scm:git:https://github.com/ControlSystemStudio/phoebus</developerConnection>
-    <tag>parent-4.6.6</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <distributionManagement>

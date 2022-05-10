@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>core</artifactId>
-    <version>4.6.6</version>
+    <version>4.6.7-SNAPSHOT</version>
   </parent>
   <artifactId>core-util</artifactId>
   <dependencies>
