@@ -163,12 +163,12 @@ public class PVAServer implements AutoCloseable
      *  @param seq Client's search request sequence number
      *  @param cid Client's channel ID
      *  @param name PV Name
-     *  @param addr Client's UDP reply address
+     *  @param client Client's UDP reply address
      *  @param tcp_connection Optional TCP connection for search received via TCP, else <code>null</code>
      *  @return
      */
     boolean handleSearchRequest(final int seq, final int cid, final String name,
-                                final InetSocketAddress addr,
+                                final InetSocketAddress client,
                                 final ServerTCPHandler tcp_connection)
     {
         final Consumer<InetSocketAddress> send_search_reply = server_address ->
@@ -178,12 +178,12 @@ public class PVAServer implements AutoCloseable
                 tcp_connection.submitSearchReply(guid, seq, cid, server_address);
             else
                 // Otherwise reply via UDP to the given address.
-                POOL.execute(() -> udp.sendSearchReply(guid, seq, cid, server_address, addr));
+                POOL.execute(() -> udp.sendSearchReply(guid, seq, cid, server_address, client));
         };
 
         // Does custom handler consume the search request?
         if (custom_search_handler != null  &&
-            custom_search_handler.handleSearchRequest(seq, cid, name, addr))
+            custom_search_handler.handleSearchRequest(seq, cid, name, client, send_search_reply))
             return true;
 
         if (cid < 0)
@@ -191,7 +191,7 @@ public class PVAServer implements AutoCloseable
             if (tcp_connection != null)
                 tcp_connection.submitSearchReply(guid, seq, -1, USE_THIS_TCP_CONNECTION);
             else
-                POOL.execute(() -> udp.sendSearchReply(guid, 0, -1, getTCPAddress(), addr));
+                POOL.execute(() -> udp.sendSearchReply(guid, 0, -1, getTCPAddress(), client));
             return true;
         }
         else
