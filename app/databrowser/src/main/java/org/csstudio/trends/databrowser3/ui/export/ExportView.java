@@ -11,8 +11,10 @@ import java.io.File;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.time.temporal.TemporalAmount;
+import java.util.function.BiConsumer;
 
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.scene.layout.*;
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.export.ExportJob;
@@ -24,13 +26,15 @@ import org.csstudio.trends.databrowser3.export.SpreadsheetExportJob;
 import org.csstudio.trends.databrowser3.export.ValueFormatter;
 import org.csstudio.trends.databrowser3.export.ValueWithInfoFormatter;
 import org.csstudio.trends.databrowser3.model.Model;
-import org.csstudio.trends.databrowser3.ui.TimeRangeDialog;
+import org.csstudio.trends.databrowser3.ui.TimeRangePopover;
 import org.phoebus.archive.vtype.Style;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.dialog.PopOver;
 import org.phoebus.ui.dialog.SaveAsDialog;
+import org.phoebus.ui.time.TimeRelativeIntervalPane;
 import org.phoebus.util.time.SecondsParser;
 import org.phoebus.util.time.TimeInterval;
 import org.phoebus.util.time.TimeParser;
@@ -50,10 +54,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 
 /** Panel for exporting data into files
  *  @author Kay Kasemir
@@ -117,16 +117,19 @@ public class ExportView extends VBox
         GridPane.setHgrow(end, Priority.ALWAYS);
         grid.add(end, 1, 1);
 
+        BiConsumer<TimeRelativeIntervalPane, PopOver> closeCallback = (timePane, popOver) -> {
+            popOver.hide();
+        };
+        BiConsumer<TimeRelativeIntervalPane, PopOver> applyCallback = (timePane, popOver) -> {
+            final String[] range = Model.getTimerangeText(timePane.getInterval());
+            start.setText(range[0]);
+            end.setText(range[1]);
+            popOver.hide();
+        };
+        final TimeRangePopover popover = TimeRangePopover.withDefaultTimePane(model, closeCallback, applyCallback);
         sel_times.setOnAction(event ->
         {
-            final TimeRangeDialog dlg = new TimeRangeDialog(model.getTimerange());
-            DialogHelper.positionDialog(dlg, this, -200, -200);
-            dlg.showAndWait().ifPresent(interval ->
-            {
-                final String[] range = Model.getTimerangeText(interval);
-                start.setText(range[0]);
-                end.setText(range[1]);
-            });
+            popover.show((Region) event.getSource());
         });
 
         use_plot_times.setTooltip(new Tooltip(Messages.ExportPlotStartEndTT));
