@@ -1,13 +1,12 @@
 package org.phoebus.channelfinder.utility;
 
+import java.util.Collection;
+
 import org.phoebus.channelfinder.ChannelFinderClient;
 import org.phoebus.channelfinder.Tag;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobRunnableWithCancel;
-
-import java.util.Collection;
-import java.util.function.BiConsumer;
 
 /**
  *
@@ -18,7 +17,7 @@ public class AddTag2ChannelsJob extends JobRunnableWithCancel {
     private final ChannelFinderClient client;
     private final Tag tag;
     private final Collection<String> channelNames;
-    private final BiConsumer<String, Exception> errorHandler;
+    private final Runnable onSuccess;
 
     /**
      * submit a job to add a tag to a channel or a group of channels
@@ -26,23 +25,23 @@ public class AddTag2ChannelsJob extends JobRunnableWithCancel {
      * @param client - channelfinder client, which this job be submitted to
      * @param channelNames - collection of channels to which the tag is to be added
      * @param tag - the tag to be added
-     * @param errorHandler - error handler
+     * @param onSuccess - called on success
      * @return Job
      */
     public static Job submit(ChannelFinderClient client,
                                 final Collection<String> channelNames,
                                 final Tag tag,
-                                final BiConsumer<String, Exception> errorHandler)
+                                final Runnable onSuccess)
     {
         return JobManager.schedule("Adding tag : " + tag.getName() + " to " + channelNames.size() + " channels",
-                new AddTag2ChannelsJob(client, channelNames, tag, errorHandler));
+                new AddTag2ChannelsJob(client, channelNames, tag, onSuccess));
     }
 
-    private AddTag2ChannelsJob(ChannelFinderClient client, Collection<String> channels, Tag tag, BiConsumer<String, Exception> errorHandler)
+    private AddTag2ChannelsJob(ChannelFinderClient client, Collection<String> channels, Tag tag, Runnable onSuccess)
     {
         super();
         this.client = client;
-        this.errorHandler = errorHandler;
+        this.onSuccess = onSuccess;
         this.channelNames = channels;
         this.tag = tag;
     }
@@ -57,13 +56,18 @@ public class AddTag2ChannelsJob extends JobRunnableWithCancel {
     public Runnable getRunnable()
     {
         return () -> {
-            client.update(Tag.Builder.tag(tag), channelNames);
+            try
+            {
+                client.update(Tag.Builder.tag(tag), channelNames);
+            }
+            catch (Throwable thrown)
+            {
+                ChannelErrorHandler.displayError(
+                    "Failed to add tag '" + tag.getName() + "'",
+                    thrown);
+                return;
+            }
+            onSuccess.run();
         };
-    }
-
-    @Override
-    public BiConsumer<String, Exception> getErrorHandler()
-    {
-        return errorHandler;
     }
 }

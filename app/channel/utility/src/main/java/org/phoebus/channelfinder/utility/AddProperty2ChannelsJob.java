@@ -4,7 +4,6 @@
 package org.phoebus.channelfinder.utility;
 
 import java.util.Collection;
-import java.util.function.BiConsumer;
 
 import org.phoebus.channelfinder.ChannelFinderClient;
 import org.phoebus.channelfinder.Property;
@@ -22,7 +21,7 @@ public class AddProperty2ChannelsJob extends JobRunnableWithCancel {
     private final ChannelFinderClient client;
     private final Property property;
     private final Collection<String> channelNames;
-    private final BiConsumer<String, Exception> errorHandler;
+    private final Runnable onSuccess;
 
     /**
      * Submit a job to add a Property to a channel or a group of channels
@@ -30,26 +29,26 @@ public class AddProperty2ChannelsJob extends JobRunnableWithCancel {
      * @param client - channelfinder client, which this job be submitted to
      * @param channelNames - collection of channels to which the property is to be added
      * @param property - the property to be added to the channels
-     * @param errorHandler - error handler
+     * @param onSuccess - called on success
      * @return {@link Job}
      */
     public static Job submit(ChannelFinderClient client,
                                 final Collection<String> channelNames,
                                 final Property property,
-                                final BiConsumer<String, Exception> errorHandler)
+                                final Runnable onSuccess)
     {
         return JobManager.schedule("Adding property : " + property.getName() + " to " + channelNames.size() + " channels",
-                new AddProperty2ChannelsJob(client, channelNames, property, errorHandler));
+                new AddProperty2ChannelsJob(client, channelNames, property, onSuccess));
     }
 
     private AddProperty2ChannelsJob(ChannelFinderClient client,
                                     Collection<String> channels,
                                     Property property,
-                                    BiConsumer<String, Exception> errorHandler)
+                                    final Runnable onSuccess)
     {
         super();
         this.client = client;
-        this.errorHandler = errorHandler;
+        this.onSuccess = onSuccess;
         this.channelNames = channels;
         this.property = property;
     }
@@ -64,13 +63,18 @@ public class AddProperty2ChannelsJob extends JobRunnableWithCancel {
     public Runnable getRunnable()
     {
         return () -> {
-            client.update(Property.Builder.property(property), channelNames);
+            try
+            {
+                client.update(Property.Builder.property(property), channelNames);
+            }
+            catch (Throwable thrown)
+            {
+                ChannelErrorHandler.displayError(
+                    "Failed to add property '" + property.getName() + "' = '" + property.getValue() + "'",
+                    thrown);
+                return;
+            }
+            onSuccess.run();
         };
-    }
-
-    @Override
-    public BiConsumer<String, Exception> getErrorHandler()
-    {
-        return errorHandler;
     }
 }

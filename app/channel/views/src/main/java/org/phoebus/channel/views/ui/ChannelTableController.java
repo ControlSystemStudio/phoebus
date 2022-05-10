@@ -7,7 +7,6 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import javafx.scene.control.Label;
 import org.phoebus.channel.views.ChannelTableApp;
 import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.ChannelUtil;
@@ -23,10 +22,10 @@ import org.phoebus.framework.preferences.AnnotatedPreferences;
 import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuService;
-import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -35,6 +34,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
@@ -50,7 +50,7 @@ import javafx.util.Callback;
 
 /**
  * Controller for the file browser app
- * 
+ *
  * @author Kunal Shroff
  *
  */
@@ -127,6 +127,26 @@ public class ChannelTableController extends ChannelFinderController {
         }
     }
 
+    /** Row to select in the table after a 'refresh' completes fetching updated data */
+    private int selected_row_after_refresh = -1;
+
+    /** Refresh table after editing */
+    private void refresh() {
+        // Called at the end of a background job which added/removed tags or properties
+        Platform.runLater(() ->
+        {
+            // On UI thread, save the selected row index
+            selected_row_after_refresh = tableView.getSelectionModel().getSelectedIndex();
+            // There might be a more efficient way to search for just the selected channel,
+            // updating only the affected row.
+            // A complete re-search, however, tends to be quick and most important
+            // we do re-select the same row.
+            // Search will be performed on background thread ...
+            search();
+            // .. and on success invoke setChannels(), which then restores the selected row
+        });
+    }
+
     private Job addPropertyJob;
     private Job addTagJob;
     private Job removePropertyJob;
@@ -159,7 +179,7 @@ public class ChannelTableController extends ChannelFinderController {
                 AddProperty2ChannelsJob.submit(getClient(),
                         channelNames,
                         property,
-                        (url, ex) -> ExceptionDetailsErrorDialog.openError("ChannelFinder Query Error", ex.getMessage(), ex));
+                        this::refresh);
 
             });
         });
@@ -182,7 +202,7 @@ public class ChannelTableController extends ChannelFinderController {
                 AddTag2ChannelsJob.submit(getClient(),
                         channelNames,
                         tag,
-                        (url, ex) -> ExceptionDetailsErrorDialog.openError("ChannelFinder Query Error", ex.getMessage(), ex));
+                        this::refresh);
 
             });
         });
@@ -203,7 +223,7 @@ public class ChannelTableController extends ChannelFinderController {
                 RemovePropertyChannelsJob.submit(getClient(),
                         channelNames,
                         property,
-                        (url, ex) -> ExceptionDetailsErrorDialog.openError("ChannelFinder Query Error", ex.getMessage(), ex));
+                        this::refresh);
 
             });
         });
@@ -225,7 +245,7 @@ public class ChannelTableController extends ChannelFinderController {
                 RemoveTagChannelsJob.submit(getClient(),
                         channelNames,
                         tag,
-                        (url, ex) -> ExceptionDetailsErrorDialog.openError("ChannelFinder Query Error", ex.getMessage(), ex));
+                        this::refresh);
 
             });
         });
@@ -243,7 +263,7 @@ public class ChannelTableController extends ChannelFinderController {
                     List<Object> pvs = SelectionService.getInstance().getSelection().getSelections().stream().map(s -> {
                         return AdapterService.adapt(s, entry.getSupportedType()).get();
                     }).collect(Collectors.toList());
-                    // set the selection 
+                    // set the selection
                     SelectionService.getInstance().setSelection(tableView, pvs);
                     entry.call(SelectionService.getInstance().getSelection());
                     // reset the selection
@@ -305,6 +325,14 @@ public class ChannelTableController extends ChannelFinderController {
             count.setText(String.valueOf(channels.size() + "+"));
         } else {
             count.setText(String.valueOf(channels.size()));
+        }
+
+        // If this is the result of a 'refresh', restore row selection
+        if (selected_row_after_refresh >= 0)
+        {
+            tableView.getSelectionModel().clearAndSelect(selected_row_after_refresh);
+            tableView.scrollTo(selected_row_after_refresh);
+            selected_row_after_refresh = -1;
         }
     }
 

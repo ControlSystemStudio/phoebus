@@ -3,14 +3,13 @@
  */
 package org.phoebus.channelfinder.utility;
 
+import java.util.Collection;
+
 import org.phoebus.channelfinder.ChannelFinderClient;
 import org.phoebus.channelfinder.Property;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobRunnableWithCancel;
-
-import java.util.Collection;
-import java.util.function.BiConsumer;
 
 
 /**
@@ -23,8 +22,7 @@ public class RemovePropertyChannelsJob extends JobRunnableWithCancel {
     private final ChannelFinderClient client;
     private final Property property;
     private final Collection<String> channelNames;
-    private final BiConsumer<String, Exception> errorHandler;
-    
+    private final Runnable onSuccess;
 
     /**
      * submit a job to remove a Property from a channel or a group of channels
@@ -32,26 +30,26 @@ public class RemovePropertyChannelsJob extends JobRunnableWithCancel {
      * @param client - channelfinder client, which this job be submitted to
      * @param channelNames - collection of channels to which the property is to be removed
      * @param property - the property to be removed
-     * @param errorHandler - error handler
+     * @param onSuccess - called on success
      * @return Job
      */
      public static Job submit(ChannelFinderClient client,
                                 final Collection<String> channelNames,
                                 final Property property,
-                                final BiConsumer<String, Exception> errorHandler)
+                                final Runnable onSuccess)
     {
         return JobManager.schedule("Removing property : " + property.getName() + " to " + channelNames.size() + " channels",
-                new RemovePropertyChannelsJob(client, channelNames, property, errorHandler));
+                new RemovePropertyChannelsJob(client, channelNames, property, onSuccess));
     }
 
     private RemovePropertyChannelsJob(ChannelFinderClient client,
                                       Collection<String> channels,
                                       Property property,
-                                      BiConsumer<String, Exception> errorHandler)
+                                      Runnable onSuccess)
     {
         super();
         this.client = client;
-        this.errorHandler = errorHandler;
+        this.onSuccess = onSuccess;
         this.channelNames = channels;
         this.property = property;
     }
@@ -59,20 +57,25 @@ public class RemovePropertyChannelsJob extends JobRunnableWithCancel {
     @Override
     public String getName()
     {
-        return "Removing property : " + property.getName() + " to " + channelNames.size() + " channels";
+        return "Removing property : " + property.getName() + " from " + channelNames.size() + " channels";
     }
 
     @Override
     public Runnable getRunnable()
     {
         return () -> {
-            client.delete(Property.Builder.property(property), channelNames);
+            try
+            {
+                client.delete(Property.Builder.property(property), channelNames);
+            }
+            catch (Throwable thrown)
+            {
+                ChannelErrorHandler.displayError(
+                    "Failed to remove property '" + property.getName() + "'",
+                    thrown);
+                return;
+            }
+            onSuccess.run();
         };
-    }
-
-    @Override
-    public BiConsumer<String, Exception> getErrorHandler()
-    {
-        return errorHandler;
     }
 }
