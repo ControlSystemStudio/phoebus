@@ -13,8 +13,3 @@ jobs:
         java-version: '11'
     - name: Build
       run: mvn --batch-mode install
-    - name: Publish
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: mvn --batch-mode -DskipTests deploy
-      if: ${{ github.repository == 'ControlSystemStudio/phoebus' && (github.ref == 'refs/heads/master' || github.ref == 'refs/tags/*') }}
