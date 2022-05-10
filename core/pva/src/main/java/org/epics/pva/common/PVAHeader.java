@@ -40,8 +40,11 @@ public class PVAHeader
 
     /** Segmented message? Else: Single */
     public static final byte FLAG_SEGMENT_MASK  = 3 << 4;
+    /** Segment hint */
     public static final byte FLAG_FIRST      = 1 << 4;
+    /** Segment hint */
     public static final byte FLAG_LAST       = 2 << 4;
+    /** Segment hint */
     public static final byte FLAG_MIDDLE     = 3 << 4;
 
     /** Server message? Else: Client */

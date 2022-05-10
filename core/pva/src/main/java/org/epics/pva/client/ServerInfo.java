@@ -32,16 +32,19 @@ public class ServerInfo
         this.guid = guid;
     }
 
+    /** @return Guid */
     public Guid getGuid()
     {
         return guid;
     }
 
+    /** @return Version */
     public int getVersion()
     {
         return version;
     }
 
+    /** @return TCP addresses of this server */
     public Collection<InetSocketAddress> getAddresses()
     {
         return addresses;

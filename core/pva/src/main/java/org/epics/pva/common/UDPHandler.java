@@ -23,6 +23,7 @@ import org.epics.pva.data.Hexdump;
 @SuppressWarnings("nls")
 abstract public class UDPHandler
 {
+    /** Keep running? */
     protected volatile boolean running = true;
 
     /** Read, decode, handle messages
@@ -104,9 +105,19 @@ abstract public class UDPHandler
         }
     }
 
+    /** Handle a message
+     *
+     *  @param from Source of message
+     *  @param version Version
+     *  @param command Command/request
+     *  @param payload Payload
+     *  @param buffer Byte buffer
+     *  @return Handled?
+     */
     abstract protected boolean handleMessage(final InetSocketAddress from, final byte version,
                                              final byte command, final int payload, final ByteBuffer buffer);
 
+    /** Close */
     public void close()
     {
         running = false;

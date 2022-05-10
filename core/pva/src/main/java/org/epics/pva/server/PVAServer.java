@@ -35,6 +35,7 @@ import org.epics.pva.data.PVAStructure;
 @SuppressWarnings("nls")
 public class PVAServer implements AutoCloseable
 {
+    /** Common thread pool */
     public static ForkJoinPool POOL = ForkJoinPool.commonPool();
 
     private final Guid guid = new Guid();

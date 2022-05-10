@@ -16,6 +16,7 @@ import java.util.BitSet;
 @SuppressWarnings("nls")
 public class PVAFloat extends PVANumber
 {
+    /** Type descriptor */
     public static final byte FIELD_DESC_TYPE = (byte)0b01000000;
 
     static PVAData decodeType(final String name, final byte field_desc, final ByteBuffer buffer) throws Exception
@@ -43,12 +44,16 @@ public class PVAFloat extends PVANumber
 
     private volatile float value;
 
+    /** @param name Name
+     *  @param value Initial value
+     */
     public PVAFloat(final String name, final float value)
     {
         super(name);
         this.value = value;
     }
 
+    /** @param name Name */
     public PVAFloat(final String name)
     {
         this(name, Float.NaN);

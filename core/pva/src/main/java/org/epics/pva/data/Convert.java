@@ -12,6 +12,9 @@ package org.epics.pva.data;
  */
 public class Convert
 {
+    /** @param array Original array
+     *  @return Converted array
+     */
     public static float[] toFloat(final double[] array)
     {
         final float[] cvt = new float[array.length];
@@ -20,6 +23,9 @@ public class Convert
         return cvt;
     }
 
+    /** @param array Original array
+     *  @return Converted array
+     */
     public static long[] toLong(final double[] array)
     {
         final long[] cvt = new long[array.length];
@@ -28,6 +34,9 @@ public class Convert
         return cvt;
     }
 
+    /** @param array Original array
+     *  @return Converted array
+     */
     public static int[] toInt(final double[] array)
     {
         final int[] cvt = new int[array.length];
@@ -36,6 +45,9 @@ public class Convert
         return cvt;
     }
 
+    /** @param array Original array
+     *  @return Converted array
+     */
     public static short[] toShort(final double[] array)
     {
         final short[] cvt = new short[array.length];
@@ -44,6 +56,9 @@ public class Convert
         return cvt;
     }
 
+    /** @param array Original array
+     *  @return Converted array
+     */
     public static byte[] toByte(final double[] array)
     {
         final byte[] cvt = new byte[array.length];

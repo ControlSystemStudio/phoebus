@@ -76,6 +76,7 @@ import org.epics.pva.server.ServerPV;
 @SuppressWarnings("nls")
 public class PVAProxy
 {
+    /** Logger */
     public static Logger logger = Logger.getLogger(PVAProxy.class.getPackage().getName());
 
     // Developed to test if the PVA server and client API
@@ -242,6 +243,7 @@ public class PVAProxy
     /** Map of PV name to proxy */
     private final ConcurrentHashMap<String, ProxyChannel> proxies = new ConcurrentHashMap<>();
 
+    /** Create proxy */
     public PVAProxy()
     {
         prefix = PVASettings.get("PREFIX", prefix);
@@ -287,7 +289,7 @@ public class PVAProxy
         }
     }
 
-    public void run() throws Exception
+    private void run() throws Exception
     {
         System.out.println("PVA Proxy");
         System.out.println("");
@@ -322,6 +324,9 @@ public class PVAProxy
         }
     }
 
+    /** @param args Command line args
+     *  @throws Exception on error
+     */
     public static void main(String[] args) throws Exception
     {
         LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/pva_logging.properties"));
