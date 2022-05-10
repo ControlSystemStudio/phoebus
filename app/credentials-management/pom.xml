@@ -17,13 +17,11 @@
   ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>app</artifactId>
         <groupId>org.phoebus</groupId>
-        <version>4.6.6-SNAPSHOT</version>
+        <version>4.6.6</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -33,12 +31,12 @@
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-ui</artifactId>
-            <version>4.6.6-SNAPSHOT</version>
+            <version>4.6.6</version>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-security</artifactId>
-            <version>4.6.6-SNAPSHOT</version>
+            <version>4.6.6</version>
         </dependency>
     </dependencies>
 
