@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.phoebus</groupId>
 		<artifactId>app-save-and-restore</artifactId>
-		<version>4.6.8-SNAPSHOT</version>
+		<version>4.6.8</version>
 	</parent>
 
 	<artifactId>save-and-restore-common</artifactId>
@@ -15,13 +15,13 @@
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>save-and-restore-model</artifactId>
-			<version>4.6.8-SNAPSHOT</version>
+			<version>4.6.8</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>core-vtype</artifactId>
-			<version>4.6.8-SNAPSHOT</version>
+			<version>4.6.8</version>
 		</dependency>
 
 		<dependency>
