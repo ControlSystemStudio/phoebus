@@ -20,28 +20,35 @@ import org.epics.pva.PVASettings;
  *
  *  Can also demo a basic name server:
  *
+ *  <pre>
  *  1) Start ioc as
  *     EPICS_PVA_SERVER_PORT=5078 EPICS_PVA_BROADCAST_PORT=5079  ./softIocPVA -m N='' -d src/test/resources/demo.db
  *
  *  2) Check that basic 'get' does not reach it
  *     pvxget ramp
  *
- *  3) Start this name server with command line args
- *     ramp 127.0.0.1:5078 saw 127.0.0.1:5078
+ *  3) Start this name server with command line args, either from IDE or like this:
+ *     ant clean testlib
+ *     java -cp target/core-pva-test.jar org.epics.pva.server.SearchMonitorDemo ramp 127.0.0.1:5078 saw 127.0.0.1:5078
  *
  *  4) Check that basic 'get' now reaches name server via UDP and then gets redirected to IOC
  *     pvxget ramp
  *
  *  5) Check 'get' also reaches name server via TCP and then gets redirected to IOC
  *     EPICS_PVA_BROADCAST_PORT=9876 EPICS_PVA_NAME_SERVERS="127.0.0.1:5076" ./pvxget ramp
+ *  </pre>
  *
  *  Typical Server with PVs:
+ *  <pre>
  *  UDP search -> UDP reply with this server's TCP address
  *  TCP search -> TCP reply with "0.0.0.0:0" to indicate "Use this TCP connection"
+ *  </pre>
  *
  *  Name Server
+ *  <pre>
  *  UDP search -> UDP reply with TCP address of the PV's host
  *  TCP search -> TCP reply with TCP address of the PV's host
+ *  </pre>
  *
  *  @author Kay Kasemir
  */
