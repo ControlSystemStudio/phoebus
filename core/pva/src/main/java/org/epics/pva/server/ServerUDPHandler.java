@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -236,15 +236,15 @@ class ServerUDPHandler extends UDPHandler
      *  @param guid This server's GUID
      *  @param seq Client search request sequence number
      *  @param cid Client's channel ID or -1
-     *  @param tcp TCP connection where client can connect to this server
+     *  @param server TCP address where client can connect to server
      *  @param client Address of client's UDP port
      */
-    public void sendSearchReply(final Guid guid, final int seq, final int cid, final ServerTCPListener tcp, final InetSocketAddress client)
+    public void sendSearchReply(final Guid guid, final int seq, final int cid, final InetSocketAddress server, final InetSocketAddress client)
     {
         synchronized (send_buffer)
         {
             send_buffer.clear();
-            SearchResponse.encode(guid, seq, cid, tcp.response_address, tcp.response_port, send_buffer);
+            SearchResponse.encode(guid, seq, cid, server.getAddress(), server.getPort(), send_buffer);
             send_buffer.flip();
             logger.log(Level.FINER, () -> "Sending UDP search reply to " + client + "\n" + Hexdump.toHexdump(send_buffer));
 
