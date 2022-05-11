@@ -36,6 +36,7 @@ import org.phoebus.framework.macros.Macros;
 @SuppressWarnings("nls")
 public class TemplateInstanceWidget extends VisibleWidget
 {
+    /** Default size */
     public static final int DEFAULT_WIDTH = 400,
                             DEFAULT_HEIGHT = 300;
 
@@ -60,12 +61,16 @@ public class TemplateInstanceWidget extends VisibleWidget
     /** Structure for one instance */
     public static class InstanceProperty extends StructuredWidgetProperty
     {
+        /** @param widget Widget
+         *  @param index Instance index 0, 1, ...
+         */
         public InstanceProperty(final Widget widget, final int index)
         {
             super(propInstance, widget,
                   Arrays.asList(propMacros.createProperty(widget, new Macros())
                                ));
         }
+        /** @return Macros for instance */
         public WidgetProperty<Macros>       macros()  { return getElement(0); }
     }
 
@@ -97,6 +102,7 @@ public class TemplateInstanceWidget extends VisibleWidget
             }
         };
 
+    /** 'embedded_model': Holds expanded instances at runtime */
     public static final WidgetPropertyDescriptor<DisplayModel> runtimeModel =
         new WidgetPropertyDescriptor<>(WidgetPropertyCategory.RUNTIME, "embedded_model", "Embedded Model")
         {
@@ -125,6 +131,7 @@ public class TemplateInstanceWidget extends VisibleWidget
     private volatile WidgetProperty<DisplayModel> embedded_model;
     private volatile WidgetProperty<Boolean> transparent;
 
+    /** Constructor */
     public TemplateInstanceWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), DEFAULT_WIDTH, DEFAULT_HEIGHT);
@@ -179,9 +186,7 @@ public class TemplateInstanceWidget extends VisibleWidget
         return embedded_model;
     }
 
-    /**
-     * @return The transparent property of the widget instances.
-     */
+    /** @return The 'transparent' property of the widget instances. */
     public WidgetProperty<Boolean> propTransparent(){
         return transparent;
     }

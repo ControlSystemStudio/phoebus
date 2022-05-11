@@ -71,6 +71,7 @@ public class RuleInfo
         }
     };
 
+    /** Expression with text as value */
     public static class ExprInfoString extends ExpressionInfo<String> {
 
         /** Create string-valued rule expression
@@ -89,6 +90,7 @@ public class RuleInfo
         }
     };
 
+    /** Expression with property as value */
     public static class ExprInfoValue<T> extends ExpressionInfo< WidgetProperty<T> > {
 
         /** Instantiate Expression with bool_exp string and widget property value
@@ -112,6 +114,7 @@ public class RuleInfo
         }
     };
 
+    /** Information about a property */
     public static class PropInfo
     {
         private final WidgetProperty<?> prop;

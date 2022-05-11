@@ -48,8 +48,10 @@ import org.w3c.dom.Element;
 @SuppressWarnings("nls")
 public class SymbolWidget extends PVWidget {
 
+    /** Default symbol */
     public final static String DEFAULT_SYMBOL = "examples:/icons/default_symbol.png";
 
+    /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR = new WidgetDescriptor(
         "symbol",
         WidgetCategory.MONITOR,
@@ -68,14 +70,21 @@ public class SymbolWidget extends PVWidget {
         }
     };
 
+    /** Property */
     public static final WidgetPropertyDescriptor<Integer>                       propInitialIndex  = newIntegerPropertyDescriptor (WidgetPropertyCategory.DISPLAY,  "initial_index",  Messages.WidgetProperties_InitialIndex, 0, Integer.MAX_VALUE);
+    /** Property */
     public static final WidgetPropertyDescriptor<Boolean>                       propShowIndex     = newBooleanPropertyDescriptor (WidgetPropertyCategory.DISPLAY,  "show_index",     Messages.WidgetProperties_ShowIndex);
+    /** Property */
     public static final WidgetPropertyDescriptor<Double>                        propRotation      = newDoublePropertyDescriptor  (WidgetPropertyCategory.DISPLAY,  "rotation",       Messages.WidgetProperties_Rotation);
     private static final WidgetPropertyDescriptor<WidgetColor>                  propDisconnectOverlayColor = CommonWidgetProperties.newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "disconnect_overlay_color", Messages.WidgetProperties_DisconnectOverlayColor);
 
+    /** Property */
     public static final WidgetPropertyDescriptor<Integer>                       propArrayIndex    = newIntegerPropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "array_index",    Messages.WidgetProperties_ArrayIndex, 0, Integer.MAX_VALUE);
+    /** Property */
     public static final WidgetPropertyDescriptor<Boolean>                       propAutoSize      = newBooleanPropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "auto_size",      Messages.WidgetProperties_AutoSize);
+    /** Property */
     public static final WidgetPropertyDescriptor<Boolean>                       propPreserveRatio = newBooleanPropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "preserve_ratio", Messages.WidgetProperties_PreserveRatio);
+    /** Property */
     public static final WidgetPropertyDescriptor<String>                        propFallbackSymbol = newFilenamePropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "fallback_symbol", Messages.WidgetProperties_FallbackSymbol);
 
 
@@ -117,10 +126,14 @@ public class SymbolWidget extends PVWidget {
         return newFilenamePropertyDescriptor(WidgetPropertyCategory.WIDGET, "symbol", Messages.WidgetProperties_Symbol + " " + index);
     }
 
+    /** Constructor */
     public SymbolWidget ( ) {
         super(WIDGET_DESCRIPTOR.getType(), 100, 100);
     }
 
+    /** @param index Symbol index
+     *  @param fileName Symbol file
+     */
     public void addOrReplaceSymbol( int index, String fileName ) {
         if ( index == symbols.size() ) {
             symbols.addElement(propSymbol(index).createProperty(this, fileName));
@@ -131,6 +144,7 @@ public class SymbolWidget extends PVWidget {
         }
     }
 
+    /** Clear imported flag */
     public void clearImportedFrom ( ) {
         importedFrom = null;
     }
@@ -140,54 +154,67 @@ public class SymbolWidget extends PVWidget {
         return new SymbolConfigurator(persistedVersion);
     }
 
+    /** @return imported info */
     public String getImportedFrom ( ) {
         return importedFrom;
     }
 
+    /** @return property */
     public WidgetProperty<Integer> propArrayIndex ( ) {
         return array_index;
     }
 
+    /** @return property */
     public WidgetProperty<Boolean> propAutoSize ( ) {
         return auto_size;
     }
 
+    /** @return property */
     public WidgetProperty<WidgetColor> propBackgroundColor ( ) {
         return background;
     }
 
+    /** @return property */
     public WidgetProperty<Boolean> propEnabled ( ) {
         return enabled;
     }
 
+    /** @return property */
     public WidgetProperty<Integer> propInitialIndex ( ) {
         return initial_index;
     }
 
+    /** @return property */
     public WidgetProperty<Boolean> propPreserveRatio ( ) {
         return preserve_ratio;
     }
 
+    /** @return property */
     public WidgetProperty<Double> propRotation ( ) {
         return rotation;
     }
 
+    /** @return property */
     public WidgetProperty<Boolean> propShowIndex ( ) {
         return show_index;
     }
 
+    /** @return property */
     public ArrayWidgetProperty<WidgetProperty<String>> propSymbols ( ) {
         return symbols;
     }
 
+    /** @return property */
     public WidgetProperty<Boolean> propTransparent ( ) {
         return transparent;
     }
 
+    /** @return property */
     public WidgetProperty<String> propFallbackSymbol(){
         return fallbackSymbol;
     }
 
+    /** @return property */
     public WidgetProperty<WidgetColor> propDiconnectOverlayColor(){
         return disconnectOverlayColor;
     }

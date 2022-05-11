@@ -176,6 +176,7 @@ public class SpinnerWidget extends WritablePVWidget
         return enabled;
     }
 
+    /** @return 'font' property */
     public WidgetProperty<WidgetFont> propFont()
     {
         return font;

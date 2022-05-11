@@ -72,8 +72,11 @@ public class BoolButtonWidget extends WritablePVWidget
     /** Button mode */
     public static enum Mode
     {
+        /** Toggle on/off with each click */
         TOGGLE(Messages.BoolWidget_Toggle),
+        /** On while pushed */
         PUSH(Messages.BoolWidget_Push),
+        /** Off while pushed */
         PUSH_INVERTED(Messages.BoolWidget_PushInverted);
 
         private final String label;

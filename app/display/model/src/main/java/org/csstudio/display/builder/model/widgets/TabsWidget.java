@@ -78,6 +78,9 @@ public class TabsWidget extends MacroWidget
     /** Name, children of one tab */
     public static class TabItemProperty extends StructuredWidgetProperty
     {
+        /** @param widget Widget
+         *  @param index Tab index 0, 1, ...
+         */
         protected TabItemProperty(final Widget widget, final int index)
         {
             super(propTabItem, widget,
@@ -85,11 +88,13 @@ public class TabsWidget extends MacroWidget
                                 new ChildrenProperty(widget)));
         }
 
+        /** @return Tab name */
         public WidgetProperty<String> name()
         {
             return getElement(0);
         }
 
+        /** @return Tab content */
         public ChildrenProperty children()
         {
             final WidgetProperty<List<Widget>> c = getElement(1);
@@ -180,6 +185,7 @@ public class TabsWidget extends MacroWidget
     private volatile WidgetProperty<Integer> tab_height;
     private volatile WidgetProperty<int[]> insets;
 
+    /** Constructor */
     public TabsWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 400, 300);

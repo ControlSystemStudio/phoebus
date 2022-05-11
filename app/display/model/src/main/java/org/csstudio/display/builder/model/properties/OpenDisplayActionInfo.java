@@ -19,6 +19,7 @@ import org.phoebus.framework.macros.Macros;
 @SuppressWarnings("nls")
 public class OpenDisplayActionInfo extends ActionInfo
 {
+    /** Where should display be opened? */
     public static enum Target
     {
         /** Replace current display */
@@ -110,6 +111,7 @@ public class OpenDisplayActionInfo extends ActionInfo
         return pane;
     }
 
+    /** @param file Updated file to open */
     public void setFile(String file){
         this.file = file;
     }

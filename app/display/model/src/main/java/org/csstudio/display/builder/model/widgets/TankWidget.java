@@ -60,8 +60,10 @@ public class TankWidget extends PVWidget
         }
     };
 
+    /** 'empty_color' */
     public static final WidgetPropertyDescriptor<WidgetColor> propEmptyColor =
         newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "empty_color", Messages.WidgetProperties_EmptyColor);
+    /** 'scale_visible' */
     public static final WidgetPropertyDescriptor<Boolean>   propScaleVisible =
         newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "scale_visible", Messages.WidgetProperties_ScaleVisible);
 
@@ -127,6 +129,7 @@ public class TankWidget extends PVWidget
     private volatile WidgetProperty<Double> minimum;
     private volatile WidgetProperty<Double> maximum;
 
+    /** Constructor */
     public TankWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 150, 200);
