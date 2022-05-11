@@ -36,7 +36,7 @@ public class DataUtil {
     }
 
     /**Convert JavaScript array to Java int array.
-     * @param jsArray JavaScript array
+     * @param array JavaScript array
      * @return java int array.
      */
     public final static int[] toJavaIntArray(Object array)
@@ -53,7 +53,7 @@ public class DataUtil {
     }
 
     /**Convert JavaScript array to Java double array.
-     * @param jsArray JavaScript array
+     * @param array JavaScript array
      * @return java array.
      */
     public final static double[] toJavaDoubleArray(Object array)

@@ -21,8 +21,10 @@ import org.csstudio.display.builder.model.WidgetProperty;
  * 3D Viewer Widget
  * @author Evan Smith
  */
+@SuppressWarnings("nls")
 public class Viewer3dWidget extends VisibleWidget
 {
+    /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("3dviewer", WidgetCategory.MISC,
                 "3d Viewer",
@@ -36,23 +38,24 @@ public class Viewer3dWidget extends VisibleWidget
             return new Viewer3dWidget();
         }
     };
-    
+
     /** Defines which resource to load into the viewer. */
     private volatile WidgetProperty<String> resource;
-    
+
+    /** Constructor */
     public Viewer3dWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 600, 600);
     }
-    
+
     @Override
     protected void defineProperties(final List<WidgetProperty<?>> properties)
     {
         super.defineProperties(properties);
-        
+
         properties.add(resource = propFile.createProperty(this, ""));
     }
-    
+
     /** @return 'resource' property */
     public WidgetProperty<String> propResource()
     {

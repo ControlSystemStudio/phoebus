@@ -206,6 +206,9 @@ public class DisplayModel extends Widget
         return embedder == null;
     }
 
+    /** Set result of model reader based on number of errors
+     *  @param modelReader ModelReader
+     */
     public final void setReaderResult(final ModelReader modelReader)
     {
         /*

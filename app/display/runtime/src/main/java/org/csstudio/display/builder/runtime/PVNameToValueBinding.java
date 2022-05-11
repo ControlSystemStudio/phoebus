@@ -113,6 +113,7 @@ public class PVNameToValueBinding
         runtime.removePV(pv);
     }
 
+    /** Dispose resources */
     public void dispose()
     {
         name.removePropertyListener(name_property_listener);

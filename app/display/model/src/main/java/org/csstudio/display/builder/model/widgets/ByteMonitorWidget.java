@@ -143,6 +143,7 @@ public class ByteMonitorWidget extends PVWidget
     private volatile WidgetProperty<WidgetFont> font;
     private volatile ArrayWidgetProperty<StringWidgetProperty> labels;
 
+    /** Constructor */
     public ByteMonitorWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 160, 20);

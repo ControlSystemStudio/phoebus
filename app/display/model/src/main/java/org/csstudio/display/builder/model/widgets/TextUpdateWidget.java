@@ -212,6 +212,7 @@ public class TextUpdateWidget extends PVWidget
     private volatile WidgetProperty<RotationStep> rotation_step;
     private volatile WidgetProperty<Boolean> interactive;
 
+    /** Constructor */
     public TextUpdateWidget()
     {
         super(WIDGET_DESCRIPTOR.getType());

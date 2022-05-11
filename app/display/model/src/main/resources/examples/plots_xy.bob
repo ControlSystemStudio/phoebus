@@ -84,7 +84,7 @@ one for the "X" and one for the "Y" axis.</text>
   </widget>
   <widget type="picture" version="2.0.0">
     <name>Picture</name>
-    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/pan.png</file>
+    <file>pic/pan.png</file>
     <y>681</y>
     <width>16</width>
     <height>16</height>
@@ -108,14 +108,14 @@ one for the "X" and one for the "Y" axis.</text>
   </widget>
   <widget type="picture" version="2.0.0">
     <name>Picture_1</name>
-    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/crosshair.png</file>
+    <file>pic/crosshair.png</file>
     <y>541</y>
     <width>16</width>
     <height>16</height>
   </widget>
   <widget type="picture" version="2.0.0">
     <name>Picture_2</name>
-    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/stagger.png</file>
+    <file>pic/stagger.png</file>
     <y>571</y>
     <width>16</width>
     <height>16</height>
@@ -136,7 +136,7 @@ one for the "X" and one for the "Y" axis.</text>
   </widget>
   <widget type="picture" version="2.0.0">
     <name>Picture_3</name>
-    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/zoom_in.png</file>
+    <file>pic/zoom_in.png</file>
     <y>601</y>
     <width>16</width>
     <height>16</height>
@@ -152,7 +152,7 @@ Double-click zooms back out.</text>
   </widget>
   <widget type="picture" version="2.0.0">
     <name>Picture_4</name>
-    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/zoom_out.png</file>
+    <file>pic/zoom_out.png</file>
     <y>651</y>
     <width>16</width>
     <height>16</height>
@@ -173,7 +173,7 @@ Double-click zooms back out.</text>
   </widget>
   <widget type="picture" version="2.0.0">
     <name>Picture_9</name>
-    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/pointer.png</file>
+    <file>pic/pointer.png</file>
     <y>711</y>
     <width>16</width>
     <height>16</height>
@@ -194,14 +194,14 @@ Double-click zooms back out.</text>
   </widget>
   <widget type="picture" version="2.0.0">
     <name>Picture_10</name>
-    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/undo.png</file>
+    <file>pic/undo.png</file>
     <y>741</y>
     <width>16</width>
     <height>16</height>
   </widget>
   <widget type="picture" version="2.0.0">
     <name>Picture_11</name>
-    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/redo.png</file>
+    <file>pic/redo.png</file>
     <y>771</y>
     <width>16</width>
     <height>16</height>

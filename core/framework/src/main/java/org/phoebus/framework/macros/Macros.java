@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 @SuppressWarnings("nls")
 public class Macros implements MacroValueProvider
 {
+    /** Logger for macro related messages */
     public static final Logger logger = Logger.getLogger(Macros.class.getPackageName());
 
     // Using linked map for predictable order.
@@ -40,6 +41,7 @@ public class Macros implements MacroValueProvider
     // SYNC on access
     private final Map<String, String> macros = new LinkedHashMap<>();
 
+    /** Regular expression for valid macro names */
     public final static Pattern MACRO_NAME_PATTERN = Pattern.compile("[A-Za-z][A-Za-z0-9_.\\-\\[\\]]*");
 
     /** Check macro name

@@ -42,8 +42,12 @@ public class WidgetFactory
     public static class WidgetTypeException extends Exception
     {
         private static final long serialVersionUID = 1L;
+        /** Widget type name */
         private final String type;
 
+        /** @param type Widget type name/ID
+         *  @param message Error message
+         */
         public WidgetTypeException(final String type, final String message)
         {
             super(message);

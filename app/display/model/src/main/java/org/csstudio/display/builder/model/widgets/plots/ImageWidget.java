@@ -67,7 +67,7 @@ public class ImageWidget extends PVWidget
 {
     /** Matcher for detecting legacy property names */
     private static final Pattern LEGACY_AXIS_PATTERN = Pattern.compile("([xy])_axis_([a-z_]+)");
-    
+
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
             new WidgetDescriptor("image", WidgetCategory.PLOT,
@@ -125,6 +125,7 @@ public class ImageWidget extends PVWidget
     /** Structure for color bar, the 'legend' that shows the color bar */
     public static class ColorBarProperty extends StructuredWidgetProperty
     {
+        /** @param widget Widget */
         public ColorBarProperty(final Widget widget)
         {
             super(propColorbar, widget,
@@ -133,8 +134,11 @@ public class ImageWidget extends PVWidget
                                 PlotWidgetProperties.propScaleFont.createProperty(widget, WidgetFontService.get(NamedWidgetFonts.DEFAULT))));
         }
 
+        /** @return Is color bar visible? */
         public WidgetProperty<Boolean> visible()        { return getElement(0); }
+        /** @return Color bar size */
         public WidgetProperty<Integer> barSize()        { return getElement(1); }
+        /** @return Color bar scale font */
         public WidgetProperty<WidgetFont> scaleFont()   { return getElement(2); }
     };
 
@@ -153,11 +157,17 @@ public class ImageWidget extends PVWidget
                                 PlotWidgetProperties.propScaleFont.createProperty(widget, WidgetFontService.get(NamedWidgetFonts.DEFAULT))));
         }
 
+        /** @return Is axis visible? */
         public WidgetProperty<Boolean> visible()        { return getElement(0); }
+        /** @return Axis title */
         public WidgetProperty<String> title()           { return getElement(1); }
+        /** @return Minimum axis value */
         public WidgetProperty<Double> minimum()         { return getElement(2); }
+        /** @return Maximum axis value */
         public WidgetProperty<Double> maximum()         { return getElement(3); }
+        /** @return Axis title font */
         public WidgetProperty<WidgetFont> titleFont()   { return getElement(4); }
+        /** @return Axis scale font */
         public WidgetProperty<WidgetFont> scaleFont()   { return getElement(5); }
     };
 
@@ -263,21 +273,26 @@ public class ImageWidget extends PVWidget
     private static final WidgetPropertyDescriptor<String> propHeightPVName =
         CommonWidgetProperties.newPVNamePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "height_pv", Messages.WidgetProperties_HeightPVName);
 
+    /** 'x_value' */
     public static final WidgetPropertyDescriptor<Double> propXValue =
         CommonWidgetProperties.newDoublePropertyDescriptor(WidgetPropertyCategory.RUNTIME, "x_value", Messages.WidgetProperties_X);
 
+    /** 'y_value' */
     public static final WidgetPropertyDescriptor<Double> propYValue =
         CommonWidgetProperties.newDoublePropertyDescriptor(WidgetPropertyCategory.RUNTIME, "y_value", Messages.WidgetProperties_Y);
 
+    /** 'width_value' */
     public static final WidgetPropertyDescriptor<Double> propWidthValue =
         CommonWidgetProperties.newDoublePropertyDescriptor(WidgetPropertyCategory.RUNTIME, "width_value", Messages.WidgetProperties_Width);
 
+    /** 'height_value' */
     public static final WidgetPropertyDescriptor<Double> propHeightValue =
         CommonWidgetProperties.newDoublePropertyDescriptor(WidgetPropertyCategory.RUNTIME, "height_value", Messages.WidgetProperties_Height);
 
     private final static StructuredWidgetProperty.Descriptor propROI =
             new Descriptor(WidgetPropertyCategory.DISPLAY, "roi", "Region of Interest");
 
+    /** Region-of-interest configuration */
     public static class ROIWidgetProperty extends StructuredWidgetProperty
     {
         protected ROIWidgetProperty(final Widget widget, final String name)
@@ -298,18 +313,31 @@ public class ImageWidget extends PVWidget
                                 propHeightValue.createProperty(widget, Double.NaN) ));
         }
 
+        /** @return ROI Name */
         public WidgetProperty<String> name()           { return getElement(0); }
+        /** @return ROI Color */
         public WidgetProperty<WidgetColor> color()     { return getElement(1); }
+        /** @return Is ROI visible? */
         public WidgetProperty<Boolean> visible()       { return getElement(2); }
+        /** @return Is ROI interactive? */
         public WidgetProperty<Boolean> interactive()   { return getElement(3); }
+        /** @return ROI X PV */
         public WidgetProperty<String> x_pv()           { return getElement(4); }
+        /** @return ROI Y PV */
         public WidgetProperty<String> y_pv()           { return getElement(5); }
+        /** @return ROI Width PV */
         public WidgetProperty<String> width_pv()       { return getElement(6); }
+        /** @return ROI Height PV */
         public WidgetProperty<String> height_pv()      { return getElement(7); }
+        /** @return ROI file */
         public WidgetProperty<String> file()           { return getElement(8); }
+        /** @return ROI X position */
         public WidgetProperty<Double> x_value()        { return getElement(9); }
+        /** @return ROI Y position */
         public WidgetProperty<Double> y_value()        { return getElement(10); }
+        /** @return ROI width */
         public WidgetProperty<Double> width_value()    { return getElement(11); }
+        /** @return ROI height */
         public WidgetProperty<Double> height_value()   { return getElement(12); }
     };
 
@@ -321,7 +349,7 @@ public class ImageWidget extends PVWidget
 
     /** Legacy properties that have already triggered a warning */
     private final CopyOnWriteArraySet<String> warnings_once = new CopyOnWriteArraySet<>();
-    
+
     /** Configurator for legacy widgets */
     private class CustomWidgetConfigurator extends WidgetConfigurator
     {
@@ -395,6 +423,7 @@ public class ImageWidget extends PVWidget
     private volatile ArrayWidgetProperty<ROIWidgetProperty> rois;
     private volatile RuntimeEventProperty configure;
 
+    /** Constructor */
     public ImageWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 400, 300);
@@ -435,7 +464,7 @@ public class ImageWidget extends PVWidget
     {
         return "$(pv_name)";
     }
-    
+
     @Override
     public WidgetProperty<?> getProperty(final String name)
     {
@@ -452,7 +481,7 @@ public class ImageWidget extends PVWidget
         }
         return super.getProperty(name);
     }
-    
+
     @Override
     public WidgetConfigurator getConfigurator(final Version persisted_version)
             throws Exception

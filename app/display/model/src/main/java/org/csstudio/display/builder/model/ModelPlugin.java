@@ -19,6 +19,7 @@ import org.csstudio.display.builder.model.util.ModelResourceUtil;
  */
 public class ModelPlugin
 {
+    /** Display model logger */
     public final static Logger logger = Logger.getLogger(ModelPlugin.class.getPackageName());
 
     /** Trigger re-load of configuration files

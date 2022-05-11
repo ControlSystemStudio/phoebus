@@ -25,6 +25,7 @@ public class ToggleToolbarAction extends RuntimeAction
 {
     private final Widget widget;
 
+    /** @param widget Widget that has toolbar */
     public ToggleToolbarAction(final Widget widget)
     {
         super(Messages.Toolbar_Hide,

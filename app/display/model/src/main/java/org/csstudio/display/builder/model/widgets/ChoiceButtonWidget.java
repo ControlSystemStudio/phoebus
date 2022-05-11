@@ -72,6 +72,7 @@ public class ChoiceButtonWidget extends WritablePVWidget
     private volatile WidgetProperty<String> confirm_message;
     private volatile WidgetProperty<String> password;
 
+    /** Constructor */
     public ChoiceButtonWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 100, 43);

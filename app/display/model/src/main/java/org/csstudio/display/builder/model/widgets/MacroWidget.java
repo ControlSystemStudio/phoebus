@@ -36,6 +36,10 @@ public class MacroWidget extends VisibleWidget
      *  allowing for example scripts to then refer to '$(pv_name)'.
      *
      *  <p>This imports it as an actual macro.
+     *
+     *  @param model_reader ModelReader
+     *  @param widget Widget
+     *  @param widget_xml XML for widget
      */
     public static void importPVName(final ModelReader model_reader, final Widget widget, final Element widget_xml)
     {

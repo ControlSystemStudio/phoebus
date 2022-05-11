@@ -133,6 +133,7 @@ public class ProgressBarWidget extends PVWidget
     private volatile WidgetProperty<WidgetColor> background_color;
     private volatile WidgetProperty<Boolean> horizontal;
 
+    /** Constructor */
     public ProgressBarWidget()
     {
         super(WIDGET_DESCRIPTOR.getType());

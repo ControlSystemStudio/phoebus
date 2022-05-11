@@ -12,11 +12,11 @@ import java.util.List;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.csstudio.display.builder.model.Version;
-import org.csstudio.display.builder.model.persist.ModelReader;
-import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetConfigurator;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.persist.ModelReader;
+import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -30,6 +30,7 @@ import org.w3c.dom.Node;
 @SuppressWarnings("nls")
 public class PlaceholderWidget extends VisibleWidget
 {
+    /** Suffix for widget name */
     public static final String suffix = "-placeholder";
 
     private static final Version VERSION = new Version(99, 0, 0);
@@ -61,7 +62,8 @@ public class PlaceholderWidget extends VisibleWidget
     private String orig_type = "placeholder";
     private Element xml;
 
-    /** Widget constructor.
+    /** Widget constructor
+     *  @param type Original type that's represented by placeholder
      */
     public PlaceholderWidget(final String type)
     {
@@ -108,6 +110,10 @@ public class PlaceholderWidget extends VisibleWidget
         return false;
     }
 
+    /** @param model_writer Model writer
+     *  @param writer XML stream
+     *  @throws Exception on error
+     */
     public final void writeToXML(final ModelWriter model_writer, final XMLStreamWriter writer) throws Exception
     {
         writeNode(xml, writer);

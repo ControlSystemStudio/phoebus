@@ -84,12 +84,15 @@ public class DataBrowserWidget extends MacroWidget
         }
     }
 
+    /** 'selection_value_pv' */
     public static final WidgetPropertyDescriptor<String> propSelectionValuePV =
         CommonWidgetProperties.newStringPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "selection_value_pv", Messages.PlotWidget_SelectionValuePV);
 
+    /** 'selection_value' */
     public static final WidgetPropertyDescriptor<VType> propSelectionValue =
         CommonWidgetProperties.newRuntimeValue("selection_value", "Selection Value");
 
+    /** 'open_full' */
     public static final WidgetPropertyDescriptor<Instant> runtimePropOpenFull =
             CommonWidgetProperties.newRuntimeEvent("open_full", "Open Full Data Browser");
 
@@ -100,6 +103,7 @@ public class DataBrowserWidget extends MacroWidget
     private volatile WidgetProperty<VType> selection_value;
     private volatile RuntimeEventProperty open_full;
 
+    /** Constructor */
     public DataBrowserWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 400, 300);

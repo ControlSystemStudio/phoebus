@@ -383,7 +383,7 @@ public class WidgetRuntime<MW extends Widget>
     }
 
     /** Write a value to the primary PV
-     *  @param value
+     *  @param value Value to write
      */
     public void writePrimaryPV(final Object value)
     {

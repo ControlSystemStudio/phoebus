@@ -46,6 +46,7 @@ public class ThermometerWidget extends PVWidget
 
     //TODO: configurator that ignores if show_bulb property is false (vertical progress bar instead)
 
+    /** Constructor */
     public ThermometerWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 40, 160);

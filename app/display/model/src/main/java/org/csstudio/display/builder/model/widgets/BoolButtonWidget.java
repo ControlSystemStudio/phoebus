@@ -69,10 +69,14 @@ public class BoolButtonWidget extends WritablePVWidget
         }
     };
 
+    /** Button mode */
     public static enum Mode
     {
+        /** Toggle on/off with each click */
         TOGGLE(Messages.BoolWidget_Toggle),
+        /** On while pushed */
         PUSH(Messages.BoolWidget_Push),
+        /** Off while pushed */
         PUSH_INVERTED(Messages.BoolWidget_PushInverted);
 
         private final String label;
@@ -144,6 +148,7 @@ public class BoolButtonWidget extends WritablePVWidget
         newFilenamePropertyDescriptor(WidgetPropertyCategory.DISPLAY, "on_image", Messages.WidgetProperties_OnImage);
     private static final WidgetPropertyDescriptor<Boolean> propShowLED =
         newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "show_led", Messages.WidgetProperties_ShowLED);
+    /** 'mode' */
     public static final WidgetPropertyDescriptor<Mode> propMode =
         new WidgetPropertyDescriptor<>(WidgetPropertyCategory.BEHAVIOR, "mode", Messages.BoolWidget_Mode)
     {
@@ -172,6 +177,7 @@ public class BoolButtonWidget extends WritablePVWidget
     private volatile WidgetProperty<String> confirm_message;
     private volatile WidgetProperty<String> password;
 
+    /** Constructor */
     public BoolButtonWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 100, 30);

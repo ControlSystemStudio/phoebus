@@ -28,11 +28,13 @@ public class PredefinedColorMaps
             this.description = description;
         }
 
+        /** @return Name of color map ('VIRIDIS') */
         public String getName()
         {
             return name;
         }
 
+        /** @return Description of color map (' ...perceptually uniform..') */
         public String getDescription()
         {
             return description;
@@ -584,12 +586,14 @@ public class PredefinedColorMaps
         {  255, 251, 252, 191 }
     });
 
+    /** Predefined color map */
     public final static Predefined GRAY = new Predefined("GRAY", "Gray Scale", new int[][]
     {
         {   0,   0,   0,   0 },
         { 255, 255, 255, 255 }
     });
 
+    /** Legacy color map that kills people, use VIRIDIS instead */
     public final static Predefined JET = new Predefined("JET", "Jet", new int[][]
     {
         {   0,   0,   0, 143 },
@@ -600,6 +604,7 @@ public class PredefinedColorMaps
         { 255, 128,   0,   0 }
     });
 
+    /** Predefined color map */
     public final static Predefined SPECTRUM = new Predefined("SPECTRUM", "Color Spectrum", new int[][]
     {
         {   0,   0,   0,   0 },
@@ -613,6 +618,7 @@ public class PredefinedColorMaps
         { 255, 255, 255, 255 }
     });
 
+    /** Predefined color map */
     public final static Predefined HOT = new Predefined("HOT", "Hot", new int[][]
     {
         {   0,  11,   0,   0 },
@@ -621,19 +627,20 @@ public class PredefinedColorMaps
         { 255, 255, 255, 255 }
     });
 
+    /** Predefined color map */
     public final static Predefined COOL = new Predefined("COOL", "Cool", new int[][]
     {
         {   0,   0, 255, 255 },
         { 255, 255,   0, 255 }
     });
 
+    /** Predefined color map */
     public final static Predefined SHADED = new Predefined("SHADED", "Shaded", new int[][]
     {
         {   0,   0,   0,   0 },
         { 128, 255,   0,   0 },
         { 255, 255, 255, 255 }
     });
-
 
     /** Predefined color maps
      *

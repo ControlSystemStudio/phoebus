@@ -16,11 +16,17 @@ public enum PlotWidgetPointType
 {
     // Items match org.csstudio.javafx.rtplot.PointType.
     // They are duplicated here to separate model and representation.
+    /** No points */
     NONE(Messages.PointType_None),
+    /** Squares */
     SQUARES(Messages.PointType_Squares),
+    /** Circles */
     CIRCLES(Messages.PointType_Circles),
+    /** Diamonds */
     DIAMONDS(Messages.PointType_Diamonds),
+    /** 'X' markers */
     XMARKS(Messages.PointType_X),
+    /** Triangles */
     TRIANGLES(Messages.PointType_Triangles);
 
     final private String name;

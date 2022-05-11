@@ -74,6 +74,7 @@ public class WidgetClassSupport
         private final String specification;
         private final Object value;
 
+        /** @param property Property with value to use for class */
         public PropertyValue(final WidgetProperty<?> property)
         {
             if (property instanceof MacroizedWidgetProperty)
@@ -88,6 +89,7 @@ public class WidgetClassSupport
             }
         }
 
+        /** @param property Widget's property that's set from class */
         public void apply(final WidgetProperty<?> property)
         {
             if (specification != null)

@@ -30,14 +30,21 @@ import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 @SuppressWarnings("nls")
 public abstract class BaseClockWidget extends VisibleWidget {
 
+    /** 'date_visible' */
     public static final WidgetPropertyDescriptor<Boolean>     propDateVisible    = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY,  "date_visible",    Messages.WidgetProperties_DateVisible);
+    /** 'second_visible' */
     public static final WidgetPropertyDescriptor<Boolean>     propSecondVisible  = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY,  "second_visible",  Messages.WidgetProperties_SecondVisible);
+    /** 'title' */
     public static final WidgetPropertyDescriptor<String>      propTitle          = newStringPropertyDescriptor (WidgetPropertyCategory.DISPLAY,  "title",           Messages.WidgetProperties_Title);
+    /** 'title_visible' */
     public static final WidgetPropertyDescriptor<Boolean>     propTitleVisible   = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY,  "title_visible",   Messages.WidgetProperties_TitleVisible);
 
+    /** 'running' */
     public static final WidgetPropertyDescriptor<Boolean>     propRunning        = newBooleanPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "running",         Messages.WidgetProperties_Running);
 
+    /** 'locale' */
     public static final WidgetPropertyDescriptor<String>      propLocale         = newStringPropertyDescriptor (WidgetPropertyCategory.MISC,     "locale",          Messages.WidgetProperties_Locale);
+    /** 'shadows_enabled' */
     public static final WidgetPropertyDescriptor<Boolean>     propShadowsEnabled = newBooleanPropertyDescriptor(WidgetPropertyCategory.MISC,     "shadows_enabled", Messages.WidgetProperties_ShadowsEnabled);
 
     private volatile WidgetProperty<Boolean>     dateVisible;
@@ -48,34 +55,45 @@ public abstract class BaseClockWidget extends VisibleWidget {
     private volatile WidgetProperty<String>      title;
     private volatile WidgetProperty<Boolean>     titleVisible;
 
+    /** @param type Type
+     *  @param default_width Width
+     *  @param default_height Height
+     */
     public BaseClockWidget ( final String type, final int default_width, final int default_height ) {
         super(type, default_width, default_height);
     }
 
+    /** @return 'date_visible' */
     public WidgetProperty<Boolean> propDateVisible ( ) {
         return dateVisible;
     }
 
+    /** @return 'locale' */
     public WidgetProperty<String> propLocale ( ) {
         return locale;
     }
 
+    /** @return 'running' */
     public WidgetProperty<Boolean> propRunning ( ) {
         return running;
     }
 
+    /** @return 'second_visible' */
     public WidgetProperty<Boolean> propSecondVisible ( ) {
         return secondVisible;
     }
 
+    /** @return 'shadows_enabled' */
     public WidgetProperty<Boolean> propShadowsEnabled ( ) {
         return shadowsEnabled;
     }
 
+    /** @return 'title' */
     public WidgetProperty<String> propTitle ( ) {
         return title;
     }
 
+    /** @return 'title_visible' */
     public WidgetProperty<Boolean> propTitleVisible ( ) {
         return titleVisible;
     }

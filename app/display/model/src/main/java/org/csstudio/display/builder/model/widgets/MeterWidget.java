@@ -50,6 +50,7 @@ import org.w3c.dom.Element;
 @SuppressWarnings("nls")
 public class MeterWidget extends PVWidget
 {
+    /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("meter", WidgetCategory.MONITOR,
             "Meter",
@@ -128,15 +129,19 @@ public class MeterWidget extends PVWidget
         }
     }
 
+    /** Property */
     public static final WidgetPropertyDescriptor<Boolean> propShowValue =
         newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "show_value", Messages.WidgetProperties_ShowValue);
 
+    /** Property */
     public static final WidgetPropertyDescriptor<Boolean> propShowLimits =
             newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "show_limits", Messages.WidgetProperties_ShowLimits);
 
+    /** Property */
     public static final WidgetPropertyDescriptor<WidgetColor> propNeedleColor =
         newColorPropertyDescriptor(WidgetPropertyCategory.MISC, "needle_color", Messages.WidgetProperties_NeedleColor);
 
+    /** Property */
     public static final WidgetPropertyDescriptor<WidgetColor> propKnobColor =
         newColorPropertyDescriptor(WidgetPropertyCategory.MISC, "knob_color", Messages.WidgetProperties_KnobColor);
 
@@ -154,7 +159,7 @@ public class MeterWidget extends PVWidget
     private volatile WidgetProperty<Double> minimum;
     private volatile WidgetProperty<Double> maximum;
 
-
+    /** Constructor */
     public MeterWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 240, 120);

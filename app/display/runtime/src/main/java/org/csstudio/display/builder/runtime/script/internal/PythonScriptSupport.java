@@ -36,7 +36,8 @@ public class PythonScriptSupport extends BaseScriptSupport
     static PVUtil pvutil = new PVUtil();
     static ScriptUtil scriptutil = new ScriptUtil();
 
-    public PythonScriptSupport(final ScriptSupport support) throws Exception
+    /** @param support Support base */
+    public PythonScriptSupport(final ScriptSupport support)
     {
         this.support = support;
     }

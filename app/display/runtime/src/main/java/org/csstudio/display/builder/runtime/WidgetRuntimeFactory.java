@@ -25,6 +25,7 @@ import org.csstudio.display.builder.runtime.spi.WidgetRuntimesService;
 @SuppressWarnings("nls")
 public class WidgetRuntimeFactory
 {
+    /** Singleton instance */
     public static final WidgetRuntimeFactory INSTANCE = new WidgetRuntimeFactory();
 
     /** Map widget type IDs to RuntimeSuppliers */
@@ -46,9 +47,10 @@ public class WidgetRuntimeFactory
     }
 
     /** Create a runtime and initialize for widget
-     *  @param model_widget
+     *  @param model_widget Widget
      *  @return {@link WidgetRuntime}
      *  @throws Exception on error
+     *  @param <MW> Widget type
      */
     @SuppressWarnings("unchecked")
     public <MW extends Widget> WidgetRuntime<MW> createRuntime(final MW model_widget) throws Exception

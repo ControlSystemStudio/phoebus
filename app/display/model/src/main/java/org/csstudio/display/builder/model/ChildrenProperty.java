@@ -78,7 +78,7 @@ public class ChildrenProperty extends RuntimeWidgetProperty<List<Widget>>
      *  @param widget Widget where parent (plain or TabWidget) is checked for
      *  @return {@link ChildrenProperty} that contains the widget
      *  @throws NoSuchElementException if widget has no parent
-     *  @throws IllegalArgumentException If no tab of parent {@link TabWidget} contains the widget,
+     *  @throws IllegalArgumentException If no tab of parent {@link TabsWidget} contains the widget,
      *  @throws IllegalStateException If parent has no children
      */
     public static ChildrenProperty getParentsChildren(final Widget widget)
@@ -102,6 +102,7 @@ public class ChildrenProperty extends RuntimeWidgetProperty<List<Widget>>
         throw new IllegalStateException("Parent of " + widget + " has no 'children': " + parent);
     }
 
+    /** @param widget Parent widget */
     public ChildrenProperty(final Widget widget)
     {
         super(DESCRIPTOR, widget, Collections.emptyList());
@@ -229,6 +230,10 @@ public class ChildrenProperty extends RuntimeWidgetProperty<List<Widget>>
         return index;
     }
 
+    /** @param index Desired index of child
+     *  @param child Widget to move
+     *  @return Actual index
+     */
     public int moveChildTo(int index, final Widget child)
     {
         if (child == null)

@@ -33,6 +33,7 @@ import org.w3c.dom.Element;
 
 /** Read model from XML.
  *
+ *  <pre>
  *  Stream (SAX, StAX) or DOM (JAXB, JDOM, org.w3c.dom)?
  *  ==============================================
  *  JAXB would allow direct mapping of XML elements into widget properties.
@@ -51,9 +52,9 @@ import org.w3c.dom.Element;
  *  How to get from XML to widgets?
  *  ===============================
  *  1) As before:
- *  Read <widget type="xy">,
+ *  Read &lt;widget type="xy">,
  *  create xyWidget,
- *  then for each property <x>,
+ *  then for each property &lt;x>,
  *  use widget.getProperty("x").readFromXML(reader)
  *
  *  + Properties know how to read their own data
@@ -65,10 +66,11 @@ import org.w3c.dom.Element;
  *
  *  2) Each widget registers a WidgetConfigurator.
  *  Default implementation behaves as above:
- *  For each property <x> in XML,
+ *  For each property &lt;x> in XML,
  *  use widget.getProperty("x").readFromXML(reader).
  *  .. but widget can provide a custom WidgetConfigurator
  *  and handle legacy properties in a different way.
+ *  </pre>
  *
  *  @author Kay Kasemir
  */

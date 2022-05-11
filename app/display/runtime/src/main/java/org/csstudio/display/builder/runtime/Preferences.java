@@ -25,15 +25,19 @@ import org.phoebus.framework.preferences.PreferencesReader;
 @SuppressWarnings("nls")
 public class Preferences
 {
+    /** Preference setting */
     @Preference public static String python_path;
+    /** Preference setting */
     @Preference(name="update_throttle") public static int update_throttle_ms;
+    /** Preference setting */
     @Preference public static String probe_display;
+    /** Preference setting */
     public static final List<TextPatch> pv_name_patches = new ArrayList<>();
 
     static
     {
     	final PreferencesReader prefs = AnnotatedPreferences.initialize(Preferences.class, "/display_runtime_preferences.properties");
-        
+
     	final String setting = prefs.get("pv_name_patches");
     	if (! setting.isEmpty())
         {

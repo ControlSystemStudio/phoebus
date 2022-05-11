@@ -14,11 +14,17 @@ import org.csstudio.display.builder.model.Messages;
  */
 public enum PlotWidgetTraceType
 {
+    /** No trace */
     NONE(Messages.TraceType_None),
+    /** Line between points */
     LINE(Messages.TraceType_Line),
+    /** 'Stair steps' between points */
     STEP(Messages.TraceType_Step),
+    /** Error bar */
     ERRORBAR(Messages.TraceType_Errorbar),
+    /** Line with error bar */
     LINE_ERRORBAR(Messages.TraceType_LineErrorbar),
+    /** Bar graph */
     BARS(Messages.TraceType_Bars);
 
     final private String name;

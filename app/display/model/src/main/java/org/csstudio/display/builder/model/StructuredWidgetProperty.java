@@ -42,6 +42,10 @@ public class StructuredWidgetProperty extends WidgetProperty<List<WidgetProperty
     /** Descriptor of a structured property */
     public static class Descriptor extends WidgetPropertyDescriptor<List<WidgetProperty<?>>>
     {
+        /** @param category Property category
+         *  @param name Property name/ID
+         *  @param description Description
+         */
         public Descriptor(final WidgetPropertyCategory category,
                           final String name, final String description)
         {
@@ -102,6 +106,7 @@ public class StructuredWidgetProperty extends WidgetProperty<List<WidgetProperty
      *
      *  @param index Element index, 0 .. (<code>getValue().size()</code>-1)
      *  @return Widget property cast to receiving type
+     *  @param <TYPE> Value type of property
      */
     // Not perfect: Caller needs to know the type.
     // Still, at least there's a runtime error when attempting to cast to the wrong type,
@@ -117,6 +122,7 @@ public class StructuredWidgetProperty extends WidgetProperty<List<WidgetProperty
      *  @param element_name Element name
      *  @return Widget property cast to receiving type
      *  @throws IllegalArgumentException if element name is not found in structure
+     *  @param <TYPE> Value type of property
      */
     @SuppressWarnings("unchecked")
     public <TYPE> WidgetProperty<TYPE> getElement(final String element_name)

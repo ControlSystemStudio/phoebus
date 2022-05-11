@@ -25,11 +25,17 @@ public abstract class ActionInfo
     /** Description of a type of action: Name, icon */
     public enum ActionType
     {
+        /** Open a display */
         OPEN_DISPLAY(Messages.ActionOpenDisplay, "/icons/open_display.png"),
+        /** Write fixed value to a PV */
         WRITE_PV(Messages.ActionWritePV, "/icons/write_pv.png"),
+        /** Execute a script */
         EXECUTE_SCRIPT(Messages.ActionExecuteScript, "/icons/execute_script.png"),
+        /** Execute external command */
         EXECUTE_COMMAND(Messages.ActionExecuteCommand, "/icons/execute_script.png"),
+        /** Open a file with its associated tool */
         OPEN_FILE(Messages.ActionOpenFile, "/icons/open_file.png"),
+        /** Open a wen page in system browser */
         OPEN_WEBPAGE(Messages.ActionOpenWebPage, "/icons/web_browser.png");
 
         private final String name, icon_path;
@@ -40,6 +46,7 @@ public abstract class ActionInfo
             this.icon_path = icon_path;
         }
 
+        /** @return URL of icon */
         public URL getIconURL()
         {
             return ActionInfo.class.getResource(icon_path);

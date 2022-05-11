@@ -78,9 +78,9 @@ public class Version implements Comparable<Version>
     }
 
     /** Construct version
-     *  @param major
-     *  @param minor
-     *  @param patch
+     *  @param major Major
+     *  @param minor Minor
+     *  @param patch Patch
      */
     public Version(final int major, final int minor, final int patch)
     {

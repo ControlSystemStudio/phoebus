@@ -23,6 +23,9 @@ import org.phoebus.ui.javafx.ImageCache;
 @SuppressWarnings("nls")
 public class OpenInEditorAction extends WeakRefWidgetAction
 {
+    /** @param editor Editor to use
+     *  @param the_widget Widget
+     */
     public OpenInEditorAction(final AppResourceDescriptor editor,
                               final Widget the_widget)
     {

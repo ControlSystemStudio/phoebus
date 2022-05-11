@@ -12,8 +12,8 @@ import org.csstudio.display.builder.model.Widget;
 /** Factory for creating Toolkit representation of a widget
  *
  *  @author Kay Kasemir
- *  @param <TWP> Toolkit widget parent class
- *  @param <TW> Toolkit widget base class
+ *  @param <TWP> Toolkit widget parent class (JFX 'Parent')
+ *  @param <TW> Toolkit widget base class (JFX 'Node')
  */
 @FunctionalInterface
 @SuppressWarnings("nls")
@@ -23,6 +23,7 @@ public interface WidgetRepresentationFactory<TWP, TW>
     public static final String UNKNOWN = "UNKNOWN";
 
     /** Construct representation for a model widget
+     *  @return {@link WidgetRepresentation}
      *  @throws Exception on error
      */
 	public WidgetRepresentation<TWP, TW, Widget> create() throws Exception;
