@@ -80,6 +80,7 @@ public class WidgetConfigurator
         clean_parse = true;
     }
 
+    /** @return Was widget parsed without errors? */
     public boolean isClean()
     {
         return clean_parse;

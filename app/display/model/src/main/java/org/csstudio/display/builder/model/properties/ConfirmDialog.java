@@ -14,9 +14,13 @@ import org.csstudio.display.builder.model.Messages;
  */
 public enum ConfirmDialog
 {
+    /** No confirmation necessary */
     NONE(Messages.Confirm_NONE),
+    /** Confirm both 'push' and 'release' */
     BOTH(Messages.Confirm_BOTH),
+    /** Confirm 'push' */
     PUSH(Messages.Confirm_PUSH),
+    /** Confirm 'release' */
     RELEASE(Messages.Confirm_RELEASE);
 
     private final String label;

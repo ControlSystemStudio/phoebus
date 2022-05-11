@@ -121,6 +121,10 @@ public class ScriptInfo
         this.pvs = Collections.unmodifiableList(Objects.requireNonNull(pvs));
     }
 
+    /** @param path Script path. May be URL, contain macros
+     *  @param check_connections Check connections before executing the script, or always execute?
+     *  @param pvs PVs
+     */
     public ScriptInfo(final String path, final boolean check_connections, final ScriptPV... pvs)
     {
         this(path, null, check_connections, Arrays.asList(pvs));

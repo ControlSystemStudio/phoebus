@@ -42,14 +42,17 @@ public class WebBrowserWidget extends VisibleWidget
         }
     };
 
+    /** 'url' */
     public static final WidgetPropertyDescriptor<String> propWidgetURL =
         CommonWidgetProperties.newStringPropertyDescriptor(WidgetPropertyCategory.WIDGET, "url", Messages.WebBrowser_URL);
+    /** 'show_toolbar' */
     public static final WidgetPropertyDescriptor<Boolean> propShowToolbar =
         CommonWidgetProperties.newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "show_toolbar", Messages.WebBrowser_showToolbar);
 
     private volatile WidgetProperty<String> url;
     private volatile WidgetProperty<Boolean> show_toolbar;
 
+    /** Constructor */
     public WebBrowserWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 800, 600);

@@ -44,6 +44,7 @@ public class MacroXMLUtil
 
     /** Read content of "&lt;macros>"
      *  @param macros_xml XML that contains macros
+     *  @return Parsed macros
      */
     public static Macros readMacros(final Element macros_xml)
     {
@@ -65,6 +66,7 @@ public class MacroXMLUtil
 
     /** Read content of "&lt;macros>", without the surrounding "&lt;macros>
      *  @param macros_xml Text that contains XML for macros
+     *  @return Parsed macros
      *  @throws Exception on error in XML
      */
     public static Macros readMacros(final String macros_xml) throws Exception
