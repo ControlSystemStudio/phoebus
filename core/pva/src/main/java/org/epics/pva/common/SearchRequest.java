@@ -23,11 +23,17 @@ import org.epics.pva.data.PVAString;
 @SuppressWarnings("nls")
 public class SearchRequest
 {
+    /** Sequence number */
     public int seq;
+    /** Is it a unicast? */
     public boolean unicast;
+    /** Is reply required? */
     public boolean reply_required;
+    /** Address of client */
     public InetSocketAddress client;
+    /** Names requested in search */
     public String[] name;
+    /** Client IDs for names */
     public int[] cid;
 
     /** Check search request
@@ -124,6 +130,13 @@ public class SearchRequest
         return search;
     }
 
+    /** @param unicast Unicast?
+     *  @param seq Sequence number
+     *  @param cid Client ID
+     *  @param name PV name
+     *  @param address client's address
+     *  @param buffer Buffer into which to encode
+     */
     public static void encode(final boolean unicast, final int seq, final int cid, final String name, final InetSocketAddress address, final ByteBuffer buffer)
     {
         // Create with zero payload size, to be patched later

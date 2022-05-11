@@ -17,6 +17,7 @@ import java.util.Objects;
 @SuppressWarnings("nls")
 public class PVAString extends PVAData
 {
+    /** Type descriptor */
     public static final byte FIELD_DESC_TYPE = (byte)0b01100000;
 
     /** @param string Text
@@ -74,11 +75,15 @@ public class PVAString extends PVAData
 
     private volatile String value;
 
+    /** @param name Name for data item */
     public PVAString(final String name)
     {
         this(name, null);
     }
 
+    /** @param name Name for data item
+     *  @param value Initial value
+     */
     public PVAString(final String name, final String value)
     {
         super(name);

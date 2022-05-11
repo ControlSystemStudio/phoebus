@@ -15,8 +15,9 @@ import java.time.Instant;
 @SuppressWarnings("nls")
 public class PVAStructures
 {
+    /** Type name for time stamp */
     public static final String TIME_T = "time_t";
-    
+
     /** @param structure Potential "time_t" structure
      *  @return Instant or <code>null</code>
      */
@@ -31,10 +32,11 @@ public class PVAStructures
         }
         return null;
     }
-    
-    
+
+
+    /** Type name for enum */
     public static final String ENUM_T = "enum_t";
-    
+
     /** @param structure Potential "enum_t" structure
      *  @return Selected option or <code>null</code>
      */
@@ -54,8 +56,9 @@ public class PVAStructures
         return null;
     }
 
+    /** Type name for alarm info */
     public static final String ALARM_T = "alarm_t";
-    
+
     /** @param structure Potential "alarm_t" structure
      *  @return Alarm info or <code>null</code>
      */

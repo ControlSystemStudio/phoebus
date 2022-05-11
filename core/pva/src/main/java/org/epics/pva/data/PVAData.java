@@ -21,8 +21,10 @@ import java.util.BitSet;
 @SuppressWarnings("nls")
 public abstract class PVAData
 {
+    /** Name */
     protected final String name;
 
+    /** @param name Name for data item */
     protected PVAData(final String name)
     {
         this.name = name;

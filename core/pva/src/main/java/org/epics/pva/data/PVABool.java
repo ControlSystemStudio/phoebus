@@ -16,8 +16,15 @@ import java.util.BitSet;
 @SuppressWarnings("nls")
 public class PVABool extends PVAData
 {
+    /** Type descriptor */
     public static final byte FIELD_DESC_TYPE = (byte)0b00000000;
 
+    /** @param name Name of 'bool' to decode
+     *  @param field_desc  Field description
+     *  @param buffer Source buffer
+     *  @return Decoded PVABool or PVABoolArray
+     *  @throws Exception on error
+     */
     public static PVAData decodeType(final String name, final byte field_desc, final ByteBuffer buffer) throws Exception
     {
         final PVAFieldDesc.Array array = PVAFieldDesc.Array.forFieldDesc(field_desc);
@@ -30,11 +37,15 @@ public class PVABool extends PVAData
 
     private volatile boolean value;
 
+    /** @param name Name */
     public PVABool(final String name)
     {
         this(name, false);
     }
 
+    /** @param name Name
+     *  @param value Initial value
+     */
     public PVABool(final String name, final boolean value)
     {
         super(name);

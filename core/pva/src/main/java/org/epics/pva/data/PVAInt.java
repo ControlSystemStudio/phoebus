@@ -16,6 +16,7 @@ import java.util.BitSet;
 @SuppressWarnings("nls")
 public class PVAInt extends PVANumber
 {
+    /** Type descriptor */
     public static final byte FIELD_DESC_TYPE = (byte)0b00100000;
 
     static PVAData decodeType(final String name, final byte field_desc, final ByteBuffer buffer) throws Exception
@@ -57,21 +58,32 @@ public class PVAInt extends PVANumber
     private final boolean unsigned;
     private volatile int value;
 
+    /** @param name Name */
     public PVAInt(final String name)
     {
         this(name, false, 0);
     }
 
+    /** @param name Name
+     *  @param value Initial value
+     */
     public PVAInt(final String name, final int value)
     {
         this(name, false, value);
     }
 
+    /** @param name Name
+     *  @param unsigned Unsigned?
+     */
     public PVAInt(final String name, final boolean unsigned)
     {
         this(name, unsigned, 0);
     }
 
+    /** @param name Name
+     *  @param unsigned Unsigned?
+     *  @param value Initial value
+     */
     public PVAInt(final String name, final boolean unsigned, final int value)
     {
         super(name);
