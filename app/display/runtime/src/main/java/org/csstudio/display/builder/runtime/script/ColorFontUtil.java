@@ -1,14 +1,15 @@
 package org.csstudio.display.builder.runtime.script;
 
-import org.csstudio.display.builder.model.properties.WidgetColor;
-import org.csstudio.display.builder.model.properties.WidgetFont;
-import org.csstudio.display.builder.model.properties.WidgetFontStyle;
 import static org.csstudio.display.builder.model.ModelPlugin.logger;
 
 import java.util.logging.Level;
 
+import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.csstudio.display.builder.model.properties.WidgetFontStyle;
 
 
+/** Predefined (named) colors and fonts */
 public class ColorFontUtil {
 
     /** the color of black */
@@ -62,6 +63,7 @@ public class ColorFontUtil {
      * @param red the red component of the new instance
      * @param green the green component of the new instance
      * @param blue the blue component of the new instance
+     * @return {@link WidgetColor}
      *
      * @exception IllegalArgumentException <ul>
      *    <li>ERROR_INVALID_ARGUMENT - if the red, green or blue argument is not between 0 and 255</li>
@@ -79,6 +81,7 @@ public class ColorFontUtil {
      * @param name the name of the font (must not be null)
      * @param height the font height in points
      * @param style A bitwise combination of NORMAL(0), BOLD(1) and ITALIC(2).
+     * @return {@link WidgetFont}
      *
      * @exception IllegalArgumentException <ul>
      *    <li>ERROR_NULL_ARGUMENT - when the font name is null</li>

@@ -40,6 +40,7 @@ public class FileSelectorWidget extends PVWidget
         }
     };
 
+    /** Show complete path, base name etc? */
     public enum FileComponent
     {
         FULL("Full Path"),

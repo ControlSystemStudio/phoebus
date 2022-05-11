@@ -69,6 +69,7 @@ public class BoolButtonWidget extends WritablePVWidget
         }
     };
 
+    /** Button mode */
     public static enum Mode
     {
         TOGGLE(Messages.BoolWidget_Toggle),

@@ -45,6 +45,7 @@ public class DigitalClockWidget extends BaseClockWidget {
         }
     };
 
+    /** Design */
     public enum Design {
         AMBER,
         BEIGE,
@@ -84,6 +85,7 @@ public class DigitalClockWidget extends BaseClockWidget {
         YOCTOPUCE
     }
 
+    /** Font */
     public enum LCDFont {
         DIGITAL,
         DIGITAL_BOLD,

@@ -4,13 +4,14 @@ import static org.csstudio.display.builder.model.ModelPlugin.logger;
 
 import java.util.logging.Level;
 
+/** Helper for accessing console */
 public class ConsoleUtil {
 
     static
     {
 	logger.log(Level.INFO, "Script accessed ConsoleUtil. Update to use print or org.csstudio.display.builder.runtime.script.ScriptUtil.getLogger()");
     }
-    
+
     /**Write information to CSS console.
      * @param message the output string.
      */

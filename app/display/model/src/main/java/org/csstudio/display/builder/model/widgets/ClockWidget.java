@@ -50,6 +50,7 @@ public class ClockWidget extends BaseClockWidget {
         }
     };
 
+    /** Look */
     public enum Skin {
         CLOCK,
         DB,

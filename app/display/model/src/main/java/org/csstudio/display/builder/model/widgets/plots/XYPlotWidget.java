@@ -102,9 +102,13 @@ public class XYPlotWidget extends VisibleWidget
                                ));
         }
 
+        /** @return Marker color */
         public WidgetProperty<WidgetColor> color()     { return getElement(0); }
+        /** @return Marker PV name */
         public WidgetProperty<String> pv()             { return getElement(1); }
+        /** @return Is marker interactive? */
         public WidgetProperty<Boolean> interactive()   { return getElement(2); }
+        /** @return Marker value */
         public WidgetProperty<Double> value()          { return getElement(3); }
     };
 
@@ -309,6 +313,7 @@ public class XYPlotWidget extends VisibleWidget
     private volatile ArrayWidgetProperty<MarkerProperty> markers;
     private volatile RuntimeEventProperty configure;
 
+    /** Constructor */
     public XYPlotWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 400, 300);

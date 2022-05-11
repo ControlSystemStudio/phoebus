@@ -101,6 +101,7 @@ public class TableWidget extends VisibleWidget
     private static final StructuredWidgetProperty.Descriptor propColumn =
         new Descriptor(WidgetPropertyCategory.DISPLAY, "column", "Column");
 
+    /** Configuration of one table column */
     public static class ColumnProperty extends StructuredWidgetProperty
     {
         public ColumnProperty(final Widget widget, final String name)
