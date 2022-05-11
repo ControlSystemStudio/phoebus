@@ -27,7 +27,7 @@ import org.w3c.dom.Element;
 @SuppressWarnings("nls")
 public class MacroXMLUtil
 {
-    /** Write macros (without surrounding "&ltmacros>") into XML stream
+    /** Write macros (without surrounding "&lt;macros>") into XML stream
      *  @param writer XML writer
      *  @param macros Macros to write
      *  @throws Exception on error
@@ -42,7 +42,7 @@ public class MacroXMLUtil
         }
     }
 
-    /** Read content of "&ltmacros>"
+    /** Read content of "&lt;macros>"
      *  @param macros_xml XML that contains macros
      */
     public static Macros readMacros(final Element macros_xml)
@@ -63,7 +63,7 @@ public class MacroXMLUtil
         return macros;
     }
 
-    /** Read content of "&ltmacros>", without the surrounding "&ltmacros>
+    /** Read content of "&lt;macros>", without the surrounding "&lt;macros>
      *  @param macros_xml Text that contains XML for macros
      *  @throws Exception on error in XML
      */
@@ -85,7 +85,7 @@ public class MacroXMLUtil
     }
 
     /** @param macros Macros to write
-     *  @return XML for macros (without surrounding "&ltmacros>")
+     *  @return XML for macros (without surrounding "&lt;macros>")
      */
     public static String toString(final Macros macros)
     {

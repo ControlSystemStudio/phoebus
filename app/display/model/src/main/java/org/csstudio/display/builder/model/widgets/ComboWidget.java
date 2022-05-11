@@ -133,6 +133,7 @@ public class ComboWidget extends WritablePVWidget
     private volatile WidgetProperty<String> confirm_message;
     private volatile WidgetProperty<String> password;
 
+    /** Constructor */
     public ComboWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 100, 30);

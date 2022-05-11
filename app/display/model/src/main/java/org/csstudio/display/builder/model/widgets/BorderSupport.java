@@ -28,6 +28,9 @@ import org.w3c.dom.Element;
 @SuppressWarnings("nls")
 public class BorderSupport
 {
+    /** @param widget Widget
+     *  @param properties List of properties to which border items are added
+     */
     public static void addBorderProperties(final Widget widget, final List<WidgetProperty<?>> properties)
     {
         properties.add(propBorderWidth.createProperty(widget, 0));

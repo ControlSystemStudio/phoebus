@@ -106,7 +106,7 @@ public class RuleToScript
 
     /** Patch logic
      *
-     *  <p>Replaces 'true' with 'True', '&&' with 'and' and so on.
+     *  <p>Replaces 'true' with 'True', '&amp;&amp;' with 'and' and so on.
      *
      *  @param text Text with logical expression
      *  @return Javascript type logic somewhat updated to Python
@@ -231,6 +231,10 @@ public class RuleToScript
         return script;
     }
 
+    /** @param attached_widget Widget
+     *  @param rule Rule to implement
+     *  @return Python script for the rule
+     */
     public static String generatePy(final Widget attached_widget, final RuleInfo rule)
     {
         final WidgetProperty<?> prop = attached_widget.getProperty(rule.getPropID());

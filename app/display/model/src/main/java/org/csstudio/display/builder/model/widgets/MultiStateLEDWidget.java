@@ -157,6 +157,9 @@ public class MultiStateLEDWidget extends BaseLEDWidget
     /** Property that describes one state of the LED */
     public static class StateWidgetProperty extends StructuredWidgetProperty
     {
+        /** @param widget Widget
+         *  @param state State index 0, 1, ...
+         */
         public StateWidgetProperty(final Widget widget, final int state)
         {
             super(behaviorState, widget,
@@ -164,8 +167,11 @@ public class MultiStateLEDWidget extends BaseLEDWidget
                                 propStateLabel.createProperty(widget, "State " + (state + 1)),
                                 propStateColor.createProperty(widget, getDefaultColor(state))));
         }
+        /** @return State index 0, 1, ... */
         public WidgetProperty<Integer> state()      { return getElement(0); }
+        /** @return State label  */
         public WidgetProperty<String> label()       { return getElement(1); }
+        /** @return State color */
         public WidgetProperty<WidgetColor> color()  { return getElement(2); }
     };
 
@@ -189,6 +195,7 @@ public class MultiStateLEDWidget extends BaseLEDWidget
     private volatile WidgetProperty<WidgetColor> fallback_color;
     private volatile WidgetProperty<String> fallback_label;
 
+    /** Constructor */
     public MultiStateLEDWidget()
     {
         super(WIDGET_DESCRIPTOR.getType());
@@ -208,7 +215,7 @@ public class MultiStateLEDWidget extends BaseLEDWidget
         properties.add(square = propSquare.createProperty(this, false));
     }
 
-     @Override
+    @Override
     public WidgetProperty<?> getProperty(final String name)
     {
         // Translate legacy property names
@@ -226,7 +233,7 @@ public class MultiStateLEDWidget extends BaseLEDWidget
 
         return super.getProperty(name);
     }
-    
+
     /** @return 'states' property */
     public ArrayWidgetProperty<StateWidgetProperty> propStates()
     {

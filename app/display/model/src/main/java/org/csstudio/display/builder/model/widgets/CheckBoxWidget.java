@@ -89,6 +89,7 @@ public class CheckBoxWidget extends WritablePVWidget
         properties.add(password = propPassword.createProperty(this, ""));
     }
 
+    /** Constructor */
     public CheckBoxWidget()
     {
         super(WIDGET_DESCRIPTOR.getType());

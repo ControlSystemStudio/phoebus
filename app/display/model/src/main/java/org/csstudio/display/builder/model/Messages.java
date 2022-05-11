@@ -14,343 +14,344 @@ import org.phoebus.framework.nls.NLS;
  */
 public class Messages
 {
-    public static String ActionExecuteCommand;
-    public static String ActionExecuteScript;
-    public static String ActionOpenDisplay;
-    public static String ActionOpenFile;
-    public static String ActionOpenWebPage;
-    public static String ActionWritePV;
-    public static String Actions_N_Fmt;
-    public static String ActiveTab;
-    public static String ArrayWidget_Description;
-    public static String ArrayWidget_Name;
-    public static String ArrowLength;
-    public static String Arrows;
-    public static String Arrows_None;
-    public static String Arrows_From;
-    public static String Arrows_To;
-    public static String Arrows_Both;
-    public static String AutoSize;
-    public static String BoolWidget_Mode;
-    public static String BoolWidget_OffLabel;
-    public static String BoolWidget_OnLabel;
-    public static String BoolWidget_Push;
-    public static String BoolWidget_PushInverted;
-    public static String BoolWidget_Toggle;
-    public static String ByteMonitor_BitReverse;
-    public static String ByteMonitor_NumBits;
-    public static String ByteMonitor_StartBit;
-    public static String Bottom;
-    public static String Checkbox_Label;
-    public static String Center;
-    public static String ComboWidget_Item;
-    public static String ComboWidget_Items;
-    public static String Confirm_NONE;
-    public static String Confirm_BOTH;
-    public static String Confirm_PUSH;
-    public static String Confirm_RELEASE;
-    public static String EmbeddedDisplayWidget_GroupName;
-    public static String FontStyle_Bold;
-    public static String FontStyle_BoldItalic;
-    public static String FontStyle_Italic;
-    public static String FontStyle_Regular;
-    public static String GroupWidget_Description;
-    public static String GroupWidget_Name;
-    public static String Interpolation_Automatic;
-    public static String Interpolation_Interpolate;
-    public static String Interpolation_None;
-    public static String LabelWidget_Text;
-    public static String Left;
-    public static String LineStyle;
-    public static String LineStyle_Solid;
-    public static String LineStyle_Dash;
-    public static String LineStyle_DashDot;
-    public static String LineStyle_DashDotDot;
-    public static String LineStyle_Dot;
-    public static String Middle;
-    public static String PlotWidget_AutoScale;
-    public static String PlotWidget_Color;
-    public static String PlotWidget_ErrorPV;
-    public static String PlotWidget_GridColor;
-    public static String PlotWidget_LogScale;
-    public static String PlotWidget_PointSize;
-    public static String PlotWidget_PointType;
-    public static String PlotWidget_ScaleFont;
-    public static String PlotWidget_SelectionValuePV;
-    public static String PlotWidget_ShowGrid;
-    public static String PlotWidget_ShowLegend;
-    public static String PlotWidget_ShowToolbar;
-    public static String PlotWidget_Title;
-    public static String PlotWidget_TitleFont;
-    public static String PlotWidget_Trace;
-    public static String PlotWidget_Traces;
-    public static String PlotWidget_TraceType;
-    public static String PlotWidget_X;
-    public static String PlotWidget_XAxis;
-    public static String PlotWidget_XPV;
-    public static String PlotWidget_Y;
-    public static String PlotWidget_YAxes;
-    public static String PlotWidget_YAxis;
-    public static String PlotWidget_YPV;
-    public static String PointType_Circles;
-    public static String PointType_Diamonds;
-    public static String PointType_None;
-    public static String PointType_Squares;
-    public static String PointType_Triangles;
-    public static String PointType_X;
-    public static String Resize_Container;
-    public static String Resize_Content;
-    public static String Resize_Crop;
-    public static String Resize_None;
-    public static String Resize_Stretch;
-    public static String Right;
-    public static String Rotation_0;
-    public static String Rotation_180;
-    public static String Rotation_270;
-    public static String Rotation_90;
-    public static String ScrollBar_ShowValueTip;
-    public static String ScrollBar_BarLength;
-    public static String SlideButton_Label;
-    public static String Spinner_ButtonsOnLeft;
-    public static String Stripchart_Description;
-    public static String Stripchart_LabelFont;
-    public static String Stripchart_Name;
-    public static String Stripchart_TimeRange;
-    public static String Style;
-    public static String Style_Group;
-    public static String Style_Line;
-    public static String Style_None;
-    public static String Style_Title;
-    public static String Tab_Height;
-    public static String Tab_Item;
-    public static String TabsWidget_Description;
-    public static String TabsWidget_Name;
-    public static String TabsWidget_TabNameFmt;
-    public static String Target_Replace;
-    public static String Target_Standalone;
-    public static String Target_Tab;
-    public static String Target_Window;
-    public static String Top;
-    public static String TraceType_Bars;
-    public static String TraceType_Errorbar;
-    public static String TraceType_Line;
-    public static String TraceType_LineErrorbar;
-    public static String TraceType_None;
-    public static String TraceType_Step;
-    public static String ValueNoPV;
-    public static String Vertical;
-    public static String WebBrowser_showToolbar;
-    public static String WebBrowser_URL;
-    public static String WidgetCategory_Controls;
-    public static String WidgetCategory_Extensions;
-    public static String WidgetCategory_Graphics;
-    public static String WidgetCategory_Miscellaneous;
-    public static String WidgetCategory_Monitors;
-    public static String WidgetCategory_Plots;
-    public static String WidgetCategory_Structure;
-    public static String WidgetProperties_Actions;
-    public static String WidgetProperties_AngleSize;
-    public static String WidgetProperties_AngleStart;
-    public static String WidgetProperties_ArrayIndex;
-    public static String WidgetProperties_AutoScale;
-    public static String WidgetProperties_AutoSize;
-    public static String WidgetProperties_Average;
-    public static String WidgetProperties_AverageColor;
-    public static String WidgetProperties_AverageSamples;
-    public static String WidgetProperties_BackgroundColor;
-    public static String WidgetProperties_BarBackgroundColor;
-    public static String WidgetProperties_BarColor;
-    public static String WidgetProperties_Bit;
-    public static String WidgetProperties_BorderAlarmSensitive;
-    public static String WidgetProperties_BorderColor;
-    public static String WidgetProperties_BorderWidth;
-    public static String WidgetProperties_CellColors;
-    public static String WidgetProperties_Class;
-    public static String WidgetProperties_ColorHiHi;
-    public static String WidgetProperties_ColorHigh;
-    public static String WidgetProperties_ColorLoLo;
-    public static String WidgetProperties_ColorLow;
-    public static String WidgetProperties_ColorMap;
-    public static String WidgetProperties_ColorMode;
-    public static String WidgetProperties_ColorOK;
-    public static String WidgetProperties_ConfirmDialog;
-    public static String WidgetProperties_ConfirmMessage;
-    public static String WidgetProperties_Connected;
-    public static String WidgetProperties_CornerHeight;
-    public static String WidgetProperties_CornerWidth;
-    public static String WidgetProperties_CursorCrosshair;
-    public static String WidgetProperties_CursorInfo;
-    public static String WidgetProperties_CursorInfoPV;
-    public static String WidgetProperties_CursorXPV;
-    public static String WidgetProperties_CursorYPV;
-    public static String WidgetProperties_DataHeight;
-    public static String WidgetProperties_DataWidth;
-    public static String WidgetProperties_DateColor;
-    public static String WidgetProperties_DateVisible;
-    public static String WidgetProperties_Direction;
-    public static String WidgetProperties_DisconnectOverlayColor;
-    public static String WidgetProperties_DiscreteHours;
-    public static String WidgetProperties_DiscreteMinutes;
-    public static String WidgetProperties_DiscreteSeconds;
-    public static String WidgetProperties_DragDisabled;
-    public static String WidgetProperties_Editable;
-    public static String WidgetProperties_EmptyColor;
-    public static String WidgetProperties_Enabled;
-    public static String WidgetProperties_ExtremaVisible;
-    public static String WidgetProperties_FallbackSymbol;
-    public static String WidgetProperties_File;
-    public static String WidgetProperties_Filecomponent;
-    public static String WidgetProperties_FillColor;
-    public static String WidgetProperties_FlatBar;
-    public static String WidgetProperties_Font;
-    public static String WidgetProperties_ForegroundColor;
-    public static String WidgetProperties_Format;
-    public static String WidgetProperties_Gap;
-    public static String WidgetProperties_GridColor;
-    public static String WidgetProperties_GridStepX;
-    public static String WidgetProperties_GridStepY;
-    public static String WidgetProperties_GridVisible;
-    public static String WidgetProperties_Height;
-    public static String WidgetProperties_HeightPVName;
-    public static String WidgetProperties_HighlightBar;
-    public static String WidgetProperties_HighlightZones;
-    public static String WidgetProperties_Horizontal;
-    public static String WidgetProperties_HorizontalAlignment;
-    public static String WidgetProperties_HourColor;
-    public static String WidgetProperties_HourTickMarkColor;
-    public static String WidgetProperties_HourTickMarkVisible;
-    public static String WidgetProperties_Increment;
-    public static String WidgetProperties_InitialIndex;
-    public static String WidgetProperties_Insets;
-    public static String WidgetProperties_Interactive;
-    public static String WidgetProperties_Interpolation;
-    public static String WidgetProperties_ItemsFromPV;
-    public static String WidgetProperties_KnobColor;
-    public static String WidgetProperties_KnobPosition;
-    public static String WidgetProperties_LabelsFromPV;
-    public static String WidgetProperties_LcdCrystalEnabled;
-    public static String WidgetProperties_LcdDesign;
-    public static String WidgetProperties_LcdFont;
-    public static String WidgetProperties_LcdVisible;
-    public static String WidgetProperties_LevelHigh;
-    public static String WidgetProperties_LevelHiHi;
-    public static String WidgetProperties_LevelLow;
-    public static String WidgetProperties_LevelLoLo;
-    public static String WidgetProperties_LimitsFromPV;
-    public static String WidgetProperties_LineColor;
-    public static String WidgetProperties_LineWidth;
-    public static String WidgetProperties_Locale;
-    public static String WidgetProperties_Macros;
-    public static String WidgetProperties_MajorTickSpace;
-    public static String WidgetProperties_MajorTickStepHint;
-    public static String WidgetProperties_MajorTickVisible;
-    public static String WidgetProperties_Maximum;
-    public static String WidgetProperties_MediumTickVisible;
-    public static String WidgetProperties_Minimum;
-    public static String WidgetProperties_MinorTickSpace;
-    public static String WidgetProperties_MinorTickVisible;
-    public static String WidgetProperties_MinuteColor;
-    public static String WidgetProperties_MinuteTickMarkColor;
-    public static String WidgetProperties_MinuteTickMarkVisible;
-    public static String WidgetProperties_MultiLine;
-    public static String WidgetProperties_Name;
-    public static String WidgetProperties_NeedleColor;
-    public static String WidgetProperties_OffColor;
-    public static String WidgetProperties_OffImage;
-    public static String WidgetProperties_OffLabel;
-    public static String WidgetProperties_OnColor;
-    public static String WidgetProperties_OnImage;
-    public static String WidgetProperties_OnLabel;
-    public static String WidgetProperties_OnlyExtremaVisible;
-    public static String WidgetProperties_Opacity;
-    public static String WidgetProperties_Orientation;
-    public static String WidgetProperties_Password;
-    public static String WidgetProperties_Points;
-    public static String WidgetProperties_Precision;
-    public static String WidgetProperties_PreserveRatio;
-    public static String WidgetProperties_PVName;
-    public static String WidgetProperties_ReadbackPVName;
-    public static String WidgetProperties_ReadbackPVValue;
-    public static String WidgetProperties_ResizeBehavior;
-    public static String WidgetProperties_RingColor;
-    public static String WidgetProperties_RingWidth;
-    public static String WidgetProperties_Rotation;
-    public static String WidgetProperties_Rules;
-    public static String WidgetProperties_Running;
-    public static String WidgetProperties_ScaleFactor;
-    public static String WidgetProperties_ScaleFormat;
-    public static String WidgetProperties_ScaleDirection;
-    public static String WidgetProperties_ScaleVisible;
-    public static String WidgetProperties_SecondColor;
-    public static String WidgetProperties_SecondVisible;
-    public static String WidgetProperties_Scripts;
-    public static String WidgetProperties_Selection;
-    public static String WidgetProperties_SelectionPV;
-    public static String WidgetProperties_ShadowsEnabled;
-    public static String WidgetProperties_ShowHigh;
-    public static String WidgetProperties_ShowHiHi;
-    public static String WidgetProperties_ShowIndex;
-    public static String WidgetProperties_ShowLED;
-    public static String WidgetProperties_ShowLimits;
-    public static String WidgetProperties_ShowLow;
-    public static String WidgetProperties_ShowLoLo;
-    public static String WidgetProperties_ShowMinorTicks;
-    public static String WidgetProperties_ShowOK;
-    public static String WidgetProperties_ShowScale;
-    public static String WidgetProperties_ShowUnits;
-    public static String WidgetProperties_ShowValue;
-    public static String WidgetProperties_Skin;
-    public static String WidgetProperties_Square;
-    public static String WidgetProperties_StartFromZero;
-    public static String WidgetProperties_StretchToFit;
-    public static String WidgetProperties_Symbol;
-    public static String WidgetProperties_Symbols;
-    public static String WidgetProperties_SymbolValue;
-    public static String WidgetProperties_SyncedKnob;
-    public static String WidgetProperties_TagColor;
-    public static String WidgetProperties_TagVisible;
-    public static String WidgetProperties_TargetVisible;
-    public static String WidgetProperties_Text;
-    public static String WidgetProperties_TextColor;
-    public static String WidgetProperties_TextVisible;
-    public static String WidgetProperties_ThumbColor;
-    public static String WidgetProperties_TickLabelColor;
-    public static String WidgetProperties_TickLabelDecimals;
-    public static String WidgetProperties_TickLabelsVisible;
-    public static String WidgetProperties_TickMarkRingVisible;
-    public static String WidgetProperties_Title;
-    public static String WidgetProperties_TitleColor;
-    public static String WidgetProperties_TitleVisible;
-    public static String WidgetProperties_Tooltip;
-    public static String WidgetProperties_Transparent;
-    public static String WidgetProperties_Type;
-    public static String WidgetProperties_Unit;
-    public static String WidgetProperties_UnitFromPV;
-    public static String WidgetProperties_UnsignedData;
-    public static String WidgetProperties_Value;
-    public static String WidgetProperties_ValueColor;
-    public static String WidgetProperties_ValueVisible;
-    public static String WidgetProperties_VerticalAlignment;
-    public static String WidgetProperties_Visible;
-    public static String WidgetProperties_Width;
-    public static String WidgetProperties_WidthPVName;
-    public static String WidgetProperties_WrapCount;
-    public static String WidgetProperties_WrapWords;
-    public static String WidgetProperties_Writable;
-    public static String WidgetProperties_WriteOnRelease;
-    public static String WidgetProperties_X;
-    public static String WidgetProperties_XPVName;
-    public static String WidgetProperties_Y;
-    public static String WidgetProperties_YPVName;
-    public static String WidgetProperties_ZeroDetentEnabled;
-    public static String WidgetPropertyCategory_Behavior;
-    public static String WidgetPropertyCategory_Display;
-    public static String WidgetPropertyCategory_Misc;
-    public static String WidgetPropertyCategory_Position;
-    public static String WidgetPropertyCategory_Runtime;
-    public static String WidgetPropertyCategory_Widget;
-    public static String XYPlot_Description;
-    public static String XYPlot_Name;
+    /** Externalized strings */
+    public static String ActionExecuteCommand,
+                         ActionExecuteScript,
+                         ActionOpenDisplay,
+                         ActionOpenFile,
+                         ActionOpenWebPage,
+                         ActionWritePV,
+                         Actions_N_Fmt,
+                         ActiveTab,
+                         ArrayWidget_Description,
+                         ArrayWidget_Name,
+                         ArrowLength,
+                         Arrows,
+                         Arrows_None,
+                         Arrows_From,
+                         Arrows_To,
+                         Arrows_Both,
+                         AutoSize,
+                         BoolWidget_Mode,
+                         BoolWidget_OffLabel,
+                         BoolWidget_OnLabel,
+                         BoolWidget_Push,
+                         BoolWidget_PushInverted,
+                         BoolWidget_Toggle,
+                         ByteMonitor_BitReverse,
+                         ByteMonitor_NumBits,
+                         ByteMonitor_StartBit,
+                         Bottom,
+                         Checkbox_Label,
+                         Center,
+                         ComboWidget_Item,
+                         ComboWidget_Items,
+                         Confirm_NONE,
+                         Confirm_BOTH,
+                         Confirm_PUSH,
+                         Confirm_RELEASE,
+                         EmbeddedDisplayWidget_GroupName,
+                         FontStyle_Bold,
+                         FontStyle_BoldItalic,
+                         FontStyle_Italic,
+                         FontStyle_Regular,
+                         GroupWidget_Description,
+                         GroupWidget_Name,
+                         Interpolation_Automatic,
+                         Interpolation_Interpolate,
+                         Interpolation_None,
+                         LabelWidget_Text,
+                         Left,
+                         LineStyle,
+                         LineStyle_Solid,
+                         LineStyle_Dash,
+                         LineStyle_DashDot,
+                         LineStyle_DashDotDot,
+                         LineStyle_Dot,
+                         Middle,
+                         PlotWidget_AutoScale,
+                         PlotWidget_Color,
+                         PlotWidget_ErrorPV,
+                         PlotWidget_GridColor,
+                         PlotWidget_LogScale,
+                         PlotWidget_PointSize,
+                         PlotWidget_PointType,
+                         PlotWidget_ScaleFont,
+                         PlotWidget_SelectionValuePV,
+                         PlotWidget_ShowGrid,
+                         PlotWidget_ShowLegend,
+                         PlotWidget_ShowToolbar,
+                         PlotWidget_Title,
+                         PlotWidget_TitleFont,
+                         PlotWidget_Trace,
+                         PlotWidget_Traces,
+                         PlotWidget_TraceType,
+                         PlotWidget_X,
+                         PlotWidget_XAxis,
+                         PlotWidget_XPV,
+                         PlotWidget_Y,
+                         PlotWidget_YAxes,
+                         PlotWidget_YAxis,
+                         PlotWidget_YPV,
+                         PointType_Circles,
+                         PointType_Diamonds,
+                         PointType_None,
+                         PointType_Squares,
+                         PointType_Triangles,
+                         PointType_X,
+                         Resize_Container,
+                         Resize_Content,
+                         Resize_Crop,
+                         Resize_None,
+                         Resize_Stretch,
+                         Right,
+                         Rotation_0,
+                         Rotation_180,
+                         Rotation_270,
+                         Rotation_90,
+                         ScrollBar_ShowValueTip,
+                         ScrollBar_BarLength,
+                         SlideButton_Label,
+                         Spinner_ButtonsOnLeft,
+                         Stripchart_Description,
+                         Stripchart_LabelFont,
+                         Stripchart_Name,
+                         Stripchart_TimeRange,
+                         Style,
+                         Style_Group,
+                         Style_Line,
+                         Style_None,
+                         Style_Title,
+                         Tab_Height,
+                         Tab_Item,
+                         TabsWidget_Description,
+                         TabsWidget_Name,
+                         TabsWidget_TabNameFmt,
+                         Target_Replace,
+                         Target_Standalone,
+                         Target_Tab,
+                         Target_Window,
+                         Top,
+                         TraceType_Bars,
+                         TraceType_Errorbar,
+                         TraceType_Line,
+                         TraceType_LineErrorbar,
+                         TraceType_None,
+                         TraceType_Step,
+                         ValueNoPV,
+                         Vertical,
+                         WebBrowser_showToolbar,
+                         WebBrowser_URL,
+                         WidgetCategory_Controls,
+                         WidgetCategory_Extensions,
+                         WidgetCategory_Graphics,
+                         WidgetCategory_Miscellaneous,
+                         WidgetCategory_Monitors,
+                         WidgetCategory_Plots,
+                         WidgetCategory_Structure,
+                         WidgetProperties_Actions,
+                         WidgetProperties_AngleSize,
+                         WidgetProperties_AngleStart,
+                         WidgetProperties_ArrayIndex,
+                         WidgetProperties_AutoScale,
+                         WidgetProperties_AutoSize,
+                         WidgetProperties_Average,
+                         WidgetProperties_AverageColor,
+                         WidgetProperties_AverageSamples,
+                         WidgetProperties_BackgroundColor,
+                         WidgetProperties_BarBackgroundColor,
+                         WidgetProperties_BarColor,
+                         WidgetProperties_Bit,
+                         WidgetProperties_BorderAlarmSensitive,
+                         WidgetProperties_BorderColor,
+                         WidgetProperties_BorderWidth,
+                         WidgetProperties_CellColors,
+                         WidgetProperties_Class,
+                         WidgetProperties_ColorHiHi,
+                         WidgetProperties_ColorHigh,
+                         WidgetProperties_ColorLoLo,
+                         WidgetProperties_ColorLow,
+                         WidgetProperties_ColorMap,
+                         WidgetProperties_ColorMode,
+                         WidgetProperties_ColorOK,
+                         WidgetProperties_ConfirmDialog,
+                         WidgetProperties_ConfirmMessage,
+                         WidgetProperties_Connected,
+                         WidgetProperties_CornerHeight,
+                         WidgetProperties_CornerWidth,
+                         WidgetProperties_CursorCrosshair,
+                         WidgetProperties_CursorInfo,
+                         WidgetProperties_CursorInfoPV,
+                         WidgetProperties_CursorXPV,
+                         WidgetProperties_CursorYPV,
+                         WidgetProperties_DataHeight,
+                         WidgetProperties_DataWidth,
+                         WidgetProperties_DateColor,
+                         WidgetProperties_DateVisible,
+                         WidgetProperties_Direction,
+                         WidgetProperties_DisconnectOverlayColor,
+                         WidgetProperties_DiscreteHours,
+                         WidgetProperties_DiscreteMinutes,
+                         WidgetProperties_DiscreteSeconds,
+                         WidgetProperties_DragDisabled,
+                         WidgetProperties_Editable,
+                         WidgetProperties_EmptyColor,
+                         WidgetProperties_Enabled,
+                         WidgetProperties_ExtremaVisible,
+                         WidgetProperties_FallbackSymbol,
+                         WidgetProperties_File,
+                         WidgetProperties_Filecomponent,
+                         WidgetProperties_FillColor,
+                         WidgetProperties_FlatBar,
+                         WidgetProperties_Font,
+                         WidgetProperties_ForegroundColor,
+                         WidgetProperties_Format,
+                         WidgetProperties_Gap,
+                         WidgetProperties_GridColor,
+                         WidgetProperties_GridStepX,
+                         WidgetProperties_GridStepY,
+                         WidgetProperties_GridVisible,
+                         WidgetProperties_Height,
+                         WidgetProperties_HeightPVName,
+                         WidgetProperties_HighlightBar,
+                         WidgetProperties_HighlightZones,
+                         WidgetProperties_Horizontal,
+                         WidgetProperties_HorizontalAlignment,
+                         WidgetProperties_HourColor,
+                         WidgetProperties_HourTickMarkColor,
+                         WidgetProperties_HourTickMarkVisible,
+                         WidgetProperties_Increment,
+                         WidgetProperties_InitialIndex,
+                         WidgetProperties_Insets,
+                         WidgetProperties_Interactive,
+                         WidgetProperties_Interpolation,
+                         WidgetProperties_ItemsFromPV,
+                         WidgetProperties_KnobColor,
+                         WidgetProperties_KnobPosition,
+                         WidgetProperties_LabelsFromPV,
+                         WidgetProperties_LcdCrystalEnabled,
+                         WidgetProperties_LcdDesign,
+                         WidgetProperties_LcdFont,
+                         WidgetProperties_LcdVisible,
+                         WidgetProperties_LevelHigh,
+                         WidgetProperties_LevelHiHi,
+                         WidgetProperties_LevelLow,
+                         WidgetProperties_LevelLoLo,
+                         WidgetProperties_LimitsFromPV,
+                         WidgetProperties_LineColor,
+                         WidgetProperties_LineWidth,
+                         WidgetProperties_Locale,
+                         WidgetProperties_Macros,
+                         WidgetProperties_MajorTickSpace,
+                         WidgetProperties_MajorTickStepHint,
+                         WidgetProperties_MajorTickVisible,
+                         WidgetProperties_Maximum,
+                         WidgetProperties_MediumTickVisible,
+                         WidgetProperties_Minimum,
+                         WidgetProperties_MinorTickSpace,
+                         WidgetProperties_MinorTickVisible,
+                         WidgetProperties_MinuteColor,
+                         WidgetProperties_MinuteTickMarkColor,
+                         WidgetProperties_MinuteTickMarkVisible,
+                         WidgetProperties_MultiLine,
+                         WidgetProperties_Name,
+                         WidgetProperties_NeedleColor,
+                         WidgetProperties_OffColor,
+                         WidgetProperties_OffImage,
+                         WidgetProperties_OffLabel,
+                         WidgetProperties_OnColor,
+                         WidgetProperties_OnImage,
+                         WidgetProperties_OnLabel,
+                         WidgetProperties_OnlyExtremaVisible,
+                         WidgetProperties_Opacity,
+                         WidgetProperties_Orientation,
+                         WidgetProperties_Password,
+                         WidgetProperties_Points,
+                         WidgetProperties_Precision,
+                         WidgetProperties_PreserveRatio,
+                         WidgetProperties_PVName,
+                         WidgetProperties_ReadbackPVName,
+                         WidgetProperties_ReadbackPVValue,
+                         WidgetProperties_ResizeBehavior,
+                         WidgetProperties_RingColor,
+                         WidgetProperties_RingWidth,
+                         WidgetProperties_Rotation,
+                         WidgetProperties_Rules,
+                         WidgetProperties_Running,
+                         WidgetProperties_ScaleFactor,
+                         WidgetProperties_ScaleFormat,
+                         WidgetProperties_ScaleDirection,
+                         WidgetProperties_ScaleVisible,
+                         WidgetProperties_SecondColor,
+                         WidgetProperties_SecondVisible,
+                         WidgetProperties_Scripts,
+                         WidgetProperties_Selection,
+                         WidgetProperties_SelectionPV,
+                         WidgetProperties_ShadowsEnabled,
+                         WidgetProperties_ShowHigh,
+                         WidgetProperties_ShowHiHi,
+                         WidgetProperties_ShowIndex,
+                         WidgetProperties_ShowLED,
+                         WidgetProperties_ShowLimits,
+                         WidgetProperties_ShowLow,
+                         WidgetProperties_ShowLoLo,
+                         WidgetProperties_ShowMinorTicks,
+                         WidgetProperties_ShowOK,
+                         WidgetProperties_ShowScale,
+                         WidgetProperties_ShowUnits,
+                         WidgetProperties_ShowValue,
+                         WidgetProperties_Skin,
+                         WidgetProperties_Square,
+                         WidgetProperties_StartFromZero,
+                         WidgetProperties_StretchToFit,
+                         WidgetProperties_Symbol,
+                         WidgetProperties_Symbols,
+                         WidgetProperties_SymbolValue,
+                         WidgetProperties_SyncedKnob,
+                         WidgetProperties_TagColor,
+                         WidgetProperties_TagVisible,
+                         WidgetProperties_TargetVisible,
+                         WidgetProperties_Text,
+                         WidgetProperties_TextColor,
+                         WidgetProperties_TextVisible,
+                         WidgetProperties_ThumbColor,
+                         WidgetProperties_TickLabelColor,
+                         WidgetProperties_TickLabelDecimals,
+                         WidgetProperties_TickLabelsVisible,
+                         WidgetProperties_TickMarkRingVisible,
+                         WidgetProperties_Title,
+                         WidgetProperties_TitleColor,
+                         WidgetProperties_TitleVisible,
+                         WidgetProperties_Tooltip,
+                         WidgetProperties_Transparent,
+                         WidgetProperties_Type,
+                         WidgetProperties_Unit,
+                         WidgetProperties_UnitFromPV,
+                         WidgetProperties_UnsignedData,
+                         WidgetProperties_Value,
+                         WidgetProperties_ValueColor,
+                         WidgetProperties_ValueVisible,
+                         WidgetProperties_VerticalAlignment,
+                         WidgetProperties_Visible,
+                         WidgetProperties_Width,
+                         WidgetProperties_WidthPVName,
+                         WidgetProperties_WrapCount,
+                         WidgetProperties_WrapWords,
+                         WidgetProperties_Writable,
+                         WidgetProperties_WriteOnRelease,
+                         WidgetProperties_X,
+                         WidgetProperties_XPVName,
+                         WidgetProperties_Y,
+                         WidgetProperties_YPVName,
+                         WidgetProperties_ZeroDetentEnabled,
+                         WidgetPropertyCategory_Behavior,
+                         WidgetPropertyCategory_Display,
+                         WidgetPropertyCategory_Misc,
+                         WidgetPropertyCategory_Position,
+                         WidgetPropertyCategory_Runtime,
+                         WidgetPropertyCategory_Widget,
+                         XYPlot_Description,
+                         XYPlot_Name;
 
     static
     {

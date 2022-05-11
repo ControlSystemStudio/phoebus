@@ -119,7 +119,7 @@ public class WidgetColorService
     }
 
     /** Resolve a named color
-     *  @param name Named color
+     *  @param color Predefined color
      *  @return Color as provided unless it was redefined
      */
     public static NamedWidgetColor resolve(final NamedWidgetColor color)

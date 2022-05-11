@@ -110,6 +110,7 @@ public class LabelWidget extends MacroWidget
     private volatile WidgetProperty<Boolean> auto_size;
     private volatile WidgetProperty<Boolean> wrap_words;
 
+    /** Constructor */
     public LabelWidget()
     {
         super(WIDGET_DESCRIPTOR.getType());
