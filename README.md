@@ -129,8 +129,9 @@ To run the Phoebus application:
 
 * Run | Edit Configurations...
 * Select + | Application
-* Search for main class and type Launcher
-* Use classpath of module: select product
+* Module: Your JRE 11
+* Classpath `-cp`: select `product` from drop-down
+* Main class: `org.phoebus.product.Launcher`
 * Set the name to Phoebus
 * Click OK
 * In the top right of the IDE, click the green play button
