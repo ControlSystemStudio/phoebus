@@ -145,6 +145,7 @@ public class BoolButtonWidget extends WritablePVWidget
         newFilenamePropertyDescriptor(WidgetPropertyCategory.DISPLAY, "on_image", Messages.WidgetProperties_OnImage);
     private static final WidgetPropertyDescriptor<Boolean> propShowLED =
         newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "show_led", Messages.WidgetProperties_ShowLED);
+    /** 'mode' */
     public static final WidgetPropertyDescriptor<Mode> propMode =
         new WidgetPropertyDescriptor<>(WidgetPropertyCategory.BEHAVIOR, "mode", Messages.BoolWidget_Mode)
     {

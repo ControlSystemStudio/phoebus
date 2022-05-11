@@ -50,6 +50,7 @@ import org.w3c.dom.Element;
 @SuppressWarnings("nls")
 public class MeterWidget extends PVWidget
 {
+    /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("meter", WidgetCategory.MONITOR,
             "Meter",

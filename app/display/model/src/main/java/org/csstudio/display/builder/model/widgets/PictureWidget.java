@@ -35,6 +35,7 @@ import org.w3c.dom.Text;
 @SuppressWarnings("nls")
 public class PictureWidget extends MacroWidget
 {
+    /** Default picture */
     public final static String default_pic = "examples:/icons/default_picture.png";
 
     /** Widget descriptor */
@@ -98,6 +99,7 @@ public class PictureWidget extends MacroWidget
     public static final WidgetPropertyDescriptor<Double> propRotation =
             newDoublePropertyDescriptor(WidgetPropertyCategory.DISPLAY, "rotation", Messages.WidgetProperties_Rotation);
 
+    /** 'stretch_image' property: Stretch to fit widget size? */
     public static final WidgetPropertyDescriptor<Boolean> propStretch =
             newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "stretch_image", Messages.WidgetProperties_StretchToFit);
 
@@ -113,6 +115,7 @@ public class PictureWidget extends MacroWidget
     private volatile WidgetProperty<Double> rotation;
     private volatile WidgetProperty<Double> opacity;
 
+    /** Constructor */
     public PictureWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 150, 100);

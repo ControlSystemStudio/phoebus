@@ -73,7 +73,7 @@ public class RadioWidget extends WritablePVWidget
                                 "item",
                                 Messages.ComboWidget_Item).createProperty(widget, Messages.ComboWidget_Item + " " + (index + 1)));
 
-
+    /** Constructor */
     public RadioWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 100, 60);

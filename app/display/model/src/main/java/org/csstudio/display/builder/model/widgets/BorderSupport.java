@@ -38,9 +38,9 @@ public class BorderSupport
     }
 
     /** Helper for custom {@link WidgetConfigurator} to adjust legacy border
-     *  @param widget
-     *  @param xml
-     *  @throws Exception
+     *  @param widget Widget
+     *  @param xml XML source
+     *  @throws Exception on error
      */
     public static void handleLegacyBorder(final Widget widget, final Element xml) throws Exception
     {
