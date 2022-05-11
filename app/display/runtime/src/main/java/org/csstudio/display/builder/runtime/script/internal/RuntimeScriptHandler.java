@@ -63,7 +63,7 @@ public class RuntimeScriptHandler implements RuntimePVListener
      *  can be invoked by other code.
      *
      *  @param widget Widget on which the script is invoked
-     *  @param macros
+     *  @param macros Macros
      *  @param script_info Script to compile
      *  @return Compiled script
      *  @throws Exception on error

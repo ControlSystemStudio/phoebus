@@ -125,6 +125,7 @@ public class RuntimeUtil
 
     /** @param widget Widget
      *  @return {@link WidgetRuntime} of the widget or <code>null</code>
+     *  @param <MW> Widget type
      */
     public static <MW extends Widget> WidgetRuntime<MW> getRuntime(final MW widget)
     {
@@ -171,7 +172,7 @@ public class RuntimeUtil
      *
      *  <p>Also starts/stops added/removed child widgets
      *
-     * @param children
+     * @param children Children of widget
      */
     public static void startChildRuntimes(final ChildrenProperty children)
     {
@@ -184,7 +185,7 @@ public class RuntimeUtil
      *
      *  <p>Also un-subscribes from child widget additions/removals.
      *
-     * @param children
+     * @param children Children of widget
      */
     public static void stopChildRuntimes(final ChildrenProperty children)
     {

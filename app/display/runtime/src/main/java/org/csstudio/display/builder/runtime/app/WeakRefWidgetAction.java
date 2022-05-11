@@ -26,12 +26,17 @@ public class WeakRefWidgetAction extends MenuItem
 {
     protected  final WeakReference<Widget> weak_widget;
 
+    /** @param label Menu label
+     *  @param icon Icon
+     *  @param the_widget Widget on which context menu was invoked
+     */
     public WeakRefWidgetAction(final String label, final ImageView icon, final Widget the_widget)
     {
         super(label, icon);
         weak_widget = new WeakReference<>(the_widget);
     }
 
+    /** @return Widget */
     public Widget getWidget()
     {
         final Widget widget = weak_widget.get();

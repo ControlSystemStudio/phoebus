@@ -57,6 +57,7 @@ public class ScriptSupport
     private final JythonScriptSupport jython;
     private final JavaScriptSupport javascript;
 
+    /** @throws Exception on error */
     public ScriptSupport() throws Exception
     {
         python = new PythonScriptSupport(this);
@@ -66,7 +67,7 @@ public class ScriptSupport
 
     /** Prepare script file for submission
      *
-     *  @param path Path to the script. May be <code>null</null>.
+     *  @param path Path to the script. May be <code>null</code>.
      *              Added to the script engine's search path
      *              if not null to allow access to other scripts
      *              in the same location.

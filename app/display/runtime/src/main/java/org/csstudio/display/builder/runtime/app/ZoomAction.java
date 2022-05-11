@@ -19,6 +19,7 @@ public class ZoomAction extends ComboBox<String>
 {
     private boolean updating = false;
 
+    /** @param instance {@link DisplayRuntimeInstance} */
     public ZoomAction(final DisplayRuntimeInstance instance)
     {
         setEditable(true);

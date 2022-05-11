@@ -22,6 +22,9 @@ public class PrintWidgetAction extends RuntimeAction
 {
     private final Widget widget;
 
+    /** @param widget Widget to print
+     *  @param title Title of action
+     */
     public PrintWidgetAction(final Widget widget, final String title)
     {
         super(title, "/icons/print_edit.png");

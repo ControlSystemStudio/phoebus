@@ -51,6 +51,7 @@ public class WidgetInfoAction extends WeakRefWidgetAction
         return "\"" + widget.getName() + "\" (" + widget.getType() + ")";
     }
 
+    /** @param the_widget Widget for which to show info */
     public WidgetInfoAction(final Widget the_widget)
     {
         //super("'" + the_widget.getName() + "' Information", new ImageView(icon), the_widget);

@@ -41,16 +41,16 @@ public class DisplayInfo
      *
      *  <p>Full example:
      *  <code>
-     *  file://path/to/file.bob?MACRO1=value1&MACRO2=another%20value
+     *  file://path/to/file.bob?MACRO1=value1&amp;MACRO2=another%20value
      *  </code>
 
      *  <p>Path of the URI is the file or http link to
      *  the display.
      *
      *  <p>Optional query parameters, added via '?' to the path,
-     *  and then separated by '&', provide macros.
+     *  and then separated by '&amp;', provide macros.
      *
-     *  @param uri
+     *  @param uri URI with display path and optional macros
      *  @return {@link DisplayInfo}
      */
     public static DisplayInfo forURI(final URI uri)

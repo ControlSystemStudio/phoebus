@@ -24,7 +24,9 @@ import org.phoebus.ui.docking.DockStage;
 @SuppressWarnings("nls")
 public class DisplayRuntimeApplication implements AppResourceDescriptor
 {
+    /** Application ID */
     public static final String NAME = "display_runtime";
+    /** Application name for end user */
     public static final String DISPLAY_NAME = "Display Runtime";
 
     @Override
