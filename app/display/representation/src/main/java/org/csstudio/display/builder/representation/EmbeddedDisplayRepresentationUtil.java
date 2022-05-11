@@ -44,17 +44,22 @@ public class EmbeddedDisplayRepresentationUtil
     {
         private final String display_file, group_name;
 
+        /** @param file Display file path
+         *  @param group Optional group (or "")
+         */
         public DisplayAndGroup(final String file, final String group)
         {
             display_file = file;
             group_name = group;
         }
 
+        /** @return Display file path */
         public String getDisplayFile()
         {
             return display_file;
         }
 
+        /** @return Group within that display or "" to load complete display */
         public String getGroupName()
         {
             return group_name;
@@ -70,8 +75,8 @@ public class EmbeddedDisplayRepresentationUtil
     }
 
     /** Load display model, optionally trimmed to group
-     *  @param display_file
-     *  @param group_name
+     *  @param model_widget Parent widget
+     *  @param display_and_group Display (and optional group) to load
      *  @return {@link DisplayModel}
      */
     public static DisplayModel loadDisplayModel(final VisibleWidget model_widget, final DisplayAndGroup display_and_group)
@@ -221,9 +226,10 @@ public class EmbeddedDisplayRepresentationUtil
      *  Using a timeout, then moving on without waiting for the submitted UI thread,
      *  would resolve that deadlock.
      *
-     *  @param completion
-     *  @param message
-     *  @throws Exception
+     *  @param model_widget Parent widget
+     *  @param completion Future for loading embedded content
+     *  @param message Error message
+     *  @throws Exception on error
      */
     public static void checkCompletion(final Widget model_widget, final Future<Object> completion, final String message) throws Exception
     {
