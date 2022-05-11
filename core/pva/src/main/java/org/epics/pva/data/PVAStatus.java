@@ -16,20 +16,33 @@ import java.util.Objects;
 @SuppressWarnings("nls")
 public class PVAStatus
 {
+    /** "OK" status */
     public static final PVAStatus StatusOK = new PVAStatus(Type.OK, "", "");
 
+    /** Type or severity of status message */
     public enum Type
     {
+        /** OK */
         OK,
+        /** Warning */
         WARNING,
+        /** Error */
         ERROR,
+        /** Fatal */
         FATAL;
     }
 
+    /** Type */
     public final Type type;
+    /** Message */
     public final String message;
+    /** Stack trace */
     public final String stacktrace;
 
+    /** @param type Type
+     *  @param message Message
+     *  @param stacktrace Stack trace
+     */
     public PVAStatus(final Type type, final String message, final String stacktrace)
     {
         this.type = type;
@@ -43,6 +56,7 @@ public class PVAStatus
         return type == Type.OK  ||  type == Type.WARNING;
     }
 
+    /** @param buffer Target buffer */
     public void encode(final ByteBuffer buffer)
     {
         // When OK and no message, assume there's also no stacktrace
@@ -56,6 +70,9 @@ public class PVAStatus
         }
     }
 
+    /** @param buffer Source buffer
+     *  @return Decoded status
+     */
     public static PVAStatus decode(final ByteBuffer buffer)
     {
         final byte b = buffer.get();

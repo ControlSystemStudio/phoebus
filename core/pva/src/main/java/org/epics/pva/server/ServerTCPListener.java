@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -45,10 +45,7 @@ class ServerTCPListener
     private final ServerSocketChannel server_socket;
 
     /** Server's TCP address on which clients can connect */
-    final InetAddress response_address;
-
-    /** Server's TCP port on which clients can connect */
-    final int response_port;
+    private final InetSocketAddress local_address;
 
     private volatile boolean running = true;
     private volatile Thread listen_thread;
@@ -59,15 +56,19 @@ class ServerTCPListener
 
         server_socket = createSocket();
 
-        final InetSocketAddress local_address = (InetSocketAddress) server_socket.getLocalAddress();
-        response_address = local_address.getAddress();
-        response_port = local_address.getPort();
+        local_address = (InetSocketAddress) server_socket.getLocalAddress();
         logger.log(Level.CONFIG, "Listening on TCP " + local_address);
 
         // Start accepting connections
-        listen_thread = new Thread(this::listen, "TCP-listener " + response_address + ":" + response_port);
+        listen_thread = new Thread(this::listen, "TCP-listener " + local_address.getAddress() + ":" + local_address.getPort());
         listen_thread.setDaemon(true);
         listen_thread.start();
+    }
+
+    /** @return Server's TCP address on which clients can connect */
+    public InetSocketAddress getResponseAddress()
+    {
+        return local_address;
     }
 
     // How to check if the desired TCP server port is already in use?

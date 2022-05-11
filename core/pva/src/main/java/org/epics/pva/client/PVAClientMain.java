@@ -209,6 +209,9 @@ public class PVAClientMain
         }
     }
 
+    /** @param args Command line args
+     *  @throws Exception on error
+     */
     public static void main(final String[] args) throws Exception
     {
         LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/pva_logging.properties"));

@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.phoebus</groupId>
   <artifactId>parent</artifactId>
-  <version>4.6.7-SNAPSHOT</version>
+  <version>4.6.9-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>phoebus (parent)</name>
   <description>A framework and set of tools to monitor and operate large scale control systems, such as the ones in the accelerator community.</description>
@@ -16,9 +16,32 @@
   </licenses>
 
   <scm>
+    <connection>scm:git:git://github.com/ControlSystemStudio/phoebus.git</connection>
     <developerConnection>scm:git:https://github.com/ControlSystemStudio/phoebus</developerConnection>
+    <url>https://github.com/ControlSystemStudio/phoebus/tree/master</url>
     <tag>HEAD</tag>
   </scm>
+
+  <developers>
+    <developer>
+      <name>Kay Kasemir</name>
+      <email>kasemirk@ornl.gov</email>
+      <organization>Oak Ridge National Lab</organization>
+      <organizationUrl>https://github.com/ornl-epics</organizationUrl>
+    </developer>
+    <developer>
+      <name>Kunal Shroff</name>
+      <email>kunalshroff9@gmail.com</email>
+      <organization>Brookhaven National Lab</organization>
+      <organizationUrl>https://github.com/shroffk</organizationUrl>
+    </developer>
+    <developer>
+      <name>Georg Weiss</name>
+      <email>georg.weiss@ess.eu</email>
+      <organization>European Spallation Source</organization>
+      <organizationUrl>https://github.com/georgweiss</organizationUrl>
+    </developer>
+  </developers>
 
   <distributionManagement>
     <!-- To be able to deploy, set login/passwd in your m2 settings.xml, <servers> section
@@ -95,11 +118,6 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
-        <version>2.5.3</version>
       </plugin>
     </plugins>
   </build>

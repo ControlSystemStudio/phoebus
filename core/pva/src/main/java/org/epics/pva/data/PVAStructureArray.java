@@ -24,6 +24,12 @@ import java.util.logging.Level;
 @SuppressWarnings("nls")
 public class PVAStructureArray extends PVADataWithID implements PVAArray
 {
+    /** @param types PVATypeRegistry
+     *  @param name Name
+     *  @param buffer Source buffer
+     *  @return Decoded structure array
+     *  @throws Exception on error
+     */
     public static PVAStructureArray decodeType(final PVATypeRegistry types, final String name, final ByteBuffer buffer) throws Exception
     {
         final PVAData element_type = types.decodeType("", buffer);
@@ -43,6 +49,10 @@ public class PVAStructureArray extends PVADataWithID implements PVAArray
      */
     private volatile PVAStructure[] elements;
 
+    /** @param name Name
+     *  @param element_type Type of array elements
+     *  @param elements Initial elements
+     */
     public PVAStructureArray(final String name, final PVAStructure element_type, final PVAStructure... elements)
     {
         super(name);

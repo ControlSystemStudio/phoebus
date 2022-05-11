@@ -17,6 +17,7 @@ import java.util.Arrays;
 @SuppressWarnings("nls")
 public class Guid
 {
+    /** Empty Guid */
     public static final Guid EMPTY = new Guid(new byte[]{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
 
     // Random number generator in holder to defer initialization

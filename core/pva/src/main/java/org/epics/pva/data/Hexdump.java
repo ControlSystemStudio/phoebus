@@ -27,6 +27,9 @@ public class Hexdump
 {
     private static final int ELEMENTS_PER_LINE = 16;
 
+    /** @param buffer Bytes
+     *  @return Hex representation
+     */
     public static String toHex(final ByteBuffer buffer)
     {
         final StringBuilder out = new StringBuilder();
@@ -34,6 +37,9 @@ public class Hexdump
         return out.toString();
     }
 
+    /** @param buffer Bytes
+     *  @param out Where hex representation is added
+     */
     public static void hex(final ByteBuffer buffer, final StringBuilder out)
     {
         final int start = buffer.position();
@@ -59,11 +65,17 @@ public class Hexdump
         buffer.rewind();
     }
 
+    /** @param bytes Bytes
+     *  @return Hex representation
+     */
     public static String toAscii(final byte... bytes)
     {
         return toAscii(ByteBuffer.wrap(bytes)); // byte order does not matter, only byte-wise access
     }
 
+    /** @param buffer Bytes
+     *  @return Hex representation
+     */
     public static String toAscii(final ByteBuffer buffer)
     {
         final StringBuilder out = new StringBuilder();
@@ -71,6 +83,9 @@ public class Hexdump
         return out.toString();
     }
 
+    /** @param buffer Bytes
+     *  @param out Where hex representation is added
+     */
     public static void ascii(final ByteBuffer buffer, final StringBuilder out)
     {
         final int start = buffer.position();
@@ -95,11 +110,17 @@ public class Hexdump
         buffer.rewind();
     }
 
+    /** @param bytes Bytes
+     *  @return Hex representation
+     */
     public static String toHexdump(final byte... bytes)
     {
         return toHexdump(ByteBuffer.wrap(bytes)); // byte order does not matter, only byte-wise access
     }
 
+    /** @param buffer Bytes
+     *  @return Hex representation
+     */
     public static String toHexdump(final ByteBuffer buffer)
     {
         final StringBuilder out = new StringBuilder();
@@ -107,6 +128,9 @@ public class Hexdump
         return out.toString();
     }
 
+    /** @param buffer Bytes
+     *  @param out Where hex representation is added
+     */
     public static void hexdump(final ByteBuffer buffer, final StringBuilder out)
     {
         final int start = buffer.position();
@@ -165,6 +189,9 @@ public class Hexdump
         return buf.toString();
     }
 
+    /** @param buffer Bytes
+     *  @return Hex representation is added
+     */
     public static String toCompactHexdump(final ByteBuffer buffer)
     {
         String string = toHexdump(buffer);

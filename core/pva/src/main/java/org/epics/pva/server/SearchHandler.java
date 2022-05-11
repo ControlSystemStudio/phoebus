@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2020-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,6 +8,7 @@
 package org.epics.pva.server;
 
 import java.net.InetSocketAddress;
+import java.util.function.Consumer;
 
 /** Invoked when client sends a generic 'list servers'
  *  as well as a specific PV name search
@@ -15,13 +16,25 @@ import java.net.InetSocketAddress;
 @FunctionalInterface
 public interface SearchHandler
 {
-    /** @param seq Client's search sequence
+    /** Server invokes this for every received name search.
+     *
+     *  <p>Implementation can check the name and either
+     *  ignore the search, or invoke the reply callback
+     *  with the TCP address of the server that provides
+     *  the requested PV.
+     *
+     *  <p>Will also be invoked for "List all PVs" searches
+     *  (name = null), but can only handle searches with
+     *  actual names.
+     *
+     *  @param seq Client's search sequence
      *  @param cid Client channel ID or -1
      *  @param name Channel name or <code>null</code>
-     *  @param addr Client's address and TCP port
+     *  @param client Client's address
+     *  @param reply_sender Callback for TCP address of server
      *  @return <code>true</code> if the search request was handled,
      *          i.e. the name was recognized and the request does not need
      *          to be forwarded or passed to anybody else
      */
-    public boolean handleSearchRequest(int seq, int cid, String name, InetSocketAddress addr);
+    public boolean handleSearchRequest(int seq, int cid, String name, InetSocketAddress client, Consumer<InetSocketAddress> reply_sender);
 }
