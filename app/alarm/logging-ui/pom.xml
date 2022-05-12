@@ -3,14 +3,14 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app-alarm</artifactId>
-    <version>4.6.9-SNAPSHOT</version>
+    <version>4.6.9</version>
   </parent>
   <artifactId>app-alarm-logging-ui</artifactId>
   <dependencies>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-framework</artifactId>
-      <version>4.6.9-SNAPSHOT</version>
+      <version>4.6.9</version>
     </dependency>
     <dependency>
       <groupId>org.elasticsearch.client</groupId>
@@ -25,28 +25,32 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-ui</artifactId>
-      <version>4.6.9-SNAPSHOT</version>
+      <version>4.6.9</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-types</artifactId>
-      <version>4.6.9-SNAPSHOT</version>
+      <version>4.6.9</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-util</artifactId>
-      <version>4.6.9-SNAPSHOT</version>
+      <version>4.6.9</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-alarm-model</artifactId>
-      <version>4.6.9-SNAPSHOT</version>
+      <version>4.6.9</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-alarm-ui</artifactId>
-      <version>4.6.9-SNAPSHOT</version>
+      <version>4.6.9</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>
+
+  <scm>
+    <tag>v4.6.9</tag>
+  </scm>
 </project>
