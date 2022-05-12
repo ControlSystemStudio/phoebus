@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -84,7 +85,7 @@ public class SearchController {
         searchRequest.source(sourceBuilder);
         List<AlarmStateMessage> result;
         try {
-            result = Arrays.asList(client.search(searchRequest).getHits().getHits()).stream()
+            result = Arrays.asList(client.search(searchRequest, RequestOptions.DEFAULT).getHits().getHits()).stream()
                     .map(new Function<SearchHit, AlarmStateMessage>() {
                         @Override
                         public AlarmStateMessage apply(SearchHit hit) {
