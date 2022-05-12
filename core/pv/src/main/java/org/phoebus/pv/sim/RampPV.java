@@ -17,6 +17,11 @@ import org.phoebus.pv.PV;
 @SuppressWarnings("nls")
 public class RampPV extends SimulatedDoublePV
 {
+    /** @param name Name
+     *  @param parameters Parameters
+     *  @return PV
+     *  @throws Exception on error
+     */
     public static PV forParameters(final String name, final List<Double> parameters) throws Exception
     {
         if (parameters.size() <= 0)
@@ -31,6 +36,12 @@ public class RampPV extends SimulatedDoublePV
     private final double min, max, step;
     private double value = 0;
 
+    /** @param name Name
+     *  @param min Minimum value
+     *  @param max Maximum value
+     *  @param step Increment per update
+     *  @param update_seconds Seconds between updates
+     */
     public RampPV(final String name, final double min, final double max, final double step, final double update_seconds)
     {
         super(name);

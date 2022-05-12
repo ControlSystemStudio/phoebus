@@ -17,6 +17,7 @@ import org.phoebus.framework.preferences.Preference;
 @SuppressWarnings("nls")
 public class MQTT_Preferences
 {
+    /** Broker URL */
     @Preference public static String mqtt_broker;
 
     static

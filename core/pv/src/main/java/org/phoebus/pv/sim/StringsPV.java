@@ -17,6 +17,11 @@ import org.phoebus.pv.PV;
 @SuppressWarnings("nls")
 public class StringsPV extends SimulatedStringPV
 {
+    /** @param name Name
+     *  @param parameters Parameters
+     *  @return PV
+     *  @throws Exception on error
+     */
     public static PV forParameters(final String name, final List<Double> parameters) throws Exception
     {
         if (parameters.size() <= 0)
@@ -31,6 +36,10 @@ public class StringsPV extends SimulatedStringPV
     private final StringBuffer buffer = new StringBuffer();
     private final int max_len;
 
+    /** @param name Name
+     *  @param max_len Max length
+     *  @param update_seconds Seconds between updates
+     */
     public StringsPV(final String name, final int max_len, final double update_seconds)
     {
         super(name);

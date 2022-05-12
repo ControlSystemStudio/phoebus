@@ -196,7 +196,7 @@ public class ValueHelper
     }
 
     /**
-     * 
+     *
      * @param items Items from <code>splitInitialItems</code>
      * @return Boolean list of all items
      */
@@ -316,7 +316,7 @@ public class ValueHelper
      * @param old_value Old value of PV, will be used to inspect e.g. enum labels
      * @param change_from_double Adapt to a new 'type' if 'new_value' doesn't match?
      * @return Adapted value
-     * @throws Exception
+     * @throws Exception on error
      */
     public static VType adapt(final Object new_value, Class<? extends VType> type, final VType old_value,
                               final boolean change_from_double) throws Exception
