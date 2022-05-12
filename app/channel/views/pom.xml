@@ -3,43 +3,39 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app-channel</artifactId>
-    <version>4.6.9</version>
+    <version>4.6.10-SNAPSHOT</version>
   </parent>
   <artifactId>app-channel-views</artifactId>
   <dependencies>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-channel-channelfinder</artifactId>
-      <version>4.6.9</version>
+      <version>4.6.10-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-channel-utility</artifactId>
-      <version>4.6.9</version>
+      <version>4.6.10-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-framework</artifactId>
-      <version>4.6.9</version>
+      <version>4.6.10-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-ui</artifactId>
-      <version>4.6.9</version>
+      <version>4.6.10-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-pv</artifactId>
-      <version>4.6.9</version>
+      <version>4.6.10-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-types</artifactId>
-      <version>4.6.9</version>
+      <version>4.6.10-SNAPSHOT</version>
     </dependency>
   </dependencies>
-
-  <scm>
-    <tag>v4.6.9</tag>
-  </scm>
 </project>

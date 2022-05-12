@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app-scan</artifactId>
-    <version>4.6.9</version>
+    <version>4.6.10-SNAPSHOT</version>
   </parent>
   <artifactId>app-scan-ui</artifactId>
   <dependencies>
@@ -22,31 +22,27 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-framework</artifactId>
-      <version>4.6.9</version>
+      <version>4.6.10-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-ui</artifactId>
-      <version>4.6.9</version>
+      <version>4.6.10-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-rtplot</artifactId>
-      <version>4.6.9</version>
+      <version>4.6.10-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-scan-model</artifactId>
-      <version>4.6.9</version>
+      <version>4.6.10-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-scan-client</artifactId>
-      <version>4.6.9</version>
+      <version>4.6.10-SNAPSHOT</version>
     </dependency>
   </dependencies>
-
-  <scm>
-    <tag>v4.6.9</tag>
-  </scm>
 </project>
