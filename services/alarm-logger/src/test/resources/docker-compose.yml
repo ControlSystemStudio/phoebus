@@ -2,7 +2,7 @@ version: '3'
 services:
 
   elastic:
-    image: elasticsearch:7.17.3
+    image: elasticsearch:8.2.0
     environment:
       cluster.name: elasticsearch
       bootstrap.memory_lock: "true"

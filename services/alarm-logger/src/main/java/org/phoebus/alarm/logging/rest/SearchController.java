@@ -14,6 +14,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -55,6 +57,19 @@ public class SearchController {
 
     @RequestMapping(value = "/search/alarm", method = RequestMethod.GET)
     public List<AlarmStateMessage> search(@RequestParam Map<String, String> allRequestParams) {
+        ElasticsearchClient client = ElasticClientHelper.getInstance().getClient();
+        SearchResponse<AlarmStateMessage> response;
+        allRequestParams.entrySet().forEach( pair -> client.search(s->s
+                        .index("*")
+                        .query(q->q
+                                .wildcard(t->t
+                                        .field(pair.getKey())
+                                        .value(pair.getValue())
+                                )
+                        ),
+                        AlarmStateMessage.class
+            )
+        );
         BoolQueryBuilder query = QueryBuilders.boolQuery();
         allRequestParams.forEach((k, v) -> {
             query.must(QueryBuilders.wildcardQuery(k, v));
@@ -75,7 +90,7 @@ public class SearchController {
     }
 
     private List<AlarmStateMessage> esAlarmSearch(QueryBuilder query) {
-        RestHighLevelClient client = ElasticClientHelper.getInstance().getClient();
+        ElasticsearchClient client = ElasticClientHelper.getInstance().getClient();
 
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         sourceBuilder = sourceBuilder.query(query);

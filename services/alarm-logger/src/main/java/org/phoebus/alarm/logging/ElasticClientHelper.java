@@ -3,23 +3,20 @@
  */
 package org.phoebus.alarm.logging;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.Refresh;
+import co.elastic.clients.elasticsearch._types.Result;
+import co.elastic.clients.elasticsearch.core.BulkRequest;
+import co.elastic.clients.elasticsearch.core.BulkResponse;
+import co.elastic.clients.elasticsearch.core.IndexResponse;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
+import co.elastic.clients.elasticsearch.indices.*;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpHost;
-import org.elasticsearch.action.DocWriteResponse.Result;
-import org.elasticsearch.action.admin.indices.get.GetIndexRequest;
-import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateRequest;
-import org.elasticsearch.action.bulk.BulkRequest;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.index.IndexResponse;
-import org.elasticsearch.action.support.WriteRequest;
-import org.elasticsearch.action.support.master.AcknowledgedResponse;
-import org.elasticsearch.client.RequestOptions;
+import co.elastic.clients.elasticsearch.core.IndexRequest;
 import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.indices.IndexTemplatesExistRequest;
 import org.elasticsearch.client.sniff.Sniffer;
-import org.elasticsearch.common.xcontent.XContentFactory;
 import org.phoebus.applications.alarm.messages.AlarmCommandMessage;
 import org.phoebus.applications.alarm.messages.AlarmConfigMessage;
 import org.phoebus.applications.alarm.messages.AlarmStateMessage;
@@ -35,6 +32,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
+import java.util.AbstractMap.SimpleImmutableEntry;
 
 import static org.phoebus.alarm.logging.AlarmLoggingService.logger;
 
@@ -44,18 +42,23 @@ import static org.phoebus.alarm.logging.AlarmLoggingService.logger;
  */
 public class ElasticClientHelper {
     Properties props = PropertiesHelper.getProperties();
-    private static RestHighLevelClient client;
+
+    private static RestClient restClient;
+
+    private static RestClientTransport transport;
+
+    private static ElasticsearchClient client;
     private static ElasticClientHelper instance;
     private static Sniffer sniffer;
 
-    private static AtomicBoolean esInitialized = new AtomicBoolean();
+    private static final AtomicBoolean esInitialized = new AtomicBoolean();
 
-    private static ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(4);
+    private static final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(4);
     ScheduledFuture<?> job;
     // State messages to be indexed
-    BlockingQueue<IndexRequest> stateMessagedQueue = new LinkedBlockingDeque<>();
+    BlockingQueue<SimpleImmutableEntry<String,AlarmStateMessage>> stateMessagedQueue = new LinkedBlockingDeque<>();
     // State messages to be indexed
-    BlockingQueue<IndexRequest> configMessagedQueue = new LinkedBlockingDeque<>();
+    BlockingQueue<SimpleImmutableEntry<String,AlarmConfigMessage>> configMessagedQueue = new LinkedBlockingDeque<>();
 
     private ElasticClientHelper() {
         try {
@@ -63,17 +66,21 @@ public class ElasticClientHelper {
                 logger.info("Shutting down the ElasticClientHelper.");
                 if (client != null) {
                     try {
-                        sniffer.close();
-                        client.close();
-                    } catch (IOException e) {
-                        logger.log(Level.WARNING, "Failed to close the elastic rest client", e);
+                        client.shutdown();
+                        transport.close();
+                        restClient.close();
+                    }
+                    catch (IOException ex){
+                        logger.log(Level.WARNING, "Failed to close the elastic client.", ex);
                     }
                 }
             }));
-            client = new RestHighLevelClient(
-                    RestClient.builder(new HttpHost(props.getProperty("es_host"),Integer.parseInt(props.getProperty("es_port")))));
+            restClient = RestClient.builder(
+                    new HttpHost(new HttpHost(props.getProperty("es_host"),Integer.parseInt(props.getProperty("es_port"))))).build();
+            transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
+            client = new ElasticsearchClient(transport);
             if (props.getProperty("es_sniff").equals("true")) {
-                sniffer = Sniffer.builder(client.getLowLevelClient()).build();
+                sniffer = Sniffer.builder(restClient).build();
                 logger.log(Level.INFO, "ES Sniff feature is enabled");
             }
             // Initialize the elastic templates
@@ -86,9 +93,11 @@ public class ElasticClientHelper {
             try {
                 job.cancel(false);
                 sniffer.close();
-                client.close();
+                transport.close();
+                restClient.close();
+                client.shutdown();
             } catch (IOException ex) {
-                logger.log(Level.WARNING, "Failed to close the elastic rest client", ex);
+                logger.log(Level.WARNING, "Failed to close the elastic client", ex);
             }
         }
 
@@ -101,7 +110,7 @@ public class ElasticClientHelper {
         return instance;
     }
 
-    public RestHighLevelClient getClient() {
+    public ElasticsearchClient getClient() {
         return client;
     }
 
@@ -113,10 +122,11 @@ public class ElasticClientHelper {
      * @return true if index exists
      */
     public boolean indexExists(String indexName) {
-        GetIndexRequest request = new GetIndexRequest();
-        request.indices(indexName);
+        ExistsRequest xRequest = new ExistsRequest.Builder()
+                .index(indexName.toLowerCase())
+                .build();
         try {
-            return client.indices().exists(request, RequestOptions.DEFAULT);
+            return client.indices().exists(xRequest).value();
         } catch (IOException e) {
             logger.log(Level.WARNING, "Failed to query elastic", e);
             return false;
@@ -124,10 +134,12 @@ public class ElasticClientHelper {
     }
 
     public void indexAlarmStateDocument(String indexName, AlarmStateMessage alarmStateMessage) {
-        IndexRequest indexRequest = new IndexRequest(indexName.toLowerCase(), "alarm");
+        IndexRequest<AlarmStateMessage> indexRequest = new IndexRequest.Builder<AlarmStateMessage>()
+                .index(indexName.toLowerCase())
+                .document(alarmStateMessage)
+                .build();
         try {
-            indexRequest.source(alarmStateMessage.sourceMap());
-            IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
+            IndexResponse idxResponse = client.index(indexRequest);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "failed to log message " + alarmStateMessage + " to index " + indexName, e);
         }
@@ -136,20 +148,20 @@ public class ElasticClientHelper {
 
     public void indexAlarmStateDocuments(String indexName, AlarmStateMessage alarmStateMessage) {
         try {
-            IndexRequest indexRequest = new IndexRequest(indexName.toLowerCase(), "alarm");
-            indexRequest.source(alarmStateMessage.sourceMap());
-            stateMessagedQueue.put(indexRequest);
+            stateMessagedQueue.put(new SimpleImmutableEntry<>(indexName,alarmStateMessage));
         } catch (InterruptedException e) {
             logger.log(Level.SEVERE, "failed to log message " + alarmStateMessage + " to index " + indexName, e);
         }
     }
 
     public boolean indexAlarmCmdDocument(String indexName, AlarmCommandMessage alarmCommandMessage) {
-        IndexRequest indexRequest = new IndexRequest(indexName.toLowerCase(), "alarm_cmd");
+        IndexRequest<AlarmCommandMessage> indexRequest = new IndexRequest.Builder<AlarmCommandMessage>()
+                .index(indexName.toLowerCase())
+                .document(alarmCommandMessage)
+                .build();
         try {
-            indexRequest.source(alarmCommandMessage.sourceMap());
-            IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
-            return indexResponse.getResult().equals(Result.CREATED);
+            IndexResponse indexResponse = client.index(indexRequest);
+            return indexResponse.result().equals(Result.Created);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "failed to log message " + alarmCommandMessage + " to index " + indexName, e);
             return false;
@@ -157,11 +169,13 @@ public class ElasticClientHelper {
     }
 
     public boolean indexAlarmConfigDocument(String indexName, AlarmConfigMessage alarmConfigMessage) {
-        IndexRequest indexRequest = new IndexRequest(indexName.toLowerCase(), "alarm_config");
+        IndexRequest<AlarmConfigMessage> indexRequest = new IndexRequest.Builder<AlarmConfigMessage>()
+                .index(indexName.toLowerCase())
+                .document(alarmConfigMessage)
+                .build();
         try {
-            indexRequest.source(alarmConfigMessage.sourceMap());
-            IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
-            return indexResponse.getResult().equals(Result.CREATED);
+            IndexResponse indexResponse = client.index(indexRequest);
+            return indexResponse.result().equals(Result.Created);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "failed to log message " + alarmConfigMessage + " to index " + indexName, e);
             return false;
@@ -170,9 +184,7 @@ public class ElasticClientHelper {
 
     public void indexAlarmConfigDocuments(String indexName, AlarmConfigMessage alarmConfigMessage) {
         try {
-            IndexRequest indexRequest = new IndexRequest(indexName.toLowerCase(), "alarm_config");
-            indexRequest.source(alarmConfigMessage.sourceMap());
-            configMessagedQueue.put(indexRequest);
+            configMessagedQueue.put(new SimpleImmutableEntry<>(indexName,alarmConfigMessage));
         } catch (InterruptedException e) {
             logger.log(Level.SEVERE, "failed to log message " + alarmConfigMessage + " to index " + indexName, e);
         }
@@ -180,10 +192,11 @@ public class ElasticClientHelper {
 
     private static class flush2Elastic implements Runnable {
 
-        private BlockingQueue<IndexRequest> stateMessagedQueue;
-        private BlockingQueue<IndexRequest> configMessagedQueue;
+        private final BlockingQueue<SimpleImmutableEntry<String,AlarmStateMessage>> stateMessagedQueue;
+        private final BlockingQueue<SimpleImmutableEntry<String,AlarmConfigMessage>> configMessagedQueue;
 
-        public flush2Elastic(BlockingQueue<IndexRequest> stateMessagedQueue, BlockingQueue<IndexRequest> configMessagedQueue) {
+        public flush2Elastic(BlockingQueue<SimpleImmutableEntry<String,AlarmStateMessage>> stateMessagedQueue,
+                             BlockingQueue<SimpleImmutableEntry<String,AlarmConfigMessage>> configMessagedQueue) {
             this.stateMessagedQueue = stateMessagedQueue;
             this.configMessagedQueue = configMessagedQueue;
         }
@@ -199,27 +212,28 @@ public class ElasticClientHelper {
             }
             if(stateMessagedQueue.size() + configMessagedQueue.size() > 0){
                 logger.log(Level.INFO, "batch execution of : " + stateMessagedQueue.size() + " state messages and " + configMessagedQueue.size() + " config messages");
-                BulkRequest bulkRequest = new BulkRequest();
-                Collection<IndexRequest> stateIndexRequests = new ArrayList<>();
-                stateMessagedQueue.drainTo(stateIndexRequests);
-                stateIndexRequests.stream().forEach(bulkRequest::add);
-                Collection<IndexRequest> configIndexRequests = new ArrayList<>();
-                configMessagedQueue.drainTo(configIndexRequests);
-                configIndexRequests.stream().forEach(bulkRequest::add);
-                bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
+                BulkRequest.Builder bulkRequest = new BulkRequest.Builder().refresh(Refresh.True);
+                Collection<SimpleImmutableEntry<String,AlarmStateMessage>> statePairs = new ArrayList<>();
+                stateMessagedQueue.drainTo(statePairs);
+                Collection<SimpleImmutableEntry<String,AlarmConfigMessage>> configPairs = new ArrayList<>();
+                configMessagedQueue.drainTo(configPairs);
+                statePairs.forEach( pair -> bulkRequest.operations(op -> op
+                        .index(idx -> idx
+                                .index(pair.getKey())
+                                .document(pair.getValue()))));
+                configPairs.forEach( pair -> bulkRequest.operations(op->op
+                        .index(idx->idx
+                                .index(pair.getKey())
+                                .document(pair.getValue()))));
                 try {
-                    BulkResponse bulkResponse = client.bulk(bulkRequest, RequestOptions.DEFAULT);
-                    if(bulkResponse.hasFailures()) {
-                        logger.log(Level.SEVERE, "logging to index has failure: " + bulkResponse.buildFailureMessage());
-                        Arrays.stream(bulkResponse.getItems()).forEach(item -> {
-                                    if (item.isFailed()) {
-                                        logger.log(Level.SEVERE, "Failed while indexing to " + item.getIndex() + " type "
-                                                + item.getType() + item.getFailureMessage() + "]");
+                    BulkResponse bulkResponse = client.bulk(bulkRequest.build());
+                        bulkResponse.items().forEach(item -> {
+                                    if (item.error()!=null) {
+                                        logger.log(Level.SEVERE, "Failed while indexing to " + item.index() + " type "
+                                                + item.operationType() + item.error().reason() + "]");
                                     }
                                 }
                         );
-                    }
-
                 } catch (IOException e) {
                     logger.log(Level.SEVERE, "failed to log messages to index ", e);
                 }
@@ -237,62 +251,65 @@ public class ElasticClientHelper {
 
         public void initializeIndices() throws IOException {
             // Create the alarm state messages index template
-            IndexTemplatesExistRequest request = new IndexTemplatesExistRequest(ALARM_STATE_TEMPLATE);
-            boolean exists = client.indices().existsTemplate(request, RequestOptions.DEFAULT);
+            ExistsTemplateRequest request = new ExistsTemplateRequest.Builder()
+                    .name(ALARM_STATE_TEMPLATE)
+                    .build();
+            boolean exists = client.indices().existsTemplate(request).value();
 
             if(!exists) {
-                PutIndexTemplateRequest templateRequest = new PutIndexTemplateRequest(ALARM_STATE_TEMPLATE);
-                templateRequest.patterns(Arrays.asList(ALARM_STATE_TEMPLATE_PATTERN));
-
                 ObjectMapper mapper = new ObjectMapper();
                 InputStream is = ElasticClientHelper.class.getResourceAsStream("/alarms_state_template.json");
-
-                Map<String, String> jsonMap = mapper.readValue(is, Map.class);
-                templateRequest.mapping("alarm", XContentFactory.jsonBuilder().map(jsonMap));
-                templateRequest.create(true);
-                AcknowledgedResponse putTemplateResponse = client.indices().putTemplate(templateRequest, RequestOptions.DEFAULT);
-                putTemplateResponse.isAcknowledged();
+                PutIndexTemplateRequest templateRequest = new PutIndexTemplateRequest.Builder()
+                        .name(ALARM_STATE_TEMPLATE)
+                        .indexPatterns(Arrays.asList(ALARM_STATE_TEMPLATE_PATTERN))
+                        .withJson(is)
+                        .create(true)
+                        .build();
+                PutIndexTemplateResponse putTemplateResponse = client.indices().putIndexTemplate(templateRequest);
+                putTemplateResponse.acknowledged();
                 logger.log( Level.INFO, "Created " + ALARM_STATE_TEMPLATE + " template.");
-
             }
 
             // Create the alarm command messages index template
-            request = new IndexTemplatesExistRequest(ALARM_CMD_TEMPLATE);
-            exists = client.indices().existsTemplate(request, RequestOptions.DEFAULT);
+            request = new ExistsTemplateRequest.Builder()
+                    .name(ALARM_CMD_TEMPLATE)
+                    .build();
+            exists = client.indices().existsTemplate(request).value();
 
             if(!exists) {
-                PutIndexTemplateRequest templateRequest = new PutIndexTemplateRequest(ALARM_CMD_TEMPLATE);
-                templateRequest.patterns(Arrays.asList(ALARM_CMD_TEMPLATE_PATTERN));
-
                 ObjectMapper mapper = new ObjectMapper();
                 InputStream is = ElasticClientHelper.class.getResourceAsStream("/alarms_cmd_template.json");
-
-                Map<String, String> jsonMap = mapper.readValue(is, Map.class);
-                templateRequest.mapping("alarm_cmd", XContentFactory.jsonBuilder().map(jsonMap));
-                templateRequest.create(true);
-                AcknowledgedResponse putTemplateResponse = client.indices().putTemplate(templateRequest, RequestOptions.DEFAULT);
-                putTemplateResponse.isAcknowledged();
-                logger.log( Level.INFO, "Created " + ALARM_CMD_TEMPLATE + " template.");
+                PutIndexTemplateRequest templateRequest = new PutIndexTemplateRequest.Builder()
+                        .name(ALARM_CMD_TEMPLATE)
+                        .indexPatterns(Arrays.asList(ALARM_CMD_TEMPLATE_PATTERN))
+                        .withJson(is)
+                        .create(true)
+                        .build();
+                PutIndexTemplateResponse putTemplateResponse = client.indices().putIndexTemplate(templateRequest);
+                putTemplateResponse.acknowledged();
+                logger.log( Level.INFO, "Created " + ALARM_STATE_TEMPLATE + " template.");
             }
 
             // Create the alarm config messages index template
-            request = new IndexTemplatesExistRequest(ALARM_CONFIG_TEMPLATE);
-            exists = client.indices().existsTemplate(request, RequestOptions.DEFAULT);
+            request = new ExistsTemplateRequest.Builder()
+                    .name(ALARM_CONFIG_TEMPLATE)
+                    .build();
+            exists = client.indices().existsTemplate(request).value();
 
             if(!exists) {
-                PutIndexTemplateRequest templateRequest = new PutIndexTemplateRequest(ALARM_CONFIG_TEMPLATE);
-                templateRequest.patterns(Arrays.asList(ALARM_CONFIG_TEMPLATE_PATTERN));
-
                 ObjectMapper mapper = new ObjectMapper();
-                InputStream is = ElasticClientHelper.class.getResourceAsStream("/alarms_config_template.json");
-
-                Map<String, String> jsonMap = mapper.readValue(is, Map.class);
-                templateRequest.mapping("alarm_config", XContentFactory.jsonBuilder().map(jsonMap));
-                templateRequest.create(true);
-                AcknowledgedResponse putTemplateResponse = client.indices().putTemplate(templateRequest, RequestOptions.DEFAULT);
-                putTemplateResponse.isAcknowledged();
+                InputStream is = ElasticClientHelper.class.getResourceAsStream("/alarms_cmd_template.json");
+                PutIndexTemplateRequest templateRequest = new PutIndexTemplateRequest.Builder()
+                        .name(ALARM_CONFIG_TEMPLATE)
+                        .indexPatterns(Arrays.asList(ALARM_CONFIG_TEMPLATE_PATTERN))
+                        .withJson(is)
+                        .create(true)
+                        .build();
+                PutIndexTemplateResponse putTemplateResponse = client.indices().putIndexTemplate(templateRequest);
+                putTemplateResponse.acknowledged();
                 logger.log( Level.INFO, "Created " + ALARM_CONFIG_TEMPLATE + " template.");
             }
+
         }
     }
 }
