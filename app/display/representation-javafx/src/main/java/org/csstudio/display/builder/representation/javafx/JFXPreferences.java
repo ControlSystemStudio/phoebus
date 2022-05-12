@@ -16,8 +16,11 @@ import org.phoebus.framework.preferences.Preference;
 @SuppressWarnings("nls")
 public class JFXPreferences
 {
+    /** Type of slider to create */
     @Preference public static boolean inc_dec_slider;
+    /** Tooltip delay */
     @Preference public static int tooltip_delay_ms;
+    /** Tooltip duration */
     @Preference public static int tooltip_display_sec;
 
     static

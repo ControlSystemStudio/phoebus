@@ -18,12 +18,12 @@
 
 package org.csstudio.display.builder.representation.javafx.actionsdialog;
 
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.logging.Level;
+
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.properties.ExecuteScriptActionInfo;
@@ -35,12 +35,14 @@ import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.application.ApplicationLauncherService;
 
-import java.io.File;
-import java.util.Collections;
-import java.util.logging.Level;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 
-import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
-
+/** FXML Controller */
 public class ExecuteScriptDetailsController implements ActionDetailsController{
 
     private ExecuteScriptActionInfo executeScriptActionInfo;
@@ -64,11 +66,15 @@ public class ExecuteScriptDetailsController implements ActionDetailsController{
     private StringProperty scriptPathProperty = new SimpleStringProperty();
     private StringProperty scriptBodyPorperty = new SimpleStringProperty();
 
+    /** @param widget Widget
+     *  @param actionInfo Action info
+     */
     public ExecuteScriptDetailsController(Widget widget, ActionInfo actionInfo){
         this.widget = widget;
         this.executeScriptActionInfo = (ExecuteScriptActionInfo)actionInfo;
     }
 
+    /** Init */
     @FXML
     public void initialize(){
         descriptionProperty.setValue(executeScriptActionInfo.getDescription());
@@ -88,6 +94,7 @@ public class ExecuteScriptDetailsController implements ActionDetailsController{
                 !executeScriptActionInfo.getInfo().getPath().equals(ScriptInfo.EMBEDDED_JAVASCRIPT));
     }
 
+    /** Select embedded Py */
     @FXML
     public void embedPy(){
         scriptPathProperty.setValue(ScriptInfo.EMBEDDED_PYTHON);
@@ -100,6 +107,7 @@ public class ExecuteScriptDetailsController implements ActionDetailsController{
         scriptBody.setDisable(false);
     }
 
+    /** Select embedded Js */
     @FXML
     public void embedJs(){
         scriptPathProperty.setValue(ScriptInfo.EMBEDDED_JAVASCRIPT);
@@ -112,6 +120,7 @@ public class ExecuteScriptDetailsController implements ActionDetailsController{
         scriptBody.setDisable(false);
     }
 
+    /** Open external script file */
     @FXML
     public void openExternalEditor(){
         String resolved;
@@ -129,6 +138,7 @@ public class ExecuteScriptDetailsController implements ActionDetailsController{
         }
     }
 
+    /** Select external script file */
     @FXML
     public void selectScriptFile(){
         try
@@ -155,6 +165,7 @@ public class ExecuteScriptDetailsController implements ActionDetailsController{
                 ApplicationLauncherService.findApplication(ResourceParser.getURI(new File(scriptPathProperty.get())), false, null);
     }
 
+    /** @return ActionInfo */
     @Override
     public ActionInfo getActionInfo(){
         final String text = (scriptPathProperty.get().equals(ScriptInfo.EMBEDDED_PYTHON) ||

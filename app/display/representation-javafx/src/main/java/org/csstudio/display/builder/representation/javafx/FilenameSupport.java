@@ -28,6 +28,7 @@ import javafx.stage.Window;;
 @SuppressWarnings("nls")
 public class FilenameSupport
 {
+    /** File extensions used for displays */
     public static final ExtensionFilter[] file_extensions = new ExtensionFilter[]
     {
         new ExtensionFilter(Messages.FileTypeAll, "*.*"),
@@ -74,6 +75,7 @@ public class FilenameSupport
      *  @param widget Widget that needs a file name
      *  @param initial Initial value
      *  @return Selected file name or <code>null</code>
+     *  @throws Exception on error
      */
     public static String promptForRelativePath(final Widget widget, final String initial) throws Exception
     {
@@ -97,6 +99,8 @@ public class FilenameSupport
      *
      *  This most awful terrible no good hack
      *  brings the ActionsDialog back to the front.
+     *
+     *  @param node_in_dialog Any node in the dialog
      */
     public static void performMostAwfulTerribleNoGoodHack(final Node node_in_dialog)
     {

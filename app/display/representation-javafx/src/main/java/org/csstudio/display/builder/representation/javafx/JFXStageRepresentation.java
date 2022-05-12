@@ -32,7 +32,9 @@ public class JFXStageRepresentation extends JFXRepresentation
 {
     private final Stage stage;
 
-    /** Constructor for runtime mode */
+    /** Constructor for runtime mode
+     *  @param stage Parent stage
+     */
     public JFXStageRepresentation(final Stage stage)
     {
         super(false);

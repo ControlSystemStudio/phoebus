@@ -41,6 +41,7 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
+/** ArrayWidget representation */
 @SuppressWarnings("nls")
 public class ArrayRepresentation extends JFXBaseRepresentation<Pane, ArrayWidget>
 {
