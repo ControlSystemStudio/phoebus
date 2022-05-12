@@ -47,6 +47,7 @@ import org.epics.vtype.VStringArray;
 import org.epics.vtype.VTable;
 import org.epics.vtype.VType;
 
+/** Helper for handling 'structure' type PVA data */
 @SuppressWarnings("nls")
 public class PVAStructureHelper
 {
