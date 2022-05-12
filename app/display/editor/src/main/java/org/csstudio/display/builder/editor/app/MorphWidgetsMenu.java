@@ -64,6 +64,7 @@ public class MorphWidgetsMenu extends Menu
         }
     };
 
+    /** @param editor Editor */
     public MorphWidgetsMenu(final DisplayEditor editor)
     {
         super(Messages.ReplaceWith,
@@ -92,6 +93,7 @@ public class MorphWidgetsMenu extends Menu
         }
     }
 
+    /** @param descriptor Widget descriptor */
     public void morph(final WidgetDescriptor descriptor)
     {
         final WidgetSelectionHandler selection = editor.getWidgetSelectionHandler();
@@ -151,6 +153,11 @@ public class MorphWidgetsMenu extends Menu
         selection.setSelection(replacements);
     }
 
+    /** @param <W> Widget class
+     *  @param descriptor Widget type descriptor
+     *  @param widget Original widget
+     *  @return Morphed widget
+     */
     @SuppressWarnings("unchecked")
     public static <W extends Widget> W createNewWidget(final WidgetDescriptor descriptor, final Widget widget)
     {

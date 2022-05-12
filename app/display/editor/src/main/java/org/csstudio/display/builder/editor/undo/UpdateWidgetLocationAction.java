@@ -28,10 +28,10 @@ public class UpdateWidgetLocationAction extends UndoableAction
      *  @param orig_parent_children Original parent's child list (may be the same as now)
      *  @param parent_children Parent's child list
      *  @param orig_index  Index in orig_parent_children
-     *  @param orig_x      Original location
-     *  @param orig_y      ..
-     *  @param orig_width  .. and size
-     *  @param orig_height
+     *  @param orig_x      Original location X
+     *  @param orig_y      Y
+     *  @param orig_width  .. and width
+     *  @param orig_height .. height
      */
     public UpdateWidgetLocationAction(final Widget widget,
                                       final ChildrenProperty orig_parent_children,

@@ -18,7 +18,11 @@
 
 package org.csstudio.display.builder.editor.util;
 
-import javafx.application.Platform;
+import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+
 import org.csstudio.display.builder.editor.Preferences;
 import org.csstudio.display.builder.editor.app.DisplayEditorApplication;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
@@ -26,10 +30,7 @@ import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.JobRunnable;
 import org.phoebus.framework.workbench.ApplicationService;
 
-import java.io.File;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
+import javafx.application.Platform;
 
 /**
  * Utility class for creating a new display.
@@ -38,6 +39,7 @@ public class CreateNewDisplayJob implements JobRunnable {
 
     private File displayFile;
 
+    /** @param displayFile Display file to create */
     public CreateNewDisplayJob(File displayFile){
         this.displayFile = displayFile;
     }

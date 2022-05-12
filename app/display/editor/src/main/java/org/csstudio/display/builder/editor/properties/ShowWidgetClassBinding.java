@@ -35,6 +35,10 @@ public class ShowWidgetClassBinding extends WidgetPropertyBinding<Node, WidgetPr
 
     private final Label indicator;
 
+    /** @param field Gui element in editor
+     *  @param property Widget property
+     *  @param indicator Label
+     */
     public ShowWidgetClassBinding(final Node field, final WidgetProperty<?> property, final Label indicator)
     {
         super(null, field, property, null);

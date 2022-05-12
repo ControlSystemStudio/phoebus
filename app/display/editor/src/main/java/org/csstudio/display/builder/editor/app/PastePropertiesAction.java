@@ -33,6 +33,9 @@ import javafx.scene.input.Clipboard;
 @SuppressWarnings("nls")
 public class PastePropertiesAction extends MenuItem
 {
+    /** @param editor Editor
+     *  @param selection Selected widgets into which properties will be pasted
+     */
     public PastePropertiesAction(final DisplayEditor editor, final List<Widget> selection)
     {
         super("Paste Properties", ImageCache.getImageView(ImageCache.class, "/icons/paste.png"));

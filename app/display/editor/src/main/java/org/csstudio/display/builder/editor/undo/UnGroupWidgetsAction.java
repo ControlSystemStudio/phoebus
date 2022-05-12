@@ -18,6 +18,7 @@ import org.csstudio.display.builder.model.widgets.GroupWidget;
  */
 public class UnGroupWidgetsAction extends GroupWidgetsAction
 {
+    /** @param group Group to remove */
     public UnGroupWidgetsAction(final GroupWidget group)
     {
         super(Messages.RemoveGroup,

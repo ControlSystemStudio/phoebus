@@ -57,6 +57,11 @@ extends WidgetPropertyBinding<Button, RulesWidgetProperty>
         }
     };
 
+    /** @param undo Undo manager
+     *  @param field Gui element in editor
+     *  @param widget_property Rules property
+     *  @param other Other selected widgets
+     */
     public RulesPropertyBinding(final UndoableActionManager undo,
             final Button field,
             final RulesWidgetProperty widget_property,

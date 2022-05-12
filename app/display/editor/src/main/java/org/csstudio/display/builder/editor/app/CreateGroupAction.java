@@ -34,6 +34,9 @@ public class CreateGroupAction extends MenuItem
     private final DisplayEditor editor;
     private final List<Widget> widgets;
 
+    /** @param editor Editor
+     *  @param widgets Selected widgets
+     */
     public CreateGroupAction(final DisplayEditor editor, final List<Widget> widgets)
     {
         super(Messages.CreateGroup + " [" + PlatformInfo.SHORTCUT + "-G]",
@@ -43,6 +46,7 @@ public class CreateGroupAction extends MenuItem
         setOnAction(event -> run());
     }
 
+    /** Execute */
     public void run()
     {
         editor.getWidgetSelectionHandler().clear();

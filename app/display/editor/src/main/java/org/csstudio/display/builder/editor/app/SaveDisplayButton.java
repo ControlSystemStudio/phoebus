@@ -20,6 +20,7 @@ import javafx.scene.control.Tooltip;
 @SuppressWarnings("nls")
 public class SaveDisplayButton extends Button
 {
+    /** @param editor Editor to save */
     public SaveDisplayButton(final DisplayEditorInstance editor)
     {
         setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/save_edit.png"));
