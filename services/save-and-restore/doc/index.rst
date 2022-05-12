@@ -231,12 +231,12 @@ If the node was successfully created you will a 200 response with the details of
         "tags": []
     }
 
-Update a configuration
-""""""""""""""""""""""
+Create or Update a configuration
+""""""""""""""""""""""""""""""""
 
 **.../config/{uniqueNodeId}/update**
 
-Method: GET
+Method: POST
 
 Body:
 
@@ -269,3 +269,138 @@ Body:
     }
 
 
+Snapshot Management
+--------------------
+
+Retrieve all snapshots
+""""""""""""""""""""""
+
+**.../snapshots**
+
+Method: GET
+
+Retrieve all Snapshots id's
+
+Return:
+A list of all the snapshot id's
+
+.. code-block:: JSON
+
+    [
+        {
+        "id": 21,
+        "uniqueId": "c4302cfe-60e2-46ec-bf2b-dcd13c0ef4c0",
+        "name": "New_Node_Camera",
+        "created": 1625837873000,
+        "nodeType": "SNAPSHOT",
+        ...
+        },
+        {
+        "id": 22,
+        "uniqueId": "c4302cfe-60e2-46ec-bf2b-dad64db1f06d",
+        "name": "New_Node_Camera",
+        "created": 1625837874000,
+        "nodeType": "SNAPSHOT",
+        ...
+        }
+    ]
+
+
+Retrieve all snapshots for a configuration
+""""""""""""""""""""""""""""""""""""""""""
+
+**.../snapshot/{uniqueNodeId}
+
+Retrieve a Snapshot without all the data identified by the `{uniqueNodeId}`
+
+
+Return:
+A snapshot with all the metadata
+
+.. code-block:: JSON
+    [
+        {
+        "id": 21,
+        "uniqueId": "c4302cfe-60e2-46ec-bf2b-dcd13c0ef4c0",
+        "name": "New_Node_Camera",
+        "created": 1625837873000,
+        "nodeType": "SNAPSHOT",
+        ...
+        }
+    ]
+
+Retrieve snapshots data
+"""""""""""""""""""""""
+
+**.../snapshot/{uniqueNodeId}/items
+
+Method: GET
+
+Retrieve all Snapshots associated with a particular configuration identified by `{uniqueNodeId}`
+
+Return:
+A snapshot with all the stored data
+
+
+.. code-block:: JSON
+
+    [
+      {
+        "snapshotId": "4099",
+        "configPv": {
+          "id": 33,
+          "pvName": "ISrc-010:Vac-VVMC-01100:FlwSPS",
+          "readbackPvName": null,
+          "readOnly": false
+        },
+        "value": {
+          "type": {
+            "name": "VDouble",
+            "version": 1
+          },
+          "value": 3.5,
+          "alarm": {
+            "severity": "NONE",
+            "status": "NONE",
+            "name": "NONE"
+          },
+          "time": {
+            "unixSec": 1635087714,
+            "nanoSec": 327966491
+          },
+          "display": {
+            "units": ""
+          }
+        },
+        "readbackValue": null
+      },
+      {
+        "snapshotId": 4099,
+        "configPv": {
+          "id": 4076,
+          "pvName": "LEBT-CS:PwrC-PSRep-01:Vol-S",
+          "readbackPvName": null,
+          "readOnly": false
+        },
+        "value": {
+          "type": {
+            "name": "VDouble",
+            "version": 1
+          },
+          "value": 3.5,
+          "alarm": {
+            "severity": "NONE",
+            "status": "NONE",
+            "name": "NONE"
+          },
+          "time": {
+            "unixSec": 1634899034,
+            "nanoSec": 639928152
+          },
+          "display": {
+            "units": ""
+          }
+        },
+        "readbackValue": null
+      }
+    ]
