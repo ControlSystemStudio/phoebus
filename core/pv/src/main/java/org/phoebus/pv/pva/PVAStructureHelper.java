@@ -51,6 +51,11 @@ import org.epics.vtype.VType;
 @SuppressWarnings("nls")
 public class PVAStructureHelper
 {
+    /** @param struct Structure
+     *  @param name_helper {@link PVNameHelper}
+     *  @return Decoded VType
+     *  @throws Exception on error
+     */
     public static VType getVType(final PVAStructure struct, final PVNameHelper name_helper) throws Exception
     {
         PVAStructure actual = struct;

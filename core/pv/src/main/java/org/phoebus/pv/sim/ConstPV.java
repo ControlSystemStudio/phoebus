@@ -19,6 +19,11 @@ import org.phoebus.pv.loc.ValueHelper;
  */
 public class ConstPV extends PV
 {
+    /** @param name Full PV name with prefix and initializer
+     *  @param base_name Base name
+     *  @return PV
+     *  @throws Exception on error
+     */
     public static PV create(final String name, final String base_name) throws Exception
     {
         final String[] ntv = ValueHelper.parseName(base_name);

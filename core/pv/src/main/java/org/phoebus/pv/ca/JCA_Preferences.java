@@ -187,6 +187,7 @@ public class JCA_Preferences
         return var_array_supported;
     }
 
+    /** @return Array size that's considered "large" to subscribe at lower priority */
     public int largeArrayThreshold()
     {
         return large_array_threshold;

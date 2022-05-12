@@ -66,6 +66,10 @@ public class MQTT_PVConn implements MqttCallback
             pv.messageArrived(topic, msg);
     }
 
+    /** @param topicStr Topic
+     *  @param pv PV
+     *  @throws Exception on error
+     */
     public void subscribeTopic (String topicStr, MQTT_PV pv) throws Exception
     {
         if (!connect())
@@ -91,6 +95,10 @@ public class MQTT_PVConn implements MqttCallback
         pvs.add(pv);
     }
 
+    /** @param topicStr Topic
+     *  @param pv PV
+     *  @throws Exception on error
+     */
     public void unsubscribeTopic (String topicStr, MQTT_PV pv) throws Exception
     {
         if (!connect())
@@ -118,6 +126,12 @@ public class MQTT_PVConn implements MqttCallback
         }
     }
 
+    /** @param topicStr Topic
+     *  @param pubMsg Message
+     *  @param pubQoS QOS
+     *  @param retained Retain message?
+     *  @throws Exception on error
+     */
     public void publishTopic(String topicStr, String pubMsg, int pubQoS, boolean retained) throws Exception
     {
         if (!connect())
