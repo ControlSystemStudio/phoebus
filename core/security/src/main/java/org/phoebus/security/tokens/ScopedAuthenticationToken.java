@@ -25,10 +25,17 @@ public class ScopedAuthenticationToken extends SimpleAuthenticationToken{
 
     private String scope;
 
+    /** @param username Username
+     *  @param password Passworf
+     */
     public ScopedAuthenticationToken(String username, String password){
         super(username, password);
     }
 
+    /** @param scope Scope
+     *  @param username Username
+     *  @param password Passworf
+     */
     public ScopedAuthenticationToken(String scope, String username, String password){
         this(username, password);
         if(scope != null && scope.trim().isEmpty()){
@@ -39,6 +46,7 @@ public class ScopedAuthenticationToken extends SimpleAuthenticationToken{
         }
     }
 
+    /** @return Scope */
     public String getScope(){
         return scope;
     }
