@@ -9,7 +9,7 @@ package org.phoebus.archive.vtype;
 
 import org.epics.vtype.VType;
 
-/** User-selected style for formatting {@link VType}
+/** User-selected style for formatting of {@link VType}
  *  @author Kay Kasemir
  */
 public enum Style

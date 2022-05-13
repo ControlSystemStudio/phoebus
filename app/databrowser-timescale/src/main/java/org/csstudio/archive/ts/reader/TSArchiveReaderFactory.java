@@ -29,6 +29,7 @@ public class TSArchiveReaderFactory implements ArchiveReaderFactory
     /** Common logger */
     public static final Logger logger = Logger.getLogger(TSArchiveReaderFactory.class.getPackageName());
 
+    /** Data source prefix */
     public static final String PREFIX = "ts:";
 
     @Override
