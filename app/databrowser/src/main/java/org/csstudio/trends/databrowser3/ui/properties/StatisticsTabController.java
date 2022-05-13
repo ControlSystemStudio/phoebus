@@ -18,19 +18,6 @@
 
 package org.csstudio.trends.databrowser3.ui.properties;
 
-import javafx.application.Platform;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.cell.TextFieldTableCell;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.csstudio.javafx.rtplot.data.PlotDataSearch;
 import org.csstudio.trends.databrowser3.Messages;
@@ -46,9 +33,19 @@ import org.phoebus.framework.jobs.JobRunnable;
 import org.phoebus.util.time.TimeInterval;
 import org.phoebus.util.time.TimeRelativeInterval;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 
 /**
  * Tab showing statistics data for traces. User needs to actively request computation of the statistical data.
@@ -175,6 +172,7 @@ public class StatisticsTabController implements ModelListener{
         sumColumn.setCellValueFactory(cell -> cell.getValue().getSum());
     }
 
+    /** Remove listener */
     public void removeModelListener(){
         model.removeListener(this);
     }

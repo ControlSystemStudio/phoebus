@@ -39,6 +39,10 @@ public class ArchiveReaders
     {
     }
 
+    /** @param url Data source URL
+     *  @return {@link ArchiveReader}c
+     *  @throws Exception on error
+     */
     public static ArchiveReader createReader(final String url) throws Exception
     {
         for (ArchiveReaderFactory factory : factories)

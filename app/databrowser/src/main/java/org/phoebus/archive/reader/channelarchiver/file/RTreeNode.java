@@ -68,11 +68,20 @@ public class RTreeNode
         }
     };
 
+    /** Offset */
     public final long offset;
+    /** Leaf node? */
     public final boolean isLeaf;
+    /** Offset of parent */
     public final long parent;
+    /** Records in this node */
     public final Record[] records;
 
+    /** @param buffer File buffer
+     *  @param offset Offset in file
+     *  @param M Number of records
+     *  @throws Exception on error
+     */
     public RTreeNode(final ArchiveFileBuffer buffer, final long offset, final int M) throws Exception
     {
         // An RTree Node is laid out as follows:
@@ -88,11 +97,15 @@ public class RTreeNode
             records[i] = new Record(buffer);
     }
 
+    /** @return Number of records in node */
     public int getM()
     {
         return records.length;
     }
 
+    /** @param child Offset of child
+     *  @return Index of record
+     */
     public int findRecordForChild(final long child)
     {
         for (int i=0; i<getM(); ++i)

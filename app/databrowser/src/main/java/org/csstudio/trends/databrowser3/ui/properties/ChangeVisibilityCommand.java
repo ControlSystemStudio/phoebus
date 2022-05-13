@@ -24,7 +24,7 @@ public class ChangeVisibilityCommand extends UndoableAction
     /** Register and perform the command
      *  @param operations_manager OperationsManager where command will be reg'ed
      *  @param item Model item to configure
-     *  @param new_trace_type New value
+     *  @param visible Make visible?
      */
     public ChangeVisibilityCommand(final UndoableActionManager operations_manager,
             final ModelItem item, final boolean visible)

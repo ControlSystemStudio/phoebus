@@ -32,7 +32,7 @@ public class ArchiveFileReader implements ArchiveReader
 
     /** Construct an ArchiveFileReader.
      *  @param index Path to  Channel Archiver index file
-     *  @throws IOException
+     *  @throws IOException on error
      */
     public ArchiveFileReader(final File index) throws IOException
     {

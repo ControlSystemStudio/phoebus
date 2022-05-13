@@ -26,9 +26,9 @@ public class ChangeScrollStepCommand extends UndoableAction
     final private Duration old_step, new_step;
 
     /** Register and perform the command
-     *  @param item Model item to configure
+     *  @param model Model to configure
      *  @param operations_manager OperationsManager where command will be reg'ed
-     *  @param period New value
+     *  @param step New duration
      */
     public ChangeScrollStepCommand(final Model model,
             final UndoableActionManager operations_manager,

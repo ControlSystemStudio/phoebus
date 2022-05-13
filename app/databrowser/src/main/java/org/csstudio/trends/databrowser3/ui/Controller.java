@@ -338,7 +338,6 @@ public class Controller
     };
 
     /** Initialize
-     *  @param shell Shell
      *  @param model Model that has the data
      *  @param plot Plot for displaying the Model
      *  @throws Error when called from non-UI thread

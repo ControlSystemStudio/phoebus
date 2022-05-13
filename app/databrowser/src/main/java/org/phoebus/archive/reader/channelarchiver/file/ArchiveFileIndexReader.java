@@ -34,9 +34,7 @@ public class ArchiveFileIndexReader implements AutoCloseable
     private final File indexParent;
     private final HashMap<String, TreeAnchor> anchors;
 
-    /** Anchor of an RTree
-     *
-     */
+    /** Anchor of an RTree */
     private class TreeAnchor
     {
         public final String name;
@@ -58,6 +56,9 @@ public class ArchiveFileIndexReader implements AutoCloseable
         }
     }
 
+    /** @param indexFile Index file to read
+     *  @throws IOException on error
+     */
     public ArchiveFileIndexReader(final File indexFile) throws IOException
     {
         buffer = new ArchiveFileBuffer(indexFile);

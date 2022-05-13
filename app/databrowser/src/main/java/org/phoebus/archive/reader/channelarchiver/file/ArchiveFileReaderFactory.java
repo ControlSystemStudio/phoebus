@@ -18,6 +18,7 @@ import org.phoebus.archive.reader.spi.ArchiveReaderFactory;
 @SuppressWarnings("nls")
 public class ArchiveFileReaderFactory implements ArchiveReaderFactory
 {
+    /** Data source prefix */
     public final static String PREFIX = "cadf:";
 
     @Override

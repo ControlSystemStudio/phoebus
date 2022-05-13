@@ -16,6 +16,7 @@ import org.phoebus.archive.reader.spi.ArchiveReaderFactory;
 @SuppressWarnings("nls")
 public class XMLRPCArchiveReaderFactory implements ArchiveReaderFactory
 {
+    /** Data source prefix */
     public static final String PREFIX = "xnds:";
 
     @Override

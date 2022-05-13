@@ -5,10 +5,11 @@ import org.phoebus.archive.reader.spi.ArchiveReaderFactory;
 
 /**
  * SPI for "pbraw:" archive URLs
- * @author Miha Novak <miha.novak@cosylab.com>
+ * @author Miha Novak miha.novak@cosylab.com
  */
-public class ApplianceArchiveReaderFactory implements ArchiveReaderFactory{
-
+public class ApplianceArchiveReaderFactory implements ArchiveReaderFactory
+{
+    /** Data source prefix */
     public static final String PREFIX = "pbraw:";
 
     @Override
@@ -25,5 +26,4 @@ public class ApplianceArchiveReaderFactory implements ArchiveReaderFactory{
                 AppliancePreferences.useNewOptimizedOperator);
         return reader;
     }
-
 }

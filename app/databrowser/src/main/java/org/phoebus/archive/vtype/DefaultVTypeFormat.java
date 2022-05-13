@@ -18,6 +18,7 @@ public class DefaultVTypeFormat extends VTypeFormat
 {
     final private static VTypeFormat instance = new DefaultVTypeFormat();
 
+    /** @return Singleton instance */
     final public static VTypeFormat get()
     {
         return instance;

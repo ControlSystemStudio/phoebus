@@ -35,7 +35,7 @@ abstract public class PlotSamples implements PlotDataProvider<Instant>
      */
     final protected AtomicBoolean have_new_samples = new AtomicBoolean();
 
-    /** Lock for writing */
+    /** @return Locked for writing? */
     public boolean lockForWriting()
     {
         try

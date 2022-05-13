@@ -145,6 +145,7 @@ public class WaveformView extends VBox
         }
     };
 
+    /** @param model Model */
     public WaveformView(final Model model)
     {
         this.model = model;

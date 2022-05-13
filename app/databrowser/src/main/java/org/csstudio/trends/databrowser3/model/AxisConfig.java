@@ -68,16 +68,16 @@ public class AxisConfig
     }
 
     /** Initialize
-     *  @param visible
-     *  @param name
-     *  @param use_axis_name
-     *  @param use_trace_names
-     *  @param is_right
-     *  @param rgb
-     *  @param min
-     *  @param max
-     *  @param auto_scale
-     *  @param log_scale
+     *  @param visible Show axis?
+     *  @param name Name
+     *  @param use_axis_name Show name?
+     *  @param use_trace_names Show trace names?
+     *  @param is_right Place on right side of plot?
+     *  @param rgb Axis color
+     *  @param min Axis range
+     *  @param max Axis range
+     *  @param auto_scale Auto-scale?
+     *  @param log_scale Log. scale?
      */
     public AxisConfig(final boolean visible, final String name,
             final boolean use_axis_name,

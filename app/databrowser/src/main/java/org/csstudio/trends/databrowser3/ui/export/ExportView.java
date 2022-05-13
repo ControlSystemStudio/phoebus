@@ -13,8 +13,6 @@ import java.time.Instant;
 import java.time.temporal.TemporalAmount;
 import java.util.function.BiConsumer;
 
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.scene.layout.*;
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.export.ExportJob;
@@ -41,6 +39,7 @@ import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
@@ -54,6 +53,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 
 /** Panel for exporting data into files
  *  @author Kay Kasemir
@@ -89,7 +93,7 @@ public class ExportView extends VBox
     private final CheckBox useUnixTimeStamp = new CheckBox(Messages.UseUnixTimeStamp);
     private SimpleBooleanProperty unixTimeStamp = new SimpleBooleanProperty(false);
 
-
+    /** @param model Model from which to export */
     public ExportView(final Model model)
     {
         this.model = model;
@@ -470,6 +474,7 @@ public class ExportView extends VBox
         ExceptionDetailsErrorDialog.openError(this, Messages.Error, "Export error", ex);
     }
 
+    /** @param memento Where to save current state */
     public void save(final Memento memento)
     {
         memento.setNumber(TAG_SOURCE, sources.getToggles().indexOf(sources.getSelectedToggle()));
@@ -481,6 +486,7 @@ public class ExportView extends VBox
         memento.setString(TAG_FILE, filename.getText());
     }
 
+    /** @param memento From where to restore saved state */
     public void restore(final Memento memento)
     {
         memento.getNumber(TAG_SOURCE).ifPresent(index -> sources.selectToggle(sources.getToggles().get(index.intValue())));
