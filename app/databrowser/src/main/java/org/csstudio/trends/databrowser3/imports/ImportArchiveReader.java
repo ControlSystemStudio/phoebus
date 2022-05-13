@@ -31,6 +31,9 @@ public class ImportArchiveReader implements ArchiveReader
     final private SampleImporter importer;
     private List<VType> values = null;
 
+    /** @param path File to import
+     *  @param importer Importer
+     */
     public ImportArchiveReader(final String path, final SampleImporter importer)
     {
         this.path = path;

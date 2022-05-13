@@ -31,6 +31,11 @@ import javafx.scene.control.MenuItem;
 @SuppressWarnings("nls")
 public class DeleteAxes extends MenuItem
 {
+    /** @param node GUI node
+     *  @param model Model
+     *  @param undo Undo manager
+     *  @param selection Axes to delete
+     */
     public DeleteAxes(final Node node, final Model model, final UndoableActionManager undo,
                       final List<AxisConfig> selection)
     {

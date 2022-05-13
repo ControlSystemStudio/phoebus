@@ -48,6 +48,7 @@ import javafx.stage.Screen;
 @SuppressWarnings("nls")
 public class DataBrowserInstance implements AppInstance
 {
+    /** File extensions used by plot */
     public static final ExtensionFilter[] file_extensions = new ExtensionFilter[] { new ExtensionFilter(Messages.FileFilterDesc, "*.plt") };
 
     /** Width of the display in pixels. Used to scale negative plot_bins */
@@ -121,6 +122,9 @@ public class DataBrowserInstance implements AppInstance
         {   setDirty(true);   }
     };
 
+    /** @param app App
+     *  @param minimal Minimize what's shown?
+     */
     public DataBrowserInstance(final DataBrowserApp app, final boolean minimal)
     {
         this.app = app;

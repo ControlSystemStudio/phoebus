@@ -84,7 +84,7 @@ public class ImportArchiveReaderFactory implements ArchiveReaderFactory
         }
     }
 
-    public ArchiveReader doCreateReader(final String url)
+    private ArchiveReader doCreateReader(final String url)
     {
         // Get path, importer from URL
         try

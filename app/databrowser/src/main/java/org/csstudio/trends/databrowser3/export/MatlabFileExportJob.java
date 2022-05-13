@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import com.jmatio.types.MLUInt64;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.epics.vtype.AlarmSeverity;
@@ -29,6 +28,7 @@ import com.jmatio.types.MLCell;
 import com.jmatio.types.MLChar;
 import com.jmatio.types.MLDouble;
 import com.jmatio.types.MLStructure;
+import com.jmatio.types.MLUInt64;
 
 /** Eclipse Job for exporting data from Model to Matlab-format file.
  *  @author Kay Kasemir
@@ -38,6 +38,15 @@ public class MatlabFileExportJob extends ExportJob
 {
     final private String filename;
 
+    /** @param model Model
+     *  @param start Start time
+     *  @param end End time
+     *  @param source Data source
+     *  @param optimize_parameter Bin count
+     *  @param filename Export file name
+     *  @param error_handler Error handler
+     *  @param unixTimeStamp Use UNIX time stamp epoch?
+     */
     public MatlabFileExportJob(final Model model, final Instant start,
             final Instant end, final Source source,
             final int optimize_parameter, final String filename,

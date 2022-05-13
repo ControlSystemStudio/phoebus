@@ -25,7 +25,9 @@ abstract public class VTypeFormat
     /** Number of array elements to show before shortening the printout */
     final public static int MAX_ARRAY_ELEMENTS = 10;
 
+    /** Representation of NaN */
     final public static String NOT_A_NUMBER = "NaN";
+    /** Representation of Inf */
     final public static String INFINITE = "Inf";
 
     private int max_array_elements = MAX_ARRAY_ELEMENTS;

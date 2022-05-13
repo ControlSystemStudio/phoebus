@@ -21,7 +21,7 @@ public class ChangeUpdatePeriodCommand extends UndoableAction
     final private double old_period, new_period;
 
     /** Register and perform the command
-     *  @param item Model item to configure
+     *  @param model Model to configure
      *  @param operations_manager OperationsManager where command will be reg'ed
      *  @param period New value
      */

@@ -43,6 +43,9 @@ public class ListIndexReader implements ArchiveReader
 {
     private final List<ArchiveReader> archives = new ArrayList<>();
 
+    /** @param indexlist File with list of indices
+     *  @throws Exception on error
+     */
     public ListIndexReader(final File indexlist) throws Exception
     {
         final Element xml = XMLUtil.openXMLDocument(new FileInputStream(indexlist), "indexconfig");

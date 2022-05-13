@@ -28,6 +28,11 @@ public class MoveItemAction extends MenuItem
         final private ModelItem item;
         final private boolean up;
 
+        /** @param operations_manager Undo manager
+         *  @param model Model
+         *  @param item Item to move
+         *  @param up Up?
+         */
         public MoveItemCommand(final UndoableActionManager operations_manager,
                 final Model model, final ModelItem item, final boolean up)
         {
@@ -51,6 +56,11 @@ public class MoveItemAction extends MenuItem
         }
     }
 
+    /** @param model Model
+     *  @param undo Undo manager
+     *  @param item Item to move
+     *  @param up Up?
+     */
     public MoveItemAction(final Model model, final UndoableActionManager undo,
             final ModelItem item, final boolean up)
     {

@@ -28,9 +28,9 @@ public class DeleteAxisCommand extends UndoableAction
     final private int index;
 
     /** Initialize
-     *  @param operationsManager
-     *  @param model
-     *  @param axis
+     *  @param operationsManager Undo manager
+     *  @param model Model
+     *  @param axis Axis to delete
      */
     public DeleteAxisCommand(final UndoableActionManager operationsManager,
             final Model model, final AxisConfig axis)

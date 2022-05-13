@@ -57,7 +57,6 @@ public class Activator
 
     /** @param base_name Icon base name (no path, no extension)
      *  @return {@link Image}
-     *  @throws Exception on error
      */
     public static Image getImage(final String base_name)
     {
@@ -66,7 +65,6 @@ public class Activator
 
     /** @param base_name Icon base name (no path, no extension)
      *  @return {@link ImageView}
-     *  @throws Exception on error
      */
     public static ImageView getIcon(final String base_name)
     {

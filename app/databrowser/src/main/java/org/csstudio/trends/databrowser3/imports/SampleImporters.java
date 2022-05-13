@@ -53,8 +53,8 @@ public class SampleImporters
     }
 
     /** Obtain sample importer
-     *  @param type
-     *  @return {@link SampleImporterInfo} for that type or <code>null</code> if not known
+     *  @param type Type of sample importer ("csv", ...)
+     *  @return {@link SampleImporter} for that type or <code>null</code> if not known
      */
     public static SampleImporter getImporter(final String type)
     {

@@ -26,14 +26,14 @@ public class ChangeTimerangeCommand extends UndoableAction
      *  @param operations_manager OperationsManager where command will be reg'ed
      *  @param new_range New time range
      */
-    public ChangeTimerangeCommand(final Model model, final UndoableActionManager operationsManager,
+    public ChangeTimerangeCommand(final Model model, final UndoableActionManager operations_manager,
                                   final TimeRelativeInterval new_range)
     {
         super(Messages.TimeAxis);
         this.model = model;
         this.old_range = model.getTimerange();
         this.new_range = new_range;
-        operationsManager.add(this);
+        operations_manager.add(this);
         run();
     }
 

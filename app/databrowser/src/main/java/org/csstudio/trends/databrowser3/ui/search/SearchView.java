@@ -79,8 +79,8 @@ public class SearchView extends SplitPane
      *  should be treated as generic {@link Node},
      *  using only the API defined in here
      *
-     *  @param model
-     *  @param undo
+     *  @param model Model
+     *  @param undo Undo manager
      */
     public SearchView(final Model model, final UndoableActionManager undo)
     {

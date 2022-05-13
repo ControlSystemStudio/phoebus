@@ -84,7 +84,7 @@ public class PlotSample implements PlotDataItem<Instant>
     /** Initialize with valid control system value
      *  @param waveform_index Waveform index
      *  @param source Info about the source of this sample
-     *  @param value
+     *  @param value Value
      */
     PlotSample(final AtomicInteger waveform_index, final  String source, final VType value)
     {
@@ -93,7 +93,7 @@ public class PlotSample implements PlotDataItem<Instant>
 
     /** Initialize with valid control system value
      *  @param source Info about the source of this sample
-     *  @param value
+     *  @param value Value
      */
     public PlotSample(final String source, final VType value)
     {
@@ -101,6 +101,7 @@ public class PlotSample implements PlotDataItem<Instant>
     }
 
     /** Initialize with (error) info, creating a non-plottable sample 'now'
+     *  @param source Data source hint
      *  @param info Text used for info as well as error message
      */
     public PlotSample(final String source, final String info)

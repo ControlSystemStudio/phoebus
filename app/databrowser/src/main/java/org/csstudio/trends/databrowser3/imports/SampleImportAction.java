@@ -34,6 +34,10 @@ public class SampleImportAction extends MenuItem
     final private Model model;
     final private String type;
 
+    /** @param model Model
+     *  @param type Type
+     *  @param op_manager Undo manager
+     */
     public SampleImportAction(final Model model, final String type, final UndoableActionManager op_manager)
     {
         super(MessageFormat.format(Messages.ImportActionLabelFmt, type),

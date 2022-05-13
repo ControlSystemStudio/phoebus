@@ -88,7 +88,6 @@ public class PVItem extends ModelItem
     /** Initialize
      *  @param name PV name
      *  @param period Scan period in seconds, &le;0 to 'monitor'
-     *  @throws Exception on error
      */
     public PVItem(final String name, final double period)
     {

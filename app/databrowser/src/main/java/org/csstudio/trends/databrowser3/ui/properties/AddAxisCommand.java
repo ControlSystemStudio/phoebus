@@ -26,8 +26,7 @@ public class AddAxisCommand extends UndoableAction
 
     /** Register and perform the command
      *  @param operations_manager OperationsManager where command will be reg'ed
-     *  @param pv PV where to add archive
-     *  @param archive Archive data source to add
+     *  @param model Model where to add new axis
      */
     public AddAxisCommand(final UndoableActionManager operations_manager,
             final Model model)

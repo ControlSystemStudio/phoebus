@@ -28,21 +28,25 @@ public class SeverityInfo
         this.txt_stat = txt_stat;
     }
 
+    /** @return Alarm severity */
     public AlarmSeverity getSeverity()
     {
         return severity;
     }
 
+    /** @return Alarm status message */
     public String getText()
     {
         return text;
     }
 
+    /** @return Does sample hold a value, or is it "INVALID"? */
     public boolean hasValue()
     {
         return has_value;
     }
 
+    /** @return Is "stat" text, or a code for the status enum? */
     public boolean statusIsText()
     {
         return txt_stat;

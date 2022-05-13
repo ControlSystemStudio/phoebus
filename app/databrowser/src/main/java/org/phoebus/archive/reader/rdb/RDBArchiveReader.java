@@ -59,6 +59,9 @@ public class RDBArchiveReader implements ArchiveReader
     /** Active statements to cancel in cancel() */
     private final List<Statement> cancellable_statements = new ArrayList<>();
 
+    /** @param url RDB URL
+     *  @throws Exception on error
+     */
     public RDBArchiveReader(final String url) throws Exception
     {
         pool = new RDBConnectionPool(url, RDBPreferences.user, RDBPreferences.password);
