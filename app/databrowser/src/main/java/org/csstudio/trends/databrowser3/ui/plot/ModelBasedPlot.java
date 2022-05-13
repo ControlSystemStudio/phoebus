@@ -419,9 +419,9 @@ public class ModelBasedPlot
 
     /** Update plot to given time range.
      *  Can be called from any thread.
-     *  @param scroll
-     *  @param start
-     *  @param end
+     *  @param scroll Enable scrolling?
+     *  @param start Start time
+     *  @param end End time
      */
     public void setTimeRange(final boolean scroll, final Instant start, final Instant end)
     {

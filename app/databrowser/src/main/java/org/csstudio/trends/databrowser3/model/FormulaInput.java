@@ -76,7 +76,7 @@ public class FormulaInput
 
     /** Iterate over the samples of the input's ModelItem
      *  @return Next value or <code>null</code>
-     *  @throws Exception
+     *  @throws Exception on error
      */
     public VType next() throws Exception
     {

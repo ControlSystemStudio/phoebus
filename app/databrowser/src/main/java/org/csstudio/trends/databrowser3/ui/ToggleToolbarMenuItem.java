@@ -19,6 +19,7 @@ import javafx.scene.control.MenuItem;
 @SuppressWarnings("nls")
 public class ToggleToolbarMenuItem extends MenuItem
 {
+    /** @param plot Plot on which to toggle the toolbar */
     public ToggleToolbarMenuItem(final RTPlot<?> plot)
     {
         setGraphic(ImageCache.getImageView(RTPlot.class, "/icons/toolbar.png"));

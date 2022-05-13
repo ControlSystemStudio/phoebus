@@ -29,7 +29,7 @@ public class MatlabQualityHelper
     /** Get numeric quality code for a severity/status combination
      *  @param severity Severity level
      *  @param status Status message
-     *  @return
+     *  @return Quality code
      */
     @SuppressWarnings("nls")
     public int getQualityCode(final AlarmSeverity severity, final String status)

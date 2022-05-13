@@ -119,18 +119,19 @@ public class Preferences
         }
     }
 
-    public static void setRawDataPrompt(final boolean value)
+    /** @param show Display warning regarding raw data? */
+    public static void setRawDataPrompt(final boolean show)
     {
-        prompt_for_raw_data_request = value;
-        update(PROMPT_FOR_RAW_DATA, value);
+        prompt_for_raw_data_request = show;
+        update(PROMPT_FOR_RAW_DATA, show);
     }
 
-    public static void setVisibilityPrompt(final boolean value)
+    /** @param show Display warning regarding trace visiblity? */
+    public static void setVisibilityPrompt(final boolean show)
     {
-        prompt_for_visibility = value;
-        update(PROMPT_FOR_VISIBILITY, value);
+        prompt_for_visibility = show;
+        update(PROMPT_FOR_VISIBILITY, show);
     }
-
 
     private static void update(final String setting, final boolean value)
     {
@@ -146,6 +147,9 @@ public class Preferences
         }
     }
 
+    /** @param setting Text with list of archives, separated by 'pipe' symbol
+     *  @return List of parsed data sources
+     */
     public static List<ArchiveDataSource> parseArchives(final String setting)
     {
         final List<ArchiveDataSource> urls = new ArrayList<>();

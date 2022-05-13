@@ -73,6 +73,7 @@ public class AddModelItemCommand extends UndoableAction
      *  displaying errors in dialog
      *  @param operations_manager OperationsManager where command will be reg'ed
      *  @param model Model were PV is to be added
+     *  @param formula_name Name of formula
      *  @param axis Axis
      *  @return AddModelItemCommand or <code>null</code> on error
      */

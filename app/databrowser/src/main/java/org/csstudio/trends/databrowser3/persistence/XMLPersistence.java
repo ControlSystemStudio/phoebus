@@ -568,10 +568,10 @@ public class XMLPersistence
     }
 
     /** Write RGB color to XML document
-     *  @param writer
-     *  @param tag_name
-     *  @param color
-     *  @throws Exception
+     *  @param writer Writer
+     *  @param tag_name Name of tag
+     *  @param color Color
+     *  @throws Exception on error
      */
     public static void writeColor(final XMLStreamWriter writer,
                                   final String tag_name, final Color color) throws Exception
