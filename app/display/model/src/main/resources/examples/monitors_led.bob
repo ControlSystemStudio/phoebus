@@ -102,14 +102,6 @@
     <y>169</y>
     <width>26</width>
     <height>26</height>
-    <off_color>
-      <color name="Off" red="60" green="100" blue="60">
-      </color>
-    </off_color>
-    <on_color>
-      <color name="On" red="0" green="255" blue="0">
-      </color>
-    </on_color>
     <border_alarm_sensitive>false</border_alarm_sensitive>
   </widget>
   <widget type="led" version="2.0.0">
@@ -120,14 +112,6 @@
     <y>169</y>
     <width>26</width>
     <height>26</height>
-    <off_color>
-      <color name="Off" red="60" green="100" blue="60">
-      </color>
-    </off_color>
-    <on_color>
-      <color name="On" red="0" green="255" blue="0">
-      </color>
-    </on_color>
     <border_alarm_sensitive>false</border_alarm_sensitive>
   </widget>
   <widget type="label" version="2.0.0">
@@ -186,14 +170,6 @@
     <y>169</y>
     <width>26</width>
     <height>26</height>
-    <off_color>
-      <color name="Off" red="60" green="100" blue="60">
-      </color>
-    </off_color>
-    <on_color>
-      <color name="On" red="0" green="255" blue="0">
-      </color>
-    </on_color>
     <border_alarm_sensitive>false</border_alarm_sensitive>
   </widget>
   <widget type="label" version="2.0.0">
@@ -279,14 +255,6 @@
     <y>103</y>
     <width>26</width>
     <height>26</height>
-    <off_color>
-      <color name="Off" red="60" green="100" blue="60">
-      </color>
-    </off_color>
-    <on_color>
-      <color name="On" red="0" green="255" blue="0">
-      </color>
-    </on_color>
     <border_alarm_sensitive>false</border_alarm_sensitive>
   </widget>
   <widget type="label" version="2.0.0">
@@ -320,15 +288,7 @@
     <width>49</width>
     <height>26</height>
     <off_label>Off</off_label>
-    <off_color>
-      <color name="Off" red="60" green="100" blue="60">
-      </color>
-    </off_color>
     <on_label>On</on_label>
-    <on_color>
-      <color name="On" red="0" green="255" blue="0">
-      </color>
-    </on_color>
     <border_alarm_sensitive>false</border_alarm_sensitive>
   </widget>
   <widget type="multi_state_led" version="2.0.0">
@@ -417,14 +377,6 @@ except that the border follows the outline of the LED.</text>
     <y>520</y>
     <width>26</width>
     <height>26</height>
-    <off_color>
-      <color name="Off" red="60" green="100" blue="60">
-      </color>
-    </off_color>
-    <on_color>
-      <color name="On" red="0" green="255" blue="0">
-      </color>
-    </on_color>
   </widget>
   <widget type="led" version="2.0.0">
     <name>BoolLED_3</name>
@@ -433,14 +385,6 @@ except that the border follows the outline of the LED.</text>
     <y>522</y>
     <width>27</width>
     <height>48</height>
-    <off_color>
-      <color name="Off" red="60" green="100" blue="60">
-      </color>
-    </off_color>
-    <on_color>
-      <color name="On" red="0" green="255" blue="0">
-      </color>
-    </on_color>
   </widget>
   <widget type="led" version="2.0.0">
     <name>BoolLED_4</name>
@@ -449,14 +393,6 @@ except that the border follows the outline of the LED.</text>
     <y>522</y>
     <width>57</width>
     <height>24</height>
-    <off_color>
-      <color name="Off" red="60" green="100" blue="60">
-      </color>
-    </off_color>
-    <on_color>
-      <color name="On" red="0" green="255" blue="0">
-      </color>
-    </on_color>
   </widget>
   <widget type="led" version="2.0.0">
     <name>BoolLED_5</name>
@@ -465,14 +401,6 @@ except that the border follows the outline of the LED.</text>
     <y>580</y>
     <width>26</width>
     <height>26</height>
-    <off_color>
-      <color name="Off" red="60" green="100" blue="60">
-      </color>
-    </off_color>
-    <on_color>
-      <color name="On" red="0" green="255" blue="0">
-      </color>
-    </on_color>
     <square>true</square>
   </widget>
   <widget type="led" version="2.0.0">
@@ -482,14 +410,6 @@ except that the border follows the outline of the LED.</text>
     <y>582</y>
     <width>27</width>
     <height>48</height>
-    <off_color>
-      <color name="Off" red="60" green="100" blue="60">
-      </color>
-    </off_color>
-    <on_color>
-      <color name="On" red="0" green="255" blue="0">
-      </color>
-    </on_color>
     <square>true</square>
   </widget>
   <widget type="led" version="2.0.0">
@@ -499,14 +419,6 @@ except that the border follows the outline of the LED.</text>
     <y>582</y>
     <width>57</width>
     <height>24</height>
-    <off_color>
-      <color name="Off" red="60" green="100" blue="60">
-      </color>
-    </off_color>
-    <on_color>
-      <color name="On" red="0" green="255" blue="0">
-      </color>
-    </on_color>
     <square>true</square>
   </widget>
   <widget type="led" version="2.0.0">
@@ -516,14 +428,6 @@ except that the border follows the outline of the LED.</text>
     <y>103</y>
     <width>26</width>
     <height>26</height>
-    <off_color>
-      <color name="Off" red="60" green="100" blue="60">
-      </color>
-    </off_color>
-    <on_color>
-      <color name="On" red="0" green="255" blue="0">
-      </color>
-    </on_color>
     <square>true</square>
     <border_alarm_sensitive>false</border_alarm_sensitive>
   </widget>
@@ -535,14 +439,6 @@ except that the border follows the outline of the LED.</text>
     <y>210</y>
     <width>26</width>
     <height>26</height>
-    <off_color>
-      <color name="Off" red="60" green="100" blue="60">
-      </color>
-    </off_color>
-    <on_color>
-      <color name="On" red="0" green="255" blue="0">
-      </color>
-    </on_color>
     <square>true</square>
     <border_alarm_sensitive>false</border_alarm_sensitive>
   </widget>
@@ -554,14 +450,6 @@ except that the border follows the outline of the LED.</text>
     <y>210</y>
     <width>26</width>
     <height>26</height>
-    <off_color>
-      <color name="Off" red="60" green="100" blue="60">
-      </color>
-    </off_color>
-    <on_color>
-      <color name="On" red="0" green="255" blue="0">
-      </color>
-    </on_color>
     <square>true</square>
     <border_alarm_sensitive>false</border_alarm_sensitive>
   </widget>
@@ -573,15 +461,139 @@ except that the border follows the outline of the LED.</text>
     <y>210</y>
     <width>26</width>
     <height>26</height>
-    <off_color>
+    <square>true</square>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>BoolLED_9</name>
+    <class>ON_OFF</class>
+    <pv_name>sim://flipflop(2)</pv_name>
+    <x>623</x>
+    <y>70</y>
+    <width>26</width>
+    <height>26</height>
+    <off_color use_class="true">
       <color name="Off" red="60" green="100" blue="60">
       </color>
     </off_color>
-    <on_color>
+    <on_color use_class="true">
       <color name="On" red="0" green="255" blue="0">
       </color>
     </on_color>
-    <square>true</square>
     <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_22</name>
+    <text>Predefined Classes</text>
+    <x>610</x>
+    <y>20</y>
+    <width>260</width>
+    <font>
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_23</name>
+    <text>ON_OFF</text>
+    <x>610</x>
+    <y>50</y>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>BoolLED_10</name>
+    <class>GOOD_BAD</class>
+    <pv_name>sim://flipflop(2)</pv_name>
+    <x>703</x>
+    <y>70</y>
+    <width>26</width>
+    <height>26</height>
+    <off_color use_class="true">
+      <color name="OK" red="0" green="255" blue="0">
+      </color>
+    </off_color>
+    <on_color use_class="true">
+      <color name="MAJOR" red="255" green="0" blue="0">
+      </color>
+    </on_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_24</name>
+    <text>GOOD_BAD</text>
+    <x>690</x>
+    <y>50</y>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>BoolLED_11</name>
+    <class>WARNING</class>
+    <pv_name>sim://flipflop(2)</pv_name>
+    <x>803</x>
+    <y>70</y>
+    <width>26</width>
+    <height>26</height>
+    <off_color use_class="true">
+      <color red="105" green="74" blue="44">
+      </color>
+    </off_color>
+    <on_color use_class="true">
+      <color name="Attention" red="255" green="160" blue="0">
+      </color>
+    </on_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_25</name>
+    <text>WARNING</text>
+    <x>790</x>
+    <y>50</y>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>BoolLED_12</name>
+    <class>FAILURE</class>
+    <pv_name>sim://flipflop(2)</pv_name>
+    <x>893</x>
+    <y>70</y>
+    <width>26</width>
+    <height>26</height>
+    <off_color use_class="true">
+      <color red="105" green="74" blue="44">
+      </color>
+    </off_color>
+    <on_color use_class="true">
+      <color name="MAJOR" red="255" green="0" blue="0">
+      </color>
+    </on_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_26</name>
+    <text>FAILURE</text>
+    <x>880</x>
+    <y>50</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_27</name>
+    <text>Predefined LED classes can be used to get consistent indications for "Good/Bad", "On/Off" type of indicators.</text>
+    <x>610</x>
+    <y>144</y>
+    <width>360</width>
+    <height>60</height>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_28</name>
+    <text>Value:</text>
+    <x>610</x>
+    <y>110</y>
+    <width>60</width>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <pv_name>sim://flipflop(2)</pv_name>
+    <x>680</x>
+    <y>110</y>
   </widget>
 </display>

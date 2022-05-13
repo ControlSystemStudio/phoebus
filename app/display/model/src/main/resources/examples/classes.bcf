@@ -52,7 +52,7 @@
     <x>120</x>
     <y>190</y>
     <off_color use_class="true">
-      <color red="105" green="74" blue="44">
+      <color name="Off" red="60" green="100" blue="60">
       </color>
     </off_color>
     <on_color use_class="true">
@@ -102,6 +102,52 @@ Properties are marked to be included in the class definition.</text>
     <y>20</y>
     <width>310</width>
     <height>150</height>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>ERROR</name>
+    <x>120</x>
+    <y>230</y>
+    <off_color use_class="true">
+      <color name="Off" red="60" green="100" blue="60">
+      </color>
+    </off_color>
+    <on_color use_class="true">
+      <color name="MAJOR" red="255" green="0" blue="0">
+      </color>
+    </on_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>ERROR</text>
+    <y>230</y>
+    <width>120</width>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>GOOD_BAD</name>
+    <x>120</x>
+    <y>270</y>
+    <off_color use_class="true">
+      <color name="OK" red="0" green="255" blue="0">
+      </color>
+    </off_color>
+    <on_color use_class="true">
+      <color name="MAJOR" red="255" green="0" blue="0">
+      </color>
+    </on_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>GOOD_BAD</text>
+    <y>270</y>
+    <width>120</width>
     <font>
       <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
       </font>
