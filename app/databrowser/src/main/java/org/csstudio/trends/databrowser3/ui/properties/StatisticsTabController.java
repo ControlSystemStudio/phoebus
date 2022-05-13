@@ -82,12 +82,14 @@ public class StatisticsTabController implements ModelListener{
     @FXML
     private TableColumn<ModelItemStatistics, String> sumColumn;
 
+    /** @param model Model */
     public StatisticsTabController(Model model){
         this.model = model;
     }
 
     private SimpleBooleanProperty refreshDisabled = new SimpleBooleanProperty(false);
 
+    /** Init */
     @FXML
     public void initialize() {
 
@@ -99,12 +101,14 @@ public class StatisticsTabController implements ModelListener{
         refreshAll.disableProperty().bind(refreshDisabled);
     }
 
+    /** @param modelItem Model item */
     @Override
     public void itemAdded(ModelItem modelItem) {
         ModelItemStatistics statistics = new ModelItemStatistics(modelItem);
         tracesTable.getItems().add(statistics);
     }
 
+    /** @param modelItem Model item */
     @Override
     public void changedItemLook(ModelItem modelItem){
         ModelItemStatistics statistics =
@@ -115,6 +119,7 @@ public class StatisticsTabController implements ModelListener{
         }
     }
 
+    /** @param modelItem Model item */
     @Override
     public void itemRemoved(ModelItem modelItem) {
         ModelItemStatistics statistics =
@@ -124,6 +129,7 @@ public class StatisticsTabController implements ModelListener{
         }
     }
 
+    /** Refresh all */
     @FXML
     public void refreshAll(){
         JobManager.schedule("Compute trace statistics", new JobRunnable() {

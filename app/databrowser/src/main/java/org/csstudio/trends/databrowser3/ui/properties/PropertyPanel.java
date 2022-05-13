@@ -57,6 +57,9 @@ public class PropertyPanel extends TabPane
     }
 
 
+    /** @param model Model
+     *  @param undo Undo manager
+     */
     public PropertyPanel(final Model model, final UndoableActionManager undo)
     {
         final Tab traces = new TracesTab(model, undo);
@@ -90,11 +93,13 @@ public class PropertyPanel extends TabPane
         });
     }
 
+    /** @param memento Saved setting */
     public void restore(final Memento memento)
     {
         memento.getNumber(PROPERTY_TAB).ifPresent(tab -> getSelectionModel().select(tab.intValue()));
     }
 
+    /** @param memento Where to save setting */
     public void save(final Memento memento)
     {
         memento.setNumber(PROPERTY_TAB, getSelectionModel().getSelectedIndex());

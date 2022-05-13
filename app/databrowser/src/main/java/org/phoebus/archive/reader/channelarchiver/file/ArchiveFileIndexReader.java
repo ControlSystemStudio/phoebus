@@ -123,8 +123,8 @@ public class ArchiveFileIndexReader implements AutoCloseable
      *  at or before the given end time, an empty list will be returned.
      *
      *  @param channelName Channel name
-     *  @param startTime
-     *  @param endTime
+     *  @param startTime Start time
+     *  @param endTime End time
      *  @return data file entries (file + offset) for the given time range
      *  @throws UnknownChannelException If the index has no data for the given channel name.
      *  @throws Exception on error
@@ -258,6 +258,7 @@ public class ArchiveFileIndexReader implements AutoCloseable
         buffer.close();
     }
 
+    /** @return Channel names found in index */
     public java.util.Set<String> getChannelNames()
     {
         return anchors.keySet();

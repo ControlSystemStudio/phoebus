@@ -13,13 +13,14 @@ import java.util.List;
 import org.epics.vtype.VType;
 import org.phoebus.archive.reader.ValueIterator;
 
-/** {@link ValueIterator} for {@link List} of {@link IValue}
+/** {@link ValueIterator} for {@link List} of {@link VType}
  *  @author Kay Kasemir
  */
 public class ArrayValueIterator implements ValueIterator
 {
     final private Iterator<VType> iter;
 
+    /** @param values Values over which to iterate */
     public ArrayValueIterator(final List<VType> values)
     {
         iter = values.iterator();

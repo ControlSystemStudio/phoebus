@@ -4,7 +4,7 @@ package org.phoebus.archive.reader.appliance;
 /**
  * Interface that defines constants which are used in archive reader appliance.
  *
- * @author Miha Novak <miha.novak@cosylab.com>
+ * @author Miha Novak miha.novak@cosylab.com
  */
 public class ApplianceArchiveReaderConstants {
     /** The name of the archiver appliance reader as it appears in the preferences */

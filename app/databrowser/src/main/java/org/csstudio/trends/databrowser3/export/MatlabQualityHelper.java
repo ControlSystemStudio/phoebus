@@ -27,8 +27,8 @@ public class MatlabQualityHelper
     final ArrayList<String> codes = new ArrayList<>();
 
     /** Get numeric quality code for a severity/status combination
-     *  @param severity
-     *  @param status
+     *  @param severity Severity level
+     *  @param status Status message
      *  @return
      */
     @SuppressWarnings("nls")

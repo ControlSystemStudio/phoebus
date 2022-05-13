@@ -14,6 +14,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.concurrent.TimeUnit;
 
+/** Time stamp helper */
 public class TimestampHelper
 {
     /** Round time to next multiple of given duration

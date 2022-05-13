@@ -26,12 +26,16 @@ public class RTreeNode
         /** Selected record */
         public int record_index;
 
+        /** @param node Node
+         *  @param record_index Index of record within the node
+         */
         public RTreeNodeWithIndex(final RTreeNode node, final int record_index)
         {
             this.node = node;
             this.record_index = record_index;
         }
 
+        /** @return Record */
         public Record selectedRecord()
         {
             return node.records[record_index];

@@ -23,6 +23,9 @@ import javafx.scene.control.MenuItem;
 @SuppressWarnings("nls")
 public class RemoveUnusedAxes extends MenuItem
 {
+    /** @param model Model
+     *  @param undo Undo manager
+     */
     public RemoveUnusedAxes(final Model model, final UndoableActionManager undo)
     {
         super(Messages.RemoveEmptyAxes, Activator.getIcon("remove_unused"));

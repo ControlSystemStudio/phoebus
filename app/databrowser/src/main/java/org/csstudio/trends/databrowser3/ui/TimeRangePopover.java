@@ -1,26 +1,38 @@
 package org.csstudio.trends.databrowser3.ui;
 
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.layout.HBox;
+import java.util.function.BiConsumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.csstudio.trends.databrowser3.model.Model;
 import org.phoebus.ui.dialog.PopOver;
 import org.phoebus.ui.time.TemporalAmountPane;
 import org.phoebus.ui.time.TimeRelativeIntervalPane;
 
-import java.util.function.BiConsumer;
-import java.util.logging.Logger;
-import java.util.logging.Level;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
+import javafx.scene.layout.HBox;
 
+/** Time range pop-over */
 public class TimeRangePopover extends PopOver {
 
     private static final Logger log = Logger.getLogger(TimeRangePopover.class.getName());
 
+    /** @param model Model
+     *  @param cancelCallback Callback when cancelled
+     *  @param applyCallback Callback to apply
+     *  @return Popover
+     */
     public static TimeRangePopover withDefaultTimePane(final Model model, BiConsumer<TimeRelativeIntervalPane, PopOver> cancelCallback, BiConsumer<TimeRelativeIntervalPane, PopOver> applyCallback) {
         return new TimeRangePopover(new TimeRelativeIntervalPane(TemporalAmountPane.Type.ONLY_NOW), model, cancelCallback, applyCallback);
     }
 
+    /** @param timePane Time pane
+     *  @param model Model
+     *  @param cancelCallback Callback when cancelled
+     *  @param applyCallback Callback to apply
+     */
     public TimeRangePopover(final TimeRelativeIntervalPane timePane, final Model model, BiConsumer<TimeRelativeIntervalPane, PopOver> cancelCallback, BiConsumer<TimeRelativeIntervalPane, PopOver> applyCallback) {
         // Initialize the PopOver with the timepane as the content
         super(timePane);

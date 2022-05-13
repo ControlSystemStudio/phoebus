@@ -44,7 +44,7 @@ import org.phoebus.util.time.TimeRelativeInterval;
 
 import javafx.application.Platform;
 
-/** Controller that interfaces the {@link Model} with the {@link ModelBasedPlotSWT}:
+/** Controller that interfaces the {@link Model} with the {@link ModelBasedPlot}:
  *  <ul>
  *  <li>For each item in the Model, create a trace in the plot.
  *  <li>Perform scrolling of the time axis.

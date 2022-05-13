@@ -46,6 +46,7 @@ public class FormulaPane extends GridPane
     private final TableView<InputItem> input_table = new TableView<>(inputs);
 
     private final Label status = new Label();
+    /** Is formula free of syntax errors? */
     private final ReadOnlyBooleanWrapper ok = new ReadOnlyBooleanWrapper();
 
     private InputItem used_inputs[] = new InputItem[0];
@@ -148,7 +149,7 @@ public class FormulaPane extends GridPane
         });
     }
 
-    /** Property that indicates if the formula is valid */
+    /** @return Property that indicates if the formula is valid */
     public ReadOnlyBooleanProperty okProperty()
     {
         return ok.getReadOnlyProperty();
