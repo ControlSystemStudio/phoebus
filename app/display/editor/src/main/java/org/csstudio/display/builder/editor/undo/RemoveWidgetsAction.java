@@ -40,6 +40,9 @@ public class RemoveWidgetsAction extends UndoableAction
 
     private final Info[] info;
 
+    /** @param selection Selection handler to update
+     *  @param widgets Widgets to remove
+     */
     public RemoveWidgetsAction(final WidgetSelectionHandler selection, final List<Widget> widgets)
     {
         super(Messages.RemoveWidgets);

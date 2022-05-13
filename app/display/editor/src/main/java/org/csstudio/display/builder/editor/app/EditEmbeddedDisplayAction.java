@@ -26,6 +26,10 @@ import javafx.scene.control.MenuItem;
 @SuppressWarnings("nls")
 public class EditEmbeddedDisplayAction extends MenuItem
 {
+    /** @param app Editor to use
+     *  @param widget Embedded display widget
+     *  @param file Embedded file to edit
+     */
     public EditEmbeddedDisplayAction(final AppResourceDescriptor app, final Widget widget, String file)
     {
         super(Messages.EditEmbededDisplay,

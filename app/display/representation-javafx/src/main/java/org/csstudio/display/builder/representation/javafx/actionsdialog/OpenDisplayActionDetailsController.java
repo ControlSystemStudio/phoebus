@@ -18,6 +18,16 @@
 
 package org.csstudio.display.builder.representation.javafx.actionsdialog;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.properties.ActionInfo;
+import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
+import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo.Target;
+import org.csstudio.display.builder.representation.javafx.FilenameSupport;
+import org.csstudio.display.builder.representation.javafx.MacrosTable;
+
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
@@ -30,16 +40,8 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.properties.ActionInfo;
-import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
-import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo.Target;
-import org.csstudio.display.builder.representation.javafx.FilenameSupport;
-import org.csstudio.display.builder.representation.javafx.MacrosTable;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+/** FXML Controller */
 public class OpenDisplayActionDetailsController implements ActionDetailsController{
 
     @FXML
@@ -69,11 +71,15 @@ public class OpenDisplayActionDetailsController implements ActionDetailsControll
 
     private Widget widget;
 
+    /** @param widget Widget
+     *  @param actionInfo ActionInfo
+     */
     public OpenDisplayActionDetailsController(Widget widget, ActionInfo actionInfo){
         this.widget = widget;
         this.openDisplayActionInfo = (OpenDisplayActionInfo)actionInfo;
     }
 
+    /** Init */
     @FXML
     public void initialize(){
         replaceRadioButton.setUserData(Target.REPLACE);
@@ -113,6 +119,7 @@ public class OpenDisplayActionDetailsController implements ActionDetailsControll
         VBox.setVgrow(macrosTable.getNode(), Priority.ALWAYS);
     }
 
+    /** Prompt for filename */
     @FXML
     public void selectDisplayPath(){
         try {

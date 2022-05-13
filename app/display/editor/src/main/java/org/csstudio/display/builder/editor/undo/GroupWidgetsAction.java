@@ -38,6 +38,12 @@ public class GroupWidgetsAction extends UndoableAction
     private final List<Widget> widgets;
     private final int x_offset, y_offset;
 
+    /** @param parent_children List of children in parent
+     *  @param group Group widget
+     *  @param widgets Widgets to group
+     *  @param x_offset X offset
+     *  @param y_offset Y offset
+     */
     public GroupWidgetsAction(final ChildrenProperty parent_children, final GroupWidget group,
                               final List<Widget> widgets,
                               final int x_offset, final int y_offset)
@@ -46,6 +52,13 @@ public class GroupWidgetsAction extends UndoableAction
              x_offset, y_offset);
     }
 
+    /** @param name Name of action to show in 'undo'
+     *  @param parent_children List of children in parent
+     *  @param group Group widget
+     *  @param widgets Widgets to group
+     *  @param x_offset X offset
+     *  @param y_offset Y offset
+     */
     public GroupWidgetsAction(final String name, final ChildrenProperty parent_children, final GroupWidget group,
             final List<Widget> widgets,
             final int x_offset, final int y_offset)

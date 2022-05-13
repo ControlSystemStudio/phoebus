@@ -35,8 +35,8 @@ import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.NumericInputDialog;
 import org.phoebus.ui.javafx.PlatformInfo;
-import org.phoebus.ui.undo.CompoundUndoableAction;
 import org.phoebus.ui.undo.CompoundReversedUndoableAction;
+import org.phoebus.ui.undo.CompoundUndoableAction;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.geometry.Point2D;
@@ -722,7 +722,7 @@ public abstract class ActionDescription
 
     private static final String DISTRIBUTION_VGAP = "distribution_vgap";
     private static final String DISTRIBUTION_HGAP = "distribution_hgap";
-    
+
     /** Distribute widgets horizontally with preset gap */
     public static final ActionDescription DIST_HORIZ_GAP =
         new ActionDescription("icons/distribute_hcg.png", Messages.DistributeHorizontallyGap)
@@ -739,7 +739,7 @@ public abstract class ActionDescription
                 return;
 
             int offset = prefs.getInt(DISTRIBUTION_HGAP, editor.getModel().propGridStepX().getValue());
-            
+
             NumericInputDialog input = new NumericInputDialog(Messages.DistributeGapTitle, Messages.DistributeGapMessage, offset, val -> null);
             DialogHelper.positionDialog(input, editor.getContextMenuNode(), 0, 0);
             final double res = input.prompt();
@@ -874,11 +874,13 @@ public abstract class ActionDescription
         this.tool_tip = tool_tip;
     }
 
+    /** @return Icon name */
     public String getIcon()
     {
         return icon;
     }
 
+    /** @return Icon resource */
     public URL getIconResourcePath()
     {
         return DisplayEditor.class.getResource("/" + icon);

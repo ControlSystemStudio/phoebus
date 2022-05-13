@@ -21,9 +21,9 @@ import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
-import org.csstudio.display.builder.model.properties.WritePVActionInfo;
 import org.csstudio.display.builder.model.properties.RotationStep;
 import org.csstudio.display.builder.model.properties.StringWidgetProperty;
+import org.csstudio.display.builder.model.properties.WritePVActionInfo;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.builder.representation.javafx.Cursors;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
@@ -222,7 +222,9 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         return result;
     }
 
-    /** Called by ContextMenuSupport when an action menu is selected */
+    /** Called by ContextMenuSupport when an action menu is selected
+     *  @param action Action to perform
+     */
     public void handleContextMenuAction(ActionInfo action)
     {
         if (action instanceof WritePVActionInfo && ! writable)

@@ -15,7 +15,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import org.phoebus.ui.javafx.EditCell;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
@@ -35,6 +34,7 @@ import org.csstudio.display.builder.representation.javafx.ScriptsDialog;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.MultiLineInputDialog;
+import org.phoebus.ui.javafx.EditCell;
 import org.phoebus.ui.javafx.LineNumberTableCellFactory;
 import org.phoebus.ui.javafx.TableHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
@@ -81,7 +81,7 @@ import javafx.scene.layout.VBox;
 public class RulesDialog extends Dialog<List<RuleInfo>>
 {
     /** Expression info as property-based item for table */
-    public abstract static class ExprItem<T>
+    private abstract static class ExprItem<T>
     {
         final protected StringProperty boolExp = new SimpleStringProperty();
         final protected SimpleObjectProperty<Node> field = new SimpleObjectProperty<>();
@@ -107,7 +107,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         abstract public T getPropVal();
     };
 
-    public static class ExprItemString extends ExprItem<String>
+    private static class ExprItemString extends ExprItem<String>
     {
         final protected Widget widget = new Widget("ExprItemString");
         final protected WidgetProperty<String> string_prop;
@@ -142,7 +142,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         }
     };
 
-    public static class ExprItemValue<T> extends ExprItem< WidgetProperty<T> >
+    private static class ExprItemValue<T> extends ExprItem< WidgetProperty<T> >
     {
         protected final WidgetProperty<T> internal_prop_val;
 
@@ -173,7 +173,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         }
     };
 
-    public static class ExprItemFactory
+    private static class ExprItemFactory
     {
         public static <T> ExprItem<?> InfoToItem(
                 final ExpressionInfo<T> info,
@@ -223,7 +223,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
     }
 
     /** Modifiable RuleInfo */
-    public static class RuleItem
+    private static class RuleItem
     {
         public List<ExprItem<?>> expressions;
         public List<PVTableItem> pvs;
@@ -418,7 +418,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
     private final SplitPane content;
 
     /** turn this rule's property into the long string form used in the combo box **/
-    public String getPropLongString(RuleItem rule)
+    private String getPropLongString(RuleItem rule)
     {
         final PropInfo pi = new PropInfo(rule.attached_widget, rule.prop_id.get());
         return pi.toString();

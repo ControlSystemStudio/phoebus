@@ -73,6 +73,7 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
     private final Slider slider;
     private final SliderMarkers markers;
 
+    /** Constructor */
     public ScaledSliderRepresentation()
     {
         slider = JFXPreferences.inc_dec_slider
@@ -368,7 +369,7 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
      *  to one that is hopefully 'nicer'
      *
      *  @param distance Original step distance
-     *  @return
+     *  @return Optimal step size
      */
     public static double selectNiceStep(final double distance)
     {

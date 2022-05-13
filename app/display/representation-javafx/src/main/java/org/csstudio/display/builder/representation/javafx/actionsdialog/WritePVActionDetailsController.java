@@ -18,14 +18,16 @@
 
 package org.csstudio.display.builder.representation.javafx.actionsdialog;
 
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.fxml.FXML;
-import javafx.scene.control.TextField;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.properties.WritePVActionInfo;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.fxml.FXML;
+import javafx.scene.control.TextField;
+
+/** FXML Controller */
 public class WritePVActionDetailsController implements ActionDetailsController{
 
     private WritePVActionInfo actionInfo;
@@ -41,10 +43,12 @@ public class WritePVActionDetailsController implements ActionDetailsController{
     private StringProperty pvNameProperty = new SimpleStringProperty();
     private StringProperty pvValueProperty = new SimpleStringProperty();
 
+    /** @param actionInfo ActionInfo */
     public WritePVActionDetailsController(ActionInfo actionInfo){
         this.actionInfo = (WritePVActionInfo)actionInfo;
     }
 
+    /** Init */
     @FXML
     public void initialize(){
         descriptionProperty.setValue(actionInfo.getDescription());
@@ -58,6 +62,7 @@ public class WritePVActionDetailsController implements ActionDetailsController{
         PVAutocompleteMenu.INSTANCE.attachField(pvName);
     }
 
+    /** @return ActionInfo */
     @Override
     public ActionInfo getActionInfo(){
         return new WritePVActionInfo(descriptionProperty.get(),

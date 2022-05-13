@@ -30,7 +30,8 @@ abstract public class WidgetPropertyBinding<JFX extends Node, WP extends WidgetP
     /** Break update loops JFX change -> model change -> JFX change -> ... */
     protected boolean updating = false;
 
-    /** @param node Java FX node to monitor and update
+    /** @param undo Undo manager
+     *  @param node Java FX node to monitor and update
      *  @param widget_property Widget property to monitor and update
      *  @param other Other widgets where same property should be updated
      */

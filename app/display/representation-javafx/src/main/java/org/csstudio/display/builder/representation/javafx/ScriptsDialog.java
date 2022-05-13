@@ -79,16 +79,26 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
     /** Modifiable ScriptInfo */
     public static class ScriptItem
     {
+        /** Script file */
         public StringProperty file = new SimpleStringProperty();
+        /** Script text */
         public String text;
+        /** Wait for connections? */
         public boolean check_connections;
+        /** PVs used by script */
         public List<PVTableItem> pvs;
 
+        /** Construct python template */
         public ScriptItem()
         {
             this(Messages.ScriptsDialog_DefaultScriptFile, ScriptInfo.EXAMPLE_PYTHON, true, new ArrayList<>());
         }
 
+        /** @param file Script file
+         *  @param text Script text
+         *  @param check_connections Wait for all connections?
+         *  @param pvs Script PVs
+         */
         public ScriptItem(final String file, final String text, final boolean check_connections, final List<PVTableItem> pvs)
         {
             this.file.set(file);
@@ -97,6 +107,9 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
             this.pvs = pvs;
         }
 
+        /** @param info ScriptInfo
+         *  @return ScriptItem
+         */
         public static ScriptItem forInfo(final ScriptInfo info)
         {
             final List<PVTableItem> pvs = new ArrayList<>();
@@ -104,6 +117,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
             return new ScriptItem(info.getPath(), info.getText(), info.getCheckConnections(), pvs);
         }
 
+        /** @return ScriptInfo */
         public ScriptInfo getScriptInfo()
         {
             final List<ScriptPV> spvs = new ArrayList<>();
@@ -127,6 +141,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
                 return new ScriptInfo(file.get(), null, check_connections, spvs);
         }
 
+        /** @return Property for file */
         public StringProperty fileProperty()
         {
             return file;

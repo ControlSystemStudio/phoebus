@@ -19,6 +19,7 @@ import javafx.scene.ImageCursor;
 @SuppressWarnings("nls")
 public class Cursors
 {
+    /** "No Write Access" cursor */
     public static final Cursor NO_WRITE;
 
     static

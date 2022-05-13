@@ -30,6 +30,9 @@ public class ExecuteDisplayAction implements Runnable
     private static final Image icon = ImageCache.getImage(DisplayEditor.class, "/icons/run_tool.png");
     private final DisplayEditorInstance editor;
 
+    /** @param editor Editor
+     *  @return Button that executes the edited display
+     */
     public static Button asButton(final DisplayEditorInstance editor)
     {
         final Runnable action = new ExecuteDisplayAction(editor);
@@ -40,6 +43,9 @@ public class ExecuteDisplayAction implements Runnable
         return button;
     }
 
+    /** @param editor Editor
+     *  @return MenuItem that executes the edited display
+     */
     public static MenuItem asMenuItem(final DisplayEditorInstance editor)
     {
         final Runnable action = new ExecuteDisplayAction(editor);

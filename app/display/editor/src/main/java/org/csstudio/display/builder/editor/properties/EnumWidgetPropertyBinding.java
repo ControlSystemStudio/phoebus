@@ -70,6 +70,11 @@ public class EnumWidgetPropertyBinding
             updating = true;
     };
 
+    /** @param undo Undo manager
+     *  @param field Combo box
+     *  @param widget_property Enum property
+     *  @param other Other selected widgets
+     */
     public EnumWidgetPropertyBinding(final UndoableActionManager undo,
                                      final ComboBox<String> field,
                                      final EnumWidgetProperty<?> widget_property,

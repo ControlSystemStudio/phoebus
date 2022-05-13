@@ -15,170 +15,171 @@ import org.phoebus.framework.nls.NLS;
 public class Messages
 {
     // Keep in alphabetical order, synchronized with messages.properties
-    public static String ActionButton_N_ActionsAsOneFmt;
-    public static String ActionButton_N_ActionsFmt;
-    public static String ActionButton_NoActions;
-    public static String ActionsDialog_Actions;
-    public static String ActionsDialog_Command;
-    public static String ActionsDialog_Description;
-    public static String ActionsDialog_Detail;
-    public static String ActionsDialog_DisplayPath;
-    public static String ActionsDialog_ExecuteAll;
-    public static String ActionsDialog_FilePath;
-    public static String ActionsDialog_Info;
-    public static String ActionsDialog_PVName;
-    public static String ActionsDialog_ScriptPath;
-    public static String ActionsDialog_ScriptText;
-    public static String ActionsDialog_Title;
-    public static String ActionsDialog_URL;
-    public static String ActionsDialog_Value;
-    public static String Add;
-    public static String AddEmbeddedJavaScript;
-    public static String AddEmbeddedPython;
-    public static String AddJavaScriptFile;
-    public static String AddPythonFile;
-    public static String Alpha;
-    public static String Blue;
-    public static String ColorDialog_Current;
-    public static String ColorDialog_Custom;
-    public static String ColorDialog_Default;
-    public static String ColorDialog_Info;
-    public static String ColorDialog_Original;
-    public static String ColorDialog_Predefined;
-    public static String ColorDialog_Title_FMT;
-    public static String ColorMap_Custom;
-    public static String ColorMapDialog_Add;
-    public static String ColorMapDialog_Color;
-    public static String ColorMapDialog_Info;
-    public static String ColorMapDialog_PredefinedMap;
-    public static String ColorMapDialog_Remove;
-    public static String ColorMapDialog_Result;
-    public static String ColorMapDialog_Title;
-    public static String ColorMapDialog_Value;
-    public static String Column;
-    public static String ConvertToEmbeddedJavaScript;
-    public static String ConvertToEmbeddedPython;
-    public static String ConvertToScriptFile;
-    public static String Edit;
-    public static String ExportWidgetInfo;
-    public static String ExportFailed;
-    public static String ExportDone;
-    public static String Copy;
-    public static String Duplicate;
-    public static String FileTypeAll;
-    public static String FileTypeDisplays;
-    public static String FontDialog_ExampleText;
-    public static String FontDialog_Family;
-    public static String FontDialog_Info;
-    public static String FontDialog_Predefined;
-    public static String FontDialog_Preview;
-    public static String FontDialog_Size;
-    public static String FontDialog_Style;
-    public static String Green;
-    public static String MacrosDialog_Info;
-    public static String MacrosDialog_NameCol;
-    public static String MacrosDialog_Title;
-    public static String MacrosDialog_ValueCol;
-    public static String MacrosTable_NameHint;
-    public static String MacrosTable_ToolTip;
-    public static String MacrosTable_ValueHint;
-    public static String MoveDown;
-    public static String MoveUp;
-    public static String OpenInExternalEditor;
-    public static String Password;
-    public static String Password_Caption;
-    public static String Password_Error;
-    public static String Password_Prompt;
-    public static String PointsDialog_Info;
-    public static String PointsDialog_Title;
-    public static String PointsTable_Empty;
-    public static String PointsTable_X;
-    public static String PointsTable_Y;
-    public static String Red;
-    public static String Remove;
-    public static String Row;
-    public static String RulesDialog_ColName;
-    public static String RulesDialog_ColBoolExp;
-    public static String RulesDialog_ColValExp;
-    public static String RulesDialog_DefaultRuleName;
-    public static String RulesDialog_ExpressionsTT;
-    public static String RulesDialog_Info;
-    public static String RulesDialog_NoExpressions;
-    public static String RulesDialog_NoPVs;
-    public static String RulesDialog_NoRules;
-    public static String RulesDialog_PVsTT;
-    public static String RulesDialog_RulesTT;
-    public static String RulesDialog_SelectRule;
-    public static String RulesDialog_ShowScript;
-    public static String RulesDialog_Title;
-    public static String ScriptsDialog_BtnEmbedJS;
-    public static String ScriptsDialog_BtnEmbedPy;
-    public static String ScriptsDialog_BtnFile;
-    public static String ScriptsDialog_CheckConnections;
-    public static String ScriptsDialog_ColPV;
-    public static String ScriptsDialog_ColScript;
-    public static String ScriptsDialog_ColTrigger;
-    public static String ScriptsDialog_DefaultScriptFile;
-    public static String ScriptsDialog_Info;
-    public static String ScriptsDialog_JavaScriptScriptFile;
-    public static String ScriptsDialog_NoScripts;
-    public static String ScriptsDialog_NoPVs;
-    public static String ScriptsDialog_PVsTT;
-    public static String ScriptsDialog_PythonScriptFile;
-    public static String ScriptsDialog_ScriptsTT;
-    public static String ScriptsDialog_Title;
-    public static String Select;
-    public static String ShowConfirmationDialogTitle;
-    public static String ShowErrorDialogTitle;
-    public static String ShowMessageDialogTitle;
-    public static String ShowSaveAsDialogTitle;
-    public static String WidgetColorPopOver_Alpha;
-    public static String WidgetColorPopOver_Blue;
-    public static String WidgetColorPopOver_Color;
-    public static String WidgetColorPopOver_CustomColor;
-    public static String WidgetColorPopOver_Default;
-    public static String WidgetColorPopOver_DefaultButton;
-    public static String WidgetColorPopOver_Green;
-    public static String WidgetColorPopOver_Info;
-    public static String WidgetColorPopOver_Original;
-    public static String WidgetColorPopOver_PredefinedColors;
-    public static String WidgetColorPopOver_Red;
-    public static String WidgetColorPopOver_SearchField;
-    public static String WidgetColorPopOver_SearchFieldTT;
-    public static String WidgetFontPopOver_ExampleText;
-    public static String WidgetFontPopOver_FontsFamilies;
-    public static String WidgetFontPopOver_Info;
-    public static String WidgetFontPopOver_PredefinedFonts;
-    public static String WidgetFontPopOver_Preview;
-    public static String WidgetFontPopOver_PreviewPrompt;
-    public static String WidgetFontPopOver_SearchPrompt;
-    public static String WidgetFontPopOver_SearchPromptTT;
-    public static String WidgetFontPopOver_SizeCaption;
-    public static String WidgetFontPopOver_SizePrompt;
-    public static String WidgetFontPopOver_Sizes;
-    public static String WidgetFontPopOver_StyleCaption;
-    public static String WidgetFontPopOver_StylePrompt;
-    public static String WidgetFontPopOver_Styles;
-    public static String WidgetInfoDialog_Category;
-    public static String WidgetInfoDialog_Count;
-    public static String WidgetInfoDialog_Disconnected;
-    public static String WidgetInfoDialog_Info_Fmt;
-    public static String WidgetInfoDialog_Name;
-    public static String WidgetInfoDialog_Path;
-    public static String WidgetInfoDialog_Property;
-    public static String WidgetInfoDialog_State;
-    public static String WidgetInfoDialog_WidgetStats;
-    public static String WidgetInfoDialog_TabMacros;
-    public static String WidgetInfoDialog_TabProperties;
-    public static String WidgetInfoDialog_TabPVs;
-    public static String WidgetInfoDialog_Title;
-    public static String WidgetInfoDialog_Total;
-    public static String WidgetInfoDialog_Value;
-    public static String WidgetInfoDialog_WidgetType;
-    public static String Zoom_All;
-    public static String Zoom_Height;
-    public static String Zoom_Width;
-    public static String Reset_Axis_Ranges;
+    /** Externalized Strings */
+    public static String ActionButton_N_ActionsAsOneFmt,
+                         ActionButton_N_ActionsFmt,
+                         ActionButton_NoActions,
+                         ActionsDialog_Actions,
+                         ActionsDialog_Command,
+                         ActionsDialog_Description,
+                         ActionsDialog_Detail,
+                         ActionsDialog_DisplayPath,
+                         ActionsDialog_ExecuteAll,
+                         ActionsDialog_FilePath,
+                         ActionsDialog_Info,
+                         ActionsDialog_PVName,
+                         ActionsDialog_ScriptPath,
+                         ActionsDialog_ScriptText,
+                         ActionsDialog_Title,
+                         ActionsDialog_URL,
+                         ActionsDialog_Value,
+                         Add,
+                         AddEmbeddedJavaScript,
+                         AddEmbeddedPython,
+                         AddJavaScriptFile,
+                         AddPythonFile,
+                         Alpha,
+                         Blue,
+                         ColorDialog_Current,
+                         ColorDialog_Custom,
+                         ColorDialog_Default,
+                         ColorDialog_Info,
+                         ColorDialog_Original,
+                         ColorDialog_Predefined,
+                         ColorDialog_Title_FMT,
+                         ColorMap_Custom,
+                         ColorMapDialog_Add,
+                         ColorMapDialog_Color,
+                         ColorMapDialog_Info,
+                         ColorMapDialog_PredefinedMap,
+                         ColorMapDialog_Remove,
+                         ColorMapDialog_Result,
+                         ColorMapDialog_Title,
+                         ColorMapDialog_Value,
+                         Column,
+                         ConvertToEmbeddedJavaScript,
+                         ConvertToEmbeddedPython,
+                         ConvertToScriptFile,
+                         Edit,
+                         ExportWidgetInfo,
+                         ExportFailed,
+                         ExportDone,
+                         Copy,
+                         Duplicate,
+                         FileTypeAll,
+                         FileTypeDisplays,
+                         FontDialog_ExampleText,
+                         FontDialog_Family,
+                         FontDialog_Info,
+                         FontDialog_Predefined,
+                         FontDialog_Preview,
+                         FontDialog_Size,
+                         FontDialog_Style,
+                         Green,
+                         MacrosDialog_Info,
+                         MacrosDialog_NameCol,
+                         MacrosDialog_Title,
+                         MacrosDialog_ValueCol,
+                         MacrosTable_NameHint,
+                         MacrosTable_ToolTip,
+                         MacrosTable_ValueHint,
+                         MoveDown,
+                         MoveUp,
+                         OpenInExternalEditor,
+                         Password,
+                         Password_Caption,
+                         Password_Error,
+                         Password_Prompt,
+                         PointsDialog_Info,
+                         PointsDialog_Title,
+                         PointsTable_Empty,
+                         PointsTable_X,
+                         PointsTable_Y,
+                         Red,
+                         Remove,
+                         Row,
+                         RulesDialog_ColName,
+                         RulesDialog_ColBoolExp,
+                         RulesDialog_ColValExp,
+                         RulesDialog_DefaultRuleName,
+                         RulesDialog_ExpressionsTT,
+                         RulesDialog_Info,
+                         RulesDialog_NoExpressions,
+                         RulesDialog_NoPVs,
+                         RulesDialog_NoRules,
+                         RulesDialog_PVsTT,
+                         RulesDialog_RulesTT,
+                         RulesDialog_SelectRule,
+                         RulesDialog_ShowScript,
+                         RulesDialog_Title,
+                         ScriptsDialog_BtnEmbedJS,
+                         ScriptsDialog_BtnEmbedPy,
+                         ScriptsDialog_BtnFile,
+                         ScriptsDialog_CheckConnections,
+                         ScriptsDialog_ColPV,
+                         ScriptsDialog_ColScript,
+                         ScriptsDialog_ColTrigger,
+                         ScriptsDialog_DefaultScriptFile,
+                         ScriptsDialog_Info,
+                         ScriptsDialog_JavaScriptScriptFile,
+                         ScriptsDialog_NoScripts,
+                         ScriptsDialog_NoPVs,
+                         ScriptsDialog_PVsTT,
+                         ScriptsDialog_PythonScriptFile,
+                         ScriptsDialog_ScriptsTT,
+                         ScriptsDialog_Title,
+                         Select,
+                         ShowConfirmationDialogTitle,
+                         ShowErrorDialogTitle,
+                         ShowMessageDialogTitle,
+                         ShowSaveAsDialogTitle,
+                         WidgetColorPopOver_Alpha,
+                         WidgetColorPopOver_Blue,
+                         WidgetColorPopOver_Color,
+                         WidgetColorPopOver_CustomColor,
+                         WidgetColorPopOver_Default,
+                         WidgetColorPopOver_DefaultButton,
+                         WidgetColorPopOver_Green,
+                         WidgetColorPopOver_Info,
+                         WidgetColorPopOver_Original,
+                         WidgetColorPopOver_PredefinedColors,
+                         WidgetColorPopOver_Red,
+                         WidgetColorPopOver_SearchField,
+                         WidgetColorPopOver_SearchFieldTT,
+                         WidgetFontPopOver_ExampleText,
+                         WidgetFontPopOver_FontsFamilies,
+                         WidgetFontPopOver_Info,
+                         WidgetFontPopOver_PredefinedFonts,
+                         WidgetFontPopOver_Preview,
+                         WidgetFontPopOver_PreviewPrompt,
+                         WidgetFontPopOver_SearchPrompt,
+                         WidgetFontPopOver_SearchPromptTT,
+                         WidgetFontPopOver_SizeCaption,
+                         WidgetFontPopOver_SizePrompt,
+                         WidgetFontPopOver_Sizes,
+                         WidgetFontPopOver_StyleCaption,
+                         WidgetFontPopOver_StylePrompt,
+                         WidgetFontPopOver_Styles,
+                         WidgetInfoDialog_Category,
+                         WidgetInfoDialog_Count,
+                         WidgetInfoDialog_Disconnected,
+                         WidgetInfoDialog_Info_Fmt,
+                         WidgetInfoDialog_Name,
+                         WidgetInfoDialog_Path,
+                         WidgetInfoDialog_Property,
+                         WidgetInfoDialog_State,
+                         WidgetInfoDialog_WidgetStats,
+                         WidgetInfoDialog_TabMacros,
+                         WidgetInfoDialog_TabProperties,
+                         WidgetInfoDialog_TabPVs,
+                         WidgetInfoDialog_Title,
+                         WidgetInfoDialog_Total,
+                         WidgetInfoDialog_Value,
+                         WidgetInfoDialog_WidgetType,
+                         Zoom_All,
+                         Zoom_Height,
+                         Zoom_Width,
+                         Reset_Axis_Ranges;
 
     static
     {

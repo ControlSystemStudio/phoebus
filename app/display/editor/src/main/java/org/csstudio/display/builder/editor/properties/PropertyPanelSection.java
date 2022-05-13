@@ -117,7 +117,6 @@ public class PropertyPanelSection extends GridPane
 
     //  Instance initializer.
     {
-
         getColumnConstraints().add(new ColumnConstraints( 6));                                                                          //  column 0 is 3 pixels wide
         getColumnConstraints().add(new ColumnConstraints( 6));                                                                          //  column 1 is 3 pixels wide
         getColumnConstraints().add(new ColumnConstraints(32, USE_COMPUTED_SIZE, Integer.MAX_VALUE, Priority.ALWAYS, HPos.LEFT, true));  //  column 2
@@ -130,14 +129,13 @@ public class PropertyPanelSection extends GridPane
 
     }
 
+    /** @param class_mode Use 'class editor' mode? */
     public void setClassMode(final boolean class_mode)
     {
         this.class_mode = class_mode;
     }
 
-    /**
-     *  @return Whether one of the property editors has focus
-     */
+    /** @return Whether one of the property editors has focus */
     public boolean hasFocus()
     {
         return has_focus;
@@ -186,14 +184,12 @@ public class PropertyPanelSection extends GridPane
         return next_row;
     }
 
-    /** Some 'simple' properties are handled
-     *  in static method to allow use in the
-     *  RulesDialog
-     *  @param undo
-     *  @param bindings
-     *  @param property
-     *  @param other
-     *  @return
+    /** Some 'simple' properties are handled in static method to allow use in the RulesDialog
+     *  @param undo Undo manager
+     *  @param bindings Bindings to update
+     *  @param property Property to edit
+     *  @param other Other selected widgets
+     *  @return Node, typically label and text field, for editing the property
      */
     public static Node bindSimplePropertyField (
             final UndoableActionManager undo,

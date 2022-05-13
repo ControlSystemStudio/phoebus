@@ -236,8 +236,8 @@ public class GeometryTools
     }
 
     /** Move widgets to a new location
-     *  @param x Desired location of upper-left widget
-     *  @param y
+     *  @param x Desired location of upper-left widget X
+     *  @param y Y
      *  @param widgets Widgets to move
      */
     public static void moveWidgets(final int x, final int y, final List<Widget> widgets)
