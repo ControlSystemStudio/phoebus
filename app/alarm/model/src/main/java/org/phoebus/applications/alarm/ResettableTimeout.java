@@ -69,6 +69,7 @@ public class ResettableTimeout
         return false;
     }
 
+    /** Release resources */
     public void shutdown()
     {
         final ScheduledFuture<?> previous = timeout.getAndSet(null);

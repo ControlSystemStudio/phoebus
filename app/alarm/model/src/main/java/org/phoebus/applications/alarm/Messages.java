@@ -2,11 +2,13 @@ package org.phoebus.applications.alarm;
 
 import org.phoebus.framework.nls.NLS;
 
+/** Externalized strings */
 public class Messages
 {
-    public static String Disabled;
-    public static String Disconnected;
-    public static String NoPV;
+    /** Externalized strings */
+    public static String Disabled,
+                         Disconnected,
+                         NoPV;
 
     static
     {
