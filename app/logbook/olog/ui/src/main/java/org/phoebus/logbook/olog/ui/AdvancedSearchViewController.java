@@ -30,14 +30,12 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
 import org.phoebus.ui.dialog.ListSelectionController;
+import org.phoebus.ui.dialog.ListSelectionPopOver;
 import org.phoebus.ui.dialog.PopOver;
 import org.phoebus.ui.time.TimeRelativeIntervalPane;
 import org.phoebus.util.time.TimeParser;
@@ -45,10 +43,8 @@ import org.phoebus.util.time.TimeRelativeInterval;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -91,15 +87,13 @@ public class AdvancedSearchViewController {
 
     @FXML
     TextField searchTags;
-    PopOver tagSearchPopover;
+    ListSelectionPopOver tagSearchPopover;
 
     private final LogClient logClient;
 
-    private ListSelectionController tagController;
     private ListSelectionController logbookController;
 
     List<String> logbookNames;
-    List<String> tagNames;
 
     @FXML
     private AnchorPane advancedSearchPane;
@@ -231,41 +225,30 @@ public class AdvancedSearchViewController {
             logger.log(Level.WARNING, "failed to open logbook search dialog", e);
         }
 
-        FXMLLoader tagSelectionLoader = new FXMLLoader();
-        tagSelectionLoader.setLocation(this.getClass().getResource("/org/phoebus/ui/dialog/ListSelection.fxml"));
-        try {
-            tagSelectionLoader.load();
-            tagController = tagSelectionLoader.getController();
-            tagController.setOnApply((List<String> t) -> {
-                Platform.runLater(() -> {
-
-                    String tagsValue =
-                            t.stream().collect(Collectors.joining(","));
-                    //searchParameters.put(Keys.TAGS, tagsValue);
+        tagSearchPopover = ListSelectionPopOver.create(
+                (tags, popover) -> {
+                    String tagsValue = String.join(",", tags);
                     searchParameters.tagsProperty().setValue(tagsValue);
-
-                    if (tagSearchPopover.isShowing()) {
-                        tagSearchPopover.hide();
+                    if (popover.isShowing()) {
+                        popover.hide();
                     }
-                });
-                return true;
-            });
-            tagController.setOnCancel((List<String> t) -> {
-                if (tagSearchPopover.isShowing())
-                    tagSearchPopover.hide();
-                return true;
-            });
-            tagSearchPopover = new PopOver(tagSelectionLoader.getRoot());
-        } catch (IOException e) {
-            logger.log(Level.WARNING, "failed to open tag search dialog", e);
-        }
+                },
+                (tags, popover) -> {
+                    if (popover.isShowing()) {
+                        popover.hide();
+                    }
+                }
+        );
 
         searchTags.setOnMouseClicked(mouseEvent -> {
             if (tagSearchPopover.isShowing()) {
                 tagSearchPopover.hide();
             } else {
-                tagNames = logClient.listTags().stream().map(Tag::getName).sorted().collect(Collectors.toList());
-                tagController.setAvailable(tagNames);
+                tagSearchPopover.setAvailable(logClient.listTags().stream()
+                        .map(Tag::getName)
+                        .sorted()
+                        .collect(Collectors.toList())
+                );
                 tagSearchPopover.show(searchTags);
             }
         });
@@ -333,7 +316,7 @@ public class AdvancedSearchViewController {
                         String selectedTags = validatedTagsNames.stream().collect(Collectors.joining(","));
                         searchParameters.tagsProperty().setValue(selectedTags);
                     }
-                    tagController.setSelected(validatedTagsNames);
+                    tagSearchPopover.setSelected(validatedTagsNames);
                 }
             }
         });

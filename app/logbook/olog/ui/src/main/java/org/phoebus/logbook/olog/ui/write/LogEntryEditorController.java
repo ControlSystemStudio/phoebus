@@ -62,14 +62,13 @@ import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.security.tokens.SimpleAuthenticationToken;
 import org.phoebus.logbook.olog.ui.PreviewViewer;
 import org.phoebus.ui.dialog.ListSelectionDialog;
+import org.phoebus.ui.dialog.ListSelectionPopOver;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+
 import org.phoebus.logbook.olog.ui.HelpViewer;
 
 import java.util.logging.Level;
@@ -149,6 +148,8 @@ public class LogEntryEditorController {
     private ObservableList<String> availableTagsAsStringList;
     private Collection<Logbook> availableLogbooks;
     private Collection<Tag> availableTags;
+
+    private ListSelectionPopOver tagsPopOver;
 
     private final ObservableList<String> availableLevels = FXCollections.observableArrayList();
     private final SimpleStringProperty titleProperty = new SimpleStringProperty();
@@ -349,6 +350,17 @@ public class LogEntryEditorController {
                 titleProperty, usernameProperty, passwordProperty, selectedLogbooks));
 
         // Note: logbooks and tags are retrieved asynchronously from service
+        tagsPopOver = ListSelectionPopOver.create(
+                (tags, popOver) -> {
+                    tags.forEach(this::addSelectedTag);
+                    if(popOver.isShowing()) {
+                        popOver.hide();
+                    }
+                },
+                (tags, popOver) -> {
+                    popOver.hide();
+                }
+        );
         setupLogbooksAndTags();
     }
 
@@ -494,14 +506,7 @@ public class LogEntryEditorController {
 
     @FXML
     public void addTags(){
-        ListSelectionDialog select =
-                new ListSelectionDialog(root.getScene().getRoot(),
-                        Messages.TagsTitle,
-                        this::getTagsAsStringList,
-                        this::getSelectedTagsAsStringList,
-                        this::addSelectedTag,
-                        this::removeSelectedTag);
-        select.showAndWait();
+        tagsPopOver.show(addTags);
     }
 
     private ObservableList<String> getTagsAsStringList(){
@@ -615,6 +620,9 @@ public class LogEntryEditorController {
                 }
                 tagDropDown.getItems().add(newTag);
             });
+
+            tagsPopOver.setAvailable(availableTagsAsStringList);
+
         });
     }
 
