@@ -46,7 +46,7 @@ public class JsonModelReader
     /** Parse JSON text
      *  @param json_text JSON text
      *  @return JSON object
-     *  @throws Exception
+     *  @throws Exception on error
      */
     public static Object parseJsonText(final String json_text) throws Exception
     {
@@ -254,7 +254,7 @@ public class JsonModelReader
 
     /** Check for 'maintenance' mode indicator,
      *  included in alarm state updates
-     *  @param json
+     *  @param json JSON
      *  @return <code>true</code> if in maintenance mode
      */
     public static boolean isMaintenanceMode(final Object json)
@@ -268,7 +268,7 @@ public class JsonModelReader
 
     /** Check for 'notify' mode indicator,
      *  included in alarm state updates
-     *  @param json
+     *  @param json JSON
      *  @return <code>true</code> if in disable_notify mode
      */
     public static boolean isDisableNotify(final Object json)
@@ -279,7 +279,7 @@ public class JsonModelReader
     }
 
     /** Check for config 'delete' info message
-     *  @param json
+     *  @param json JSON
      *  @return <code>true</code> if in disable_notify mode
      */
     public static boolean isConfigDeletion(final Object json)
@@ -293,6 +293,7 @@ public class JsonModelReader
     /** Update alarm state from received JSON
      *  @param node Node to update
      *  @param json JSON with state information
+     *  @return Was that a change?
      */
     public static boolean updateAlarmState(final AlarmTreeItem<?> node, final Object json)
     {

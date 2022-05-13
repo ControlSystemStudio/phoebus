@@ -15,8 +15,12 @@ import java.util.Objects;
 @SuppressWarnings("nls")
 public class TitleDetail
 {
+    /** Title and detail */
     public final String title, detail;
 
+    /** @param title Title
+     *  @param detail Detail
+     */
     public TitleDetail(final String title, final String detail)
     {
         this.title = Objects.requireNonNull(title);

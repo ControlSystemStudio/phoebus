@@ -5,11 +5,12 @@ import java.util.Map;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serializer;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.phoebus.applications.alarm.model.EnabledState;
-import java.time.format.DateTimeFormatter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+
+/** XML Message parser */
 public class MessageParser<T> implements Serializer<T>, Deserializer<T> {
 
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -17,8 +18,8 @@ public class MessageParser<T> implements Serializer<T>, Deserializer<T> {
 
     /**
      * Create a message parser for type tClass
-     * 
-     * @param tClass
+     *
+     * @param tClass Class
      */
     public MessageParser(Class<T> tClass) {
         this.tClass = tClass;
