@@ -373,7 +373,9 @@ public class CopyRDBToTimestampDB
     }
 
 
-
+    /** @param args Command line parameters
+     *  @throws Exception on error
+     */
     public static void main(final String[] args) throws Exception
     {
         if (args.length == 1)

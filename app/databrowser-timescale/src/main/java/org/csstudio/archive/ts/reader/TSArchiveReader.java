@@ -64,6 +64,9 @@ public class TSArchiveReader implements ArchiveReader
     /** Map of status IDs to Status strings */
     private static final ConcurrentHashMap<Integer, String> stati = new ConcurrentHashMap<>();
 
+    /** @param url Database URL
+     *  @throws Exception on error
+     */
     public TSArchiveReader(final String url) throws Exception
     {
         pool = new RDBConnectionPool(url.substring(TSArchiveReaderFactory.PREFIX.length()),
