@@ -33,6 +33,9 @@ public class AlarmTableMediator implements AlarmClientListener
     private final AlarmTableModel model = new AlarmTableModel();
     private final UpdateThrottle throttle = new UpdateThrottle(200, TimeUnit.MILLISECONDS, this::throttledUpdate);
 
+    /** @param client Client that sends updates
+     *  @param ui GUI to update
+     */
     public AlarmTableMediator(final AlarmClient client, final AlarmTableUI ui)
     {
         this.ui = ui;

@@ -27,7 +27,7 @@ public class AlarmTreeHelper
 	 *  @param model AlarmClient used to communicate to the AlarmServer
 	 *  @param parent AlarmTreeItem whose children will be re-linked to the new path location.
 	 *  @param path Path that the parents' children will now be located at.
-	 *  @throws Exception
+	 *  @throws Exception on error
 	 */
 	public static void rebuildTree(AlarmClient model, AlarmTreeItem<?> parent, String path) throws Exception
 	{

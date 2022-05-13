@@ -31,6 +31,7 @@ public class AuthorizationService
 
     private static final AtomicReference<Authorization> instance = new AtomicReference<>();
 
+    /** Initialize */
     public static void init()
     {
         JobManager.schedule("Initialize Authorization Service", (monitor) ->

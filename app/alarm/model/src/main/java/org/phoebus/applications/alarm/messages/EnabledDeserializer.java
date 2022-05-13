@@ -27,11 +27,13 @@ import org.phoebus.applications.alarm.model.EnabledState;
 public class EnabledDeserializer extends StdDeserializer<EnabledState> {
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-    
+
+    /** Constructor */
     public EnabledDeserializer() {
         this(null);
     }
-  
+
+    /** @param t Initial state */
     public EnabledDeserializer(Class<EnabledState> t) {
         super(t);
     }
@@ -45,7 +47,7 @@ public class EnabledDeserializer extends StdDeserializer<EnabledState> {
         if (jn != null) {
             Pattern pattern = Pattern.compile("true|false", Pattern.CASE_INSENSITIVE);
             Matcher matcher = pattern.matcher(jn.asText());
-    
+
             if(matcher.matches()) {
                 return new EnabledState(jn.asBoolean());
              } else {

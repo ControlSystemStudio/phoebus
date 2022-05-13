@@ -30,6 +30,7 @@ public class AreaFilter
     /** Associate item name with the item severity level. */
     private final ConcurrentHashMap<String, SeverityLevel> itemSeverity = new ConcurrentHashMap<>();
 
+    /** @param level Level to pick */
     public AreaFilter(final int level)
     {
         // Set level for levelCheck.

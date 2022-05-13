@@ -21,6 +21,7 @@ import javafx.scene.image.ImageView;
 @SuppressWarnings("nls")
 public class OpenTreeViewAction extends MenuItem
 {
+    /** Constructor */
     public OpenTreeViewAction()
     {
         final AlarmTreeMenuEntry entry = new AlarmTreeMenuEntry();

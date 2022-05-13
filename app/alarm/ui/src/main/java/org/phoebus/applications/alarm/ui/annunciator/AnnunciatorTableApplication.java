@@ -31,7 +31,10 @@ import org.phoebus.framework.spi.AppResourceDescriptor;
 @SuppressWarnings("nls")
 public class AnnunciatorTableApplication implements AppResourceDescriptor
 {
+    /** Internal app name */
     public static final String NAME = "annunciator";
+
+    /** Visible app name */
     public static final String DISPLAY_NAME = "Annunciator";
 
     @Override

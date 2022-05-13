@@ -23,10 +23,19 @@ import javafx.beans.property.SimpleStringProperty;
  */
 public class AnnunciationRowInfo implements Comparable<AnnunciationRowInfo>
 {
+    /** Time when annunciation was received */
     public final ObjectProperty<Instant> time_received = new SimpleObjectProperty<>(null);
+
+    /** Alarm severity */
     public final ObjectProperty<SeverityLevel> severity = new SimpleObjectProperty<>(SeverityLevel.OK);
+
+    /** Annunciation text */
     public final SimpleStringProperty message = new SimpleStringProperty();
-    
+
+    /** @param time_received Time when annunciation was received
+     *  @param severity Alarm severity
+     *  @param message Annunciation text
+     */
     public AnnunciationRowInfo(Instant time_received, SeverityLevel severity, String message)
     {
         this.time_received.set(time_received);
@@ -34,7 +43,7 @@ public class AnnunciationRowInfo implements Comparable<AnnunciationRowInfo>
         this.message.set(message);
     }
 
-    /** 
+    /**
      * Sort by severity, if severity is equal, sort by time received.
      */
     @Override
@@ -45,7 +54,7 @@ public class AnnunciationRowInfo implements Comparable<AnnunciationRowInfo>
         if (! severity.isNull().get() && ! other.severity.isNull().get())
             result = -1 * this.severity.get().compareTo(other.severity.get());
         // Multiply by -1 to invert the sort order, oldest messages should be first.
-        if (0 == result) 
+        if (0 == result)
             return -1 * this.time_received.get().compareTo(other.time_received.get());
         else
             return result;

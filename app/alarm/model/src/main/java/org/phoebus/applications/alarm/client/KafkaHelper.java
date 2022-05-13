@@ -100,7 +100,7 @@ public class KafkaHelper
     }
 
     /** Create producer for alarm information
-     *  @param kafka_servers
+     *  @param kafka_servers Kafka servers
      *  @return {@link Producer}
      */
     public static Producer<String, String> connectProducer(final String kafka_servers)

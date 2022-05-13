@@ -42,12 +42,15 @@ public class SecureStore
     private final char[] store_pass;
     private final ProtectionParameter pp;
 
-    public static final String USERNAME_TAG = "username";
-    public static final String PASSWORD_TAG = "password";
+    /** Tags */
+    public static final String USERNAME_TAG = "username",
+                               PASSWORD_TAG = "password";
 
     private static final Logger LOGGER = Logger.getLogger(SecureStore.class.getName());
 
-    /** Create with default file in 'user' location */
+    /** Create with default file in 'user' location
+     *  @throws Exception on error
+     */
     public SecureStore() throws Exception
     {
         this(new File(Locations.user(), "secure_store.dat"));
@@ -116,10 +119,9 @@ public class SecureStore
         store.store(new FileOutputStream(secure_file), store_pass);
     }
 
-    /**
-     * Deletes an entry in the secure store.
-     * @param tag The tag to delete, must not be <code>null</code>.
-     * @throws Exception
+    /** Deletes an entry in the secure store.
+     *  @param tag The tag to delete, must not be <code>null</code>.
+     *  @throws Exception on error
      */
     public void delete(String tag) throws Exception{
         store.deleteEntry(tag);
@@ -128,6 +130,10 @@ public class SecureStore
         store.store(new FileOutputStream(secure_file), store_pass);
     }
 
+    /** @param scope Scope
+     *  @return Token for that scope
+     *  @throws Exception on error
+     */
     public ScopedAuthenticationToken getScopedAuthenticationToken(String scope) throws Exception{
         String username;
         String password;
@@ -145,6 +151,9 @@ public class SecureStore
         return new ScopedAuthenticationToken(scope, username, password);
     }
 
+    /** @param scope Scope
+     *  @throws Exception on error
+     */
     public void deleteScopedAuthenticationToken(String scope) throws Exception{
         LOGGER.log(Level.INFO, "Deleting authentication token for scope: " + scope);
         if(scope == null || scope.trim().isEmpty()){
@@ -157,6 +166,7 @@ public class SecureStore
         }
     }
 
+    /** @throws Exception on error */
     public void deleteAllScopedAuthenticationTokens() throws Exception{
         List<ScopedAuthenticationToken> allScopedAuthenticationTokens = getAuthenticationTokens();
         allScopedAuthenticationTokens.stream().forEach(token -> {
@@ -168,6 +178,9 @@ public class SecureStore
         });
     }
 
+    /** @param scopedAuthenticationToken Token for scope
+     *  @throws Exception on error
+     */
     public void setScopedAuthentication(ScopedAuthenticationToken scopedAuthenticationToken) throws Exception{
         String username = scopedAuthenticationToken.getUsername();
         String password = scopedAuthenticationToken.getPassword();
@@ -192,7 +205,7 @@ public class SecureStore
      * must be composed of both a user name and a password, i.e. items in the secure store that are not
      * considered to be a part of an authentication token are ignored.
      * @return List of {@link ScopedAuthenticationToken}s.
-     * @throws Exception
+     * @throws Exception on error
      */
     public List<ScopedAuthenticationToken> getAuthenticationTokens() throws Exception{
         List<String> allAliases = Collections.list(store.aliases());
