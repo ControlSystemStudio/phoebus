@@ -151,7 +151,7 @@ public class AnnunciatorController
     }
 
     /** Shutdown the annunciator controller.
-     *  @throws InterruptedException
+     *  @throws InterruptedException on error
      */
     public void shutdown() throws InterruptedException
     {

@@ -21,6 +21,7 @@ public class Annunciator
     private final Voice        voice;
     private static final String voice_name = "kevin16";
 
+    /** Constructor */
     public Annunciator()
     {
         // Define the voices directory.
@@ -32,7 +33,7 @@ public class Annunciator
 
     /**
      * Annunciate the message. Only returns once speaking finishes.
-     * @param message
+     * @param message Message text
      */
     public void speak(final String message)
     {

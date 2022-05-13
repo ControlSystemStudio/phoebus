@@ -49,16 +49,27 @@ public class AlarmInfoRow
         row.pv_status
     };
 
+    /** Item to represent */
     public volatile AlarmClientLeaf item;
+
+    /** Property for aspect of item */
     public final StringProperty pv = new SimpleStringProperty();
+    /** Property for aspect of item */
     public final StringProperty description = new SimpleStringProperty();
+    /** Property for aspect of item */
     public final ObjectProperty<SeverityLevel> severity = new SimpleObjectProperty<>(SeverityLevel.OK);
+    /** Property for aspect of item */
     public final StringProperty status = new SimpleStringProperty();
+    /** Property for aspect of item */
     public final ObjectProperty<Instant> time = new SimpleObjectProperty<>(null);
+    /** Property for aspect of item */
     public final StringProperty value = new SimpleStringProperty();
+    /** Property for aspect of item */
     public final ObjectProperty<SeverityLevel> pv_severity = new SimpleObjectProperty<>(SeverityLevel.OK);
+    /** Property for aspect of item */
     public final StringProperty pv_status = new SimpleStringProperty();
 
+    /** @param item Item to represent */
     public AlarmInfoRow(final AlarmClientLeaf item)
     {
         this.item = item;
@@ -84,6 +95,7 @@ public class AlarmInfoRow
         pv_status.set(state.current_message);
     }
 
+    /** @param other Other row from which data is copied */
     public void copy(final AlarmInfoRow other)
     {
         this.item = other.item;

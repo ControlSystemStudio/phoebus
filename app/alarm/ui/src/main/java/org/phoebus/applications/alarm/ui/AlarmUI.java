@@ -70,6 +70,7 @@ public class AlarmUI
         new Background(new BackgroundFill(Color.rgb(255,   0, 255), CornerRadii.EMPTY, Insets.EMPTY)), // UNDEFINED
     };
 
+    /** Icon for disabled alarms */
     public static final Image disabled_icon = ImageCache.getImage(AlarmUI.class, "/icons/disabled.png");
 
     /** @param severity {@link SeverityLevel}

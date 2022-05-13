@@ -24,7 +24,10 @@ import org.phoebus.framework.spi.AppResourceDescriptor;
 @SuppressWarnings("nls")
 public class AlarmAreaApplication implements AppResourceDescriptor
 {
+    /** Internal app name */
     public static final String NAME = "alarm_area";
+
+    /** Visible app name */
     public static final String DISPLAY_NAME = "Alarm Area Panel";
 
     @Override

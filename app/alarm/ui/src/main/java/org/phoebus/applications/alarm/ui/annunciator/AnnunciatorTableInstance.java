@@ -39,6 +39,10 @@ public class AnnunciatorTableInstance implements AppInstance
     private final DockItemWithInput tab;
     private AnnunciatorTable annunciatorTable = null;
 
+    /** @param app Application info
+     *  @param input Input to instance
+     *  @throws Exception on error
+     */
     public AnnunciatorTableInstance(final AnnunciatorTableApplication app, final URI input) throws Exception
     {
         this.app = app;

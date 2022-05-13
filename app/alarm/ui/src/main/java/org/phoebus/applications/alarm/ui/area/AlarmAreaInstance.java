@@ -39,6 +39,10 @@ public class AlarmAreaInstance implements AppInstance
     private AlarmClient client = null;
     private final DockItemWithInput tab;
 
+    /** @param app Application info
+     *  @param input Input to instance
+     *  @throws Exception on error
+     */
     public AlarmAreaInstance(final AlarmAreaApplication app, final URI input) throws Exception
     {
         this.app = app;
