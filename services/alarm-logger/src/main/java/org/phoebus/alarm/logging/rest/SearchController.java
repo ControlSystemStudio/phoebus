@@ -5,17 +5,22 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.FieldSort;
+import co.elastic.clients.elasticsearch._types.SortOptions;
+import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.WildcardQuery;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.watcher.SearchInputRequestDefinition;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -57,24 +62,18 @@ public class SearchController {
 
     @RequestMapping(value = "/search/alarm", method = RequestMethod.GET)
     public List<AlarmStateMessage> search(@RequestParam Map<String, String> allRequestParams) {
-        ElasticsearchClient client = ElasticClientHelper.getInstance().getClient();
-        SearchResponse<AlarmStateMessage> response;
-        allRequestParams.entrySet().forEach( pair -> client.search(s->s
-                        .index("*")
-                        .query(q->q
-                                .wildcard(t->t
-                                        .field(pair.getKey())
-                                        .value(pair.getValue())
-                                )
-                        ),
-                        AlarmStateMessage.class
+        BoolQuery.Builder boolQuery = new BoolQuery.Builder();
+        List<Query> queries = new ArrayList<>();
+        allRequestParams.forEach((key, value) -> queries.add(new Query.Builder()
+                .wildcard(new WildcardQuery.Builder()
+                        .field(key)
+                        .value(value)
+                        .build())
+                .build()
             )
         );
-        BoolQueryBuilder query = QueryBuilders.boolQuery();
-        allRequestParams.forEach((k, v) -> {
-            query.must(QueryBuilders.wildcardQuery(k, v));
-        });
-        return esAlarmSearch(query);
+        boolQuery.must(queries);
+        return esAlarmSearch(boolQuery.build());
     }
 
     @RequestMapping(value = "/search/alarm/{pv}", method = RequestMethod.GET)
@@ -89,18 +88,26 @@ public class SearchController {
         return esAlarmSearch(query);
     }
 
-    private List<AlarmStateMessage> esAlarmSearch(QueryBuilder query) {
+    private List<AlarmStateMessage> esAlarmSearch(BoolQuery query) {
         ElasticsearchClient client = ElasticClientHelper.getInstance().getClient();
 
-        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-        sourceBuilder = sourceBuilder.query(query);
-        sourceBuilder.size(prefs.getInt("es_max_size"));
-        sourceBuilder.sort("time", SortOrder.DESC);
-        SearchRequest searchRequest = new SearchRequest();
-        searchRequest.source(sourceBuilder);
+        SearchRequest searchRequest = new SearchRequest.Builder()
+                .size(prefs.getInt("es_max_size"))
+                .query(new Query.Builder()
+                        .bool(query)
+                        .build()
+                )
+                .sort(SortOptions.of(s->
+                        s.field(FieldSort.of(f->
+                                f.field("time")
+                                        .order(SortOrder.Desc))
+                        )
+                    )
+                ).build();
         List<AlarmStateMessage> result;
         try {
-            result = Arrays.asList(client.search(searchRequest, RequestOptions.DEFAULT).getHits().getHits()).stream()
+            SearchResponse result = client.search(searchRequest)
+            result = Arrays.asList(client.search(searchRequest).getHits().getHits()).stream()
                     .map(new Function<SearchHit, AlarmStateMessage>() {
                         @Override
                         public AlarmStateMessage apply(SearchHit hit) {
