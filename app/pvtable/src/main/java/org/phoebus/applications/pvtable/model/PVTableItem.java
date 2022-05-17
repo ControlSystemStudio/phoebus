@@ -380,7 +380,7 @@ public class PVTableItem
     }
 
     /** Write saved value back to PV
-     *  @param completion_timeout_seconds
+     *  @param completion_timeout_seconds Timeout for the put-completion
      *  @throws Exception on error
      */
     public void restore(final long completion_timeout_seconds) throws Exception

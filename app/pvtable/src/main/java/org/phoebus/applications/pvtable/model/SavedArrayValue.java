@@ -33,7 +33,7 @@ public class SavedArrayValue extends SavedValue
 
     /** Initialize from text
      *
-     * @param value_text
+     * @param value_texts Values to save
      */
     public SavedArrayValue(final List<String> value_texts)
     {

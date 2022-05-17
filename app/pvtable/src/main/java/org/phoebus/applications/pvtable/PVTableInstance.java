@@ -88,6 +88,7 @@ public class PVTableInstance implements AppInstance
         dock_item.select();
     }
 
+    /** @param new_model Model from which items are transferred into this instance */
     public void transferModel(final PVTableModel new_model)
     {
         // This sends a model update
@@ -140,6 +141,7 @@ public class PVTableInstance implements AppInstance
         }
     }
 
+    /** Release resources */
     public void stop()
     {
         logger.log(Level.INFO, "Stopping PV Table...");
