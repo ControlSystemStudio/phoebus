@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -635,6 +635,8 @@ public class PVTable extends VBox
                     "Enter tolerance for " + proxy.getItem().getName(),
                     proxy.getItem().getTolerance(),
                     number -> number >= 0 ? null : "Enter a positive tolerance value");
+            // Would be nice to position on selected row, but hard to get location of selected cell??
+            DialogHelper.positionDialog(dlg, table, -100, -100);
             dlg.promptAndHandle(number -> proxy.getItem().setTolerance(number));
         });
 

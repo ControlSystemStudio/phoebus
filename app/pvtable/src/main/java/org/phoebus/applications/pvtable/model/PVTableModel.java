@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -135,7 +135,7 @@ public class PVTableModel implements PVTableItemListener
      */
     public PVTableItem addItem(final String pv_name, final double tolerance, final SavedValue saved, final String time_saved)
     {
-        return addItem(new PVTableItem(pv_name, Settings.tolerance, saved, time_saved, this));
+        return addItem(new PVTableItem(pv_name, tolerance, saved, time_saved, this));
     }
 
     /** Add table item
