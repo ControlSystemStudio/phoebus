@@ -423,6 +423,7 @@ public class PVTable extends VBox
         }
     };
 
+    /** @param model Data model */
     public PVTable(final PVTableModel model)
     {
         this.model = model;

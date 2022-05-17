@@ -54,7 +54,6 @@ abstract public class PVTablePersistence
      *
      *  @param model Model where PVs are added
      *  @param stream Stream
-     *  @return PV table model
      *  @throws Exception on error
      */
     abstract public void read(final PVTableModel model, final InputStream stream) throws Exception;

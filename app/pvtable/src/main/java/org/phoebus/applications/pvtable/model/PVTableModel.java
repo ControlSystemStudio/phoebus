@@ -131,6 +131,7 @@ public class PVTableModel implements PVTableItemListener
      *  @param pv_name PV Name
      *  @param tolerance Tolerance
      *  @param saved {@link SavedValue}
+     *  @param time_saved Timestamp text of saved value
      *  @return Added item
      */
     public PVTableItem addItem(final String pv_name, final double tolerance, final SavedValue saved, final String time_saved)
@@ -165,9 +166,9 @@ public class PVTableModel implements PVTableItemListener
     /** Add a new item above the selected row. And check if this new item is
      *  added to a configuration.
      *
-     *  @param item
-     *  @param newItem
-     *  @return newItem
+     *  @param item Original item
+     *  @param newItem New item to add
+     *  @return newItem New item
      */
     public PVTableItem addItemAbove(final PVTableItem item, final PVTableItem newItem)
     {
@@ -319,11 +320,13 @@ public class PVTableModel implements PVTableItemListener
         }
     }
 
+    /** @param enableSaveRestore Enable? */
     public void setSaveRestore(boolean enableSaveRestore)
     {
         this.enableSaveRestore = enableSaveRestore;
     }
 
+    /** @return Is save/restore enabled? */
     public boolean isSaveRestoreEnabled()
     {
         return enableSaveRestore;
