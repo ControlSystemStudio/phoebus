@@ -127,8 +127,11 @@ public class AlarmSystem
     /** Heartbeat PV period in milliseconds */
     public static final long heartbeat_ms;
 
-    /** Nag period in seconds */
+    /** Nag period in milliseconds */
     public static final long nag_period_ms;
+
+    /** Connection validation period in seconds */
+    @Preference public static long connection_check_secs;
 
     /** Disable notify feature */
     @Preference public static boolean disable_notify_visible;

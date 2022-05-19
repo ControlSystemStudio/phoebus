@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -70,6 +70,13 @@ class ServerModel
     private long last_state_update = 0;
     private long last_annunciation = 0;
 
+    /** Time of last connectivity check */
+    private long last_connection_check = System.currentTimeMillis();
+
+    /** Did the last connectivity check fail? */
+    private boolean connection_lost = false;
+
+
     /** @param kafka_servers Servers
      *  @param config_name Name of alarm tree root
      * @param initial_states
@@ -117,7 +124,12 @@ class ServerModel
         return root;
     }
 
-    /** Background thread loop that checks for alarm tree updates */
+    /** Background thread
+     *
+     *  <p>Checks for alarm tree updates,
+     *  emits idle or nag messages,
+     *  validates connection
+     */
     private void run()
     {
         try
@@ -128,6 +140,7 @@ class ServerModel
                 final long now = System.currentTimeMillis();
                 checkIdle(now);
                 checkNag(now);
+                checkConnectivity(now);
             }
         }
         catch (Throwable ex)
@@ -140,6 +153,49 @@ class ServerModel
         {
             consumer.close();
         }
+    }
+
+    /** Periodically check for Kafka connectivity
+     *  @param now Current millisec
+     */
+    private void checkConnectivity(final long now)
+    {
+        if (AlarmSystem.connection_check_secs < 0  ||
+            (now - last_connection_check)  <  AlarmSystem.connection_check_secs*1000)
+            return;
+
+        boolean connected = false;
+        try
+        {
+            // There is no consumer.isConnected() type of API?
+            // https://stackoverflow.com/questions/38103198/how-to-check-kafka-consumer-state
+            // suggest calling listTopics with timeout
+            logger.log(Level.FINE, "Testing Kafka connectitity");
+            consumer.listTopics(Duration.ofSeconds(1));
+            connected = true;
+        }
+        catch (Throwable ex)
+        {
+            logger.log(Level.FINE, "No Kafka connectitity", ex);
+        }
+
+        // While disconnected, the Kafka API still allows sending messages
+        // but silently drops them, so clients will get out of sync,
+        // and since Kafka is down, it won't track the most recent alarm state
+        // for future clients...
+        if (connected == false  &&  connection_lost == false)
+            logger.log(Level.WARNING, "Lost Kafka connectitity");
+        else if (connected &&  connection_lost)
+        {
+            logger.log(Level.WARNING, "Regained Kafka connectitity");
+            // Update Kafka and thus clients with current state
+            // as soon as connectivity is restored
+            resend(getRoot());
+            sendAnnunciatorMessage(root.getPathName(), SeverityLevel.OK, "* Alarm server re-connected");
+        }
+
+        connection_lost = ! connected;
+        last_connection_check = now;
     }
 
     /** Perform one check for updates */
