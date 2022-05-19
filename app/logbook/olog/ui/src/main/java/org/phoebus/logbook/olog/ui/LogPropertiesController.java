@@ -59,6 +59,10 @@ public class LogPropertiesController {
             final URL resource = getClass().getResource("log_property_attributes.properties");
             url = resource.toExternalForm();
         }
+        else if(url.startsWith("classpath:")){
+            final URL resource = getClass().getResource(url.substring("classpath:".length()));
+            url = resource.toExternalForm();
+        }
         try (InputStream input = new URL(url).openStream() ) {
             Properties prop = new Properties();
             prop.load(input);
