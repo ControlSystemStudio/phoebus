@@ -10,12 +10,12 @@ package org.phoebus.applications.alarm.server;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
-import java.time.LocalDateTime;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -26,8 +26,8 @@ import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.client.KafkaHelper;
-import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmState;
+import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
@@ -211,7 +211,7 @@ class ServerModel
                             // before the PV connects
                             pv.getParent().maximizeSeverity();
                             pv.start();
-                            
+
                             //check if using past disabled date
                             LocalDateTime enabled_date = pv.getEnabledDate();
                             if (enabled_date != null && enabled_date.isBefore(LocalDateTime.now())) {
@@ -409,7 +409,7 @@ class ServerModel
         }
     }
 
-        /** Send alarm update to 'config' topic
+    /** Send alarm update to 'config' topic
      *  @param path Path of item that has a new state
      *  @param new_state That new state
      */
@@ -447,6 +447,30 @@ class ServerModel
             logger.log(Level.WARNING, "Cannot send talk message for " + path, ex);
         }
     }
+
+    /** Re-send current state (after e.g. network trouble)
+     *  @param node Node from which on to send state update, recursively
+     */
+    public void resend(final AlarmTreeItem<?> node)
+    {
+        final BasicState state;
+        if (node instanceof AlarmServerPV)
+        {
+            final AlarmServerPV pv = (AlarmServerPV) node;
+            final AlarmState current = pv.getCurrentState();
+            state = new ClientState(pv.getState(), current.getSeverity(), current.getMessage());
+            sendStateUpdate(pv.getPathName(), state);
+        }
+        else
+            state = node.getState();
+
+        logger.log(Level.INFO, "Resend state:" + node.getPathName() + ": " + state);
+        sendStateUpdate(node.getPathName(), state);
+
+        for (AlarmTreeItem<?> child : node.getChildren())
+            resend(child);
+    }
+
 
     /** Check if 'idle' message should be sent since there were no state updates
      *  @param now Current millisec
