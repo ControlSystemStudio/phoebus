@@ -201,7 +201,18 @@ class ServerModel
     /** Perform one check for updates */
     private void checkUpdates()
     {
-        final ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+        final ConsumerRecords<String, String> records;
+        try
+        {
+            records = consumer.poll(Duration.ofMillis(100));
+        }
+        catch (Throwable ex)
+        {
+            // This typically doesn't happen, 'poll' will simply not return any new
+            // records while disconnected from Kafka...
+            logger.log(Level.WARNING, "Error reading updates from Kafka", ex);
+            return;
+        }
         for (ConsumerRecord<String, String> record : records)
         {
             final int sep = record.key().indexOf(':');
