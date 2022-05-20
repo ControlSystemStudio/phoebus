@@ -20,7 +20,6 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.prefs.Preferences;
 
-
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
@@ -66,6 +65,7 @@ public class AlarmServerMain implements ServerModelListener
                         "\tmode             - Show mode.\n" +
                         "\tmode normal      - Select normal mode.\n" +
                         "\tmode maintenance - Select maintenance mode.\n" +
+                        "\tresend           - Re-send all PV states to clients (for tests after network issues).\n" +
                         "\trestart          - Re-load alarm configuration and restart.\n" +
                         "\tshutdown         - Shut alarm server down and exit.\n";
 
@@ -141,6 +141,8 @@ public class AlarmServerMain implements ServerModelListener
                 restart.offer(false);
             else if (args[0].equals("restart"))
                 restart.offer(true);
+            else if (args[0].equals("resend"))
+                model.resend(model.getRoot());
             else if (args[0].equals("mode"))
                 System.out.println(AlarmLogic.getMaintenanceMode() ? "Maintenance mode" : "Normal mode");
             else if (args[0].startsWith("h"))
