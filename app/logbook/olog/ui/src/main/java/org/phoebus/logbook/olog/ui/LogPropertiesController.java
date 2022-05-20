@@ -28,6 +28,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -61,20 +62,25 @@ public class LogPropertiesController {
         }
         else if(url.startsWith("classpath:")){
             final URL resource = getClass().getResource(url.substring("classpath:".length()));
-            url = resource.toExternalForm();
+            // Null pointer check here as the path may be incorrect
+            if(resource == null){
+                logger.log(Level.WARNING, "Log properties attribute URL " + url + " is invalid");
+            }
+            else{
+                url = resource.toExternalForm();
+            }
         }
         try (InputStream input = new URL(url).openStream() ) {
             Properties prop = new Properties();
             prop.load(input);
             prop.stringPropertyNames().stream().forEach((p) -> {
-                attributeTypes.put(p.toLowerCase(), prop.getProperty(p).toLowerCase());
-                }
+                        attributeTypes.put(p.toLowerCase(), prop.getProperty(p).toLowerCase());
+                    }
             );
 
         } catch (IOException ex) {
-            ex.printStackTrace();
+            logger.log(Level.WARNING, "Unable to load log properties attribute mapping");
         }
-
 
         // create the property trees
         name.setMaxWidth(1f * Integer.MAX_VALUE * 40);
