@@ -1,5 +1,6 @@
 package org.phoebus.applications.alarm.logging.ui;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -22,7 +23,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.util.Callback;
 import javafx.util.Duration;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.phoebus.applications.alarm.logging.ui.AlarmLogTableQueryUtil.Keys;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmUI;
@@ -111,13 +111,13 @@ public class AlarmLogTableController {
     private List<AlarmLogTableType> alarmMessages;
 
     private Job alarmLogSearchJob;
-    private RestHighLevelClient searchClient;
+    private ElasticsearchClient searchClient;
     
     @FXML
     private ProgressIndicator progressIndicator;
     private SimpleBooleanProperty searchInProgress = new SimpleBooleanProperty(false);
 
-    public AlarmLogTableController(RestHighLevelClient client) {
+    public AlarmLogTableController(ElasticsearchClient client) {
         setClient(client);
     }
 
@@ -406,7 +406,7 @@ public class AlarmLogTableController {
         }
     }
 
-    public void setClient(RestHighLevelClient client) {
+    public void setClient(ElasticsearchClient client) {
         this.searchClient = client;
     }
 

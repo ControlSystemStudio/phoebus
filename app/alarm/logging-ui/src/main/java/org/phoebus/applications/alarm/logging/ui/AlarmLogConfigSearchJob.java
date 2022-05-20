@@ -1,16 +1,20 @@
 package org.phoebus.applications.alarm.logging.ui;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.FieldSort;
+import co.elastic.clients.elasticsearch._types.SortOptions;
+import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.WildcardQuery;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.sort.SortOrder;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
+import org.phoebus.applications.alarm.messages.AlarmConfigMessage;
+import org.phoebus.applications.alarm.messages.AlarmStateMessage;
 import org.phoebus.framework.jobs.*;
 
 import java.io.IOException;
@@ -18,10 +22,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -31,15 +32,16 @@ import java.util.stream.Collectors;
  * @author Kunal Shroff
  */
 public class AlarmLogConfigSearchJob extends JobRunnableWithCancel {
-    private final RestHighLevelClient client;
+    private final ElasticsearchClient client;
     private final String pattern;
-    private final Consumer<List<String>> alarmMessageHandler;
+
+    private final Consumer<List<AlarmConfigMessage>> alarmMessageHandler;
     private final BiConsumer<String, Exception> errorHandler;
 
     private final ObjectMapper objectMapper;
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").withZone(ZoneId.of("UTC"));
 
-    public static Job submit(RestHighLevelClient client,
+    public static Job submit(ElasticsearchClient client,
                              final String pattern,
                              final Consumer<List<String>> alarmMessageHandler,
                              final BiConsumer<String, Exception> errorHandler) {
@@ -47,7 +49,7 @@ public class AlarmLogConfigSearchJob extends JobRunnableWithCancel {
                 new AlarmLogConfigSearchJob(client, pattern, alarmMessageHandler, errorHandler));
     }
 
-    private AlarmLogConfigSearchJob(RestHighLevelClient client,
+    private AlarmLogConfigSearchJob(ElasticsearchClient client,
                                     String pattern,
                                     Consumer<List<String>> alarmMessageHandler,
                                     BiConsumer<String, Exception> errorHandler) {
@@ -70,18 +72,41 @@ public class AlarmLogConfigSearchJob extends JobRunnableWithCancel {
         return () -> {
             String searchPattern = "*".concat(pattern).concat("*");
             int size = 1;
-            BoolQueryBuilder boolQuery = new BoolQueryBuilder();
-            boolQuery.must(QueryBuilders.wildcardQuery("config", searchPattern));
-            SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-            sourceBuilder = sourceBuilder.query(boolQuery);
-            sourceBuilder.size(size);
-            sourceBuilder.sort("message_time", SortOrder.DESC);
+            BoolQuery boolQuery = BoolQuery.of(bq->bq
+                    .must(Query.of(q->q
+                            .wildcard(WildcardQuery.of(w->w
+                                    .field("config")
+                                    .value(searchPattern)
+                                )
+                            )
+                        )
+                    )
+            );
 
-            SearchRequest searchRequest = new SearchRequest("*alarms_config*");
-            searchRequest.source(sourceBuilder);
+            SearchRequest searchRequest = SearchRequest.of(req->req
+                    .query(Query.of(q->q
+                            .bool(boolQuery)
+                        )
+                    )
+                    .index("*alarms_config*")
+                    .size(size)
+                    .sort(
+                            SortOptions.of(s->s
+                                    .field(FieldSort.of(f->f
+                                            .field("message_time")
+                                            .order(SortOrder.Desc)
+                                        )
+                                    )
+                            )
+                    )
+            );
             List<String> result;
+            List<AlarmConfigMessage> cResult = new ArrayList<>();
+            SearchResponse<AlarmConfigMessage> response;
             try {
-                result = Arrays.asList(client.search(searchRequest, RequestOptions.DEFAULT).getHits().getHits()).stream()
+                response = client.search(searchRequest, AlarmConfigMessage.class);
+                response.hits().hits().forEach(hit->cResult.add(hit.source()));
+                /*result = Arrays.asList(client.search(searchRequest, AlarmConfigMessage.class).hits().hits()).stream()
                         .map(hit -> {
                             try {
                                 String source = hit.getSourceAsString();
@@ -101,7 +126,7 @@ public class AlarmLogConfigSearchJob extends JobRunnableWithCancel {
                                 errorHandler.accept("Failed to search for alarm config ", e);
                                 return null;
                             }
-                        }).collect(Collectors.toList());
+                        }).collect(Collectors.toList());*/
                 alarmMessageHandler.accept(result);
             } catch (IOException e) {
                 errorHandler.accept("Failed to search for alarm config ", e);

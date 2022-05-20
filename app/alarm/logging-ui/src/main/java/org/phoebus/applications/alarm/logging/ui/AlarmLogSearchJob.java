@@ -2,28 +2,30 @@ package org.phoebus.applications.alarm.logging.ui;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.time.temporal.TemporalAmount;
+
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.FieldSort;
+import co.elastic.clients.elasticsearch._types.SortOptions;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.WildcardQuery;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
 import javafx.collections.ObservableMap;
 
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.sort.SortOrder;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
+import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.elasticsearch._types.SortOrder;
 import org.phoebus.applications.alarm.logging.ui.AlarmLogTableQueryUtil.Keys;
+import org.phoebus.applications.alarm.messages.AlarmStateMessage;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
@@ -41,7 +43,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * @author Kunal Shroff
  */
 public class AlarmLogSearchJob implements JobRunnable {
-    private final RestHighLevelClient client;
+    private final ElasticsearchClient client;
     private final String pattern;
     private final Boolean isNodeTable;
     private final ObservableMap<Keys, String> searchParameters;
@@ -54,7 +56,7 @@ public class AlarmLogSearchJob implements JobRunnable {
     private final PreferencesReader prefs = new PreferencesReader(AlarmLogTableApp.class,
             "/alarm_logging_preferences.properties");
 
-    public static Job submit(RestHighLevelClient client,
+    public static Job submit(ElasticsearchClient client,
                              final String pattern,
                              Boolean isNodeTable,
                              ObservableMap<Keys, String> searchParameters,
@@ -64,7 +66,7 @@ public class AlarmLogSearchJob implements JobRunnable {
                 new AlarmLogSearchJob(client, pattern, isNodeTable, searchParameters, alarmMessageHandler, errorHandler));
     }
 
-    private AlarmLogSearchJob(RestHighLevelClient client, String pattern, Boolean isNodeTable, ObservableMap<Keys, String> searchParameters,
+    private AlarmLogSearchJob(ElasticsearchClient client, String pattern, Boolean isNodeTable, ObservableMap<Keys, String> searchParameters,
             Consumer<List<AlarmLogTableType>> alarmMessageHandler, BiConsumer<String, Exception> errorHandler) {
         super();
         this.client = client;
@@ -86,7 +88,7 @@ public class AlarmLogSearchJob implements JobRunnable {
         int size = prefs.getInt("es_max_size");
         Boolean configSet = false;
 
-        BoolQueryBuilder boolQuery = new BoolQueryBuilder(); 
+        BoolQuery.Builder boolQuery = new BoolQuery.Builder();
 
         for (Map.Entry<Keys, String> entry : searchParameters.entrySet()) {
             String key = entry.getKey().getName();
@@ -126,58 +128,77 @@ public class AlarmLogSearchJob implements JobRunnable {
                 if (key.equals("pv")) {
                     if (isNodeTable) {
                         value = "*".concat(value).concat("*");
-                        boolQuery.must(QueryBuilders.wildcardQuery("config", value));
+                        String finalValue = value; //Effectively final
+                        boolQuery.must(Query.of(q->q
+                                .wildcard(WildcardQuery.of(w->w
+                                        .field("config")
+                                        .value(finalValue)
+                                        )
+                                    )
+                                )
+                        );
                         configSet = true;
                     }
                     continue;
                 }
-                boolQuery.must(QueryBuilders.wildcardQuery(key, value));
+                //Effectively final
+                String finalVal2 = value;
+                String finalKey2 = key;
+                //
+                boolQuery.must(Query.of(q->q
+                        .wildcard(WildcardQuery.of(w->w
+                                .field(finalKey2)
+                                .value(finalVal2)
+                            )
+                        )
+                    )
+                );
             }
         }
         if (!configSet) {
-            boolQuery.must(QueryBuilders.wildcardQuery("config", searchPattern));
+            boolQuery.must(Query.of(q->q
+                    .wildcard(WildcardQuery.of(w->w
+                            .field("config")
+                            .value(searchPattern)
+                            )
+                        )
+                    )
+            );
         }
-        boolQuery.must(QueryBuilders.rangeQuery("message_time").from(from).to(to));
-        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-        sourceBuilder = sourceBuilder.query(boolQuery);
-        sourceBuilder.size(size);
-        sourceBuilder.sort("message_time", SortOrder.DESC);
-        SearchRequest searchRequest = new SearchRequest();
-        searchRequest.source(sourceBuilder);
-        List<AlarmLogTableType> result;
+        //Effectively final
+        String finalFrom = from;
+        String finalTo = to;
+        //
+        boolQuery.must(
+                Query.of(q->q
+                        .range(RangeQuery.of(r->r
+                                .field("message_time")
+                                .from(finalFrom)
+                                .to(finalTo)
+                        )
+                        )
+                )
+        );
+        int finalSize = size; //Effectively final
+        SearchRequest searchRequest = SearchRequest.of(r->r
+                .query(Query.of(q->q
+                                .bool(boolQuery.build())
+                    )
+                )
+                .size(finalSize)
+                .sort(SortOptions.of(o->o
+                        .field(FieldSort.of(f->f
+                                .field("message_time")
+                                .order(SortOrder.Desc)
+                            )
+                        )
+                    )
+                )
+        );
+        final List<AlarmLogTableType> result = new ArrayList<>();
         try {
-            result = Arrays.asList(client.search(searchRequest, RequestOptions.DEFAULT).getHits().getHits()).stream()
-                    .map(new Function<SearchHit, AlarmLogTableType>() {
-                        @Override
-                        public AlarmLogTableType apply(SearchHit hit) {
-                            try {
-                                JsonNode root = objectMapper.readTree(hit.getSourceAsString());
-                                JsonNode time = ((ObjectNode) root).remove("time");
-                                JsonNode message_time = ((ObjectNode) root).remove("message_time");
-                                AlarmLogTableType alarmMessage = objectMapper.readValue(root.traverse(),
-                                        AlarmLogTableType.class);
-                                if (time != null) {
-                                    Instant instant = LocalDateTime.parse(time.asText(), formatter)
-					.atZone(ZoneId.of("UTC")).toInstant().atZone(ZoneId.systemDefault()).toInstant();
-                                    alarmMessage.setInstant(instant);
-                                }
-                                if (message_time != null) {
-                                    Instant instant = LocalDateTime.parse(message_time.asText(), formatter)
-				        .atZone(ZoneId.of("UTC")).toInstant().atZone(ZoneId.systemDefault()).toInstant();
-                                    alarmMessage.setMessage_time(instant);
-                                }
-                                if (alarmMessage.getPv() == null) {
-                                    String config = alarmMessage.getConfig();
-                                    String [] arrConfigStr = config.split("/");
-                                    alarmMessage.setPv(arrConfigStr[arrConfigStr.length -1]);
-                                }
-                                return alarmMessage;
-                            } catch (Exception e) {
-                                errorHandler.accept("Failed to search for alarm logs ", e);
-                                return null;
-                            }
-                        }
-                    }).collect(Collectors.toList());
+            SearchResponse<AlarmLogTableType> response = client.search(searchRequest, AlarmLogTableType.class);
+            response.hits().hits().forEach(hit->result.add(hit.source()));
             alarmMessageHandler.accept(result);
         } catch (IOException e) {
             errorHandler.accept("Failed to search for alarm logs ", e);

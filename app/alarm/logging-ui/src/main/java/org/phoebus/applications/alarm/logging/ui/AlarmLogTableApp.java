@@ -5,9 +5,10 @@ import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.sniff.Sniffer;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.spi.AppInstance;
@@ -26,7 +27,12 @@ public class AlarmLogTableApp implements AppResourceDescriptor {
     
     public static final Image icon = ImageCache.getImage(AlarmLogTableApp.class, "/icons/alarmtable.png");
 
-    private RestHighLevelClient client;
+    private ElasticsearchClient client;
+
+    private static RestClientTransport transport;
+
+    private static RestClient restClient;
+
     private Sniffer sniffer;
     private PreferencesReader prefs;
 
@@ -60,7 +66,9 @@ public class AlarmLogTableApp implements AppResourceDescriptor {
     public void start() {
         prefs = new PreferencesReader(AlarmLogTableApp.class, "/alarm_logging_preferences.properties");
         try {
-            client = new RestHighLevelClient(
+            restClient = RestClient.builder(new HttpHost(prefs.get("es_host")))
+            client = new ElasticsearchClient(new RestClientTransport())
+            client = new ElasticsearchClient(
                     RestClient.builder(new HttpHost(prefs.get("es_host"), Integer.valueOf(prefs.get("es_port")))));
             if (prefs.get("es_sniff").equals("true")) {
                 sniffer = Sniffer.builder(client.getLowLevelClient()).build();
@@ -80,15 +88,15 @@ public class AlarmLogTableApp implements AppResourceDescriptor {
                 if (sniffer != null) {
                     sniffer.close();
                 }
-                client.close();
-            } catch (IOException e) {
+                client.shutdown();
+            } catch (Exception e) {
                 logger.log(Level.WARNING, "Failed to properly close the elastic rest client", e);
             }
         }
         
     }
 
-    public RestHighLevelClient getClient() {
+    public ElasticsearchClient getClient() {
         return client;
     }
 

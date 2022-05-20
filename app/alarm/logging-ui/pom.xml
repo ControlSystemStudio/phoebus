@@ -13,14 +13,14 @@
       <version>4.6.9-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.elasticsearch.client</groupId>
-      <artifactId>elasticsearch-rest-high-level-client</artifactId>
+      <groupId>co.elastic.clients</groupId>
+      <artifactId>elasticsearch-java</artifactId>
       <version>${es.version}</version>
     </dependency>
     <dependency>
       <groupId>org.elasticsearch.client</groupId>
       <artifactId>elasticsearch-rest-client-sniffer</artifactId>
-      <version>${es.version}</version>
+      <version>6.8.4</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>

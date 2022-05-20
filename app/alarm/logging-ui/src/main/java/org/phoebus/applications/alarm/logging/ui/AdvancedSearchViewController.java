@@ -16,7 +16,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import org.elasticsearch.client.RestHighLevelClient;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import org.phoebus.applications.alarm.logging.ui.AlarmLogTableQueryUtil.Keys;
 import org.phoebus.ui.dialog.PopOver;
 import org.phoebus.ui.time.TimeRelativeIntervalPane;
@@ -64,7 +64,7 @@ public class AdvancedSearchViewController {
 
     PopOver timeSearchPopover;
 
-    private RestHighLevelClient searchClient;
+    private ElasticsearchClient searchClient;
 
     // Search parameters
     ObservableMap<Keys, String> searchParameters;
@@ -72,7 +72,7 @@ public class AdvancedSearchViewController {
     @FXML
     private AnchorPane advancedSearchPane;
 
-    public AdvancedSearchViewController(RestHighLevelClient client){
+    public AdvancedSearchViewController(ElasticsearchClient client){
         this.searchClient = client;
     }
 
