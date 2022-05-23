@@ -74,6 +74,8 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     private static final String resourceProperties = "resources/properties";
     private static final String resourceTags = "resources/tags";
 
+
+    private static CFProperties properties = new CFProperties();
     private static final Logger log = Logger.getLogger(ChannelFinderClient.class.getName());
     /**
      * A Builder class to help create the client to the Channelfinder Service
@@ -101,11 +103,10 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
         private ExecutorService executor = Executors.newSingleThreadExecutor();
 
-        private CFProperties properties = new CFProperties();
 
         private CFCBuilder()
         {
-            this.uri = URI.create(this.properties.getPreferenceValue("serviceURL"));
+            this.uri = URI.create(properties.getPreferenceValue("serviceURL"));
             this.protocol = this.uri.getScheme();
         }
 
@@ -263,6 +264,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
                         properties.getPreferenceValue("username"),
                         properties.getPreferenceValue("password"));
             }
+
             return new ChannelFinderClientImpl(this.uri, this.clientConfig, this.httpBasicAuthFilter, this.executor);
         }
     }
@@ -270,14 +272,16 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     ChannelFinderClientImpl(URI uri, ClientConfig config, HTTPBasicAuthFilter httpBasicAuthFilter,
             ExecutorService executor) {
         Client client = Client.create(config);
+        client.setFollowRedirects(true);
         cfResource = client.resource(uri.toString());
+        cfAuthenticatedResource = client.resource(uri.toString());
         if (httpBasicAuthFilter != null) {
-            client.addFilter(httpBasicAuthFilter);
+            cfAuthenticatedResource.addFilter(httpBasicAuthFilter);
         }
         // TODO add a preference to add logging
-//        client.addFilter(new RawLoggingFilter(Logger.getLogger(RawLoggingFilter.class.getName())));
-        client.setFollowRedirects(true);
-        cfAuthenticatedResource = client.resource(uri.toString());
+        if(Boolean.parseBoolean(properties.getPreferenceValue("rawFiltering"))) {
+            client.addFilter(new RawLoggingFilter(Logger.getLogger(RawLoggingFilter.class.getName())));
+        }
         this.executor = executor;
     }
 
