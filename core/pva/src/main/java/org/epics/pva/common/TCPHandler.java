@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,7 @@ import static org.epics.pva.PVASettings.logger;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -116,6 +117,12 @@ abstract public class TCPHandler
     {
         this.socket = socket;
         this.client_mode = client_mode;
+
+        // Receive buffer byte order is set based on header flag of each received message.
+        // Send buffer of server and client starts out with native byte order.
+        // For server, it stays that way.
+        // For client, order is updated during connection validation (PVAHeader.CTRL_SET_BYTE_ORDER)
+        send_buffer.order(ByteOrder.nativeOrder());
 
         // Start receiving data
         receive_thread = thread_pool.submit(this::receiver);
@@ -376,7 +383,11 @@ abstract public class TCPHandler
             final boolean control = (flags & PVAHeader.FLAG_CONTROL) != 0;
             final byte command = buffer.get(3);
             // Move to start of potential payload
-            buffer.position(8);
+            if (buffer.limit() >= 8)
+                buffer.position(8);
+            else
+                logger.log(Level.SEVERE, Thread.currentThread().getName() + " received buffer with only " +
+                           buffer.limit() + " bytes:" + Hexdump.toHex(buffer));
             if (control)
                 handleControlMessage(command, buffer);
             else
