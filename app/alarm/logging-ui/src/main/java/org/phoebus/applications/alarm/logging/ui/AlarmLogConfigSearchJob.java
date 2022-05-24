@@ -43,7 +43,7 @@ public class AlarmLogConfigSearchJob extends JobRunnableWithCancel {
 
     public static Job submit(ElasticsearchClient client,
                              final String pattern,
-                             final Consumer<List<String>> alarmMessageHandler,
+                             final Consumer<List<AlarmConfigMessage>> alarmMessageHandler,
                              final BiConsumer<String, Exception> errorHandler) {
         return JobManager.schedule("searching alarm log messages for : " + pattern,
                 new AlarmLogConfigSearchJob(client, pattern, alarmMessageHandler, errorHandler));
@@ -51,7 +51,7 @@ public class AlarmLogConfigSearchJob extends JobRunnableWithCancel {
 
     private AlarmLogConfigSearchJob(ElasticsearchClient client,
                                     String pattern,
-                                    Consumer<List<String>> alarmMessageHandler,
+                                    Consumer<List<AlarmConfigMessage>> alarmMessageHandler,
                                     BiConsumer<String, Exception> errorHandler) {
         super();
         this.client = client;
@@ -127,7 +127,7 @@ public class AlarmLogConfigSearchJob extends JobRunnableWithCancel {
                                 return null;
                             }
                         }).collect(Collectors.toList());*/
-                alarmMessageHandler.accept(result);
+                alarmMessageHandler.accept(cResult);
             } catch (IOException e) {
                 errorHandler.accept("Failed to search for alarm config ", e);
             }

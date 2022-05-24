@@ -6,6 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
@@ -66,12 +67,11 @@ public class AlarmLogTableApp implements AppResourceDescriptor {
     public void start() {
         prefs = new PreferencesReader(AlarmLogTableApp.class, "/alarm_logging_preferences.properties");
         try {
-            restClient = RestClient.builder(new HttpHost(prefs.get("es_host")))
-            client = new ElasticsearchClient(new RestClientTransport())
-            client = new ElasticsearchClient(
-                    RestClient.builder(new HttpHost(prefs.get("es_host"), Integer.valueOf(prefs.get("es_port")))));
+            restClient = RestClient.builder(new HttpHost(prefs.get("es_host"),Integer.parseInt(prefs.get("es_port")))).build();
+            transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
+            client = new ElasticsearchClient(transport);
             if (prefs.get("es_sniff").equals("true")) {
-                sniffer = Sniffer.builder(client.getLowLevelClient()).build();
+                sniffer = Sniffer.builder(restClient).build();
                 logger.log(Level.INFO, "ES Sniff feature is enabled");
             }
         } catch (Exception e) {

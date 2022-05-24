@@ -516,7 +516,7 @@ public class AlarmLogTableController {
                         alarmInfo.setHeaderText(null);
                         alarmInfo.setResizable(true);
                         // Corner case: search query may return zero results (or null), so dialog message should show that.
-                        alarmInfo.setContentText((result == null || result.isEmpty()) ? Messages.ConfigurationInfoNotFound : result.get(0));
+                        alarmInfo.setContentText((result == null || result.isEmpty()) ? Messages.ConfigurationInfoNotFound : result.get(0).toString());
                         alarmInfo.show();
                     }),
                     (url, ex) -> ExceptionDetailsErrorDialog.openError("Alarm Log Info Error", ex.getMessage(), ex)
