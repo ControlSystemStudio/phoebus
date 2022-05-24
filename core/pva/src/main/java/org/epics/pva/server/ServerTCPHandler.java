@@ -64,9 +64,15 @@ class ServerTCPHandler extends TCPHandler
         submit((version, buffer) ->
         {
             logger.log(Level.FINE, () -> "Set byte order " + buffer.order());
+            // Payload size is used as byte order hint
+            // 0xFFFFFFFF: Client needs to check each message for byte order
+            // 0x00000000: Server sends each message in the same byte order,
+            //             but there's still a valid byte order flag,
+            //             so client is free to keep checking each message
+            final int size_used_as_hint = 0x00000000;
             PVAHeader.encodeMessageHeader(buffer,
                     (byte) (PVAHeader.FLAG_CONTROL | PVAHeader.FLAG_SERVER),
-                    PVAHeader.CTRL_SET_BYTE_ORDER, 0);
+                    PVAHeader.CTRL_SET_BYTE_ORDER, size_used_as_hint);
         });
         // .. and requesting connection validation
         submit((version, buffer) ->
