@@ -106,6 +106,7 @@ public class DataBrowserWidget extends MacroWidget
     private volatile WidgetProperty<String> selection_value_pv;
     private volatile WidgetProperty<VType> selection_value;
     private volatile RuntimeEventProperty open_full;
+    private volatile RuntimeEventProperty refresh_plot;
 
     /** Constructor */
     public DataBrowserWidget()
@@ -123,6 +124,7 @@ public class DataBrowserWidget extends MacroWidget
         properties.add(selection_value_pv = propSelectionValuePV.createProperty(this, ""));
         properties.add(selection_value = propSelectionValue.createProperty(this, null));
         properties.add(open_full = (RuntimeEventProperty) runtimePropOpenFull.createProperty(this, null));
+        properties.add(refresh_plot = (RuntimeEventProperty) runtimePropRefreshPlot.createProperty(this, null));
     }
 
     @Override
@@ -192,5 +194,11 @@ public class DataBrowserWidget extends MacroWidget
     public RuntimeEventProperty runtimePropOpenFull()
     {
         return open_full;
+    }
+
+    /** @return 'refresh_plot' property */
+    public RuntimeEventProperty runtimePropRefreshPlot()
+    {
+        return refresh_plot;
     }
 }
