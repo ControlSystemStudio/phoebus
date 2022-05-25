@@ -65,13 +65,17 @@ import java.util.stream.Collectors;
  * 
  */
 public class ChannelFinderClientImpl implements ChannelFinderClient {
-    private final WebResource service;
+    private final WebResource cfAuthenticatedResource;
+    private final WebResource cfResource;
+
     private final ExecutorService executor;
 
     private static final String resourceChannels = "resources/channels";
     private static final String resourceProperties = "resources/properties";
     private static final String resourceTags = "resources/tags";
 
+
+    private static CFProperties properties = new CFProperties();
     private static final Logger log = Logger.getLogger(ChannelFinderClient.class.getName());
     /**
      * A Builder class to help create the client to the Channelfinder Service
@@ -99,11 +103,10 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
         private ExecutorService executor = Executors.newSingleThreadExecutor();
 
-        private CFProperties properties = new CFProperties();
 
         private CFCBuilder()
         {
-            this.uri = URI.create(this.properties.getPreferenceValue("serviceURL"));
+            this.uri = URI.create(properties.getPreferenceValue("serviceURL"));
             this.protocol = this.uri.getScheme();
         }
 
@@ -261,6 +264,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
                         properties.getPreferenceValue("username"),
                         properties.getPreferenceValue("password"));
             }
+
             return new ChannelFinderClientImpl(this.uri, this.clientConfig, this.httpBasicAuthFilter, this.executor);
         }
     }
@@ -268,12 +272,16 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     ChannelFinderClientImpl(URI uri, ClientConfig config, HTTPBasicAuthFilter httpBasicAuthFilter,
             ExecutorService executor) {
         Client client = Client.create(config);
-        if (httpBasicAuthFilter != null) {
-            client.addFilter(httpBasicAuthFilter);
-        }
-//        client.addFilter(new RawLoggingFilter(Logger.getLogger(RawLoggingFilter.class.getName())));
         client.setFollowRedirects(true);
-        service = client.resource(uri.toString());
+        cfResource = client.resource(uri.toString());
+        cfAuthenticatedResource = client.resource(uri.toString());
+        if (httpBasicAuthFilter != null) {
+            cfAuthenticatedResource.addFilter(httpBasicAuthFilter);
+        }
+        // TODO add a preference to add logging
+        if(Boolean.parseBoolean(properties.getPreferenceValue("rawFiltering"))) {
+            client.addFilter(new RawLoggingFilter(Logger.getLogger(RawLoggingFilter.class.getName())));
+        }
         this.executor = executor;
     }
 
@@ -292,7 +300,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
                 List<XmlProperty> xmlproperties = new ArrayList<XmlProperty>();
                 try {
                     xmlproperties = mapper.readValue(
-                            service.path(resourceProperties).accept(MediaType.APPLICATION_JSON).get(String.class),
+                            cfResource.path(resourceProperties).accept(MediaType.APPLICATION_JSON).get(String.class),
                             new TypeReference<List<XmlProperty>>() {
                             });
                 } catch (JsonParseException e) {
@@ -320,7 +328,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
                 List<XmlProperty> xmlproperties = new ArrayList<>();
                 try {
                     xmlproperties = mapper.readValue(
-                            service.path(resourceProperties).accept(MediaType.APPLICATION_JSON).get(String.class),
+                            cfResource.path(resourceProperties).accept(MediaType.APPLICATION_JSON).get(String.class),
                             new TypeReference<List<XmlProperty>>() {
                             });
                 } catch (Exception e) {
@@ -347,7 +355,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
                 List<XmlTag> xmltags = new ArrayList<XmlTag>();
                 try {
                     xmltags = mapper.readValue(
-                            service.path(resourceTags)
+                            cfResource.path(resourceTags)
                             .accept(MediaType.APPLICATION_JSON)
                             .get(String.class), new TypeReference<List<XmlTag>>() { });
                 } catch ( JsonParseException | JsonMappingException e) {
@@ -414,7 +422,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         {
             mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
             try {
-                return new Channel(mapper.readValue(service.path(resourceChannels).path(channelName)
+                return new Channel(mapper.readValue(cfResource.path(resourceChannels).path(channelName)
                         .get(ClientResponse.class).getEntityInputStream(), XmlChannel.class));
             } catch (JsonParseException | JsonMappingException e) {
                 log.log(Level.WARNING, "Failed to process the list of channels", e);
@@ -451,7 +459,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         public void run() {
             ObjectMapper mapper = new ObjectMapper();
             try {
-                service.path(resourceChannels).path(this.pxmlChannel.getName()).type(MediaType.APPLICATION_JSON)
+                cfAuthenticatedResource.path(resourceChannels).path(this.pxmlChannel.getName()).type(MediaType.APPLICATION_JSON)
                         .put(mapper.writeValueAsString(this.pxmlChannel));
             } catch (JsonProcessingException e) {
                 log.log(Level.WARNING, "Failed to process the list of channel ", e);
@@ -486,7 +494,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
                 mapper.writeValue(out, this.pxmlchannels);
                 final byte[] data = ((ByteArrayOutputStream) out).toByteArray();
                 String test = new String(data);
-                service.path(resourceChannels).type(MediaType.APPLICATION_JSON).put(test);
+                cfAuthenticatedResource.path(resourceChannels).type(MediaType.APPLICATION_JSON).put(test);
             } catch (JsonParseException | JsonMappingException e) {
                 log.log(Level.WARNING, "Failed to process the list of channels ", e);
             } catch ( IOException e) {
@@ -574,7 +582,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         public void run() {
             ObjectMapper mapper = new ObjectMapper();
             try {
-                service.path(resourceTags).path(this.pxmlTag.getName()).type(MediaType.APPLICATION_JSON)
+                cfAuthenticatedResource.path(resourceTags).path(this.pxmlTag.getName()).type(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON).put(mapper.writeValueAsString(this.pxmlTag));
             } catch (JsonProcessingException e) {
                 log.log(Level.WARNING, "Failed to process the list of tags ", e);
@@ -671,7 +679,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         @Override
         public void run() {
             try {
-                service.path(resourceProperties).path(this.pxmlProperty.getName()).type(MediaType.APPLICATION_JSON)
+                cfAuthenticatedResource.path(resourceProperties).path(this.pxmlProperty.getName()).type(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON).put(mapper.writeValueAsString(this.pxmlProperty));
             } catch (JsonProcessingException e) {
                 log.log(Level.WARNING, "Failed to process the list of properties ", e);
@@ -701,7 +709,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         @Override
         public void run() {
             try {
-                service.path(resourceChannels)
+                cfAuthenticatedResource.path(resourceChannels)
                        .path(this.channel.getName())
                        .type(MediaType.APPLICATION_JSON)
                        .post(mapper.writeValueAsString(this.channel));
@@ -770,7 +778,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         @Override
         public void run() {
             try {
-                service.path(resourceTags).path(this.pxmlTag.getName()).type(MediaType.APPLICATION_JSON)
+                cfAuthenticatedResource.path(resourceTags).path(this.pxmlTag.getName()).type(MediaType.APPLICATION_JSON)
                         .post(mapper.writeValueAsString(this.pxmlTag));
             } catch (UniformInterfaceException e) {
                 throw new ChannelFinderException(e);
@@ -814,7 +822,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         @Override
         public void run() {
             try {
-                service.path(resourceProperties)
+                cfAuthenticatedResource.path(resourceProperties)
                        .path(this.pxmlProperty.getName())
                        .type(MediaType.APPLICATION_JSON)
                        .put(mapper.writeValueAsString(this.pxmlProperty));
@@ -885,7 +893,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         @Override
         public void run() {
             try {
-                service.path(resourceProperties).path(this.pxmlProperty.getName()).type(MediaType.APPLICATION_JSON)
+                cfAuthenticatedResource.path(resourceProperties).path(this.pxmlProperty.getName()).type(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON).post(mapper.writeValueAsString(this.pxmlProperty));
             } catch (UniformInterfaceException e) {
                 throw new ChannelFinderException(e);
@@ -1035,7 +1043,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
             List<XmlChannel> xmlchannels = new ArrayList<XmlChannel>();
             long start = System.currentTimeMillis();
             try {
-                xmlchannels = mapper.readValue(service.path(resourceChannels).queryParams(this.map)
+                xmlchannels = mapper.readValue(cfResource.path(resourceChannels).queryParams(this.map)
                         .accept(MediaType.APPLICATION_JSON).get(String.class), new TypeReference<List<XmlChannel>>() {
                         });
             } catch (Exception e) {
@@ -1142,7 +1150,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
         @Override
         public void run() {
-            service.path(elementType).path(elementName).delete();
+            cfAuthenticatedResource.path(elementType).path(elementName).delete();
         }
 
     }
@@ -1237,7 +1245,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         @Override
         public void run()
         {
-            service.path(this.elementType).path(this.elementName).path(this.channelName)
+            cfAuthenticatedResource.path(this.elementType).path(this.elementName).path(this.channelName)
                     .accept(MediaType.APPLICATION_JSON).delete();
         }
 
@@ -1300,7 +1308,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         List<XmlChannel> xmlchannels = new ArrayList<XmlChannel>();
         try {
             xmlchannels = mapper.readValue(
-                    service.path(resourceChannels).accept(MediaType.APPLICATION_JSON).get(String.class),
+                    cfAuthenticatedResource.path(resourceChannels).accept(MediaType.APPLICATION_JSON).get(String.class),
                     new TypeReference<List<XmlChannel>>() {
                     });
         } catch (JsonParseException | JsonMappingException e) {
