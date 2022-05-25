@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -95,6 +95,10 @@ public class DataBrowserWidget extends MacroWidget
     /** 'open_full' */
     public static final WidgetPropertyDescriptor<Instant> runtimePropOpenFull =
             CommonWidgetProperties.newRuntimeEvent("open_full", "Open Full Data Browser");
+
+    /** 'refresh_plot' */
+    public static final WidgetPropertyDescriptor<Instant> runtimePropRefreshPlot =
+            CommonWidgetProperties.newRuntimeEvent("refresh_plot", "Refresh Plot");
 
     private volatile WidgetProperty<Boolean> show_toolbar;
     private volatile WidgetProperty<String> file;

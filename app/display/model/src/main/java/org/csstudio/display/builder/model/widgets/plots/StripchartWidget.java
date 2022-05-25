@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -436,6 +436,7 @@ public class StripchartWidget extends VisibleWidget
     private volatile ArrayWidgetProperty<TraceWidgetProperty> traces;
     private volatile RuntimeEventProperty configure;
     private volatile RuntimeEventProperty open_full;
+    private volatile RuntimeEventProperty refresh_plot;
 
     /** Constructor */
     public StripchartWidget()
@@ -467,6 +468,7 @@ public class StripchartWidget extends VisibleWidget
         properties.add(traces = propTraces.createProperty(this, Arrays.asList(new TraceWidgetProperty(this, 0))));
         properties.add(configure = (RuntimeEventProperty) runtimePropConfigure.createProperty(this, null));
         properties.add(open_full = (RuntimeEventProperty) DataBrowserWidget.runtimePropOpenFull.createProperty(this, null));
+        properties.add(refresh_plot = (RuntimeEventProperty) DataBrowserWidget.runtimePropRefreshPlot.createProperty(this, null));
     }
 
     @Override
@@ -577,5 +579,11 @@ public class StripchartWidget extends VisibleWidget
     public RuntimeEventProperty runtimePropOpenDataBrowser()
     {
         return open_full;
+    }
+
+    /** @return 'refresh_plot' property */
+    public RuntimeEventProperty runtimePropRefreshPlot()
+    {
+        return refresh_plot;
     }
 }

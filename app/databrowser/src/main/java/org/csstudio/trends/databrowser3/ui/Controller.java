@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -589,6 +589,20 @@ public class Controller
         {
             logger.log(Level.WARNING, "Error in Plot refresh timer", ex);
         }
+    }
+
+    /** Clear live samples, re-fetch archived data */
+    public void refresh()
+    {
+        // Clear live data buffer of PVs
+        for (ModelItem item : model.getItems())
+            if (item instanceof PVItem)
+            {
+                final PVItem pv = (PVItem) item;
+                pv.getSamples().clear();
+            }
+        // Re-fetch archived data
+        scheduleArchiveRetrieval();
     }
 
     /** Stop scrolling and model items

@@ -20,6 +20,7 @@ public class Messages
                          OpenInEditor,
                          PrintImage,
                          PrintPlot,
+                         Refresh,
                          ReloadDisplay,
                          SaveImageSnapshot,
                          SavePlotSnapshot,

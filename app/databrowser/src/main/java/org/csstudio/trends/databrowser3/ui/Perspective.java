@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -185,7 +185,7 @@ public class Perspective extends SplitPane
             showBottomTab(waveform_tab);
         });
         final MenuItem refresh = new MenuItem(Messages.Refresh, Activator.getIcon("refresh_remote"));
-        refresh.setOnAction(event -> controller.scheduleArchiveRetrieval());
+        refresh.setOnAction(event -> controller.refresh());
 
         final ContextMenu menu = new ContextMenu();
         final ObservableList<MenuItem> items = menu.getItems();
