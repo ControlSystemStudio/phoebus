@@ -39,6 +39,20 @@ public class StripchartWidgetRuntime  extends WidgetRuntime<StripchartWidget>
         }
     }
 
+    private class RefreshPlotAction extends RuntimeAction
+    {
+        RefreshPlotAction()
+        {
+            super(Messages.Refresh, "/icons/refresh_remote.png");
+        }
+
+        @Override
+        public void run()
+        {
+            widget.runtimePropRefreshPlot().trigger();
+        }
+    }
+
     private final List<RuntimeAction> runtime_actions = new ArrayList<>(3);
 
     @Override
@@ -50,6 +64,7 @@ public class StripchartWidgetRuntime  extends WidgetRuntime<StripchartWidget>
         runtime_actions.add(new OpenDataBrowserAction());
         runtime_actions.add(new PrintWidgetAction(widget, Messages.PrintPlot));
         runtime_actions.add(new SaveWidgetSnapshotAction(widget, Messages.SavePlotSnapshot));
+        runtime_actions.add(new RefreshPlotAction());
     }
 
     @Override
