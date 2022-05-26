@@ -73,6 +73,21 @@ expand *Show Details* and select *System Properties* tab:
 
 .. image:: images/system_properties.png
 
+
+Default Values
+==============
+
+When using a macro as in **$(macro_name)** and the value for **macro_name** is not defined,
+the result will be an empty string.
+The syntax **$(macro_name=default_value)** can be used to yield the text **default_value**
+unless **macro_name** has a defined value.
+
+One use case for default macro values are displays that allow standalone tests.
+When a display with **$(pv=sim://sine)** is executed with a value for the **pv** macro,
+that value will be used, but the display can also be opened "standalone" and will then use
+the default value of **sim://sine**.
+
+
 General Remark
 ==============
 
