@@ -22,8 +22,10 @@ fi
 
 config=$1
 
+# ...State was used earlier.
+# With recent setups, you might get a "... does not exist" error which can be ignored
 for topic in "$1" "${1}State" "${1}Command" "${1}Talk"
 do
-    kafka/bin/kafka-topics.sh  --zookeeper localhost:2181 --delete --topic $topic
+    kafka/bin/kafka-topics.sh  --bootstrap-server localhost:9092 --delete --topic $topic
 done
 
