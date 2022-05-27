@@ -225,7 +225,7 @@ class ChannelSearch
             // If search for channel has settled to the long period, restart
             final int count = searched.search_counter.updateAndGet(val -> val >= MAX_SEARCH_RESET ? BOOST_SEARCH_COUNT : val);
             if (count == BOOST_SEARCH_COUNT)
-                logger.log(Level.FINE, () -> "Restart search for " + searched.channel.getName());
+                logger.log(Level.FINE, () -> "Restart search for '" + searched.channel.getName() + "'");
 
             // Not sending search right now:
             //   search(channel);

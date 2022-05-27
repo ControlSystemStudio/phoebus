@@ -17,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.epics.pva.PVASettings;
 import org.epics.pva.server.Guid;
 
 /** Track received beacons
@@ -71,17 +72,23 @@ public class BeaconTracker
                 period = Duration.between(last, now).getSeconds();
             last = now;
 
-            // Simply seeing an old server for the first time is no reason
-            // to re-start searches.
-            // Long running servers will only emit beacons every 3 minutes.
-            // By the time we confirm that it's a 3 minute period (i.e. after 6 minutes),
-            // we have long re-sent the initial burst of searches.
-            // Is this a newly started server..
-            final boolean is_new_server = period > 0  &&  period < 30;
+            // Is this a server we see for the first time (period 0)
+            // or one started recently (period ~15 sec)?
+            final boolean is_new_server = period >= PVASettings.EPICS_PVA_FAST_BEACON_MIN  &&
+                                          period  < PVASettings.EPICS_PVA_FAST_BEACON_MAX;
             // .. and we see it for the first time?
-            final boolean was_new_server = previous_period > 0  &&  previous_period < 30;
+            final boolean was_new_server = previous_period > 0  &&
+                                           previous_period < PVASettings.EPICS_PVA_FAST_BEACON_MAX;
             previous_period = period;
             // -> That would be a reason to re-start searches
+            //
+            // Servers we see for the first time (period 0) may in fact be
+            // long running servers that only send beacons every 180 s.
+            // They will be reported as "new", but this happens likely
+            // when we just started searching for a channel,
+            // so its search interval has not settled, yet, and will
+            // thus not be 'boosted', avoiding an early burst of searches
+            // as we see each server's beacons for the first time.
             return is_new_server  && !was_new_server;
         }
     }
@@ -114,7 +121,7 @@ public class BeaconTracker
         // Does period indicate a new server?
         boolean something_changed = info.updatePeriod(now);
         if (something_changed && detail != null)
-            detail += " (new fast period)";
+            detail += info.period <= 0 ? " (new beacon)" : " (fast period)";
         // Does server report from new address?
         if (! server.equals(info.address))
         {
@@ -134,7 +141,7 @@ public class BeaconTracker
 
         // Periodically remove old beacon infos
         final long table_age = Duration.between(last_cleanup, now).getSeconds();
-        if (table_age > 100) // TODO beacon_cleanup_period
+        if (table_age > PVASettings.EPICS_PVA_MAX_BEACON_AGE)
         {
             removeOldBeaconInfo(now);
             last_cleanup = now;
