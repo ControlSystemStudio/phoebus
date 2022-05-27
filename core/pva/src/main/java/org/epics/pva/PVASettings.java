@@ -178,7 +178,7 @@ public class PVASettings
      *  Newly started servers send beacons every ~15 seconds.
      *  After about 5 minutes they relax the beacon period to ~180 seconds.
      *
-     *  <p>The criteria for restarting searches is min &lt;= period &lt max.
+     *  <p>The criteria for restarting searches is min &lt;= period &lt; max.
      *  A min..max range of 0..30 recognizes the initial and ~15 second beacons
      *  as new.
      *  A range of 1..30 would ignore the initial beacon but re-start searches

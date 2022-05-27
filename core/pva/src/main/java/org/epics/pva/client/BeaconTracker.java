@@ -102,7 +102,7 @@ public class BeaconTracker
     /** Check if a received beacon indicates a new server landscape
      *  @param guid  Globally unique ID of the server
      *  @param server Server that sent a beacon
-     *  @param changes Change count, increments & rolls over as server has different channels
+     *  @param changes Change count, increments and rolls over as server adds new channels
      *
      *  @return Should we restart searches for unresolved PVs?
      */
