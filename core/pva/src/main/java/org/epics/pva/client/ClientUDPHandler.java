@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -27,8 +27,9 @@ import org.epics.pva.common.SearchResponse;
 import org.epics.pva.common.UDPHandler;
 import org.epics.pva.data.Hexdump;
 import org.epics.pva.data.PVAAddress;
-import org.epics.pva.data.PVAFieldDesc;
+import org.epics.pva.data.PVAData;
 import org.epics.pva.data.PVAString;
+import org.epics.pva.data.PVATypeRegistry;
 import org.epics.pva.server.Guid;
 
 /** Sends and receives search replies, monitors beacons
@@ -235,11 +236,26 @@ class ClientUDPHandler extends UDPHandler
             return false;
         }
 
-        final byte server_status_desc = buffer.get();
-        if (server_status_desc != PVAFieldDesc.NULL_TYPE_CODE)
-            logger.log(Level.WARNING, "PVA Server " + from + " sent beacon with server status field description");
-
-        logger.log(Level.FINE, () -> "Received Beacon #" + sequence + " from " + server + " " + guid + ", " + changes + " changes");
+        try
+        {
+            // Decode optional server status (likely null)
+            final PVATypeRegistry types = new PVATypeRegistry();
+            final PVAData server_status = types.decodeType("", buffer);
+            if (server_status != null)
+                server_status.decode(types, buffer);
+            logger.log(Level.FINE, () ->
+            {
+                return "Received Beacon #" + sequence + " from " + server + " " +
+                        guid +
+                        ", version " + version + ", " +
+                        changes + " changes" +
+                        (server_status == null ? "" : ", status " + server_status);
+            });
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "PVA Server " + from + " sent beacon with broken server status", ex);
+        }
         beacon_handler.handleBeacon(server, guid, changes);
 
         return true;
