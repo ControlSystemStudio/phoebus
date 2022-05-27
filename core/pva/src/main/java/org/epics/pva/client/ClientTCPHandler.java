@@ -20,7 +20,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 import org.epics.pva.PVASettings;
@@ -62,8 +61,6 @@ class ClientTCPHandler extends TCPHandler
 
     /** Server's GUID */
     private volatile Guid guid;
-
-    private final AtomicInteger server_changes = new AtomicInteger(-1);
 
     /** Description of data types used with this PVA server */
     private final PVATypeRegistry types = new PVATypeRegistry();
@@ -179,15 +176,7 @@ class ClientTCPHandler extends TCPHandler
         return false;
     }
 
-    /** Check if the server's beacon indicates changes
-     *  @param changes Change counter from beacon
-     *  @return <code>true</code> if this suggests new channels on the server
-     */
-    public boolean checkBeaconChanges(final int changes)
-    {
-        return server_changes.getAndSet(changes) != changes;
-    }
-
+    /** @return {@link PVATypeRegistry} for this TCP connection */
     public PVATypeRegistry getTypeRegistry()
     {
         return types;

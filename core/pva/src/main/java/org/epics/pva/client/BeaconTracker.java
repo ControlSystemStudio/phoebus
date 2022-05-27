@@ -75,7 +75,7 @@ public class BeaconTracker
             // to re-start searches.
             // Long running servers will only emit beacons every 3 minutes.
             // By the time we confirm that it's a 3 minute period (i.e. after 6 minutes),
-            // we have long re-sent the initial burst of searches.            
+            // we have long re-sent the initial burst of searches.
             // Is this a newly started server..
             final boolean is_new_server = period > 0  &&  period < 30;
             // .. and we see it for the first time?
@@ -107,7 +107,7 @@ public class BeaconTracker
                       : null;
 
         final Instant now = Instant.now();
-        
+
         // Locate or create beacon info for that GUID
         final BeaconInfo info = beacons.computeIfAbsent(guid, s -> new BeaconInfo(guid, server, changes));
 
@@ -141,7 +141,7 @@ public class BeaconTracker
         }
         // Log detail, if available
         if (detail != null)
-            logger.log(Level.FINE, "Beacon check\n" + getTable(now, info.guid, detail));
+            logger.log(Level.FINE, "Beacon update\n" + getTable(now, info.guid, detail));
 
         // Search or not?
         return something_changed;
@@ -157,7 +157,7 @@ public class BeaconTracker
             final long age = Duration.between(info.last, now).getSeconds();
             if (age > 180) // TODO beacon_cleanup_period
             {
-                logger.log(Level.FINE,
+                logger.log(Level.FINER,
                            () -> "Removing beacon info " + info.guid + " (" + info.address + "), last seen " + age + " seconds ago");
                 infos.remove();
             }

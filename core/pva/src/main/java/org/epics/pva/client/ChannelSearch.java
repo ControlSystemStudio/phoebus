@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -222,8 +222,11 @@ class ChannelSearch
     {
         for (SearchedChannel searched : searched_channels.values())
         {
-            logger.log(Level.FINE, () -> "Restart search for " + searched.channel.getName());
-            searched.search_counter.set(BOOST_SEARCH_COUNT);
+            // If search for channel has settled to the long period, restart
+            final int count = searched.search_counter.updateAndGet(val -> val >= MAX_SEARCH_RESET ? BOOST_SEARCH_COUNT : val);
+            if (count == BOOST_SEARCH_COUNT)
+                logger.log(Level.FINE, () -> "Restart search for " + searched.channel.getName());
+
             // Not sending search right now:
             //   search(channel);
             // Instead, scheduling it to be searched again real soon for a few times.

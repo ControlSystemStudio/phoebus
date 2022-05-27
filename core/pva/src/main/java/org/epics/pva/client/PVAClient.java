@@ -48,6 +48,8 @@ public class PVAClient implements AutoCloseable
 
     private final ClientUDPHandler udp;
 
+    private final BeaconTracker beacons = new BeaconTracker();
+
     final ChannelSearch search;
 
     private final ConcurrentHashMap<Guid, ServerInfo> list_replies = new ConcurrentHashMap<>();
@@ -201,8 +203,6 @@ public class PVAClient implements AutoCloseable
         tcp.removeChannel(channel);
     }
 
-    private final BeaconTracker beacons = new BeaconTracker();
-
     /** {@link BeaconHandler}
      *
      *  @param server Server that sent a beacon
@@ -211,29 +211,9 @@ public class PVAClient implements AutoCloseable
      */
     private void handleBeacon(final InetSocketAddress server, final Guid guid, final int changes)
     {
-        final ClientTCPHandler tcp = tcp_handlers.get(server);
-        if (tcp == null)
-        {
-            // TODO Check if we've seen that server before via size-limited map,
-            // https://github.com/epics-base/pvAccessCPP/issues/184
-            logger.log(Level.FINER, () -> "Beacon from new server " + server);
-
-
-            beacons.check(guid, server, changes);
-        }
-        else
-        {
-            if (tcp.checkBeaconChanges(changes))
-                logger.log(Level.FINER, () -> "Beacon from " + server + " indicates changes");
-            else if (! tcp.getGuid().equals(guid))
-                logger.log(Level.FINER, () -> "Beacon from " + server +
-                                              " has new GUID " + guid +
-                                              " (was " + tcp.getGuid() + ")");
-            else
-                return;
-        }
-        // Beacon indicates changes or new GUID, so re-search missing channels
-        search.boost();
+        // Does beacon suggest re-search of missing channels?
+        if (beacons.check(guid, server, changes))
+            search.boost();
     }
 
     void handleSearchResponse(final int channel_id, final InetSocketAddress server, final int version, final Guid guid)
