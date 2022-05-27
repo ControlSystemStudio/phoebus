@@ -13,6 +13,8 @@ import static org.epics.pva.PVASettings.logger;
 import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
@@ -56,11 +58,11 @@ public class BeaconTracker
         }
 
         /** Update beacon period because we just received another one
+         *  @param now Time for which to update the beacon period
          *  @return Does this indicate a "new" beacon?
          */
-        boolean updatePeriod()
+        boolean updatePeriod(final Instant now)
         {
-            final Instant now = Instant.now();
             if (last == null)
                 period = 0;
             else
@@ -77,6 +79,7 @@ public class BeaconTracker
     }
 
     private final ConcurrentHashMap<Guid, BeaconInfo> beacons = new ConcurrentHashMap<>();
+    private Instant last_cleanup = Instant.now();
 
     /** Check if a received beacon indicates a new server landscape
      *  @param guid  Globally unique ID of the server
@@ -93,7 +96,9 @@ public class BeaconTracker
 
         final BeaconInfo info = beacons.computeIfAbsent(guid, s -> new BeaconInfo(guid, server, changes));
 
-        boolean something_changed = info.updatePeriod();
+        final Instant now = Instant.now();
+
+        boolean something_changed = info.updatePeriod(now);
         if (something_changed && detail != null)
             detail += " (new fast period)";
         if (! server.equals(info.address))
@@ -111,28 +116,52 @@ public class BeaconTracker
             something_changed = true;
         }
 
+        final long table_age = Duration.between(last_cleanup, now).getSeconds();
+        if (table_age > 100) // TODO beacon_cleanup_period
+        {
+            removeOldBeaconInfo(now);
+            last_cleanup = now;
+        }
         if (detail != null)
-            logger.log(Level.SEVERE, "Beacon check\n" + getTable(info.guid, detail));
+            logger.log(Level.SEVERE, "Beacon check\n" + getTable(now, info.guid, detail));
 
         // Search or not?
         return something_changed;
     }
 
-    // TODO Delete old beacon info
+    /** Delete old beacon info */
+    private void removeOldBeaconInfo(final Instant now)
+    {
+        final Iterator<Entry<Guid, BeaconInfo>> infos = beacons.entrySet().iterator();
+        while (infos.hasNext())
+        {
+            final BeaconInfo info = infos.next().getValue();
+            final long age = Duration.between(info.last, now).getSeconds();
+            if (age > 180) // TODO beacon_cleanup_period
+            {
+                logger.log(Level.SEVERE,
+                           () -> "Removing beacon info " + info.guid + " (" + info.address + "), last seen " + age + " seconds ago");
+                infos.remove();
+            }
+        }
+    }
 
-    /** @param active ID of server that just sent a beacon or <code>null</code> if nothing new
+    /** @param now Current time
+     *  @param active ID of server that just sent a beacon or <code>null</code> if nothing new
      *  @param detail Detail of what's new or <code>null</code> if nothing new
      *  @return Tabular list of beacons, optionally highlighting the 'active' server with 'detail'
      */
-    private String getTable(final Guid active, final String detail)
+    private String getTable(final Instant now, final Guid active, final String detail)
     {
         final StringBuilder buf = new StringBuilder();
-        buf.append("GUID                     IP                              Changes Period\n");
+        buf.append("GUID                     IP                                    Age Changes Period\n");
         for (BeaconInfo info : beacons.values())
         {
-            buf.append(String.format("%s %-35s %3d %4d s",
+            final long age = Duration.between(info.last, now).getSeconds();
+            buf.append(String.format("%s %-35s %3d s  %3d    %4d s",
                                      info.guid.asText(),
                                      info.address,
+                                     age,
                                      info.changes,
                                      info.period));
             if (info.guid.equals(active))
@@ -146,6 +175,6 @@ public class BeaconTracker
     @Override
     public String toString()
     {
-        return getTable(null, null);
+        return getTable(Instant.now(), null, null);
     }
 }
