@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,13 +12,20 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 
 import org.epics.pva.PVASettings;
 import org.epics.pva.data.PVAData;
 
-/** Command line tool to read/write PV
+/** Command line tool for PVA client
+ *
+ *  May be called as
+ *    java -cp core-pva.jar org.epics.pva.client.PVAClientMain
+ *  or from Phoebus product via
+ *    phoebus.sh -main org.epics.pva.client.PVAClientMain
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -29,7 +36,7 @@ public class PVAClientMain
 
     private static void help()
     {
-        System.out.println("USAGE: pvaclient info|get|monitor|put [options] <PV name>...");
+        System.out.println("USAGE: pvaclient info|get|monitor|put|beacons [options] <PV name>...");
         System.out.println();
         System.out.println("Options:");
         System.out.println("  -h             Help");
@@ -39,7 +46,11 @@ public class PVAClientMain
         System.out.println("  -v <level>     Verbosity, level 0-5");
         System.out.println("  --             End of options (to allow '-- put some_pv -100')");
         System.out.println();
-        System.out.println("For 'put', use <PV name> <value>");
+        System.out.println("info    <PV name>          Display PV info");
+        System.out.println("get     <PV name>          Read PV's value");
+        System.out.println("monitor <PV name>          Subscribe to PV's value changes");
+        System.out.println("put     <PV name> <value>  Write value to PV");
+        System.out.println("beacons                    Display received beacons");
     }
 
     private static void setLogLevel(final Level level)
@@ -209,6 +220,24 @@ public class PVAClientMain
         }
     }
 
+    /** Watch received beacons
+     *  @throws Exception on error
+     */
+    private static void beacons() throws Exception
+    {
+        BeaconTracker.logger.setLevel(Level.ALL);
+        for (Handler handler : BeaconTracker.logger.getHandlers())
+            handler.setLevel(Level.ALL);
+        BeaconTracker.logger.log(Level.INFO, "Logging received beacons");
+
+        final CountDownLatch done = new CountDownLatch(1);
+        try (final PVAClient pva = new PVAClient())
+        {
+            // Wait forever
+            done.await();
+        }
+    }
+
     /** @param args Command line args
      *  @throws Exception on error
      */
@@ -277,7 +306,7 @@ public class PVAClientMain
                 names.add(arg);
         }
 
-        if (names.size() < 2)
+        if (names.size() < 1)
         {
             help();
             return;
@@ -285,11 +314,13 @@ public class PVAClientMain
 
         final String command = names.remove(0);
 
-        if (command.equals("info"))
+        if (command.equals("beacons") && names.size() == 0)
+            beacons();
+        else if (command.equals("info") && names.size() > 0)
             info(names);
-        else if (command.equals("get"))
+        else if (command.equals("get") && names.size() > 0)
             get(names);
-        else if (command.equals("monitor"))
+        else if (command.equals("monitor") && names.size() > 0)
             monitor(names);
         else if (command.equals("put") && names.size() == 2)
         {

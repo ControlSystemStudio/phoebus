@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,6 +19,7 @@ import java.util.function.Function;
 import java.util.logging.Level;
 
 import org.epics.pva.PVASettings;
+import org.epics.pva.client.ClientUDPHandler.BeaconHandler;
 import org.epics.pva.common.AddressInfo;
 import org.epics.pva.common.Network;
 import org.epics.pva.server.Guid;
@@ -200,11 +201,26 @@ public class PVAClient implements AutoCloseable
         tcp.removeChannel(channel);
     }
 
+    private final BeaconTracker beacons = new BeaconTracker();
+
+    /** {@link BeaconHandler}
+     *
+     *  @param server Server that sent a beacon
+     *  @param guid  Globally unique ID of the server
+     *  @param changes Change count, increments & rolls over as server has different channels
+     */
     private void handleBeacon(final InetSocketAddress server, final Guid guid, final int changes)
     {
         final ClientTCPHandler tcp = tcp_handlers.get(server);
         if (tcp == null)
+        {
+            // TODO Check if we've seen that server before via size-limited map,
+            // https://github.com/epics-base/pvAccessCPP/issues/184
             logger.log(Level.FINER, () -> "Beacon from new server " + server);
+
+
+            beacons.check(guid, server, changes);
+        }
         else
         {
             if (tcp.checkBeaconChanges(changes))

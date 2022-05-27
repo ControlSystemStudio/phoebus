@@ -8,8 +8,6 @@
 
 package org.epics.pva.client;
 
-import static org.epics.pva.PVASettings.logger;
-
 import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.time.Instant;
@@ -17,6 +15,7 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.epics.pva.server.Guid;
 
@@ -26,6 +25,9 @@ import org.epics.pva.server.Guid;
 @SuppressWarnings("nls")
 public class BeaconTracker
 {
+    /** Logger for beacon info */
+    public static final Logger logger = Logger.getLogger(BeaconTracker.class.getPackage().getName());
+
     /** Info about one tracked beacon
      *
      *  Server is identified by GUID
@@ -69,16 +71,25 @@ public class BeaconTracker
                 period = Duration.between(last, now).getSeconds();
             last = now;
 
+            // Simply seeing an old server for the first time is no reason
+            // to re-start searches.
+            // Long running servers will only emit beacons every 3 minutes.
+            // By the time we confirm that it's a 3 minute period (i.e. after 6 minutes),
+            // we have long re-sent the initial burst of searches.            
             // Is this a newly started server..
             final boolean is_new_server = period > 0  &&  period < 30;
             // .. and we see it for the first time?
             final boolean was_new_server = previous_period > 0  &&  previous_period < 30;
             previous_period = period;
+            // -> That would be a reason to re-start searches
             return is_new_server  && !was_new_server;
         }
     }
 
+    /** Map of server IDs to beacon info */
     private final ConcurrentHashMap<Guid, BeaconInfo> beacons = new ConcurrentHashMap<>();
+
+    /** Last time the 'beacons' were cleaned of orphaned entries */
     private Instant last_cleanup = Instant.now();
 
     /** Check if a received beacon indicates a new server landscape
@@ -90,17 +101,21 @@ public class BeaconTracker
      */
     public boolean check(final Guid guid, final InetSocketAddress server, final int changes)
     {
-        String detail = logger.isLoggable(Level.SEVERE)
+        // Only assemble detail of new beacon if FINE logging is enabled
+        String detail = logger.isLoggable(Level.FINE)
                       ? " *"
                       : null;
 
+        final Instant now = Instant.now();
+        
+        // Locate or create beacon info for that GUID
         final BeaconInfo info = beacons.computeIfAbsent(guid, s -> new BeaconInfo(guid, server, changes));
 
-        final Instant now = Instant.now();
-
+        // Does period indicate a new server?
         boolean something_changed = info.updatePeriod(now);
         if (something_changed && detail != null)
             detail += " (new fast period)";
+        // Does server report from new address?
         if (! server.equals(info.address))
         {
             if (detail != null)
@@ -108,6 +123,7 @@ public class BeaconTracker
             info.address = server;
             something_changed = true;
         }
+        // Does server report that it might have new channels?
         if (changes != info.changes)
         {
             if (detail != null)
@@ -116,14 +132,16 @@ public class BeaconTracker
             something_changed = true;
         }
 
+        // Periodically remove old beacon infos
         final long table_age = Duration.between(last_cleanup, now).getSeconds();
         if (table_age > 100) // TODO beacon_cleanup_period
         {
             removeOldBeaconInfo(now);
             last_cleanup = now;
         }
+        // Log detail, if available
         if (detail != null)
-            logger.log(Level.SEVERE, "Beacon check\n" + getTable(now, info.guid, detail));
+            logger.log(Level.FINE, "Beacon check\n" + getTable(now, info.guid, detail));
 
         // Search or not?
         return something_changed;
@@ -139,7 +157,7 @@ public class BeaconTracker
             final long age = Duration.between(info.last, now).getSeconds();
             if (age > 180) // TODO beacon_cleanup_period
             {
-                logger.log(Level.SEVERE,
+                logger.log(Level.FINE,
                            () -> "Removing beacon info " + info.guid + " (" + info.address + "), last seen " + age + " seconds ago");
                 infos.remove();
             }
@@ -172,6 +190,7 @@ public class BeaconTracker
         return buf.toString();
     }
 
+    /** @return String representation */
     @Override
     public String toString()
     {
