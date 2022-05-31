@@ -79,12 +79,15 @@ class ServerModel
 
     /** @param kafka_servers Servers
      *  @param config_name Name of alarm tree root
-     * @param initial_states
+     *  @param initial_states
+     *  @param listener
+     *  @param kafka_properties_file Additional properties to pass to the kafka client
      *  @throws Exception on error
      */
     public ServerModel(final String kafka_servers, final String config_name,
                        final ConcurrentHashMap<String, ClientState> initial_states,
-                       final ServerModelListener listener) throws Exception
+                       final ServerModelListener listener,
+                       final String kafka_properties_file) throws Exception
     {
         this.initial_states = initial_states;
         // initial_states.entrySet().forEach(state ->
@@ -99,8 +102,9 @@ class ServerModel
 
         consumer = KafkaHelper.connectConsumer(Objects.requireNonNull(kafka_servers),
                                                List.of(config_state_topic, command_topic),
-                                               List.of(config_state_topic));
-        producer = KafkaHelper.connectProducer(kafka_servers);
+                                               List.of(config_state_topic),
+                                               kafka_properties_file);
+        producer = KafkaHelper.connectProducer(kafka_servers, kafka_properties_file);
 
         thread = new Thread(this::run, "ServerModel");
         thread.setDaemon(true);
