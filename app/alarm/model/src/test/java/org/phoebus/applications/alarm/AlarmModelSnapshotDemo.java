@@ -24,7 +24,7 @@ public class AlarmModelSnapshotDemo
 	public void testAlarmModelWriter() throws Exception
 	{
 	    // Get alarm configuration
-	    final AlarmClient client = new AlarmClient(AlarmDemoSettings.SERVERS, AlarmDemoSettings.ROOT);
+	    final AlarmClient client = new AlarmClient(AlarmDemoSettings.SERVERS, AlarmDemoSettings.ROOT, AlarmDemoSettings.KAFKA_PROPERTIES_FILE);
 
 	    System.out.println("Wait for stable configuration, i.e. no changes for 4 seconds...");
 

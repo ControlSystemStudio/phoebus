@@ -24,7 +24,7 @@ public class AlarmTableDemo extends ApplicationWrapper
     @Override
     public void start(final Stage stage) throws Exception
     {
-        final AlarmClient client = new AlarmClient(AlarmSystem.server, AlarmSystem.config_name);
+        final AlarmClient client = new AlarmClient(AlarmSystem.server, AlarmSystem.config_name, AlarmSystem.kafka_properties);
         final AlarmTableUI table = new AlarmTableUI(client);
         final Scene scene = new Scene(table, 1200, 300);
         stage.setScene(scene);

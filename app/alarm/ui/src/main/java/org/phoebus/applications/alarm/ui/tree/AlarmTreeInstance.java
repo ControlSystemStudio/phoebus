@@ -76,7 +76,7 @@ class AlarmTreeInstance implements AppInstance
 
         try
         {
-            client = new AlarmClient(server, config_name);
+            client = new AlarmClient(server, config_name, AlarmSystem.kafka_properties);
             final AlarmTreeView tree_view = new AlarmTreeView(client);
             client.start();
 

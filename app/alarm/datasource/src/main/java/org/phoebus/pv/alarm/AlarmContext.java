@@ -34,7 +34,7 @@ public class AlarmContext
         if (!alarmModels.containsKey(config))
         {
             logger.log(Level.CONFIG, "Creating a alarm client for config : + " + config + " in the alarm datasource");
-            AlarmClient model = new AlarmClient(AlarmSystem.server, config);
+            AlarmClient model = new AlarmClient(AlarmSystem.server, config, AlarmSystem.kafka_properties);
             model.addListener(new AlarmClientDatasourceListener(config));
             model.start();
             alarmModels.put(config, model);

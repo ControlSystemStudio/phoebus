@@ -78,7 +78,7 @@ class AlarmTableInstance implements AppInstance
 
         try
         {
-            client = new AlarmClient(server, config_name);
+            client = new AlarmClient(server, config_name, AlarmSystem.kafka_properties);
             table = new AlarmTableUI(client);
             mediator = new AlarmTableMediator(client, table);
             client.addListener(mediator);

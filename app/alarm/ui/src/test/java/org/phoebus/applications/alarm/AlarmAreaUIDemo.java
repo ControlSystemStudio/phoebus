@@ -23,7 +23,7 @@ public class AlarmAreaUIDemo extends ApplicationWrapper
     @Override
 	public void start(final Stage stage) throws Exception
 	{
-		final AlarmClient client = new AlarmClient("localhost:9092", "Accelerator");
+		final AlarmClient client = new AlarmClient("localhost:9092", "Accelerator", "");
 
         final AlarmAreaView area_view = new AlarmAreaView(client);
         final Scene scene = new Scene(area_view, 600, 800);
