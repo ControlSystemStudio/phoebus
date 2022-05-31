@@ -30,6 +30,7 @@ public class AggregateTopics
     private Logger logger = Logger.getLogger(this.getClass().getPackageName());
     private String kafka_servers = "localhost:9092";
     private String config = "Accelerator";
+    private String kafka_properties = "";
     private final String longTerm;
     private boolean createTopic = false;
     private final List<String> topics;
@@ -43,7 +44,7 @@ public class AggregateTopics
         if (createTopic)
         {
             logger.info("Discovering and creating topics in " + topics.toString());
-            CreateTopics.discoverAndCreateTopics(kafka_servers, false, List.of(longTerm));
+            CreateTopics.discoverAndCreateTopics(kafka_servers, false, List.of(longTerm), kafka_properties);
         }
 
         logger.info("server:\"" + kafka_servers + "\", config: \"" + config + "\"");
@@ -84,6 +85,7 @@ public class AggregateTopics
         System.out.println("\t-server server_name: Allows specification of server address.\n\t\tDefault is \"localhost:9092\".");
         System.out.println("\t-confg config_name: Allows specification of config name.\n\t\tDefault is \"Accelerator\".");
         System.out.println("\t-create : Discovers if the config + \"LongTerm\" topic already exists. If it does not, it creates it.");
+        System.out.println("\t-kafka_properties kafka_properties_file : File to load kafka-client properties from.");
         System.exit(0);
     }
 
@@ -129,6 +131,18 @@ public class AggregateTopics
                         throw new Exception("'-config' must be followed by a config name.");
                     }
                 }
+                else if (arg.equals("-kafka_properties"))
+                {
+                    String next;
+                    if (token.hasNext() && ! (next = token.next()).startsWith("-"))
+                    {
+                        kafka_properties = next;
+                    }
+                    else
+                    {
+                        throw new Exception("'-kafka_properties' must be followed by a file name.");
+                    }
+                }
                 else
                 {
                     throw new Exception("Unknown argument '" + arg + "'.");
@@ -154,7 +168,8 @@ public class AggregateTopics
     {
         KafkaStreams stream = KafkaHelper.aggregateTopics(kafka_servers,
                 topics,
-                longTerm);
+                longTerm,
+                kafka_properties);
 
         // Log any uncaught exceptions.
         stream.setUncaughtExceptionHandler((Thread thread, Throwable throwable) -> {
